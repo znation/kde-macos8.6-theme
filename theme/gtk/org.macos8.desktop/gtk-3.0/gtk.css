@@ -632,15 +632,17 @@ colorswatch#editor-color-sample overlay {
 }
 
 /* No reference screenshot shows a GTK color chooser's add-color action.
- * GTK 3's installed theme resource declares grey foregrounds here; reuse
- * this sheet's black window foreground. Its stock shadow claims are cleared
- * using the sheet's shadow-free button treatment (adaptation 2026-10-30). */
+ * GTK 3's installed theme resource declares grey foregrounds and borders
+ * here; reuse this sheet's black window foreground and frame border color.
+ * Its stock shadow claims are cleared using the sheet's shadow-free button
+ * treatment (adaptation 2026-10-30). */
 colorswatch#add-color-button overlay,
 colorswatch#add-color-button overlay:hover,
 colorswatch#add-color-button overlay:backdrop,
 colorswatch#add-color-button overlay:backdrop:hover {
   background-image: none;
   box-shadow: none;
+  border-color: #000000;
   color: #000000;
 }
 

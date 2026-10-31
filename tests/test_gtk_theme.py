@@ -1417,12 +1417,32 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             " overlay",
             {
                 **{
-                    selector: {"background-image": "none", "box-shadow": "none", "color": BLACK}
+                    selector: {
+                        "background-image": "none",
+                        "box-shadow": "none",
+                        "border-color": BLACK,
+                        "color": BLACK,
+                    }
                     for selector in selectors
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
                 "colorswatch overlay:hover": {"box-shadow": "none"},
             },
+        )
+
+    def test_add_color_border_colors(self):
+        selectors = (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector]["border-color"], BLACK)
+        self.assertEqual(
+            self.rules[selectors[0]]["border-color"],
+            self.rules["frame > border"]["border"].split()[-1],
         )
 
     def test_color_swatch_hover_shadow(self):

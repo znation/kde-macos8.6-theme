@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: use a black border (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
+
+**Goal.** Give the color chooser's add-color action a neutral black border through normal, hover and backdrop states, replacing the stock warm-grey edges.
+
+**Grounding.** No collected reference shows this GTK action; black is a platform adaptation copied from this sheet's `frame > border, .frame` border, not a new screenshot measurement. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` declares warm-grey border colors on base, hover and backdrop.
+
+**Approach and files.** Added `border-color: #000000` to the existing four-arm add-color overlay group and extended its provenance comment. Added `test_add_color_border_colors`, included the declaration in the exact swatch corner inventory and documented the adaptation in the GTK invariants. Border widths and styles remain toolkit-controlled.
+
+**Acceptance criteria.** The test checks black on all four states and ties the value to the existing frame border color; the exact swatch selector inventory remains explicit. The change adds no fill, width, style, spacing, outline or generic swatch override. GTK 4 stays outside this scope. `make check` passes.
+
 ### Platinum GTK 3 palette swatches: clear the hover overlay bevel (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
 
 **Goal.** Keep the ordinary color swatch overlay flat on hover by clearing its decorative inset shadow, while retaining the chosen color.
