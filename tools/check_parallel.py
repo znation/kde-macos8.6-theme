@@ -17,6 +17,9 @@ if __package__:
     from tools.check_parallel_discovery import (
         DiscoveryError, _log_paths, discover_modules,
     )
+    from tools.check_parallel_order import (
+        cache_path, load_durations, order_modules, save_durations,
+    )
     from tools.check_parallel_results import _plural, _print_results
     from tools.check_parallel_workers import _supervise
     from tools.diagnostics import create_scratch_directory
@@ -27,6 +30,9 @@ else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
     from check_parallel_discovery import (
         DiscoveryError, _log_paths, discover_modules,
+    )
+    from check_parallel_order import (
+        cache_path, load_durations, order_modules, save_durations,
     )
     from check_parallel_results import _plural, _print_results
     from check_parallel_workers import _supervise
@@ -81,6 +87,15 @@ def main(argv: list[str] | None = None) -> int:
     workers = options.workers or min(len(modules), os.cpu_count() or 1)
     print(f"check: -p '{escape_controls(options.pattern)}', "
           f"{_plural(len(modules), 'module')}, {_plural(workers, 'worker')}")
+    # Order the queue by the previous run's recorded durations so the slowest
+    # module starts first, and record this run's for the next one. Both
+    # directions are best-effort: with no readable cache the queue is plain
+    # discovery order, and a cache write failure only names itself on stderr
+    # without touching the run's exit status. A module that never finished
+    # (never spawned, or the run ended mid-flight) records nothing and keeps
+    # discovery order in the next queue.
+    durations: dict[str, float] = {}
+    ordered = order_modules(modules, load_durations(cache_path()))
     scratch_path = create_scratch_directory("check", "check-parallel-")
     if scratch_path is None:
         return 2
@@ -89,8 +104,21 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with exit_on_termination():
             statuses = _supervise(
-                modules, [sys.executable, "-m", "unittest", "-v"],
+                ordered, [sys.executable, "-m", "unittest", "-v"],
                 tests_dir, log_paths, options.timeout, workers,
+                durations=durations,
+            )
+        try:
+            save_durations(
+                cache_path(),
+                {module: durations[module] for module in modules
+                 if module in durations},
+            )
+        except OSError as exc:
+            print(
+                "check: note: could not record module durations for the "
+                f"next run: {escape_controls(str(exc))}",
+                file=sys.stderr,
             )
         return _print_results(modules, statuses, log_paths, options.timeout)
     finally:

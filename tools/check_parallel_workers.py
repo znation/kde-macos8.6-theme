@@ -47,17 +47,19 @@ class _Worker:
     """One worker and the state needed to supervise it."""
     def __init__(self, module: str, log_path: str,
                  process: subprocess.Popen | _NeverStarted,
-                 deadline: float) -> None:
+                 deadline: float, started: float) -> None:
         self.module = module
         self.log_path = log_path
         self.process = process
         self.deadline = deadline
+        self.started = started
 
 
 def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
            timeout: float) -> _Worker:
     """Start one worker in its own session and log its output."""
     exc: OSError | None = None
+    started = time.monotonic()
     with open(log_path, "wb") as sink:
         deferred: list[int] = []
         previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
@@ -89,7 +91,8 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
     if exc is not None:
         with open(log_path, "w", encoding="utf-8") as note:
             note.write(f"check: the worker could not be started: {exc}\n")
-    return _Worker(module, log_path, process, time.monotonic() + timeout)
+    return _Worker(module, log_path, process,
+                   started + timeout, started)
 
 
 def _kill_group(process: subprocess.Popen | _NeverStarted) -> None:
@@ -112,8 +115,17 @@ def _reap(process: subprocess.Popen | _NeverStarted) -> None:
 
 def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                log_paths: dict[str, str], timeout: float,
-               workers: int) -> dict[str, int | None]:
-    """Run each module with a bounded number of workers."""
+               workers: int,
+               durations: dict[str, float] | None = None) -> dict[str,
+                                                                    int | None]:
+    """Run each module with a bounded number of workers.
+
+    When *durations* is a mapping, each finished worker's elapsed wall time is
+    recorded into it: completion is polled within ``_POLL_SECONDS`` and a
+    timed-out worker records its timeout-span, so the values carry spawn and
+    teardown, which is the time the module held a worker -- exactly what the
+    next run's ordering needs.
+    """
     results: dict[str, int | None] = {}
     queue = list(modules)
     running: list[_Worker] = []
@@ -122,9 +134,15 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
             for entry in running[:]:
                 status = entry.process.poll()
                 if status is not None:
+                    if durations is not None:
+                        durations[entry.module] = (
+                            time.monotonic() - entry.started)
                     results[entry.module] = status
                     running.remove(entry)
                 elif time.monotonic() >= entry.deadline:
+                    if durations is not None:
+                        durations[entry.module] = (
+                            time.monotonic() - entry.started)
                     _kill_group(entry.process)
                     _reap(entry.process)
                     results[entry.module] = None
