@@ -808,7 +808,6 @@ class TestCheckboxDialogRender(unittest.TestCase):
                         expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
                     )
 
-
 class TestComboboxDialogRender(unittest.TestCase):
     """The engine-drawn combo box indicator the dialog render captures is 1:1.
 
