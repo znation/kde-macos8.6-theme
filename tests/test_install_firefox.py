@@ -71,8 +71,7 @@ class TestInstall(FirefoxProfileTestCase):
             self.content_sheet_path().read_bytes(),
         )
         self.assertEqual(
-            foreign + firefox_user_js.USER_JS_MARKER + "\r\n"
-            + firefox_user_js.PREF_LINE + "\r\n",
+            foreign + self._owned_user_js_block("\r\n"),
             _read(self.user_js_path()),
         )
 
@@ -747,10 +746,7 @@ class TestRemove(FirefoxProfileTestCase):
             f"{install_firefox.CSS_MARKER}\nbody {{}}\n", encoding="utf-8"
         )
         self.create_symlink(self.profile / "chrome", outside, target_is_directory=True)
-        js_text = (
-            firefox_user_js.USER_JS_MARKER + "\n"
-            + firefox_user_js.PREF_LINE + "\n"
-        )
+        js_text = self._owned_user_js_block()
         _write(self.user_js_path(), js_text)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -893,10 +889,7 @@ class TestRemove(FirefoxProfileTestCase):
                 link = profile / relative
                 foreign = b'user_pref("keep.me", true);\r\n'
                 if link == sheet:
-                    block = (
-                        firefox_user_js.USER_JS_MARKER + "\r\n"
-                        + firefox_user_js.PREF_LINE + "\r\n"
-                    ).encode("utf-8")
+                    block = self._owned_user_js_block("\r\n").encode("utf-8")
                     js.write_bytes(foreign + block)
                 else:
                     _write(sheet, install_firefox.CSS_MARKER + "\n/* owned */\n")
@@ -927,7 +920,7 @@ class TestRemove(FirefoxProfileTestCase):
         link = self.sheet_path()
         link.parent.mkdir(parents=True)
         self.create_symlink(link, target)
-        js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
+        js_text = self._owned_user_js_block()
         _write(self.user_js_path(), js_text)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -945,7 +938,7 @@ class TestRemove(FirefoxProfileTestCase):
         _write(self.sheet_path(), sheet_text)
         target = self.root / "dotfiles" / "user.js"
         target.parent.mkdir(parents=True)
-        js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
+        js_text = self._owned_user_js_block()
         target.write_text(js_text, encoding="utf-8")
         link = self.user_js_path()
         self.create_symlink(link, target)

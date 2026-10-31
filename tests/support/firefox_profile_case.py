@@ -16,7 +16,7 @@ from unittest import mock
 
 from support.cli_fixtures import run_main
 from support.tmp_dir import make_tmp_dir
-from tools import firefox_profile, firefox_user_files, install_firefox
+from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
 
 
 class FirefoxProfileTestCase(unittest.TestCase):
@@ -53,6 +53,16 @@ class FirefoxProfileTestCase(unittest.TestCase):
     def user_js_path(self):
         """Return the ``user.js`` path inside :attr:`profile`."""
         return self.profile / "user.js"
+
+    @staticmethod
+    def _owned_user_js_block(newline="\n"):
+        """Return the installer-owned preference block with *newline* endings."""
+        return (
+            firefox_user_js.USER_JS_MARKER
+            + newline
+            + firefox_user_js.PREF_LINE
+            + newline
+        )
 
     def create_symlink(self, link, target, *, target_is_directory=False):
         """Create a fixture link, skipping the test if symlink creation fails."""
