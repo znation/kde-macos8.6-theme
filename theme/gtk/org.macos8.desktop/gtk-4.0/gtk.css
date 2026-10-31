@@ -199,6 +199,15 @@ headerbar .subtitle, windowtitle .subtitle {
   opacity: 1;
 }
 
+/* Adaptation 2026-10-31: no reference shows GTK separator labels; the installed
+   GTK 4 Default-light resource groups them with dimmed placeholders. Reuse the
+   inactive-text grey at full opacity. */
+label.separator {
+  color: #888888;
+  opacity: 1;
+  text-shadow: none;
+}
+
 headerbar windowcontrols button.close, .titlebar windowcontrols button.close {
   background-color: transparent;
   background-image: url("../assets/window-close.svg");
