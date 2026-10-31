@@ -23,6 +23,7 @@ from support.gtk_css import HEX, assert_svg_root_first
 from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    BUTTON_BEVEL,
     DISABLED_TEXT,
     ETCH_DARK,
     LINK,
@@ -231,6 +232,34 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             self.css.index("label:disabled, entry:disabled, spinbutton:disabled {"),
             self.css.index("entry, spinbutton:not(.vertical) {"),
         )
+
+    def test_button_text_and_icon_shadows(self):
+        # button and button:hover append at the sheet tail, so the plain
+        # enabled arms carry no stock label or icon emboss and the hovered
+        # arm keeps no stock icon highlight; -gtk-icon-effect stays out of
+        # the shared group so stock's *:disabled dim keeps greyed icons.
+        self.assert_rule(
+            "button",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": BUTTON_BEVEL,
+                "text-shadow": "none",
+                "-gtk-icon-shadow": "none",
+            },
+        )
+        self.assert_rule(
+            "button:hover",
+            {
+                "background-color": FACE,
+                "text-shadow": "none",
+                "-gtk-icon-shadow": "none",
+                "-gtk-icon-effect": "none",
+            },
+        )
+        self.assertNotIn("-gtk-icon-effect", self.rules["button"])
 
     def test_link_button_follows_the_button_state_rules(self):
         # button:link ties button:hover and :active on specificity, so only

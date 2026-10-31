@@ -2638,3 +2638,26 @@ paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
   margin: 0;
   padding: 0;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a GTK push button, so
+   the plain enabled arms carry only the landed `button` group's face above.
+   The stock arms underneath still emboss them: the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49, probed with
+   gresource 2026-10-31; this sheet never names upstream themes, so the
+   probed resource's provenance lives in docs/invariants.md) declares on
+   `button` and re-declares on `button:hover` `text-shadow:
+   0 1px rgba(255, 255, 255, 0.769231)` and the same `-gtk-icon-shadow`,
+   and the hover arm adds `-gtk-icon-effect: highlight`, none of which the
+   reference's Platinum buttons show. Each selector below is its exact stock
+   twin so sheet order decides the tie, the clearance reuses the sheet's
+   established `none`-shadow treatment grounded in the landed face, and
+   `-gtk-icon-effect` stays out of the shared group so stock's `*:disabled`
+   `dim` keeps greyed icons (a kept toolkit value). */
+button, button:hover {
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button:hover {
+  -gtk-icon-effect: none;
+}
