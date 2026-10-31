@@ -562,8 +562,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         The arm selectors and states come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
         restated arm sets on-disk geometry, so the stock
-        ``button.osd`` minimums and the stock ``.osd .scale-popup
-        button.flat`` pointer arm keep governing; the restated blocks
+            ``button.osd`` minimums and the stock ``.osd .scale-popup
+            button.flat`` pointer arm is restated by its dedicated test;
+            the restated blocks
         keep the stock arm order, so the active/checked arm keeps
         stock's sheet-order win over the hover arm.
         """
@@ -631,13 +632,28 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     self.assertEqual(self.rules[selector], declarations)
         self.assertEqual(
             # "button" and "flat" as bare tokens: the shipped sheet's only
-            # button.flat spellings are these 24 restated arms; the stock
-            # `.osd .scale-popup button.flat` pointer arm is undeclared
-            # until its queued surface plan.
+            # button.flat spellings are these 24 restated arms plus the
+            # dedicated scale-popup flat-button arm.
             {selector
              for selector in self.rules
              if "button" in selector and "flat" in selector},
-            enumerated,
+            enumerated | {".osd .scale-popup button.flat"},
+        )
+
+    def test_scale_popup_buttons(self):
+        """Clear the stock rounded scale-popup button overrides."""
+        self.assertEqual(
+            self.rules[".osd .scale-popup button.flat"],
+            {"border-style": "solid", "border-radius": "0"},
+        )
+        self.assertEqual(
+            self.rules[".scale-popup button:hover"],
+            {"background-color": FACE, "border-radius": "0"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "scale-popup" in selector and "button" in selector},
+            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
         )
 
     def test_osd_button(self):

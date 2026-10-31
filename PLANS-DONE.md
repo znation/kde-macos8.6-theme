@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 scale-popup buttons: clear stock rounded borderless overrides (planned 2026-10-30 by the plan role; independent of the waiting OSD spinbutton-steppers plan, using disjoint selectors and tests) — done 2026-10-30 by the feature role
+
+**Goal.** Keep the landed square Platinum button treatment inside GTK 3 scale popups. The installed GTK 3 Adwaita resource supplies `.osd .scale-popup button.flat { border-style: none; border-radius: 5px; }` and `.scale-popup button:hover { background-color: rgba(46, 52, 54, 0.1); border-radius: 5px; }`.
+
+**Grounding and provenance.** Probed 2026-10-30 with `gresource extract /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 /org/gtk/libgtk/theme/Adwaita/gtk-contained.css`. No collected reference screenshot shows a GTK scale popup. This is a platform adaptation reusing the existing square border and `FACE` fill pinned by `tests/test_gtk_theme.py::TestGtkTheme::test_osd_flat_button`; no new visual value is introduced.
+
+**Implementation.** The GTK 3 sheet now restates the two stock selectors with minimal property dictionaries. `test_scale_popup_buttons` pins both dictionaries and the selector inventory; the flat-button sweep explicitly leaves its dedicated selector to that test. `docs/invariants.md` records the adaptation and provenance without claiming rendered-pixel verification.
+
+**Acceptance.** The two dictionaries and selector set are asserted; no shadow, label-color, asset, dependency, size or spacing setting is added. `make check` passes.
+
 ### Platinum GTK 3 OSD destructive-action buttons: restate the stock `.osd button.destructive-action` arms with the landed push-button recipe (planned 2026-10-30 by the plan role; independent of the queued `.osd button.suggested-action` entry ahead of it in this queue — both are append-only edits at the GTK 3 sheet's tail with disjoint selectors (a `button.destructive-action` arm never carries `suggested-action` and vice versa; no `button.flat.destructive-action` arm exists in the stock resource), each restatement's arms claim the identical recipe, so either merge order leaves the cascade right, neither edits the other's test, and neither needs a `test_osd_overlay_bands` filter change — the landed `test_osd_button` change already installed the `button`-token exclusion that sweep's filter, so both restatements' selectors leave it alone; the three BUGS.md `## Open` entries stay needs-review-bugfix)) — done 2026-10-30 by the feature role
 
 

@@ -1914,10 +1914,9 @@ popover.background.magnifier button:backdrop, .osd button:backdrop {
    restated arm sets on-disk geometry, so the stock geometry claims
    keep governing: `button.osd`'s `min-width: 26px; min-height: 32px`
    and the `button.osd.image-button` `min-width: 34px` arm above, and
-   the undeclared stock `.osd .scale-popup button.flat` pointer arm
-   (`border-style: none; border-radius: 5px`, a (0,3,1) spelling that
-   outranks every restated arm inside a scale popup) queued for its
-   surface plan. The five restated blocks keep the stock comma-list
+   the stock `.osd .scale-popup button.flat` pointer arm
+   (`border-style: none; border-radius: 5px`, a (0,3,1) spelling) now
+   has a dedicated square-border restatement after this block. The five restated blocks keep the stock comma-list
    spellings in the stock arm order — base, `:hover`, `:disabled`,
    `:backdrop`, `:active`/`:checked` last — so each appends after its
    stock twin at equal specificity, pre-empts exactly the stock arms
@@ -2390,4 +2389,19 @@ button.destructive-action:checked {
   outline-color: #000000;
   text-shadow: none;
   -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK scale popup. The GTK 3
+   toolkit resource's rounded borderless flat-button arms are restated with
+   the landed square button border and face; the hover face reuses the
+   plain-button FACE. Probed from gtk-contained.css in libgtk-3 3.24.49
+   with gresource on 2026-10-30. */
+.osd .scale-popup button.flat {
+  border-style: solid;
+  border-radius: 0;
+}
+
+.scale-popup button:hover {
+  background-color: #DDDDDD;
+  border-radius: 0;
 }
