@@ -85,6 +85,15 @@ so the gap is that the gates compare call-chosen single crops instead of
 deriving the set of engine-drawn widget regions from the captures and
 comparing each region against the shipped art slice its widget maps to.
 
+**Progress (2026-10-30 by bugfix):** rendered the checkbox, combobox and menu
+dialog captures successfully at 480x360. The region coordinates and expected
+band runs for the unpinned buttons and combo field have not been verified, so
+no pixel assertions were added; guessed crops could pin unrelated dialog pixels.
+
+**Needs review 2026-10-30 by bugfix: derive verified button and combo-field
+regions from the live captures, then add one mutation-backed assertion per
+region; the menu-dialog item's border runs also need measurement.**
+
 **Decided by the user 2026-10-30 (recorded by the director role): explicit per-widget regions,
 no capture walker.** Extend the two existing dialog gates with one byte-comparison or band-run
 assertion per engine-drawn widget region of each capture, in the shape
