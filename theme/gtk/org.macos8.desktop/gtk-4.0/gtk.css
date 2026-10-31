@@ -192,6 +192,13 @@ headerbar:backdrop, .titlebar:backdrop {
   color: #999999;
 }
 
+/* Adaptation 2026-10-31: no reference shows GTK header subtitles; the installed
+   GTK 4 base resource groups these nodes with dim-label. Reuse inactive grey. */
+headerbar .subtitle, windowtitle .subtitle {
+  color: #888888;
+  opacity: 1;
+}
+
 headerbar windowcontrols button.close, .titlebar windowcontrols button.close {
   background-color: transparent;
   background-image: url("../assets/window-close.svg");

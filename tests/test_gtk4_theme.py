@@ -108,6 +108,14 @@ SCALE_SLIDER = "scale > trough > slider"
 
 
 class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
+    def test_header_subtitle_foreground(self):
+        selectors = ("headerbar .subtitle", "windowtitle .subtitle")
+        self.assert_disabled_text(selectors)
+        expected = {**DISABLED_TEXT, "opacity": "1"}
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], expected)
+            self.assertEqual(self.selectors.count(selector), 1)
+
     def test_placeholder_foreground(self):
         selectors = (
             "entry > text > placeholder",
