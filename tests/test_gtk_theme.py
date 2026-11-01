@@ -277,6 +277,17 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {"text-decoration-line": "underline"},
         )
 
+    def test_disabled_inline_link_foregrounds(self):
+        selectors = ("label:link:disabled", "label:visited:disabled")
+        self.assert_disabled_text(selectors)
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], {"color": "#888888"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        uncommented = gtk_css.strip_comments(self.css)
+        disabled_rule = uncommented.index(selectors[0] + ", " + selectors[1] + " {")
+        self.assertGreater(disabled_rule, uncommented.index("label:link, button:link > label {"))
+        self.assertGreater(disabled_rule, uncommented.index("label:visited, button:visited > label {"))
+
     def test_inline_link_interaction_colours(self):
         blue = (
             "label:link:hover:not(:disabled)",

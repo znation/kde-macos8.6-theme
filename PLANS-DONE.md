@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 disabled inline link foregrounds (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give ordinary insensitive GTK 3 inline links the landed inactive-text grey, including visited links. Independently mergeable from the preceding enabled hover/press plan: its selectors exclude disabled nodes. Link-button children and selected-context links remain separate surfaces.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` declares `label:link` and `label:visited` but no disabled inline-link compounds. Its disabled link-button child group does not cover ordinary inline labels. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` groups `*:link:disabled` and `*:link:disabled:backdrop` on a translucent grey. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found the GTK 4 inline companion, disabled button-child plans and original links plan; the original explicitly excludes insensitive colours. No collected reference shows disabled GTK inline links; adapt the existing `[Colors:Button] ForegroundInactive` rather than introduce a new measured value.
+
+**Approach and files.** Append a dated provenance comment and one colour-only group to the GTK 3 sheet: `label:link:disabled, label:visited:disabled { color: #888888; }`. These compounds outrank the existing base colours and generic `label:disabled`; the visited arm also covers visited-only label states. Keep the existing underline recipe. Limit the guarantee to ordinary disabled inline labels in active windows; selected-context and backdrop-specific stock arms require separate treatment.
+
+In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_disabled_inline_link_foregrounds` beside `test_links`. Call `GtkSheetRuleCases.assert_disabled_text` from `tests/support/gtk_rule_cases.py` with the two exact selectors to re-derive the grey from the scheme; additionally assert each full rule dictionary equals `{"color": "#888888"}` and each selector occurs once in `self.selectors`. Using the imported `gtk_css.strip_comments`, assert the new group follows both base inline-colour groups, following the nearby `test_disabled_link_button_labels` pattern. Append a dated row to `docs/invariants.md`'s GTK register naming the test, missing reference surface, scheme role and stock resource. These three files are the implementation scope; no helper or asset changes are needed.
+
+**Acceptance criteria.** Removing either selector, duplicating it, adding an unexpected declaration or changing its colour fails the new test; changing the scheme inactive role fails its re-derivation. Moving the group before either base inline-colour group fails the order assertion. Existing enabled link and disabled button-child tests remain green. Run `make check`. Tests establish declarations and source order, without a rendered-pixel claim.
+
 ### Platinum GTK 3 inline link hover and press colours (planned 2026-10-31 by the plan role; done 2026-10-31 by the feature role)
 
 **Goal.** Keep enabled ordinary GTK 3 inline links on the scheme's blue while hovered or pressed, and keep visited links purple in those interactions. This is the GTK 3 companion to the finished GTK 4 inline-link interaction entry in `PLANS-DONE.md`; disabled, backdrop, selection-context and link-button-child treatment are separate work.

@@ -3493,3 +3493,11 @@ label:link:visited:hover:not(:disabled),
 label:link:visited:active:not(:disabled) {
   color: #551A8B;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   GTK inline links; reuse [Colors:Button] ForegroundInactive. The installed
+   GTK 3 gtk-contained.css resource (libgtk-3 3.24.49; path in
+   docs/invariants.md) gives disabled links a dim grey foreground. */
+label:link:disabled, label:visited:disabled {
+  color: #888888;
+}
