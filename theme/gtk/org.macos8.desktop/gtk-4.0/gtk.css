@@ -2343,3 +2343,43 @@ button.destructive-action.flat:disabled {
   color: #888888;
 }
 
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   push button inside a selected row (the GTK scope's standing adaptation
+   premise), so the toolkit's three selected-row button arms are restated
+   against the landed selection fill and the landed plain `button` and
+   flat-family recipes of this same sheet. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4,
+   probed with gresource on 2026-10-31, libgtk-4 4.18.6) declares a
+   standing `row:selected button` arm plus the twin
+   `row:selected button.sidebar-button…, row:selected button.flat…`
+   white-label list and its `:backdrop` recolour, byte-equal with the GTK
+   3 toolkit resource: the standing arm's border out-ranks the landed
+   plain `button` group by one more element, the twin list out-ranks the
+   landed flat family and the landed colour-class `.flat` blocks on label
+   and border at more class tokens, so a flat button on a selected row
+   would paint a white or near-white label on the landed light-lavender
+   selection fill and lose its black at-rest bevel border. Each apppended
+   selector is the exact stock twin and sits later in source order, so it
+   wins every tie; every restated value is the landed black — the
+   selection label the landed selection groups declare and the border and
+   flat backdrop label the landed plain `button` and flat-family blocks
+   already carry. Stock's own `:not(…)` chain keeps pressed, hovered and
+   disabled buttons out of these arms, so the landed state arms keep
+   governing them, and no face, background, box-shadow, geometry or
+   motion claim is restated. Declaration checks do not establish rendered
+   pixels. */
+row:selected button {
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled),
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled) {
+  color: #000000;
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop,
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop {
+  color: #000000;
+}

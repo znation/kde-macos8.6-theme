@@ -940,6 +940,48 @@ for radio in (False, True):
             self.css.index("list row.activatable:selected:"),
         )
 
+    def test_selected_row_button_arms(self):
+        # The selected-row button arms restate the landed black: stock's
+        # three selected-row arms would paint an opaque button with a
+        # blue border and a flat button with a white label on the landed
+        # light selection fill and recolour the flat label near white in
+        # backdrop, so each appended selector is the exact stock twin at
+        # the sheet tail, winning the tie by later source order with the
+        # landed palette's black (recorded 2026-10-31 by the feature
+        # role).
+        self.assert_rule("row:selected button", {"border-color": BLACK})
+        for selector in (
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled)",
+        ):
+            self.assert_rule(selector, {"color": BLACK, "border-color": BLACK})
+        for selector in (
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+        self.assertEqual(
+            self.rules[
+                "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop"
+            ]["color"],
+            self.rules["button:backdrop.flat"]["color"],
+        )
+        expected = {
+            "row:selected button",
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("row:selected button")
+            },
+            expected,
+        )
+
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
         self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})

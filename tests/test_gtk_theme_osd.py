@@ -308,11 +308,17 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # keeping only prefixed spellings: every overlay arm names
             # its scope before `button`, and this series' plain flat keys
             # (generic and future `…-action.flat` twins) start with
-            # `button.flat` or `button.suggested-action.flat`.
+            # `button.flat` or `button.suggested-action.flat`. 2026-10-31:
+            # the selected-row button series restates two `row:selected
+            # button.flat…` arms at the sheet tail (pinned by
+            # test_selected_row_button_arms), prefixed like the overlay
+            # arms, so the sweep keeps to the overlay bands still by
+            # keeping only the named prefix sets.
             {selector
              for selector in self.rules
              if "button" in selector and "flat" in selector
-             and not selector.startswith("button")},
+             and not selector.startswith("button")
+             and not selector.startswith("row:selected button")},
             enumerated | {".osd .scale-popup button.flat"},
         )
 

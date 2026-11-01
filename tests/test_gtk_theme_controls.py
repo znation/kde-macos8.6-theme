@@ -238,6 +238,52 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             expected,
         )
 
+    def test_selected_row_button_arms(self):
+        """The selected-row button arms restate the landed black.
+
+        A push button inside a selected GTK row keeps reading black on
+        the landed lavender fill with the landed raised and flat
+        treatments: stock's three selected-row arms would paint an opaque
+        button with a blue border and a flat button with a white label on
+        the landed light selection fill and recolour the flat label near
+        white in backdrop, so each restated selector is the exact stock
+        twin appended at the sheet tail, winning the tie by later source
+        order with the landed palette's black (recorded 2026-10-31 by
+        the feature role).
+        """
+        self.assert_rule("row:selected button", {"border-color": BLACK})
+        for selector in (
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled)",
+        ):
+            self.assert_rule(selector, {"color": BLACK, "border-color": BLACK})
+        for selector in (
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+        self.assertEqual(
+            self.rules[
+                "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop"
+            ]["color"],
+            self.rules["button.flat:backdrop"]["color"],
+        )
+        expected = {
+            "row:selected button",
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled)",
+            "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+            "row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("row:selected button")
+            },
+            expected,
+        )
+
     def test_destructive_action_plain_arms(self):
         """The plain `destructive-action` arms restate the landed face.
 
