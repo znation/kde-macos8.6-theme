@@ -265,6 +265,17 @@ class TestCli(FidelityCliTestCase):
                 result = self._run(*base, *extra)
                 self._assert_usage_error(result, "plain ASCII")
 
+    def test_crop_integer_conversion_limit_is_a_usage_error(self):
+        # Python limits decimal-to-int conversion length. A syntactically
+        # plain ASCII crop coordinate beyond that limit must stay on the
+        # argparse error path instead of leaking ValueError as a traceback.
+        reference = self._solid_reference()
+        result = self._run(
+            reference, reference, "--crop", "9" * 5000 + ",0,1,1"
+        )
+        self._assert_usage_error(result, "crop values must be integers")
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_non_numeric_threshold_is_usage_error(self):
         # is_plain_ascii_number accepts any ASCII text without separators or
         # surrounding space, so a word such as "abc" passes it and reaches
