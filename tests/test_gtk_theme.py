@@ -20,6 +20,7 @@ from unittest import mock
 
 from support import gtk_css
 from support.gtk_css import HEX, assert_svg_root_first
+from support.colorscheme_fixtures import load_scheme
 from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
@@ -274,6 +275,35 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             ("label:link", "button:link > label"),
             ("label:visited", "button:visited > label"),
             {"text-decoration-line": "underline"},
+        )
+
+    def test_inline_link_interaction_colours(self):
+        blue = (
+            "label:link:hover:not(:disabled)",
+            "label:link:active:not(:disabled)",
+        )
+        visited = (
+            "label:link:visited:hover:not(:disabled)",
+            "label:link:visited:active:not(:disabled)",
+        )
+        for selector in blue:
+            self.assertEqual(self.rules[selector], {"color": "#0000EE"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in visited:
+            self.assertEqual(self.rules[selector], {"color": "#551A8B"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        scheme = load_scheme()
+        for role, expected in (("ForegroundLink", "#0000EE"),
+                               ("ForegroundVisited", "#551A8B")):
+            rgb = scheme.get("Colors:Window", role)
+            self.assertEqual(
+                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
+                expected,
+            )
+        uncommented = gtk_css.strip_comments(self.css)
+        self.assertLess(
+            uncommented.index(blue[0] + ","),
+            uncommented.index(visited[0] + ","),
         )
 
     def test_disabled_link_button_labels(self):

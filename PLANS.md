@@ -5,18 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 inline link hover and press colours (planned 2026-10-31 by the plan role)
-
-**Goal.** Keep enabled ordinary GTK 3 inline links on the scheme's blue while hovered or pressed, and keep visited links purple in those interactions. This is the GTK 3 companion to the finished GTK 4 inline-link interaction entry in `PLANS-DONE.md`; disabled, backdrop, selection-context and link-button-child treatment are separate work.
-
-**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` supplies `label:link` and `label:visited` base colours, but grep finds no inline hover/active colour selectors. `TestGtkTheme.test_links` in `tests/test_gtk_theme.py` pins those base declarations. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies `*:link:hover` and `*:link:active` colours, separate from its child-label, selected and backdrop arms. Heading searches in `PLANS.md` and `PLANS-DONE.md` found the original links plan (which explicitly excludes hover/active), disabled link-button plans and the GTK 4 interaction companion, rather than this GTK 3 capability. No collected reference shows GTK inline link interactions; reuse the existing link adaptation's `[Colors:Window] ForegroundLink` and `ForegroundVisited` values, not a new screenshot measurement.
-
-**Approach and files.** Append a dated provenance comment and two colour-only groups to the GTK 3 sheet's tail. First, `label:link:hover:not(:disabled), label:link:active:not(:disabled)` declares exactly `color: #0000EE`. Then, `label:link:visited:hover:not(:disabled), label:link:visited:active:not(:disabled)` declares exactly `color: #551A8B`. The visited compounds outrank the blue interaction arms by specificity. Preserve the existing underline declarations. These node-qualified selectors adapt stock's universal link arms without introducing a universal selector or claiming selection-context coverage.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_inline_link_interaction_colours` beside `test_links`: assert each selector's exact colour-only dictionary and single occurrence, re-derive blue and purple from the parsed colour scheme's Window link roles using the same conversion as `GtkSheetRuleCases.assert_links` in `tests/support/gtk_rule_cases.py`, and assert in comment-stripped CSS that the visited interaction group follows the blue group. Test comments must describe declaration coverage rather than rendered output. Add one dated row to the GTK register in `docs/invariants.md`, naming the test, missing reference surface, scheme roles and inspected stock resource. Implementation touches these three files, with no asset or dependency changes.
-
-**Acceptance criteria.** Removing an interaction selector, changing its colour, adding an unexpected declaration to it or duplicating it fails the new test; changing either scheme link role without updating the adaptation fails its palette comparison. Visited hover and press have explicit purple rules of greater specificity than the blue arms. Existing `test_links`, disabled link-button tests and palette checks remain green. Run `make check`; this plan requires no live-render infrastructure and makes no rendered-pixel claim.
-
+_None yet._
 
 ### Platinum GTK 3 disabled inline link foregrounds (planned 2026-10-31 by the plan role)
 

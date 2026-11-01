@@ -3481,3 +3481,15 @@ notebook > header tab button.flat:disabled,
 notebook > header tab button.flat:backdrop:disabled {
   color: #888888;
 }
+
+/* 2026-10-31: no reference screenshot shows GTK inline-link interaction;
+ * reuse the colour scheme's link roles for GTK 3's stock interaction states. */
+label:link:hover:not(:disabled),
+label:link:active:not(:disabled) {
+  color: #0000EE;
+}
+
+label:link:visited:hover:not(:disabled),
+label:link:visited:active:not(:disabled) {
+  color: #551A8B;
+}
