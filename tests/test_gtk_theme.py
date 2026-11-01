@@ -338,6 +338,34 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             uncommented.index(visited[0] + ","),
         )
 
+    def test_enabled_backdrop_inline_link_colours(self):
+        blue = (
+            "label:link:backdrop:not(:disabled)",
+            "label:link:backdrop:hover:not(:disabled)",
+            "label:link:backdrop:active:not(:disabled)",
+        )
+        visited = tuple(selector.replace("label:link:", "label:link:visited:") for selector in blue)
+        for selectors, expected in ((blue, "#0000EE"), (visited, "#551A8B")):
+            for selector in selectors:
+                self.assertEqual(self.rules[selector], {"color": expected})
+                self.assertEqual(self.selectors.count(selector), 1)
+        scheme = load_scheme()
+        for role, expected in (("ForegroundLink", "#0000EE"),
+                               ("ForegroundVisited", "#551A8B")):
+            rgb = scheme.get("Colors:Window", role)
+            self.assertEqual(
+                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
+                expected,
+            )
+        uncommented = gtk_css.strip_comments(self.css)
+        blue_rule = uncommented.index(blue[0] + ",")
+        visited_rule = uncommented.index(visited[0] + ",")
+        self.assertGreater(
+            blue_rule,
+            uncommented.index("label:link:visited:active:not(:disabled) {"),
+        )
+        self.assertLess(blue_rule, visited_rule)
+
     def test_disabled_link_button_labels(self):
         selectors = ("button:link:disabled > label", "button:visited:disabled > label")
         self.assert_disabled_text(selectors)

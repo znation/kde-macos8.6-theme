@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 enabled backdrop inline links (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Keep ordinary enabled inline links blue and visited links purple in unfocused GTK 3 windows, including hover and press. Independently mergeable companion to the waiting disabled-backdrop plan: the new selectors exclude disabled nodes. Selected contexts and button-child labels are outside this foreground family.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has base inline colours and enabled hover/active groups, but a selector search finds no enabled inline backdrop compounds. Heading searches in `PLANS.md` and `PLANS-DONE.md` found the disabled-backdrop companion and completed base/interaction plans; the latter explicitly exclude backdrop work. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies `*:link:backdrop` and `*:link:backdrop:backdrop:hover` with translucent blue. The repeated pseudo-class increases specificity. No collected reference shows GTK backdrop inline links; reuse the existing `[Colors:Window] ForegroundLink` and `ForegroundVisited` adaptations rather than introduce a visual value.
+
+**Approach and files.** Added the six enabled backdrop selectors with scheme-derived link and visited colours in the GTK 3 sheet, and a declaration/source-order test that re-derives both colours. Added the GTK invariant row. Coverage establishes declarations and source order, without claiming rendered pixels or selected-context coverage.
+
+**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour, or adding an unexpected declaration fails the new test. Moving the groups before the enabled visited-interaction group or reversing their order fails its source-order checks; changing either scheme role fails the colour re-derivation. Existing disabled-link and enabled-interaction tests stay green. Run `make check`.
+
 ### Platinum GTK 3 disabled backdrop inline links (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Keep disabled GTK 3 inline links grey in backdrop windows, including hover and press.

@@ -3514,3 +3514,18 @@ label:visited:disabled:backdrop:hover,
 label:visited:disabled:backdrop:active {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled GTK
+   backdrop inline links; reuse the scheme's link roles. GTK 3's bundled
+   gtk-contained.css supplies the stock backdrop link state spellings. */
+label:link:backdrop:not(:disabled),
+label:link:backdrop:hover:not(:disabled),
+label:link:backdrop:active:not(:disabled) {
+  color: #0000EE;
+}
+
+label:link:visited:backdrop:not(:disabled),
+label:link:visited:backdrop:hover:not(:disabled),
+label:link:visited:backdrop:active:not(:disabled) {
+  color: #551A8B;
+}
