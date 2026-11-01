@@ -165,6 +165,7 @@ def session_script() -> str:
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
         'spectacle -b -n -f -o "$capture"; status=$?; '
         'kill "$client" 2>/dev/null; '
+        'wait "$client" 2>/dev/null; '
         "exit $status"
     )
 

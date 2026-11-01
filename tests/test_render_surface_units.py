@@ -350,12 +350,15 @@ class TestSessionScript(unittest.TestCase):
     def test_stops_the_client_and_exits_with_the_capture_status(self):
         script = render_session.session_script()
         self.assertIn('kill "$client"', script)
+        self.assertIn('wait "$client"', script)
         self.assertIn("exit $status", script)
-        # The client is stopped before the session exits, so no client
-        # outlives the capture. Match the client kill exactly: the earlier
-        # liveness check also spells `kill`.
+        # Reap the killed child before exiting; the wait's status must not
+        # replace the capture status saved above.
         self.assertLess(
-            script.index('kill "$client"'), script.index("exit $status")
+            script.index('kill "$client"'), script.index('wait "$client"')
+        )
+        self.assertLess(
+            script.index('wait "$client"'), script.index("exit $status")
         )
 
 
