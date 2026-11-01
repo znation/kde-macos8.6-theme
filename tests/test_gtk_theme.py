@@ -22,7 +22,7 @@ from support import gtk_css
 from support.gtk_css import HEX, assert_svg_root_first
 from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
-    BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,
     DISABLED_TEXT,
     ETCH_DARK,
@@ -42,6 +42,12 @@ from support.platinum_palette import (
 )
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
+
+DEFINED_COLOURS = {
+    **BASE_DEFINED_COLOURS,
+    "theme_unfocused_selected_bg_color": SELECTION,
+    "theme_unfocused_selected_fg_color": BLACK,
+}
 
 THEME_ID = "org.macos8.desktop"
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
