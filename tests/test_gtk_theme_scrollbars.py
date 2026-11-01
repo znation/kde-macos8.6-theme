@@ -63,15 +63,15 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule(
             "scrollbar:not(.overlay-indicator)",
             {
-                "-GtkScrollbar-has-backward-stepper": "true",
-                "-GtkScrollbar-has-forward-stepper": "true",
+                "-gtkscrollbar-has-backward-stepper": "true",
+                "-gtkscrollbar-has-forward-stepper": "true",
             },
         )
         self.assert_rule(
             "scrollbar.overlay-indicator",
             {
-                "-GtkScrollbar-has-backward-stepper": "false",
-                "-GtkScrollbar-has-forward-stepper": "false",
+                "-gtkscrollbar-has-backward-stepper": "false",
+                "-gtkscrollbar-has-forward-stepper": "false",
             },
         )
         self.assert_rule("scrollbar button", SCROLLBAR_STEPPER)

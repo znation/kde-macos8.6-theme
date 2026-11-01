@@ -22,6 +22,7 @@ DEFINE_COLOR = re.compile(
 )
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
 _IMPORTANT_SUFFIX = re.compile(r"![ \t\n\r\f]*important[ \t\n\r\f]*\Z", re.IGNORECASE)
+_ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
 
 
 def _is_important(value):
@@ -372,6 +373,8 @@ def parse_css(text, source=None):
             if ":" in declaration:
                 name, value = declaration.split(":", 1)
                 name = _collapse_whitespace(name)
+                if not name.startswith("--"):
+                    name = name.translate(_ASCII_LOWER)
                 value = _collapse_whitespace(value)
             else:
                 name = value = ""

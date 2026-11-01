@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: fold ordinary declaration names with ASCII rules (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make ordinary CSS property names share a declaration and priority slot regardless of ASCII case. The prior parser preserved name casing as dictionary keys, so case variants did not share the cascade slot.
+
+**Approach and files touched.** `tests/support/gtk_css.py` folds ASCII uppercase letters for ordinary declaration names before priority-aware merging, while preserving custom property names. `tests/test_gtk_css.py` covers cascade precedence, a vendor prefix, custom properties and non-ASCII names. `tests/test_gtk_theme_scrollbars.py` now requests the lowercase normalized keys for GTK's vendor-prefixed stepper properties. `docs/invariants.md` records the guarantee and tests. No shipped stylesheet or CSS escape behavior changed.
+
+**Acceptance criteria.** Case variants merge within and across blocks; priority precedence and later ties work; vendor-prefixed names fold; custom properties and non-ASCII characters preserve their spelling; returned dictionaries and value spellings are asserted. The direct probe returns `{"color": "red !important"}` for selector `a`. Parser scope remains limited to declaration-name normalization.
+
 ### Shared stylesheet parser: restrict define-color separators to CSS whitespace (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep malformed color definitions from entering the GTK/Firefox test reader's definitions map. Reproduced 2026-11-01: `parse_css` returns `{'x': '#123456'}` for an otherwise ordinary `@define-color x #123456;` with U+00A0, U+2003 or U+000B substituted at any of its three whitespace positions. `tests/support/gtk_css.py::DEFINE_COLOR` uses Python regex `\s`, which accepts these non-CSS characters. The finished normalization, declaration-boundary and priority-token plans exclude define-color parsing; Planned has no entry covering this scanner.

@@ -156,6 +156,29 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_ordinary_declaration_names_fold_ascii_case(self):
+        self.assertEqual(
+            parse_css(
+                "a { COLOR: red !important; color: blue; -WebKit-Thing: One; } "
+                "a { CoLoR: green; -webkit-thing: Two; }"
+            ),
+            (
+                {},
+                {"a": {"color": "red !important", "-webkit-thing": "Two"}},
+                ["a", "a"],
+            ),
+        )
+
+    def test_custom_property_names_and_non_ascii_name_characters_are_preserved(self):
+        self.assertEqual(
+            parse_css("a { --Tone: One; --tone: Two; Cİlor: red; COLOR: blue; }"),
+            (
+                {},
+                {"a": {"--Tone": "One", "--tone": "Two", "cİlor": "red", "color": "blue"}},
+                ["a"],
+            ),
+        )
+
     def test_a_comma_separated_group_shares_its_declarations(self):
         # Whitespace is collapsed before the group is split, so a newline
         # between selectors names the same two selectors as a space does, and
