@@ -5,8 +5,13 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Shared stylesheet parser: preserve escaped whitespace at value boundaries (planned 2026-11-01 by the plan role; independent of the completed ASCII priority-keyword change)
 
+**Goal and grounding.** Keep escaped trailing whitespace in the GTK/Firefox test reader's declaration values. Reproduced 2026-11-01: parsing `a { --sample: token\ ; color: red; }` returns `token\` for `--sample`, losing the escaped space. In `tests/support/gtk_css.py::parse_css`, `chunk.strip(' \t\n\r\f')` removes that character before `_collapse_whitespace` sees it; the normalizer already preserves a character immediately following a backslash. The finished non-CSS boundary-trimming plan explicitly excludes escaped CSS whitespace. Searches of Planned and the finished parser plans found no plan for this case.
+
+**Approach and files.** Retain the stripped `declaration` for the existing empty-chunk check and malformed-declaration diagnostic, but split the original `chunk` at its first colon when deriving `name` and `value`. Let the existing `_collapse_whitespace` normalize those raw substrings, preserving its escape handling. Add `TestRuleBlockSemantics.test_escaped_trailing_value_whitespace_is_preserved` in `tests/test_gtk_css.py`, and extend the shared parser boundary guarantee in `docs/invariants.md` with the test name and implementation date. These three files form one small run; the completed ASCII priority-keyword change touches `_IMPORTANT_SUFFIX`, a separate operation. No new tokenizer, dependency, shipped stylesheet or visual value is needed.
+
+**Acceptance criteria.** Table-driven `parse_css` cases preserve a backslash followed by a literal space or tab at the end of an unquoted custom-property value, both immediately before a semicolon and before the closing brace without a final semicolon. Adding unescaped whitespace after that escaped character removes only the added whitespace. Two backslashes followed by ordinary trailing whitespace retain the two backslashes and trim the whitespace, proving escape parity follows the existing normalizer. Include ordinary unescaped trailing-whitespace controls, and assert the following `color` declaration and selector list remain correct in semicolon cases. Existing empty-chunk, empty-value, missing-colon, quoted-whitespace and non-CSS boundary regressions keep passing, including their diagnostic expectations. Run `make check`; this establishes reader behavior, without a rendered-theme claim.
 ## Done
 
 ### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan)
