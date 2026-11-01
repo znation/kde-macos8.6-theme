@@ -78,6 +78,11 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 fh.write(b"/tmp/tumwater-run-example/tmp.work\nmore data\n")
             with open(os.path.join(directory, "nested", "note"), "wb") as fh:
                 fh.write(b"/tmp/tumwater-run-example/tmp.nested\n")
+            # A matching file in the worktree is not a tracked-tree leak
+            # until Git lists it; the production guard intentionally scans
+            # the index rather than arbitrary untracked scratch state.
+            with open(os.path.join(directory, "untracked"), "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/tmp.untracked\n")
             subprocess.run(
                 ["git", "-C", directory, "add", leak_name, "nested/note"],
                 check=True,
