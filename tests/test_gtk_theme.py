@@ -276,6 +276,14 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {"text-decoration-line": "underline"},
         )
 
+    def test_disabled_link_button_labels(self):
+        selectors = ("button:link:disabled > label", "button:visited:disabled > label")
+        self.assert_disabled_text(selectors)
+        uncommented = gtk_css.strip_comments(self.css)
+        disabled_rule = uncommented.index(selectors[0] + ", " + selectors[1] + " {")
+        self.assertGreater(disabled_rule, uncommented.index("button:link > label {"))
+        self.assertGreater(disabled_rule, uncommented.index("button:visited > label {"))
+
     def test_disabled_text_follows_the_entry_text_rule(self):
         # spinbutton:disabled ties spinbutton:not(.vertical) on specificity, so
         # only coming later greys a disabled spin button's text.

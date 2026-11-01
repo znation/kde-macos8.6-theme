@@ -1214,6 +1214,11 @@ label:visited, button:visited > label {
   color: #551A8B;
 }
 
+/* Disabled link-button labels use the scheme's inactive text; GTK supplies the node states. */
+button:link:disabled > label, button:visited:disabled > label {
+  color: #888888;
+}
+
 /* A calendar's selected day takes the selection fill; other months' days grey. */
 calendar:selected {
   background-color: #CCCCFF;

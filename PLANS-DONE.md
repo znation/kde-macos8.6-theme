@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 disabled link-button labels: override the enabled child colours (planned 2026-10-31 by the plan role; independent of the queued GTK 4 disabled link-button sibling) — done 2026-10-31 by the feature role
+
+**Goal.** Declare the inactive-text grey on insensitive GTK 3 link-button labels, including visited buttons. This is independently mergeable from the GTK 4 sibling because it changes a separate stylesheet and test module.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` places `label:disabled` before `button:link > label` and `button:visited > label`; the child rules also have greater specificity. No disabled link-button child override exists. `TestGtkTheme.test_links` in `tests/test_gtk_theme.py` asserts enabled colours, and `test_disabled_text` covers generic disabled nodes. The archived links plan explicitly excludes insensitive colours; the archived disabled-text plan supplies generic selectors. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource extract`, confirms the GTK 3 link-button child selectors.
+
+**Approach and files.** Immediately after the existing visited-link block in the GTK 3 sheet, add `button:link:disabled > label, button:visited:disabled > label { color: #888888; }`. Add dated provenance: the reference set has no disabled GTK link-button surface; the colour reuses `[Colors:Button] ForegroundInactive` in `theme/color-schemes/MacOS8.colors`, and the installed GTK resource named above supplies the platform node/state structure. Reuse the existing underline and transparent-face declarations. Limit scope to these two child foregrounds; inline labels, selected ancestors, backdrop and interaction-state families are separate work.
+
+In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_disabled_link_button_labels` beside `test_links`. Call the existing `GtkSheetRuleCases.assert_disabled_text` in `tests/support/gtk_rule_cases.py` with both exact selectors; it checks the colour-only dictionaries and re-derives the inactive role. Use the already imported `gtk_css.strip_comments(self.css)` to assert the new group follows both enabled and visited child declarations. Keep `test_links` as the enabled-colour, underline and face guard. Add one row to `docs/invariants.md`'s `## gtk` table naming the new test and the missing reference surface, scheme role and GTK resource; describe declaration/order coverage without claiming rendered pixels. These are three implementation files; no helper or asset changes are needed.
+
+**Acceptance criteria.** Removing either selector or changing its colour fails the new test; changing the scheme's inactive role fails its shared re-derivation. Moving the new group before either enabled child declaration fails the ordering check. The new rules contain only the colour declaration. Existing link recipe tests pass, and `make check` passes. No GTK 4 implementation is included in this entry.
+
 ### Platinum GTK 4 disabled link-button labels: override the enabled link colours (planned 2026-10-31 by the plan role; independent of the completed inline-link interactions change) — done 2026-10-31 by the feature role
 
 **Goal.** Give insensitive GTK 4 link-button labels the landed inactive grey, including visited buttons. Limit this change to link-button child foregrounds; the completed inline-link interactions change addresses a different node.
