@@ -140,6 +140,22 @@ class TestCoordinator(unittest.TestCase):
         self.assertEqual(0, result.returncode)
         self.assertIn("could not record module durations for the next run: read-only", result.stderr)
 
+    def test_duration_cache_error_escapes_terminal_controls(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        with (
+            mock.patch("tools.check_parallel._supervise", return_value={"test_ok": 0}),
+            mock.patch(
+                "tools.check_parallel.save_durations",
+                side_effect=OSError("denied\x1b[2J"),
+            ),
+            mock.patch("tools.check_parallel._print_results", return_value=0),
+        ):
+            result = self._run("--tests-dir", tests_dir)
+
+        self.assertEqual(0, result.returncode)
+        self.assertNotIn("\x1b", result.stderr)
+        self.assertIn(r"could not record module durations for the next run: denied\u001b[2J", result.stderr)
+
     def test_an_unlistable_test_directory_exits_2_without_a_traceback(self):
         # Discovery reads a directory the coordinator does not control: a
         # subdirectory swept away or permission-locked between the isdir
