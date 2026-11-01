@@ -21,6 +21,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Synthetic offset-region fixtures assert exact text and JSON for a dominant color and a tie at the cutoff, with outside colors excluded. Cover N=1, N equal to and larger than the distinct count, and a single-color region. Assert emitted counts plus `omitted_pixels` equal the region area, and `total_colors` includes omitted colors. Invalid zero, negative, fractional and non-ASCII numeric arguments return 2 with empty stdout; using the option without `--histogram`, including with `--runs` or `--find-color`, fails before image reads. Cover a direct-script invocation and verify bounded `read_png(max_rows=y+height)` remains in use. Existing unlimited histogram schema/text and sampler error regressions remain green. Run `make check`.
 
+### Split the reference-pixel sampler's CLI mode handlers (planned 2026-11-01 by the organize role)
+
+**Goal and evidence.** Reduce the responsibility concentrated in `tools/sample.py::main`, the largest executable Python module at 337 lines. Its single function currently parses five output modes and contains the independent run, histogram, exact-color lookup, JSON-pixel and plain-text report handlers alongside path containment, bounds validation and PNG loading. The reporting branches dominate the function and make each mode's output logic harder to inspect in isolation.
+
+**Target structure.** Keep `tools/sample.py` as the script entry point and orchestration layer for argument dispatch, repository containment, bounds checks and bounded PNG loading. Move parser construction and its argument validators to `tools/sample_arguments.py`; move the run, histogram, exact-color, JSON-pixel and plain-text report handlers (including `_hex` and `_color_runs`) to `tools/sample_reports.py`. Pass parsed arguments and the validated image dimensions/decoded image explicitly to report functions; keep image reads, diagnostics and exit-status decisions in the entry point. Preserve both package imports (`from tools import sample`) and direct execution (`python3 tools/sample.py`) without introducing a generic import shim.
+
+**Files and acceptance criteria.** Update `tools/sample.py`, add `tools/sample_arguments.py` and `tools/sample_reports.py`, and update sampler coverage in `tests/test_sample_cli.py`, `tests/test_sample_histogram.py`, `tests/test_sample_runs.py` and `tests/test_sample_find_color.py` only where imports or seams change. README.md and `docs/invariants.md` need no content change because the CLI contract and guarantees do not change. Existing CLI behavior, output ordering, validation-before-read behavior, bounded PNG decoding, diagnostics and exit statuses remain unchanged. Package and direct-script invocation both work; `make check` passes.
+
 ## Done
 
 ### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role)
