@@ -125,6 +125,10 @@ def main(argv: list[str] | None = None) -> int:
         help="pixels to sample below y (default 1)",
     )
     parser.add_argument("--json", action="store_true", help="print structured JSON")
+    parser.add_argument(
+        "--top-colors", type=positive_int("--top-colors"), metavar="N",
+        help="with --histogram, show only the N most frequent colors",
+    )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument(
         "--histogram", action="store_true", help="count RGB colors in the sampled region"
@@ -137,6 +141,9 @@ def main(argv: list[str] | None = None) -> int:
         help="locate an exact RGB color in the sampled region",
     )
     args = parser.parse_args(argv)
+
+    if args.top_colors is not None and not args.histogram:
+        return report_error("sample", "--top-colors requires --histogram")
 
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
@@ -232,8 +239,12 @@ def main(argv: list[str] | None = None) -> int:
             for x in range(args.x, args.x + args.width)
         )
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        if args.top_colors is not None:
+            total_colors = len(colors)
+            colors = colors[:args.top_colors]
+            omitted_pixels = args.width * args.height - sum(count for _, count in colors)
         if args.json:
-            print(json.dumps({
+            result = {
                 "image": args.image,
                 "image_width": width,
                 "image_height": height,
@@ -242,12 +253,19 @@ def main(argv: list[str] | None = None) -> int:
                     {"rgb": list(rgb), "hex": _hex(rgb), "count": count}
                     for rgb, count in colors
                 ],
-            }, ensure_ascii=True))
+            }
+            if args.top_colors is not None:
+                result["total_colors"] = total_colors
+                result["omitted_pixels"] = omitted_pixels
+            print(json.dumps(result, ensure_ascii=True))
             return 0
         print(header)
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
         for rgb, count in colors:
             print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}")
+        if args.top_colors is not None:
+            print(f"total colors: {total_colors}")
+            print(f"omitted pixels: {omitted_pixels}")
         return 0
 
     if args.find_color is not None:

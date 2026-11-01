@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: bound the dominant-color histogram report (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Let reference measurements show a short dominant-color palette without dumping every color in a region. Inspected 2026-11-01: `tools/sample.py::main` builds a `Counter`, sorts by descending count then RGB tuple, and prints the complete histogram. Searches of the sampler, its tests, queue and finished plans found no histogram limit; the completed count-region-colors plan covers the existing full report. This work is independent of the queued fidelity source-value diagnostic.
+
+**Approach and files.** Added `--top-colors N` to `tools/sample.py::main`, parsed with `positive_int` and legal only with `--histogram`; invalid use is rejected before image reads. The full histogram is counted and sorted before slicing to N, preserving counts and tie ordering. With this option, JSON adds `total_colors` (distinct RGB count before truncation) and `omitted_pixels` (region area minus emitted counts); text appends the same totals. The summary appears even when no colors are omitted. Without the option, the existing schema and text remain intact. Counting remains over the full validated region and row decoding stays bounded. Extended `tests/test_sample_histogram.py`, documented the option in README.md, and added the tooling invariant in `docs/invariants.md`. No dependency or decoder change was needed.
+
+**Acceptance criteria.** Synthetic offset-region fixtures cover a tie at the cutoff, N=1, N equal to and larger than the distinct count, and a single-color region; they assert omitted and emitted counts cover the region and that omitted colors remain included in `total_colors`. Invalid zero, negative, fractional and non-ASCII numeric arguments and using the option without `--histogram` fail with status 2 and empty stdout before image reads. Existing direct-script, bounded decoding, unlimited histogram output, and sampler error regressions remain covered. `make check` passed.
+
 ### Fidelity diagnostics: explain the worst pixel's source values (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Show the actual candidate and reference colors behind a comparison's maximum delta, so a developer can distinguish a wrong fill from transparency without opening both images separately. Inspected 2026-11-01: `tools/fidelity.py::main` retains both cropped images but reports only `Metrics.max_delta`, `max_x` and `max_y`; `tools/png/image.py::Image` exposes packed RGB and optional alpha. Searches of implementation, queue and related finished fidelity entries found bounds and JSON diagnostics, but no worst-pixel source-value report. This is independent of the held dialog-render bugs.

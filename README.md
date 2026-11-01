@@ -418,6 +418,12 @@ $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 3 
 {"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":3,"height":2},"colors":[{"rgb":[99,99,156],"hex":"#63639C","count":6}]}
 ```
 
+Add `--top-colors N` with `--histogram` to limit the displayed palette while
+still counting the complete region. It adds `total_colors` (the distinct-color
+count before truncation) and `omitted_pixels` (region pixels not represented
+in emitted colors) to JSON; text appends the same totals. Both fields appear
+even when the limit includes every color.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle

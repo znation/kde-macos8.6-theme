@@ -81,6 +81,64 @@ class TestSampleHistogram(CliTestCase):
         self._assert_usage_error(escaped, "resolves outside")
         self.assertEqual(escaped.stdout, "")
 
+    def test_top_colors_reports_cutoff_ties_and_omitted_summary(self):
+        path = self._fixture()
+        result = self._run(
+            path, "1", "0", "--width", "4", "--height", "2",
+            "--histogram", "--top-colors", "1", "--json",
+        )
+        self._assert_success(result)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["colors"], [
+            {"rgb": [0, 0, 1], "hex": "#000001", "count": 4},
+        ])
+        self.assertEqual(data["total_colors"], 2)
+        self.assertEqual(data["omitted_pixels"], 4)
+        self.assertEqual(sum(c["count"] for c in data["colors"]) + data["omitted_pixels"], 8)
+
+        text = self._run(
+            path, "1", "0", "--width", "4", "--height", "2",
+            "--histogram", "--top-colors", "1",
+        )
+        self._assert_success(text)
+        self.assertEqual(text.stdout.splitlines()[-3:], [
+            "0,0,1  #000001  count=4", "total colors: 2", "omitted pixels: 4",
+        ])
+
+    def test_top_colors_at_or_above_distinct_count_and_single_color(self):
+        path = self._fixture()
+        for limit in (2, 5):
+            result = self._run(path, "1", "0", "--width", "4", "--height", "2",
+                               "--histogram", "--top-colors", str(limit), "--json")
+            self._assert_success(result)
+            data = json.loads(result.stdout)
+            self.assertEqual(data["total_colors"], 2)
+            self.assertEqual(len(data["colors"]), 2)
+            self.assertEqual(data["omitted_pixels"], 0)
+
+        _, data = solid_rgb(2, 2, (3, 4, 5))
+        single = self._write(self._tmp_dir(), "single.png", data)
+        result = self._run(single, "0", "0", "--width", "2", "--height", "2",
+                           "--histogram", "--top-colors", "1", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["total_colors"], 1)
+        self.assertEqual(json.loads(result.stdout)["omitted_pixels"], 0)
+
+    def test_top_colors_validation_precedes_image_reads_and_is_histogram_only(self):
+        path = self._fixture()
+        for value in ("0", "-1", "1.5", "١"):
+            with self.subTest(value=value):
+                result = self._run(path, "0", "0", "--histogram", "--top-colors", value)
+                self._assert_usage_error(result)
+                self.assertEqual(result.stdout, "")
+        for mode in ((), ("--runs",), ("--find-color", "#000001")):
+            with self.subTest(mode=mode), mock.patch.object(
+                sample, "read_png_size", side_effect=AssertionError("read")
+            ):
+                result = self._run(path, "0", "0", "--top-colors", "1", *mode)
+                self._assert_usage_error(result, "requires --histogram")
+                self.assertEqual(result.stdout, "")
+
 
 if __name__ == "__main__":
     import unittest
