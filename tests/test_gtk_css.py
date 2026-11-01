@@ -237,7 +237,7 @@ class TestRuleBlockSemantics(unittest.TestCase):
         )
 
     def test_only_css_ascii_whitespace_collapses_between_tokens(self):
-        for character in ("\u00a0", "\u2003"):
+        for character in ("\u00a0", "\u2003", "\u000b"):
             with self.subTest(codepoint=f"U+{ord(character):04X}"):
                 self.assertEqual(
                     parse_css(
