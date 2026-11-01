@@ -3557,3 +3557,13 @@ button:visited:not(:disabled) > label:backdrop:hover:not(:disabled),
 button:visited:not(:disabled) > label:backdrop:active:not(:disabled) {
   color: #551A8B;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows child-disabled
+   GTK link-button labels. Reuse [Colors:Button] ForegroundInactive; the installed
+   GTK 3 gtk-contained.css resource supplies the child and backdrop state spellings. */
+button:link > label:disabled,
+button:visited > label:disabled,
+button:link > label:disabled:backdrop,
+button:visited > label:disabled:backdrop {
+  color: #888888;
+}

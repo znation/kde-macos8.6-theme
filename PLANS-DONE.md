@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 link-button child-disabled foregrounds (planned 2026-10-31 by the plan role; independent of the enabled backdrop link-button labels plan) — done 2026-10-31 by the feature role
+
+**Goal.** Declare inactive-text grey when a GTK 3 link button's child label carries `:disabled`, including its backdrop state. The existing disabled-parent recipe and the implemented enabled-backdrop recipe cover different state placements; selected contexts and parent-only backdrop are outside this entry.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has `button:link:disabled > label` and its visited twin, but no `button:link > label:disabled` twins. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` explicitly colours child-disabled labels translucent grey and later colours child-backdrop labels translucent blue. Heading searches in `PLANS.md` and `PLANS-DONE.md`, and inspection of the finished disabled-link-button plan, confirm that plan limits itself to the two disabled-parent selectors. No collected reference shows child-disabled GTK link labels; reuse `[Colors:Button] ForegroundInactive`, with the installed resource supplying the platform node/state structure.
+
+**Approach and files.** Appended a dated provenance comment and one colour-only group at the GTK 3 sheet tail containing exactly `button:link > label:disabled`, `button:visited > label:disabled`, `button:link > label:disabled:backdrop` and `button:visited > label:disabled:backdrop`, declaring `color: #888888`. The backdrop compounds outrank the stock child-backdrop arms; the implemented enabled-backdrop compounds exclude disabled labels. The underline and faceless-button recipes remain intact. These four selectors form one child-disabled recipe, with backdrop preventing its stock recolouring.
+
+In `tests/test_gtk_theme.py`, added `TestGtkTheme.test_child_disabled_link_button_label_colours` beside `test_disabled_link_button_labels`. The existing `assert_disabled_text` helper checks the exact colour-only dictionaries and re-derives the inactive scheme role; the test asserts one occurrence of each exact selector and checks that the group follows the base blue and purple child groups and the existing disabled-parent group. Added a dated row in `docs/invariants.md` under `## gtk` naming the test, missing reference surface, scheme role and installed resource.
+
+**Acceptance criteria.** The test fails if a listed selector is removed or duplicated, its colour changes, a declaration is added, or the group moves before the base child or disabled-parent groups. Coverage establishes declarations and source order, without claiming rendered pixels. `make check` is the project check.
+
 ### Platinum GTK 3 enabled backdrop link-button labels (planned 2026-10-31 by the plan role; independent of the waiting label hover and press plan) — done 2026-10-31 by the feature role
 
 **Goal.** Keep enabled link-button child labels blue, or purple when visited, when their label nodes carry backdrop, including label hover and press. Parent-only backdrop, disabled labels and selected contexts are outside this plan.

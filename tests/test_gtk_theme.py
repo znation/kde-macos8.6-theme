@@ -374,6 +374,24 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         self.assertGreater(disabled_rule, uncommented.index("button:link > label {"))
         self.assertGreater(disabled_rule, uncommented.index("button:visited > label {"))
 
+    def test_child_disabled_link_button_label_colours(self):
+        selectors = (
+            "button:link > label:disabled",
+            "button:visited > label:disabled",
+            "button:link > label:disabled:backdrop",
+            "button:visited > label:disabled:backdrop",
+        )
+        self.assert_disabled_text(selectors)
+        for selector in selectors:
+            self.assertEqual(self.selectors.count(selector), 1)
+        uncommented = gtk_css.strip_comments(self.css)
+        child_disabled = uncommented.index(selectors[0] + ",")
+        self.assertGreater(child_disabled, uncommented.index("button:link > label {"))
+        self.assertGreater(child_disabled, uncommented.index("button:visited > label {"))
+        self.assertGreater(child_disabled, uncommented.index(
+            "button:link:disabled > label, button:visited:disabled > label {"
+        ))
+
     def test_link_button_label_interaction_colours(self):
         blue = (
             "button:link:not(:disabled) > label:hover:not(:disabled)",
