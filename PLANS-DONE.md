@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: list a bounded selection of the worst differing pixels (planned 2026-11-01 by the plan role — done 2026-11-01 by the feature role)
+
+**Goal and grounding.** Inspect severe mismatches without repeatedly recropping a render. The existing comparison reports aggregate metrics and one worst location, but no ranked pixel list.
+
+**Approach and files.** Added opt-in `--worst-pixels N` (ASCII decimal 1–1000) and `tools/fidelity_pixels.py::worst_pixels`, ranking pixels beyond tolerance by descending maximum RGBA delta and row-major ties using bounded `heapq.nsmallest`. Records carry crop-relative coordinates and both RGBA values. JSON and text include the list only when requested; default execution and verdicts are unchanged. Added helper and CLI coverage in `tests/test_fidelity_pixels.py`, README usage, and the tooling invariant.
+
+**Acceptance criteria.** Tests cover severity, ties, alpha, tolerance, deterministic full-sort comparison, crops, aggregate PASS, invalid values, and the unchanged default. `make check`.
+
 ### Reference-pixel sampler: locate a chosen RGB color within a region (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Find where a palette color occurs in a reference region without dumping its pixels. `tools/sample.py::main` currently offers individual pixels, a histogram and scanline runs; `_color_runs` groups adjacent matches but does not locate a chosen color across a rectangle. Searches of the implementation, queue and related archive headings found no color-location mode. This plan is independent of the waiting fidelity-bounds plan: it touches the sampler rather than the comparison metrics.

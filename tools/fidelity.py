@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import sys
 import json
+import argparse
 from dataclasses import asdict
 
 if __package__:
@@ -38,6 +39,7 @@ if __package__:
         compare,
         crop,
     )
+    from tools.fidelity_pixels import worst_pixels
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
@@ -47,6 +49,7 @@ else:  # run directly: python3 tools/fidelity.py
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
+    from fidelity_pixels import worst_pixels
     from png import PngError, read_png
     from repo_root import ROOT
     from terminal import escape_controls
@@ -102,6 +105,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("candidate", help="rendered surface image (PNG)")
     parser.add_argument("reference", help="reference image (PNG)")
     parser.add_argument("--json", action="store_true", help="emit comparison as JSON")
+    def worst_pixel_limit(value: str) -> int:
+        if not value or not value.isascii() or not value.isdecimal():
+            raise argparse.ArgumentTypeError("--worst-pixels must be an ASCII integer from 1 to 1000")
+        number = int(value)
+        if not 1 <= number <= 1000:
+            raise argparse.ArgumentTypeError("--worst-pixels must be an ASCII integer from 1 to 1000")
+        return number
+
+    parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
+                        help="list up to N worst differing pixels (1-1000)")
     parser.add_argument(
         "--candidate-crop",
         type=parse_crop,
@@ -148,6 +161,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
+        worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels)
+                 if args.worst_pixels is not None else None)
     except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
@@ -163,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         budgets.append(metrics.frac_differing <= args.max_frac)
     ok = all(budgets) if budgets else metrics.frac_differing <= 0.0
     if args.json:
-        print(json.dumps({
+        result = {
             "candidate": args.candidate,
             "reference": args.reference,
             "candidate_crop": args.candidate_crop,
@@ -171,7 +186,10 @@ def main(argv: list[str] | None = None) -> int:
             "thresholds": {"tolerance": args.tolerance, "max_mae": args.max_mae, "max_frac": args.max_frac},
             "metrics": asdict(metrics),
             "passed": ok,
-        }, ensure_ascii=True))
+        }
+        if worst is not None:
+            result["worst_pixels"] = worst
+        print(json.dumps(result, ensure_ascii=True))
         return 0 if ok else 1
     print(
         f"candidate: {escape_controls(args.candidate)}  "
@@ -221,6 +239,15 @@ def main(argv: list[str] | None = None) -> int:
         print("difference bounds: none")
     else:
         print("difference bounds: " + ",".join(map(str, metrics.difference_bounds)))
+    if worst is not None:
+        print(f"worst pixels: {len(worst)}")
+        for pixel in worst:
+            print(
+                f"pixel ({pixel['x']}, {pixel['y']}): "
+                f"candidate={','.join(map(str, pixel['candidate_rgba']))} "
+                f"reference={','.join(map(str, pixel['reference_rgba']))} "
+                f"max_delta={pixel['max_delta']}"
+            )
     verdict = "PASS" if ok else "FAIL"
     mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
     fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"

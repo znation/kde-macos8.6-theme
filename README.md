@@ -471,7 +471,11 @@ along with its red, green and blue bytes, so a transparent candidate cannot pass
 reference. `--max-mae F` and `--max-frac F` set
 aggregate budgets instead: when either is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
-the default no-differing-pixel gate no longer applies. `make render` invokes the CLI
+the default no-differing-pixel gate no longer applies. Add `--worst-pixels N` (1–1000) to list
+the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
+The listed coordinates are relative to the compared, cropped surfaces. With `--json`, the
+records appear in a `worst_pixels` array; the default output and work remain unchanged.
+`make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
