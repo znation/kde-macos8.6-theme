@@ -140,6 +140,35 @@ class TestRuleBlockSemantics(unittest.TestCase):
     the GTK sheet tests would be at risk of reading the wrong declarations.
     """
 
+    def test_semicolons_inside_square_bracket_values_are_preserved(self):
+        cases = (
+            ("a { --tokens: [a;b]; color: red; }", ["a"],
+             {"a": {"--tokens": "[a;b]", "color": "red"}}),
+            ("a { --tokens: [[a;b];c]; color: red; }", ["a"],
+             {"a": {"--tokens": "[[a;b];c]", "color": "red"}}),
+            ("a { --tokens: [a;(b;c)]; color: red; }", ["a"],
+             {"a": {"--tokens": "[a;(b;c)]", "color": "red"}}),
+            ("a { --tokens: fn([a;b]); color: red; }", ["a"],
+             {"a": {"--tokens": "fn([a;b])", "color": "red"}}),
+            ('a { --tokens: ["a;b";c]; color: red; }', ["a"],
+             {"a": {"--tokens": '["a;b";c]', "color": "red"}}),
+            ('a { --tokens: ["[;]";c]; color: red; }', ["a"],
+             {"a": {"--tokens": '["[;]";c]', "color": "red"}}),
+            (r"a { --tokens: [a\]b;c]; color: red; }", ["a"],
+             {"a": {"--tokens": r"[a\]b;c]", "color": "red"}}),
+            (r"a { --tokens: [a\[;b]; color: red; }", ["a"],
+             {"a": {"--tokens": r"[a\[;b]", "color": "red"}}),
+            ("a { --tokens: a]; color: red; }", ["a"],
+             {"a": {"--tokens": "a]", "color": "red"}}),
+            ("a, b { --tokens: [a;b] }", ["a", "b"],
+             {"a": {"--tokens": "[a;b]"}, "b": {"--tokens": "[a;b]"}}),
+            (r"a { --tokens: [a\;b]; color: red; }", ["a"],
+             {"a": {"--tokens": r"[a\;b]", "color": "red"}}),
+        )
+        for text, selectors, rules in cases:
+            with self.subTest(text=text):
+                self.assertEqual(parse_css(text), ({}, rules, selectors))
+
     def test_escaped_trailing_value_whitespace_is_preserved(self):
         cases = (
             (r"token\ ; color: red;", r"token\ ", {"color": "red"}),

@@ -5,13 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Shared stylesheet parser: keep semicolons inside square-bracketed values (planned 2026-11-01 by the plan role; independent of the waiting escaped-whitespace boundary plan)
-
-**Goal and grounding.** Accept square-bracketed custom-property token values without inventing declarations. Reproduced 2026-11-01: `parse_css("a { --tokens: [a;b]; color: red; }")` raises a malformed-declaration error for `b]`. `tests/support/gtk_css.py::_split_declarations` protects quoted strings and parentheses but has no square-bracket depth. The existing `_split_selector_list` bracket handling applies to selector commas, not declaration semicolons. The waiting boundary plan changes `parse_css` trimming, a separate operation.
-
-**Approach and files.** Add square-bracket depth to `_split_declarations`, following its existing quote/escape handling and nonnegative parenthesis counter. Split on a semicolon only when both counters are zero; quoted or escaped brackets do not change depth, and an unmatched closing bracket does not make depth negative. Retain the forward scan and literal value representation. Add direct regressions in `tests/test_gtk_css.py::TestRuleBlockSemantics`, including `test_semicolons_inside_square_bracket_values_are_preserved`, and record the scoped guarantee and implementation date in `docs/invariants.md` under GTK shared stylesheet parser. These three files form one run; brace-valued custom properties, CSS escape decoding and general syntax validation are outside scope.
-
-**Acceptance criteria.** The full parse tuple for the reproducer retains `--tokens: [a;b]`, `color: red` and selector `a`, with no definitions. Cover nested brackets, parentheses inside brackets and brackets inside functions; internal semicolons remain literal and the following declaration is parsed. Quoted and escaped opening/closing brackets do not alter grouping; a stray closing bracket does not swallow the next declaration. Exercise grouped selectors and a final bracket-valued declaration without a trailing semicolon. Add an escaped-semicolon control and retain the existing quoted-string, URL and empty-declaration tests. No shipped stylesheet or visual value changes. Run `make check`.
+_None yet._
 
 ### Shared stylesheet parser: preserve define-color text inside declaration blocks (planned 2026-11-01 by the plan role; independent of the waiting square-bracket declaration-splitting plan)
 

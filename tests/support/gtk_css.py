@@ -199,7 +199,7 @@ def _rule_blocks(text):
 
 
 def _split_declarations(body):
-    """Yield *body*'s declarations, split on ``;`` outside quotes and ``()``.
+    """Yield *body*'s declarations, split on ``;`` outside quotes, ``()`` and ``[]``.
 
     A quoted string and a ``url(...)`` value may both carry a semicolon that is
     part of the value rather than a separator. Splitting on every semicolon cut
@@ -209,6 +209,7 @@ def _split_declarations(body):
     declaration = []
     quote = None
     depth = 0
+    bracket_depth = 0
     escaped = False
     for char in body:
         if escaped:
@@ -224,7 +225,11 @@ def _split_declarations(body):
             depth += 1
         elif char == ")" and depth:
             depth -= 1
-        elif char == ";" and not depth:
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]" and bracket_depth:
+            bracket_depth -= 1
+        elif char == ";" and not depth and not bracket_depth:
             yield "".join(declaration)
             declaration = []
             continue
