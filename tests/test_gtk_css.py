@@ -367,6 +367,51 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_escaped_ordinary_declaration_names_are_canonicalized(self):
+        cases = (
+            (r"\61 ", "a"),
+            (r"\061 ", "a"),
+            (r"\0061 ", "a"),
+            (r"\00061 ", "a"),
+            (r"\000061", "a"),
+            ("\\000061\r\n", "a"),
+        )
+        for source, expected in cases:
+            with self.subTest(source=source):
+                self.assertEqual(parse_css("a { " + source + ": red; }")[1]["a"], {expected: "red"})
+
+        self.assertEqual(
+            parse_css(r"a { \63 olor: red; color: blue; \000063olor: green; co\lor: gold; }")[1]["a"],
+            {"color": "gold"},
+        )
+        self.assertEqual(
+            parse_css(r"a { -\77 ebkit-thing: one; -webkit-thing: two; }")[1]["a"],
+            {"-webkit-thing": "two"},
+        )
+        self.assertEqual(
+            parse_css("a { \\0000617: red; \\0000c4lor: blue; \\000000: zero; \\00d800: surrogate; \\110000: large; }")[1]["a"],
+            {"a7": "red", "\u00c4lor": "blue", "\ufffd": "large"},
+        )
+
+    def test_escaped_property_names_share_cascade_priority(self):
+        cases = (
+            (r"a { color: red; \63 olor: blue; }", "blue"),
+            (r"a { \63 olor: red; color: blue; }", "blue"),
+            (r"a { color: red !important; \63 olor: blue; }", "red !important"),
+            (r"a { \63 olor: blue; color: red !important; }", "red !important"),
+            (r"a { color: red; } a { \63 olor: blue; }", "blue"),
+            (r"a { color: red !important; } a { \63 olor: blue; }", "red !important"),
+        )
+        for css, expected in cases:
+            with self.subTest(css=css):
+                self.assertEqual(parse_css(css)[1]["a"]["color"], expected)
+
+    def test_custom_and_invalid_escaped_property_names_keep_source_spelling(self):
+        self.assertEqual(
+            parse_css("a { --\\63 olor: red; \\2d-escaped: blue; bad\\\\: red; bad\\\nname: green; }")[1]["a"],
+            {r"--\63 olor": "red", r"\2d-escaped": "blue", "bad\\": "red", "bad\\\nname": "green"},
+        )
+
     def test_custom_property_names_and_non_ascii_name_characters_are_preserved(self):
         self.assertEqual(
             parse_css("a { --Tone: One; --tone: Two; Cİlor: red; COLOR: blue; }"),

@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: canonicalize escaped ordinary property names (planned 2026-11-01 by the plan role; independent of the completed escaped-priority-keyword change) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make escaped ordinary property names share the existing cascade slot with their literal spelling in the GTK/Firefox test reader. Reproduced 2026-11-01: `parse_css(r"a { \63 olor: red; color: blue; }")[1]` returns separate `\63 olor` and `color` keys. `tests/support/gtk_css.py::parse_css` normalized whitespace and ASCII case but did not decode names.
+
+**Implementation.** Added a forward-only declaration-name canonicalizer in `tests/support/gtk_css.py`, called after `_split_property_value` and `_collapse_whitespace`. It decodes CSS simple and one-to-six-digit hexadecimal escapes, consumes one optional CSS-whitespace terminator (CRLF as a unit), replaces zero, surrogate and out-of-range scalar values with U+FFFD, and folds ASCII letters after decoding. Custom-property names, decoded names beginning with `--`, and names containing incomplete or backslash-newline escapes keep their normalized source spelling. Selector and value spellings remain untouched. Added public parser regressions in `tests/test_gtk_css.py::TestRuleBlockSemantics` and updated the ordinary-name guarantee in `docs/invariants.md`.
+
+**Acceptance.** Literal and escaped names now share cascade priority within and across blocks, including vendor-prefixed names and important declarations. Tests cover one-to-six digit escapes, CRLF termination, a seventh retained digit, non-ASCII case retention, invalid scalar replacement and unchanged custom/invalid names. Existing escaped-colon tests remain in place. No shipped stylesheet or visual value changed.
+
 ### Shared stylesheet parser: recognize escaped priority keywords (planned 2026-11-01 by the plan role; independent of the completed hex-escape whitespace-terminator change) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Recognize CSS escapes in the priority keyword used by the GTK/Firefox test reader. Reproduced 2026-11-01: `parse_css(r"a { color: red !\69mportant; color: blue; }")[1]` returns blue. In `tests/support/gtk_css.py`, `_is_important` finds the top-level bang but `_IMPORTANT_SUFFIX` accepts only the literal keyword. Searches of the planned and archived parser headings and the completed precedence and ASCII-case entries found no escaped-keyword coverage.

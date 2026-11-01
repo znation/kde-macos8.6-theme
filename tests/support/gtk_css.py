@@ -441,6 +441,45 @@ def _split_property_value(declaration):
     return None
 
 
+def _canonicalize_declaration_name(name):
+    """Decode CSS escapes in ordinary property names and fold ASCII case."""
+    if name.startswith("--"):
+        return name
+    decoded = []
+    index = 0
+    while index < len(name):
+        char = name[index]
+        if char != "\\":
+            decoded.append(char)
+            index += 1
+            continue
+        index += 1
+        if index == len(name) or name[index] in "\n\r\f":
+            return name
+        if name[index] in "0123456789abcdefABCDEF":
+            start = index
+            while (index < len(name) and index - start < 6
+                   and name[index] in "0123456789abcdefABCDEF"):
+                index += 1
+            codepoint = int(name[start:index], 16)
+            if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
+                decoded.append("\ufffd")
+            else:
+                decoded.append(chr(codepoint))
+            if index < len(name) and name[index] in _CSS_WHITESPACE:
+                if name[index] == "\r" and index + 1 < len(name) and name[index + 1] == "\n":
+                    index += 2
+                else:
+                    index += 1
+            continue
+        decoded.append(name[index])
+        index += 1
+    canonical = "".join(decoded)
+    if canonical.startswith("--"):
+        return name
+    return canonical.translate(_ASCII_LOWER)
+
+
 def assert_svg_root_first(test, path):
     """Assert *path* puts its SVG root before any provenance comment.
 
@@ -500,8 +539,7 @@ def parse_css(text, source=None):
             if split is not None:
                 name, value = split
                 name = _collapse_whitespace(name)
-                if not name.startswith("--"):
-                    name = name.translate(_ASCII_LOWER)
+                name = _canonicalize_declaration_name(name)
                 value = _collapse_whitespace(value)
             else:
                 name = value = ""
