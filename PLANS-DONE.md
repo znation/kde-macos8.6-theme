@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 backdrop selection color roles: export lavender and black (planned 2026-10-31 by the plan role; independent of the queued GTK 3 backdrop selection role plan) — done 2026-10-31 by the feature role
+
+**Goal.** Export `theme_unfocused_selected_bg_color` and `theme_unfocused_selected_fg_color` from the GTK 4 sheet for consumers of symbolic backdrop selection colors. This is a declaration contract; exporting names does not itself override literal-valued stock selectors.
+
+**Grounding.** Inspected 2026-10-31 with `gresource extract`: `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` defines these roles as `#3584e4` and `#ffffff`, describing selection background and foreground on backdrop windows. The theme's GTK 4 definition block exports focused selection roles but omits these two names. Searching their names in `PLANS.md`, `PLANS-DONE.md`, `theme/gtk` and `tests` found the queued GTK 3 plan, with GTK 4 explicitly separate. No reference screenshot shows GTK backdrop selection; adapt the existing constant-across-backdrop selection policy with `SELECTION` and `BLACK` from `tests/support/platinum_palette.py`. The selection fill's reference derivation remains `tests/test_colorscheme_reference.py::TestReferenceAnchors::test_selection_background`.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `@define-color theme_unfocused_selected_bg_color #CCCCFF;` and `@define-color theme_unfocused_selected_fg_color #000000;` beside the focused selection definitions, with a dated provenance comment naming the missing reference surface and reused palette. In `tests/test_gtk4_theme.py`, extend its existing module-local `DEFINED_COLOURS` expansion with these two names mapped to `SELECTION` and `BLACK`; retain `TestGtk4Theme::test_theme_colours`' exact dictionary comparison. Leave `tests/support/gtk_theme_spec.py::BASE_DEFINED_COLOURS` alone so this plan can merge independently of the GTK 3 counterpart. Append a dated row to the GTK table in `docs/invariants.md` naming the test, the resource and library paths above, and the adaptation source; describe declaration coverage rather than rendered pixels.
+
+**Acceptance criteria.** Removing, renaming or changing either new definition fails `TestGtk4Theme::test_theme_colours`. The GTK 4 parser check and palette-literal checks pass with the added definitions. Scope is the GTK 4 sheet, its suite and the invariant row; selector, geometry, artwork and installation changes are outside this plan. Run `make check`.
+
 ### Platinum GTK 3 backdrop selection color roles: export the landed lavender and black palette (planned 2026-10-31 by the plan role; independent of the waiting GTK 4 selected-text part 2/2, which edits a different sheet and suite) — done 2026-10-31 by the feature role
 
 **Goal.** Export `theme_unfocused_selected_bg_color` and `theme_unfocused_selected_fg_color` from the GTK 3 sheet so consumers of those symbolic colors receive the theme's selection lavender and black ink. This is a symbolic-palette contract, not a claim that adding definitions changes stock selectors whose declarations contain literal colors.

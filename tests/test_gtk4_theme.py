@@ -76,6 +76,8 @@ DEFINED_COLOURS = {
     **BASE_DEFINED_COLOURS,
     "accent_bg_color": SELECTION,
     "accent_fg_color": BLACK,
+    "theme_unfocused_selected_bg_color": SELECTION,
+    "theme_unfocused_selected_fg_color": BLACK,
     "window_bg_color": FACE,
     "window_fg_color": BLACK,
     "view_bg_color": WHITE,
