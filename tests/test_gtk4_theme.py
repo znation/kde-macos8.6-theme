@@ -1388,7 +1388,8 @@ for radio in (False, True):
         # arms; stock has no big :backdrop disabled group here, so backdrop
         # members are the dedicated view arms. The calendar member is pinned
         # against stock by this exact set assertion.
-        # 2026-10-31: selected text arms are restated by test_selected_text_arms.
+        # 2026-10-31: selected text arms and the generic .view disabled twin
+        # are restated by their focused plan entries.
         self.assertEqual(
             {
                 s for s in self.rules if ":disabled:selected" in s
@@ -1402,6 +1403,7 @@ for radio in (False, True):
                 "columnview.view:disabled:selected:backdrop",
                 "treeview.view:disabled:selected:backdrop",
                 "calendar > grid > label.day-number:disabled:selected",
+                ".view:disabled:selected",
                 "label:disabled:selected",
                 "textview > text:disabled:selected",
                 "textview > text:disabled:selected:focus",
@@ -1462,6 +1464,22 @@ for radio in (False, True):
                 "iconview.view:backdrop:selected",
             },
         )
+
+    def test_generic_view_selected_arms(self):
+        """Pin the generic view class fallback selection declarations."""
+        for selector in (".view:selected", ".view:selected:focus"):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {
+                        "background-color": SELECTION,
+                        "color": BLACK,
+                        "border-radius": "0",
+                    },
+                )
+        self.assert_matches_frame(".view:selected", "border-radius")
+        self.assert_disabled_text((".view:disabled:selected",))
+        self.assert_rule(".view:disabled:selected", {"color": "#888888"})
 
     def test_assistant_step_label_corners(self):
         expected = {"window.assistant .sidebar > label"}
