@@ -20,7 +20,7 @@ DEFINE_COLOR = re.compile(
     r"@define-color\s+(?P<name>[-A-Za-z0-9_]+)\s+(?P<value>#[0-9A-Fa-f]{6})\s*;"
 )
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
-_IMPORTANT_SUFFIX = re.compile(r"!\s*important\s*\Z", re.IGNORECASE)
+_IMPORTANT_SUFFIX = re.compile(r"![ \t\n\r\f]*important[ \t\n\r\f]*\Z", re.IGNORECASE)
 
 
 def _is_important(value):

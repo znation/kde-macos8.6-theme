@@ -365,6 +365,23 @@ class TestRuleBlockSemantics(unittest.TestCase):
             with self.subTest(css=css):
                 self.assertEqual(parse_css(css)[1]["a"]["color"], expected)
 
+    def test_important_priority_requires_css_whitespace(self):
+        for character in ("\u00a0", "\u2003", "\u000b"):
+            with self.subTest(codepoint=f"U+{ord(character):04X}"):
+                for css in (
+                    f"a {{ color: red !{character}important; color: blue; }}",
+                    f"a {{ color: red !{character}important; }} a {{ color: blue; }}",
+                ):
+                    self.assertEqual(parse_css(css)[1]["a"]["color"], "blue")
+                self.assertEqual(
+                    parse_css(f"a {{ color: red !{character}important; }}")[1]["a"]["color"],
+                    f"red !{character}important",
+                )
+        for whitespace in (" ", "\t", "\n", "\r", "\f", " \t\n\r\f"):
+            with self.subTest(whitespace=repr(whitespace)):
+                css = f"a {{ color: red !{whitespace}IMPORTANT{whitespace}; color: blue; }}"
+                self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
+
     def test_important_scanner_ignores_strings_urls_and_escaped_bangs(self):
         css = (
             'a { x: red !important; y: blue; } '
