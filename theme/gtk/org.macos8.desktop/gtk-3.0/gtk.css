@@ -3529,3 +3529,16 @@ label:link:visited:backdrop:hover:not(:disabled),
 label:link:visited:backdrop:active:not(:disabled) {
   color: #551A8B;
 }
+
+/* No collected reference shows GTK link-button interaction states. Keep the
+   scheme's link roles in hover and press; GTK 3's installed gtk-contained.css
+   resource supplies these child-label state spellings. Recorded 2026-10-31. */
+button:link:not(:disabled) > label:hover:not(:disabled),
+button:link:not(:disabled) > label:active:not(:disabled) {
+  color: #0000EE;
+}
+
+button:visited:not(:disabled) > label:hover:not(:disabled),
+button:visited:not(:disabled) > label:active:not(:disabled) {
+  color: #551A8B;
+}

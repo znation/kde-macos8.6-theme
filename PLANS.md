@@ -5,17 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 link-button label hover and press colours (planned 2026-10-31 by the plan role)
-
-**Goal.** Retain the scheme's blue and visited purple on enabled GTK 3 link-button labels during hover and press in ordinary active-window contexts. Companion to the finished inline-link interaction plan; disabled, selected-context and backdrop treatment are separate surfaces.
-
-**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` supplies base `button:link > label` and `button:visited > label` colours and a disabled-parent override, but no button-child hover/active colour compounds. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` explicitly colours `button:link > label:hover` and `button:visited > label:hover`, and their `:active` twins; these outrank the base child declarations. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found the base, disabled-child and inline-link work; the original links plan excludes hover/active and the inline interaction plan excludes button children. No collected reference shows GTK link-button interactions: reuse `[Colors:Window] ForegroundLink` and `ForegroundVisited`, with the stock resource supplying the platform state spellings.
-
-**Approach and files.** Append a dated provenance comment and two colour-only groups at the GTK 3 sheet tail. The blue group contains `button:link:not(:disabled) > label:hover:not(:disabled)` and its label `:active` twin; declare `color: #0000EE`. The following purple group contains `button:visited:not(:disabled) > label:hover:not(:disabled)` and its label `:active` twin; declare `color: #551A8B`. The later purple group wins if the parent carries both link states. Preserve the existing underline and faceless-button rules. This deliberately targets the stock child-label interaction arms; parent-only interaction state coverage is outside the guarantee.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_link_button_label_interaction_colours` beside `test_disabled_link_button_labels`. Assert the four exact selectors' colour-only dictionaries and single occurrences. Re-derive both colours with `load_scheme()` using the conversion in `test_inline_link_interaction_colours`. On `gtk_css.strip_comments(self.css)`, assert the blue group follows the existing disabled-child group and the purple group follows the blue group. Add one dated `## gtk` row to `docs/invariants.md` naming the new test, missing reference surface, scheme roles and inspected resource. These three files bound the implementation; no assets or helpers are needed.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, adding an unexpected declaration or changing its colour fails the new test. Changing either scheme role fails the palette comparison. Reversing the groups or moving them before the disabled-child group fails source-order assertions. Existing link, disabled-child and inline interaction tests stay green. Run `make check`. Coverage establishes declarations and source order, without claiming rendered pixels.
+_None yet._
 
 ### Platinum GTK 3 enabled backdrop link-button labels (planned 2026-10-31 by the plan role; independent of the waiting label hover and press plan)
 
