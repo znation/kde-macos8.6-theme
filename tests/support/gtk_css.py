@@ -134,6 +134,23 @@ def strip_comments(text):
             quote = char
             index += 1
             continue
+        if char in "uU" and (index == 0 or not (
+            text[index - 1].isalnum() or text[index - 1] in "_-\\"
+        )) and text[index:index + 3].translate(_ASCII_LOWER) == "url" and index + 3 < len(text) and text[index + 3] == "(":
+            url_start = index + 4
+            while url_start < len(text) and text[url_start] in " \t\n\r\f":
+                url_start += 1
+            if url_start < len(text) and text[url_start] not in "\"'":
+                index = url_start
+                while index < len(text):
+                    if text[index] == "\\":
+                        index += 2
+                    elif text[index] == ")":
+                        index += 1
+                        break
+                    else:
+                        index += 1
+                continue
         if text.startswith("/*", index):
             parts.append(text[position:index])
             end = text.find("*/", index + 2)

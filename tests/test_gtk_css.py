@@ -40,6 +40,22 @@ class TestStripComments(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertEqual(strip_comments(text), text)
 
+    def test_comment_markers_inside_unquoted_urls_are_text(self):
+        cases = (
+            "url(https://example.invalid/a/*literal*/b.png)",
+            "URL(https://example.invalid/a/*literal*/b.png)",
+            "uRl(  https://example.invalid/a/*literal*/b.png)",
+            r"url(https://example.invalid/a\)/*literal*/b.png)",
+            "url(https://example.invalid/a/*unterminated",
+        )
+        for text in cases:
+            with self.subTest(text=text):
+                self.assertEqual(strip_comments(text), text)
+        self.assertEqual(strip_comments("url(\"a/*quoted*/b\")"), "url(\"a/*quoted*/b\")")
+        self.assertEqual(strip_comments("myurl(a/*gone*/b)"), "myurl(ab)")
+        self.assertEqual(strip_comments("/*before*/url(a/*keep*/b)/*after*/"), "url(a/*keep*/b)")
+        self.assertEqual(strip_comments("fn(a/*gone*/b)"), "fn(ab)")
+
 
 class TestParseCss(unittest.TestCase):
     def test_a_colour_named_in_a_comment_is_not_a_definition(self):
@@ -139,6 +155,29 @@ class TestRuleBlockSemantics(unittest.TestCase):
     simplification of the scanner could change how a rule is paired and only
     the GTK sheet tests would be at risk of reading the wrong declarations.
     """
+
+    def test_unquoted_url_comment_markers_preserve_following_declarations(self):
+        css = (
+            "a, b { background-image: url(https://example.invalid/a/*literal*/b.png); "
+            "color: red; }"
+        )
+        self.assertEqual(
+            parse_css(css),
+            (
+                {},
+                {
+                    "a": {
+                        "background-image": "url(https://example.invalid/a/*literal*/b.png)",
+                        "color": "red",
+                    },
+                    "b": {
+                        "background-image": "url(https://example.invalid/a/*literal*/b.png)",
+                        "color": "red",
+                    },
+                },
+                ["a", "b"],
+            ),
+        )
 
     def test_escaped_colons_in_declaration_names(self):
         css = (
