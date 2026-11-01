@@ -29,20 +29,32 @@ from __future__ import annotations
 import struct
 
 try:
+    from tools.xcursor_container import (
+        CHUNK_VERSION, FILE_HEADER_SIZE, FILE_VERSION, IMAGE_HEADER_SIZE,
+        IMAGE_TYPE, MAX_IMAGE_SIZE, MAGIC, TOC_ENTRY_SIZE, assemble,
+    )
     from tools.ints import is_plain_int
     from tools.png import PngError, decode_rgba
 except ImportError:  # imported from a directly run tool
+    from xcursor_container import (
+        CHUNK_VERSION, FILE_HEADER_SIZE, FILE_VERSION, IMAGE_HEADER_SIZE,
+        IMAGE_TYPE, MAX_IMAGE_SIZE, MAGIC, TOC_ENTRY_SIZE, assemble,
+    )
     from ints import is_plain_int
     from png import PngError, decode_rgba
 
-MAGIC = b"Xcur"
-FILE_VERSION = 0x00010000
-FILE_HEADER_SIZE = 16
-TOC_ENTRY_SIZE = 12
-IMAGE_TYPE = 0xFFFD0002
-CHUNK_VERSION = 1
-IMAGE_HEADER_SIZE = 36
-MAX_IMAGE_SIZE = 0x7FFF
+__all__ = [
+    "CHUNK_VERSION",
+    "FILE_HEADER_SIZE",
+    "FILE_VERSION",
+    "IMAGE_HEADER_SIZE",
+    "IMAGE_TYPE",
+    "MAX_IMAGE_SIZE",
+    "MAGIC",
+    "TOC_ENTRY_SIZE",
+    "write_cursor",
+    "write_rgba_cursor",
+]
 
 
 def _require_dimension(name: str, value: object) -> None:
@@ -177,45 +189,6 @@ def _rgba_frame(index: int, record: object) -> tuple[int, int, int, int, int, by
     )
 
 
-def _assemble(frames) -> bytes:
-    """Return the Xcursor bytes for already-validated, non-empty *frames*."""
-    if not frames:
-        raise ValueError(
-            "images must contain at least one frame; a cursor file with no "
-            "image cannot be drawn"
-        )
-    ntoc = len(frames)
-    next_offset = FILE_HEADER_SIZE + TOC_ENTRY_SIZE * ntoc
-    toc = bytearray()
-    chunks = bytearray()
-    for nominal_size, width, height, hotspot_x, hotspot_y, payload in frames:
-        toc += struct.pack("<III", IMAGE_TYPE, nominal_size, next_offset)
-        chunk = (
-            struct.pack(
-                "<IIIIIIIII",
-                IMAGE_HEADER_SIZE,
-                IMAGE_TYPE,
-                nominal_size,
-                CHUNK_VERSION,
-                width,
-                height,
-                hotspot_x,
-                hotspot_y,
-                0,
-            )
-            + payload
-        )
-        chunks += chunk
-        next_offset += len(chunk)
-    return (
-        struct.pack(
-            "<4sIII", MAGIC, FILE_HEADER_SIZE, FILE_VERSION, ntoc
-        )
-        + bytes(toc)
-        + bytes(chunks)
-    )
-
-
 def _image_records(images):
     """Return an iterator for *images*, naming a malformed top-level input."""
     try:
@@ -243,7 +216,7 @@ def write_cursor(images) -> bytes:
         _build_payload(index, record)
         for index, record in enumerate(_image_records(images))
     ]
-    return _assemble(frames)
+    return assemble(frames)
 
 
 def write_rgba_cursor(images) -> bytes:
@@ -262,4 +235,4 @@ def write_rgba_cursor(images) -> bytes:
         _rgba_frame(index, record)
         for index, record in enumerate(_image_records(images))
     ]
-    return _assemble(frames)
+    return assemble(frames)
