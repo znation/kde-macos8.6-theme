@@ -10,6 +10,8 @@ unclear-invariant).
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
 
+**Refused 2026-11-01 by bugfix: SIGKILL cannot run in-process rollback, and automatic recovery could overwrite user edits made after the interrupted commit.**
+
 `tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
 with separate replacements. Its rollback runs only when Python catches an exception; if the
 process receives `SIGKILL` after one replacement, later files retain their old contents while
