@@ -412,6 +412,46 @@ class TestRuleBlockSemantics(unittest.TestCase):
             {r"--\63 olor": "red", r"\2d-escaped": "blue", "bad\\": "red", "bad\\\nname": "green"},
         )
 
+    def test_ordinary_declaration_names_decode_css_escapes_before_merging(self):
+        cases = (
+            (r"a { \63 olor: red !important; color: blue; }", {"color": "red !important"}, ["a"]),
+            (r"a { color: red; co\lor: blue; } a { \43 olor: green; }",
+             {"color": "green"}, ["a", "a"]),
+            (r"a, b { -\57 ebkit-Thing: one; -webkit-thing: two; }",
+             {"-webkit-thing": "two"}, ["a", "b"]),
+            (r"a { \000063olor: one; \63 olor: two; }", {"color": "two"}, ["a"]),
+            (r"a { \1234567: value; }", {"�7": "value"}, ["a"]),
+            (r"a { \e9: one; \c9: two; }", {"é": "one", "É": "two"}, ["a"]),
+        )
+        for css, expected, selectors in cases:
+            with self.subTest(css=css):
+                _, rules, actual_selectors = parse_css(css)
+                self.assertEqual(rules["a"], expected)
+                self.assertEqual(actual_selectors, selectors)
+
+        _, rules, _ = parse_css("a { \\0: zero; \\d800: surrogate; \\110000: large; }")
+        self.assertEqual(rules["a"], {"�": "large"})
+        _, rules, _ = parse_css("a { \\63\tolor: first; color: second; \\63\r\nolor: third; }")
+        self.assertEqual(rules["a"], {"color": "third"})
+        _, rules, _ = parse_css(r"a { \;name: literal; }")
+        self.assertEqual(rules["a"], {";name": "literal"})
+        _, rules, _ = parse_css(r"a { co\:lor: escaped colon; }")
+        self.assertEqual(rules["a"], {"co:lor": "escaped colon"})
+        _, rules, _ = parse_css("a { broken\\\n name: literal; }")
+        self.assertEqual(list(rules["a"].values()), ["literal"])
+        self.assertTrue(next(iter(rules["a"])).startswith("broken"))
+        _, rules, _ = parse_css(
+            r"a { \63 olor: two; \063 olor: three; \0063olor: four; "
+            r"\00063olor: five; \000063olor: six; }"
+        )
+        self.assertEqual(rules["a"], {"color": "six"})
+        _, rules, _ = parse_css(r"a { \a: one; }")
+        self.assertEqual(rules["a"], {"\n": "one"})
+        self.assertEqual(
+            parse_css(r"a { --Tone: one; --tone: two; --tone\:active: three; }")[1]["a"],
+            {"--Tone": "one", "--tone": "two", r"--tone\:active": "three"},
+        )
+
     def test_custom_property_names_and_non_ascii_name_characters_are_preserved(self):
         self.assertEqual(
             parse_css("a { --Tone: One; --tone: Two; Cİlor: red; COLOR: blue; }"),

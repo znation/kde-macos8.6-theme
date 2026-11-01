@@ -5,16 +5,18 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Shared stylesheet parser: decode ordinary property-name escapes before cascade merging (planned 2026-11-01 by the plan role)
-
-**Goal and grounding.** Make escaped ordinary property names share their decoded property's cascade slot. Reproduced 2026-11-01: `parse_css(r"a { \63 olor: red !important; color: blue; }")` returns separate `\63 olor` and `color` keys. In `tests/support/gtk_css.py::parse_css`, ordinary names receive `_collapse_whitespace` and ASCII folding but no escape decoding. The completed ordinary-name folding plan explicitly excluded CSS escape changes; the completed escaped-priority plan decodes only the priority keyword.
-
-**Approach and files.** Add a local ordinary-name normalization helper in `tests/support/gtk_css.py`, called after `_split_property_value` and `_collapse_whitespace`, before priority merging. For names that do not literally start with `--`, decode simple escapes and one-to-six-digit ASCII hexadecimal escapes, consuming one optional CSS-whitespace terminator (CRLF as one), then apply `_ASCII_LOWER`. Map zero, surrogate and out-of-range hexadecimal code points to U+FFFD, matching `_important_suffix_matches`. Preserve an incomplete trailing escape or backslash-newline sequence literally rather than expanding this reader into a syntax validator. Names literally starting with `--` retain their existing spelling and case contract. Keep separator scanning before decoding, so an escaped colon cannot become the declaration delimiter. Add public regressions in `tests/test_gtk_css.py::TestRuleBlockSemantics` beside `test_ordinary_declaration_names_fold_ascii_case`. Update the ordinary-name and escaped-colon guarantees under GTK shared stylesheet parser in `docs/invariants.md` to distinguish decoded ordinary keys from literal custom-property keys, with the implementation date. These three files bound one run; selector, value and custom-property escape decoding are outside scope.
-
-**Acceptance criteria.** The reproducer returns exactly `({}, {"a": {"color": "red !important"}}, ["a"])`. Named tests cover simple escapes, uppercase decoded letters, hexadecimal lengths and terminators (including CRLF), a seventh hex digit remaining literal, vendor-prefixed names, invalid scalar replacement and bounded incomplete-escape handling. Escaped and literal ordinary names merge within and across blocks with important precedence and later ties, including grouped selectors. An escaped colon in an ordinary name decodes in the returned key without moving the separator; existing literal `--tone\:active` keys and custom-name case distinctions remain pinned. Preserve returned selector order and normalized value spelling. No shipped stylesheet or visual value changes. Run `make check`.
 
 
 ## Done
+
+### Shared stylesheet parser: decode ordinary property-name escapes before cascade merging (planned 2026-11-01 by the plan role)
+— done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make escaped ordinary property names share their decoded property's cascade slot. The parser previously ASCII-folded ordinary names without decoding CSS escapes.
+
+**Approach and files.** Add an ordinary declaration-name normalizer in `tests/support/gtk_css.py` after separator scanning and whitespace normalization. Decode simple and one-to-six-digit hexadecimal escapes, consume one optional CSS-whitespace terminator (CRLF as one), map invalid scalar escapes to U+FFFD, fold ASCII case, and preserve custom-property names and incomplete or newline escapes. Keep escaped separators literal by decoding only after splitting. Add public parser regressions in `tests/test_gtk_css.py` and update the parser guarantees in `docs/invariants.md`. No shipped stylesheet or visual value changes.
+
+**Acceptance criteria.** Escaped/literal ordinary names merge with CSS priority and tie behavior, including grouped selectors; coverage pins escape forms, hex lengths and terminators, seventh digits, vendor prefixes, non-ASCII characters, invalid scalars, incomplete escapes, escaped colons and custom-property spelling. Preserve selector order and value spelling. Run `make check`.
 
 ### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change)
 — done 2026-11-01 by the feature role
