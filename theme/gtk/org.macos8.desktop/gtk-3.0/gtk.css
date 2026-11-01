@@ -3677,3 +3677,19 @@ label:link:visited:selected:disabled:not(:backdrop):hover,
 label:link:visited:selected:disabled:not(:backdrop):active {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   self-selected GTK inline links in backdrop windows. Reuse [Colors:Button]
+   ForegroundInactive; the installed GTK 3 gtk-contained.css resource supplies
+   the self-selected backdrop link state spellings. */
+label:link:selected:disabled:backdrop,
+label:link:selected:disabled:backdrop:hover,
+label:link:selected:disabled:backdrop:active,
+label:visited:selected:disabled:backdrop,
+label:visited:selected:disabled:backdrop:hover,
+label:visited:selected:disabled:backdrop:active,
+label:link:visited:selected:disabled:backdrop,
+label:link:visited:selected:disabled:backdrop:hover,
+label:link:visited:selected:disabled:backdrop:active {
+  color: #888888;
+}
