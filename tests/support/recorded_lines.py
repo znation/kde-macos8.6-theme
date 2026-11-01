@@ -7,6 +7,8 @@ from pathlib import Path
 
 def recorded_lines(log: Path) -> list[str]:
     """Return the lines in *log*, or ``[]`` when no stub has written it yet."""
-    if not log.exists():
+    try:
+        contents = log.read_text(encoding="utf-8")
+    except FileNotFoundError:
         return []
-    return log.read_text(encoding="utf-8").splitlines()
+    return contents.splitlines()
