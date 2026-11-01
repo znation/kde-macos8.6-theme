@@ -333,6 +333,20 @@ def _collapse_whitespace(text):
     return "".join(parts)
 
 
+def _split_property_value(declaration):
+    """Split at the first colon not escaped by a backslash."""
+    index = 0
+    while index < len(declaration):
+        char = declaration[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == ":":
+            return declaration[:index], declaration[index + 1:]
+        index += 1
+    return None
+
+
 def assert_svg_root_first(test, path):
     """Assert *path* puts its SVG root before any provenance comment.
 
@@ -349,19 +363,6 @@ def assert_svg_root_first(test, path):
         read_theme_text(path),
         r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
     )
-
-
-def _split_property_value(declaration):
-    """Split at the first colon that is not escaped by a backslash."""
-    index = 0
-    while index < len(declaration):
-        if declaration[index] == "\\":
-            index += 2
-        elif declaration[index] == ":":
-            return declaration[:index], declaration[index + 1:]
-        else:
-            index += 1
-    return None
 
 
 def parse_css(text, source=None):

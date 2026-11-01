@@ -178,6 +178,42 @@ class TestRuleBlockSemantics(unittest.TestCase):
                 ):
                     parse_css(f"a {{ {declaration}; }}", source="source.css")
 
+    def test_escaped_colon_names_preserve_values_and_priority_ties(self):
+        cases = (
+            (r"a { --tone\:active: red; color: blue; }",
+             {r"--tone\:active": "red", "color": "blue"}, ["a"]),
+            (r"a { --tone\:active\:hover: red; }",
+             {r"--tone\:active\:hover": "red"}, ["a"]),
+            (r"a { --slashes\\:name: red; }",
+             {r"--slashes\\": "name: red"}, ["a"]),
+            (r"a { --slashes\:name: red; }",
+             {r"--slashes\:name": "red"}, ["a"]),
+            (r"a { --tone\:active: url(https://example.test/a:b); }",
+             {r"--tone\:active": "url(https://example.test/a:b)"}, ["a"]),
+            (r"a, b { --tone\:active: red; }",
+             {r"--tone\:active": "red"}, ["a", "b"]),
+        )
+        for text, expected_rules, selectors in cases:
+            with self.subTest(text=text):
+                self.assertEqual(parse_css(text), ({}, {s: expected_rules.copy() for s in selectors}, selectors))
+
+        self.assertEqual(
+            parse_css(r"a { --tone\:active: red; --tone\:active: blue !important; "
+                      r"--tone\:active: green; }")[1]["a"][r"--tone\:active"],
+            "blue !important",
+        )
+        self.assertEqual(
+            parse_css(r"a { --tone\:active: red !important; "
+                      r"--tone\:active: blue !important; }")[1]["a"][r"--tone\:active"],
+            "blue !important",
+        )
+        for text in (r"a { --tone\:active; }", "a { : red; }", "a { color: ; }"):
+            with self.subTest(text=text), self.assertRaisesRegex(
+                ValueError,
+                r"^source\.css: malformed declaration in selector 'a':",
+            ):
+                parse_css(text, source="source.css")
+
     def test_semicolons_inside_square_bracket_values_are_preserved(self):
         cases = (
             ("a { --tokens: [a;b]; color: red; }", ["a"],

@@ -15,6 +15,15 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Done
 
+### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change)
+— done 2026-11-01 by the feature role
+
+**Goal and grounding.** Preserve literal custom-property names containing escaped colons. Reproduced 2026-11-01: `parse_css(r"a { --tone\:active: red; color: blue; }")` stores the key `--tone\` with value `active: red`. `tests/support/gtk_css.py::parse_css` uses `chunk.split(":", 1)` without respecting escapes. The completed declaration-name folding and escaped-whitespace plans do not cover this separator search; the completed block-depth change affects `_define_color_matches`, a separate scanner.
+
+**Approach and files.** Add a small `_split_property_value` helper in `tests/support/gtk_css.py` that scans left to right, skips each backslash and its following character, and splits at the first unescaped colon. Return a missing-separator sentinel when that scan finds no separator; route it through `parse_css`'s existing malformed-declaration diagnostic. Keep literal escape spelling, current name/value normalization and priority merging. Add `TestRuleBlockSemantics.test_escaped_colons_in_declaration_names` and focused diagnostic cases in `tests/test_gtk_css.py`; record the scoped guarantee and implementation date under GTK shared stylesheet parser in `docs/invariants.md`. These three files bound one run. Escape decoding, identifier validation and other grouping changes are outside scope.
+
+**Acceptance criteria.** The reproducer returns exactly `({}, {"a": {r"--tone\:active": "red", "color": "blue"}}, ["a"])`. Cover multiple escaped colons in a custom-property name, odd/even runs of backslashes immediately before a colon, and a value containing further colons (including a URL), preserving literal text. Repeated escaped-name declarations still obey important priority and later ties; grouped selectors receive the same preserved key. A declaration containing an escaped colon but no unescaped separator raises the existing source-prefixed malformed-declaration error, as do empty names and values. Keep trailing-backslash scanning bounded. No shipped stylesheet or visual value changes. Run `make check`.
+
 ### Shared stylesheet parser: preserve escaped whitespace at value boundaries (planned 2026-11-01 by the plan role; independent of the completed ASCII priority-keyword change)
 — done 2026-11-01 by the feature role
 
