@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: decode custom-property name escapes without folding case (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make equivalent escaped and literal custom-property names share a cascade key in the GTK/Firefox test reader. Confirmed 2026-11-01: escaped `--tone` previously remained a separate key. The existing declaration-name decoder already handles CSS escapes for ordinary properties.
+
+**Approach and files.** Reused the CSS escape decoder for custom names in `tests/support/gtk_css.py`, preserving decoded spelling without ASCII case folding and retaining the source-spelling fallback for incomplete or newline escapes. Updated custom-name expectations and added cascade regressions in `tests/test_gtk_css.py`; revised the parser guarantee in `docs/invariants.md`. No identifier validation, variable substitution or stylesheet changes.
+
+**Acceptance criteria.** Simple and hexadecimal escapes, including an escaped leading hyphen that decodes to the custom prefix, share literal keys. Optional hex terminators including CRLF, invalid-scalar replacement and incomplete/newline fallback use the existing decoder rules. Custom names differing by case remain distinct. Escaped colons decode after the unescaped separator is found. Named regressions cover important precedence and later-wins ties within and across blocks and grouped selectors. Ordinary-name decoding and selector/value spelling retain their expectations.
+
 ### Shared stylesheet parser: accept empty custom-property values (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let the GTK/Firefox test reader represent an empty custom-property value instead of rejecting valid declarations. Reproduced 2026-11-01: `parse_css("a { --empty: ; color: red; }")` raises a malformed-declaration `ValueError`. In `tests/support/gtk_css.py::parse_css`, the `not value` guard rejects custom and ordinary properties alike. This is independent of the waiting ordinary-name normalization entry.

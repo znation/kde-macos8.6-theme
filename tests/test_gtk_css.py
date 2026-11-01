@@ -313,12 +313,12 @@ class TestRuleBlockSemantics(unittest.TestCase):
                 {},
                 {
                     "a": {
-                        r"--tone\:active": "blue !important",
-                        r"--many\:parts\:here": "url(https://example.test/a:b)",
+                        "--tone:active": "blue !important",
+                        "--many:parts:here": "url(https://example.test/a:b)",
                     },
                     "b": {
-                        r"--tone\:active": "red",
-                        r"--many\:parts\:here": "url(https://example.test/a:b)",
+                        "--tone:active": "red",
+                        "--many:parts:here": "url(https://example.test/a:b)",
                     },
                 },
                 ["a", "b", "a", "a"],
@@ -326,7 +326,7 @@ class TestRuleBlockSemantics(unittest.TestCase):
         )
         self.assertEqual(
             parse_css("a { --odd\\:name: value; --even\\\\: value; }")[1]["a"],
-            {"--odd\\:name": "value", "--even\\\\": "value"},
+            {"--odd:name": "value", "--even\\": "value"},
         )
 
     def test_escaped_colon_without_separator_is_malformed(self):
@@ -341,17 +341,17 @@ class TestRuleBlockSemantics(unittest.TestCase):
     def test_escaped_colon_names_preserve_values_and_priority_ties(self):
         cases = (
             (r"a { --tone\:active: red; color: blue; }",
-             {r"--tone\:active": "red", "color": "blue"}, ["a"]),
+             {"--tone:active": "red", "color": "blue"}, ["a"]),
             (r"a { --tone\:active\:hover: red; }",
-             {r"--tone\:active\:hover": "red"}, ["a"]),
+             {"--tone:active:hover": "red"}, ["a"]),
             (r"a { --slashes\\:name: red; }",
-             {r"--slashes\\": "name: red"}, ["a"]),
+             {"--slashes\\": "name: red"}, ["a"]),
             (r"a { --slashes\:name: red; }",
-             {r"--slashes\:name": "red"}, ["a"]),
+             {"--slashes:name": "red"}, ["a"]),
             (r"a { --tone\:active: url(https://example.test/a:b); }",
-             {r"--tone\:active": "url(https://example.test/a:b)"}, ["a"]),
+             {"--tone:active": "url(https://example.test/a:b)"}, ["a"]),
             (r"a, b { --tone\:active: red; }",
-             {r"--tone\:active": "red"}, ["a", "b"]),
+             {"--tone:active": "red"}, ["a", "b"]),
         )
         for text, expected_rules, selectors in cases:
             with self.subTest(text=text):
@@ -359,12 +359,12 @@ class TestRuleBlockSemantics(unittest.TestCase):
 
         self.assertEqual(
             parse_css(r"a { --tone\:active: red; --tone\:active: blue !important; "
-                      r"--tone\:active: green; }")[1]["a"][r"--tone\:active"],
+                      r"--tone\:active: green; }")[1]["a"]["--tone:active"],
             "blue !important",
         )
         self.assertEqual(
             parse_css(r"a { --tone\:active: red !important; "
-                      r"--tone\:active: blue !important; }")[1]["a"][r"--tone\:active"],
+                      r"--tone\:active: blue !important; }")[1]["a"]["--tone:active"],
             "blue !important",
         )
         for text in (r"a { --tone\:active; }", "a { : red; }", "a { color: ; }"):
@@ -490,7 +490,7 @@ class TestRuleBlockSemantics(unittest.TestCase):
     def test_custom_and_invalid_escaped_property_names_keep_source_spelling(self):
         self.assertEqual(
             parse_css("a { --\\63 olor: red; \\2d-escaped: blue; bad\\\\: red; bad\\\nname: green; }")[1]["a"],
-            {r"--\63 olor": "red", r"\2d-escaped": "blue", "bad\\": "red", "bad\\\nname": "green"},
+            {"--color": "red", "--escaped": "blue", "bad\\": "red", "bad\\\nname": "green"},
         )
 
     def test_ordinary_declaration_names_decode_css_escapes_before_merging(self):
@@ -530,8 +530,23 @@ class TestRuleBlockSemantics(unittest.TestCase):
         self.assertEqual(rules["a"], {"\n": "one"})
         self.assertEqual(
             parse_css(r"a { --Tone: one; --tone: two; --tone\:active: three; }")[1]["a"],
-            {"--Tone": "one", "--tone": "two", r"--tone\:active": "three"},
+            {"--Tone": "one", "--tone": "two", "--tone:active": "three"},
         )
+
+    def test_custom_property_names_decode_without_case_folding_before_merging(self):
+        cases = (
+            (r"a { --tone: red !important; --t\6f ne: blue; }", {"--tone": "red !important"}),
+            (r"a { --tone: red; --t\6f ne: blue; }", {"--tone": "blue"}),
+            (r"a { --tone: red; --t\6f ne: blue; } a { --t\6f ne: green; }", {"--tone": "green"}),
+            (r"a,b { --t\6f ne: red; } a { --tone: blue; }", {"--tone": "blue"}),
+            (r"a { --Tone: upper; --t\6f ne: lower; --T\4f ne: other; }", {"--Tone": "upper", "--tone": "lower", "--TOne": "other"}),
+            (r"a { \2d-tone: simple; --tone: literal; }", {"--tone": "literal"}),
+            ("a { --t\\6f\r\nne: crlf; --tone: literal; }", {"--tone": "literal"}),
+            (r"a { --\110000: replacement; --�: literal; }", {"--�": "literal"}),
+        )
+        for css, expected in cases:
+            with self.subTest(css=css):
+                self.assertEqual(parse_css(css)[1]["a"], expected)
 
     def test_custom_property_names_and_non_ascii_name_characters_are_preserved(self):
         self.assertEqual(

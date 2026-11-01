@@ -443,8 +443,6 @@ def _split_property_value(declaration):
 
 def _canonicalize_declaration_name(name):
     """Decode CSS escapes in ordinary property names and fold ASCII case."""
-    if name.startswith("--"):
-        return name
     decoded = []
     index = 0
     while index < len(name):
@@ -476,7 +474,7 @@ def _canonicalize_declaration_name(name):
         index += 1
     canonical = "".join(decoded)
     if canonical.startswith("--"):
-        return name
+        return canonical
     return canonical.translate(_ASCII_LOWER)
 
 
