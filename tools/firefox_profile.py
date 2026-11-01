@@ -82,6 +82,10 @@ def _candidate(
                 f"relative Firefox profile path escapes its root: {value!r}"
             )
         return candidate
+    if not path.is_absolute():
+        raise ConfigError(
+            f"absolute Firefox profile path has IsRelative=0 but is not absolute: {value!r}"
+        )
     return path
 
 
