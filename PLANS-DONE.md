@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: keep braces inside square-bracketed values (planned 2026-11-01 by the plan role; independent of the completed escaped-colon declaration-name change) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Preserve balanced square-bracketed custom-property tokens through rule extraction. Reproduced 2026-11-01: `parse_css("a { --tokens: [x{y}z]; color: red; }")` raises a malformed-declaration error naming selector `--tokens: [x` and declaration `y`. `tests/support/gtk_css.py::_rule_blocks` protected braces inside quotes and parentheses, but not square brackets.
+
+**Approach and files.** Added nonnegative square-bracket depth to `_rule_blocks`, using its existing quote and escape handling. Braces are block delimiters only outside both parentheses and square brackets. Literal token spelling and existing nested-block behavior outside these groups are preserved. Added `TestRuleBlockSemantics.test_braces_inside_square_bracket_values_are_preserved` in `tests/test_gtk_css.py` and extended the GTK shared stylesheet parser guarantee in `docs/invariants.md`. Bare brace-valued custom properties, general nesting support and syntax validation remain outside scope. No shipped stylesheet or visual value changed.
+
+**Acceptance criteria.** The reproducer returns `({}, {"a": {"--tokens": "[x{y}z]", "color": "red"}}, ["a"])`. Coverage includes nested brackets, brackets inside functions, functions inside brackets, internal semicolons, subsequent declarations and rules, quoted and escaped brackets, grouped selectors, a final bracket-valued declaration without a semicolon, and a stray closing bracket. The existing nested-block, quoted-brace and URL regressions remain in place.
+
 ### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Preserve literal custom-property names containing escaped colons. Reproduced 2026-11-01: `parse_css(r"a { --tone\:active: red; color: blue; }")` stores the key `--tone\` with value `active: red`. `tests/support/gtk_css.py::parse_css` uses `chunk.split(":", 1)` without respecting escapes. The completed declaration-name folding and escaped-whitespace plans do not cover this separator search; the completed block-depth change affects `_define_color_matches`, a separate scanner.

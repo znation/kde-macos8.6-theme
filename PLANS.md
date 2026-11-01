@@ -5,13 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Shared stylesheet parser: keep braces inside square-bracketed values (planned 2026-11-01 by the plan role; independent of the completed escaped-colon declaration-name change)
-
-**Goal and grounding.** Preserve balanced square-bracketed custom-property tokens through rule extraction. Reproduced 2026-11-01: `parse_css("a { --tokens: [x{y}z]; color: red; }")` raises a malformed-declaration error naming selector `--tokens: [x` and declaration `y`. `tests/support/gtk_css.py::_rule_blocks` protects braces inside quotes and parentheses, but not square brackets. The completed square-bracket plan in `PLANS-DONE.md` changes `_split_declarations`' semicolon handling, which runs after this failure.
-
-**Approach and files.** Add nonnegative square-bracket depth to `_rule_blocks`, using its existing quote and escape handling. Treat braces as block delimiters only outside both parentheses and square brackets. Keep literal token spelling and the existing nested-block behavior outside these groups. Add `TestRuleBlockSemantics.test_braces_inside_square_bracket_values_are_preserved` in `tests/test_gtk_css.py`, beside the quoted-brace and nested-block regressions. Extend the GTK shared stylesheet parser guarantee in `docs/invariants.md` with the test and implementation date. These three files bound one run; bare brace-valued custom properties, general nesting support and syntax validation are outside scope. The completed escaped-colon change affects declaration extraction, a separate scanner.
-
-**Acceptance criteria.** The reproducer returns exactly `({}, {"a": {"--tokens": "[x{y}z]", "color": "red"}}, ["a"])`. Cover nested brackets, brackets inside functions, functions inside brackets, and internal semicolons alongside braces; following declarations and a following rule still parse. Quoted and escaped brackets do not change depth; a stray closing bracket does not hide the next rule boundary. Cover grouped selectors and a final bracket-valued declaration without a semicolon. Retain `test_a_nested_block_replaces_the_pending_selector` and the existing quoted-brace and URL regressions. No shipped stylesheet or visual value changes. Run `make check`.
+_None yet._
 
 ### Shared stylesheet parser: preserve comment delimiters inside unquoted URL tokens (planned 2026-11-01 by the plan role; independent of the waiting square-bracket rule-extraction change)
 

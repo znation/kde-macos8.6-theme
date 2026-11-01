@@ -163,15 +163,16 @@ def _rule_blocks(text):
     search would also skip it. A brace inside a quoted string is text, not a
     block delimiter: treating it as one cut a declaration in two and reported
     the quoted text as a selector. A backslash keeps the character after it
-    inside the string. Parentheses group values such as an unquoted
-    ``url(...)``, whose tokens may hold braces, so a brace inside any
-    ``(...)`` is text as well; an unmatched ``)`` is not tracked (as in
-    ``_split_declarations``), so it cannot hide a later block delimiter.
+    inside the string. Parentheses group values such as unquoted ``url(...)``
+    and square brackets group custom-property tokens, so braces inside either
+    group are text. Unmatched closing parentheses and brackets are not tracked
+    (as in ``_split_declarations``), so neither can hide a later delimiter.
     """
     selectors = None
     buffer = []
     quote = None
     depth = 0
+    bracket_depth = 0
     escaped = False
     for char in text:
         if escaped:
@@ -187,14 +188,18 @@ def _rule_blocks(text):
             depth += 1
         elif char == ")" and depth:
             depth -= 1
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]" and bracket_depth:
+            bracket_depth -= 1
         elif char == "{":
-            if not depth:
+            if not depth and not bracket_depth:
                 candidate = "".join(buffer)
                 buffer = []
                 selectors = candidate or None
                 continue
         elif char == "}":
-            if not depth:
+            if not depth and not bracket_depth:
                 if selectors is not None:
                     yield selectors, "".join(buffer)
                 selectors = None

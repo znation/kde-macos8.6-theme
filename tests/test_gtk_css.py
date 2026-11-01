@@ -532,6 +532,40 @@ class TestRuleBlockSemantics(unittest.TestCase):
             },
         )
 
+    def test_braces_inside_square_bracket_values_are_preserved(self):
+        cases = (
+            ("a { --tokens: [x{y}z]; color: red; } b { color: blue; }",
+             ["a", "b"],
+             {"a": {"--tokens": "[x{y}z]", "color": "red"},
+              "b": {"color": "blue"}}),
+            ("a, b { --tokens: [[x{y};z]]; color: red; }",
+             ["a", "b"],
+             {"a": {"--tokens": "[[x{y};z]]", "color": "red"},
+              "b": {"--tokens": "[[x{y};z]]", "color": "red"}}),
+            ("a { --tokens: fn([x{y}]); }",
+             ["a"], {"a": {"--tokens": "fn([x{y}])"}}),
+            ("a { --tokens: [fn(x{y})]; }",
+             ["a"], {"a": {"--tokens": "[fn(x{y})]"}}),
+            ('a { --tokens: ["[x{y}]"]; color: red; }',
+             ["a"],
+             {"a": {"--tokens": '["[x{y}]"]', "color": "red"}}),
+            (r"a { --tokens: [x\] {y}]; color: red; }",
+             ["a"],
+             {"a": {"--tokens": r"[x\] {y}]", "color": "red"}}),
+            (r"a { --tokens: [x\[ {y}]; color: red; }",
+             ["a"],
+             {"a": {"--tokens": r"[x\[ {y}]", "color": "red"}}),
+            ("a { --tokens: [x{y}z]}", ["a"],
+             {"a": {"--tokens": "[x{y}z]"}}),
+        )
+        for css, selectors, rules in cases:
+            with self.subTest(css=css):
+                self.assertEqual(parse_css(css), ({}, rules, selectors))
+        self.assertEqual(
+            parse_css("] a { color: red; } b { color: blue; }")[2],
+            ["] a", "b"],
+        )
+
     def test_a_stray_closing_parenthesis_does_not_hide_a_brace_either(self):
         # Mirrors the declaration scanner: an unmatched ')' must not drive the
         # depth negative and make the following block delimiters disappear.
