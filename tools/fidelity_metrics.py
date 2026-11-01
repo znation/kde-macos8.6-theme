@@ -61,6 +61,7 @@ class Metrics:
     differing: int
     frac_differing: float
     mae_a: float | None = None
+    difference_bounds: tuple[int, int, int, int] | None = None
 
 
 def crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
@@ -212,6 +213,24 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         flags |= int.from_bytes(delta.translate(over), "little")
     differing = flags.bit_count()
 
+    difference_bounds = None
+    if differing:
+        occupied = flags.to_bytes(pixels, "little")
+        left = candidate.width
+        top = candidate.height
+        right = bottom = -1
+        for y in range(candidate.height):
+            row = occupied[y * candidate.width : (y + 1) * candidate.width]
+            first = row.find(1)
+            if first < 0:
+                continue
+            last = row.rfind(1)
+            left = min(left, first)
+            right = max(right, last)
+            top = min(top, y)
+            bottom = y
+        difference_bounds = (left, top, right - left + 1, bottom - top + 1)
+
     channels = pixels * channel_count
     return Metrics(
         width=candidate.width,
@@ -228,4 +247,5 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         differing=differing,
         frac_differing=differing / pixels,
         mae_a=None if not compare_alpha else totals[3] / pixels,
+        difference_bounds=difference_bounds,
     )

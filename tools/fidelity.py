@@ -217,6 +217,10 @@ def main(argv: list[str] | None = None) -> int:
         f"differing pixels: {metrics.differing} / {metrics.pixels} "
         f"({metrics.frac_differing:.6f})"
     )
+    if metrics.difference_bounds is None:
+        print("difference bounds: none")
+    else:
+        print("difference bounds: " + ",".join(map(str, metrics.difference_bounds)))
     verdict = "PASS" if ok else "FAIL"
     mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
     fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"

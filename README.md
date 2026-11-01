@@ -440,7 +440,9 @@ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 -
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
 The `metrics` object uses the field names from `tools/fidelity_metrics.py::Metrics`; crop-relative
-dimensions and worst-delta coordinates describe the compared surfaces.
+dimensions, worst-delta coordinates, and `difference_bounds` describe the compared surfaces.
+The bounds are `(x, y, width, height)` for the smallest rectangle containing pixels whose
+maximum channel delta exceeds tolerance, or `null`/`none` when no pixel exceeds it.
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
 reference screenshot and reports mean absolute error, per-channel mean absolute error
