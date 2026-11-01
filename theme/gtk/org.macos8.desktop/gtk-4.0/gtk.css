@@ -2560,3 +2560,10 @@ textview > text:disabled:selected,
 textview > text:disabled:selected:focus {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no reference screenshot shows a disabled selected
+   GTK calendar day. GTK 4.18.6's Default-light.css stock arm is restated with
+   the inactive-text grey already used for disabled calendar days. */
+calendar > grid > label.day-number:disabled:selected {
+  color: #888888;
+}

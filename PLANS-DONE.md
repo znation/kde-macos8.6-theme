@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 calendars: override the stock disabled-selected day foreground (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Extend the landed disabled-calendar foreground adaptation to GTK 4's more specific disabled-selected day selector, keeping its text at the existing inactive grey on the landed lavender selection.
+
+**Grounding.** The finished `Platinum GTK 4 calendars: grey disabled day-number text` entry in `PLANS-DONE.md` implemented `calendar:disabled > grid > label.day-number`, whose specificity is (0,2,3). The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, inspected with `gresource` on 2026-10-31, separately declares `calendar > grid > label.day-number:disabled:selected { color: #9ac2f2; }`, specificity (0,3,3). The shipped sheet had no matching override. No reference screenshot shows a disabled selected GTK calendar; the landed inactive-grey adaptation is reused without claiming calendar pixel fidelity.
+
+**Approach and files.** Appended `calendar > grid > label.day-number:disabled:selected { color: #888888; }` to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` with a dated comment recording the missing reference surface and resource probe. Added `TestGtk4Theme.test_calendar_disabled_selected_day_text` using `assert_disabled_text`, an exact declaration assertion, the parent-disabled comparison and selected-day fill assertion. Extended the disabled-selected family selector-set assertion and the existing lossless reference-pixel test at (241,103) to cover the new selector. Added a GTK invariant row naming the tests, toolkit source, provenance and declaration-only limit.
+
+**Acceptance criteria.** The dedicated test pins the exact declaration and inherited inactive-text value; the family-set assertion admits the additional calendar member; the reference test derives the foreground from the existing lossless palette sample. The existing parent-disabled selector, enabled selection, geometry and artwork are preserved. Declaration checks do not establish rendered calendar pixels. `make check` passes.
+
 ### Platinum GTK 4 general backdrop color roles: export the window and view palette (planned 2026-10-31 by the plan role; independent of the queued GTK 4 backdrop selection color roles) — done 2026-10-31 by the feature role
 
 **Goal.** Give GTK 4 consumers of the general unfocused symbolic colors the existing Platinum window and view palette. This is a declaration contract, separate from the queued selection-role contract; it does not promise to repaint literal-valued toolkit selectors.

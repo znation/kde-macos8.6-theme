@@ -452,6 +452,17 @@ for radio in (False, True):
         self.assertGreater(self.css.index(disabled), self.css.index(selected))
         self.assertGreater(self.css.index(disabled), self.css.index(other_month))
 
+    def test_calendar_disabled_selected_day_text(self):
+        disabled_selected = "calendar > grid > label.day-number:disabled:selected"
+        disabled = "calendar:disabled > grid > label.day-number"
+        selected = "calendar > grid > label.day-number:selected"
+        self.assert_disabled_text((disabled_selected,))
+        self.assertEqual(self.rules[disabled_selected], {"color": "#888888"})
+        self.assertEqual(self.rules[disabled_selected]["color"],
+                         self.rules[disabled]["color"])
+        self.assertEqual(self.rules[selected]["background-color"], SELECTION)
+        self.assertGreater(self.css.index(disabled_selected), self.css.index(selected))
+
     def test_calendar_today_underline(self):
         today = "calendar > grid > label.today"
         selected_today = "calendar > grid > label.today:selected"
@@ -1373,9 +1384,10 @@ for radio in (False, True):
             "textview > text:disabled:selected",
             "textview > text:disabled:selected:focus",
         ))
-        # The family keeps stock's member set: nothing else in the sheet
-        # names the state pair, and stock has no big :backdrop disabled
-        # group here, so the backdrop members are the dedicated view arms.
+        # The family adds the calendar stock twin alongside the row/view
+        # arms; stock has no big :backdrop disabled group here, so backdrop
+        # members are the dedicated view arms. The calendar member is pinned
+        # against stock by this exact set assertion.
         # 2026-10-31: selected text arms are restated by test_selected_text_arms.
         self.assertEqual(
             {
@@ -1389,6 +1401,7 @@ for radio in (False, True):
                 "treeview.view:disabled:selected",
                 "columnview.view:disabled:selected:backdrop",
                 "treeview.view:disabled:selected:backdrop",
+                "calendar > grid > label.day-number:disabled:selected",
                 "label:disabled:selected",
                 "textview > text:disabled:selected",
                 "textview > text:disabled:selected:focus",
@@ -2391,8 +2404,13 @@ class TestCalendarDisabledGreyReference(ReferenceScreenshotMixin, unittest.TestC
 
     def test_disabled_day_grey_matches_reference_palette_pixel(self):
         _, rules, _ = parse_css(gtk_css.read_theme_text(CSS))
-        self.assertEqual(rules["calendar:disabled > grid > label.day-number"]["color"],
-                         hex_colour(self.pixel(241, 103)))
+        sampled = hex_colour(self.pixel(241, 103))
+        for selector in (
+            "calendar:disabled > grid > label.day-number",
+            "calendar > grid > label.day-number:disabled:selected",
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(rules[selector]["color"], sampled)
 
 
 if __name__ == "__main__":
