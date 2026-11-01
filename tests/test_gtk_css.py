@@ -330,6 +330,28 @@ class TestRuleBlockSemantics(unittest.TestCase):
             {"a": {"content": "token"}},
         )
 
+    def test_escaped_trailing_value_whitespace_is_preserved(self):
+        for whitespace in (" ", "\t"):
+            for slash_count in (1, 3):
+                with self.subTest(whitespace=repr(whitespace), slashes=slash_count):
+                    value = "token" + "\\" * slash_count + whitespace
+                    for suffix in ("; color: red;", ""):
+                        source = f"a {{ --value: {value}   {suffix}}}"
+                        expected = "token" + "\\" * slash_count + whitespace
+                        declarations = parse_css(source)[1]["a"]
+                        self.assertEqual(declarations["--value"], expected)
+                        if suffix:
+                            self.assertEqual(declarations["color"], "red")
+
+        self.assertEqual(
+            parse_css("a { --value: token\\\\ ; }")[1],
+            {"a": {"--value": "token\\\\"}},
+        )
+        self.assertEqual(
+            parse_css('a { --value: "token "; }')[1],
+            {"a": {"--value": '"token "'}},
+        )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.
