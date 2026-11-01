@@ -25,8 +25,10 @@ repository, or a coordinate or region outside the image.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -76,6 +78,16 @@ def _color_runs(image, x: int, y: int, width: int, height: int):
     return ("horizontal" if horizontal else "vertical"), segments
 
 
+def _rgb_argument(value: str) -> tuple[int, int, int]:
+    """Parse a six-digit RGB color, optionally prefixed by ``#``."""
+    digits = value[1:] if value.startswith("#") else value
+    if not re.fullmatch(r"[0-9A-Fa-f]{6}", digits, flags=re.ASCII):
+        raise argparse.ArgumentTypeError(
+            "expected six hexadecimal digits, optionally prefixed by #"
+        )
+    return tuple(int(digits[i:i + 2], 16) for i in (0, 2, 4))
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the sampling CLI; *argv* is the argument list without a program name.
 
@@ -119,6 +131,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     modes.add_argument(
         "--runs", action="store_true", help="group adjacent RGB colors along one row or column"
+    )
+    modes.add_argument(
+        "--find-color", type=_rgb_argument, metavar="RRGGBB",
+        help="locate an exact RGB color in the sampled region",
     )
     args = parser.parse_args(argv)
 
@@ -232,6 +248,38 @@ def main(argv: list[str] | None = None) -> int:
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
         for rgb, count in colors:
             print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}")
+        return 0
+
+    if args.find_color is not None:
+        target = args.find_color
+        count = 0
+        min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
+        for y in range(args.y, args.y + args.height):
+            for x in range(args.x, args.x + args.width):
+                if pixel_at(image, x, y) == target:
+                    count += 1
+                    min_x, min_y = min(min_x, x), min(min_y, y)
+                    max_x, max_y = max(max_x, x), max(max_y, y)
+        bounds = None if count == 0 else {
+            "x": min_x, "y": min_y,
+            "width": max_x - min_x + 1, "height": max_y - min_y + 1,
+        }
+        color_hex = _hex(target)
+        if args.json:
+            print(json.dumps({
+                "image": args.image,
+                "image_width": width,
+                "image_height": height,
+                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
+                "match": {"rgb": list(target), "hex": color_hex, "count": count, "bounds": bounds},
+            }, ensure_ascii=True))
+            return 0
+        print(header)
+        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+        print(f"color: {color_hex}")
+        print(f"count: {count}")
+        print("bounds: none" if bounds is None else
+              f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")
         return 0
 
     if args.json:

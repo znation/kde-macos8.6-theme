@@ -418,6 +418,16 @@ $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 3 
 {"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":3,"height":2},"colors":[{"rgb":[99,99,156],"hex":"#63639C","count":6}]}
 ```
 
+Pass `--find-color '#63639C'` to count exact RGB matches and report their
+smallest enclosing bounds. Bounds use absolute image coordinates, include
+disconnected matches, and do not imply that every pixel inside the rectangle
+matches. Add `--json` for a `match` object with `rgb`, uppercase `hex`, `count`
+and `bounds` (`null` when absent):
+
+```sh
+python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 0 0 --width 240 --height 180 --find-color '#63639C' --json
+```
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 With `--height 1` (the default), traversal is horizontal; otherwise use
 `--width 1` for a vertical scan. A two-dimensional region is rejected. Add
