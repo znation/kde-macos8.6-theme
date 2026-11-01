@@ -391,6 +391,21 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         ):
             self.assertGreater(ancestor_rule, uncommented.index(prior))
 
+    def test_disabled_selected_ancestor_inline_link_foregrounds(self):
+        roots = ("label:link", "label:visited", "label:link:visited")
+        selectors = tuple(
+            ":selected " + root + ":disabled:not(:backdrop)" + suffix
+            for root in roots for suffix in ("", ":hover", ":active")
+        )
+        self.assert_disabled_text(selectors)
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], {"color": "#888888"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        uncommented = gtk_css.strip_comments(self.css)
+        selected_rule = uncommented.index(selectors[0] + ",")
+        self.assertGreater(selected_rule, uncommented.index("label:link:disabled, label:visited:disabled {"))
+        self.assertGreater(selected_rule, uncommented.index(":selected label:link:not(:disabled):not(:backdrop),"))
+
     def test_selected_backdrop_inline_link_foregrounds(self):
         roots = ("label:link", "label:visited", "label:link:visited")
         selectors = tuple(

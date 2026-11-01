@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 disabled inline links inside selected ancestors in active windows (planned 2026-10-31 by the plan role; independent of the completed GTK 4 disabled selected-ancestor work)
-
-**Goal and grounding.** Keep disabled GTK 3 inline labels inside selected nodes in the scheme's inactive-text grey in active windows. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` supplies ordinary disabled labels, while its selected-ancestor replacements exclude disabled labels. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` gives selected-ancestor visited and hover links pale foregrounds at higher specificity than the ordinary disabled rule. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found enabled ancestor and ordinary disabled coverage, but no GTK 3 disabled ancestor counterpart. No collected reference shows this GTK surface: reuse `[Colors:Button] ForegroundInactive` as a platform adaptation.
-
-**Approach and files.** Append a dated provenance comment and one colour-only group to the GTK 3 sheet. Form nine selectors by prefixing `:selected ` to roots `label:link`, `label:visited`, `label:link:visited`, each followed by `:disabled:not(:backdrop)` and suffix empty, `:hover`, or `:active`. Declare exactly `color: #888888`; these selectors outrank the stock ancestor interaction rules. Preserve the underline and selection-fill recipes. Backdrop labels, link-button children and self-selected labels outside selected ancestors are separate surfaces outside this run.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_disabled_selected_ancestor_inline_link_foregrounds` beside `test_selected_ancestor_inline_link_foregrounds`. Require each exact selector once in `self.selectors`; use `assert_disabled_text` to check exact colour-only dictionaries and re-derive the inactive role from the scheme. With `gtk_css.strip_comments(self.css)`, require each new selector after the ordinary disabled group rooted at `label:link:disabled` and the enabled ancestor group rooted at `:selected label:link:not(:disabled):not(:backdrop)`. Append a dated row under `## gtk` in `docs/invariants.md` naming the new test, missing reference surface, scheme role and installed resource. These three files bound one implementation run; the GTK 4 sibling is already complete.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour or adding a declaration fails the new test; moving the group before either named earlier group fails source-order coverage. Existing ordinary disabled, enabled selected-ancestor, backdrop and self-selected link tests pass with `make check`. Declaration and source-order checks do not establish rendered pixels.
+_None yet._
 
 ### Platinum GTK 3 disabled inline links inside selected ancestors in backdrop windows (planned 2026-10-31 by the plan role; independent of the queued active-window disabled selected-ancestor counterpart)
 
