@@ -147,7 +147,7 @@ def install() -> int:
         existing = _existing_hook(path)
     except LocalHookError as exc:
         return report_error(TOOL, str(exc))
-    if existing is not None and MARKER.encode() not in existing:
+    if existing is not None and existing != HOOK_SCRIPT.encode("utf-8"):
         return report_error(
             TOOL, f"refusing to overwrite a foreign hook: {path}"
         )
@@ -177,7 +177,7 @@ def uninstall() -> int:
             f"{escape_controls(str(path))}"
         )
         return 0
-    if MARKER.encode() not in existing:
+    if existing != HOOK_SCRIPT.encode("utf-8"):
         return report_error(TOOL, f"refusing to remove a foreign hook: {path}")
     try:
         path.unlink()

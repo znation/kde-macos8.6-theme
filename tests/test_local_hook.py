@@ -397,6 +397,21 @@ class TestInstall(unittest.TestCase):
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
         assert_refuses_a_foreign_hook(self, "install")
 
+    def test_marker_inside_a_foreign_hook_does_not_claim_ownership(self):
+        repo, hook = make_repo_with_hook(self)
+        foreign = (
+            b"#!/bin/sh\n"
+            b"# unrelated hook\n"
+            + local_hook.MARKER.encode("ascii")
+            + b"\nrm -f important-file\n"
+        )
+        hook.write_bytes(foreign)
+
+        result = run_tool(repo, "install")
+
+        assert_failed(self, result)
+        self.assertEqual(foreign, hook.read_bytes())
+
     def test_fifo_swapped_after_lstat_is_rejected_without_opening_blocking(self):
         repo, hook = make_repo_with_hook(self)
         hook.write_bytes(b"regular hook")
@@ -580,6 +595,20 @@ class TestUninstall(unittest.TestCase):
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
         assert_refuses_a_foreign_hook(self, "uninstall")
+
+    def test_marker_inside_a_foreign_hook_does_not_authorize_removal(self):
+        repo, hook = make_repo_with_hook(self)
+        foreign = (
+            b"#!/bin/sh\n"
+            + local_hook.MARKER.encode("ascii")
+            + b"\n# another tool's hook\n"
+        )
+        hook.write_bytes(foreign)
+
+        result = run_tool(repo, "uninstall")
+
+        assert_failed(self, result)
+        self.assertEqual(foreign, hook.read_bytes())
 
     def test_refuses_an_oversize_hook(self):
         assert_refuses_an_oversize_hook(self, "uninstall")
