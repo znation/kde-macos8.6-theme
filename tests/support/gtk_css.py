@@ -378,8 +378,8 @@ def parse_css(text, source=None):
             declaration = chunk.strip(' \t\n\r\f')
             if not declaration:
                 continue
-            if ":" in declaration:
-                name, value = declaration.split(":", 1)
+            if ":" in chunk:
+                name, value = chunk.split(":", 1)
                 name = _collapse_whitespace(name)
                 if not name.startswith("--"):
                     name = name.translate(_ASCII_LOWER)

@@ -140,6 +140,22 @@ class TestRuleBlockSemantics(unittest.TestCase):
     the GTK sheet tests would be at risk of reading the wrong declarations.
     """
 
+    def test_escaped_trailing_value_whitespace_is_preserved(self):
+        cases = (
+            (r"token\ ; color: red;", r"token\ ", {"color": "red"}),
+            ("token\\\t; color: red;", "token\\\t", {"color": "red"}),
+            (r"token\ }", r"token\ ", {}),
+            ("token\\\t}", "token\\\t", {}),
+            (r"token\   ; color: red;", r"token\ ", {"color": "red"}),
+            (r"token\\   ; color: red;", r"token\\", {"color": "red"}),
+            ("token   ; color: red;", "token", {"color": "red"}),
+        )
+        for body, expected_value, following in cases:
+            with self.subTest(body=body):
+                _, rules, selectors = parse_css("a { --sample: " + body + " }")
+                self.assertEqual(selectors, ["a"])
+                self.assertEqual(rules["a"], {"--sample": expected_value, **following})
+
     def test_a_later_block_replaces_an_earlier_declaration(self):
         # parse_css documents the cascade: a repeated selector keeps every
         # declaration, with the later block's declaration replacing an earlier
