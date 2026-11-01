@@ -349,22 +349,27 @@ class TestRuleBlockSemantics(unittest.TestCase):
     def test_a_define_color_inside_a_quoted_value_is_text(self):
         # The definition scan ran over the whole sheet, so the value both
         # invented a colour definition and lost the text around it.
-        self.assertEqual(
-            parse_css(
-                'a { content: "@define-color decoy #123456;";'
-                " color: #ABCDEF; }"
-            ),
-            (
-                {},
-                {
-                    "a": {
-                        "content": '"@define-color decoy #123456;"',
-                        "color": "#ABCDEF",
-                    }
-                },
-                ["a"],
-            ),
+        cases = (
+            '"@define-color decoy #123456;"',
+            '"escaped \\" @define-color decoy #123456;"',
         )
+        for content in cases:
+            with self.subTest(content=content):
+                self.assertEqual(
+                    parse_css(
+                        f"a {{ content: {content}; color: #ABCDEF; }}"
+                    ),
+                    (
+                        {},
+                        {
+                            "a": {
+                                "content": content,
+                                "color": "#ABCDEF",
+                            }
+                        },
+                        ["a"],
+                    ),
+                )
 
 
 class TestHostileStylesheet(unittest.TestCase):
