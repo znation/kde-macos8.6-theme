@@ -128,7 +128,14 @@ def _checked_hotspot(hotspot):
 
 def _checked_sizes(sizes):
     """Return *sizes* after checking each is an Xcursor frame dimension."""
-    checked = [_checked_size(size, "nominal size") for size in sizes]
+    try:
+        iterator = iter(sizes)
+    except TypeError as exc:
+        raise ValueError(
+            "nominal sizes must be an iterable, not "
+            f"{type(sizes).__name__}"
+        ) from exc
+    checked = [_checked_size(size, "nominal size") for size in iterator]
     if not checked:
         raise ValueError("at least one nominal size is required")
     return tuple(checked)

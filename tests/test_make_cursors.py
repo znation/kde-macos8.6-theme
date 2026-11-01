@@ -121,6 +121,14 @@ class TestGeneratorValidation(unittest.TestCase):
             make_cursors.cursor_bytes(sizes=())
         self.assertIn("at least one nominal size is required", str(caught.exception))
 
+    def test_cursor_bytes_names_a_non_iterable_sizes_argument(self):
+        with self.assertRaises(ValueError) as caught:
+            make_cursors.cursor_bytes(sizes=None)
+        self.assertIn(
+            "nominal sizes must be an iterable, not NoneType",
+            str(caught.exception),
+        )
+
     def test_a_nominal_size_above_the_xcursor_frame_limit_is_refused(self):
         # 0x7FFF is the Xcursor image-dimension limit the writer enforces; the
         # generator must refuse it before render_rgba allocates size * size * 4
