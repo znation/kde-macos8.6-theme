@@ -32,10 +32,12 @@ if __package__:
     from tools.process_group import run_logged
     from tools.repo_root import ROOT
     from tools.theme_defaults import write_configs
+    from tools.atomic_write import write_bytes_atomically
 else:  # run directly: python3 tools/render_surface.py
     from process_group import run_logged
     from repo_root import ROOT
     from theme_defaults import write_configs
+    from atomic_write import write_bytes_atomically
 
 # The config files the global theme's defaults feed that `plasma-apply-colorscheme`
 # does not write. The render applies the colour scheme in the session and leaves the
@@ -217,8 +219,9 @@ def write_kvantum_selection(session: Session) -> None:
     """
     directory = session.config / "Kvantum"
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "kvantum.kvconfig").write_text(
-        f"[General]\ntheme={KVANTUM_THEME}\n", encoding="utf-8"
+    write_bytes_atomically(
+        directory / "kvantum.kvconfig",
+        f"[General]\ntheme={KVANTUM_THEME}\n".encode("utf-8"),
     )
 
 

@@ -541,6 +541,19 @@ class TestSessionThemeSources(unittest.TestCase):
             ).read_text(encoding="utf-8")
         self.assertEqual("[General]\ntheme=org.macos8.desktop\n", selection)
 
+    def test_write_kvantum_selection_keeps_previous_file_when_publication_fails(self):
+        with render_session.Session.create() as session:
+            directory = session.config / "Kvantum"
+            directory.mkdir()
+            target = directory / "kvantum.kvconfig"
+            target.write_text("previous selection\n", encoding="utf-8")
+            with mock.patch.object(
+                render_session, "write_bytes_atomically", side_effect=OSError("disk full")
+            ):
+                with self.assertRaisesRegex(OSError, "disk full"):
+                    render_session.write_kvantum_selection(session)
+            self.assertEqual("previous selection\n", target.read_text(encoding="utf-8"))
+
     def test_the_session_selection_names_the_theme_id_the_cli_pins(self):
         # The session's Kvantum selection and `make apply`'s best-effort
         # selection are two modules each holding the theme id: a drift
