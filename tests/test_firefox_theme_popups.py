@@ -34,7 +34,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
                 self.assertTrue(selector.startswith("#identity-popup"))
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
                 self.assertIn(":not(.panel-header .subviewbutton)", selector)
-        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assert_rule_only_has(radius, "border-radius")
         self.assertIn(":hover", hover)
         self.assertIn(":not([disabled])", hover)
         self.assert_token_scoped_to("--panel-menuitem-border-radius")
@@ -147,7 +147,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
                 self.assertTrue(selector.startswith("#protections-popup"))
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
                 self.assertIn(":not(.panel-header .subviewbutton)", selector)
-        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assert_rule_only_has(radius, "border-radius")
         for selector in (hover, stack_hover):
             with self.subTest(hover_selector=selector):
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
@@ -305,7 +305,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
                 self.assertTrue(selector.startswith("#trustpanel-popup"))
                 self.assertIn(":not(.panel-header .subviewbutton)", selector)
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
-        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assert_rule_only_has(radius, "border-radius")
         self.assertIn(":hover", hover)
         self.assertIn(":not([disabled])", hover)
         self.assert_token_scoped_to("--panel-menuitem-border-radius")

@@ -242,7 +242,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         self.assertIn(":not([disabled])", hover)
         self.assertIn(":hover", hover)
         self.assertIn(":not(.panel-header .subviewbutton)", radius)
-        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assert_rule_only_has(radius, "border-radius")
         self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "appMenu-popup")
@@ -318,7 +318,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
                 self.assertTrue(selector.startswith("#widget-overflow"))
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
         for selector in radius_rows:
-            self.assertEqual(set(self.rules[selector]), {"border-radius"})
+            self.assert_rule_only_has(selector, "border-radius")
         for selector in hover_rows:
             self.assertIn(":hover", selector)
             self.assertIn(":not([disabled])", selector)
@@ -410,7 +410,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             with self.subTest(selector=selector):
                 self.assertTrue(selector.startswith("#unified-extensions-panel"))
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
-        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assert_rule_only_has(radius, "border-radius")
         self.assertEqual(set(self.rules[gear_hover]), {"box-shadow"})
         self.assertIn(":hover", hover)
         self.assertIn(":not([disabled])", hover)

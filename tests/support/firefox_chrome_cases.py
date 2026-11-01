@@ -877,6 +877,10 @@ class FirefoxChromeTestCase(
                 for value in self.rules[arm].values():
                     self.assertTrue(value.endswith("!important"))
 
+    def assert_rule_only_has(self, selector, property_name):
+        """Assert that *selector* declares only *property_name*."""
+        self.assertEqual(set(self.rules[selector]), {property_name})
+
     def assert_token_scoped_to(self, token, expected=()):
         """Assert the rules whose declarations carry *token* are just *expected*.
 
