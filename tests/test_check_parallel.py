@@ -782,6 +782,47 @@ class TestSpawnDefenses(unittest.TestCase):
             Path(log_path).read_text(encoding="utf-8"),
         )
 
+    def test_log_close_failure_kills_a_started_worker(self):
+        log_path = str(make_tmp_dir(self) / "spawn.log")
+        real_open = open
+        processes = []
+
+        class CloseFails:
+            def __init__(self, handle):
+                self.handle = handle
+
+            def __enter__(self):
+                return self.handle
+
+            def __exit__(self, *args):
+                self.handle.close()
+                raise OSError("log close failed")
+
+        real_popen = subprocess.Popen
+
+        def capture_popen(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            processes.append(process)
+            return process
+
+        def failing_open(path, *args, **kwargs):
+            handle = real_open(path, *args, **kwargs)
+            return CloseFails(handle) if path == log_path else handle
+
+        with (
+            mock.patch("builtins.open", side_effect=failing_open),
+            mock.patch.object(check_parallel_workers.subprocess, "Popen",
+                              side_effect=capture_popen),
+        ):
+            with self.assertRaisesRegex(OSError, "log close failed"):
+                check_parallel_workers._spawn(
+                    "test_sleep", [sys.executable, "-c", "import time; time.sleep(30)"],
+                    str(ROOT), log_path, 30,
+                )
+
+        self.assertEqual(1, len(processes))
+        self.assertIsNotNone(processes[0].poll())
+
     def test_an_unexpected_popen_error_restores_deferred_signals(self):
         log_path = str(make_tmp_dir(self) / "spawn.log")
         termination_handlers = [(signal.SIGTERM, object())]

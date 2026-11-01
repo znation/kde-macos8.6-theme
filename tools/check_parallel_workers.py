@@ -57,34 +57,35 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
     """Start one worker in its own session and log its output."""
     exc: OSError | None = None
     started = time.monotonic()
-    with open(log_path, "wb") as sink:
-        deferred: list[int] = []
-        previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
-        previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
-        try:
-            process: subprocess.Popen | _NeverStarted = subprocess.Popen(
-                argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
-                stderr=subprocess.STDOUT, start_new_session=True,
-            )
-        except OSError as failure:
+    process: subprocess.Popen | _NeverStarted = _NeverStarted()
+    try:
+        with open(log_path, "wb") as sink:
+            deferred: list[int] = []
+            previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
+            previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
+            try:
+                process = subprocess.Popen(
+                    argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
+                    stderr=subprocess.STDOUT, start_new_session=True,
+                )
+            except OSError as failure:
+                _restore_termination(previous)
+                _restore_termination(previous_interrupts)
+                _replay_deferred(deferred)
+                process = _NeverStarted()
+                exc = failure
+            except BaseException:
+                _restore_termination(previous)
+                _restore_termination(previous_interrupts)
+                _replay_deferred(deferred)
+                raise
             _restore_termination(previous)
             _restore_termination(previous_interrupts)
             _replay_deferred(deferred)
-            process = _NeverStarted()
-            exc = failure
-        except BaseException:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
-            raise
-        try:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
-        except BaseException:
-            _kill_group(process)
-            _reap(process)
-            raise
+    except BaseException:
+        _kill_group(process)
+        _reap(process)
+        raise
     if exc is not None:
         with open(log_path, "w", encoding="utf-8") as note:
             note.write(f"check: the worker could not be started: {exc}\n")
