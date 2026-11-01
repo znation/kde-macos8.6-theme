@@ -12,6 +12,7 @@ import os
 import unittest
 import zlib
 from pathlib import Path
+from typing import get_type_hints
 from unittest import mock
 
 from support.allocation_fixtures import peak_allocation
@@ -31,6 +32,16 @@ from support.png_fixtures import (  # noqa: E402
 )
 from tools import png  # noqa: E402
 from tools.png import header, loader  # noqa: E402
+from tools.png import read as png_read  # noqa: E402
+
+
+class TestDecoderInputAnnotations(unittest.TestCase):
+    def test_public_decoders_annotate_their_accepted_bytearray_input(self):
+        for decoder in (png_read.decode_png, png_read.decode_rgba):
+            with self.subTest(decoder=decoder.__name__):
+                self.assertEqual(
+                    bytes | bytearray, get_type_hints(decoder)["data"]
+                )
 
 
 class TestReadPng(unittest.TestCase):

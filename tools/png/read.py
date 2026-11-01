@@ -66,7 +66,7 @@ from .stream import collect_chunks
 
 
 def _decode_image(
-    data: bytes, max_rows: int | None, max_cols: int | None, name: str
+    data: bytes | bytearray, max_rows: int | None, max_cols: int | None, name: str
 ) -> tuple[int, int, int, int, int, int, bytes, bytes | None, bytes | None]:
     """Validate and inflate *data*, returning the pieces both decoders share.
 
@@ -164,7 +164,7 @@ def _crop_plane(
 
 
 def decode_png(
-    data: bytes, max_rows: int | None = None, max_cols: int | None = None
+    data: bytes | bytearray, max_rows: int | None = None, max_cols: int | None = None
 ) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`.
 
@@ -201,7 +201,7 @@ def decode_png(
 
 
 def decode_rgba(
-    data: bytes, max_rows: int | None = None, max_cols: int | None = None
+    data: bytes | bytearray, max_rows: int | None = None, max_cols: int | None = None
 ) -> tuple[int, int, bytes]:
     """Decode an 8-bit, non-interlaced PNG into packed RGBA bytes.
 
