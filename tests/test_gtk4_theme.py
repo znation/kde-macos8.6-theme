@@ -430,8 +430,10 @@ for radio in (False, True):
         )
         self.assert_disabled_text(selectors)
         css = strip_comments(self.css)
+        enabled = css.index("button.link > label")
         visited = css.index("button.link:visited > label")
         for selector in selectors:
+            self.assertGreater(css.index(selector), enabled, selector)
             self.assertGreater(css.index(selector), visited, selector)
 
     def test_inline_link_interaction_colours(self):
