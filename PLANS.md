@@ -5,7 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Fidelity CLI: expose comparison metrics and verdict as JSON (planned 2026-11-01 by the plan role)
+### Fidelity CLI: expose comparison metrics and verdict as JSON (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let scripts retain precise comparison results and replay the crop and budget settings without parsing rounded prose. Checked 2026-11-01: `tools/fidelity.py::main` computes `metrics` and `ok`, then emits text with rounded floats; its parser has no JSON mode. `tools/fidelity_metrics.py::Metrics` already contains the comparison fields. Searches of planned and archived entries found no fidelity JSON-output plan. This is independently mergeable from the queued sampler output mode: it changes a different CLI and test module.
 

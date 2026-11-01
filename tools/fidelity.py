@@ -25,6 +25,8 @@ read error.
 from __future__ import annotations
 
 import sys
+import json
+from dataclasses import asdict
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
@@ -99,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("candidate", help="rendered surface image (PNG)")
     parser.add_argument("reference", help="reference image (PNG)")
+    parser.add_argument("--json", action="store_true", help="emit comparison as JSON")
     parser.add_argument(
         "--candidate-crop",
         type=parse_crop,
@@ -159,6 +162,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.max_frac is not None:
         budgets.append(metrics.frac_differing <= args.max_frac)
     ok = all(budgets) if budgets else metrics.frac_differing <= 0.0
+    if args.json:
+        print(json.dumps({
+            "candidate": args.candidate,
+            "reference": args.reference,
+            "candidate_crop": args.candidate_crop,
+            "reference_crop": args.crop,
+            "thresholds": {"tolerance": args.tolerance, "max_mae": args.max_mae, "max_frac": args.max_frac},
+            "metrics": asdict(metrics),
+            "passed": ok,
+        }, ensure_ascii=True))
+        return 0 if ok else 1
     print(
         f"candidate: {escape_controls(args.candidate)}  "
         f"{candidate.width}x{candidate.height}"

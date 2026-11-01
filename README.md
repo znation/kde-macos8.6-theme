@@ -420,6 +420,11 @@ $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 3 
 
 ## Fidelity checking
 
+Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
+as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
+The `metrics` object uses the field names from `tools/fidelity_metrics.py::Metrics`; crop-relative
+dimensions and worst-delta coordinates describe the compared surfaces.
+
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
 reference screenshot and reports mean absolute error, per-channel mean absolute error
 (R, G, B, A), RMSE, worst per-channel delta and where it occurs, and the fraction of
