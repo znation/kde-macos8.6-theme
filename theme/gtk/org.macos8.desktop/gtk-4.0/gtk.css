@@ -2517,3 +2517,36 @@ notebook > header > tabs > tab button.flat:disabled,
 notebook > header > tabs > tab button.flat:backdrop:disabled {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected, focused-
+   selected or disabled-selected GTK text. libgtk-4 4.18.6 stock arms from
+   /org/gtk/libgtk/theme/Default/Default-light.css (full library path in
+   docs/invariants.md) are restated with the landed selection palette and
+   inactive-text grey derived from [Colors:Button] ForegroundInactive. */
+entry > text > selection,
+spinbutton:not(.vertical) > text > selection,
+spinbutton.vertical > text > text > selection,
+spinbutton.vertical > text > selection,
+editablelabel > stack > text > selection,
+textview > text > selection {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+label > selection:focus-within,
+textview > text > selection:focus-within,
+entry > text > selection:focus-within,
+spinbutton:not(.vertical) > text > selection:focus-within,
+spinbutton.vertical > text > text > selection:focus-within,
+spinbutton.vertical > text > selection:focus-within,
+editablelabel > stack > text > selection:focus-within {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+label:disabled > selection,
+label:disabled:selected,
+textview > text:disabled:selected,
+textview > text:disabled:selected:focus {
+  color: #888888;
+}

@@ -44,6 +44,7 @@ from support.gtk_theme_spec import (
     SCALE_EMPTY_FILL,
     SCALE_THUMB,
     SCALE_TROUGH,
+    TEXT_SELECTION,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
@@ -355,7 +356,39 @@ for radio in (False, True):
 
     def test_text_selection(self):
         self.assert_text_selection(
-            ("text > selection", "label > selection")
+            (
+                "text > selection", "label > selection",
+                "entry > text > selection",
+                "spinbutton:not(.vertical) > text > selection",
+                "spinbutton.vertical > text > text > selection",
+                "spinbutton.vertical > text > selection",
+                "editablelabel > stack > text > selection",
+                "textview > text > selection",
+            )
+        )
+
+    def test_selected_text_arms(self):
+        focus = (
+            "label > selection:focus-within",
+            "textview > text > selection:focus-within",
+            "entry > text > selection:focus-within",
+            "spinbutton:not(.vertical) > text > selection:focus-within",
+            "spinbutton.vertical > text > text > selection:focus-within",
+            "spinbutton.vertical > text > selection:focus-within",
+            "editablelabel > stack > text > selection:focus-within",
+        )
+        disabled = (
+            "label:disabled > selection",
+            "label:disabled:selected",
+            "textview > text:disabled:selected",
+            "textview > text:disabled:selected:focus",
+        )
+        for selector in focus:
+            self.assert_rule(selector, TEXT_SELECTION)
+        self.assert_disabled_text(disabled)
+        self.assertEqual(
+            {s for s in self.rules if s in focus or s in disabled},
+            set(focus) | set(disabled),
         )
 
     def test_disabled_text(self):
@@ -1330,10 +1363,14 @@ for radio in (False, True):
             "treeview.view:disabled:selected",
             "columnview.view:disabled:selected:backdrop",
             "treeview.view:disabled:selected:backdrop",
+            "label:disabled:selected",
+            "textview > text:disabled:selected",
+            "textview > text:disabled:selected:focus",
         ))
         # The family keeps stock's member set: nothing else in the sheet
         # names the state pair, and stock has no big :backdrop disabled
         # group here, so the backdrop members are the dedicated view arms.
+        # 2026-10-31: selected text arms are restated by test_selected_text_arms.
         self.assertEqual(
             {
                 s for s in self.rules if ":disabled:selected" in s
@@ -1346,6 +1383,9 @@ for radio in (False, True):
                 "treeview.view:disabled:selected",
                 "columnview.view:disabled:selected:backdrop",
                 "treeview.view:disabled:selected:backdrop",
+                "label:disabled:selected",
+                "textview > text:disabled:selected",
+                "textview > text:disabled:selected:focus",
             },
         )
 
