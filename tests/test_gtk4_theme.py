@@ -339,6 +339,20 @@ for radio in (False, True):
             ("treeview.view.expander:checked", "expander:checked"),
         )
 
+    def test_rtl_collapsed_expander_arrows(self):
+        selectors = (
+            "treeview.view.expander:not(:checked):dir(rtl)",
+            "expander:not(:checked):dir(rtl)",
+        )
+        for selector in selectors:
+            self.assert_rule(selector, {"-gtk-icon-transform": "scaleX(-1)"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            {selector for selector, declarations in self.rules.items()
+             if "-gtk-icon-transform" in declarations},
+            set(selectors),
+        )
+
     def test_submenu_arrow(self):
         self.assert_submenu_arrow(
             ("popover.menu modelbutton > arrow.right",), sized=False

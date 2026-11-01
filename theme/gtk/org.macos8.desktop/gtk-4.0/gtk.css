@@ -869,6 +869,10 @@ treeview.view.expander, expander {
   -gtk-icon-source: url("../assets/arrow-right.svg");
 }
 
+treeview.view.expander:not(:checked):dir(rtl), expander:not(:checked):dir(rtl) {
+  -gtk-icon-transform: scaleX(-1);
+}
+
 treeview.view.expander:checked, expander:checked {
   -gtk-icon-source: url("../assets/arrow-down.svg");
 }
