@@ -19,6 +19,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
+from support.flock_fixtures import hold_directory_flock
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
@@ -146,11 +147,7 @@ class TestDataHomeLock(ApplyGtkTestCase):
 
     def hold_data_lock(self):
         """Take the data-home lock a concurrent install or uninstall holds."""
-        descriptor = os.open(
-            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.addCleanup(os.close, descriptor)
+        hold_directory_flock(self, self.data)
 
     def test_apply_times_out_without_writing_while_an_install_or_uninstall_holds_the_data_home_lock(self):
         self.install_sheet()

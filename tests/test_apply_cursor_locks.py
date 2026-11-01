@@ -18,6 +18,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
+from support.flock_fixtures import hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import apply_cursor
@@ -64,11 +65,7 @@ class CursorLockCase(unittest.TestCase):
 
     def hold_data_lock(self):
         """Take the data-home lock a concurrent install or uninstall holds."""
-        descriptor = os.open(
-            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.addCleanup(os.close, descriptor)
+        hold_directory_flock(self, self.data)
 
 
 class TestDataHomeLock(CursorLockCase):
