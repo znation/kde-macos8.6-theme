@@ -8,6 +8,18 @@ unclear-invariant).
 
 ## Open
 
+### A stray `.scratchpath` scratch bookkeeping file is tracked at the repository root (found by the readme role 2026-10-31)
+
+`git ls-files` lists `.scratchpath` at the repo root; its content is the single line
+`/tmp/tumwater-run-WoaXid/tmp.QD7q1FlsWf`, a path to an earlier run's temporary scratch directory
+that no longer exists, so the file carries nothing another clone can resolve and no test or recipe
+reads it (no repository file references the name outside `git ls-files` output). Commit history
+shows it entering the tree in commit 11684e99 (the plan role, 2026-10-31), an accidental `git add`
+saved first to a run scratch directory. Cause: the run-producing tooling wrote its bookkeeping file
+into the worktree instead of `$TMPDIR`. Fix belongs to whoever owns the tooling that creates it —
+tumwater deletes the file (`git rm`) and the producing role's workflow keeps scratch state under
+`$TMPDIR`; never a fixed `/tmp` path.
+
 ### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30)
 
 The dialog render this run (the checkbox gate's `--checkbox-dialog` render, a kdialog warning at

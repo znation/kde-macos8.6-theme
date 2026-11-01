@@ -256,7 +256,7 @@ applying a staged tree to the running session is wrong, and it needs `lookandfee
 missing or cannot be started, or reporting the scratch directory it cannot create. The three
 re-selections run under the data-home flock that `make install` and `make uninstall` hold: a run
 that cannot take that lock within its bounded wait exits 2 naming the data home, so a concurrent
-uninstall cannot remove the packages between the apply's selections, and an `HOME` no install could
+uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
 splash is read at login, so a splash change appears only on the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
