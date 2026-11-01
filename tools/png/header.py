@@ -19,24 +19,24 @@ CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 MAX_PIXELS = 64_000_000
 
 
+def _validate_positive_optional_bound(value: int | None, name: str) -> None:
+    """Validate a named optional positive integer PNG decode bound."""
+    if value is None:
+        return
+    if not is_plain_int(value):
+        raise PngError(f"{name} must be an integer or None: {name}={value!r}")
+    if value < 1:
+        raise PngError(f"{name} must be positive: {name}={value}")
+
+
 def validate_max_rows(max_rows: int | None) -> None:
     """Raise :class:`PngError` unless *max_rows* is None or a positive int."""
-    if max_rows is None:
-        return
-    if not is_plain_int(max_rows):
-        raise PngError(f"max_rows must be an integer or None: max_rows={max_rows!r}")
-    if max_rows < 1:
-        raise PngError(f"max_rows must be positive: max_rows={max_rows}")
+    _validate_positive_optional_bound(max_rows, "max_rows")
 
 
 def validate_max_cols(max_cols: int | None) -> None:
     """Raise :class:`PngError` unless *max_cols* is None or a positive int."""
-    if max_cols is None:
-        return
-    if not is_plain_int(max_cols):
-        raise PngError(f"max_cols must be an integer or None: max_cols={max_cols!r}")
-    if max_cols < 1:
-        raise PngError(f"max_cols must be positive: max_cols={max_cols}")
+    _validate_positive_optional_bound(max_cols, "max_cols")
 
 
 def parse_ihdr(header: bytes) -> tuple[int, int, int]:
