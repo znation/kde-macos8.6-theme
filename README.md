@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: the Mac OS 8.6 "Platinum" look is installable as nine artifacts — color scheme, global theme (with startup splash and desktop layout), desktop theme, Aurorae decoration, wallpaper, icon theme, Kvantum widget style, Lato font package, and GTK 3 and GTK 4 stylesheets — plus Firefox userChrome and userContent stylesheets and a cursor theme selection.
+Pre-alpha: the Platinum theme covers KDE/Qt, GTK 3 and GTK 4, Firefox chrome and content, and cursor surfaces.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
