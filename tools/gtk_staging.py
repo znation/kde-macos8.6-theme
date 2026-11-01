@@ -171,7 +171,12 @@ def commit(
     else:
         for _, backup in applied:
             if backup is not None:
-                discard(backup)
+                try:
+                    backup.unlink()
+                except OSError as exc:
+                    raise ConfigError(
+                        f"cannot remove backup {backup}: {exc}"
+                    ) from exc
     finally:
         for _, staging in staged:
             discard(staging)

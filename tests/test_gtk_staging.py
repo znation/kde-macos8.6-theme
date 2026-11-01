@@ -290,6 +290,26 @@ class TestCommit(StagingCase):
         self.assertFalse(css.exists())
         self.assertEqual([], self.backups_of(css))
 
+    def test_a_backup_cleanup_failure_is_reported_after_publish(self):
+        target = self.root / "settings.ini"
+        target.write_text("old settings\n", encoding="utf-8")
+        staged = stage_all([(target, "new settings\n")])
+        real_unlink = Path.unlink
+
+        def fail_backup_cleanup(path, *args, **kwargs):
+            if str(path).endswith(".backup"):
+                raise OSError("injected backup cleanup failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_backup_cleanup):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
+
+        self.assertIn("cannot remove backup", str(caught.exception))
+        self.assertIn("injected backup cleanup failure", str(caught.exception))
+        self.assertEqual("new settings\n", target.read_text(encoding="utf-8"))
+        self.assertEqual(1, len(self.backups_of(target)))
+
     def test_a_foreign_backup_sibling_is_left_untouched(self):
         target = self.root / "gtk-3.0" / "settings.ini"
         target.parent.mkdir(parents=True)
