@@ -770,8 +770,11 @@ class TestCoordinator(unittest.TestCase):
         tests_dir = self._project({"test_one.py": OK_MODULE})
         result = self._run("--tests-dir", tests_dir, "-p", "test_none*.py")
         assert_failed(self, result)
-        self.assertIn("matches no test module", result.stderr)
-        self.assertIn("test_none*.py", result.stderr)
+        # The refusal rides the shared exit-2 diagnostic contract, like the
+        # coordinator's other usage errors, so its line carries ``error:``.
+        self.assertIn("check: error: -p 'test_none*.py' matches no test module",
+                      result.stderr)
+        self.assertIn(tests_dir, result.stderr)
 
     def test_pattern_control_characters_are_escaped_in_diagnostic(self):
         tests_dir = self._project({"test_one.py": OK_MODULE})
@@ -784,7 +787,10 @@ class TestCoordinator(unittest.TestCase):
     def test_a_missing_tests_directory_is_refused(self):
         result = self._run("--tests-dir", os.path.join(str(make_tmp_dir(self)), "absent"))
         assert_failed(self, result)
-        self.assertIn("--tests-dir must name a directory", result.stderr)
+        # The refusal rides the shared exit-2 diagnostic contract, like the
+        # coordinator's other usage errors, so its line carries ``error:``.
+        self.assertIn("check: error: --tests-dir must name a directory",
+                      result.stderr)
         self.assertIn("absent", result.stderr)
     def test_a_non_positive_worker_count_is_refused(self):
         tests_dir = self._project({"test_one.py": OK_MODULE})

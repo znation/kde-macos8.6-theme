@@ -22,7 +22,7 @@ if __package__:
     )
     from tools.check_parallel_results import _plural, _print_results
     from tools.check_parallel_workers import _supervise
-    from tools.diagnostics import create_scratch_directory
+    from tools.diagnostics import create_scratch_directory, report_error
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
@@ -36,7 +36,7 @@ else:  # run directly: python3 tools/check_parallel.py
     )
     from check_parallel_results import _plural, _print_results
     from check_parallel_workers import _supervise
-    from diagnostics import create_scratch_directory
+    from diagnostics import create_scratch_directory, report_error
     from process_group import exit_on_termination
     from repo_root import ROOT
     from terminal import escape_controls
@@ -67,9 +67,10 @@ def main(argv: list[str] | None = None) -> int:
     if not os.path.isabs(tests_dir):
         tests_dir = os.path.join(str(ROOT), tests_dir)
     if not os.path.isdir(tests_dir):
-        print("check: --tests-dir must name a directory: "
-              f"{escape_controls(options.tests_dir)}", file=sys.stderr)
-        return 2
+        return report_error(
+            "check",
+            f"--tests-dir must name a directory: {options.tests_dir}",
+        )
     try:
         modules = discover_modules(tests_dir, options.pattern)
     except DiscoveryError as exc:
@@ -81,9 +82,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"check: error: {escape_controls(str(exc))}", file=sys.stderr)
         return 2
     if not modules:
-        print(f"check: -p '{escape_controls(options.pattern)}' matches no test module in "
-              f"{escape_controls(tests_dir)}", file=sys.stderr)
-        return 2
+        return report_error(
+            "check",
+            f"-p '{options.pattern}' matches no test module in {tests_dir}",
+        )
     workers = options.workers or min(len(modules), os.cpu_count() or 1)
     print(f"check: -p '{escape_controls(options.pattern)}', "
           f"{_plural(len(modules), 'module')}, {_plural(workers, 'worker')}")
