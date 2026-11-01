@@ -7,6 +7,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+### Fidelity diagnostics: locate mismatch bounds in both source images (planned 2026-11-01 by the plan role)
+
+**Goal and grounding.** Make a mismatch rectangle directly usable as a follow-up inspection crop without manually adding crop offsets. Inspected `tools/fidelity.py::main`, `_explain_worst_pixel` and `tests/test_fidelity_bounds.py::TestBoundsCli`: individual worst pixels have source coordinates, but `metrics.difference_bounds` and its text line remain crop-relative. Searches of the implementation, queue and related archive entries found no source-bounds report; the completed bounds plan explicitly covers local coordinates. This plan is independent of the waiting sampler refactor.
+
+**Approach and files.** In `tools/fidelity.py::main`, translate the existing nonempty `metrics.difference_bounds` into candidate and reference source rectangles by adding each crop's x/y origin (zero when omitted), retaining width and height. Add top-level JSON fields `candidate_difference_bounds` and `reference_difference_bounds`, each `[x,y,width,height]` or `null` when local bounds are absent. Immediately after the existing text bounds line, print `candidate difference bounds: X,Y,W,H` and `reference difference bounds: X,Y,W,H`, using `none` for absent bounds. Keep the local bounds field and line, comparison metrics, tolerance semantics and verdict calculation intact; derive these reports from the existing result without another pixel scan or read. Extend `tests/test_fidelity_bounds.py::TestBoundsCli`, document the additive output under README.md's Fidelity checking section, and extend the bounds tooling row in `docs/invariants.md`. These four files bound one run; no new flag, dependency or theme-art change is needed.
+
+**Acceptance criteria.** Synthetic CLI fixtures assert exact local and both source rectangles in text and JSON with distinct nonzero crop origins in both axes and a mismatch rectangle whose local origin is also nonzero. Cover neither crop, candidate-only crop and reference-only crop; widths/heights stay equal to the local extent. Identical images and differences equal to tolerance yield JSON nulls and text `none` for both sources. An aggregate-budget PASS with over-tolerance differences still reports source bounds. Include one direct-script success case and retain the existing local-bounds and alpha-union coverage. Run `make check` after implementation and documentation edits.
+
 ## Done
 
 ### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role)
