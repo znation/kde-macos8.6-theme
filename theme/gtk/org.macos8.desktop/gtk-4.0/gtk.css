@@ -132,6 +132,13 @@
 @define-color theme_fg_color #000000;
 @define-color theme_base_color #FFFFFF;
 @define-color theme_text_color #000000;
+/* No reference screenshot shows GTK's general backdrop roles; GTK names were
+   probed in Default-light.css, and the window/view palette stays constant
+   across focus states (2026-10-31). */
+@define-color theme_unfocused_bg_color #DDDDDD;
+@define-color theme_unfocused_fg_color #000000;
+@define-color theme_unfocused_base_color #FFFFFF;
+@define-color theme_unfocused_text_color #000000;
 @define-color theme_selected_bg_color #CCCCFF;
 @define-color theme_selected_fg_color #000000;
 /* No reference screenshot shows backdrop selection; keep the selection palette constant across window focus states (2026-10-31). */
