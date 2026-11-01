@@ -6788,11 +6788,11 @@ In the installed Firefox ESR (`/usr/lib/firefox-esr/browser/omni.ja` and `/usr/l
 - No new palette value is introduced. Existing exact-palette and standalone-sheet checks pass, and `make check` passes after the invariant update.
 - Report these as declaration checks, not proof of live Firefox rendered pixels. This plan neither corrects the separate arrow-panel colour tokens nor changes the waiting menu-colour plan's scope.
 
-### Declare the project's deterministic check (planned 2026-10-25 by the plan role; independent of the Firefox plans) — done 2026-10-25 by the feature role
+### Declare the project's deterministic check (planned 2026-11-01 by the plan role; restore the declaration requested in the finished 2026-10-25 plan) — done 2026-11-01 by the feature role
 
 **Declares the project check**
 
-**Goal.** Register the existing `make check` command with tumwater so its build pre-check, red-main baseline and redeploy check can use the project's unittest suite.
+**Goal.** Renew the worktree request for the existing `make check` command so tumwater can declare the project's check. The request awaits merge application and live confirmation.
 
 **Grounding.** `Makefile`'s `check` target runs `python3 -m unittest discover -s tests -v -p 'test*.py'` by default, with interpreter and selection guards. `tests/test_make_check.py::TestCheckPattern.test_default_pattern_runs_every_test_module` pins that default wiring. README.md documents this command, and `.github/workflows/ci.yml` already runs it; the finished CI repair covers workflow parity, not tumwater's declaration. No `package.json` was found on the worktree's ancestor chain. The supplied no-check alert therefore calls for the `check.command` route, not an npm wrapper.
 
