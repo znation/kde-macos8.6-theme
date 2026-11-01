@@ -829,6 +829,12 @@ treeview.view.expander:checked, expander title > arrow:checked {
   -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
+/* GTK's installed stylesheet uses a left-facing disclosure in RTL layouts;
+   reflect the shared triangle without changing its 16px canvas (adaptation 2026-11-01). */
+treeview.view.expander:not(:checked):dir(rtl), expander title > arrow:not(:checked):dir(rtl) {
+  -gtk-icon-transform: scaleX(-1);
+}
+
 /* No GTK 3 expander keyboard-focus reference exists; reuse button:focus's
    dotted outline, offset and square corners. GTK draws focus on the title
    node, so keep this rule off the outer expander and disclosure arrow. */

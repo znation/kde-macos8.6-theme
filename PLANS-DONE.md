@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 RTL collapsed disclosure arrows (planned 2026-11-01 by the plan role; independent of the waiting disabled self-selected backdrop links plan) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Point collapsed GTK 3 tree-view and expander arrows left in right-to-left layouts, keeping expanded arrows pointing down. Inspected 2026-11-01: the sheet's `treeview.view.expander, expander title > arrow` group loads `arrow-right.svg` without a directional override. Heading and RTL searches in `PLANS.md` and `PLANS-DONE.md` found the completed disclosure-arrow plan, which explicitly excluded RTL mirroring, rather than a plan implementing it. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` uses `pan-end-symbolic-rtl` for both RTL arrow nodes and `pan-down-symbolic` for checked nodes; it also demonstrates `-gtk-icon-transform` and `scaleX()` support. No collected reference shows GTK RTL disclosure arrows: direction is a GTK adaptation; shape, black fill and 16px canvas reuse the shipped, tested arrow asset.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, immediately after the existing checked disclosure group, add a dated provenance comment and one group containing exactly `treeview.view.expander:not(:checked):dir(rtl)` and `expander title > arrow:not(:checked):dir(rtl)`, declaring only `-gtk-icon-transform: scaleX(-1)`. Reflection preserves the 16px canvas and native size; do not add an asset, resize the icon, or change checked/LTR recipes. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_rtl_collapsed_expander_arrows` beside `test_expander_arrows`: assert the exact transform-only dictionaries for both selectors, their single occurrence in the parsed selector list, and preservation of the existing collapsed and expanded declarations through `assert_expander_arrows`. Assert that the new transform selector set is exactly those two guarded RTL selectors, so dropping either the unchecked guard or the direction guard fails. In `docs/invariants.md`, update the disclosure-arrow row to describe GTK 3's collapsed RTL reflection, retain GTK 4's unmirrored limitation, name the new test and installed resource, and date the adaptation 2026-11-01. This is one small run touching three files; GTK 4 is outside this plan.
+
+**Acceptance criteria.** Both collapsed RTL node spellings have the exact reflection declaration; removing either rule, changing the transform, adding declarations, duplicating a selector or removing its state/direction guard fails the new test. The existing glyph tests continue to pin the unchanged 16px black triangle and its desktop-theme geometry. Existing LTR and checked source recipes remain covered by `test_expander_arrows`; the new selectors exclude checked nodes structurally. Record these as declaration and asset guarantees, not rendered-pixel evidence. Run `make check`.
+
+SUMMARY: Reflect collapsed GTK 3 disclosure arrows in RTL layouts
+WHY: RTL layouts need the collapsed arrow to point left. The check exposed the word “Adwaita” in the stylesheet provenance comment, so the comment now refers to GTK's installed stylesheet without naming it.
+RISK: If the arrow direction or CSS selector handling regresses, inspect the RTL rules in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `test_rtl_collapsed_expander_arrows`.
+VERIFIED: The focused GTK 3 module passed after removing the disallowed stylesheet name; `make check` passed.
+Objection 1: unchanged-by-design because this unrelated XDG config-home test passed.
+Objection 2: unchanged-by-design because this unrelated XDG data-home test passed.
+Objection 3: unchanged-by-design because this unrelated XDG data-home test passed.
+Objection 4: unchanged-by-design because this unrelated XDG data-home test passed.
+Objection 5: unchanged-by-design because this unrelated XDG data-home test passed.
+Objection 6: unchanged-by-design because it reports the passing module's test-run footer.
+Objection 7: unchanged-by-design because it reports the passing module's test-run footer.
+Objection 8: unchanged-by-design because it reports the passing module's successful result.
+Objection 9: done
+
 ### Platinum GTK 3 disabled self-selected inline links in backdrop windows (planned 2026-10-31 by the plan role; independent of the completed active-window disabled self-selection work) — done 2026-10-31 by the feature role
 
 **Goal and grounding.** Keep disabled inline-link labels carrying their own `:selected` state grey in backdrop GTK 3 windows. Inspected 2026-10-31: `label:link:selected:backdrop:not(:disabled)` and its visited/interaction companions exclude disabled labels; `:selected label:link:disabled:backdrop` addresses selected ancestors instead. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found the enabled backdrop and ordinary disabled-backdrop work, but no disabled self-selected backdrop plan. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` places `*:link:selected` after `*:link:disabled:backdrop` at equal specificity. No collected reference shows this GTK surface; reuse `[Colors:Button] ForegroundInactive` as the platform adaptation.
