@@ -5,7 +5,10 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+## Done
+
 ### Reference-pixel sampler: add structured JSON output (planned 2026-11-01 by the plan role)
+— done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let measurement tooling consume reference pixels with their coordinates without parsing the sampler's prose. Checked 2026-11-01: `tools/sample.py::main` offers image, coordinates and rectangle extents and prints text headers and RGB/hex lines; its argument parser has no JSON option. Searches of planned and archived headings found no sampler JSON plan. This is independent of the waiting stylesheet custom-name plan.
 
@@ -13,7 +16,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Tests parse stdout with `json.loads` and compare the complete object for a single pixel and a multi-row rectangle from `_image`, including pixel order, uppercase zero-padded hex and the full header dimensions despite partial row decoding. Exercise `--json` through the script entry point and with a control-character filename, checking the original path round-trips and no raw control byte appears inside the serialized path. In JSON mode, out-of-bounds requests still skip row decoding; missing/corrupt images and escaping repository symlinks return 2 with empty stdout and the existing stderr diagnostic. Retain the default text and bounded-decoding regressions. Run `make check`. These four files and one output mode bound one implementation run.
 
-## Done
+### Shared stylesheet parser: decode custom-property name escapes without folding case (planned 2026-11-01 by the plan role)
+— done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make equivalent escaped and literal custom-property names share a cascade key in the GTK/Firefox test reader. Confirmed 2026-11-01: `parse_css(r"a { --tone: red !important; --t\6f ne: blue; }")` returns separate keys instead of keeping the important value under `--tone`. `_canonicalize_declaration_name` in `tests/support/gtk_css.py` explicitly returns source spelling for literal or decoded custom prefixes. The completed ordinary-name canonicalization plan deliberately excluded this behavior; this entry extends that contract. It is independent of the waiting empty-custom-value plan and uses nonempty values in its regressions.
+
+**Approach and files.** In `tests/support/gtk_css.py::_canonicalize_declaration_name`, reuse the existing escape decoder for custom names too: remove the initial custom-prefix return, return the decoded spelling without case folding when it begins with `--`, and retain ASCII folding for ordinary names. Preserve the existing source-spelling fallback for incomplete or newline escapes. In `tests/test_gtk_css.py::TestRuleBlockSemantics`, update custom-name expectations in the source-spelling and escaped-colon regressions and add public cascade tests. Revise the matching GTK shared stylesheet parser guarantee in `docs/invariants.md`, dated on implementation. These three files bound one run; do not add identifier grammar validation, variable substitution or stylesheet changes.
+
+**Acceptance criteria.** The reproducer returns `({}, {"a": {"--tone": "red !important"}}, ["a"])`. Simple and hexadecimal escapes, including an escaped leading hyphen that decodes to the custom prefix, share literal keys. Test optional hex terminators including CRLF, invalid-scalar replacement and incomplete/newline fallback using the decoder's established rules. Custom names `--Tone` and `--tone` remain distinct after decoding, including non-ASCII case. Escaped colons decode within the key after the unescaped declaration separator is found. Named regressions exercise important precedence and later-wins ties within and across blocks and grouped selectors. Ordinary-name decoding and selector/value spelling retain their existing expectations. Run `make check`.
 
 ### Shared stylesheet parser: accept empty custom-property values (planned 2026-11-01 by the plan role)
 — done 2026-11-01 by the feature role

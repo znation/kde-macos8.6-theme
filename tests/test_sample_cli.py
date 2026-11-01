@@ -8,6 +8,7 @@ Run with the project's check harness (stdlib unittest)::
 from __future__ import annotations
 
 import unittest
+import json
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -46,6 +47,38 @@ class TestSampleCli(CliTestCase):
         result = self._run_script(path, "0", "0")
         self._assert_success(result)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
+
+    def test_json_output_for_pixel_and_rectangle(self):
+        path = self._image()
+        cases = [
+            (("2", "1", "--json"), {
+                "image": path, "image_width": 4, "image_height": 3,
+                "region": {"x": 2, "y": 1, "width": 1, "height": 1},
+                "pixels": [{"x": 2, "y": 1, "rgb": [2, 1, 3], "hex": "#020103"}],
+            }),
+            (("1", "0", "--width", "2", "--height", "2", "--json"), {
+                "image": path, "image_width": 4, "image_height": 3,
+                "region": {"x": 1, "y": 0, "width": 2, "height": 2},
+                "pixels": [
+                    {"x": 1, "y": 0, "rgb": [1, 0, 1], "hex": "#010001"},
+                    {"x": 2, "y": 0, "rgb": [2, 0, 2], "hex": "#020002"},
+                    {"x": 1, "y": 1, "rgb": [1, 1, 2], "hex": "#010102"},
+                    {"x": 2, "y": 1, "rgb": [2, 1, 3], "hex": "#020103"},
+                ],
+            }),
+        ]
+        for arguments, expected in cases:
+            with self.subTest(arguments=arguments):
+                result = self._run(path, *arguments)
+                self._assert_success(result)
+                self.assertEqual(json.loads(result.stdout), expected)
+
+    def test_json_script_output_round_trips_control_path_safely(self):
+        with control_named_png() as path:
+            result = self._run_script(path, "0", "0", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["image"], path)
+        self.assertNotIn("\x1b", result.stdout)
 
     def test_reports_rgb_and_hex(self):
         path = self._image()
@@ -119,7 +152,7 @@ class TestSampleCli(CliTestCase):
         # being handed to the decoder. Patch the decode entry point to fail if
         # it is reached at all.
         path = self._image()
-        for arguments in (("4", "1"), ("2", "1", "--width", "3")):
+        for arguments in (("4", "1", "--json"), ("2", "1", "--width", "3", "--json")):
             with self.subTest(arguments=arguments):
                 with mock.patch.object(
                     sample,
@@ -140,11 +173,11 @@ class TestSampleCli(CliTestCase):
             4, 3, [bytes(12), bytes(12), bytes(12)], filter_types=[0, 9, 0]
         )
         path = self._write(self._tmp_dir(), "corrupt.png", data)
-        result = self._run(path, "0", "0")
+        result = self._run(path, "0", "0", "--json")
         self._assert_usage_error(
             result, "unsupported PNG filter type 9 in row 1"
         )
-        self.assertNotIn("pixel (", result.stdout)
+        self.assertEqual(result.stdout, "")
 
     def test_region_is_row_major(self):
         path = self._image()
@@ -228,7 +261,7 @@ class TestSampleCli(CliTestCase):
     def test_missing_file_is_error(self):
         tmp = self._tmp_dir()
         missing = str(tmp / "absent.png")
-        result = self._run(missing, "0", "0")
+        result = self._run(missing, "0", "0", "--json")
         self._assert_usage_error(result, "cannot read", missing)
 
     def test_rejects_an_image_that_symlinks_outside_the_repository(self):
@@ -240,9 +273,9 @@ class TestSampleCli(CliTestCase):
             self._tmp_dir(), "reference.png", data
         )
         with mock.patch.object(sample, "ROOT", str(root)):
-            result = self._run(str(link), "0", "0")
+            result = self._run(str(link), "0", "0", "--json")
         self._assert_usage_error(result, "resolves outside", str(root))
-        self.assertNotIn("pixel (", result.stdout)
+        self.assertEqual(result.stdout, "")
 
     def test_rejects_an_escaping_symlink_reached_through_a_checkout_alias(self):
         _, data = solid_rgb(1, 1)

@@ -385,6 +385,15 @@ region (5, 5) 1x2:
 (5, 6): 99,99,156  #63639C
 ```
 
+Pass `--json` to emit one structured JSON object instead. Its `region` records the requested
+rectangle and `pixels` lists absolute coordinates in row-major order; a single pixel has the
+same schema:
+
+```sh
+$ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --json
+{"image": "macos8.6-screenshots/boot2_betawiki.png", "image_width": 240, "image_height": 180, "region": {"x": 5, "y": 5, "width": 1, "height": 1}, "pixels": [{"x": 5, "y": 5, "rgb": [99, 99, 156], "hex": "#63639C"}]}
+```
+
 Coordinates are plain ASCII integers and `--width`/`--height` must be at least 1; a
 coordinate or region outside the image, a missing file, or an unreadable PNG exits 2
 with a diagnostic naming the coordinate, region, image size or path. A repository image

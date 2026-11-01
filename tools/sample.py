@@ -25,6 +25,7 @@ repository, or a coordinate or region outside the image.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -95,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
         metavar="H",
         help="pixels to sample below y (default 1)",
     )
+    parser.add_argument("--json", action="store_true", help="print structured JSON")
     args = parser.parse_args(argv)
 
     # The documented workflow samples a name in the contributor-supplied
@@ -157,6 +159,21 @@ def main(argv: list[str] | None = None) -> int:
         image = read_png(args.image, max_rows=args.y + args.height)
     except PngError as exc:
         return report_error("sample", str(exc))
+
+    if args.json:
+        pixels = []
+        for y in range(args.y, args.y + args.height):
+            for x in range(args.x, args.x + args.width):
+                rgb = pixel_at(image, x, y)
+                pixels.append({"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)})
+        print(json.dumps({
+            "image": args.image,
+            "image_width": width,
+            "image_height": height,
+            "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
+            "pixels": pixels,
+        }, ensure_ascii=True))
+        return 0
 
     if args.width == 1 and args.height == 1:
         rgb = pixel_at(image, args.x, args.y)
