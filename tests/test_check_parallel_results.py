@@ -11,6 +11,15 @@ from tools.check_parallel_results import _LOG_TAIL_BYTES, _bounded_log_text
 
 
 class TestBoundedLogText(unittest.TestCase):
+    def test_normalizes_crlf_and_bare_cr_line_endings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "worker.log"
+            path.write_bytes(b"first\r\nsecond\rthird\n")
+
+            result = _bounded_log_text(str(path))
+
+        self.assertEqual(result, "first\nsecond\nthird\n")
+
     def test_large_log_starts_after_first_complete_line_in_tail_window(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "worker.log"
