@@ -188,6 +188,14 @@ def main(argv: list[str] | None = None) -> int:
         metrics = compare(candidate, reference, tolerance=args.tolerance)
         worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels)
                  if args.worst_pixels is not None else None)
+        if worst is not None:
+            candidate_origin = args.candidate_crop[:2] if args.candidate_crop else (0, 0)
+            reference_origin = args.crop[:2] if args.crop else (0, 0)
+            for pixel in worst:
+                pixel["candidate_position"] = [pixel["x"] + candidate_origin[0],
+                                                pixel["y"] + candidate_origin[1]]
+                pixel["reference_position"] = [pixel["x"] + reference_origin[0],
+                                                pixel["y"] + reference_origin[1]]
         explanation = (_explain_worst_pixel(candidate, reference, metrics,
                                              args.candidate_crop, args.crop)
                        if args.explain_worst else None)
@@ -276,7 +284,9 @@ def main(argv: list[str] | None = None) -> int:
                 f"pixel ({pixel['x']}, {pixel['y']}): "
                 f"candidate={','.join(map(str, pixel['candidate_rgba']))} "
                 f"reference={','.join(map(str, pixel['reference_rgba']))} "
-                f"max_delta={pixel['max_delta']}"
+                f"max_delta={pixel['max_delta']} "
+                f"candidate_position={','.join(map(str, pixel['candidate_position']))} "
+                f"reference_position={','.join(map(str, pixel['reference_position']))}"
             )
     if explanation is not None:
         print("worst pixel: " + json.dumps(explanation, ensure_ascii=True))

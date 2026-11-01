@@ -483,8 +483,11 @@ aggregate budgets instead: when either is given, a run passes when each given bu
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
 the default no-differing-pixel gate no longer applies. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
-The listed coordinates are relative to the compared, cropped surfaces. With `--json`, the
-records appear in a `worst_pixels` array; the default output and work remain unchanged.
+The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
+includes `candidate_position` and `reference_position`, which add the corresponding crop origin
+and point into the original images (an omitted crop has origin 0,0). Text lines show both source
+positions too. With `--json`, the records appear in a `worst_pixels` array; the default output and
+work remain unchanged.
 Add `--explain-worst` to report the candidate and reference RGBA values at the comparator's
 maximum-delta pixel, along with the absolute per-channel differences. Its `position` is relative
 to the compared surfaces; `candidate_position` and `reference_position` add each crop's origin

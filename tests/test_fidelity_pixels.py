@@ -50,8 +50,63 @@ class TestWorstPixelsCli(FidelityCliTestCase):
         data = json.loads(result.stdout)
         self.assertEqual(data["worst_pixels"], [{"x": 1, "y": 0,
                          "candidate_rgba": [10, 0, 0, 255],
-                         "reference_rgba": [0, 0, 0, 255], "max_delta": 10}])
+                         "reference_rgba": [0, 0, 0, 255], "max_delta": 10,
+                         "candidate_position": [1, 0], "reference_position": [2, 0]}])
         self.assertEqual(result.returncode, 0)
+
+    def test_source_positions_for_ranked_records_and_explanation(self):
+        _, candidate = rgb_image(5, 3, lambda x, y: (
+            9 if (x, y) in ((1, 1), (2, 1)) else 7 if (x, y) == (3, 2) else 0, 0, 0))
+        reference = make_png(6, 4, [bytes(18) for _ in range(4)])
+        result = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,3,2",
+                                    "--crop", "2,2,3,2", "--max-mae", "2",
+                                    "--worst-pixels", "3", "--explain-worst", "--json")
+        data = json.loads(result.stdout)
+        pixels = data["worst_pixels"]
+        self.assertEqual([(p["x"], p["y"], p["candidate_position"],
+                           p["reference_position"]) for p in pixels],
+                         [(0, 0, [1, 1], [2, 2]), (1, 0, [2, 1], [3, 2]),
+                          (2, 1, [3, 2], [4, 3])])
+        self.assertEqual(data["worst_pixel"]["candidate_position"], pixels[0]["candidate_position"])
+        self.assertEqual(data["worst_pixel"]["reference_position"], pixels[0]["reference_position"])
+        self.assertEqual(result.returncode, 0)  # aggregate budget passes despite mismatches
+        text_result = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,3,2",
+                                         "--crop", "2,2,3,2", "--max-mae", "2",
+                                         "--worst-pixels", "3")
+        self.assertIn("candidate_position=1,1 reference_position=2,2", text_result.stdout)
+
+    def test_missing_crop_origins_and_empty_ranked_list(self):
+        _, candidate = rgb_image(2, 1, lambda x, y: (5 if x == 1 else 0, 0, 0))
+        reference = make_png(2, 1, [bytes(6)])
+        data = json.loads(self._run_png_pair(candidate, reference, "--worst-pixels", "1",
+                                             "--json").stdout)
+        self.assertEqual((data["worst_pixels"][0]["candidate_position"],
+                          data["worst_pixels"][0]["reference_position"]), ([1, 0], [1, 0]))
+        _, wider_candidate = rgb_image(3, 1, lambda x, y: (5 if x == 1 else 0, 0, 0))
+        data = json.loads(self._run_png_pair(wider_candidate, reference, "--candidate-crop",
+                                             "1,0,2,1", "--worst-pixels", "1", "--json").stdout)
+        self.assertEqual(data["worst_pixels"][0]["candidate_position"], [1, 0])
+        self.assertEqual(data["worst_pixels"][0]["reference_position"], [0, 0])
+        wider_reference = make_png(3, 1, [bytes(9)])
+        data = json.loads(self._run_png_pair(candidate, wider_reference, "--crop", "1,0,2,1",
+                                             "--worst-pixels", "1", "--json").stdout)
+        self.assertEqual(data["worst_pixels"][0]["candidate_position"], [1, 0])
+        self.assertEqual(data["worst_pixels"][0]["reference_position"], [2, 0])
+        same = json.loads(self._run_png_pair(candidate, candidate, "--worst-pixels", "2",
+                                             "--json").stdout)
+        self.assertEqual(same["worst_pixels"], [])
+
+    def test_direct_script_emits_source_positions(self):
+        _, candidate = rgb_image(1, 1, lambda x, y: (4, 0, 0))
+        _, reference = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        tmp = self._tmp_dir()
+        candidate_path = self._write(tmp, "candidate.png", candidate)
+        reference_path = self._write(tmp, "reference.png", reference)
+        result = self._run_script(candidate_path, reference_path, "--worst-pixels", "1", "--json")
+        self.assertEqual(result.returncode, 1)
+        pixel = json.loads(result.stdout)["worst_pixels"][0]
+        self.assertEqual((pixel["candidate_position"], pixel["reference_position"]),
+                         ([0, 0], [0, 0]))
 
     def test_default_does_not_call_helper_and_invalid_is_early(self):
         _, png = rgb_image(1, 1, lambda x, y: (0, 0, 0))

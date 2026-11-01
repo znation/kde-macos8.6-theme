@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: locate ranked mismatches in both source images (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Make ranked mismatches directly usable for reference sampling and render inspection when the two crops have different origins. Inspected `tools/fidelity_pixels.py::worst_pixels`, `tools/fidelity.py::main` and `_explain_worst_pixel`, and `tests/test_fidelity_pixels.py::TestWorstPixelsCli`: ranked records expose crop-relative `x`/`y`, whereas the single-pixel explanation already translates to both source images. Searches of the implementation and related planned/finished fidelity headings found no source-coordinate support for the ranked list. This is independent of the waiting histogram plan.
+
+**Approach and files.** In `tools/fidelity.py::main`, enrich the bounded list returned by `worst_pixels` with `candidate_position` and `reference_position`, each a two-integer [x,y] array formed by adding the corresponding crop origin (zero when absent). Keep `x`/`y` crop-relative. Do this in the CLI after ranking; leave the image-local helper and its bounded selection algorithm alone. JSON emits these additive fields whenever `--worst-pixels` is requested. Append `candidate_position=X,Y reference_position=X,Y` to each existing text pixel line. Keep metrics, ranking, tolerance filtering, limits and verdict logic intact. Extend `tests/test_fidelity_pixels.py::TestWorstPixelsCli`, document the fields in README.md's fidelity section, and extend the ranked-report row in `docs/invariants.md`. These four files bound one implementation run with no new dependency.
+
+**Acceptance criteria.** A synthetic pair with distinct nonzero crop origins in both axes asserts exact local and source positions for multiple ranked records, including a row-major tie; JSON and text agree. Cover neither crop, candidate-only crop and reference-only crop, proving omitted origins act as zero. An identical pair returns an empty ranked list without fabricated positions. An aggregate-budget PASS still reports source positions for over-tolerance mismatches. Combine `--worst-pixels` with `--explain-worst` on a fixture with a unique maximum and assert their source coordinates agree. Retain the existing default helper-not-called assertion and helper ranking tests, and include one direct-script success case. Run `make check` after implementation and documentation edits.
+
 ### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make palette inspection manageable for reference regions with many colors. Histogram mode counts the requested region and emits colors sorted by descending count, then ascending RGB tuple.
