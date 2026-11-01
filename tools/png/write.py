@@ -55,7 +55,7 @@ def _validate_dimension(name: str, value: object) -> None:
 def _encode(
     width: int,
     height: int,
-    pixels: bytes,
+    pixels: bytes | bytearray,
     channels: int,
     color_type: int,
     kind: str,
@@ -93,7 +93,7 @@ def _encode(
     )
 
 
-def encode_png(width: int, height: int, rgb: bytes) -> bytes:
+def encode_png(width: int, height: int, rgb: bytes | bytearray) -> bytes:
     """Return the PNG bytes of a *width* x *height* image of packed *rgb* pixels.
 
     Raises ``ValueError`` when a dimension is not an integer in the PNG
@@ -103,6 +103,6 @@ def encode_png(width: int, height: int, rgb: bytes) -> bytes:
     return _encode(width, height, rgb, 3, 2, "rgb")
 
 
-def encode_rgba_png(width: int, height: int, rgba: bytes) -> bytes:
+def encode_rgba_png(width: int, height: int, rgba: bytes | bytearray) -> bytes:
     """Return the PNG bytes of a *width* x *height* image of packed RGBA pixels."""
     return _encode(width, height, rgba, 4, 6, "rgba")
