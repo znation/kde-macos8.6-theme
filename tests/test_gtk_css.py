@@ -140,6 +140,44 @@ class TestRuleBlockSemantics(unittest.TestCase):
     the GTK sheet tests would be at risk of reading the wrong declarations.
     """
 
+    def test_escaped_colons_in_declaration_names(self):
+        css = (
+            r"a, b { --tone\:active: red; --many\:parts\:here: "
+            r"url(https://example.test/a:b); } "
+            r"a { --tone\:active: blue !important; } "
+            r"a { --tone\:active: green; }"
+        )
+        self.assertEqual(
+            parse_css(css),
+            (
+                {},
+                {
+                    "a": {
+                        r"--tone\:active": "blue !important",
+                        r"--many\:parts\:here": "url(https://example.test/a:b)",
+                    },
+                    "b": {
+                        r"--tone\:active": "red",
+                        r"--many\:parts\:here": "url(https://example.test/a:b)",
+                    },
+                },
+                ["a", "b", "a", "a"],
+            ),
+        )
+        self.assertEqual(
+            parse_css("a { --odd\\:name: value; --even\\\\: value; }")[1]["a"],
+            {"--odd\\:name": "value", "--even\\\\": "value"},
+        )
+
+    def test_escaped_colon_without_separator_is_malformed(self):
+        for declaration in (r"--tone\:active", ": value", "name:"):
+            with self.subTest(declaration=declaration):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"^source\.css: malformed declaration in selector 'a':",
+                ):
+                    parse_css(f"a {{ {declaration}; }}", source="source.css")
+
     def test_semicolons_inside_square_bracket_values_are_preserved(self):
         cases = (
             ("a { --tokens: [a;b]; color: red; }", ["a"],

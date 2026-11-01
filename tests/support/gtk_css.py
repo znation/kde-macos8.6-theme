@@ -351,6 +351,19 @@ def assert_svg_root_first(test, path):
     )
 
 
+def _split_property_value(declaration):
+    """Split at the first colon that is not escaped by a backslash."""
+    index = 0
+    while index < len(declaration):
+        if declaration[index] == "\\":
+            index += 2
+        elif declaration[index] == ":":
+            return declaration[:index], declaration[index + 1:]
+        else:
+            index += 1
+    return None
+
+
 def parse_css(text, source=None):
     """Return the ``@define-color`` map, selector declarations and selector list.
 
@@ -388,8 +401,9 @@ def parse_css(text, source=None):
             declaration = chunk.strip(' \t\n\r\f')
             if not declaration:
                 continue
-            if ":" in chunk:
-                name, value = chunk.split(":", 1)
+            split = _split_property_value(chunk)
+            if split is not None:
+                name, value = split
                 name = _collapse_whitespace(name)
                 if not name.startswith("--"):
                     name = name.translate(_ASCII_LOWER)

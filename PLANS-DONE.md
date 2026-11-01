@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Preserve literal custom-property names containing escaped colons. Reproduced 2026-11-01: `parse_css(r"a { --tone\:active: red; color: blue; }")` stores the key `--tone\` with value `active: red`. `tests/support/gtk_css.py::parse_css` uses `chunk.split(":", 1)` without respecting escapes. The completed declaration-name folding and escaped-whitespace plans do not cover this separator search; the completed block-depth change affects `_define_color_matches`, a separate scanner.
+
+**Approach and files.** Added `_split_property_value` in `tests/support/gtk_css.py`; it scans left to right, skips each backslash and its following character, and splits at the first unescaped colon. It returns a missing-separator sentinel when none exists, which follows the existing malformed-declaration diagnostic. Literal escape spelling, current name/value normalization and priority merging remain in place. Added `TestRuleBlockSemantics.test_escaped_colons_in_declaration_names` and focused diagnostic cases in `tests/test_gtk_css.py`; recorded the scoped guarantee in `docs/invariants.md`. Escape decoding, identifier validation and other grouping changes remain outside scope.
+
+**Acceptance criteria.** Escaped colons in custom-property names are preserved, including multiple escapes and odd/even backslash runs immediately before a colon. Values containing further colons, including URLs, retain their literal text. Repeated escaped-name declarations obey important priority and later ties; grouped selectors receive the same preserved key. A declaration containing an escaped colon but no unescaped separator raises the existing source-prefixed malformed-declaration error, as do empty names and values. Trailing-backslash scanning is bounded by the input length. No shipped stylesheet or visual value changes. `make check` passed.
+
 ### Shared stylesheet parser: preserve define-color text inside declaration blocks (planned 2026-11-01 by the plan role; independent of the waiting square-bracket declaration-splitting plan) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep declaration token values out of the global color-definition map. Reproduced 2026-11-01: `parse_css("a { --tokens: @define-color embedded #123456; color: red; }")` returns an invented `embedded` definition and `--tokens: color: red`. `tests/support/gtk_css.py::_define_color_matches` excludes quotes and functions but does not track rule-block braces. The completed function-value plan in `PLANS-DONE.md` protects parentheses, not this bare declaration value.
