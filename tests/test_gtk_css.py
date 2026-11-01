@@ -236,6 +236,33 @@ class TestRuleBlockSemantics(unittest.TestCase):
             {"a": {"background-image": 'url("a  b.png")'}},
         )
 
+    def test_only_css_ascii_whitespace_collapses_between_tokens(self):
+        for character in ("\u00a0", "\u2003"):
+            with self.subTest(codepoint=f"U+{ord(character):04X}"):
+                self.assertEqual(
+                    parse_css(
+                        f".a{character}b {{ color: red; }}"
+                        ".a b { color: blue; }"
+                    ),
+                    (
+                        {},
+                        {
+                            f".a{character}b": {"color": "red"},
+                            ".a b": {"color": "blue"},
+                        },
+                        [f".a{character}b", ".a b"],
+                    ),
+                )
+                self.assertEqual(
+                    parse_css(f"a {{ content: token{character}name; }}")[1],
+                    {"a": {"content": f"token{character}name"}},
+                )
+
+        self.assertEqual(
+            parse_css(".a \t\n\r\f b { color: red; }")[1:],
+            ({".a b": {"color": "red"}}, [".a b"]),
+        )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.

@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: preserve non-ASCII spacing inside selector and value tokens (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Keep distinct CSS tokens distinct in the shared GTK/Firefox test reader. On 2026-11-01, a direct `parse_css` probe of `.a\u00a0b { color: red; } .a b { color: blue; }` (with an actual U+00A0 in the input) returned only `{'.a b': {'color': 'blue'}}`. `tests/support/gtk_css.py::_collapse_whitespace` uses Python's `str.isspace()`, which includes non-ASCII characters outside CSS's whitespace set. Heading searches of Planned and PLANS-DONE.md found no whitespace/Unicode-token plan; the existing quoted-whitespace tests cover a different case. This is test-reader correctness, with no rendered theme claim.
+
+**Approach and files.** In `_collapse_whitespace`, replace the `isspace()` predicate with membership in CSS whitespace (`' \t\n\r\f'`), retaining the existing quote, escape and pending-space logic. Scope this run to interior characters handled by this helper; do not redesign parsing, boundary trimming or selector matching. In `tests/test_gtk_css.py::TestRuleBlockSemantics`, add table-driven cases for interior U+00A0 and U+2003 in selectors and unquoted declaration values: distinguish `.a<character>b` from `.a b`, retain both rule dictionaries and selector occurrences, and preserve `token<character>name` as a value. Include an ASCII-whitespace control that still collapses runs containing space, tab, CR, LF and form feed. Extend the shared parser row in `docs/invariants.md` to name these tests and the interior CSS-whitespace guarantee. These three files suffice; no dependency or shipped stylesheet changes.
+
+**Acceptance criteria.** The non-ASCII selector and value regressions fail against the current helper and pass after the predicate change; ASCII controls and existing quoted/escaped whitespace coverage pass. The public `(definitions, rules, selectors)` return shape and priority-bearing value strings stay covered by the existing parser suite. Run `make check`.
+
 ### Shared stylesheet parser: preserve important declarations for repeated selectors (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make the declaration map used by GTK and Firefox tests respect importance when the exact same selector/property repeats. Inspected and reproduced 2026-11-01: `tests/support/gtk_css.py::parse_css` assigned into a per-block dictionary and later blocks overwrote unconditionally. Firefox's shipped `theme/firefox/org.macos8.desktop/chrome/userChrome.css` uses important declarations. This corrects the test reader's exact-selector merge without adding selector matching, specificity resolution or a general CSS engine.

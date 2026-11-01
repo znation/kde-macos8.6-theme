@@ -302,7 +302,7 @@ def _collapse_whitespace(text):
                 quote = None
         elif char in "\"'":
             quote = char
-        elif char.isspace():
+        elif char in " \t\n\r\f":
             pending_space = True
             continue
         if pending_space:
