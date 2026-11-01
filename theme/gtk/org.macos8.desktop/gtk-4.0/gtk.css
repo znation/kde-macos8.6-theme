@@ -2629,3 +2629,15 @@ link:visited:selected:not(:disabled):active {
 :selected link:visited:not(:disabled):active {
   color: #000000;
 }
+
+/* Adaptation 2026-10-31: no collected reference shows disabled inline links
+   inside selected nodes. Reuse [Colors:Button] ForegroundInactive; GTK 4's
+   Default-light.css resource supplies the selected-ancestor link states. */
+:selected link:disabled,
+:selected link:disabled:hover,
+:selected link:disabled:active,
+:selected link:visited:disabled,
+:selected link:visited:disabled:hover,
+:selected link:visited:disabled:active {
+  color: #888888;
+}
