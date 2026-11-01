@@ -29,6 +29,11 @@ from collections.abc import Iterable
 from pathlib import Path
 
 if __package__:
+    from tools.containment import open_regular_binary
+else:  # run directly: python3 tools/diagnostics.py
+    from containment import open_regular_binary
+
+if __package__:
     from tools.terminal import escape_controls
 else:  # imported from a directly run tool
     from terminal import escape_controls
@@ -114,7 +119,7 @@ def _log_tail_lines(log: Path) -> list[str]:
     ``\n`` and ``\r\n`` end a line; an exotic break byte inside a line (a
     vertical tab, a form feed) stays part of that line.
     """
-    with log.open("rb") as handle:
+    with open_regular_binary(log) as handle:
         size = handle.seek(0, os.SEEK_END)
         start = max(0, size - _LOG_TAIL_BYTES)
         if start:
@@ -164,7 +169,7 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     if log is not None and log.is_file():
         try:
             lines = _log_tail_lines(log)
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             # The external process owns the log contents and may remove or
             # replace it between is_file() and open(). Keep its failure
             # diagnostic, and make the lost detail visible without a traceback.

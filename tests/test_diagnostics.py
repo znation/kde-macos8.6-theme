@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import contextlib
 import io
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -195,6 +197,26 @@ class TestReportFailure(unittest.TestCase):
             "  two\n",
         )
 
+    @unittest.skipUnless(hasattr(__import__("os"), "mkfifo"), "requires FIFO support")
+    def test_fifo_log_reports_read_failure_without_blocking(self):
+        import os
+
+        fifo = make_tmp_dir(self) / "cmd.log"
+        os.mkfifo(fifo)
+        script = (
+            "import sys; from pathlib import Path; "
+            "from tools.diagnostics import report_failure; "
+            "Path.is_file = lambda self: True; "
+            f"sys.exit(report_failure('tool', 'command failed', Path({str(fifo)!r})))"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script], capture_output=True, text=True,
+            timeout=2, cwd=Path(__file__).resolve().parents[1],
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("tool: error: command failed", result.stderr)
+        self.assertIn("log could not be read:", result.stderr)
+
     def test_keeps_only_the_last_twelve_log_lines(self):
         log = make_tmp_dir(self) / "cmd.log"
         log.write_text(
@@ -214,7 +236,7 @@ class TestReportFailure(unittest.TestCase):
     def test_a_log_read_failure_keeps_the_command_error_and_reports_the_log_error(self):
         log = make_tmp_dir(self) / "cmd.log"
         log.write_text("available at preflight", encoding="utf-8")
-        with mock.patch.object(Path, "open", side_effect=PermissionError("denied")):
+        with mock.patch.object(diagnostics.os, "open", side_effect=PermissionError("denied")):
             status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertIn("apply_theme: error: command failed\n", err)
