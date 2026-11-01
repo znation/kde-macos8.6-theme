@@ -71,18 +71,21 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run(["git", "init", "-q", directory], check=True)
             os.makedirs(os.path.join(directory, "nested"))
-            with open(os.path.join(directory, "leak"), "wb") as fh:
+            # Git's NUL-delimited path listing must preserve legal filenames
+            # containing newlines; line-based parsing would split this name.
+            leak_name = "leak\nname"
+            with open(os.path.join(directory, leak_name), "wb") as fh:
                 fh.write(b"/tmp/tumwater-run-example/tmp.work\nmore data\n")
             with open(os.path.join(directory, "nested", "note"), "wb") as fh:
                 fh.write(b"/tmp/tumwater-run-example/tmp.nested\n")
             subprocess.run(
-                ["git", "-C", directory, "add", "leak", "nested/note"],
+                ["git", "-C", directory, "add", leak_name, "nested/note"],
                 check=True,
             )
 
             self.assertEqual(
                 tracked_run_scratch_files(directory),
-                [("leak", b"/tmp/tumwater-run-example/tmp.work\n")],
+                [(leak_name, b"/tmp/tumwater-run-example/tmp.work\n")],
             )
 
 
