@@ -248,8 +248,6 @@ class TestInstall(CursorCase):
         # after the link it was meant to expose is missing.
         self.install_theme()
         self.stub_selector()
-        self.link.parent.mkdir(parents=True)
-
         def failing_symlink(source, target, *args, **kwargs):
             raise OSError("simulated link failure")
 
@@ -260,6 +258,7 @@ class TestInstall(CursorCase):
         self.assertIn("cannot create", result.stderr)
         self.assertIn(str(self.link), result.stderr)
         self.assertFalse(os.path.lexists(self.link))
+        self.assertFalse(self.link.parent.exists())
         self.assertEqual([], self.recorded())
 
 

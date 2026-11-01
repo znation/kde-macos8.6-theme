@@ -57,10 +57,17 @@ def install_link(home: Path, theme: Path) -> None:
         raise CursorError(
             f"{target} exists and is not our symlink; leaving it untouched"
         )
+    icons_created = not os.path.lexists(icons)
     try:
         icons.mkdir(parents=True, exist_ok=True)
         os.symlink(str(theme), str(target))
     except OSError as exc:
+        if icons_created:
+            # rmdir is safe if another process has populated the directory.
+            try:
+                icons.rmdir()
+            except OSError:
+                pass
         raise CursorError(f"cannot create {target}: {exc}") from exc
 
 
