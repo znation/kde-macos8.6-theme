@@ -3567,3 +3567,18 @@ button:link > label:disabled:backdrop,
 button:visited > label:disabled:backdrop {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected GTK inline
+   links. Reuse [Colors:Selection] ForegroundNormal; GTK 3's installed
+   gtk-contained.css resource supplies these link state spellings. */
+label:link:selected:not(:disabled):not(:backdrop),
+label:link:selected:not(:disabled):not(:backdrop):hover,
+label:link:selected:not(:disabled):not(:backdrop):active,
+label:visited:selected:not(:disabled):not(:backdrop),
+label:visited:selected:not(:disabled):not(:backdrop):hover,
+label:visited:selected:not(:disabled):not(:backdrop):active,
+label:link:visited:selected:not(:disabled):not(:backdrop),
+label:link:visited:selected:not(:disabled):not(:backdrop):hover,
+label:link:visited:selected:not(:disabled):not(:backdrop):active {
+  color: #000000;
+}
