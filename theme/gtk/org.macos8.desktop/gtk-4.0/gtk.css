@@ -2604,3 +2604,15 @@ button.link:disabled > label,
 button.link:visited:disabled > label {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected GTK links.
+   Reuse [Colors:Selection] ForegroundNormal as the selected link ink; GTK 4's
+   Default-light.css resource supplies the selected-link state vocabulary. */
+link:selected:not(:disabled),
+link:selected:not(:disabled):hover,
+link:selected:not(:disabled):active,
+link:visited:selected:not(:disabled),
+link:visited:selected:not(:disabled):hover,
+link:visited:selected:not(:disabled):active {
+  color: #000000;
+}

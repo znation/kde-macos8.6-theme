@@ -5,9 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Platinum GTK 4 selected inline-link nodes (planned 2026-10-31 by the plan role; independent of the queued GTK 3 selected inline-link labels plan)
+### Platinum GTK 4 selected inline-link nodes (planned 2026-10-31 by the plan role; independent of the queued GTK 3 selected inline-link labels plan) — done 2026-10-31 by the feature role
 
 **Goal and grounding.** Give enabled GTK 4 inline `link` nodes carrying `:selected` the scheme's black selection ink across visited, hover and press states. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` supplies ordinary link colours but no selected-link compounds. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` declares `link:selected` with pale `#d1e1f5` ink. Heading searches in `PLANS.md` and `PLANS-DONE.md` found the queued GTK 3 sibling and completed ordinary GTK 4 interaction work, whose scope explicitly excludes selection contexts. No collected reference shows selected GTK links: reuse `[Colors:Selection] ForegroundNormal` as a platform adaptation. Selected ancestors and link-button children are separate surfaces outside this entry.
 
