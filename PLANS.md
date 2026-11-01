@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 selected inline-link labels (planned 2026-10-31 by the plan role; independent of the waiting disabled child link-button plan)
-
-**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has base, interaction and backdrop inline-link colours but no selected inline-link compounds. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` gives `*:link:selected` pale `#d1e1f5` ink. Heading searches in `PLANS.md` and `PLANS-DONE.md` found no selected-link plan; the archived base and interaction link plans explicitly leave selected contexts separate. No collected reference shows GTK selected links: adapt this platform state to `[Colors:Selection] ForegroundNormal`, reusing the theme's existing selection ink rather than adding a palette value. The waiting plan targets button children, so neither implementation depends on the other.
-
-**Approach and files.** Append a dated adaptation comment and one colour-only group to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`. Form nine selectors from the roots `label:link`, `label:visited`, `label:link:visited`, each followed by `:selected:not(:disabled):not(:backdrop)` and then each of the suffixes empty, `:hover`, `:active`. Declare exactly `color: #000000`. The explicit link-plus-visited interaction compounds outrank the landed purple interaction rules; the disabled/backdrop exclusions preserve those separate recipes. Keep the existing selection fill and underline rules.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_selected_inline_link_foregrounds` beside `test_inline_link_interaction_colours`. Assert the nine exact selectors each occur once and each resolves to the exact colour-only dictionary. Re-derive the colour from `load_scheme()`'s `[Colors:Selection] ForegroundNormal`, using the existing RGB-to-hex conversion pattern in `test_enabled_backdrop_link_button_label_colours`. In `gtk_css.strip_comments(self.css)`, assert the new group follows the base visited-link group and both landed inline interaction groups. Add a dated row under `## gtk` in `docs/invariants.md` naming the test, missing reference surface, scheme role and installed GTK resource. These three files bound one implementation run; no helper or artwork changes are needed.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, adding a declaration or changing its colour fails the new test. Changing the scheme's selected-text role fails palette re-derivation. Moving the group before the base visited-link or either interaction group fails the ordering checks. Existing link, interaction, disabled and backdrop tests remain green. Run `make check`. Coverage establishes declarations and source order, without claiming rendered pixels.
+_None yet._
 
 ## Done
 

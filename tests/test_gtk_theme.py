@@ -358,6 +358,10 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
         self.assertGreater(
             selected_rule,
+            uncommented.index("label:link:active:not(:disabled) {"),
+        )
+        self.assertGreater(
+            selected_rule,
             uncommented.index("label:link:visited:active:not(:disabled) {"),
         )
         self.assertGreater(
