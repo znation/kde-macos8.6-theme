@@ -5,7 +5,13 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Shared stylesheet parser: preserve hex-escape whitespace terminators (planned 2026-11-01 by the plan role; independent of the completed unquoted-URL comment change)
+
+**Goal and grounding.** Preserve selector identity when normalizing CSS hex escapes. Reproduced 2026-11-01: `parse_css(r".\31  a { color: red; }")[2]` returns `[r".\31 a"]`. The input selects an `a` descendant of class `1`; the returned spelling instead denotes class `1a`, because its single space terminates the hex escape. `tests/support/gtk_css.py::_collapse_whitespace` protects only the character immediately following a backslash and collapses the subsequent terminator and separator together. Searches of planned and archived parser headings and the related whitespace entries found no hex-terminator plan; the finished escaped-boundary change concerns simple backslash-space escapes.
+
+**Approach and files.** In `_collapse_whitespace`, consume a backslash followed by one to six ASCII hexadecimal digits as one literal escape span, including its optional single CSS-whitespace terminator (consume CRLF together when it is that terminator). Preserve that span verbatim without decoding it, then normalize subsequent unescaped whitespace separately using the existing pending-space behavior. Keep quoted contents verbatim and retain simple non-hex escape behavior. Add regressions through `parse_css` in `tests/test_gtk_css.py::TestRuleBlockSemantics`; extend the normalization guarantee under GTK shared stylesheet parser in `docs/invariants.md` with named tests. These three files bound one run; no shared tokenizer, selector-matcher changes, shipped stylesheets or artwork are needed.
+
+**Acceptance criteria.** Parsing both `.\31  a { color: red; }` and `.\31 a { margin: 1px; }` in one input yields distinct keys and selector occurrences with separate declarations. Cover one through six hex digits, uppercase hex digits, a terminator followed by a longer separator run, tab and CRLF terminators, and equivalent preservation in unquoted custom-property values. The terminator remains present at a value boundary; additional unescaped trailing whitespace is removed. A seventh hex digit belongs to subsequent literal text, not the escape. Existing quoted-string, simple escaped-space, ordinary whitespace and priority-merge behavior remains covered. Use one forward scan and run `make check` after implementation. This is test-reader correctness, with no rendered-theme claim.
 
 ## Done
 
