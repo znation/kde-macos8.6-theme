@@ -17,6 +17,17 @@ from tools.check_parallel_results import (
 
 
 class TestBoundedLogText(unittest.TestCase):
+    def test_log_exactly_the_tail_window_is_not_marked_truncated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "worker.log"
+            contents = b"x" * (_LOG_TAIL_BYTES - 1) + b"\n"
+            path.write_bytes(contents)
+
+            result = _bounded_log_text(str(path))
+
+        self.assertEqual(result, contents.decode("ascii"))
+        self.assertNotIn("earlier log bytes hidden", result)
+
     def test_normalizes_crlf_and_bare_cr_line_endings(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "worker.log"
