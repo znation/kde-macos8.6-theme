@@ -3542,3 +3542,18 @@ button:visited:not(:disabled) > label:hover:not(:disabled),
 button:visited:not(:disabled) > label:active:not(:disabled) {
   color: #551A8B;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled GTK
+   backdrop link-button labels; reuse the scheme's link roles. The installed
+   GTK 3 gtk-contained.css resource supplies the backdrop state spellings. */
+button:link:not(:disabled) > label:backdrop:not(:disabled),
+button:link:not(:disabled) > label:backdrop:hover:not(:disabled),
+button:link:not(:disabled) > label:backdrop:active:not(:disabled) {
+  color: #0000EE;
+}
+
+button:visited:not(:disabled) > label:backdrop:not(:disabled),
+button:visited:not(:disabled) > label:backdrop:hover:not(:disabled),
+button:visited:not(:disabled) > label:backdrop:active:not(:disabled) {
+  color: #551A8B;
+}

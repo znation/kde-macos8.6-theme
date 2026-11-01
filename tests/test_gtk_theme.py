@@ -404,6 +404,34 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         self.assertGreater(blue_rule, disabled)
         self.assertGreater(visited_rule, blue_rule)
 
+    def test_enabled_backdrop_link_button_label_colours(self):
+        blue = (
+            "button:link:not(:disabled) > label:backdrop:not(:disabled)",
+            "button:link:not(:disabled) > label:backdrop:hover:not(:disabled)",
+            "button:link:not(:disabled) > label:backdrop:active:not(:disabled)",
+        )
+        visited = tuple(selector.replace("button:link:", "button:visited:") for selector in blue)
+        for selectors, expected in ((blue, "#0000EE"), (visited, "#551A8B")):
+            for selector in selectors:
+                self.assertEqual(self.rules[selector], {"color": expected})
+                self.assertEqual(self.selectors.count(selector), 1)
+        scheme = load_scheme()
+        for role, expected in (("ForegroundLink", "#0000EE"),
+                               ("ForegroundVisited", "#551A8B")):
+            rgb = scheme.get("Colors:Window", role)
+            self.assertEqual(
+                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
+                expected,
+            )
+        uncommented = gtk_css.strip_comments(self.css)
+        blue_rule = uncommented.index(blue[0] + ",")
+        visited_rule = uncommented.index(visited[0] + ",")
+        self.assertGreater(blue_rule, uncommented.index("button:visited > label {"))
+        self.assertGreater(blue_rule, uncommented.index(
+            "button:link:disabled > label, button:visited:disabled > label {"
+        ))
+        self.assertLess(blue_rule, visited_rule)
+
     def test_disabled_text_follows_the_entry_text_rule(self):
         # spinbutton:disabled ties spinbutton:not(.vertical) on specificity, so
         # only coming later greys a disabled spin button's text.
