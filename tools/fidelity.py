@@ -39,6 +39,7 @@ if __package__:
         compare,
         crop,
     )
+    from tools.png import pixel_at
     from tools.fidelity_pixels import worst_pixels
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
@@ -49,6 +50,7 @@ else:  # run directly: python3 tools/fidelity.py
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
+    from png import pixel_at
     from fidelity_pixels import worst_pixels
     from png import PngError, read_png
     from repo_root import ROOT
@@ -86,6 +88,27 @@ def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
     return image
 
 
+def _explain_worst_pixel(candidate, reference, metrics, candidate_crop, reference_crop):
+    """Return source colors and coordinates for the comparator's worst pixel."""
+    x, y = metrics.max_x, metrics.max_y
+    candidate_rgb = pixel_at(candidate, x, y)
+    reference_rgb = pixel_at(reference, x, y)
+    candidate_alpha = candidate.alpha[y * candidate.width + x] if candidate.alpha is not None else 255
+    reference_alpha = reference.alpha[y * reference.width + x] if reference.alpha is not None else 255
+    candidate_rgba = [*candidate_rgb, candidate_alpha]
+    reference_rgba = [*reference_rgb, reference_alpha]
+    candidate_origin = (candidate_crop[0], candidate_crop[1]) if candidate_crop else (0, 0)
+    reference_origin = (reference_crop[0], reference_crop[1]) if reference_crop else (0, 0)
+    return {
+        "position": [x, y],
+        "candidate_position": [x + candidate_origin[0], y + candidate_origin[1]],
+        "reference_position": [x + reference_origin[0], y + reference_origin[1]],
+        "candidate_rgba": candidate_rgba,
+        "reference_rgba": reference_rgba,
+        "absolute_delta": [abs(a - b) for a, b in zip(candidate_rgba, reference_rgba)],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the comparison CLI; *argv* is the argument list without a program name.
 
@@ -115,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
                         help="list up to N worst differing pixels (1-1000)")
+    parser.add_argument("--explain-worst", action="store_true",
+                        help="show source RGBA values at the maximum-delta pixel")
     parser.add_argument(
         "--candidate-crop",
         type=parse_crop,
@@ -163,6 +188,9 @@ def main(argv: list[str] | None = None) -> int:
         metrics = compare(candidate, reference, tolerance=args.tolerance)
         worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels)
                  if args.worst_pixels is not None else None)
+        explanation = (_explain_worst_pixel(candidate, reference, metrics,
+                                             args.candidate_crop, args.crop)
+                       if args.explain_worst else None)
     except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
@@ -189,6 +217,8 @@ def main(argv: list[str] | None = None) -> int:
         }
         if worst is not None:
             result["worst_pixels"] = worst
+        if explanation is not None:
+            result["worst_pixel"] = explanation
         print(json.dumps(result, ensure_ascii=True))
         return 0 if ok else 1
     print(
@@ -248,6 +278,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"reference={','.join(map(str, pixel['reference_rgba']))} "
                 f"max_delta={pixel['max_delta']}"
             )
+    if explanation is not None:
+        print("worst pixel: " + json.dumps(explanation, ensure_ascii=True))
     verdict = "PASS" if ok else "FAIL"
     mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
     fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"

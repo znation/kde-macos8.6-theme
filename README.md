@@ -475,6 +475,12 @@ the default no-differing-pixel gate no longer applies. Add `--worst-pixels N` (1
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed coordinates are relative to the compared, cropped surfaces. With `--json`, the
 records appear in a `worst_pixels` array; the default output and work remain unchanged.
+Add `--explain-worst` to report the candidate and reference RGBA values at the comparator's
+maximum-delta pixel, along with the absolute per-channel differences. Its `position` is relative
+to the compared surfaces; `candidate_position` and `reference_position` add each crop's origin
+and point into the original images. The diagnostic appears as `worst_pixel` in JSON or as a
+JSON-formatted `worst pixel:` line immediately before the verdict. It is reported on passing
+comparisons too, including identical images, where the selected position is `(0, 0)`.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
