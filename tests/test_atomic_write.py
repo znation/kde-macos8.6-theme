@@ -91,6 +91,26 @@ class TestWriteAtomically(unittest.TestCase):
         self.assertIs(failure, caught.exception)
         self.assertIs(cleanup, caught.exception.__cause__)
 
+    def test_close_failure_still_removes_temporary_sibling(self):
+        setup_failure = OSError("mode setup failed")
+        close_failure = OSError("close failed")
+        real_close = os.close
+
+        def close_then_fail(descriptor):
+            real_close(descriptor)
+            raise close_failure
+
+        with (
+            mock.patch.object(atomic_write.os, "fchmod", side_effect=setup_failure),
+            mock.patch.object(atomic_write.os, "close", side_effect=close_then_fail),
+        ):
+            with self.assertRaises(OSError) as caught:
+                atomic_write.write_atomically(self.target, lambda handle: None)
+
+        self.assertIs(setup_failure, caught.exception)
+        self.assertIs(close_failure, caught.exception.__cause__)
+        self.assertEqual([], list(self.directory.iterdir()))
+
     def test_write_bytes_replaces_existing_contents(self):
         self.target.write_bytes(b"a much longer previous body")
         atomic_write.write_bytes_atomically(self.target, b"new")

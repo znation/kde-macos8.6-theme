@@ -69,10 +69,16 @@ def write_atomically(
             fill(destination)
         os.replace(partial, path)
     except BaseException as failure:
+        close_failure = None
         if not descriptor_closed:
-            os.close(descriptor)
+            try:
+                os.close(descriptor)
+            except BaseException as exc:
+                close_failure = exc
         try:
             partial.unlink(missing_ok=True)
         except OSError as cleanup_error:
             raise failure from cleanup_error
+        if close_failure is not None:
+            raise failure from close_failure
         raise
