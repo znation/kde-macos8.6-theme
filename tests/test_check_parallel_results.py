@@ -54,6 +54,23 @@ class TestBoundedLogText(unittest.TestCase):
 
 
 class TestPrintResults(unittest.TestCase):
+    def test_directory_worker_log_fails_without_stopping_the_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            output = StringIO()
+            with redirect_stdout(output):
+                status = _print_results(
+                    ["broken", "ok"],
+                    {"broken": 0, "ok": 0},
+                    {"broken": str(path)},
+                    30,
+                )
+
+        self.assertEqual(status, 1)
+        self.assertIn("===== broken: worker log could not be read =====", output.getvalue())
+        self.assertIn("===== ok: exit 0 =====", output.getvalue())
+        self.assertIn("check: 2 modules, 1 module failed", output.getvalue())
+
     def test_exit_five_with_test_line_and_empty_run_markers_is_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "worker.log"
