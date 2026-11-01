@@ -3613,3 +3613,19 @@ label:link:visited:selected:backdrop:not(:disabled):active {
 :selected label:link:visited:not(:disabled):not(:backdrop):active {
   color: #000000;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled
+   backdrop inline labels inside selected ancestors. Reuse [Colors:Selection]
+   ForegroundNormal; GTK 3's installed gtk-contained.css resource supplies
+   the selected-ancestor backdrop link state spellings. */
+:selected label:link:backdrop:not(:disabled),
+:selected label:link:backdrop:not(:disabled):hover,
+:selected label:link:backdrop:not(:disabled):active,
+:selected label:visited:backdrop:not(:disabled),
+:selected label:visited:backdrop:not(:disabled):hover,
+:selected label:visited:backdrop:not(:disabled):active,
+:selected label:link:visited:backdrop:not(:disabled),
+:selected label:link:visited:backdrop:not(:disabled):hover,
+:selected label:link:visited:backdrop:not(:disabled):active {
+  color: #000000;
+}
