@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 import sys
 
 if __package__:
@@ -43,7 +44,16 @@ def _bounded_log_text(path: str) -> str:
     plain ``\r``/``\r\n``-to-``\n`` translation keeps CRLF logs reading as
     single-character-broken lines, as the whole-file text read did.
     """
-    with open(path, "rb") as log:
+    descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise OSError(f"worker log is not a regular file: {path}")
+        log = os.fdopen(descriptor, "rb")
+        descriptor = -1
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    with log:
         # The unbounded read is replaced by a bounded one: anchor at the
         # window's own start -- the size minus the window, or the file's
         # start when it is smaller than the window -- and read no farther.
