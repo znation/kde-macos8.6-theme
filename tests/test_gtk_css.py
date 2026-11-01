@@ -156,6 +156,55 @@ class TestRuleBlockSemantics(unittest.TestCase):
     the GTK sheet tests would be at risk of reading the wrong declarations.
     """
 
+    def test_empty_custom_property_values_preserve_grouping_and_priority(self):
+        css = (
+            "a, b { --empty:; --spaces: \t\n ; --comment: /* only comment */; "
+            "color: red; }"
+            "a { --empty: ; } a { --empty: blue; }"
+            "a { --important: red !important; --later: red; }"
+            "a { --important: ; --later: blue !important; }"
+            "a { --case: ; --Case: blue; }"
+        )
+        self.assertEqual(
+            parse_css(css),
+            (
+                {},
+                {
+                    "a": {
+                        "--empty": "blue",
+                        "--spaces": "",
+                        "--comment": "",
+                        "color": "red",
+                        "--important": "red !important",
+                        "--later": "blue !important",
+                        "--case": "",
+                        "--Case": "blue",
+                    },
+                    "b": {
+                        "--empty": "",
+                        "--spaces": "",
+                        "--comment": "",
+                        "color": "red",
+                    },
+                },
+                ["a", "b", "a", "a", "a", "a", "a"],
+            ),
+        )
+
+    def test_empty_custom_property_at_semicolon_and_block_end(self):
+        self.assertEqual(
+            parse_css("a { --semicolon: ; --end: } b { --end:}")[1],
+            {"a": {"--semicolon": "", "--end": ""}, "b": {"--end": ""}},
+        )
+
+    def test_malformed_empty_declarations_keep_source_prefix(self):
+        for text in ("a { color: ; }", "a { --: ; }", "a { : ; }", "a { color; }"):
+            with self.subTest(text=text), self.assertRaisesRegex(
+                ValueError,
+                r"^source\.css: malformed declaration in selector 'a':",
+            ):
+                parse_css(text, source="source.css")
+
     def test_unquoted_url_comment_markers_preserve_following_declarations(self):
         css = (
             "a, b { background-image: url(https://example.invalid/a/*literal*/b.png); "

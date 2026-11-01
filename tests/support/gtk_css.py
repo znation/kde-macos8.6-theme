@@ -508,12 +508,13 @@ def parse_css(text, source=None):
     ``@define-color`` inside a quoted value is text rather than a definition
     (and is left in the value), as it is for the other scanners.
 
-    A malformed declaration -- no ``:``, or an empty property name or value --
-    raises ``ValueError`` instead of being dropped silently, so a typo in a
-    contributor-supplied sheet names itself rather than surfacing later as a
-    missing key. *source* (usually the sheet's repository path) prefixes that
-    diagnostic. Repeated or trailing ``;`` separators are not malformed, and a
-    ``;`` inside a quoted string or parentheses is part of the value.
+    A malformed declaration -- no ``:``, or an empty property name or value
+    (except an empty value on a named custom property) -- raises ``ValueError``
+    instead of being dropped silently, so a typo in a contributor-supplied
+    sheet names itself rather than surfacing later as a missing key. *source*
+    (usually the sheet's repository path) prefixes that diagnostic. Repeated
+    or trailing ``;`` separators are not malformed, and a ``;`` inside a
+    quoted string or parentheses is part of the value.
     """
     text = strip_comments(text)
     definitions = {}
@@ -543,7 +544,7 @@ def parse_css(text, source=None):
                 value = _collapse_whitespace(value)
             else:
                 name = value = ""
-            if not name or not value:
+            if not name or (not value and not (name.startswith("--") and len(name) > 2)):
                 raise ValueError(
                     f"{source or '<stylesheet>'}: malformed declaration in "
                     f"selector {label!r}: {declaration!r} "
