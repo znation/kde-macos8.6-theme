@@ -834,7 +834,8 @@ expander > title:focus {
   -gtk-outline-radius: 0;
 }
 
-entry selection, spinbutton selection, label selection, textview text selection {
+/* 2026-10-31: the horizontal spin button spelling matches its stock selector. */
+entry selection, spinbutton:not(.vertical) selection, label selection, textview text selection {
   background-color: #CCCCFF;
   color: #000000;
 }
@@ -3405,6 +3406,57 @@ treeview.view:disabled:selected {
 row:backdrop:disabled:selected,
 flowbox flowboxchild:backdrop:disabled:selected,
 treeview.view:disabled:selected:backdrop {
+  color: #888888;
+}
+
+/* 2026-10-31: gresource probe of the GTK 3 gtk-contained.css selection arms
+   (libgtk-3 3.24.49; full resource path in docs/invariants.md). No collected
+   reference shows GTK selected, backdrop-selected or disabled-selected text.
+   Reuse the landed black text and inactive-text grey; the selection fill stays
+   supplied by the landed selection rule. */
+label:selected,
+textview text:selected,
+textview text:selected:focus,
+.view text:selected,
+.view text:selected:focus,
+textview text selection:focus,
+.view text selection:focus,
+.view text selection {
+  color: #000000;
+}
+
+label:backdrop selection,
+label:backdrop:selected,
+entry selection:backdrop,
+spinbutton:not(.vertical) selection:backdrop,
+textview text:backdrop:selected,
+.view text:backdrop:selected,
+textview text selection:backdrop,
+.view text selection:backdrop {
+  color: #000000;
+}
+
+label:disabled selection,
+label:disabled:selected,
+entry selection:disabled,
+spinbutton:not(.vertical) selection:disabled,
+textview text:disabled:selected,
+textview text:disabled:selected:focus,
+.view text:disabled:selected,
+textview text selection:disabled,
+textview text selection:disabled:focus,
+.view text selection:disabled {
+  color: #888888;
+}
+
+label:backdrop selection:disabled,
+label:backdrop:disabled:selected,
+entry selection:backdrop:disabled,
+spinbutton:not(.vertical) selection:backdrop:disabled,
+textview text:backdrop:disabled:selected,
+.view text:backdrop:disabled:selected,
+textview text selection:backdrop:disabled,
+.view text selection:backdrop:disabled {
   color: #888888;
 }
 

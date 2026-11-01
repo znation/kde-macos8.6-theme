@@ -186,7 +186,37 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_text_selection(self):
         self.assert_text_selection(
-            ("entry selection", "spinbutton selection", "label selection", "textview text selection")
+            ("entry selection", "spinbutton:not(.vertical) selection", "label selection", "textview text selection")
+        )
+
+    def test_selected_text_arms(self):
+        black = (
+            "label:selected", "textview text:selected", "textview text:selected:focus",
+            ".view text:selected", ".view text:selected:focus",
+            "textview text selection:focus", ".view text selection:focus",
+            ".view text selection", "label:backdrop selection", "label:backdrop:selected",
+            "entry selection:backdrop", "spinbutton:not(.vertical) selection:backdrop",
+            "textview text:backdrop:selected", ".view text:backdrop:selected",
+            "textview text selection:backdrop", ".view text selection:backdrop",
+        )
+        disabled = (
+            "label:disabled selection", "label:disabled:selected", "entry selection:disabled",
+            "spinbutton:not(.vertical) selection:disabled", "textview text:disabled:selected",
+            "textview text:disabled:selected:focus", ".view text:disabled:selected",
+            "textview text selection:disabled", "textview text selection:disabled:focus",
+            ".view text selection:disabled", "label:backdrop selection:disabled",
+            "label:backdrop:disabled:selected", "entry selection:backdrop:disabled",
+            "spinbutton:not(.vertical) selection:backdrop:disabled",
+            "textview text:backdrop:disabled:selected", ".view text:backdrop:disabled:selected",
+            "textview text selection:backdrop:disabled", ".view text selection:backdrop:disabled",
+        )
+        for selector in black:
+            self.assert_rule(selector, {"color": BLACK})
+        for selector in disabled:
+            self.assert_rule(selector, {"color": DISABLED_TEXT["color"]})
+        self.assertEqual(
+            {selector for selector in self.rules if selector in set(black + disabled)},
+            set(black + disabled),
         )
 
     def test_disabled_text(self):

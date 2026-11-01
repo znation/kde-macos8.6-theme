@@ -168,7 +168,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "treeview.view:disabled:selected:backdrop",
         ))
         # The family keeps stock's member set: nothing else in the sheet
-        # names the state pair.
+        # names the state pair. 2026-10-31: selected-text restatements add
+        # their seven stock twins to this sweep.
         self.assertEqual(
             {s for s in self.rules if ":disabled:selected" in s},
             {
@@ -178,6 +179,13 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 "row:backdrop:disabled:selected",
                 "flowbox flowboxchild:backdrop:disabled:selected",
                 "treeview.view:disabled:selected:backdrop",
+                "label:disabled:selected",
+                "label:backdrop:disabled:selected",
+                "textview text:disabled:selected",
+                "textview text:disabled:selected:focus",
+                ".view text:disabled:selected",
+                "textview text:backdrop:disabled:selected",
+                ".view text:backdrop:disabled:selected",
             },
         )
 
