@@ -423,6 +423,17 @@ for radio in (False, True):
             {"text-decoration": "underline"},
         )
 
+    def test_disabled_link_button_labels(self):
+        selectors = (
+            "button.link:disabled > label",
+            "button.link:visited:disabled > label",
+        )
+        self.assert_disabled_text(selectors)
+        css = strip_comments(self.css)
+        visited = css.index("button.link:visited > label")
+        for selector in selectors:
+            self.assertGreater(css.index(selector), visited, selector)
+
     def test_inline_link_interaction_colours(self):
         css = strip_comments(self.css)
         self.assert_rule("link:hover", {"color": LINK})

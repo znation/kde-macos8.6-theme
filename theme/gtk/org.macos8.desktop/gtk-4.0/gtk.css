@@ -2596,3 +2596,11 @@ calendar > grid > label.day-number:disabled:selected {
 .view:disabled:selected {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no reference screenshot shows a disabled GTK link
+   button. Reuse the inactive-text grey from [Colors:Button]
+   ForegroundInactive for GTK's disabled link-button labels. */
+button.link:disabled > label,
+button.link:visited:disabled > label {
+  color: #888888;
+}

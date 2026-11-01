@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 disabled link-button labels: override the enabled link colours (planned 2026-10-31 by the plan role; independent of the completed inline-link interactions change) — done 2026-10-31 by the feature role
+
+**Goal.** Give insensitive GTK 4 link-button labels the landed inactive grey, including visited buttons. Limit this change to link-button child foregrounds; the completed inline-link interactions change addresses a different node.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` declares `label:disabled`, but its more-specific `button.link > label` and `button.link:visited > label` declarations assign blue and purple. No `button.link:disabled` child rule exists. `TestGtk4Theme.test_disabled_text` checks generic disabled nodes, while `test_links` checks enabled and visited link recipes. The archived initial links plan explicitly excludes insensitive colours; the archived disabled-text plan supplies generic selectors rather than this specificity correction. The installed GTK 4 Default-light.css resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` declares `button.link:disabled` on the parent, which cannot override a child's explicit foreground.
+
+**Approach and files.** Append a dedicated `button.link:disabled > label, button.link:visited:disabled > label { color: #888888; }` group to the GTK 4 sheet. The visited-disabled arm explicitly outranks the visited child recipe. Add dated provenance: the reference set has no disabled GTK link-button surface; reuse `[Colors:Button] ForegroundInactive`, already derived by the disabled-text helper, and GTK's link-button node/class and disabled state. Keep the existing underline and face declarations.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_disabled_link_button_labels` beside `test_links`, calling `assert_disabled_text` with those two exact selectors. Require their occurrence after `button.link:visited > label` using `strip_comments(self.css)` for source-order checks. Existing `test_links` retains the enabled blue, visited purple, underline and transparent-face contracts. Append one row to `docs/invariants.md`'s GTK table naming the new test and the missing reference surface, scheme role and GTK resource; describe declaration/order coverage without claiming rendered pixels. These are the three implementation files; no new assets or helper changes.
+
+**Acceptance criteria.** Removing either disabled child selector or changing its colour fails the new test; changing the scheme's inactive role fails its shared re-derivation. The new rules follow the visited child declaration and specify only colour. Existing link recipe tests continue to pass. No GTK 3, inline-link or selected-ancestor styling is part of this change. Run `make check`.
+
 ### Platinum GTK 4 inline link interactions: retain scheme colours on hover and press (planned 2026-10-31 by the plan role; independent of the queued generic view-selection plan) — done 2026-10-31 by the feature role
 
 **Goal.** Keep ordinary GTK 4 inline links blue while hovered or pressed, retain visited purple, and give disabled links inactive grey. Link-button children and selection-context links are outside scope.
