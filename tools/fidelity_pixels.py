@@ -22,17 +22,23 @@ def worst_pixels(
     limit in 1..1000. Ties follow row-major order; coordinates are image-local.
     """
     width, height = candidate.width, candidate.height
+    candidate_rgb = candidate.rgb
+    reference_rgb = reference.rgb
+    candidate_alpha = candidate.alpha
+    reference_alpha = reference.alpha
 
     def ranked():
         for index in range(width * height):
             rgb_offset = index * 3
-            candidate_rgb = candidate.rgb[rgb_offset:rgb_offset + 3]
-            reference_rgb = reference.rgb[rgb_offset:rgb_offset + 3]
-            candidate_alpha = 255 if candidate.alpha is None else candidate.alpha[index]
-            reference_alpha = 255 if reference.alpha is None else reference.alpha[index]
+            red_delta = abs(candidate_rgb[rgb_offset] - reference_rgb[rgb_offset])
+            green_delta = abs(candidate_rgb[rgb_offset + 1] - reference_rgb[rgb_offset + 1])
+            blue_delta = abs(candidate_rgb[rgb_offset + 2] - reference_rgb[rgb_offset + 2])
+            alpha_delta = abs(
+                (255 if candidate_alpha is None else candidate_alpha[index])
+                - (255 if reference_alpha is None else reference_alpha[index])
+            )
             delta = max(
-                *(abs(a - b) for a, b in zip(candidate_rgb, reference_rgb)),
-                abs(candidate_alpha - reference_alpha),
+                red_delta, green_delta, blue_delta, alpha_delta
             )
             if delta > tolerance:
                 yield (-delta, index)
@@ -44,8 +50,8 @@ def worst_pixels(
         records.append({
             "x": index % width,
             "y": index // width,
-            "candidate_rgba": [*candidate.rgb[offset:offset + 3], 255 if candidate.alpha is None else candidate.alpha[index]],
-            "reference_rgba": [*reference.rgb[offset:offset + 3], 255 if reference.alpha is None else reference.alpha[index]],
+            "candidate_rgba": [*candidate_rgb[offset:offset + 3], 255 if candidate_alpha is None else candidate_alpha[index]],
+            "reference_rgba": [*reference_rgb[offset:offset + 3], 255 if reference_alpha is None else reference_alpha[index]],
             "max_delta": -negative_delta,
         })
     return records
