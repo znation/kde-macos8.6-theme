@@ -658,6 +658,38 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ["shown"],
         )
 
+    def test_a_define_color_inside_a_declaration_block_is_text(self):
+        self.assertEqual(
+            parse_css(
+                "@define-color before #111111;\n"
+                "a { --tokens: @define-color embedded #123456; color: red; }\n"
+                "@define-color after #222222;"
+            ),
+            (
+                {"before": "#111111", "after": "#222222"},
+                {
+                    "a": {
+                        "--tokens": "@define-color embedded #123456",
+                        "color": "red",
+                    }
+                },
+                ["a"],
+            ),
+        )
+
+    def test_define_color_scan_tracks_braces_outside_functions(self):
+        text = (
+            'a { content: fn({ @define-color hidden #111111; }); '
+            'b { --x: "{ @define-color quoted #222222; }"; '
+            r'--y: \{ @define-color escaped #333333; \}; '
+            "--z: @define-color nested #444444; } }\n"
+            "} @define-color shown #555555;"
+        )
+        self.assertEqual(
+            [match.group("name") for match in _define_color_matches(text)],
+            ["shown"],
+        )
+
 
 class TestHostileStylesheet(unittest.TestCase):
     def test_comment_scanning_finishes_promptly(self):

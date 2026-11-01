@@ -7,14 +7,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
-### Shared stylesheet parser: preserve define-color text inside declaration blocks (planned 2026-11-01 by the plan role; independent of the waiting square-bracket declaration-splitting plan)
-
-**Goal and grounding.** Keep declaration token values out of the global color-definition map. Reproduced 2026-11-01: `parse_css("a { --tokens: @define-color embedded #123456; color: red; }")` returns an invented `embedded` definition and `--tokens: color: red`. `tests/support/gtk_css.py::_define_color_matches` excludes quotes and functions but does not track rule-block braces. The completed function-value plan in `PLANS-DONE.md` protects parentheses, not this bare declaration value.
-
-**Approach and files.** Add nonnegative brace depth to `_define_color_matches`, changing it only for unquoted, unescaped braces outside parentheses. Extract a definition only when both brace and parenthesis depth are zero. Keep the existing forward scan, literal value representation and unmatched-closing-delimiter tolerance. Add regressions beside `TestRuleBlockSemantics.test_a_define_color_inside_function_values_is_text` in `tests/test_gtk_css.py`, and extend the GTK shared stylesheet parser guarantee in `docs/invariants.md` with the new tests and implementation date. These three files bound one run. Nested-rule interpretation, brace-valued custom-property parsing and general CSS validation stay outside scope; nested-block depth is tested directly through `_define_color_matches`.
-
-**Acceptance criteria.** The reproducer returns exactly `({}, {"a": {"--tokens": "@define-color embedded #123456", "color": "red"}}, ["a"])`. A genuine definition before and after a rule is still extracted, while declaration decoys are preserved. Direct scanner tests cover nested blocks, quoted and escaped opening/closing braces, braces within functions, and a stray closing brace followed by a genuine definition; only the genuine top-level names enter the match list. Retain the existing standalone-definition, quoted-decoy and function-depth regressions. No shipped stylesheet or visual value changes. Run `make check`.
-
 ## Done
 
 ### Shared stylesheet parser: preserve escaped whitespace at value boundaries (planned 2026-11-01 by the plan role; independent of the completed ASCII priority-keyword change)

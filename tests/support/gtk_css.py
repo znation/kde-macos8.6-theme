@@ -67,6 +67,7 @@ def _define_color_matches(text):
     index = 0
     quote = None
     depth = 0
+    brace_depth = 0
     while index < len(text):
         char = text[index]
         if char == "\\":
@@ -85,7 +86,11 @@ def _define_color_matches(text):
             depth += 1
         elif char == ")" and depth:
             depth -= 1
-        elif char == "@" and depth == 0:
+        elif char == "{" and depth == 0:
+            brace_depth += 1
+        elif char == "}" and depth == 0 and brace_depth:
+            brace_depth -= 1
+        elif char == "@" and depth == 0 and brace_depth == 0:
             match = DEFINE_COLOR.match(text, index)
             if match is not None:
                 yield match
