@@ -14,7 +14,7 @@ from __future__ import annotations
 import time
 import unittest
 
-from support.gtk_css import parse_css, strip_comments
+from support.gtk_css import _define_color_matches, parse_css, strip_comments
 
 
 class TestStripComments(unittest.TestCase):
@@ -450,6 +450,42 @@ class TestRuleBlockSemantics(unittest.TestCase):
         self.assertEqual(
             parse_css("@define-color x #123456;\na { color: @x; }"),
             ({"x": "#123456"}, {"a": {"color": "@x"}}, ["a"]),
+        )
+
+    def test_define_color_separators_require_css_whitespace(self):
+        # The definition regular expression scanned with Python's Unicode
+        # whitespace, so a directive whose separators were U+00A0, U+2003 or
+        # U+000B still entered the map; CSS whitespace is exactly space, tab,
+        # LF, CR and form feed, and the three separator positions are the run
+        # after the directive, the run before the value and the run before the
+        # semicolon.
+        non_css = ("\u00a0", "\u2003", "\u000b")
+        positions = (
+            "@define-color{c}x #123456;",
+            "@define-color x{c}#123456;",
+            "@define-color x #123456{c};",
+        )
+        for character in non_css:
+            with self.subTest(codepoint=f"U+{ord(character):04X}"):
+                for template in positions:
+                    directive = template.format(c=character)
+                    self.assertEqual(list(_define_color_matches(directive)), [])
+                    self.assertEqual(parse_css(directive)[0], {})
+        for character in (" ", "\t", "\n", "\r", "\f"):
+            with self.subTest(codepoint=f"U+{ord(character):04X}"):
+                for template in positions:
+                    directive = template.format(c=character)
+                    self.assertEqual(
+                        [match.group("name")
+                         for match in _define_color_matches(directive)],
+                        ["x"],
+                    )
+                    self.assertEqual(
+                        parse_css(directive)[0], {"x": "#123456"}
+                    )
+        self.assertEqual(
+            parse_css("@define-color \t\n x \r\f #123456 \t\n\r\f;")[0],
+            {"x": "#123456"},
         )
 
     def test_a_define_color_inside_a_quoted_value_is_text(self):
