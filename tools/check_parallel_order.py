@@ -71,9 +71,13 @@ def load_durations(path: str) -> dict[str, float]:
         if (not isinstance(module, str) or isinstance(seconds, bool)
                 or not isinstance(seconds, (int, float))):
             continue
-        if not math.isfinite(seconds) or seconds < 0:
+        try:
+            duration = float(seconds)
+        except OverflowError:
             continue
-        durations[module] = float(seconds)
+        if not math.isfinite(duration) or duration < 0:
+            continue
+        durations[module] = duration
     return durations
 
 

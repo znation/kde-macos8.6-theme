@@ -142,6 +142,19 @@ class TestCache(unittest.TestCase):
             {"test_ok": 0.5}, check_parallel_order.load_durations(path),
         )
 
+    def test_an_integer_too_large_for_float_conversion_is_ignored(self):
+        path = make_tmp_dir(self) / "cache.json"
+        path.write_text(
+            '{"version":1,"durations":{"test_ok":0.5,"test_huge":'
+            + "9" * 400
+            + "}}",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {"test_ok": 0.5},
+            check_parallel_order.load_durations(str(path)),
+        )
+
     def test_the_cache_lives_under_the_absolute_xdg_cache_home(self):
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": "/abs/cache"}):
             self.assertEqual(
