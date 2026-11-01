@@ -408,6 +408,16 @@ requested region and row-major pixel records:
 {"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":1,"height":1},"pixels":[{"x":5,"y":5,"rgb":[99,99,156],"hex":"#63639C"}]}
 ```
 
+Pass `--histogram` to count the RGB colors in the requested rectangle instead
+of listing its pixels. Counts sort from largest to smallest, with RGB tuple
+order breaking ties; combine it with `--json` for a `colors` array containing
+`rgb`, `hex` and `count` fields:
+
+```sh
+$ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 3 --height 2 --histogram --json
+{"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":3,"height":2},"colors":[{"rgb":[99,99,156],"hex":"#63639C","count":6}]}
+```
+
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a

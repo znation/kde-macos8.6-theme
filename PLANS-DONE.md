@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: count region colors (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Summarize a measured rectangle's palette so reference inspection can identify dominant fills and stray colors without counting a pixel dump. Inspected `tools/sample.py::main` on 2026-11-01: its rectangle branches emitted individual pixels as text or JSON; neither offered color counts.
+
+**Approach and files.** Added `--histogram` using standard-library `collections.Counter`, counting RGB tuples only within the validated rectangle after bounded decoding. Results sort by descending count and ascending RGB tuple; text and JSON report the same counts, with JSON retaining the sampler's image, dimensions and region fields. Added focused tests, README usage documentation and a tooling invariant. No theme values or decoder behavior changed.
+
+**Acceptance criteria.** Tests cover offset-region exclusion, repeated colors, deterministic tie order, exact text and parsed JSON output, the 1x1 schema, summed area, preserved header dimensions, bounded decode, script execution with an escaped control-character path, out-of-bounds requests, malformed images and repository symlink escapes. `make check` is run after this plan move.
+
 ### Reference-pixel sampler: add structured JSON output (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let measurement tooling consume reference pixels with their coordinates without parsing the sampler's prose. Checked 2026-11-01: `tools/sample.py::main` offers image, coordinates and rectangle extents and prints text headers and RGB/hex lines; its argument parser has no JSON option. Searches of planned and archived headings found no sampler JSON plan. This is independent of the waiting stylesheet custom-name plan.

@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections import Counter
 from pathlib import Path
 
 import sys
@@ -97,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
         help="pixels to sample below y (default 1)",
     )
     parser.add_argument("--json", action="store_true", help="print structured JSON")
+    parser.add_argument(
+        "--histogram", action="store_true", help="count RGB colors in the sampled region"
+    )
     args = parser.parse_args(argv)
 
     # The documented workflow samples a name in the contributor-supplied
@@ -159,6 +163,31 @@ def main(argv: list[str] | None = None) -> int:
         image = read_png(args.image, max_rows=args.y + args.height)
     except PngError as exc:
         return report_error("sample", str(exc))
+
+    if args.histogram:
+        counts = Counter(
+            pixel_at(image, x, y)
+            for y in range(args.y, args.y + args.height)
+            for x in range(args.x, args.x + args.width)
+        )
+        colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        if args.json:
+            print(json.dumps({
+                "image": args.image,
+                "image_width": width,
+                "image_height": height,
+                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
+                "colors": [
+                    {"rgb": list(rgb), "hex": _hex(rgb), "count": count}
+                    for rgb, count in colors
+                ],
+            }, ensure_ascii=True))
+            return 0
+        print(header)
+        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+        for rgb, count in colors:
+            print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}")
+        return 0
 
     if args.json:
         pixels = []
