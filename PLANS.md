@@ -5,7 +5,17 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Platinum GTK 4 generic view selection: replace the class-only stock selection paint (planned 2026-10-31 by the plan role)
+
+**Goal.** Give selected GTK 4 nodes carrying the generic `view` class the landed lavender selection, square corners and black enabled ink, with inactive grey when disabled. The named icon-view, tree-view and column-view rules already cover their own nodes; this closes the generic class fallback through the supported user-CSS import.
+
+**Grounding.** On 2026-10-31, `gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 /org/gtk/libgtk/theme/Default/Default-light.css` shows `.view:selected` and `.view:selected:focus` in stock's blue-background, white-foreground and 3px-radius groups, and `.view:disabled:selected` in its pale-blue disabled-foreground group. Grep of the shipped GTK 4 sheet finds the base `.view, list` white field and element-qualified selection arms, but none of these three exact class-only selectors. The finished icon-view entry in this file and selected-text entry in `PLANS-DONE.md` cover element-qualified families, not this fallback. No collected reference shows a selected generic GTK view: reuse the existing selection and frame adaptations, not a new visual measurement.
+
+**Approach and files.** Append a dated provenance comment and two groups at the tail of `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: `.view:selected, .view:selected:focus` declaring exactly `background-color: #CCCCFF; color: #000000; border-radius: 0`, followed by `.view:disabled:selected` declaring exactly `color: #888888`. Exact stock spellings give the imported user sheet matching specificity; the later disabled rule also wins the focus/disabled foreground tie. Preserve element-qualified rules. Keep the library/resource attribution in documentation and describe the missing reference surface and reused adaptations in the CSS comment.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_generic_view_selected_arms` beside `test_iconview_selected_arms`. Assert the exact three-property dictionaries for the two enabled arms with `SELECTION` and `BLACK`, compare the radius with the landed frame using `assert_matches_frame`, and use `assert_disabled_text` for the disabled arm so the grey is re-derived from `[Colors:Button] ForegroundInactive`. Extend the exact selector inventory in `test_disabled_selected_row_and_child_arms` with `.view:disabled:selected`, and date its explanatory comment. Add one row to the GTK invariant register in `docs/invariants.md`, naming this test, the resource probe, missing reference surface, existing palette/frame sources and declaration-level coverage. These are the only three implementation files; GTK 3 and artwork are outside scope.
+
+**Acceptance criteria.** Removing or renaming any of the three exact selectors, changing its asserted declarations, or adding a disabled-selected selector outside the updated inventory fails the tests. The generic enabled/focused declarations reuse the landed selection and square-frame values; disabled colour matches the existing scheme-derived inactive grey. Existing named view and icon-view assertions remain intact. Document declaration coverage without claiming rendered pixel validation. Run `make check`.
 
 ## Done
 
