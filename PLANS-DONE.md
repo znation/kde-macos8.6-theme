@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 disabled backdrop inline links (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Keep disabled GTK 3 inline links grey in backdrop windows, including hover and press.
+
+**Implemented.** Added the six planned backdrop selectors with only `color: #888888` at the GTK 3 sheet tail, a test that re-derives the inactive scheme role and checks exact declarations, uniqueness and source order, and a dated GTK invariant row. Coverage is declarative and does not establish rendered pixels.
+
 ### Platinum GTK 3 disabled inline link foregrounds (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give ordinary insensitive GTK 3 inline links the landed inactive-text grey, including visited links. Independently mergeable from the preceding enabled hover/press plan: its selectors exclude disabled nodes. Link-button children and selected-context links remain separate surfaces.

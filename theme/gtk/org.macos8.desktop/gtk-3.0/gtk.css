@@ -3501,3 +3501,16 @@ label:link:visited:active:not(:disabled) {
 label:link:disabled, label:visited:disabled {
   color: #888888;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   GTK backdrop inline links; reuse [Colors:Button] ForegroundInactive. The
+   installed GTK 3 gtk-contained.css resource (libgtk-3 3.24.49; path in
+   docs/invariants.md) supplies the backdrop link states. */
+label:link:disabled:backdrop,
+label:link:disabled:backdrop:hover,
+label:link:disabled:backdrop:active,
+label:visited:disabled:backdrop,
+label:visited:disabled:backdrop:hover,
+label:visited:disabled:backdrop:active {
+  color: #888888;
+}

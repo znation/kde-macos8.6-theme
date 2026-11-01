@@ -5,17 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 disabled backdrop inline links (planned 2026-10-31 by the plan role)
-
-**Goal.** Keep ordinary disabled inline links grey in unfocused GTK 3 windows, including hover and press. This independently mergeable companion to the finished disabled inline-link foreground plan covers backdrop states; enabled backdrop links, selected contexts and button-child labels are separate surfaces.
-
-**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` ends with `label:link:disabled, label:visited:disabled`, but a selector search finds no `label:link` or `label:visited` backdrop compounds. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found the active-window disabled-link and enabled interaction plans; their scope explicitly leaves backdrop treatment separate. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` groups `*:link:disabled:backdrop` on dim grey, then gives `*:link:backdrop` and `*:link:backdrop:backdrop:hover` a translucent blue foreground. The repeated backdrop pseudo-class increases specificity even though it adds no state. No collected reference shows disabled GTK backdrop links; reuse the landed `[Colors:Button] ForegroundInactive` adaptation rather than introduce a visual value.
-
-**Approach and files.** Append a dated provenance comment and one colour-only group to the GTK 3 sheet tail, containing exactly these six selectors: `label:link:disabled:backdrop`, `label:link:disabled:backdrop:hover`, `label:link:disabled:backdrop:active`, `label:visited:disabled:backdrop`, `label:visited:disabled:backdrop:hover`, `label:visited:disabled:backdrop:active`. Declare exactly `color: #888888`. The explicit hover compounds outrank stock's repeated-backdrop hover arm by their label node specificity; the link and visited arms share the same grey. Keep underline and other properties inherited from the landed rules. This is one disabled backdrop foreground family, not a redesign of enabled link colours.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_disabled_backdrop_inline_link_foregrounds` beside `test_disabled_inline_link_foregrounds`. Pass the six selectors to inherited `GtkSheetRuleCases.assert_disabled_text` (`tests/support/gtk_rule_cases.py`) to re-derive grey from the scheme. Assert each exact rule dictionary is `{"color": "#888888"}` and each selector occurs once in `self.selectors`. Use `gtk_css.strip_comments` to assert this group follows the existing disabled inline group and the visited enabled interaction group. Add a dated row to the GTK register in `docs/invariants.md` naming this test, the missing reference surface, scheme role and inspected stock resource. These three files are the implementation scope; no new helper or asset is needed.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour, or adding an unexpected declaration fails the new test. Moving the group before either named predecessor fails its order check; changing the scheme inactive role fails the re-derivation. Existing link, disabled-label and palette tests stay green. Run `make check`. Coverage establishes declarations and source order, without claiming rendered pixels or selected-context coverage.
+_None yet._
 
 ### Platinum GTK 3 enabled backdrop inline links (planned 2026-10-31 by the plan role)
 
