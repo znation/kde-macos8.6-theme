@@ -365,7 +365,7 @@ def parse_css(text, source=None):
         label = _collapse_whitespace(selector_text)
         declarations = []
         for chunk in _split_declarations(body):
-            declaration = chunk.strip()
+            declaration = chunk.strip(' \t\n\r\f')
             if not declaration:
                 continue
             if ":" in declaration:

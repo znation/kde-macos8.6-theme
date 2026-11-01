@@ -5,7 +5,10 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+## Done
+
 ### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan)
+— done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep the GTK/Firefox test reader from silently discarding literal declaration characters. Reproduced 2026-11-01: `parse_css('a { content: token\u00a0; }')` returns `token` without the trailing U+00A0, and a declaration chunk containing just U+00A0 is ignored. In `tests/support/gtk_css.py::parse_css`, `chunk.strip()` removes Unicode whitespace before `_collapse_whitespace` sees it. The finished interior-normalization plans leave boundary trimming outside scope; the waiting priority plan changes `_IMPORTANT_SUFFIX`, not this call.
 
@@ -20,8 +23,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Approach and files.** Add `re.ASCII` alongside `re.IGNORECASE` to `_IMPORTANT_SUFFIX`, retaining its explicit CSS whitespace classes and `_is_important` scanner. In `tests/test_gtk_css.py::TestRuleBlockSemantics`, add a table-driven regression beside `test_important_priority_requires_css_whitespace` for U+0131 and U+0130 substituted for the initial `i`. Update the priority guarantee in `docs/invariants.md` with the test name and implementation date. This is one small three-file run; no shipped stylesheet, visual value, define-color parsing or general CSS validation changes.
 
 **Acceptance criteria.** Each Unicode spelling stays literal as a sole declaration and loses to a later ordinary declaration both within one block and across repeated selector blocks. ASCII `important`, `IMPORTANT` and mixed-case `ImPoRtAnT` retain priority in both block shapes, including a whitespace-separated suffix. Existing quoted, parenthesized, escaped-bang, tie-order and CSS-whitespace tests pass. Implement with the standard library and run `make check`. The waiting boundary-trimming plan can merge in either order.
-
-## Done
 
 ### Platinum GTK disabled selected rows and view children: restate the stock pale-blue `:disabled:selected` label twins with the landed inactive-text grey in the GTK 3 and GTK 4 sheets (planned 2026-10-31 by the plan role; independent — no other entry waits in `## Planned`, the two BUGS.md `## Open` entries stay `[blocked: needs review]` with the bugfix role, and the appended selector sets share no node or state with any landed sibling series: both sheets get one dated tail comment and two appended groups, both suites get one new test function beside their landed view-child selection tests, the GTK 4 suite's two view-corner set assertions each gain exactly one new expected selector, and `docs/invariants.md`'s `## gtk` table gets two appended rows, so the run touches seven files with no shared anchor between entries beyond the table rows)
 — done 2026-10-31 by the feature role

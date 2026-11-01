@@ -263,6 +263,34 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ({".a b": {"color": "red"}}, [".a b"]),
         )
 
+    def test_non_css_whitespace_at_declaration_boundaries_is_preserved(self):
+        for character in ("\u00a0", "\u2003", "\u000b"):
+            with self.subTest(codepoint=f"U+{ord(character):04X}"):
+                for value, expected in (
+                    (f"{character}token", f"{character}token"),
+                    (f"token{character}", f"token{character}"),
+                    (f" \t{character}token{character}\r\n",
+                     f"{character}token{character}"),
+                    (character, character),
+                ):
+                    with self.subTest(value=repr(value)):
+                        self.assertEqual(
+                            parse_css(f"a {{ content: {value}; }}")[1],
+                            {"a": {"content": expected}},
+                        )
+
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"^source\.css: malformed declaration in selector 'a':",
+                ):
+                    parse_css("a { \u00a0; }" if character == "\u00a0" else
+                              f"a {{ {character}; }}", source="source.css")
+
+        self.assertEqual(
+            parse_css("a { ; \t\n\r\f; content: token \t; }")[1],
+            {"a": {"content": "token"}},
+        )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.
