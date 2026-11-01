@@ -59,6 +59,36 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             self.css.index("list row.activatable:selected:"),
         )
 
+    def test_iconview_selected_arms(self):
+        """Pin the selected icon view restated off the landed row selection."""
+        for selector in (
+            "iconview.view:selected",
+            "iconview.view:selected:focus",
+            "iconview.view:backdrop:selected",
+            "iconview.view:backdrop:selected:focus",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {
+                        "background-color": SELECTION,
+                        "color": BLACK,
+                        "border-radius": "0",
+                    },
+                )
+        # The family keeps the landed dotted focus outline as its only other
+        # icon-view rule: a renamed restated arm leaves exactly its successor.
+        self.assertEqual(
+            {selector for selector in self.rules if "iconview" in selector},
+            {
+                "iconview:focus",
+                "iconview.view:selected",
+                "iconview.view:selected:focus",
+                "iconview.view:backdrop:selected",
+                "iconview.view:backdrop:selected:focus",
+            },
+        )
+
     def test_header_drop_indicator(self):
         targets = ("", "header.", "header ")
         states = (

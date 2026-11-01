@@ -1330,6 +1330,35 @@ for radio in (False, True):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
 
+    def test_iconview_selected_arms(self):
+        """Pin the selected icon view restated off the landed row selection."""
+        for selector in (
+            "iconview.view:selected",
+            "iconview.view:selected:focus",
+            "iconview.view:backdrop:selected",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {
+                        "background-color": SELECTION,
+                        "color": BLACK,
+                        "border-radius": "0",
+                    },
+                )
+        self.assert_matches_frame("iconview.view:selected", "border-radius")
+        # The family keeps the landed DND drop border as its only other
+        # icon-view rule: a renamed restated arm leaves exactly its successor.
+        self.assertEqual(
+            {selector for selector in self.rules if "iconview" in selector},
+            {
+                "iconview > dndtarget:drop(active)",
+                "iconview.view:selected",
+                "iconview.view:selected:focus",
+                "iconview.view:backdrop:selected",
+            },
+        )
+
     def test_assistant_step_label_corners(self):
         expected = {"window.assistant .sidebar > label"}
         self.assertEqual(

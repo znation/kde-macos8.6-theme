@@ -3341,3 +3341,36 @@ flowbox flowboxchild:backdrop:selected {
   color: #000000;
   border-radius: 0;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   icon-view selection (the GTK scope's standing adaptation premise), so the
+   selection stock paints into an icon view is restated against the landed
+   row-selection groups of this same sheet (flat #CCCCFF fill, square
+   corners, black text, re-stated unchanged in an unfocused window by the
+   rows' constant-backdrop group). The toolkit resource
+   (gtk-contained.css, the built-in theme the toolkit ships as a gresource
+   inside libgtk-3, probed on 2026-10-31, libgtk-3 3.24.49; its full
+   resource path is recorded in docs/invariants.md) lists
+   `iconview:selected` and `iconview:selected:focus` in its large accent
+   background/colour comma groups, sharpens the shape with a `3px`
+   selection `border-radius` geometry arm, and recolours the selection
+   label to a pale near-white in `:backdrop:selected` twins. Each appended
+   selector names element, class and states, so it outranks the element-only
+   stock twins over icon-view nodes and sits later in source order, while
+   the landed row groups keep governing the tree and list nodes their
+   selectors name. GTK's `GtkIconView` carries the `view` class in both
+   toolkits, so every icon-view node still matches the classed spelling.
+   Declaration checks do not establish rendered pixels. */
+iconview.view:selected,
+iconview.view:selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+iconview.view:backdrop:selected,
+iconview.view:backdrop:selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}

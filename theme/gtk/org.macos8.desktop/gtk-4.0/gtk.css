@@ -2437,3 +2437,35 @@ filechooser gridview child:selected:hover {
 filechooser gridview child:selected:active {
   background-color: rgba(204, 204, 255, 0.25);
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   icon-view selection (the GTK scope's standing adaptation premise), so the
+   selection stock paints into an icon view is restated against the landed
+   row-selection groups of this same sheet (flat #CCCCFF fill, square
+   corners, black text, re-stated unchanged in an unfocused window by the
+   rows' constant-backdrop treatment, which stands in for the backdrop arm
+   the toolkit resource does not even name for an icon view). The toolkit
+   resource (/org/gtk/libgtk/theme/Default/Default-light.css inside
+   libgtk-4, probed with gresource on 2026-10-31, libgtk-4 4.18.6) lists
+   `iconview:selected` in its large accent background/colour comma groups
+   behind the `.view`-class members GTK's `GtkIconView` also carries, and
+   sharpens the shape with a `3px` selection `border-radius` geometry arm;
+   no `:backdrop`-selected comma group in it names `iconview` or `view`, so
+   the toolkit itself never recolours a backdrop icon-view selection. Each
+   appended selector names element, class and states, so it outranks every
+   two-token stock twin over icon-view nodes and sits later in source
+   order, while the landed row groups keep governing the tree, list and
+   grid nodes their selectors name. Declaration checks do not establish
+   rendered pixels. */
+iconview.view:selected,
+iconview.view:selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+iconview.view:backdrop:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
