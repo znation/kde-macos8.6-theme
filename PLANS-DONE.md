@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 disabled self-selected inline links (planned 2026-10-31 by the plan role; independent of the completed GTK 3 backdrop selected-ancestor work) — done 2026-10-31 by the feature role
+
+**Goal and grounding.** Keep disabled GTK 4 inline links carrying their own `:selected` state in inactive-text grey. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` has ordinary `link:disabled` and disabled selected-ancestor coverage, but its self-selected replacements exclude disabled nodes. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` declares pale `link:selected` after `link:disabled` at equal specificity. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found enabled self-selection and disabled ancestor plans, whose scopes leave disabled self-selection separate. No collected reference shows this GTK surface: reuse `[Colors:Button] ForegroundInactive` as a platform adaptation.
+
+**Approach and files.** Appended a dated provenance comment and one colour-only group with six selectors for base, visited, hover and active states in the GTK 4 sheet. Added `TestGtk4Theme.test_disabled_selected_inline_link_foregrounds` with exact selector, value and source-order checks, plus the GTK invariant row. Declaration and source-order checks do not establish rendered pixels.
+
+**Acceptance criteria.** The six restated selectors declare only `color: #888888`; source-order coverage places them after ordinary disabled and enabled self-selected rules. Existing ordinary disabled, enabled self-selected and disabled selected-ancestor link tests pass with `make check`.
+
 ### Platinum GTK 3 disabled inline links inside selected ancestors in backdrop windows (planned 2026-10-31 by the plan role; independent of the queued active-window disabled selected-ancestor counterpart) — done 2026-10-31 by the feature role
 
 **Goal and grounding.** Keep disabled GTK 3 inline labels inside selected ancestors in inactive-text grey when their window is unfocused. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has ordinary disabled backdrop link rules, but its selected-ancestor backdrop replacements exclude disabled labels. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies `*:selected *:link:visited`, `*:selected *:link:hover` and `*:selected *:link:active` pale foregrounds; these outrank the ordinary disabled backdrop base arm and can win interaction ties by order. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found enabled backdrop ancestor coverage and the queued active-window disabled counterpart, but no disabled backdrop ancestor plan. No collected reference shows this GTK surface: reuse `[Colors:Button] ForegroundInactive` as a platform adaptation.

@@ -396,6 +396,8 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Disabled GTK 3 inline links inside selected ancestors use inactive-text grey in active windows across base, visited, hover and press states. | `tests/test_gtk_theme.py::TestGtkTheme::test_disabled_selected_ancestor_inline_link_foregrounds` | No collected reference screenshot shows this GTK surface; `#888888` is re-derived from `[Colors:Button] ForegroundInactive`. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-31, supplies selected-ancestor link state vocabulary. Declaration and source-order checks do not establish rendered pixels. |
 
+| Disabled GTK 4 inline links carrying `:selected` use inactive-text grey across base, visited, hover and press states. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_disabled_selected_inline_link_foregrounds` | No collected reference screenshot shows disabled self-selected GTK links; `#888888` is re-derived from `[Colors:Button] ForegroundInactive`. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, inspected 2026-10-31, supplies the selected-link state vocabulary. Declaration and source-order checks do not establish rendered pixels. |
+
 ## icons
 
 | Guarantee | Test | Provenance exception |

@@ -459,6 +459,18 @@ for radio in (False, True):
             for ordinary in ("link:visited", "link:hover", "link:active"):
                 self.assertGreater(css.index(selector), css.index(ordinary), selector)
 
+    def test_disabled_selected_inline_link_foregrounds(self):
+        roots = ("link:selected:disabled", "link:visited:selected:disabled")
+        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        css = strip_comments(self.css)
+        ordinary_disabled = css.index("link:disabled")
+        selected_links = css.index("link:selected:not(:disabled)")
+        self.assert_disabled_text(selectors)
+        for selector in selectors:
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertGreater(css.index(selector), ordinary_disabled, selector)
+            self.assertGreater(css.index(selector), selected_links, selector)
+
     def test_selected_ancestor_inline_link_foregrounds(self):
         roots = (":selected link:not(:disabled)", ":selected link:visited:not(:disabled)")
         selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))

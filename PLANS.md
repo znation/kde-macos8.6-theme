@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 4 disabled self-selected inline links (planned 2026-10-31 by the plan role; independent of the completed GTK 3 backdrop selected-ancestor work)
-
-**Goal and grounding.** Keep disabled GTK 4 inline links carrying their own `:selected` state in inactive-text grey. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` has ordinary `link:disabled` and disabled selected-ancestor coverage, but its self-selected replacements exclude disabled nodes. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` declares pale `link:selected` after `link:disabled` at equal specificity. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found enabled self-selection and disabled ancestor plans, whose scopes leave disabled self-selection separate. No collected reference shows this GTK surface: reuse `[Colors:Button] ForegroundInactive` as a platform adaptation.
-
-**Approach and files.** Append a dated provenance comment and one colour-only group to the GTK 4 sheet. Form six selectors from roots `link:selected:disabled` and `link:visited:selected:disabled`, each with suffix empty, `:hover`, or `:active`, declaring exactly `color: #888888`. These arms outrank stock `link:selected` and ordinary visited interactions; apply them in active and backdrop windows. Preserve underline and selection-fill recipes. Link-button children and the GTK 3 sheet are outside this change.
-
-In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_disabled_selected_inline_link_foregrounds` beside `test_selected_inline_link_foregrounds`. Require each exact selector once in `self.selectors`; call `assert_disabled_text` to check exact colour-only dictionaries and re-derive the scheme role. Using `strip_comments(self.css)`, require each selector after the ordinary disabled group rooted at `link:disabled` and the enabled self-selected group rooted at `link:selected:not(:disabled)`. Add a dated row under `## gtk` in `docs/invariants.md` naming the new test, missing reference surface, scheme role and installed resource. These three files bound one implementation run.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour or adding a declaration fails the new test; moving the group before either named earlier group fails source-order coverage. Existing ordinary disabled, enabled self-selected and disabled selected-ancestor link tests pass with `make check`. Declaration and source-order checks do not establish rendered pixels.
+_None yet._
 
 ### Platinum GTK 3 disabled self-selected inline links in active windows (planned 2026-10-31 by the plan role; independent of the queued GTK 4 disabled self-selected inline-link plan)
 
