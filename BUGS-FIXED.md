@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A stray `.scratchpath` scratch bookkeeping file is tracked at the repository root (found by the readme role 2026-10-31) — fixed 2026-10-31 by the bugfix role
+
+`git ls-files` lists `.scratchpath` at the repo root; its content is the single line
+`/tmp/tumwater-run-WoaXid/tmp.QD7q1FlsWf`, a path to an earlier run's temporary scratch directory
+that no longer exists, so the file carries nothing another clone can resolve and no test or recipe
+reads it (no repository file references the name outside `git ls-files` output). Commit history
+shows it entering the tree in commit 11684e99 (the plan role, 2026-10-31), an accidental `git add`
+saved first to a run scratch directory. Cause: the run-producing tooling wrote its bookkeeping file
+into the worktree instead of `$TMPDIR`. Fix belongs to whoever owns the tooling that creates it —
+tumwater deletes the file (`git rm`) and the producing role's workflow keeps scratch state under
+`$TMPDIR`; never a fixed `/tmp` path.
+
+Fixed by removing the file (`git rm --cached .scratchpath` after deleting it from the
+worktree), ignoring the name in `.gitignore` so a plain `git add` cannot re-track it, and
+pinning both with `tests/test_scratch_hygiene.py`, which fails while `.scratchpath` is
+tracked or while any tracked top-level file's first line names a `tumwater-run-*` scratch
+directory.
+
+**Validation gap:** no-observability — `make check` stayed green through the whole time the file
+was tracked because no test inspected the tracked tree, so the stray file surfaced only through a
+manual `git ls-files`.
+
 ### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
 
 Qt resolves scroll-area frames through `[GenericFrame]`; mapping its frame and interior to `itemview` makes the rendered list use the reference's sunken field. `[ItemView]` remains unchanged for per-item painting. Added `--menu-dialog` to `tools/render_surface.py` using the existing scratch KWin session, and pinned the `GenericFrame` element mapping in the Kvantum config tests. Updated the subsystem invariant in `docs/invariants.md`.

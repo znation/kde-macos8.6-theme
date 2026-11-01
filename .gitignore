@@ -3,3 +3,4 @@ tumwater.json
 __pycache__/
 *.pyc
 render.png
+.scratchpath
