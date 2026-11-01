@@ -52,7 +52,7 @@ class FidelityCliTestCase(CliTestCase):
         )
 
     def _run_png_pair(
-        self, candidate_png: bytes, reference_png: bytes
+        self, candidate_png: bytes, reference_png: bytes, *args: str
     ) -> subprocess.CompletedProcess:
         """Write two PNGs to a temp dir and run the CLI on them.
 
@@ -62,7 +62,7 @@ class FidelityCliTestCase(CliTestCase):
         tmp = self._tmp_dir()
         candidate = self._write(tmp, "candidate.png", candidate_png)
         reference = self._write(tmp, "reference.png", reference_png)
-        return self._run(candidate, reference)
+        return self._run(candidate, reference, *args)
 
     def _write_padded_surface_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 2x2 surface PNG and a 4x4 reference with a 1px black border.
