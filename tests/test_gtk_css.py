@@ -718,6 +718,36 @@ class TestRuleBlockSemantics(unittest.TestCase):
                         )
                         self.assertEqual(parse_css(css)[1]["a"]["color"], first.strip())
 
+    def test_important_keyword_decodes_css_escapes(self):
+        valid = (
+            r"!\69mportant", r"!\000069mportant", r"!\69 mportant",
+            r"!impor\74 ant", r"!\49\4DPORTANT", r"!impor\tant",
+        )
+        for suffix in valid:
+            for repeated_block in (False, True):
+                with self.subTest(suffix=suffix, repeated_block=repeated_block):
+                    value = "red " + suffix
+                    css = (
+                        f"a {{ color: {value}; }} a {{ color: blue; }}"
+                        if repeated_block
+                        else f"a {{ color: {value}; color: blue; }}"
+                    )
+                    self.assertEqual(parse_css(css)[1]["a"]["color"], value)
+
+        for suffix in (
+            r"!importantx", "!impor tant", r"!\0mportant", r"!\110000mportant",
+            r"!\D800mportant", "!\\\nimportant", r"red\!important",
+            '"!important"',
+        ):
+            with self.subTest(invalid_suffix=suffix):
+                css = f"a {{ color: red {suffix}; color: blue; }}"
+                self.assertEqual(parse_css(css)[1]["a"]["color"], "blue")
+
+        self.assertEqual(
+            parse_css(r"a { color: red !\69 mportant; }")[1]["a"]["color"],
+            r"red !\69 mportant",
+        )
+
     def test_important_scanner_ignores_strings_urls_and_escaped_bangs(self):
         css = (
             'a { x: red !important; y: blue; } '

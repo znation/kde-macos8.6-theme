@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Shared stylesheet parser: recognize escaped priority keywords (planned 2026-11-01 by the plan role; independent of the completed hex-escape whitespace-terminator change)
-
-**Goal and grounding.** Recognize CSS escapes in the priority keyword used by the GTK/Firefox test reader. Reproduced 2026-11-01: `parse_css(r"a { color: red !\69mportant; color: blue; }")[1]` returns blue. In `tests/support/gtk_css.py`, `_is_important` finds the top-level bang but `_IMPORTANT_SUFFIX` accepts only the literal keyword. Searches of the planned and archived parser headings and the completed precedence and ASCII-case entries found no escaped-keyword coverage.
-
-**Approach and files.** Replace the literal suffix check with a small scanner scoped to the candidate suffix in `_is_important`: consume CSS whitespace after the bang, decode a single identifier's simple escapes and one-to-six-digit hexadecimal escapes (including an optional CSS-whitespace terminator, treating CRLF as one), compare its decoded spelling using ASCII case folding, then require only CSS whitespace to the end. Reject backslash-newline and incomplete escapes; invalid Unicode scalar escapes decode to U+FFFD and cannot match. Preserve the returned declaration's normalized source spelling, the top-level bang scan and merge rules. Keep this helper local to `tests/support/gtk_css.py`; add public `parse_css` regressions beside `TestRuleBlockSemantics.test_important_keyword_uses_ascii_case_folding` in `tests/test_gtk_css.py`, and extend the priority row in `docs/invariants.md`. No general identifier decoding or shipped stylesheet changes are in scope.
-
-**Acceptance criteria.** Escaped `important` spellings such as `!\69mportant`, `!\000069mportant`, `!\69 mportant` and `!impor\tant` beat a later normal declaration within one block and across repeated blocks. Mixed literal/escaped uppercase spellings match through ASCII folding. Equal-priority declarations still use the later value, and a sole escaped-priority declaration retains its source spelling after existing whitespace normalization. Negative cases cover extra identifier characters, an unescaped gap inside the keyword, zero/out-of-range/surrogate hex escapes, incomplete escapes and escaped or quoted bangs. Existing Unicode-lookalike, quoted/function-contained suffix and separator tests pass. Use a forward scan and the standard library; run `make check`. This three-file change builds on the completed normalizer change and makes no rendered-pixel claim.
-
 ## Done
 
 ### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change)

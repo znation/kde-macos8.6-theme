@@ -21,10 +21,50 @@ DEFINE_COLOR = re.compile(
     r"[ \t\n\r\f]+(?P<value>#[0-9A-Fa-f]{6})[ \t\n\r\f]*;"
 )
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
-_IMPORTANT_SUFFIX = re.compile(
-    r"![ \t\n\r\f]*important[ \t\n\r\f]*\Z", re.IGNORECASE | re.ASCII
-)
+_CSS_WHITESPACE = " \t\n\r\f"
 _ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+
+
+def _important_suffix_matches(suffix):
+    """Decode the priority identifier's CSS escapes and compare its spelling."""
+    if not suffix.startswith("!"):
+        return False
+    index = 1
+    while index < len(suffix) and suffix[index] in _CSS_WHITESPACE:
+        index += 1
+    decoded = []
+    while index < len(suffix):
+        char = suffix[index]
+        if char in _CSS_WHITESPACE:
+            break
+        if char != "\\":
+            decoded.append(char)
+            index += 1
+            continue
+        index += 1
+        if index == len(suffix) or suffix[index] in "\n\r\f":
+            return False
+        if suffix[index] in "0123456789abcdefABCDEF":
+            start = index
+            while (index < len(suffix) and index - start < 6
+                   and suffix[index] in "0123456789abcdefABCDEF"):
+                index += 1
+            codepoint = int(suffix[start:index], 16)
+            if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
+                decoded.append("\ufffd")
+            else:
+                decoded.append(chr(codepoint))
+            if index < len(suffix) and suffix[index] in _CSS_WHITESPACE:
+                if suffix[index] == "\r" and index + 1 < len(suffix) and suffix[index + 1] == "\n":
+                    index += 2
+                else:
+                    index += 1
+            continue
+        decoded.append(suffix[index])
+        index += 1
+    while index < len(suffix) and suffix[index] in _CSS_WHITESPACE:
+        index += 1
+    return index == len(suffix) and "".join(decoded).translate(_ASCII_LOWER) == "important"
 
 
 def _is_important(value):
@@ -50,7 +90,7 @@ def _is_important(value):
         elif char == "!" and depth == 0:
             suffix_start = index
         index += 1
-    return suffix_start is not None and bool(_IMPORTANT_SUFFIX.fullmatch(value[suffix_start:]))
+    return suffix_start is not None and _important_suffix_matches(value[suffix_start:])
 
 
 def _define_color_matches(text):
