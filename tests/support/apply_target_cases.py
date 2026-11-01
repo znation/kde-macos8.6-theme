@@ -1,4 +1,4 @@
-"""Shared Makefile checks for an opt-in apply/remove target pair.
+"""Shared Makefile checks for an apply/remove target pair.
 
 The GTK and cursor suites each drive a public `make` target that installs a
 package and then runs a tool, plus its `--remove` counterpart. Both targets

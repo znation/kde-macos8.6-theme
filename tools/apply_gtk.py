@@ -1,6 +1,7 @@
-"""Select or clear the opt-in GTK 3 and GTK 4 Platinum themes.
+"""Select or clear the GTK 3 and GTK 4 Platinum themes.
 
-``make apply-gtk`` installs the GTK theme files and then runs this script.
+``make apply`` installs every artifact and then runs this script; ``make
+apply-gtk`` does the same for only the GTK theme files.
 It sets ``gtk-theme-name=org.macos8.desktop`` in the GTK 3 and GTK 4
 ``settings.ini`` files and writes a ``gtk-4.0/gtk.css`` user stylesheet that
 imports the installed GTK 4 sheet, because libadwaita applications read user

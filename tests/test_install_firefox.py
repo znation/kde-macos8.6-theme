@@ -112,6 +112,38 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue(self.sheet_path().is_file())
 
+    def test_optional_install_without_a_profile_skips_with_a_note(self):
+        # `make apply` passes --optional, so a machine without Firefox still
+        # applies every other surface and says why this one was skipped.
+        result = self.run_tool("--optional")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("no Firefox profile found; skipping", result.stdout)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_optional_install_uses_a_discovered_profile(self):
+        profile = self.firefox_root / "Profiles" / "active.default"
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=active\nPath=Profiles/active.default\nDefault=1\n",
+        )
+        result = self.run_tool("--optional")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue(
+            (profile / "chrome" / "userChrome.css").is_file()
+        )
+        self.assertIn(
+            firefox_user_js.USER_JS_MARKER,
+            (profile / "user.js").read_text(encoding="utf-8"),
+        )
+
+    def test_optional_install_still_refuses_a_named_missing_profile(self):
+        missing = self.root / "missing-profile"
+        result = self.run_tool("--optional", "--profile", str(missing))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(str(missing), result.stderr)
+
     def test_repeat_install_does_not_duplicate_the_block(self):
         self.assertEqual(0, self.run_tool("--profile", str(self.profile)).returncode)
         first = _read(self.user_js_path())

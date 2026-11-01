@@ -48,6 +48,21 @@ class TestProfileResolution(FirefoxProfileTestCase):
             self.resolve(None, {"HOME": str(self.home), "FIREFOX_PROFILE": ""}),
         )
 
+    def test_optional_discovery_returns_none_when_no_profile_exists(self):
+        self.assertIsNone(
+            firefox_profile.resolve_profile(
+                None, {"HOME": str(self.home)}, optional=True
+            )
+        )
+
+    def test_optional_still_refuses_a_named_missing_profile(self):
+        missing = self.root / "missing"
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            firefox_profile.resolve_profile(
+                str(missing), {"HOME": str(self.home)}, optional=True
+            )
+        self.assertIn(str(missing), str(caught.exception))
+
     def test_relative_named_profile_is_refused(self):
         with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve("profile")

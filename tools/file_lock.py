@@ -1,4 +1,4 @@
-"""The bounded-wait exclusive directory flock the opt-in installers share.
+"""The bounded-wait exclusive directory flock the apply tools share.
 
 ``apply-gtk``/``remove-gtk`` serialize on a lock over the directory
 containing the config home (plus the data-home lock ``make install``

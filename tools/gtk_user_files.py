@@ -1,6 +1,6 @@
 """The GTK settings and user-CSS files the selection reads and writes.
 
-The opt-in GTK selection touches three files under the user's config home:
+The GTK selection touches three files under the user's config home:
 ``gtk-3.0/settings.ini`` and ``gtk-4.0/settings.ini``, whose
 ``gtk-theme-name`` line is edited, and ``gtk-4.0/gtk.css``, the libadwaita
 user stylesheet that imports the installed GTK 4 sheet. This module holds

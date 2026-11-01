@@ -269,13 +269,13 @@ GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
 
 # The artifacts `_install` copies, as families. A caller can narrow the install
 # to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
-# test of one artifact does not copy all eight; the default installs the families
-# INSTALL_PACKAGES names, and `gtk` is opt-in (not in the default). The color
-# scheme is a family of its own even though it is one file. INSTALL_FAMILIES is
-# the guard's vocabulary; the default below must name the same families, and the
-# guard rejects a default that names one it does not know.
+# test of one artifact does not copy every other family; the default installs
+# every family, GTK included. The color scheme is a family of its own even
+# though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the default
+# below must name the same families, and the guard rejects a default that names
+# one it does not know.
 INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk
-INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
@@ -370,12 +370,12 @@ require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in 
 # message. $(1) names the target.
 require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 3)' 2>/dev/null || { echo "$(1): PYTHON must be Python 3.10 or newer (the fidelity tool uses int.bit_count()): '$(PYTHON)'" >&2; exit 2; }
 
-# The three opt-in apply targets (`apply`, `apply-gtk`, `apply-cursor`) share
-# one refusal line: each acts on the running Plasma session, and a DESTDIR
+# The three apply targets (`apply`, `apply-gtk`, `apply-cursor`) share
+# one refusal line: each acts on the running session, and a DESTDIR
 # staged-tree has no business there. One snippet keeps the three refusals in
 # lockstep -- wording, exit status, echoed value -- the way require_python
 # shares its guard. $(1) names the target.
-refuse_destdir = if [ -n "$$DESTDIR" ]; then echo "$(1): DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$$DESTDIR'" >&2; exit 2; fi
+refuse_destdir = if [ -n "$$DESTDIR" ]; then echo "$(1): DESTDIR must be empty (applying a staged tree to the running session is wrong): '$$DESTDIR'" >&2; exit 2; fi
 
 # CHECK_TESTS names tests instead of discovering them, so a value beginning
 # (after leading whitespace) with `-` would reach `unittest` as an option --
@@ -461,16 +461,16 @@ help:
 	@echo "  check             run the test suite"
 	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
 	@echo "  render            render a themed Plasma surface headlessly to RENDER_OUTPUT"
-	@echo "  apply             install and re-apply the theme to the running Plasma session"
+	@echo "  apply             install and apply the theme to the running session"
 	@echo "  install-local-hook  install a post-commit hook that runs 'make apply' (this clone only)"
 	@echo "  uninstall-local-hook  remove that post-commit hook"
-	@echo "  install           install the color scheme and theme packages"
-	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
-	@echo "  apply-gtk         install and select the opt-in GTK 3 and GTK 4 Platinum themes"
+	@echo "  install           install every artifact family, GTK included"
+	@echo "  install-gtk       install only the GTK 3 and GTK 4 Platinum themes"
+	@echo "  apply-gtk         install and select only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
-	@echo "  install-firefox   install the opt-in Firefox Platinum userChrome.css and userContent.css into one profile"
+	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
 	@echo "  remove-firefox    remove the Firefox Platinum userChrome.css and userContent.css from one profile"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
@@ -482,8 +482,8 @@ help:
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
-	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
-	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts)"
+	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
@@ -506,23 +506,31 @@ render:
 	@$(call require_python_version,render)
 	$(PYTHON) tools/render_surface.py -- "$(RENDER_OUTPUT)"
 
-# Apply the just-built theme to the running Plasma session. `install` runs as a
+# Apply the just-built theme everywhere it reaches. `install` runs as a
 # sub-make so this reuses its guards and lock. A non-empty DESTDIR is refused
 # first: applying a staged tree to the running session is wrong.
 # tools/apply_theme.py re-selects the global theme (without --resetLayout, so
 # the user's panels survive), the color scheme and the desktop theme, selects
 # the Kvantum widget theme when kvantummanager is available, then asks KWin to
-# reconfigure. The startup splash changes only on the next login.
+# reconfigure. tools/apply_gtk.py selects the installed GTK 3 and GTK 4
+# schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
+# (skipping the selection when plasma-apply-cursortheme is absent), and
+# tools/install_firefox.py installs the standalone sheets into the active
+# Firefox profile when one exists. The startup splash and Firefox changes
+# appear only on the next login or restart.
 apply:
 	@$(call refuse_destdir,apply)
 	@$(call require_python,apply)
 	@$(call require_python_version,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
+	$(PYTHON) tools/apply_gtk.py
+	$(PYTHON) tools/apply_cursor.py --optional
+	$(PYTHON) tools/install_firefox.py --optional$(if $(FIREFOX_PROFILE), --profile "$(FIREFOX_PROFILE)")
 
-# Apply the opt-in GTK themes: install them as `install-gtk` does, then select
-# them in the user's GTK 3 and GTK 4 settings and libadwaita user CSS. A
-# non-empty DESTDIR is refused first for the same reason as `apply`.
+# Install and select only the GTK themes, for repairing that surface without
+# touching the Plasma packages. A non-empty DESTDIR is refused for the same
+# reason as `apply`.
 apply-gtk:
 	@$(call refuse_destdir,apply-gtk)
 	@$(call require_python,apply-gtk)
@@ -537,7 +545,7 @@ remove-gtk:
 	@$(call require_python_version,remove-gtk)
 	$(PYTHON) tools/apply_gtk.py --remove
 
-# Apply the opt-in cursor: install the icon theme (which carries the Xcursor
+# Apply the cursor: install the icon theme (which carries the Xcursor
 # pointer set), expose it at ~/.icons/org.macos8.desktop -- the path Xcursor searches
 # instead of $XDG_DATA_HOME/icons -- and select it with
 # plasma-apply-cursortheme. A non-empty DESTDIR is refused for the same reason
@@ -559,8 +567,9 @@ remove-cursor:
 
 # Copy the standalone Firefox userChrome.css and userContent.css sheets into
 # one profile's chrome/ directory and add the marker-delimited preference that
-# makes Firefox read them. This is opt-in and installs nothing under
-# XDG_DATA_HOME, so it needs no DESTDIR guard or data-home lock.
+# makes Firefox read them. Installs nothing under XDG_DATA_HOME, so it needs no
+# DESTDIR guard or data-home lock. `make apply` runs this with --optional, so a
+# machine without a Firefox profile still applies the other surfaces.
 install-firefox:
 	@$(call require_python,install-firefox)
 	@$(call require_python_version,install-firefox)
@@ -706,9 +715,9 @@ _install:
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
-# Remove only the artifacts this theme installed -- including the opt-in GTK
-# files, which the default `install` does not copy: the parent directories are
-# shared (other color schemes,
+# Remove only the artifacts this theme installed -- including the GTK files,
+# which every install now copies: the parent directories are shared (other
+# color schemes,
 # other look-and-feel/desktop-theme/Aurorae/wallpaper/icon/font packages, other
 # Kvantum themes), so leave them and everything else in them alone. The hidden
 # `.staging`/`.old` siblings are install's own temporary state: an install
@@ -757,7 +766,7 @@ _uninstall:
 # `ColorScheme=` (`[]`) is distinguishable from a missing key (no output);
 # otherwise an empty id would match either.
 #
-# The opt-in `apply-gtk` publishes the same kind of selection for GTK: a
+# `make apply` publishes the same kind of selection for GTK: a
 # `gtk-theme-name=org.macos8.desktop` line in `[Settings]`, as
 # `tools/gtk_settings.py` writes it, in both `$XDG_CONFIG_HOME/gtk-3.0/settings.ini`
 # and `.../gtk-4.0/settings.ini`, plus a marker-delimited

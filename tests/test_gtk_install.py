@@ -49,7 +49,7 @@ def _sentinel(name):
     return ("sentinel:" + name).encode()
 
 
-# Every staging path the opt-in install writes, by shipped name.
+# Every staging path the install writes, by shipped name.
 STAGING_PATHS = {
     "index.theme": ".index.theme.staging",
     "gtk-3.0/gtk.css": "gtk-3.0/.gtk.css.staging",
@@ -186,11 +186,13 @@ class TestInstall(unittest.TestCase):
             for name in SHIPPED_FILES:
                 self.assertTrue(os.path.exists(os.path.join(installed, name)))
 
-    def test_default_install_writes_no_gtk_files(self):
+    def test_default_install_writes_gtk_files(self):
         with installed_destdir(self) as tmp:
             installed = _installed_dir(tmp)
             for name in SHIPPED_FILES:
-                self.assertFalse(os.path.exists(os.path.join(installed, name)))
+                self.assertTrue(
+                    os.path.exists(os.path.join(installed, name)), name
+                )
 
 
 
@@ -258,7 +260,7 @@ class TestUninstall(unittest.TestCase):
 class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
     """`make uninstall` must name a still-published GTK selection.
 
-    The opt-in `apply-gtk` sets `gtk-theme-name=org.macos8.desktop` in the
+    The `make apply`/`make apply-gtk` selection sets `gtk-theme-name=org.macos8.desktop` in the
     `[Settings]` of `<config>/gtk-3.0/settings.ini` and
     `<config>/gtk-4.0/settings.ini`, and writes `<config>/gtk-4.0/gtk.css`,
     whose first line is `GTK4_CSS_MARKER` and whose `@import` names the

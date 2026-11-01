@@ -380,11 +380,11 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
 
     A `DESTDIR` or `XDG_DATA_HOME` with a space is legal; an unquoted recipe
     word-splits it, so the copy lands in the wrong place or fails outright.
-    All eight artifacts must install and uninstall under a spaced root.
+    All nine artifacts must install and uninstall under a spaced root.
     """
 
     def _assert_round_trip(self, destdir):
-        """Install all eight artifacts under *destdir*, then uninstall them."""
+        """Install all nine artifacts under *destdir*, then uninstall them."""
         assert_succeeded(self, theme_install.install(destdir))
         package = "org.macos8.desktop"
         scheme = installed_paths.installed_color_scheme(destdir)
@@ -409,14 +409,20 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         directories.append(installed_paths.installed_wallpaper(destdir, package))
         directories.append(installed_paths.installed_icon_theme(destdir, package))
         directories.append(installed_paths.installed_font_package(destdir, package))
+        gtk_dir = installed_paths.installed_gtk_theme(destdir)
+        gtk_files = [
+            os.path.join(gtk_dir, "index.theme"),
+            os.path.join(gtk_dir, "gtk-3.0", "gtk.css"),
+            os.path.join(gtk_dir, "gtk-4.0", "gtk.css"),
+        ]
         self.assertTrue(os.path.isfile(scheme), scheme)
-        for path in kvantum_files:
+        for path in kvantum_files + gtk_files:
             self.assertTrue(os.path.isfile(path), path)
         for path in directories:
             self.assertTrue(os.path.isdir(path), path)
 
         assert_succeeded(self, theme_install.uninstall(destdir))
-        for path in [scheme, *kvantum_files, *directories]:
+        for path in [scheme, *kvantum_files, *gtk_files, *directories]:
             self.assertFalse(os.path.exists(path), path)
 
     def test_install_and_uninstall_under_a_path_with_a_space(self):
@@ -710,6 +716,9 @@ class TestInstallPackages(unittest.TestCase):
             installed_paths.installed_icons_dir(tmp),
             installed_paths.installed_fonts_dir(tmp),
             os.path.join(data_home, "themes", "org.macos8.desktop", "Kvantum"),
+            os.path.join(
+                installed_paths.installed_gtk_theme(tmp), "index.theme"
+            ),
         ]
         for path in other_dirs:
             self.assertFalse(os.path.exists(path), path)

@@ -9,14 +9,14 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: the Mac OS 8.6 "Platinum" look is installable as eight artifacts — color scheme, global theme (with startup splash and desktop layout), desktop theme, Aurorae decoration, wallpaper, icon theme, Kvantum widget style, and Lato font package — plus opt-in GTK 3 and GTK 4 stylesheets, Firefox userChrome and userContent stylesheets, and a cursor theme selection.
+Pre-alpha: the Mac OS 8.6 "Platinum" look is installable as nine artifacts — color scheme, global theme (with startup splash and desktop layout), desktop theme, Aurorae decoration, wallpaper, icon theme, Kvantum widget style, Lato font package, and GTK 3 and GTK 4 stylesheets — plus Firefox userChrome and userContent stylesheets and a cursor theme selection.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Installing
 
-`make install` copies eight artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`make install` copies every data-home artifact into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path, and refuse a `DESTDIR`, `XDG_DATA_HOME`, `HOME`, `FLOCK_TIMEOUT` or `RENDER_OUTPUT` carrying a character that is
@@ -38,7 +38,7 @@ into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
-OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands). Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
+OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands), and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor and ten shared assets into `themes/org.macos8.desktop/`. Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
 (`widgetStyle=kvantum`). Kvantum is a separate engine the theme cannot install, so when it is absent
@@ -55,17 +55,16 @@ grow box's white and `#777777` checker diamond. Kvantum searches
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
 when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
-GTK applications use the separate opt-in install: `make install-gtk` copies the GTK 3 and GTK 4
+GTK applications use the same install: `make install` (and therefore `make apply`) copies the GTK 3 and GTK 4
 Platinum stylesheets, their `index.theme` theme descriptor and the ten shared check, radio, mixed-state dash,
 combo box, menu arrow, disclosure arrow, submenu arrow and title-button box assets into
 `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
-holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
-default `make install` copies no GTK files. `make apply-gtk` installs them the same way and then
+holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. `make install-gtk` installs only those files, for repairing that surface without touching the other packages. `make apply` then
 selects them: it sets `gtk-theme-name=org.macos8.desktop` in `[Settings]` of
 `$XDG_CONFIG_HOME/gtk-3.0/settings.ini` and `gtk-4.0/settings.ini` (the XDG default
 `$HOME/.config`), and writes `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` with the
 `/* org.macos8.desktop GTK 4 user CSS */` marker and an `@import url(...)` of the installed GTK 4
-sheet, so libadwaita applications use it too. Restart running GTK applications to pick up the
+sheet, so libadwaita applications use it too. `make apply-gtk` installs and selects only this surface. Restart running GTK applications to pick up the
 selection; KDE users can also choose the theme in System Settings -> Application Style ->
 GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it removes only our
 `gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched. The
@@ -80,12 +79,12 @@ theme directory itself.
 
 The standalone Firefox Platinum `userChrome.css` and `userContent.css` ship at
 `theme/firefox/org.macos8.desktop/chrome/userChrome.css` and
-`theme/firefox/org.macos8.desktop/chrome/userContent.css` and are installed opt-in into
-one profile: `make install-firefox` copies them to that profile's
+`theme/firefox/org.macos8.desktop/chrome/userContent.css`. `make apply` installs them into the active profile when one exists (a machine without a Firefox profile gets a note and the other surfaces still apply); `make install-firefox` installs them into
+one named profile: it copies them to that profile's
 `chrome/userChrome.css` and `chrome/userContent.css` and adds
 `toolkit.legacyUserProfileCustomizations.stylesheets=true` as a marker-delimited
 block in its `user.js`, and `make remove-firefox` removes only those three changes,
-leaving a foreign sheet or preference untouched. Both targets use the profile named by
+leaving a foreign sheet or preference untouched. All of these use the profile named by
 `FIREFOX_PROFILE=path` (an absolute profile directory) or, when it is unset, the active
 profile under `$HOME/.mozilla/firefox` (from `installs.ini`, then `profiles.ini`). The
 profile path reaches the recipe shells pasted into a double-quoted word, so the
@@ -201,7 +200,7 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the eight default artifacts and the thirteen opt-in GTK files, leaving the shared
+uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their
@@ -211,7 +210,7 @@ scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
 it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
-as the reset; if the opt-in GTK selection `make apply-gtk` published still names
+as the reset; if the GTK selection `make apply` published still names
 `org.macos8.desktop` after the uninstall, it likewise prints a warning naming
 `make remove-gtk` as the reset. Neither warning edits the user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
@@ -244,22 +243,22 @@ each module as one worker process and prints the modules' outputs in module orde
 target that runs a Python tool requires Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuses an older `PYTHON` with a diagnostic naming the target; `make help`
 lists the same `PYTHON` floor.
-`make apply` installs the eight artifacts exactly as `make install` does and then re-applies them to
+`make apply` installs every artifact exactly as `make install` does and then applies all of them: it re-applies the theme to
 the running Plasma session (`make apply` re-applies the global theme, which
 selects Lato; a bare `make install` only copies the family), so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
 `MacOS8` color scheme and the `org.macos8.desktop` desktop theme, tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
 KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
-it notes that and leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since
+it notes that and leaves KWin to reload on its next start). It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme` and `plasma-apply-desktoptheme`, exiting 2 naming the first one that is
 missing or cannot be started, or reporting the scratch directory it cannot create. The three
-re-selections run under the data-home flock that `make install` and `make uninstall` hold: a run
+Plasma re-selections run under the data-home flock that `make install` and `make uninstall` hold: a run
 that cannot take that lock within its bounded wait exits 2 naming the data home, so a concurrent
 uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
-splash is read at login, so a splash change appears only on the next login.
+splash is read at login, so a splash change appears only on the next login; restart GTK applications and Firefox for their selections. `make apply-gtk` and `make apply-cursor` remain available to repair one surface alone.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so

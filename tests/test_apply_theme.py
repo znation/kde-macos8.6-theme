@@ -465,16 +465,24 @@ class TestMakeApply(unittest.TestCase):
         self.assertIn("DESTDIR", result.stderr)
         self.assertNotIn("apply_theme.py", result.stdout + result.stderr)
 
-    def test_dry_run_shows_install_before_the_script(self):
+    def test_dry_run_applies_every_surface_after_installing(self):
         result = theme_install.run_make(
             ["-n", "apply"], env=theme_install.make_env("XDG_DATA_HOME")
         )
         assert_succeeded(self, result)
-        self.assertIn("tools/apply_theme.py", result.stdout)
-        self.assertLess(
-            result.stdout.index("--no-print-directory install"),
-            result.stdout.index("tools/apply_theme.py"),
-        )
+        steps = [
+            "--no-print-directory install",
+            "tools/apply_theme.py",
+            "tools/apply_gtk.py",
+            "tools/apply_cursor.py --optional",
+            "tools/install_firefox.py --optional",
+        ]
+        positions = []
+        for step in steps:
+            with self.subTest(step=step):
+                self.assertIn(step, result.stdout)
+                positions.append(result.stdout.index(step))
+        self.assertEqual(sorted(positions), positions, result.stdout)
 
     def test_help_lists_apply(self):
         result = theme_install.run_make(["help"], env=theme_install.make_env())

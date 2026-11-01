@@ -1,16 +1,18 @@
 """Expose the shipped Xcursor pointer set and select it for the running session.
 
-``make apply-cursor`` installs the icon theme, which carries the Platinum
-pointer set under ``cursors/``, and then runs this script. Xcursor searches
-``~/.icons``, not ``$XDG_DATA_HOME/icons``, so the installed theme is exposed
-at ``$HOME/.icons/org.macos8.desktop`` as a symlink and selected with
+``make apply`` and ``make apply-cursor`` install the icon theme, which carries
+the Platinum pointer set under ``cursors/``, and then run this script. Xcursor
+searches ``~/.icons``, not ``$XDG_DATA_HOME/icons``, so the installed theme is
+exposed at ``$HOME/.icons/org.macos8.desktop`` as a symlink and selected with
 ``plasma-apply-cursortheme org.macos8.desktop``. ``make remove-cursor`` runs
 the same script with ``--remove``: it deletes only that link, leaving a foreign
-path and ``kcminputrc`` untouched.
+path and ``kcminputrc`` untouched. ``--optional`` skips only the selection when
+the KDE selector is absent, which is how the aggregate ``make apply`` installs
+the pointer set on a desktop it cannot address.
 
 Usage::
 
-    python3 tools/apply_cursor.py
+    python3 tools/apply_cursor.py [--optional]
     python3 tools/apply_cursor.py --remove
 
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
@@ -125,16 +127,25 @@ def _install_link(home: Path, theme: Path) -> None:
     cursor_link.install_link(home, theme)
 
 
-def _select(env: dict[str, str]) -> int:
+def _select(env: dict[str, str], optional: bool) -> int:
     """Select our cursor theme with ``plasma-apply-cursortheme``.
 
-    A missing selector is a usage error; a timeout or non-zero exit is a
-    failed command whose bounded log tail is reported. A selector that
+    A missing selector is a usage error, unless *optional* is set: then the
+    aggregate ``make apply`` notes that the desktop cannot be told about the
+    pointer set and leaves the operator to select it, rather than failing an
+    apply that did install the theme. A timeout or non-zero exit is a failed
+    command whose bounded log tail is reported either way. A selector that
     ``shutil.which`` found can still fail to start (a corrupt binary, or a
     script whose interpreter is missing): ``run_logged`` reports that as an
     ``OSError``, which is as unusable as a missing selector, so it becomes
     this tool's own exit-2 diagnostic instead of an escaping traceback.
     """
+    if optional and shutil.which(SELECT_TOOL) is None:
+        _note(
+            f"{SELECT_TOOL} is not on PATH; the pointer set is installed and "
+            "linked, but select it in your desktop's cursor settings"
+        )
+        return 0
     missing = report_missing_tool(TOOL, [SELECT_TOOL])
     if missing is not None:
         return missing
@@ -155,7 +166,7 @@ def _select(env: dict[str, str]) -> int:
         shutil.rmtree(scratch, ignore_errors=True)
 
 
-def _apply(home: Path, data_home: Path, env: dict[str, str]) -> int:
+def _apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> int:
     """Link the installed theme into the Xcursor path, then select it."""
     theme = _require_installed(data_home)
     # Hold the data-home lock make install/uninstall hold across the link and
@@ -170,7 +181,7 @@ def _apply(home: Path, data_home: Path, env: dict[str, str]) -> int:
     ):
         theme = _require_installed(data_home)
         _install_link(home, theme)
-        status = _select(env)
+        status = _select(env, optional)
     if status == 0:
         _note(
             "restart running applications for the new pointer to display "
@@ -239,6 +250,11 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--optional",
+        action="store_true",
+        help="skip the selection, with a note, when plasma-apply-cursortheme is not on PATH",
+    )
+    parser.add_argument(
         "--remove",
         action="store_true",
         help="remove our ~/.icons symlink and leave kcminputrc untouched",
@@ -250,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.remove:
             return _remove(home, data_home, config_home)
         with exit_on_termination():
-            return _apply(home, data_home, dict(os.environ))
+            return _apply(home, data_home, dict(os.environ), args.optional)
     except CursorError as exc:
         return report_error(TOOL, str(exc))
 

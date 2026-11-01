@@ -158,6 +158,19 @@ class TestInstall(CursorCase):
             self.recorded(),
         )
 
+    def test_optional_install_links_without_a_selector(self):
+        # `make apply` passes --optional so a desktop without the KDE selector
+        # still gets the pointer set installed and linked; only the selection
+        # is skipped, with a note naming the manual step.
+        self.install_theme()
+        result = self.run_tool("--optional")
+        assert_succeeded(self, result)
+        self.assertTrue(self.link.is_symlink())
+        self.assertEqual(str(self.installed), os.readlink(self.link))
+        self.assertIn("plasma-apply-cursortheme is not on PATH", result.stdout)
+        self.assertIn("select it in your desktop's cursor settings", result.stdout)
+        self.assertFalse(self.calls.exists())
+
     def test_missing_installed_theme_names_the_path(self):
         self.stub_selector()
         result = self.run_tool()

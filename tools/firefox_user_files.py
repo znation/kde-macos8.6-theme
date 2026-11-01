@@ -1,6 +1,6 @@
 """The Firefox profile files the installer reads and writes.
 
-``make install-firefox`` touches three files in one opt-in Firefox profile:
+``make apply``/``make install-firefox`` touch three files in one Firefox profile:
 ``chrome/userChrome.css`` and ``chrome/userContent.css``, the two Platinum
 sheets it copies, and ``user.js``, the preference file whose marker block it
 adds or removes. This module holds where those files live, the bounded

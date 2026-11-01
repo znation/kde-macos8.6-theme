@@ -136,7 +136,9 @@ def _candidates(root: Path) -> list[Path]:
     return candidates
 
 
-def resolve_profile(explicit: str | None, env: dict[str, str]) -> Path:
+def resolve_profile(
+    explicit: str | None, env: dict[str, str], *, optional: bool = False
+) -> Path | None:
     """Return the profile directory named by *explicit*, the environment or INI.
 
     *explicit* is the ``--profile`` value; when it is ``None`` an
@@ -144,7 +146,10 @@ def resolve_profile(explicit: str | None, env: dict[str, str]) -> Path:
     be an absolute existing directory. An empty ``FIREFOX_PROFILE`` is
     treated as unset, matching the Makefile's ``$(if $(FIREFOX_PROFILE),...)``
     which omits ``--profile``; without a named path, ``HOME`` must be absolute
-    and the profile is resolved from ``$HOME/.mozilla/firefox``.
+    and the profile is resolved from ``$HOME/.mozilla/firefox``. With
+    *optional* set, discovery that finds no existing profile returns ``None``
+    instead of raising, so an aggregate apply can skip a machine without
+    Firefox; a named path or an unusable ``HOME`` still raises.
     """
     named = explicit
     if named is None:
@@ -172,6 +177,8 @@ def resolve_profile(explicit: str | None, env: dict[str, str]) -> Path:
     for candidate in candidates:
         if candidate.is_dir():
             return candidate
+    if optional:
+        return None
     tried = ", ".join(str(path) for path in candidates) or "none"
     raise ConfigError(
         f"no Firefox profile found under {root}; candidates tried: {tried}"

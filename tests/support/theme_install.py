@@ -95,8 +95,8 @@ def install(destdir, extra=(), env=None, packages=None):
     `extra` appends make variable assignments (e.g. `COLOR_SCHEME=...`); `env`
     replaces the environment, for tests that shadow a tool on PATH. `packages`
     narrows the install to one `INSTALL_PACKAGES` family (`look-and-feel`), so
-    a test of one artifact does not copy the other seven; the default installs
-    every default family (`gtk` is opt-in).
+    a test of one artifact does not copy the other families; the default
+    installs every family, GTK included.
     """
     if packages is not None:
         extra = (*extra, f"INSTALL_PACKAGES={packages}")

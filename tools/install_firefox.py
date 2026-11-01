@@ -1,10 +1,11 @@
-"""Install the Firefox Platinum chrome into one opt-in Firefox profile.
+"""Install the Firefox Platinum chrome into one Firefox profile.
 
-``make install-firefox`` copies the standalone ``userChrome.css`` and
-``userContent.css`` into a profile's ``chrome/`` directory and adds the
-preference that makes Firefox read them; ``make remove-firefox`` removes
-exactly those three changes. The profile is named with
-``--profile``/``FIREFOX_PROFILE`` or, without either, resolved from
+``make apply`` runs this with ``--optional`` so the active profile gets the
+chrome when one exists; ``make install-firefox`` copies the standalone
+``userChrome.css`` and ``userContent.css`` into a named profile's ``chrome/``
+directory and adds the preference that makes Firefox read them;
+``make remove-firefox`` removes exactly those three changes. The profile is
+named with ``--profile``/``FIREFOX_PROFILE`` or, without either, resolved from
 ``installs.ini`` and ``profiles.ini`` under ``$HOME/.mozilla/firefox``.
 Profile discovery lives in ``tools/firefox_profile.py``, the profile files'
 bounded read and atomic write in ``tools/firefox_user_files.py``, and the
@@ -16,12 +17,13 @@ bounded-wait profile lock shared with the GTK tools lives in
 Usage::
 
     python3 tools/install_firefox.py [--profile PATH]
+    python3 tools/install_firefox.py --optional [--profile PATH]
     python3 tools/install_firefox.py --remove [--profile PATH]
 
-Exit status: 0 when the install or removal ran, 1 when a foreign
-``userChrome.css`` or ``userContent.css`` is left untouched, 2 for a usage
-error, an unresolvable profile, another run holding the profile lock past
-the timeout, a profile directory that cannot be locked, or a file that
+Exit status: 0 when the install, removal or optional skip ran, 1 when a
+foreign ``userChrome.css`` or ``userContent.css`` is left untouched, 2 for a
+usage error, an unresolvable profile, another run holding the profile lock
+past the timeout, a profile directory that cannot be locked, or a file that
 cannot be read or written. Install and removal serialize on a lock over the
 profile directory, so a concurrent pair cannot publish a preference block
 without the sheets it selects (or delete the sheets while the block stays).
@@ -261,11 +263,12 @@ def main(argv: list[str] | None = None) -> int:
             "and userContent.css in one Firefox profile."
         ),
         epilog=(
-            "exit status: 0 when the install or removal ran, 1 when a foreign "
-            "userChrome.css or userContent.css is left untouched, 2 for a "
-            "usage error, an unresolvable profile, another run holding the "
-            "profile lock past the timeout, a profile directory that cannot "
-            "be locked, or a file that cannot be read or written"
+            "exit status: 0 when the install, removal or optional skip ran, 1 "
+            "when a foreign userChrome.css or userContent.css is left "
+            "untouched, 2 for a usage error, an unresolvable profile, another "
+            "run holding the profile lock past the timeout, a profile "
+            "directory that cannot be locked, or a file that cannot be read "
+            "or written"
         ),
     )
     parser.add_argument(
@@ -275,6 +278,11 @@ def main(argv: list[str] | None = None) -> int:
         "or the active profile under $HOME/.mozilla/firefox)",
     )
     parser.add_argument(
+        "--optional",
+        action="store_true",
+        help="skip with a note when no Firefox profile is discovered",
+    )
+    parser.add_argument(
         "--remove",
         action="store_true",
         help="remove our userChrome.css, userContent.css and user.js preference block",
@@ -282,7 +290,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        profile = resolve_profile(args.profile, os.environ)
+        profile = resolve_profile(
+            args.profile, os.environ, optional=args.optional
+        )
+        if profile is None:
+            _note(
+                "no Firefox profile found; skipping the Firefox chrome step"
+            )
+            return 0
         with _profile_lock(profile):
             if args.remove:
                 return _remove(profile)
