@@ -2409,8 +2409,11 @@ row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):ba
    stock's `color: inherit` governing the label. Stock's wide
    `:disabled:selected` white-label group keeps governing, so a disabled
    selected child keeps the stock disabled label (the disabled remainder
-   this sheet records for rows drives the same held-out family here).
-   Declaration checks do not establish rendered pixels. */
+   this sheet records for rows drives the same held-out family here;
+   2026-10-31: the rows-and-children disabled twins are since restated at
+   the sheet tail — the `:disabled:selected` disabled selected rows and
+   view children entry — with the landed inactive-text grey; the remainder
+   stays stock). Declaration checks do not establish rendered pixels. */
 flowbox > flowboxchild:selected,
 gridview > child:selected {
   background-color: #CCCCFF;
@@ -2468,4 +2471,36 @@ iconview.view:backdrop:selected {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   disabled selected row or view child (the GTK scope's standing adaptation
+   premise), so the pale-blue disabled-selected labels the toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
+   with gresource on 2026-10-31, libgtk-4 4.18.6) paints on the
+   rows-and-children members of its big disabled-selected comma group
+   (#9ac2f2) and on the dedicated column- and tree-view arms (#86b5ef cold,
+   #71a8eb backdrop; no big `:backdrop` disabled-selected group exists in
+   the resource, so the backdrop restatement carries the dedicated view
+   arms alone) are restated with the landed disabled-text grey (the same
+   grey the sheet's disabled label, dim-label and field-disabled arms
+   paint, re-derived from the colour scheme's [Colors:Button]
+   ForegroundInactive). The landed row and view-child selection groups
+   already paint the #CCCCFF fill with black enabled text in every state,
+   so only the label colour changes. Each appended selector is the exact
+   stock twin, so every tie is decided purely by later source order; the
+   toolkit's remaining disabled-selected members (selection text, calendar,
+   icon-view, model-button members and the class-only .view twins) stay
+   stock. Declaration checks do not establish rendered pixels. */
+row:disabled:selected,
+flowbox > flowboxchild:disabled:selected,
+gridview > child:disabled:selected,
+columnview.view:disabled:selected,
+treeview.view:disabled:selected {
+  color: #888888;
+}
+
+columnview.view:disabled:selected:backdrop,
+treeview.view:disabled:selected:backdrop {
+  color: #888888;
 }

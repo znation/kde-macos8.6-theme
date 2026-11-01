@@ -157,6 +157,30 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             },
         )
 
+    def test_disabled_selected_row_and_child_arms(self):
+        """Pin the disabled selected rows and children restated stock-twin."""
+        self.assert_disabled_text((
+            "row:disabled:selected",
+            "flowbox flowboxchild:disabled:selected",
+            "treeview.view:disabled:selected",
+            "row:backdrop:disabled:selected",
+            "flowbox flowboxchild:backdrop:disabled:selected",
+            "treeview.view:disabled:selected:backdrop",
+        ))
+        # The family keeps stock's member set: nothing else in the sheet
+        # names the state pair.
+        self.assertEqual(
+            {s for s in self.rules if ":disabled:selected" in s},
+            {
+                "row:disabled:selected",
+                "flowbox flowboxchild:disabled:selected",
+                "treeview.view:disabled:selected",
+                "row:backdrop:disabled:selected",
+                "flowbox flowboxchild:backdrop:disabled:selected",
+                "treeview.view:disabled:selected:backdrop",
+            },
+        )
+
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
         self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})

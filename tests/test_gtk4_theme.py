@@ -1250,8 +1250,10 @@ for radio in (False, True):
         expected = {
             "flowbox > flowboxchild",
             # The selected view-child restatement names the same node.
+            # The disabled-selected restatement names it again (2026-10-31).
             "flowbox > flowboxchild:selected",
             "flowbox > flowboxchild:selected:backdrop",
+            "flowbox > flowboxchild:disabled:selected",
         }
         self.assertEqual(
             {selector for selector in self.rules if selector.startswith("flowbox")},
@@ -1306,6 +1308,35 @@ for radio in (False, True):
                     {"background-color": f"rgba(204, 204, 255, {alpha})"},
                 )
 
+    def test_disabled_selected_row_and_child_arms(self):
+        """Pin the disabled selected rows and children restated stock-twin."""
+        self.assert_disabled_text((
+            "row:disabled:selected",
+            "flowbox > flowboxchild:disabled:selected",
+            "gridview > child:disabled:selected",
+            "columnview.view:disabled:selected",
+            "treeview.view:disabled:selected",
+            "columnview.view:disabled:selected:backdrop",
+            "treeview.view:disabled:selected:backdrop",
+        ))
+        # The family keeps stock's member set: nothing else in the sheet
+        # names the state pair, and stock has no big :backdrop disabled
+        # group here, so the backdrop members are the dedicated view arms.
+        self.assertEqual(
+            {
+                s for s in self.rules if ":disabled:selected" in s
+            },
+            {
+                "row:disabled:selected",
+                "flowbox > flowboxchild:disabled:selected",
+                "gridview > child:disabled:selected",
+                "columnview.view:disabled:selected",
+                "treeview.view:disabled:selected",
+                "columnview.view:disabled:selected:backdrop",
+                "treeview.view:disabled:selected:backdrop",
+            },
+        )
+
     def test_gridview_item_corners(self):
         expected = {
             "gridview > child",
@@ -1313,8 +1344,10 @@ for radio in (False, True):
             # The filechooser undershoot mirror names the same view substring.
             "filechooser gridview ~ undershoot.top",
             # The selected view-child restatement names the same nodes.
+            # The disabled-selected restatement names it again (2026-10-31).
             "gridview > child:selected",
             "gridview > child:selected:backdrop",
+            "gridview > child:disabled:selected",
             "filechooser gridview child:selected",
             "filechooser gridview child:selected:hover",
             "filechooser gridview child:selected:active",
