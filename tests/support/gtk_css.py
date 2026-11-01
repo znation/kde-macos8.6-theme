@@ -332,26 +332,58 @@ def _collapse_whitespace(text):
     """
     parts = []
     quote = None
-    escaped = False
     pending_space = False
-    for char in text:
-        if escaped:
-            escaped = False
-        elif char == "\\":
-            escaped = True
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if quote is None and char == "\\":
+            end = index + 1
+            while end < len(text) and end - index <= 6 and text[end] in "0123456789abcdefABCDEF":
+                end += 1
+            if end > index + 1:
+                if end < len(text) and text[end] in " \t\n\r\f":
+                    if text[end] == "\r" and end + 1 < len(text) and text[end + 1] == "\n":
+                        end += 2
+                    else:
+                        end += 1
+                if pending_space and parts:
+                    parts.append(" ")
+                parts.append(text[index:end])
+                pending_space = False
+                index = end
+                continue
+        if quote is None and char in "\"'":
+            quote = char
         elif quote is not None:
+            if char == "\\" and index + 1 < len(text):
+                if pending_space and parts:
+                    parts.append(" ")
+                parts.append(text[index:index + 2])
+                pending_space = False
+                index += 2
+                continue
             if char == quote:
                 quote = None
-        elif char in "\"'":
-            quote = char
+        elif char == "\\":
+            if pending_space and parts:
+                parts.append(" ")
+            parts.append(char)
+            pending_space = False
+            index += 1
+            if index < len(text):
+                parts.append(text[index])
+                index += 1
+            continue
         elif char in " \t\n\r\f":
             pending_space = True
+            index += 1
             continue
         if pending_space:
             if parts:
                 parts.append(" ")
             pending_space = False
         parts.append(char)
+        index += 1
     return "".join(parts)
 
 

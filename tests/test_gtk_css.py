@@ -179,6 +179,46 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_hex_escape_terminators_survive_selector_and_value_normalization(self):
+        css = (
+            r".\31  a { color: red; } .\31 a { margin: 1px; } "
+            "a { --hex: \\41   ; --tab: \\42\t  ; --crlf: \\43\r\n  ; }"
+        )
+        _, rules, selectors = parse_css(css)
+        self.assertEqual(selectors, [r".\31  a", r".\31 a", "a"])
+        self.assertEqual(rules[r".\31  a"], {"color": "red"})
+        self.assertEqual(rules[r".\31 a"], {"margin": "1px"})
+        self.assertEqual(rules["a"], {
+            "--hex": r"\41 ",
+            "--tab": "\\42\t",
+            "--crlf": "\\43\r\n",
+        })
+
+    def test_hex_escape_selector_terminator_is_distinct_from_separator(self):
+        _, rules, selectors = parse_css(r".\31  a { color: red; } .\31 a { margin: 1px; }")
+        self.assertEqual(selectors, [r".\31  a", r".\31 a"])
+        self.assertEqual(rules, {
+            r".\31  a": {"color": "red"},
+            r".\31 a": {"margin": "1px"},
+        })
+
+    def test_hex_escape_lengths_and_terminators_in_values(self):
+        values = (
+            (r"\a ", r"\a "),
+            (r"\AB ", r"\AB "),
+            (r"\123 ", r"\123 "),
+            (r"\1234 ", r"\1234 "),
+            (r"\12345 ", r"\12345 "),
+            (r"\123456 ", r"\123456 "),
+            (r"\1234567", r"\1234567"),
+        )
+        for source, expected in values:
+            with self.subTest(source=source):
+                _, rules, _ = parse_css("a { --value: " + source + "  ; }")
+                self.assertEqual(rules["a"]["--value"], expected)
+        _, rules, _ = parse_css("a { --crlf: \\41\r\n  ; }")
+        self.assertEqual(rules["a"]["--crlf"], "\\41\r\n")
+
     def test_escaped_colons_in_declaration_names(self):
         css = (
             r"a, b { --tone\:active: red; --many\:parts\:here: "

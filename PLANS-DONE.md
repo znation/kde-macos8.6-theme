@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: preserve hex-escape whitespace terminators (planned 2026-11-01 by the plan role; independent of the completed unquoted-URL comment change) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Preserve selector identity when normalizing CSS hex escapes. Reproduced 2026-11-01: `parse_css(r".\31  a { color: red; }")[2]` returned a selector spelling that merged the escape terminator with the descendant separator. The input selects an `a` descendant of class `1`; the merged spelling denotes class `1a`.
+
+**Approach and files.** `_collapse_whitespace` consumes a backslash followed by one to six ASCII hexadecimal digits as one literal escape span, including its optional single CSS-whitespace terminator (CRLF together when it is the terminator). It preserves that span verbatim, then normalizes following whitespace separately; quoted content and simple escapes retain their existing behavior. Regressions live in `tests/test_gtk_css.py::TestRuleBlockSemantics`, and the normalization guarantee is recorded under GTK shared stylesheet parser in `docs/invariants.md`.
+
+**Acceptance criteria.** Parsing `.\31  a { color: red; }` and `.\31 a { margin: 1px; }` yields distinct selector keys and declarations. Coverage includes one through six hex digits, uppercase digits, a longer separator run, tab and CRLF terminators, unquoted custom-property values, trailing whitespace trimming and a seventh digit as subsequent text. Existing quoted-string, simple escaped-space, ordinary whitespace and priority-merge behavior remains covered. The scanner uses one forward pass. This is test-reader correctness, with no rendered-theme claim.
+
 ### Shared stylesheet parser: preserve comment delimiters inside unquoted URL tokens (planned 2026-11-01 by the plan role; independent of the waiting square-bracket rule-extraction change) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep the GTK/Firefox test reader from rewriting an asset URL before parsing its declarations. Reproduced 2026-11-01: `parse_css("a { background-image: url(https://example.invalid/a/*literal*/b.png); color: red; }")` returns `url(https://example.invalid/ab.png)` as the image value. `tests/support/gtk_css.py::strip_comments` protects quoted strings and escaped characters, but treats the literal URL path segment as a comment. The queued plan changes `_rule_blocks`, which runs later; the archived square-bracket and define-color plans do not address comment stripping.
