@@ -226,27 +226,20 @@ class TestReadReferenceCache(unittest.TestCase):
             path = _write_reference(tmp)
             with _spy_on_read_png() as spy:
                 reference_image.read_reference(path)
-                for bad in (0, -1, True, 1.5, "2"):
-                    self._assert_bound_is_rejected(path, bad)
-                for bad in (0, -1, True, 1.5, "2"):
-                    image, error = reference_image.read_reference(
-                        path, max_cols=bad
-                    )
-                    self.assertIsNone(image)
-                    self.assertIsInstance(
-                        error, reference_image.png.PngError
-                    )
+                for bound_name in ("max_rows", "max_cols"):
+                    for bad in (0, -1, True, 1.5, "2"):
+                        self._assert_bound_is_rejected(path, bound_name, bad)
         self.assertEqual(1, spy.call_count)
 
-    def _assert_bound_is_rejected(self, path, max_rows):
-        """Assert a read with the invalid bound *max_rows* fails.
+    def _assert_bound_is_rejected(self, path, bound_name, value):
+        """Assert a read with invalid *value* for *bound_name* fails.
 
         The bound is rejected without a decode, so the read returns no image
         and a ``PngError`` instead.
         """
-        with self.subTest(max_rows=max_rows):
+        with self.subTest(**{bound_name: value}):
             image, error = reference_image.read_reference(
-                path, max_rows=max_rows
+                path, **{bound_name: value}
             )
             self.assertIsNone(image)
             self.assertIsInstance(error, reference_image.png.PngError)
