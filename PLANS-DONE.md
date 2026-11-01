@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 level bars: keep direction-qualified horizontal blocks square (planned 2026-10-31 by the plan role; independent of the waiting calendar foreground plan) — done 2026-10-31 by the feature role
+
+**Goal.** Preserve the landed square level-bar adaptation against GTK 4's direction-qualified stock corner rules through the supported user-CSS import.
+
+**Grounding.** The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, inspected with `gresource` on 2026-10-31, sets `border-radius: 0 5px 5px 0` on `levelbar.horizontal trough > block:dir(rtl)` and `5px 0 0 5px` on its `:dir(ltr)` twin. Their specificity (0,2,3) exceeds the shipped unqualified orientation rule's (0,1,3). Neither exact selector exists in the sheet or its suite. The finished `Platinum GTK 4 level bars: keep continuous and discrete block corners square` plan in `PLANS-DONE.md` enumerated ten orientation, empty/full and endpoint selectors, omitting these direction arms. This follow-up adds no new visual value: no reference screenshot shows a GTK level meter; zero radius reuses the existing square progress-bar adaptation.
+
+**Approach and files.** Append a grouped rule for exactly `levelbar.horizontal trough > block:dir(ltr)` and `levelbar.horizontal trough > block:dir(rtl)` at the tail of `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring only `border-radius: 0`. Add a dated provenance comment naming the missing reference surface and reuse of the square progress-bar treatment; keep library attribution in documentation, consistent with `test_stands_alone`. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_levelbar_directional_block_corners` beside `test_levelbar_block_corners`: iterate these two explicit strings with `subTest`, require the exact one-property dictionary, and compare their radius with the landed `levelbar.horizontal trough > block` rule. Extend the level-bar row under `## gtk` in `docs/invariants.md` with the new test and the dated stock resource provenance above. Keep the existing ten-selector test intact.
+
+**Acceptance criteria.** Removing either direction selector or changing its radius fails the new declaration test. Both overrides match the corresponding stock specificity and supply square corners via the supported user import. Preserve existing palette, block geometry, disabled filtering and endpoint declarations. Limit implementation to these three files and these two corner arms; GTK 3 is outside this plan. Document declaration-level coverage without claiming rendered meter pixels. `make check` passes.
+
 ### Platinum GTK 4 calendars: override the stock disabled-selected day foreground (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Extend the landed disabled-calendar foreground adaptation to GTK 4's more specific disabled-selected day selector, keeping its text at the existing inactive grey on the landed lavender selection.

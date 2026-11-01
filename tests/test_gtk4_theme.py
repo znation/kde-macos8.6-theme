@@ -2115,6 +2115,20 @@ for radio in (False, True):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {"border-radius": "0"})
 
+    def test_levelbar_directional_block_corners(self):
+        for selector in (
+            "levelbar.horizontal trough > block:dir(ltr)",
+            "levelbar.horizontal trough > block:dir(rtl)",
+        ):
+            with self.subTest(selector=selector):
+                expected = {"border-radius": "0"}
+                self.assert_rule(selector, expected)
+                self.assertEqual(self.rules[selector], expected)
+                self.assertEqual(
+                    self.rules[selector]["border-radius"],
+                    self.rules["levelbar.horizontal trough > block"]["border-radius"],
+                )
+
     def test_switch(self):
         self.assert_switch(
             slider="switch > slider",

@@ -1140,6 +1140,12 @@ levelbar.vertical.discrete > trough > block:last-child {
   border-radius: 0;
 }
 
+/* GTK direction-qualified levelbar corners outrank the base rule; no reference shows this surface. Reuse square progress-bar corners. (2026-10-31) */
+levelbar.horizontal trough > block:dir(ltr),
+levelbar.horizontal trough > block:dir(rtl) {
+  border-radius: 0;
+}
+
 @keyframes spin {
   to {
     transform: rotate(1turn);
