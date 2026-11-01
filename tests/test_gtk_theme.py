@@ -64,6 +64,20 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         cls.index_text = gtk_css.read_theme_text(INDEX)
         super().setUpClass()
 
+    def assert_selected_link_rules(self, selectors, earlier=(), color=None):
+        """Check selected-link declarations and precedence over earlier rules."""
+        if color is None:
+            rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
+            color = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
+            self.assertEqual(color, "#000000")
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], {"color": color})
+            self.assertEqual(self.selectors.count(selector), 1)
+        css = gtk_css.strip_comments(self.css)
+        selected_rule = css.index(selectors[0] + ",")
+        for rule in earlier:
+            self.assertGreater(selected_rule, css.index(rule))
+
 
 
 
@@ -344,29 +358,14 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             root + ":selected:not(:disabled):not(:backdrop)" + suffix
             for root in roots for suffix in ("", ":hover", ":active")
         )
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": "#000000"})
-            self.assertEqual(self.selectors.count(selector), 1)
-        rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
-        expected = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
-        self.assertEqual(expected, "#000000")
-        uncommented = gtk_css.strip_comments(self.css)
-        selected_rule = uncommented.index(selectors[0] + ",")
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:visited, button:visited > label {"),
-        )
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:active:not(:disabled) {"),
-        )
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:visited:active:not(:disabled) {"),
-        )
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:visited:backdrop:active:not(:disabled) {"),
+        self.assert_selected_link_rules(
+            selectors,
+            (
+                "label:visited, button:visited > label {",
+                "label:link:active:not(:disabled) {",
+                "label:link:visited:active:not(:disabled) {",
+                "label:link:visited:backdrop:active:not(:disabled) {",
+            ),
         )
 
     def test_selected_ancestor_inline_link_foregrounds(self):
@@ -375,21 +374,15 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             ":selected " + root + ":not(:disabled):not(:backdrop)" + suffix
             for root in roots for suffix in ("", ":hover", ":active")
         )
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": "#000000"})
-            self.assertEqual(self.selectors.count(selector), 1)
-        rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
-        expected = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
-        self.assertEqual(expected, "#000000")
-        uncommented = gtk_css.strip_comments(self.css)
-        ancestor_rule = uncommented.index(selectors[0] + ",")
-        for prior in (
-            "label:visited, button:visited > label {",
-            "label:link:hover:not(:disabled),",
-            "label:link:visited:hover:not(:disabled),",
-            "label:link:selected:not(:disabled):not(:backdrop),",
-        ):
-            self.assertGreater(ancestor_rule, uncommented.index(prior))
+        self.assert_selected_link_rules(
+            selectors,
+            (
+                "label:visited, button:visited > label {",
+                "label:link:hover:not(:disabled),",
+                "label:link:visited:hover:not(:disabled),",
+                "label:link:selected:not(:disabled):not(:backdrop),",
+            ),
+        )
 
     def test_disabled_selected_ancestor_inline_link_foregrounds(self):
         roots = ("label:link", "label:visited", "label:link:visited")
@@ -398,13 +391,14 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             for root in roots for suffix in ("", ":hover", ":active")
         )
         self.assert_disabled_text(selectors)
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": "#888888"})
-            self.assertEqual(self.selectors.count(selector), 1)
-        uncommented = gtk_css.strip_comments(self.css)
-        selected_rule = uncommented.index(selectors[0] + ",")
-        self.assertGreater(selected_rule, uncommented.index("label:link:disabled, label:visited:disabled {"))
-        self.assertGreater(selected_rule, uncommented.index(":selected label:link:not(:disabled):not(:backdrop),"))
+        self.assert_selected_link_rules(
+            selectors,
+            (
+                "label:link:disabled, label:visited:disabled {",
+                ":selected label:link:not(:disabled):not(:backdrop),",
+            ),
+            color="#888888",
+        )
 
     def test_selected_backdrop_inline_link_foregrounds(self):
         roots = ("label:link", "label:visited", "label:link:visited")
@@ -412,25 +406,13 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             root + ":selected:backdrop:not(:disabled)" + suffix
             for root in roots for suffix in ("", ":hover", ":active")
         )
-        rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
-        expected = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": expected})
-            self.assertEqual(self.selectors.count(selector), 1)
-        self.assertEqual(expected, "#000000")
-        uncommented = gtk_css.strip_comments(self.css)
-        selected_rule = uncommented.index(selectors[0] + ",")
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:backdrop:not(:disabled),"),
-        )
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:visited:backdrop:not(:disabled),"),
-        )
-        self.assertGreater(
-            selected_rule,
-            uncommented.index("label:link:selected:not(:disabled):not(:backdrop),"),
+        self.assert_selected_link_rules(
+            selectors,
+            (
+                "label:link:backdrop:not(:disabled),",
+                "label:link:visited:backdrop:not(:disabled),",
+                "label:link:selected:not(:disabled):not(:backdrop),",
+            ),
         )
 
     def test_selected_ancestor_backdrop_inline_link_foregrounds(self):
@@ -439,22 +421,16 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             ":selected " + root + ":backdrop:not(:disabled)" + suffix
             for root in roots for suffix in ("", ":hover", ":active")
         )
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": "#000000"})
-            self.assertEqual(self.selectors.count(selector), 1)
-        rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
-        expected = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
-        self.assertEqual(expected, "#000000")
-        uncommented = gtk_css.strip_comments(self.css)
-        ancestor_rule = uncommented.index(selectors[0] + ",")
-        for prior in (
-            "label:link:backdrop:not(:disabled),",
-            "label:link:visited:backdrop:not(:disabled),",
-            "label:link:hover:not(:disabled),",
-            "label:link:visited:hover:not(:disabled),",
-            "label:link:selected:backdrop:not(:disabled),",
-        ):
-            self.assertGreater(ancestor_rule, uncommented.index(prior))
+        self.assert_selected_link_rules(
+            selectors,
+            (
+                "label:link:backdrop:not(:disabled),",
+                "label:link:visited:backdrop:not(:disabled),",
+                "label:link:hover:not(:disabled),",
+                "label:link:visited:hover:not(:disabled),",
+                "label:link:selected:backdrop:not(:disabled),",
+            ),
+        )
 
     def test_disabled_selected_ancestor_backdrop_inline_link_foregrounds(self):
         selectors = tuple(
