@@ -424,6 +424,10 @@ count before truncation) and `omitted_pixels` (region pixels not represented
 in emitted colors) to JSON; text appends the same totals. Both fields appear
 even when the limit includes every color.
 
+Counts retain their full-region values, and ties keep ascending RGB ordering.
+This limits report size; decoding and counting still cover the complete
+region. Without the option, the complete histogram is printed.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle

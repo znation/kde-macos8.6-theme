@@ -56,6 +56,54 @@ class TestSampleHistogram(CliTestCase):
             "colors": [{"rgb": [1, 2, 3], "hex": "#010203", "count": 1}],
         })
 
+    def test_top_colors_truncates_after_full_count_and_preserves_tie_order(self):
+        path = self._fixture()
+        args = (path, "1", "0", "--width", "4", "--height", "2", "--histogram")
+        result = self._run(*args, "--top-colors", "1", "--json")
+        self._assert_success(result)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["colors"], [
+            {"rgb": [0, 0, 1], "hex": "#000001", "count": 4},
+        ])
+        self.assertEqual(payload["region"], {"x": 1, "y": 0, "width": 4, "height": 2})
+
+        text = self._run(*args, "--top-colors", "1")
+        self._assert_success(text)
+        self.assertEqual(text.stdout.splitlines(), [
+            f"image: {path}  5x3", "region (1, 0) 4x2:",
+            "0,0,1  #000001  count=4",
+            "total colors: 2", "omitted pixels: 4",
+        ])
+
+        for limit in (2, 3):
+            complete = self._run(*args, "--top-colors", str(limit), "--json")
+            self._assert_success(complete)
+            self.assertEqual(len(json.loads(complete.stdout)["colors"]), 2)
+
+    def test_top_colors_validation_precedes_image_reads(self):
+        path = self._fixture()
+        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
+             mock.patch.object(sample, "read_png", side_effect=AssertionError("decode")):
+            for value in ("0", "-1", "1.5", "١"):
+                result = self._run(path, "0", "0", "--histogram", "--top-colors", value)
+                self._assert_usage_error(result)
+                self.assertEqual(result.stdout, "")
+            missing = self._run(path, "0", "0", "--histogram", "--top-colors")
+            self._assert_usage_error(missing)
+            self.assertEqual(missing.stdout, "")
+            for mode in ((), ("--runs",), ("--find-color", "010203")):
+                result = self._run(path, "0", "0", "--top-colors", "1", *mode)
+                self._assert_usage_error(result, "requires --histogram")
+                self.assertEqual(result.stdout, "")
+
+        _, data = solid_rgb(1, 1, (3, 4, 5))
+        path = self._write(self._tmp_dir(), "single.png", data)
+        result = self._run_script(path, "0", "0", "--histogram", "--top-colors", "1", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["colors"], [
+            {"rgb": [3, 4, 5], "hex": "#030405", "count": 1},
+        ])
+
     def test_script_control_path_and_errors(self):
         with control_named_png() as path:
             result = self._run_script(path, "0", "0", "--histogram", "--json")
