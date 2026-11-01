@@ -5,6 +5,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Shared stylesheet parser: canonicalize escaped ordinary property names (planned 2026-11-01 by the plan role; independent of the completed escaped-priority-keyword change)
+
+**Goal and grounding.** Make escaped ordinary property names share the existing cascade slot with their literal spelling in the GTK/Firefox test reader. Reproduced 2026-11-01: `parse_css(r"a { \63 olor: red; color: blue; }")[1]` returns separate `\63 olor` and `color` keys. `tests/support/gtk_css.py::parse_css` normalizes whitespace and ASCII case but does not decode names. Related archived plans cover ASCII folding and escaped-colon separation, explicitly excluding escape decoding; the completed escaped-priority change covers priority keywords instead.
+
+**Approach and files.** Add a focused declaration-name canonicalizer in `tests/support/gtk_css.py`, called by `parse_css` after `_split_property_value` and `_collapse_whitespace`. Decode simple escapes and one-to-six-digit hexadecimal escapes, consuming their optional single CSS-whitespace terminator (CRLF counts as one), then apply `_ASCII_LOWER` to ordinary names. Zero, surrogate and out-of-range hexadecimal scalars become U+FFFD. Leave the normalized source name intact when it starts with `--`, its decoded form starts with `--`, or it contains an incomplete escape or backslash-newline; custom-property identity and general identifier validation are outside this change. Preserve selector and value spellings. Add public regressions in `tests/test_gtk_css.py::TestRuleBlockSemantics` and update the ordinary-declaration-name row in `docs/invariants.md`. Keep the scan forward-only and use the standard library.
+
+**Acceptance criteria.** Literal `color`, `\63 olor`, `\000063olor` and `co\lor` share one `color` key, with ASCII uppercase folded after decoding; cover a vendor-prefixed property too. Within one block and across repeated blocks, later equal-priority declarations win and an earlier literal `!important` declaration beats a later escaped-name normal declaration, in both spelling orders. Cover one through six hex digits, terminator whitespace including CRLF, a seventh hex digit retained as a literal character, non-ASCII decoded characters retaining case, invalid scalar replacement, and the specified unchanged custom/invalid-escape cases. Existing escaped-colon custom-name tests continue to pass. No shipped stylesheet or visual value changes. Run `make check`. This is one three-file implementation run with no dependency on escaped priority recognition.
+
 ## Done
 
 ### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change)
