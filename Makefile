@@ -717,8 +717,15 @@ _install:
 uninstall:
 	@$(call require_data_home,uninstall) && \
 	$(call require_flock_timeout,uninstall) && \
+	$(call require_uninstall_parents,uninstall) && \
 	install -d "$(DATA_HOME)" && \
 	{ $(call run_locked,_uninstall,uninstall); }
+
+# File removals follow symlinks in parent components. Refuse planted links in
+# the fixed destination parents before the removal recipe can reach outside
+# DATA_HOME; links at the final package directory are removed as links by
+# rm -rf and do not redirect traversal.
+require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
 
 # The removals share one shell (and one `set -e`) so a run spawns one child
 # process instead of ten; each command keeps its own quoting and a failure

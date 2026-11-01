@@ -432,6 +432,29 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
 
 
 
+class TestUninstallSymlinkParents(unittest.TestCase):
+    """Uninstall must not follow planted links in its destination tree."""
+
+    def test_gtk_subdirectory_link_cannot_redirect_removal_outside_data_home(self):
+        tmp = make_tmp_dir(self)
+        data_home = tmp / "data"
+        outside = tmp / "outside"
+        outside.mkdir()
+        sentinel = outside / "gtk.css"
+        sentinel.write_text("foreign stylesheet", encoding="utf-8")
+        gtk3 = data_home / "themes/org.macos8.desktop/gtk-3.0"
+        gtk3.parent.mkdir(parents=True)
+        gtk3.symlink_to(outside, target_is_directory=True)
+        env = theme_install.make_env("XDG_DATA_HOME")
+        env["XDG_DATA_HOME"] = str(data_home)
+
+        result = theme_install.run_make(["uninstall"], env=env)
+
+        assert_failed(self, result)
+        self.assertIn("refusing a symlink in the install destination", result.stderr)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "foreign stylesheet")
+
+
 class TestShellUnsafeXdgConfigHome(unittest.TestCase):
     """An `XDG_CONFIG_HOME` carrying a control byte is refused unecheod.
 
