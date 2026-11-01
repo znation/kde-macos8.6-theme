@@ -5,7 +5,17 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Platinum GTK 3 link-button child-disabled foregrounds (planned 2026-10-31 by the plan role; independent of the enabled backdrop link-button labels plan)
+
+**Goal.** Declare inactive-text grey when a GTK 3 link button's child label carries `:disabled`, including its backdrop state. The existing disabled-parent recipe and the implemented enabled-backdrop recipe cover different state placements; selected contexts and parent-only backdrop are outside this entry.
+
+**Grounding.** Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has `button:link:disabled > label` and its visited twin, but no `button:link > label:disabled` twins. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` explicitly colours child-disabled labels translucent grey and later colours child-backdrop labels translucent blue. Heading searches in `PLANS.md` and `PLANS-DONE.md`, and inspection of the finished disabled-link-button plan, confirm that plan limits itself to the two disabled-parent selectors. No collected reference shows child-disabled GTK link labels; reuse `[Colors:Button] ForegroundInactive`, with the installed resource supplying the platform node/state structure.
+
+**Approach and files.** Append a dated provenance comment and one colour-only group at the GTK 3 sheet tail containing exactly `button:link > label:disabled`, `button:visited > label:disabled`, `button:link > label:disabled:backdrop` and `button:visited > label:disabled:backdrop`, declaring `color: #888888`. The backdrop compounds outrank the stock child-backdrop arms; the implemented enabled-backdrop compounds exclude disabled labels, allowing either merge order. Preserve the underline and faceless-button recipes. These four selectors form one child-disabled recipe, with backdrop preventing its stock recolouring.
+
+In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_child_disabled_link_button_label_colours` beside `test_disabled_link_button_labels`. Use the existing `assert_disabled_text` helper to check the exact colour-only dictionaries and re-derive the inactive scheme role; assert one occurrence of each exact selector. With `gtk_css.strip_comments(self.css)`, assert the new group follows the base blue and purple child groups and the existing disabled-parent group. Add one dated row in `docs/invariants.md` under `## gtk` naming the new test, the missing reference surface, scheme role and installed resource. Scope is these three implementation files, without helpers or assets.
+
+**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour or adding a declaration fails the new test; changing the inactive scheme role fails re-derivation. Moving the group before the base child or disabled-parent groups fails source-order checks. Existing link and disabled-parent tests remain green. Run `make check`. Coverage establishes declarations and source order, without claiming rendered pixels.
 
 ## Done
 
