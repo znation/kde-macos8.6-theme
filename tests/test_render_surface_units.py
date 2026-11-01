@@ -4,7 +4,8 @@ The render's end-to-end capture and its failure orchestration live in
 ``tests/test_render_surface.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: ``render_surface.main``'s argument validation and workflow delegation,
-environment and in-session commands in ``tools/render_session.py``.
+scratch environment and KWin session command construction in ``tools/render_session.py`` plus the
+dialog argv recipes in ``tools/render_clients.py``.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import tmp_dir
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
 from tools import apply_theme, render_session, render_surface, render_workflow  # noqa: E402
-from tools.render_session import (
+from tools.render_clients import (
     checkbox_dialog_client,
     combobox_dialog_client,
     menu_dialog_client,

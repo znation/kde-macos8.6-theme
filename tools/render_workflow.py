@@ -10,14 +10,16 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render_output import publish
+    from tools.render_clients import (
+        checkbox_dialog_client,
+        combobox_dialog_client,
+        menu_dialog_client,
+    )
     from tools.render_session import (
         CONFIG_FILES,
         Session,
-        checkbox_dialog_client,
-        combobox_dialog_client,
         install_theme,
         link_kvantum_themes,
-        menu_dialog_client,
         session_command,
         write_kvantum_selection,
         write_session_configs,
@@ -28,14 +30,12 @@ else:  # run directly from render_surface.py
     from png import PngError, read_png
     from process_group import run_logged
     from render_output import publish
+    from render_clients import checkbox_dialog_client, combobox_dialog_client, menu_dialog_client
     from render_session import (
         CONFIG_FILES,
         Session,
-        checkbox_dialog_client,
-        combobox_dialog_client,
         install_theme,
         link_kvantum_themes,
-        menu_dialog_client,
         session_command,
         write_kvantum_selection,
         write_session_configs,

@@ -2,7 +2,8 @@
 
 ``tools/render_surface.py`` parses and validates arguments, while
 ``tools/render_workflow.py`` runs the session through capture and publication.
-``tools/render_session.py`` owns scratch-session state and command building;
+``tools/render_session.py`` owns scratch-session state and KWin command building,
+while ``tools/render_clients.py`` builds the dialog client argv;
 this module drives the workflow through the public CLI.
 """
 

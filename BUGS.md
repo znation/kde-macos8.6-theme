@@ -108,8 +108,9 @@ exists to pin, and the two captures have fixed 480x360 geometry by construction.
 field has no capture yet, so add the `--menu-dialog` client named in the item-view record and pin
 its border runs there. Coverage is now exhaustive over the widgets the dialog clients create, not
 automatic: a new `--*-dialog` mode must add its regions in the same change, and the region table
-must name `tools/render_session.py`'s `checkbox_dialog_client`/`combobox_dialog_client` so that
-requirement is visible where the widgets are constructed. `make check` owns the renders, so no new
+must name `tools/render_clients.py`'s `checkbox_dialog_client`/`combobox_dialog_client` so that
+requirement is visible where the widgets are constructed. That module owns the dialog argv
+recipes. `make check` owns the renders, so no new
 session infrastructure is proposed.
 
 ## Fixed
