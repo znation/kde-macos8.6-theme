@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: accept empty custom-property values (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Let the GTK/Firefox test reader represent an empty custom-property value instead of rejecting valid declarations. Reproduced 2026-11-01: `parse_css("a { --empty: ; color: red; }")` raises a malformed-declaration `ValueError`. In `tests/support/gtk_css.py::parse_css`, the `not value` guard rejects custom and ordinary properties alike. This is independent of the waiting ordinary-name normalization entry.
+
+**Approach and files.** In `tests/support/gtk_css.py::parse_css`, allow a normalized empty value when the parsed name starts literally with `--` and has a character after that prefix; keep missing separators, empty names, bare `--` with an empty value, and empty ordinary values malformed. Retain the existing normalized empty-string representation and priority merge rather than introducing a sentinel or resolving variables. Update the parser docstring to state this exception. Add public regressions in `tests/test_gtk_css.py::TestRuleBlockSemantics` and record the exception and test names in the GTK shared stylesheet parser section of `docs/invariants.md`. These three files bound one implementation run; custom-name grammar validation, variable substitution and shipped stylesheets are outside scope.
+
+**Acceptance criteria.** The reproducer returns `({}, {"a": {"--empty": "", "color": "red"}}, ["a"])`. Named tests cover no whitespace, CSS-whitespace-only and comment-only custom values, semicolon and closing-brace termination, grouped selectors and a following ordinary declaration. An empty custom value participates in later-wins ties within and across blocks; a prior important value beats a later empty normal value, while an empty normal value is replaced by a later important one. Case-distinct custom names stay distinct. Empty ordinary values, missing colons, empty names and an empty bare `--` retain source-prefixed malformed diagnostics. Run `make check`; no visual values change.
+
 ### Shared stylesheet parser: decode ordinary property-name escapes before cascade merging (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make escaped ordinary property names share their decoded property's cascade slot. Reproduced 2026-11-01: `parse_css(r"a { \63 olor: red !important; color: blue; }")` returns separate `\63 olor` and `color` keys. In `tests/support/gtk_css.py::parse_css`, ordinary names receive `_collapse_whitespace` and ASCII folding but no escape decoding. The completed ordinary-name folding plan explicitly excluded CSS escape changes; the completed escaped-priority plan decodes only the priority keyword.

@@ -205,6 +205,38 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ):
                 parse_css(text, source="source.css")
 
+    def test_empty_custom_property_values_are_retained_and_cascade(self):
+        cases = (
+            ("--empty:;", ""),
+            ("--empty:   ;", ""),
+            ("--empty: /* comment */ ;", ""),
+        )
+        for declaration, expected in cases:
+            with self.subTest(declaration=declaration):
+                self.assertEqual(
+                    parse_css(f"a, b {{ {declaration} color: red; }}"),
+                    ({}, {"a": {"--empty": expected, "color": "red"},
+                         "b": {"--empty": expected, "color": "red"}}, ["a", "b"]),
+                )
+        self.assertEqual(
+            parse_css("a { --x: old; --x:; } a { --x:; } b { --x: old !important; --x:; } "
+                       "c { --x:; --x: new !important; }")[1],
+            {"a": {"--x": ""}, "b": {"--x": "old !important"},
+             "c": {"--x": "new !important"}},
+        )
+        self.assertEqual(
+            parse_css("a { --Tone: one; --tone: two; }")[1],
+            {"a": {"--Tone": "one", "--tone": "two"}},
+        )
+
+    def test_empty_bare_custom_and_ordinary_values_remain_malformed(self):
+        for declaration in ("--:;", "color:;", " : value", "color"):
+            with self.subTest(declaration=declaration):
+                with self.assertRaisesRegex(
+                    ValueError, r"^source\.css: malformed declaration in selector 'a':",
+                ):
+                    parse_css(f"a {{ {declaration}; }}", source="source.css")
+
     def test_unquoted_url_comment_markers_preserve_following_declarations(self):
         css = (
             "a, b { background-image: url(https://example.invalid/a/*literal*/b.png); "
