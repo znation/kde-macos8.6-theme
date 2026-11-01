@@ -794,8 +794,15 @@ colorswatch#editor-color-sample > overlay {
   color: #000000;
 }
 
-/* The drag-selection marquee is a dotted outline with no fill. */
-rubberband {
+/* No reference screenshot shows a GTK selection marquee; the view-specific
+   selectors follow GTK's Default-light.css resource in libgtk-4.so.1
+   (inspected 2026-11-01), using the existing transparent dotted-black recipe. */
+rubberband,
+.content-view > rubberband,
+columnview.view > rubberband,
+treeview.view > rubberband,
+gridview > rubberband,
+flowbox > rubberband {
   background-color: transparent;
   border: 1px dotted #000000;
 }

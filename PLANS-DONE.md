@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 view-specific rubberband recipes (planned 2026-11-01 by the plan role; independent of the completed RTL disclosure-arrow work) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Restate the stock view-specific drag-selection recipes with the landed transparent, dotted-black marquee. Inspected 2026-11-01: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` declared only bare `rubberband`; `TestGtk4Theme.test_rubberband` in `tests/test_gtk4_theme.py` checked only that selector. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` groups it with `.content-view > rubberband`, `columnview.view > rubberband`, `treeview.view > rubberband`, `gridview > rubberband` and `flowbox > rubberband`. No reference screenshot shows a selection marquee, so the existing documented adaptation and reference-grounded black remain in use.
+
+**Implemented.** Added those five selectors to the GTK 4 rule, retained its transparent fill and dotted black border, extended the test to pin all six selectors and reject unlisted rubberband selectors, and added GTK 4 provenance to `docs/invariants.md`. Declaration coverage does not claim rendered pixels.
+
+**Acceptance criteria.** Each of the six selectors has exactly the existing two-property recipe. Removing a view-specific selector, changing its border or fill, or introducing an extra rubberband selector without extending the inventory fails `test_rubberband`. Bare-node coverage remains. No shared helper, GTK 3 sheet, asset or install manifest changes. The selector extension and its test form one independently mergeable implementation run.
+
 ### Platinum GTK 4 RTL collapsed disclosure arrows (planned 2026-11-01 by the plan role; independently mergeable sibling of Platinum GTK 3 RTL collapsed disclosure arrows) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Mirror collapsed GTK 4 tree-view and expander arrows in RTL layouts while expanded arrows stay down. Inspected 2026-11-01: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` loads `arrow-right.svg` for `treeview.view.expander, expander` without a directional override. Heading searches of `PLANS.md` and `PLANS-DONE.md` found the waiting GTK 3 sibling and the finished disclosure-arrow plan, which explicitly excludes RTL mirroring. GTK 4's installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` supplies RTL `pan-end-symbolic-rtl` rules for both nodes and checked `pan-down-symbolic` rules. The installed GTK 4 `Gtk.CssProvider` accepted the proposed guarded selectors and `-gtk-icon-transform: scaleX(-1)` without parsing errors. No reference screenshot shows GTK RTL disclosure arrows; direction is a toolkit adaptation, reusing the shipped black triangle and its 16px canvas.

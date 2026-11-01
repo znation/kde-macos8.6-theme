@@ -1154,7 +1154,19 @@ for radio in (False, True):
         self.assert_tab_faces(forms)
 
     def test_rubberband(self):
-        self.assert_rubberband(("rubberband",))
+        selectors = {
+            "rubberband",
+            ".content-view > rubberband",
+            "columnview.view > rubberband",
+            "treeview.view > rubberband",
+            "gridview > rubberband",
+            "flowbox > rubberband",
+        }
+        self.assert_rubberband(tuple(selectors))
+        self.assertEqual(
+            {selector for selector in self.rules if "rubberband" in selector},
+            selectors,
+        )
 
     def test_iconview_drop_border(self):
         self.assert_rule(
@@ -1402,6 +1414,8 @@ for radio in (False, True):
             "flowbox > flowboxchild:selected",
             "flowbox > flowboxchild:selected:backdrop",
             "flowbox > flowboxchild:disabled:selected",
+            # The rubberband view-specific recipe names this node (2026-11-01).
+            "flowbox > rubberband",
         }
         self.assertEqual(
             {selector for selector in self.rules if selector.startswith("flowbox")},
@@ -1507,6 +1521,8 @@ for radio in (False, True):
             "gridview > child:selected",
             "gridview > child:selected:backdrop",
             "gridview > child:disabled:selected",
+            # The rubberband view-specific recipe names this node (2026-11-01).
+            "gridview > rubberband",
             "filechooser gridview child:selected",
             "filechooser gridview child:selected:hover",
             "filechooser gridview child:selected:active",
