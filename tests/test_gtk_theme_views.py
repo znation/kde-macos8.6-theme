@@ -108,6 +108,25 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     def test_flowbox_child_focus_outline(self):
         self.assert_dotted_focus_outline("flowbox > flowboxchild:focus")
 
+    def test_flowbox_child_selected_arms(self):
+        """Pin the selected children restated off the landed row selection."""
+        self.assert_rule(
+            "flowbox flowboxchild:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "border-radius": "0",
+            },
+        )
+        self.assert_rule(
+            "flowbox flowboxchild:backdrop:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "border-radius": "0",
+            },
+        )
+
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
         self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})

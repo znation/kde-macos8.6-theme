@@ -2383,3 +2383,57 @@ row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(di
 row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop {
   color: #000000;
 }
+
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flow
+   box, grid-view or file-chooser grid selection (the GTK scope's standing
+   adaptation premise), so the view children stock paints with the stock
+   accent family are restated against the landed row-selection groups of
+   this same sheet (flat #CCCCFF fill, square corners, black text, re-stated
+   unchanged in an unfocused window by the rows' constant-backdrop group)
+   and the landed `outline-color: #000000` focus-outline policy. The toolkit
+   resource (/org/gtk/libgtk/theme/Default/Default-light.css inside
+   libgtk-4, probed with gresource on 2026-10-31, libgtk-4 4.18.6) paints
+   `flowbox > flowboxchild:selected` and `gridview > child:selected` with
+   the accent fill and a white label, ships the selected outline colour in
+   a narrowed-to-zero-width `outline` arm, and paints a file chooser's grid
+   items with a thin accent tint (alpha 0.15 over the white pane, 0.20 on
+   hover, 0.25 while active) whose label stays inherited black. Each
+   appended selector is the exact stock twin and sits later in source
+   order, so it wins every tie in cold and backdrop windows alike; folding
+   the outline colour into the restated base group is cascade-neutral
+   because per-property cascades decide each property at the same
+   specificity on the same spelling, and stock's zero-width base outline
+   keeps the restated colour invisible until an outline arm draws it. The
+   file-chooser tints are declaration-only background recolours and leave
+   stock's `color: inherit` governing the label. Stock's wide
+   `:disabled:selected` white-label group keeps governing, so a disabled
+   selected child keeps the stock disabled label (the disabled remainder
+   this sheet records for rows drives the same held-out family here).
+   Declaration checks do not establish rendered pixels. */
+flowbox > flowboxchild:selected,
+gridview > child:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  outline-color: #000000;
+  border-radius: 0;
+}
+
+flowbox > flowboxchild:selected:backdrop,
+gridview > child:selected:backdrop {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+filechooser gridview child:selected {
+  background-color: rgba(204, 204, 255, 0.15);
+}
+
+filechooser gridview child:selected:hover {
+  background-color: rgba(204, 204, 255, 0.20);
+}
+
+filechooser gridview child:selected:active {
+  background-color: rgba(204, 204, 255, 0.25);
+}

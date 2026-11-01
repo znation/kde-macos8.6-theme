@@ -3307,3 +3307,37 @@ row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(di
 row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop {
   color: #000000;
 }
+
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flow
+   box selection (the GTK scope's standing adaptation premise), so the
+   flow-box child stock paints with the stock accent family is restated
+   against the landed row-selection groups of this same sheet (flat #CCCCFF
+   fill, square corners, black text, re-stated unchanged in an unfocused
+   window by the rows' constant-backdrop group). The toolkit resource
+   (gtk-contained.css, the built-in theme the toolkit ships as a gresource
+   inside libgtk-3, probed on 2026-10-31, libgtk-3 3.24.49; its full
+   resource path is recorded in docs/invariants.md) paints
+   `flowbox flowboxchild:selected` with the accent fill and a white label
+   inside its large selection comma groups, recolours the label to a pale
+   near-white in a `:backdrop:selected` twin, ships a separate `selected`
+   `outline-offset: -2px` geometry arm and blue-grey `:disabled:selected`
+   and `:backdrop:disabled:selected` label twins: the geometry arm carries
+   no colour and stays stock, the disabled twins keep governing (the
+   disabled remainder this sheet records for rows drives the same held-out
+   family here), and the backdrop twin loses to the appended same-spelling
+   group's later source order. Each appended selector is the exact stock
+   twin, so every tie is decided purely by later source order, in cold and
+   backdrop windows alike. Declaration checks do not establish rendered
+   pixels. */
+flowbox flowboxchild:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+flowbox flowboxchild:backdrop:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}

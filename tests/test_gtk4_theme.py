@@ -1247,7 +1247,12 @@ for radio in (False, True):
         self.assert_matches_frame("emoji-completion-row", "border-radius")
 
     def test_flowbox_item_corners(self):
-        expected = {"flowbox > flowboxchild"}
+        expected = {
+            "flowbox > flowboxchild",
+            # The selected view-child restatement names the same node.
+            "flowbox > flowboxchild:selected",
+            "flowbox > flowboxchild:selected:backdrop",
+        }
         self.assertEqual(
             {selector for selector in self.rules if selector.startswith("flowbox")},
             expected,
@@ -1257,18 +1262,70 @@ for radio in (False, True):
         )
         self.assert_matches_frame("flowbox > flowboxchild", "border-radius")
 
+    def test_view_child_selected_arms(self):
+        """Pin the view children restated off the landed row selection."""
+        self.assert_rule(
+            "flowbox > flowboxchild:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "outline-color": BLACK,
+                "border-radius": "0",
+            },
+        )
+        self.assert_rule(
+            "gridview > child:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "outline-color": BLACK,
+                "border-radius": "0",
+            },
+        )
+        for selector in (
+            "flowbox > flowboxchild:selected:backdrop",
+            "gridview > child:selected:backdrop",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {
+                        "background-color": SELECTION,
+                        "color": BLACK,
+                        "border-radius": "0",
+                    },
+                )
+        for selector, alpha in (
+            ("filechooser gridview child:selected", "0.15"),
+            ("filechooser gridview child:selected:hover", "0.20"),
+            ("filechooser gridview child:selected:active", "0.25"),
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {"background-color": f"rgba(204, 204, 255, {alpha})"},
+                )
+
     def test_gridview_item_corners(self):
         expected = {
             "gridview > child",
             "filechooser gridview > child",
             # The filechooser undershoot mirror names the same view substring.
             "filechooser gridview ~ undershoot.top",
+            # The selected view-child restatement names the same nodes.
+            "gridview > child:selected",
+            "gridview > child:selected:backdrop",
+            "filechooser gridview child:selected",
+            "filechooser gridview child:selected:hover",
+            "filechooser gridview child:selected:active",
         }
         self.assertEqual(
             {selector for selector in self.rules if "gridview" in selector},
             expected,
         )
-        for selector in sorted(expected - {"filechooser gridview ~ undershoot.top"}):
+        for selector in sorted(
+            {"gridview > child", "filechooser gridview > child"}
+        ):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
