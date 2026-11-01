@@ -20,6 +20,33 @@ DEFINE_COLOR = re.compile(
     r"@define-color\s+(?P<name>[-A-Za-z0-9_]+)\s+(?P<value>#[0-9A-Fa-f]{6})\s*;"
 )
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
+_IMPORTANT_SUFFIX = re.compile(r"!\s*important\s*\Z", re.IGNORECASE)
+
+
+def _is_important(value):
+    """Return whether *value* ends in a top-level CSS priority token."""
+    quote = None
+    depth = 0
+    suffix_start = None
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if char == "\\":
+            index += 2
+            continue
+        if quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")" and depth:
+            depth -= 1
+        elif char == "!" and depth == 0:
+            suffix_start = index
+        index += 1
+    return suffix_start is not None and bool(_IMPORTANT_SUFFIX.fullmatch(value[suffix_start:]))
 
 
 def _define_color_matches(text):
@@ -307,9 +334,9 @@ def assert_svg_root_first(test, path):
 def parse_css(text, source=None):
     """Return the ``@define-color`` map, selector declarations and selector list.
 
-    A selector that appears in more than one block keeps every declaration,
-    with a later block's declaration replacing an earlier one, which is how the
-    cascade resolves the same declaration. Comments are removed first so a
+    A selector that appears in more than one block keeps every declaration;
+    important declarations beat normal ones, and later declarations win ties.
+    Comments are removed first so a
     colour named in the header cannot stand in for a rule's value, and a
     ``@define-color`` inside a quoted value is text rather than a definition
     (and is left in the value), as it is for the other scanners.
@@ -332,10 +359,11 @@ def parse_css(text, source=None):
     without_definitions.append(text[position:])
     without_definitions = "".join(without_definitions)
     rules = {}
+    rule_priorities = {}
     selectors = []
     for selector_text, body in _rule_blocks(without_definitions):
         label = _collapse_whitespace(selector_text)
-        declarations = {}
+        declarations = []
         for chunk in _split_declarations(body):
             declaration = chunk.strip()
             if not declaration:
@@ -352,12 +380,17 @@ def parse_css(text, source=None):
                     f"selector {label!r}: {declaration!r} "
                     "(expected 'property: value')"
                 )
-            declarations[name] = value
+            declarations.append((name, value, _is_important(value)))
         group = [
             _collapse_whitespace(selector)
             for selector in _split_selector_list(selector_text)
         ]
         for selector in group:
             selectors.append(selector)
-            rules.setdefault(selector, {}).update(declarations)
+            selector_rules = rules.setdefault(selector, {})
+            priorities = rule_priorities.setdefault(selector, {})
+            for name, value, important in declarations:
+                if important or not priorities.get(name, False):
+                    selector_rules[name] = value
+                    priorities[name] = important
     return definitions, rules, selectors

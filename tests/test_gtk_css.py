@@ -325,6 +325,35 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_important_declarations_win_with_later_ties(self):
+        cases = (
+            ("a { color: red !important; color: blue; }", "red !important"),
+            ("a { color: blue; color: red !important; }", "red !important"),
+            ("a { color: red !important; } a { color: blue; }", "red !important"),
+            ("a { color: blue; } a { color: red !important; }", "red !important"),
+            ("a { color: red !important; } a { color: green ! IMPORTANT; }", "green ! IMPORTANT"),
+            ("a { color: red !important; } a { color: blue !important; }", "blue !important"),
+        )
+        for css, expected in cases:
+            with self.subTest(css=css):
+                self.assertEqual(parse_css(css)[1]["a"]["color"], expected)
+
+    def test_important_scanner_ignores_strings_urls_and_escaped_bangs(self):
+        css = (
+            'a { x: red !important; y: blue; } '
+            'a { x: green; y: "!important"; z: url(icon!important); '
+            'w: red\\!important; } '
+            'a, b { x: black; }'
+        )
+        definitions, rules, selectors = parse_css(css)
+        self.assertEqual(definitions, {})
+        self.assertEqual(rules["a"], {
+            "x": "red !important", "y": '"!important"',
+            "z": "url(icon!important)", "w": r"red\!important",
+        })
+        self.assertEqual(rules["b"], {"x": "black"})
+        self.assertEqual(selectors, ["a", "a", "a", "b"])
+
     def test_a_stray_closing_brace_is_skipped(self):
         # A `}` that closes no pending block must neither start a rule nor
         # swallow the selector after it.
