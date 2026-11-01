@@ -40,6 +40,14 @@ class TestSampleHistogram(CliTestCase):
         self.assertEqual(sum(c["count"] for c in json.loads(result.stdout)["colors"]), 8)
         self.assertEqual(read.call_args.kwargs["max_rows"], 2)
 
+    def test_histogram_scans_validated_rgb_bytes_without_pixel_accessor(self):
+        path = self._fixture()
+        with mock.patch.object(sample, "pixel_at", side_effect=AssertionError("per-pixel validation")):
+            result = self._run(path, "1", "0", "--width", "4", "--height", "2",
+                               "--histogram", "--json")
+        self._assert_success(result)
+        self.assertEqual(sum(color["count"] for color in json.loads(result.stdout)["colors"]), 8)
+
     def test_text_output_and_single_pixel_json_schema(self):
         path = self._fixture()
         text = self._run(path, "1", "0", "--width", "4", "--height", "2", "--histogram")

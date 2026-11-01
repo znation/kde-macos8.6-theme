@@ -475,6 +475,7 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
+| The reference sampler's validated region scans read packed RGB bytes directly, avoiding a repeated bounds check for each pixel while preserving row-major results. | `tests/test_sample_histogram.py::TestSampleHistogram::test_histogram_scans_validated_rgb_bytes_without_pixel_accessor` | none |
 | Fidelity JSON output serializes the original paths, crop rectangles, configured thresholds, full precision comparison metrics and gate verdict; errors retain the CLI error status and do not emit JSON. | `tests/test_fidelity_cli_json.py::TestJsonCli` | none |
 | Fidelity comparison reports the crop-relative smallest rectangle containing pixels beyond tolerance, unions RGB and alpha flags, and emits no bounds when no pixel exceeds tolerance. | `tests/test_fidelity_bounds.py::TestDifferenceBounds`, `tests/test_fidelity_bounds.py::TestBoundsCli` (2026-11-01) | none |
 | The optional fidelity worst-pixel report ranks over-tolerance RGBA mismatches by descending channel delta and row-major ties, keeps `x`/`y` crop-relative, and reports candidate and reference source positions in JSON and text with absent crop origins treated as zero; default comparison output omits the report. | `tests/test_fidelity_pixels.py::TestWorstPixelsCli` (2026-11-01) | none |

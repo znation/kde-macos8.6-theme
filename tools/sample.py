@@ -63,14 +63,23 @@ def _hex(rgb: tuple[int, int, int]) -> str:
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 
+def _region_pixels(image, x: int, y: int, width: int, height: int):
+    """Yield RGB tuples from a region already checked against the image."""
+    rgb = image.rgb
+    image_width = image.width
+    for row in range(y, y + height):
+        offset = (row * image_width + x) * 3
+        for offset in range(offset, offset + width * 3, 3):
+            yield (rgb[offset], rgb[offset + 1], rgb[offset + 2])
+
+
 def _color_runs(image, x: int, y: int, width: int, height: int):
     """Group adjacent RGB pixels in a one-dimensional sampled region."""
     horizontal = height == 1
     length = width if horizontal else height
     segments = []
-    for offset in range(length):
+    for offset, rgb in enumerate(_region_pixels(image, x, y, width, height)):
         px, py = (x + offset, y) if horizontal else (x, y + offset)
-        rgb = pixel_at(image, px, py)
         if segments and segments[-1]["rgb"] == rgb:
             segments[-1]["length"] += 1
         else:
@@ -233,11 +242,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.histogram:
-        counts = Counter(
-            pixel_at(image, x, y)
-            for y in range(args.y, args.y + args.height)
-            for x in range(args.x, args.x + args.width)
-        )
+        counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
         if args.top_colors is not None:
             total_colors = len(colors)
@@ -272,12 +277,13 @@ def main(argv: list[str] | None = None) -> int:
         target = args.find_color
         count = 0
         min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
-        for y in range(args.y, args.y + args.height):
-            for x in range(args.x, args.x + args.width):
-                if pixel_at(image, x, y) == target:
-                    count += 1
-                    min_x, min_y = min(min_x, x), min(min_y, y)
-                    max_x, max_y = max(max_x, x), max(max_y, y)
+        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
+            x = args.x + index % args.width
+            y = args.y + index // args.width
+            if rgb == target:
+                count += 1
+                min_x, min_y = min(min_x, x), min(min_y, y)
+                max_x, max_y = max(max_x, x), max(max_y, y)
         bounds = None if count == 0 else {
             "x": min_x, "y": min_y,
             "width": max_x - min_x + 1, "height": max_y - min_y + 1,
@@ -302,10 +308,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.json:
         pixels = []
-        for y in range(args.y, args.y + args.height):
-            for x in range(args.x, args.x + args.width):
-                rgb = pixel_at(image, x, y)
-                pixels.append({"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)})
+        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
+            x = args.x + index % args.width
+            y = args.y + index // args.width
+            pixels.append({"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)})
         print(json.dumps({
             "image": args.image,
             "image_width": width,
@@ -326,10 +332,10 @@ def main(argv: list[str] | None = None) -> int:
 
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-    for y in range(args.y, args.y + args.height):
-        for x in range(args.x, args.x + args.width):
-            r, g, b = pixel_at(image, x, y)
-            print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}")
+    for index, (r, g, b) in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
+        x = args.x + index % args.width
+        y = args.y + index // args.width
+        print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}")
     return 0
 
 
