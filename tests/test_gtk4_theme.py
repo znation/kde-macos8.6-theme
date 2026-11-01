@@ -459,6 +459,18 @@ for radio in (False, True):
             for ordinary in ("link:visited", "link:hover", "link:active"):
                 self.assertGreater(css.index(selector), css.index(ordinary), selector)
 
+    def test_selected_ancestor_inline_link_foregrounds(self):
+        roots = (":selected link:not(:disabled)", ":selected link:visited:not(:disabled)")
+        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        css = strip_comments(self.css)
+        selected_links = css.index("link:selected:not(:disabled)")
+        for selector in selectors:
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assert_rule(selector, {"color": TEXT_SELECTION["color"]})
+            for earlier in ("link:visited", "link:hover", "link:active"):
+                self.assertGreater(css.index(selector), css.index(earlier), selector)
+            self.assertGreater(css.index(selector), selected_links, selector)
+
     def test_link_button_follows_the_button_state_rules(self):
         # button.link ties button:hover and :active on specificity, so only
         # coming later keeps the link button faceless while hovered or pressed.

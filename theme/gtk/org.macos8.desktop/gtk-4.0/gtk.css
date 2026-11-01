@@ -2616,3 +2616,16 @@ link:visited:selected:not(:disabled):hover,
 link:visited:selected:not(:disabled):active {
   color: #000000;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows inline links
+   inside a selected GTK node. Reuse [Colors:Selection] ForegroundNormal.
+   GTK 4.18.6's Default-light.css resource (source in docs/invariants.md)
+   supplies the selected-ancestor descendant state spellings. */
+:selected link:not(:disabled),
+:selected link:not(:disabled):hover,
+:selected link:not(:disabled):active,
+:selected link:visited:not(:disabled),
+:selected link:visited:not(:disabled):hover,
+:selected link:visited:not(:disabled):active {
+  color: #000000;
+}
