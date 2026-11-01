@@ -313,12 +313,15 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # button.flat…` arms at the sheet tail (pinned by
             # test_selected_row_button_arms), prefixed like the overlay
             # arms, so the sweep keeps to the overlay bands still by
-            # keeping only the named prefix sets.
+            # keeping only the named prefix sets. 2026-10-31: the notebook
+            # tab-close restatements (pinned by
+            # test_notebook_tab_close_button_arms) get their own exclusion.
             {selector
              for selector in self.rules
              if "button" in selector and "flat" in selector
              and not selector.startswith("button")
-             and not selector.startswith("row:selected button")},
+             and not selector.startswith("row:selected button")
+             and not selector.startswith("notebook > header tab")},
             enumerated | {".osd .scale-popup button.flat"},
         )
 

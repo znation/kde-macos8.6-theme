@@ -2504,3 +2504,16 @@ columnview.view:disabled:selected:backdrop,
 treeview.view:disabled:selected:backdrop {
   color: #888888;
 }
+
+/* 2026-10-31: libgtk-4 4.18.6 tab-close ink from its bundled GTK resource
+ * (full resource path in docs/invariants.md); no reference screenshot shows
+ * this control. Reuse the landed black label and insensitive grey. */
+notebook > header > tabs > tab button.flat,
+notebook > header > tabs > tab button.flat:backdrop {
+  color: #000000;
+}
+
+notebook > header > tabs > tab button.flat:disabled,
+notebook > header > tabs > tab button.flat:backdrop:disabled {
+  color: #888888;
+}

@@ -868,6 +868,18 @@ for radio in (False, True):
             "notebook > header > tabs > tab:checked"
         )
 
+    def test_notebook_tab_close_button_arms(self):
+        for selector in (
+            "notebook > header > tabs > tab button.flat",
+            "notebook > header > tabs > tab button.flat:backdrop",
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+        for selector in (
+            "notebook > header > tabs > tab button.flat:disabled",
+            "notebook > header > tabs > tab button.flat:backdrop:disabled",
+        ):
+            self.assert_rule(selector, {"color": DISABLED_TEXT["color"]})
+
     def test_notebook_focus_outline_color(self):
         self.assert_scale_focus_outline(
             "notebook:focus:focus-visible > header > tabs > tab:checked"

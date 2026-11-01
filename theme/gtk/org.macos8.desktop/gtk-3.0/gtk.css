@@ -3407,3 +3407,16 @@ flowbox flowboxchild:backdrop:disabled:selected,
 treeview.view:disabled:selected:backdrop {
   color: #888888;
 }
+
+/* 2026-10-31: libgtk-3 3.24.49 tab-close ink from its bundled GTK resource
+ * (full resource path in docs/invariants.md); no reference screenshot shows
+ * this control. Reuse the landed black label and insensitive grey. */
+notebook > header tab button.flat,
+notebook > header tab button.flat:backdrop {
+  color: #000000;
+}
+
+notebook > header tab button.flat:disabled,
+notebook > header tab button.flat:backdrop:disabled {
+  color: #888888;
+}

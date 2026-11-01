@@ -142,6 +142,18 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {"background-color": FACE, "border": f"1px solid {BLACK}"},
         )
 
+    def test_notebook_tab_close_button_arms(self):
+        for selector in (
+            "notebook > header tab button.flat",
+            "notebook > header tab button.flat:backdrop",
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+        for selector in (
+            "notebook > header tab button.flat:disabled",
+            "notebook > header tab button.flat:backdrop:disabled",
+        ):
+            self.assert_rule(selector, {"color": DISABLED_TEXT["color"]})
+
     def test_notebook_tab_focus_outline(self):
         self.assert_dotted_focus_outline("notebook > header > tabs > tab:focus")
 
