@@ -182,6 +182,30 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_only_dialog_renders_add_kdeglobals_to_the_session_configs(self):
+        # Dialog clients are Qt applications, so the scratch session must
+        # apply the global theme defaults that select Kvantum. The applet
+        # render deliberately writes only the window-decoration configs.
+        self.stub("kdialog", "exit 0")
+        with mock.patch.object(
+            render_workflow, "write_session_configs"
+        ) as write_configs, mock.patch.object(
+            render_workflow, "run_logged", return_value=1
+        ):
+            status, _, _ = self.run_main()
+            self.assertEqual(1, status)
+            applet_files = write_configs.call_args.kwargs["files"]
+
+            status, _, _ = self.run_main("--checkbox-dialog")
+            self.assertEqual(1, status)
+            dialog_files = write_configs.call_args.kwargs["files"]
+
+        self.assertEqual(render_session.CONFIG_FILES, applet_files)
+        self.assertEqual(
+            render_session.CONFIG_FILES + ("kdeglobals",), dialog_files
+        )
+        self.assert_scratch_removed()
+
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         # The scratch session is created before the install starts. Creating it
         # can fail (a full or unwritable TMPDIR) before there is anything to
