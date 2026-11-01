@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 inline link interactions: retain scheme colours on hover and press (planned 2026-10-31 by the plan role; independent of the queued generic view-selection plan) — done 2026-10-31 by the feature role
+
+**Goal.** Keep ordinary GTK 4 inline links blue while hovered or pressed, retain visited purple, and give disabled links inactive grey. Link-button children and selection-context links are outside scope.
+
+**Implementation.** Added the GTK 4 hover/active blue and disabled grey arms, with visited precedence preserved by source order. Added declaration and ordering coverage beside `test_links`, and documented the missing reference surface, stock state spellings and scheme roles in `docs/invariants.md`.
+
+**Acceptance.** Tests pin the interaction declarations, disabled scheme-derived grey and cascade order. Coverage describes declarations and source order, not rendered pixels or selection-context links. `make check`.
+
 ### Platinum GTK 4 generic view selection: replace the class-only stock selection paint (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give selected GTK 4 nodes carrying the generic `view` class the landed lavender selection, square corners and black enabled ink, with inactive grey when disabled. The named icon-view, tree-view and column-view rules already cover their own nodes; this closes the generic class fallback through the supported user-CSS import.

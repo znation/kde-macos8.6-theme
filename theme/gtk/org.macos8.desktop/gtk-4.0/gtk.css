@@ -1423,8 +1423,16 @@ link, button.link > label {
   color: #0000EE;
   text-decoration: underline;
 }
+/* No collected reference shows inline-link interaction states. Reuse the
+   scheme's link colours and inactive-text grey (2026-10-31). */
+link:hover, link:active {
+  color: #0000EE;
+}
 link:visited, button.link:visited > label {
   color: #551A8B;
+}
+link:disabled {
+  color: #888888;
 }
 
 /* No GTK calendar appears in the reference; marked days reuse the opaque

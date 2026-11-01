@@ -423,6 +423,19 @@ for radio in (False, True):
             {"text-decoration": "underline"},
         )
 
+    def test_inline_link_interaction_colours(self):
+        css = strip_comments(self.css)
+        self.assert_rule("link:hover", {"color": LINK})
+        self.assert_rule("link:active", {"color": LINK})
+        self.assert_disabled_text(("link:disabled",))
+        hover = css.index("link:hover")
+        active = css.index("link:active")
+        visited = css.index("link:visited")
+        disabled = css.index("link:disabled")
+        self.assertLess(hover, visited)
+        self.assertLess(active, visited)
+        self.assertGreater(disabled, visited)
+
     def test_link_button_follows_the_button_state_rules(self):
         # button.link ties button:hover and :active on specificity, so only
         # coming later keeps the link button faceless while hovered or pressed.
