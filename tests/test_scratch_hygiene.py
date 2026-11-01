@@ -88,6 +88,21 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 [(leak_name, b"/tmp/tumwater-run-example/tmp.work\n")],
             )
 
+    def test_scan_finds_scratch_path_without_a_trailing_newline(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            leak_name = "leak"
+            with open(os.path.join(directory, leak_name), "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/tmp.work")
+            subprocess.run(["git", "-C", directory, "add", leak_name], check=True)
+
+            self.assertEqual(
+                tracked_run_scratch_files(directory),
+                [(leak_name, b"/tmp/tumwater-run-example/tmp.work")],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
