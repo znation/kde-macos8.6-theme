@@ -92,7 +92,7 @@ def _rgb_argument(value: str) -> tuple[int, int, int]:
     digits = value[1:] if value.startswith("#") else value
     if not re.fullmatch(r"[0-9A-Fa-f]{6}", digits, flags=re.ASCII):
         raise argparse.ArgumentTypeError(
-            "expected six hexadecimal digits, optionally prefixed by #"
+            f"expected six hexadecimal digits, optionally prefixed by #: {value!r}"
         )
     return tuple(int(digits[i:i + 2], 16) for i in (0, 2, 4))
 

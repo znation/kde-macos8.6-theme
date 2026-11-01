@@ -68,6 +68,7 @@ class TestSampleFindColor(CliTestCase):
             conflict = self._run(path, "0", "0", "--find-color", "010203", "--runs")
         self._assert_usage_error(outside, "outside")
         self._assert_usage_error(malformed, "six hexadecimal digits")
+        self.assertIn("'xyz'", malformed.stderr)
         self._assert_usage_error(conflict)
         _, data = solid_rgb(1, 1)
         root, link = symlinked_repo(self._tmp_dir(), "reference.png", data)
