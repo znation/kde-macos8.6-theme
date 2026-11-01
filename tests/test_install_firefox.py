@@ -21,7 +21,13 @@ from support import containment, snippet_child
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.firefox_profile_case import FirefoxProfileTestCase
-from tools import file_lock, firefox_user_files, firefox_user_js, install_firefox
+from tools import (
+    file_lock,
+    firefox_profile_actions,
+    firefox_user_files,
+    firefox_user_js,
+    install_firefox,
+)
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
@@ -593,11 +599,11 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_missing_shipped_sheet_is_reported_by_path(self):
-        # _apply reads the shipped userChrome.css before touching the profile
+        # apply_profile reads the shipped userChrome.css before touching the profile
         # and promises a by-name "cannot read" error rather than a traceback
         # when the source tree is incomplete. Point ROOT at a tree with no
         # theme/ directory; neither profile file may be written.
-        with mock.patch.object(install_firefox, "ROOT", self.root):
+        with mock.patch.object(firefox_profile_actions, "ROOT", self.root):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         sheet = self.root / install_firefox.SHEET
@@ -607,10 +613,10 @@ class TestInstall(FirefoxProfileTestCase):
 
     def test_a_shipped_sheet_that_is_a_directory_is_reported_by_path(self):
         # The shared regular-file reader refuses a directory with a
-        # ValueError; _apply must wrap that in the same by-name diagnostic.
+        # ValueError; apply_profile must wrap that in the same by-name diagnostic.
         sheet = self.root / install_firefox.SHEET
         sheet.mkdir(parents=True)
-        with mock.patch.object(install_firefox, "ROOT", self.root):
+        with mock.patch.object(firefox_profile_actions, "ROOT", self.root):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot read {sheet}", result.stderr)

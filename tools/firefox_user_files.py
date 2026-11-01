@@ -13,7 +13,7 @@ a bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. Profile
 discovery lives in ``tools/firefox_profile.py``, the ``user.js`` marker-block
 transform in ``tools/firefox_user_js.py``, transaction recovery in
 ``tools/firefox_transaction.py`` and install/remove policy in
-``tools/install_firefox.py``.
+``tools/firefox_profile_actions.py``.
 """
 
 from __future__ import annotations
