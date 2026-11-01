@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split the reference-pixel sampler's CLI mode handlers (planned 2026-11-01 by the organize role) — done 2026-11-01 by the feature role
+
+**Goal and evidence.** Reduce the responsibility concentrated in `tools/sample.py::main`, the largest executable Python module at 337 lines. Its single function currently parses five output modes and contains the independent run, histogram, exact-color lookup, JSON-pixel and plain-text report handlers alongside path containment, bounds validation and PNG loading. The reporting branches dominate the function and make each mode's output logic harder to inspect in isolation.
+
+**Target structure.** Keep `tools/sample.py` as the script entry point and orchestration layer for argument dispatch, repository containment, bounds checks and bounded PNG loading. Move parser construction and its argument validators to `tools/sample_arguments.py`; move the run, histogram, exact-color, JSON-pixel and plain-text report handlers (including `_hex` and `_color_runs`) to `tools/sample_reports.py`. Pass parsed arguments and the validated image dimensions/decoded image explicitly to report functions; keep image reads, diagnostics and exit-status decisions in the entry point. Preserve both package imports (`from tools import sample`) and direct execution (`python3 tools/sample.py`) without introducing a generic import shim.
+
+**Files and acceptance criteria.** Update `tools/sample.py`, add `tools/sample_arguments.py` and `tools/sample_reports.py`, and update sampler coverage in `tests/test_sample_cli.py`, `tests/test_sample_histogram.py`, `tests/test_sample_runs.py` and `tests/test_sample_find_color.py` only where imports or seams change. README.md and `docs/invariants.md` need no content change because the CLI contract and guarantees do not change. Existing CLI behavior, output ordering, validation-before-read behavior, bounded PNG decoding, diagnostics and exit statuses remain unchanged. Package and direct-script invocation both work; `make check` passes.
+
 ### Fidelity diagnostics: locate ranked mismatches in both source images (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make ranked mismatches directly usable for reference sampling and render inspection when the two crops have different origins. Inspected `tools/fidelity_pixels.py::worst_pixels`, `tools/fidelity.py::main` and `_explain_worst_pixel`, and `tests/test_fidelity_pixels.py::TestWorstPixelsCli`: ranked records expose crop-relative `x`/`y`, whereas the single-pixel explanation already translates to both source images. Searches of the implementation and related planned/finished fidelity headings found no source-coordinate support for the ranked list. This is independent of the waiting histogram plan.

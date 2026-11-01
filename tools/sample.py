@@ -1,178 +1,49 @@
-"""Print the RGB and hex value of one pixel in a reference screenshot.
-
-The reference screenshots are the source of truth for the theme's palette and
-metrics, so each palette or metric value is pinned by reading a pixel from
-one. This tool makes that sampling a command: it reads the image through
-``tools/png/loader.py`` so the same LFS-aware ``read_png`` and bounds-checked
-``pixel_at`` apply, decoding only the rows through the sampled rectangle, then
-prints the pixel in the two forms the theme files use -- the ``R,G,B`` triple
-copied into a ``.colors`` file and the ``#RRGGBB`` literal copied into an SVG
-or QML file. ``--width``/``--height`` extend that
-from one pixel to a rectangle (default 1x1), printed row-major, so grounding a
-title bar's column or a widget's box takes one command instead of one per
-pixel. The header is read first and the requested pixel or region is validated
-against the declared size, so an out-of-bounds request never reaches the row
-decoder; only the rows through a valid rectangle are decoded, and the full
-height printed in the header comes from ``read_png_size``. An image path
-inside the repository is checked through the shared containment guard, so a
-checked-in symlink that escapes the repository is refused instead of sampling
-a private image's pixels.
-
-Exit status: 0 on success (and for ``--help``/``-h``), 2 for a usage error, a
-missing or unreadable PNG, a repository image path that resolves outside the
-repository, or a coordinate or region outside the image.
-"""
+"""Sample RGB pixels and regions from reference PNG files."""
 
 from __future__ import annotations
 
-import argparse
-import json
 import os
-import re
-from collections import Counter
 from pathlib import Path
-
 import sys
 
 if __package__:
-    from tools.argument_parsing import (
-        EscapingArgumentParser,
-        plain_number,
-        positive_int,
-    )
     from tools.containment import resolves_within
     from tools.diagnostics import report_error
-    from tools.png import PngError, pixel_at, read_png, read_png_size
+    from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
+    from tools.sample_arguments import build_parser
+    from tools.sample_reports import report
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
-    from argument_parsing import (
-        EscapingArgumentParser,
-        plain_number,
-        positive_int,
-    )
     from containment import resolves_within
     from diagnostics import report_error
-    from png import PngError, pixel_at, read_png, read_png_size
+    from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
+    from sample_arguments import build_parser
+    from sample_reports import report
     from terminal import escape_controls
 
 
-def _hex(rgb: tuple[int, int, int]) -> str:
-    """Return the ``#RRGGBB`` form of *rgb*, zero-padding each channel."""
-    return "#{:02X}{:02X}{:02X}".format(*rgb)
-
-
-def _region_pixels(image, x: int, y: int, width: int, height: int):
-    """Yield RGB tuples from a region already checked against the image."""
-    rgb = image.rgb
-    image_width = image.width
-    for row in range(y, y + height):
-        offset = (row * image_width + x) * 3
-        for offset in range(offset, offset + width * 3, 3):
-            yield (rgb[offset], rgb[offset + 1], rgb[offset + 2])
-
-
-def _color_runs(image, x: int, y: int, width: int, height: int):
-    """Group adjacent RGB pixels in a one-dimensional sampled region."""
-    horizontal = height == 1
-    length = width if horizontal else height
-    segments = []
-    for offset, rgb in enumerate(_region_pixels(image, x, y, width, height)):
-        px, py = (x + offset, y) if horizontal else (x, y + offset)
-        if segments and segments[-1]["rgb"] == rgb:
-            segments[-1]["length"] += 1
-        else:
-            segments.append({"x": px, "y": py, "length": 1, "rgb": rgb})
-    return ("horizontal" if horizontal else "vertical"), segments
-
-
-def _rgb_argument(value: str) -> tuple[int, int, int]:
-    """Parse a six-digit RGB color, optionally prefixed by ``#``."""
-    digits = value[1:] if value.startswith("#") else value
-    if not re.fullmatch(r"[0-9A-Fa-f]{6}", digits, flags=re.ASCII):
-        raise argparse.ArgumentTypeError(
-            f"expected six hexadecimal digits, optionally prefixed by #: {value!r}"
-        )
-    return tuple(int(digits[i:i + 2], 16) for i in (0, 2, 4))
-
-
 def main(argv: list[str] | None = None) -> int:
-    """Run the sampling CLI; *argv* is the argument list without a program name.
-
-    Following ``argparse`` and the sibling ``tools/fidelity.py``, ``None``
-    reads ``sys.argv``.
-    """
-    parser = EscapingArgumentParser(
-        prog="sample",
-        description="Print a reference screenshot pixel's RGB and hex value.",
-        epilog="exit status: 0 on success, 2 usage or read error",
-    )
-    parser.add_argument("image", help="reference image (PNG)")
-    parser.add_argument(
-        "x",
-        type=lambda value: plain_number(value, "x", "integer", "an", int),
-        help="pixel column",
-    )
-    parser.add_argument(
-        "y",
-        type=lambda value: plain_number(value, "y", "integer", "an", int),
-        help="pixel row",
-    )
-    parser.add_argument(
-        "--width",
-        type=positive_int("--width"),
-        default=1,
-        metavar="W",
-        help="pixels to sample to the right of x (default 1)",
-    )
-    parser.add_argument(
-        "--height",
-        type=positive_int("--height"),
-        default=1,
-        metavar="H",
-        help="pixels to sample below y (default 1)",
-    )
-    parser.add_argument("--json", action="store_true", help="print structured JSON")
-    parser.add_argument(
-        "--top-colors", type=positive_int("--top-colors"), metavar="N",
-        help="with --histogram, show only the N most frequent colors",
-    )
-    modes = parser.add_mutually_exclusive_group()
-    modes.add_argument(
-        "--histogram", action="store_true", help="count RGB colors in the sampled region"
-    )
-    modes.add_argument(
-        "--runs", action="store_true", help="group adjacent RGB colors along one row or column"
-    )
-    modes.add_argument(
-        "--find-color", type=_rgb_argument, metavar="RRGGBB",
-        help="locate an exact RGB color in the sampled region",
-    )
-    args = parser.parse_args(argv)
-
+    """Validate and load the requested region, then dispatch its report."""
+    args = build_parser().parse_args(argv)
     if args.top_colors is not None and not args.histogram:
         return report_error("sample", "--top-colors requires --histogram")
-
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
 
-    # The documented workflow samples a name in the contributor-supplied
-    # reference directory. A checked-in link that escapes the repository
-    # could expose a private image through its pixels, so refuse it before
-    # either read. Include checkout aliases when recognizing repository paths.
-    image = Path(os.path.join(os.getcwd(), args.image))
-    for ancestor in (image, *image.parents):
+    # A checked-in link that escapes the repository could expose a private
+    # image through its pixels, so refuse it before either read.
+    image_path = Path(os.path.join(os.getcwd(), args.image))
+    for ancestor in (image_path, *image_path.parents):
         try:
             in_repo = os.path.samefile(ancestor, ROOT)
         except OSError:
             continue
         if in_repo:
-            if not resolves_within(ROOT, image):
+            if not resolves_within(ROOT, image_path):
                 return report_error(
-                    "sample",
-                    f"{args.image} resolves outside {ROOT} (a symlink "
-                    "escape); refusing to read it",
+                    "sample", f"{args.image} resolves outside {ROOT} (a symlink escape); refusing to read it"
                 )
             break
 
@@ -181,161 +52,20 @@ def main(argv: list[str] | None = None) -> int:
     except PngError as exc:
         return report_error("sample", str(exc))
 
-    header = f"image: {escape_controls(args.image)}  {width}x{height}"
     if args.width == 1 and args.height == 1:
-        # Validate the coordinate against the size the header declares before
-        # calling the row decoder; the message matches pixel_at's out-of-image
-        # diagnostic.
         if not (0 <= args.x < width and 0 <= args.y < height):
-            return report_error(
-                "sample",
-                f"pixel ({args.x}, {args.y}) is outside the "
-                f"{width}x{height} image",
-            )
-    # Validate the whole rectangle before sampling any pixel: a region whose
-    # origin is negative or that runs past the right or bottom edge must
-    # produce one region diagnostic, not a pixel diagnostic for its origin and
-    # not a partial dump followed by pixel_at's error on a later coordinate.
-    elif (
-        args.x < 0
-        or args.y < 0
-        or args.x + args.width > width
-        or args.y + args.height > height
-    ):
+            return report_error("sample", f"pixel ({args.x}, {args.y}) is outside the {width}x{height} image")
+    elif (args.x < 0 or args.y < 0 or args.x + args.width > width or args.y + args.height > height):
         return report_error(
-            "sample",
-            f"region ({args.x}, {args.y}) "
-            f"{args.width}x{args.height} is outside the "
-            f"{width}x{height} image",
+            "sample", f"region ({args.x}, {args.y}) {args.width}x{args.height} is outside the {width}x{height} image"
         )
 
     try:
-        # Decode only through the rectangle's bottom row; the sampled pixels
-        # are all in the top y+height rows, so the rest of a large reference
-        # need not be unfiltered. The validation above guarantees y is
-        # non-negative, so the bound is at least one row.
         image = read_png(args.image, max_rows=args.y + args.height)
     except PngError as exc:
         return report_error("sample", str(exc))
-
-    if args.runs:
-        axis, runs = _color_runs(image, args.x, args.y, args.width, args.height)
-        if args.json:
-            print(json.dumps({
-                "image": args.image,
-                "image_width": width,
-                "image_height": height,
-                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
-                "axis": axis,
-                "runs": [
-                    {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])}
-                    for run in runs
-                ],
-            }, ensure_ascii=True))
-            return 0
-        print(header)
-        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-        print(f"axis: {axis}")
-        for run in runs:
-            rgb = run["rgb"]
-            print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}")
-        return 0
-
-    if args.histogram:
-        counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
-        colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
-        if args.top_colors is not None:
-            total_colors = len(colors)
-            colors = colors[:args.top_colors]
-            omitted_pixels = args.width * args.height - sum(count for _, count in colors)
-        if args.json:
-            result = {
-                "image": args.image,
-                "image_width": width,
-                "image_height": height,
-                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
-                "colors": [
-                    {"rgb": list(rgb), "hex": _hex(rgb), "count": count}
-                    for rgb, count in colors
-                ],
-            }
-            if args.top_colors is not None:
-                result["total_colors"] = total_colors
-                result["omitted_pixels"] = omitted_pixels
-            print(json.dumps(result, ensure_ascii=True))
-            return 0
-        print(header)
-        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-        for rgb, count in colors:
-            print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}")
-        if args.top_colors is not None:
-            print(f"total colors: {total_colors}")
-            print(f"omitted pixels: {omitted_pixels}")
-        return 0
-
-    if args.find_color is not None:
-        target = args.find_color
-        count = 0
-        min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
-        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-            x = args.x + index % args.width
-            y = args.y + index // args.width
-            if rgb == target:
-                count += 1
-                min_x, min_y = min(min_x, x), min(min_y, y)
-                max_x, max_y = max(max_x, x), max(max_y, y)
-        bounds = None if count == 0 else {
-            "x": min_x, "y": min_y,
-            "width": max_x - min_x + 1, "height": max_y - min_y + 1,
-        }
-        color_hex = _hex(target)
-        if args.json:
-            print(json.dumps({
-                "image": args.image,
-                "image_width": width,
-                "image_height": height,
-                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
-                "match": {"rgb": list(target), "hex": color_hex, "count": count, "bounds": bounds},
-            }, ensure_ascii=True))
-            return 0
-        print(header)
-        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-        print(f"color: {color_hex}")
-        print(f"count: {count}")
-        print("bounds: none" if bounds is None else
-              f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")
-        return 0
-
-    if args.json:
-        pixels = []
-        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-            x = args.x + index % args.width
-            y = args.y + index // args.width
-            pixels.append({"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)})
-        print(json.dumps({
-            "image": args.image,
-            "image_width": width,
-            "image_height": height,
-            "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
-            "pixels": pixels,
-        }, ensure_ascii=True))
-        return 0
-
-    if args.width == 1 and args.height == 1:
-        rgb = pixel_at(image, args.x, args.y)
-        print(header)
-        print(
-            f"pixel ({args.x}, {args.y}): "
-            f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}"
-        )
-        return 0
-
-    print(header)
-    print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-    for index, (r, g, b) in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-        x = args.x + index % args.width
-        y = args.y + index // args.width
-        print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}")
+    header = f"image: {escape_controls(args.image)}  {width}x{height}"
+    report(args, image, width, height, header)
     return 0
 
 
