@@ -128,6 +128,18 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("1 module, 1 worker", result.stdout)
         self.assertEqual(1, supervise.call_args.args[5])
 
+    def test_duration_cache_write_failure_does_not_fail_the_run(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        with (
+            mock.patch("tools.check_parallel._supervise", return_value={"test_ok": 0}),
+            mock.patch("tools.check_parallel.save_durations", side_effect=OSError("read-only")),
+            mock.patch("tools.check_parallel._print_results", return_value=0),
+        ):
+            result = self._run("--tests-dir", tests_dir)
+
+        self.assertEqual(0, result.returncode)
+        self.assertIn("could not record module durations for the next run: read-only", result.stderr)
+
     def test_an_unlistable_test_directory_exits_2_without_a_traceback(self):
         # Discovery reads a directory the coordinator does not control: a
         # subdirectory swept away or permission-locked between the isdir
