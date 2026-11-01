@@ -30,6 +30,22 @@ def tracked_files(root):
     return out.stdout.decode("utf-8", "surrogateescape").split("\0")
 
 
+def tracked_run_scratch_files(root):
+    """Return tracked top-level files whose first line names run scratch."""
+    offenders = []
+    for name in tracked_files(root):
+        if "/" in name:
+            continue
+        path = os.path.join(root, name)
+        if not os.path.isfile(path):
+            continue
+        with open(path, "rb") as fh:
+            first_line = fh.readline()
+        if first_line.startswith(b"/tmp/tumwater-run-"):
+            offenders.append((name, first_line))
+    return offenders
+
+
 class _TrackFailure(AssertionError):
     """A failure that names the one offending path, not the whole tree."""
 
@@ -43,19 +59,31 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
         # A top-level tracked file whose first line is a path into a per-run
         # scratch directory (tumwater's run scratch layout:
         # /tmp/tumwater-run-*/tmp.*) is bookkeeping that leaked into the tree.
-        for name in tracked_files(repo_root.ROOT):
-            if "/" in name:
-                continue
-            path = os.path.join(repo_root.ROOT, name)
-            if not os.path.isfile(path):
-                continue
-            with open(path, "rb") as fh:
-                first_line = fh.readline()
-            if first_line.startswith(b"/tmp/tumwater-run-"):
-                raise _TrackFailure(
-                    f"tracked top-level file {name!r} names a run scratch "
-                    f"dir: {first_line!r}"
-                )
+        for name, first_line in tracked_run_scratch_files(repo_root.ROOT):
+            raise _TrackFailure(
+                f"tracked top-level file {name!r} names a run scratch "
+                f"dir: {first_line!r}"
+            )
+
+    def test_scan_finds_matching_top_level_file_and_ignores_nested_file(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            os.makedirs(os.path.join(directory, "nested"))
+            with open(os.path.join(directory, "leak"), "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/tmp.work\nmore data\n")
+            with open(os.path.join(directory, "nested", "note"), "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/tmp.nested\n")
+            subprocess.run(
+                ["git", "-C", directory, "add", "leak", "nested/note"],
+                check=True,
+            )
+
+            self.assertEqual(
+                tracked_run_scratch_files(directory),
+                [("leak", b"/tmp/tumwater-run-example/tmp.work\n")],
+            )
 
 
 if __name__ == "__main__":
