@@ -31,6 +31,14 @@ _None yet._
 
 **Acceptance criteria.** Existing text and JSON output, crop reporting, optional diagnostics, threshold semantics, and exit codes remain unchanged. Direct-script invocation and package imports continue to work. Tests cover the report functions with explicit inputs, and the project check passes. No image decoding, comparison, or theme behavior moves into the report module.
 
+### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)
+
+**Goal and grounding.** Clarify ownership in `tools/apply_theme.py`: its required selection loop is part of applying the installed theme, while `_run_best_effort`, `_select_kvantum_theme` and `_reconfigure_kwin` each implement optional external integrations with distinct missing-tool and failure policies. Keeping the optional command policy beside orchestration obscures which failures can change the apply status.
+
+**Approach and files.** Keep `tools/apply_theme.py` responsible for CLI parsing, required selections, locking, scratch lifetime and exit status. Move `_run_best_effort`, `_select_kvantum_theme` and `_reconfigure_kwin` into a focused `tools/theme_apply_optional.py`, along with their optional tool constants and imports; expose one function that performs the optional selections in the existing Kvantum-then-KWin order. Preserve the current note wording, timeout/log names, return status and direct-script/package import behavior. Update `tests/test_apply_theme.py` and any direct helper references, then search source, tests and markdown for stale ownership references. Files: `tools/apply_theme.py`, new `tools/theme_apply_optional.py`, relevant apply tests, and `docs/invariants.md` only if the documented ownership needs correction.
+
+**Acceptance criteria.** The optional commands still run under the existing data-home lock and scratch directory, after all required selections; either optional tool being missing, failing to start, timing out or exiting nonzero remains a note and leaves apply status unchanged. Existing command order, arguments, diagnostics and log filenames remain the same. Unit coverage exercises the extracted boundary, direct-script and package imports work, and `make check` passes.
+
 ## Done
 
 ### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role)
