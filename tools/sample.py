@@ -61,6 +61,21 @@ def _hex(rgb: tuple[int, int, int]) -> str:
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 
+def _color_runs(image, x: int, y: int, width: int, height: int):
+    """Group adjacent RGB pixels in a one-dimensional sampled region."""
+    horizontal = height == 1
+    length = width if horizontal else height
+    segments = []
+    for offset in range(length):
+        px, py = (x + offset, y) if horizontal else (x, y + offset)
+        rgb = pixel_at(image, px, py)
+        if segments and segments[-1]["rgb"] == rgb:
+            segments[-1]["length"] += 1
+        else:
+            segments.append({"x": px, "y": py, "length": 1, "rgb": rgb})
+    return ("horizontal" if horizontal else "vertical"), segments
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the sampling CLI; *argv* is the argument list without a program name.
 
@@ -98,10 +113,17 @@ def main(argv: list[str] | None = None) -> int:
         help="pixels to sample below y (default 1)",
     )
     parser.add_argument("--json", action="store_true", help="print structured JSON")
-    parser.add_argument(
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument(
         "--histogram", action="store_true", help="count RGB colors in the sampled region"
     )
+    modes.add_argument(
+        "--runs", action="store_true", help="group adjacent RGB colors along one row or column"
+    )
     args = parser.parse_args(argv)
+
+    if args.runs and args.width > 1 and args.height > 1:
+        return report_error("sample", "--runs requires a single row or column")
 
     # The documented workflow samples a name in the contributor-supplied
     # reference directory. A checked-in link that escapes the repository
@@ -163,6 +185,29 @@ def main(argv: list[str] | None = None) -> int:
         image = read_png(args.image, max_rows=args.y + args.height)
     except PngError as exc:
         return report_error("sample", str(exc))
+
+    if args.runs:
+        axis, runs = _color_runs(image, args.x, args.y, args.width, args.height)
+        if args.json:
+            print(json.dumps({
+                "image": args.image,
+                "image_width": width,
+                "image_height": height,
+                "region": {"x": args.x, "y": args.y, "width": args.width, "height": args.height},
+                "axis": axis,
+                "runs": [
+                    {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])}
+                    for run in runs
+                ],
+            }, ensure_ascii=True))
+            return 0
+        print(header)
+        print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+        print(f"axis: {axis}")
+        for run in runs:
+            rgb = run["rgb"]
+            print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}")
+        return 0
 
     if args.histogram:
         counts = Counter(

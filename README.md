@@ -418,6 +418,23 @@ $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 3 
 {"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":3,"height":2},"colors":[{"rgb":[99,99,156],"hex":"#63639C","count":6}]}
 ```
 
+Pass `--runs` to group adjacent equal RGB values along one row or column.
+With `--height 1` (the default), traversal is horizontal; otherwise use
+`--width 1` for a vertical scan. A two-dimensional region is rejected. Add
+`--json` to return the `axis` and traversal-ordered `runs`, each with its
+absolute starting coordinate, `length`, `rgb` and `hex`:
+
+```sh
+$ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --runs --json
+{"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":4,"height":1},"axis":"horizontal","runs":[{"x":5,"y":5,"length":4,"rgb":[99,99,156],"hex":"#63639C"}]}
+```
+
+Use `--height` for a vertical scan:
+
+```sh
+python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs
+```
+
 ## Fidelity checking
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
