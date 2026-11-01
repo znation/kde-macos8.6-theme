@@ -438,6 +438,32 @@ class TestRuleBlockSemantics(unittest.TestCase):
                         css = f"a {{ color: red !{separator}IMPORTANT{trailing}; color: blue; }}"
                         self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
 
+    def test_important_keyword_uses_ascii_case_folding(self):
+        for lookalike in ("\u0131", "\u0130"):
+            with self.subTest(lookalike=repr(lookalike)):
+                invalid = f"red !{lookalike}mportant"
+                self.assertEqual(parse_css(f"a {{ color: {invalid}; }}")[1]["a"]["color"], invalid)
+                self.assertEqual(
+                    parse_css(f"a {{ color: {invalid}; color: blue; }}")[1]["a"]["color"],
+                    "blue",
+                )
+                self.assertEqual(
+                    parse_css(f"a {{ color: {invalid}; }} a {{ color: blue; }}")[1]["a"]["color"],
+                    "blue",
+                )
+
+        for keyword in ("important", "IMPORTANT", "ImPoRtAnT"):
+            for separator in ("", " "):
+                for blocks in (False, True):
+                    with self.subTest(keyword=keyword, separator=separator, blocks=blocks):
+                        first = f"red !{separator}{keyword}{separator}"
+                        css = (
+                            f"a {{ color: {first}; }} a {{ color: blue; }}"
+                            if blocks
+                            else f"a {{ color: {first}; color: blue; }}"
+                        )
+                        self.assertEqual(parse_css(css)[1]["a"]["color"], first.strip())
+
     def test_important_scanner_ignores_strings_urls_and_escaped_bangs(self):
         css = (
             'a { x: red !important; y: blue; } '

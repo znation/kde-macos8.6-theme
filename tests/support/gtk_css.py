@@ -21,7 +21,9 @@ DEFINE_COLOR = re.compile(
     r"[ \t\n\r\f]+(?P<value>#[0-9A-Fa-f]{6})[ \t\n\r\f]*;"
 )
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
-_IMPORTANT_SUFFIX = re.compile(r"![ \t\n\r\f]*important[ \t\n\r\f]*\Z", re.IGNORECASE)
+_IMPORTANT_SUFFIX = re.compile(
+    r"![ \t\n\r\f]*important[ \t\n\r\f]*\Z", re.IGNORECASE | re.ASCII
+)
 _ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
 
 

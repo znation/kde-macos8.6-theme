@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: match priority keywords with ASCII case folding (planned 2026-11-01 by the plan role; independent of the waiting declaration-boundary trimming plan) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Prevent Unicode lookalikes from acquiring declaration priority in the GTK/Firefox test reader. Reproduced 2026-11-01: `parse_css('a { color: red !\u0131mportant; } a { color: blue; }')` retains red with the literal dotless-i suffix. `tests/support/gtk_css.py::_IMPORTANT_SUFFIX` uses Unicode `re.IGNORECASE`, while the CSS keyword requires ASCII case-insensitive matching. The finished priority-separator plan explicitly excludes Unicode case folding; the finished importance-precedence plan covers genuine mixed-case keywords. The waiting boundary plan touches a separate trim operation.
+
+**Approach and files.** Add `re.ASCII` alongside `re.IGNORECASE` to `_IMPORTANT_SUFFIX`, retaining its explicit CSS whitespace classes and `_is_important` scanner. In `tests/test_gtk_css.py::TestRuleBlockSemantics`, add a table-driven regression beside `test_important_priority_requires_css_whitespace` for U+0131 and U+0130 substituted for the initial `i`. Update the priority guarantee in `docs/invariants.md` with the test name and implementation date. This is one small three-file run; no shipped stylesheet, visual value, define-color parsing or general CSS validation changes.
+
+**Acceptance criteria.** Each Unicode spelling stays literal as a sole declaration and loses to a later ordinary declaration both within one block and across repeated selector blocks. ASCII `important`, `IMPORTANT` and mixed-case `ImPoRtAnT` retain priority in both block shapes, including a whitespace-separated suffix. Existing quoted, parenthesized, escaped-bang, tie-order and CSS-whitespace tests pass. Implement with the standard library and run `make check`. The waiting boundary-trimming plan can merge in either order.
+
 ### Shared stylesheet parser: preserve define-color text inside function values (planned 2026-11-01 by the plan role; independent of the waiting declaration-name folding plan) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Prevent the GTK/Firefox test reader from inventing definitions and deleting function contents. On 2026-11-01, `parse_css("a { --sample: fn(@define-color phantom #123456;); color: red; }")` returned a `phantom` definition and changed `--sample` to `fn()`. `tests/support/gtk_css.py::_define_color_matches` skipped quotes and escaped characters but had no parenthesis depth.
