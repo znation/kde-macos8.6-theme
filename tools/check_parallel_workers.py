@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import stat
 import subprocess
 import sys
 import time
@@ -25,6 +27,20 @@ else:
 # real spawn cost). The poll itself is one waitpid(WNOHANG), so a 10ms
 # interval costs no measurable CPU.
 _POLL_SECONDS = 0.01
+
+
+def _open_log(path: str):
+    """Open a worker log without blocking on a raced FIFO or device."""
+    descriptor = os.open(
+        path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NONBLOCK, 0o666
+    )
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise OSError(f"{path} is not a regular file")
+        return os.fdopen(descriptor, "wb")
+    except BaseException:
+        os.close(descriptor)
+        raise
 
 
 class _NeverStarted:
@@ -59,7 +75,7 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
     started = time.monotonic()
     process: subprocess.Popen | _NeverStarted = _NeverStarted()
     try:
-        with open(log_path, "wb") as sink:
+        with _open_log(log_path) as sink:
             deferred: list[int] = []
             previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
             previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
@@ -87,8 +103,8 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
         _reap(process)
         raise
     if exc is not None:
-        with open(log_path, "w", encoding="utf-8") as note:
-            note.write(f"check: the worker could not be started: {exc}\n")
+        with _open_log(log_path) as note:
+            note.write(f"check: the worker could not be started: {exc}\n".encode())
     return _Worker(module, log_path, process,
                    started + timeout, started)
 

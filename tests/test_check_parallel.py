@@ -384,6 +384,21 @@ class TestCoordinator(unittest.TestCase):
         )
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_fifo_worker_log_fails_without_blocking(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        fifo = make_tmp_dir(self) / "worker.log"
+        os.mkfifo(fifo)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            statuses = check_parallel_workers._supervise(
+                ["test_ok"], [sys.executable, "-m", "unittest", "-v"],
+                tests_dir, {"test_ok": str(fifo)}, 60, 1,
+            )
+        self.assertEqual({"test_ok": 1}, statuses)
+        self.assertTrue(stderr.getvalue().startswith(
+            "check: error: cannot open the worker log for test_ok: "
+        ))
+
     def test_modules_with_the_same_log_stem_get_distinct_logs(self):
         # A package's `test_a.test_b` module and a top-level
         # `test_a_test_b.py` both match the default pattern, and both dotted
@@ -825,7 +840,6 @@ class TestSpawnDefenses(unittest.TestCase):
 
     def test_log_close_failure_kills_a_started_worker(self):
         log_path = str(make_tmp_dir(self) / "spawn.log")
-        real_open = open
         processes = []
 
         class CloseFails:
@@ -846,12 +860,14 @@ class TestSpawnDefenses(unittest.TestCase):
             processes.append(process)
             return process
 
-        def failing_open(path, *args, **kwargs):
-            handle = real_open(path, *args, **kwargs)
-            return CloseFails(handle) if path == log_path else handle
+        real_fdopen = os.fdopen
+
+        def failing_fdopen(descriptor, *args, **kwargs):
+            handle = real_fdopen(descriptor, *args, **kwargs)
+            return CloseFails(handle) if descriptor else handle
 
         with (
-            mock.patch("builtins.open", side_effect=failing_open),
+            mock.patch.object(check_parallel_workers.os, "fdopen", side_effect=failing_fdopen),
             mock.patch.object(check_parallel_workers.subprocess, "Popen",
                               side_effect=capture_popen),
         ):
