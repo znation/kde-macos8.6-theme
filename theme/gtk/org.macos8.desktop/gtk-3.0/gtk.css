@@ -745,8 +745,12 @@ colorswatch.dark overlay:backdrop {
   color: #000000;
 }
 
-/* The drag-selection marquee is a dotted outline with no fill. */
-.rubberband, rubberband {
+/* No GTK selection-marquee reference is available. Keep the existing dotted
+ * outline adaptation for GTK 3's stock view-specific nodes (theme resource,
+ * inspected 2026-11-01), using the reference-grounded black outline. */
+.rubberband, rubberband,
+.content-view rubberband, .content-view .rubberband,
+treeview.view rubberband, flowbox rubberband {
   background-color: transparent;
   border: 1px dotted #000000;
 }

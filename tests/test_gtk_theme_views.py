@@ -209,10 +209,24 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assert_tab_faces(forms)
 
     def test_rubberband(self):
-        self.assert_rubberband((".rubberband", "rubberband"))
+        selectors = (
+            ".rubberband",
+            "rubberband",
+            ".content-view rubberband",
+            ".content-view .rubberband",
+            "treeview.view rubberband",
+            "flowbox rubberband",
+        )
+        self.assert_rubberband(selectors)
+        self.assertEqual(
+            {selector for selector in self.rules if "rubberband" in selector},
+            set(selectors),
+        )
         # A later .view rule would win the cascade again.
         self.assertGreater(
-            self.css.index(".rubberband, rubberband {"),
+            self.css.index(
+                ".rubberband, rubberband,\n.content-view rubberband,"
+            ),
             self.css.index(".view, textview text, list {"),
         )
 

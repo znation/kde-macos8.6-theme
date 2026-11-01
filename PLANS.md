@@ -5,9 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Platinum GTK 3 view-specific rubberband recipes (planned 2026-11-01 by the plan role; independent of the waiting GTK 4 view-specific rubberband plan)
+### Platinum GTK 3 view-specific rubberband recipes (planned 2026-11-01 by the plan role; independent of the waiting GTK 4 view-specific rubberband plan) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Extend the landed transparent, dotted-black marquee recipe to GTK 3's stock view-specific selector inventory. Inspected 2026-11-01: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` declares `.rubberband, rubberband`; `tests/test_gtk_theme_views.py::TestGtkThemeViews.test_rubberband` checks those two selectors and their position after the white `.view` rule. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` groups those selectors with `.content-view rubberband`, `.content-view .rubberband`, `treeview.view rubberband` and `flowbox rubberband`, using a solid blue border and translucent blue fill. Searches of Planned and the finished archive found the original bare-node/class rubberband plan and the waiting GTK 4 extension; neither specifies these four GTK 3 selectors. This is a declaration-coverage extension, not evidence of a rendered blue marquee or a claim about provider priority.
 
