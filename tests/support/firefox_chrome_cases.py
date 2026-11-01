@@ -877,6 +877,12 @@ class FirefoxChromeTestCase(
                 for value in self.rules[arm].values():
                     self.assertTrue(value.endswith("!important"))
 
+    def assert_rules_match_required(self, selectors):
+        """Assert each selector matches its shared declaration recipe."""
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+
     def assert_rule_only_has(self, selector, property_name):
         """Assert that *selector* declares only *property_name*."""
         self.assertEqual(set(self.rules[selector]), {property_name})

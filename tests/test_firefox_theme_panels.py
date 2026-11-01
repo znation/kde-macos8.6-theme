@@ -11,7 +11,6 @@ import unittest
 
 from support.firefox_chrome_cases import (
     BUTTON_REFERENCES,
-    REQUIRED_RULES,
     VIEWITEM_REFERENCES,
     FirefoxChromeTestCase,
 )
@@ -36,10 +35,9 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
              and "downloadsListBox" in name},
             {row, hover, selected},
         )
+        self.assert_rules_match_required((row, hover, selected))
         for selector in (row, hover, selected):
-            with self.subTest(selector=selector):
-                self.assertTrue(selector.startswith(row))
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+            self.assertTrue(selector.startswith(row))
         self.assertIn(":not([selected])", hover)
         self.assertIn(":hover", hover)
         self.assertEqual(self.rules[hover]["background-color"],
@@ -67,10 +65,9 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
                   or "footer-button" in name)},
             set(selectors),
         )
+        self.assert_rules_match_required(selectors)
         for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertTrue(selector.startswith("#downloadsPanel "))
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+            self.assertTrue(selector.startswith("#downloadsPanel "))
         for selector in normal:
             self.assertNotIn(":hover", selector)
             self.assertIn(":not([disabled])", selector)
@@ -213,9 +210,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
              if "allTabsMenu" in name or "all-tabs" in name},
             {row, button, hover, selected},
         )
-        for selector in (row, button, hover, selected):
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assert_rules_match_required((row, button, hover, selected))
         self.assert_token_scoped_to("--panel-menuitem-border-radius")
         self.assertIn(":not([selected])", hover)
         self.assertIn(":hover", hover)
@@ -235,10 +230,9 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             {name for name in self.rules if "appMenu" in name},
             {radius, hover},
         )
+        self.assert_rules_match_required((radius, hover))
         for selector in (radius, hover):
-            with self.subTest(selector=selector):
-                self.assertTrue(selector.startswith(radius))
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+            self.assertTrue(selector.startswith(radius))
         self.assertIn(":not([disabled])", hover)
         self.assertIn(":hover", hover)
         self.assertIn(":not(.panel-header .subviewbutton)", radius)
@@ -313,10 +307,9 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             {name for name in self.rules if "widget-overflow" in name},
             set(radius_rows + hover_rows),
         )
+        self.assert_rules_match_required(radius_rows + hover_rows)
         for selector in radius_rows + hover_rows:
-            with self.subTest(selector=selector):
-                self.assertTrue(selector.startswith("#widget-overflow"))
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+            self.assertTrue(selector.startswith("#widget-overflow"))
         for selector in radius_rows:
             self.assert_rule_only_has(selector, "border-radius")
         for selector in hover_rows:
@@ -406,10 +399,9 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             {name for name in self.rules if "unified-extensions" in name},
             set(selectors),
         )
+        self.assert_rules_match_required(selectors)
         for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertTrue(selector.startswith("#unified-extensions-panel"))
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+            self.assertTrue(selector.startswith("#unified-extensions-panel"))
         self.assert_rule_only_has(radius, "border-radius")
         self.assertEqual(set(self.rules[gear_hover]), {"box-shadow"})
         self.assertIn(":hover", hover)
@@ -536,9 +528,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             {name for name in self.rules if "editBookmark" in name},
             set(selectors),
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assert_rules_match_required(selectors)
         for selector in field_selectors + normal_selectors:
             self.assertNotIn(":hover", selector)
         for selector in hover_selectors:
