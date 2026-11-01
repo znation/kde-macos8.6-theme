@@ -7,6 +7,18 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+### Declare the project's deterministic check
+
+(planned 2026-11-01 by the plan role; restore the declaration requested in the finished 2026-10-25 plan)
+
+**Declares the project check**
+
+**Goal and grounding.** Resolve this run's explicit no-check alert by registering the existing `make check` command. README.md's Development team section and the archived declaration plan describe an earlier request, but do not establish the current live configuration. The worktree has no `.tumwater-config-request.json`, and no `package.json` was found on its ancestor chain, so use `check.command`. `Makefile`'s `check` target now defaults to `tools/check_parallel.py`, with serial unittest discovery available through `CHECK_PARALLEL=0`; `tests/test_make_check.py::TestCheckPattern.test_default_pattern_runs_every_test_module` pins the default discovery pattern. This is a declaration restoration, not a new test runner.
+
+**Approach and files touched.** Add the worktree-root `.tumwater-config-request.json` containing `{"check":{"command":"make check"}}`, using the request lifecycle already documented in README.md. Update that section to record the renewed request dated 2026-11-01 without claiming it is applied before merge. Do not edit `tumwater.json` or operate on the primary checkout. Reuse the existing Makefile and test coverage; no implementation or test-runner changes are needed. Move this entry to Done when the request is prepared, distinguishing request validation from post-merge confirmation.
+
+**Acceptance criteria.** The request parses as JSON and declares `check.command` as exactly `make check`. Run `make check` after the final edits with `CHECK_PATTERN` and `CHECK_TESTS` overrides unset, record its exit status, and require success. After merge applies the request, verify `tumwater doctor check --json` reports the `check` row as `ok` and `tumwater status --json` has no `noDeclaredCheck` alert (the no-check alert is gone). Record post-merge confirmation separately; a passing suite or an archived request alone is not evidence that the live declaration took effect. Keep `make check-references` separate as documented.
+
 ## Done
 
 ### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan)
