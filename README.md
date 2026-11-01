@@ -205,8 +205,9 @@ uninstall` removes the eight default artifacts and the thirteen opt-in GTK files
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their
-hidden `.staging`/`.old` leftovers and the emptied GTK directories, and never edits the
-user's configuration: if the removed scheme is still
+hidden `.staging`/`.old` leftovers and the emptied GTK directories; it refuses to run if a fixed
+install destination parent is a symlink. It never edits the user's configuration: if the removed
+scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
 it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
