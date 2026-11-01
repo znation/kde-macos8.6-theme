@@ -536,6 +536,35 @@ class TestRuleBlockSemantics(unittest.TestCase):
                     ),
                 )
 
+    def test_a_define_color_inside_function_values_is_text(self):
+        text = "a { --sample: fn(inner(@define-color phantom #123456;)); color: red; }"
+        self.assertEqual(
+            parse_css(text),
+            (
+                {},
+                {"a": {"--sample": "fn(inner(@define-color phantom #123456;))", "color": "red"}},
+                ["a"],
+            ),
+        )
+
+    def test_define_color_scan_tracks_function_parentheses(self):
+        text = (
+            'a { content: fn("(", \\) @define-color hidden #111111; '
+            '@define-color also_hidden #333333;); }\n'
+            "@define-color shown #222222;"
+        )
+        self.assertEqual(
+            [match.group("name") for match in _define_color_matches(text)],
+            ["shown"],
+        )
+        self.assertEqual(
+            [
+                match.group("name")
+                for match in _define_color_matches(") @define-color shown #222222;")
+            ],
+            ["shown"],
+        )
+
 
 class TestHostileStylesheet(unittest.TestCase):
     def test_comment_scanning_finishes_promptly(self):

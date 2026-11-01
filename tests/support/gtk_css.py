@@ -59,10 +59,12 @@ def _define_color_matches(text):
     definition: the colour was invented and its text was then removed from
     inside the string. A quoted string is a token here, as it is for the
     comment and block scanners, and a backslash keeps the character after it
-    inside the string.
+    inside the string. Function contents are also tokens: definitions inside
+    balanced parentheses remain part of the surrounding value.
     """
     index = 0
     quote = None
+    depth = 0
     while index < len(text):
         char = text[index]
         if char == "\\":
@@ -77,7 +79,11 @@ def _define_color_matches(text):
             quote = char
             index += 1
             continue
-        if char == "@":
+        if char == "(":
+            depth += 1
+        elif char == ")" and depth:
+            depth -= 1
+        elif char == "@" and depth == 0:
             match = DEFINE_COLOR.match(text, index)
             if match is not None:
                 yield match

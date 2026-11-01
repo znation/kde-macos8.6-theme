@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Shared stylesheet parser: preserve define-color text inside function values (planned 2026-11-01 by the plan role; independent of the waiting declaration-name folding plan) — done 2026-11-01 by the feature role
+
+**Goal and grounding.** Prevent the GTK/Firefox test reader from inventing definitions and deleting function contents. On 2026-11-01, `parse_css("a { --sample: fn(@define-color phantom #123456;); color: red; }")` returned a `phantom` definition and changed `--sample` to `fn()`. `tests/support/gtk_css.py::_define_color_matches` skipped quotes and escaped characters but had no parenthesis depth.
+
+**Approach and files.** Added parenthesis depth to `_define_color_matches`, retaining its single forward scan and existing quote/escape handling. Added regression cases in `tests/test_gtk_css.py::TestRuleBlockSemantics` and extended the shared parser invariant in `docs/invariants.md`. No shipped stylesheets or dependencies changed.
+
+**Acceptance criteria.** The full parse tuple preserves the function value with no invented definition; nested decoys remain literal; quoted and escaped parentheses do not alter depth; genuine definitions after balanced functions are extracted; and a stray closing parenthesis does not hide a later definition. Existing quoted-decoy and standalone-definition behavior remains covered. Verified with `make check`.
+
 ### Shared stylesheet parser: fold ordinary declaration names with ASCII rules (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make ordinary CSS property names share a declaration and priority slot regardless of ASCII case. The prior parser preserved name casing as dictionary keys, so case variants did not share the cascade slot.
