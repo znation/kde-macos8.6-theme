@@ -4,16 +4,7 @@ Planned features, written by the plan loop and implemented by the feature loop.
 Each plan: goal, approach, files touched, acceptance criteria. Move finished plans to Done.
 
 ## Planned
-
-### Platinum GTK 3 selected inline links in backdrop windows (planned 2026-10-31 by the plan role; independent of the waiting GTK 4 selected inline-link nodes plan)
-
-**Goal and grounding.** Extend the landed active-window selected inline-link ink to enabled GTK 3 labels in backdrop windows. Inspected 2026-10-31: `test_selected_inline_link_foregrounds` and the corresponding stylesheet group explicitly exclude `:backdrop`; the enabled backdrop link rules declare blue and purple. Heading searches in `PLANS.md` and `PLANS-DONE.md` found the active-window selection and ordinary backdrop plans, but no selected-backdrop link plan. No collected reference shows this GTK state: reuse `[Colors:Selection] ForegroundNormal` as a platform adaptation. GTK 3's installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies the link, selected and backdrop state vocabulary. Selected ancestors and link-button children remain separate surfaces.
-
-**Approach and files.** Append a dated provenance comment and one colour-only group to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`. Form nine selectors from roots `label:link`, `label:visited`, `label:link:visited`, each followed by `:selected:backdrop:not(:disabled)` and then each suffix empty, `:hover`, `:active`. Declare exactly `color: #000000`. The combined visited arms outrank the ordinary visited-backdrop interaction rules. Keep the landed selection fill and underline recipes.
-
-In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_selected_backdrop_inline_link_foregrounds` beside `test_selected_inline_link_foregrounds`. Require each exact selector once in `self.selectors` and its exact colour-only dictionary in `self.rules`. Re-derive the expected colour with `load_scheme()` and the existing RGB-to-hex pattern for `[Colors:Selection] ForegroundNormal`. Using `gtk_css.strip_comments(self.css)`, require the new group after both ordinary backdrop groups and the active-window selected-link group. Add a dated row under `## gtk` in `docs/invariants.md` naming the new test, missing reference surface, scheme role and installed GTK resource. These three files bound one run; the waiting sibling changes the GTK 4 sheet and suite.
-
-**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour or adding a declaration fails the new test; moving the group before either ordinary backdrop group or the active-window selected group fails source-order coverage. Existing disabled-backdrop, ordinary backdrop and active-window selected-link tests remain green. Run `make check`. Declaration and source-order tests do not establish rendered pixels.
+_None yet._
 
 ## Done
 
