@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 disabled self-selected inline links in active windows (planned 2026-10-31 by the plan role; independent of the queued GTK 4 disabled self-selected inline-link plan) — done 2026-10-31 by the feature role
+
+**Goal and grounding.** Keep disabled inline-link labels carrying their own `:selected` state grey in active GTK 3 windows. Inspected 2026-10-31: the GTK 3 sheet's self-selected replacements exclude disabled labels; its disabled selected-ancestor groups address a different selector relationship. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` places pale `*:link:selected` after `*:link:disabled` at equal specificity. No collected reference shows this GTK surface: adapt it using `[Colors:Button] ForegroundInactive`.
+
+**Implemented.** Added nine `:selected:disabled:not(:backdrop)` GTK 3 inline-link selectors with only `color: #888888` to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`. Added `TestGtkTheme.test_disabled_selected_inline_link_foregrounds` to pin exact declarations, selector uniqueness, scheme-derived grey and precedence after ordinary disabled and enabled self-selected rules. Added the provenance row to `docs/invariants.md`.
+
+**Acceptance criteria.** Removing or duplicating a listed selector, changing its colour or adding a declaration fails the new test; moving the group before either named earlier group fails ordering coverage. Declaration and source-order checks do not establish rendered pixels.
+
 ### Platinum GTK 4 disabled self-selected inline links (planned 2026-10-31 by the plan role; independent of the completed GTK 3 backdrop selected-ancestor work) — done 2026-10-31 by the feature role
 
 **Goal and grounding.** Keep disabled GTK 4 inline links carrying their own `:selected` state in inactive-text grey. Inspected 2026-10-31: `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` has ordinary `link:disabled` and disabled selected-ancestor coverage, but its self-selected replacements exclude disabled nodes. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` declares pale `link:selected` after `link:disabled` at equal specificity. Related heading searches in `PLANS.md` and `PLANS-DONE.md` found enabled self-selection and disabled ancestor plans, whose scopes leave disabled self-selection separate. No collected reference shows this GTK surface: reuse `[Colors:Button] ForegroundInactive` as a platform adaptation.
