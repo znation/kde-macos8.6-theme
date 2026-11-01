@@ -7,6 +7,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+### Shared stylesheet parser: preserve define-color text inside function values (planned 2026-11-01 by the plan role; independent of the waiting declaration-name folding plan)
+
+**Goal and grounding.** Prevent the GTK/Firefox test reader from inventing definitions and deleting function contents. On 2026-11-01, `parse_css("a { --sample: fn(@define-color phantom #123456;); color: red; }")` returned a `phantom` definition and changed `--sample` to `fn()`. `tests/support/gtk_css.py::_define_color_matches` skips quotes and escaped characters but has no parenthesis depth. Searches of parser headings and define-color/function references in PLANS.md and PLANS-DONE.md found separator and quoted-value work, rather than this function-value case.
+
+**Approach and files.** Add parenthesis depth to `_define_color_matches`, following `_rule_blocks`' quote/escape ordering: count unquoted, unescaped opening parentheses; decrement closing parentheses only when depth is positive; attempt `DEFINE_COLOR.match` only at depth zero. Keep the existing single forward scan and match extraction. Add focused regression cases in `tests/test_gtk_css.py::TestRuleBlockSemantics` beside `test_a_define_color_inside_a_quoted_value_is_text`, and extend the GTK shared stylesheet-parser guarantee in `docs/invariants.md` with the new test symbols. These three files are the implementation scope; no shipped stylesheet changes, new dependency, general at-rule validation or brace-scope policy.
+
+**Acceptance criteria.** Assert the complete parse tuple for the reproduction: empty definitions, `{"a": {"--sample": "fn(@define-color phantom #123456;)", "color": "red"}}`, and `["a"]`. Cover nested function parentheses and multiple decoys, plus quoted and escaped parentheses that must not change depth. Direct `_define_color_matches` tests must show a genuine definition after a balanced function is extracted while its nested decoys are ignored; a stray closing parenthesis must not hide a following genuine definition. Retain quoted-decoy and valid standalone-definition behavior. Run `make check` after the final code, test and invariant edits. This is one scanner correction with its regression coverage, sized for one implementation run.
+
 ## Done
 
 ### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan)
