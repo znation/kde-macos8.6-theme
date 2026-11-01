@@ -7,6 +7,7 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import json
 import unittest
 import json
 from unittest import mock
@@ -88,6 +89,62 @@ class TestSampleCli(CliTestCase):
         # Pixel (2, 1) is (2, 1, 3); each channel is zero-padded to two hex
         # digits, so the low green value reads "01" rather than "1".
         self.assertIn("pixel (2, 1): 2,1,3  #020103", result.stdout)
+
+    def test_json_single_pixel_has_complete_schema(self):
+        path = self._image()
+        result = self._run(path, "2", "1", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout), {
+            "image": path, "image_width": 4, "image_height": 3,
+            "region": {"x": 2, "y": 1, "width": 1, "height": 1},
+            "pixels": [{"x": 2, "y": 1, "rgb": [2, 1, 3], "hex": "#020103"}],
+        })
+
+    def test_json_rectangle_is_row_major_and_keeps_header_dimensions(self):
+        path = self._image()
+        result = self._run(path, "1", "0", "--width", "2", "--height", "2", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout), {
+            "image": path, "image_width": 4, "image_height": 3,
+            "region": {"x": 1, "y": 0, "width": 2, "height": 2},
+            "pixels": [
+                {"x": 1, "y": 0, "rgb": [1, 0, 1], "hex": "#010001"},
+                {"x": 2, "y": 0, "rgb": [2, 0, 2], "hex": "#020002"},
+                {"x": 1, "y": 1, "rgb": [1, 1, 2], "hex": "#010102"},
+                {"x": 2, "y": 1, "rgb": [2, 1, 3], "hex": "#020103"},
+            ],
+        })
+
+    def test_json_script_and_control_path_round_trip(self):
+        with control_named_png() as path:
+            result = self._run_script(path, "0", "0", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["image"], path)
+        self.assertNotIn("\x1b", result.stdout)
+
+    def test_json_errors_keep_empty_stdout_and_existing_diagnostics(self):
+        path = self._image()
+        with mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded")):
+            result = self._run(path, "4", "0", "--json")
+        self._assert_usage_error(result, "outside the 4x3 image")
+        self.assertEqual(result.stdout, "")
+
+        missing = str(self._tmp_dir() / "absent.png")
+        result = self._run(missing, "0", "0", "--json")
+        self._assert_usage_error(result, "cannot read", missing)
+        self.assertEqual(result.stdout, "")
+
+        bad = self._write(self._tmp_dir(), "bad.png", b"not png")
+        result = self._run(bad, "0", "0", "--json")
+        self._assert_usage_error(result)
+        self.assertEqual(result.stdout, "")
+
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(self._tmp_dir(), "reference.png", data)
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(str(link), "0", "0", "--json")
+        self._assert_usage_error(result, "resolves outside", str(root))
+        self.assertEqual(result.stdout, "")
 
     def test_corner_pixels_are_addressable(self):
         path = self._image()

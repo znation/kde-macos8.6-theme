@@ -401,6 +401,13 @@ path that resolves outside the repository (a checked-in symlink) is refused by n
 before it is read, so a private image's pixels cannot be sampled; a path outside the
 repository is read as before.
 
+Pass `--json` to emit the original image argument, full image dimensions,
+requested region and row-major pixel records:
+
+```json
+{"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":1,"height":1},"pixels":[{"x":5,"y":5,"rgb":[99,99,156],"hex":"#63639C"}]}
+```
+
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
