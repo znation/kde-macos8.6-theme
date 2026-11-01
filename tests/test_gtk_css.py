@@ -366,21 +366,26 @@ class TestRuleBlockSemantics(unittest.TestCase):
                 self.assertEqual(parse_css(css)[1]["a"]["color"], expected)
 
     def test_important_priority_requires_css_whitespace(self):
-        for character in ("\u00a0", "\u2003", "\u000b"):
-            with self.subTest(codepoint=f"U+{ord(character):04X}"):
-                for css in (
-                    f"a {{ color: red !{character}important; color: blue; }}",
-                    f"a {{ color: red !{character}important; }} a {{ color: blue; }}",
-                ):
-                    self.assertEqual(parse_css(css)[1]["a"]["color"], "blue")
+        non_css_whitespace = ("\u00a0", "\u2003", "\v")
+        for separator in non_css_whitespace:
+            with self.subTest(separator=repr(separator)):
+                invalid = f"red !{separator}important"
                 self.assertEqual(
-                    parse_css(f"a {{ color: red !{character}important; }}")[1]["a"]["color"],
-                    f"red !{character}important",
+                    parse_css(f"a {{ color: {invalid}; color: blue; }}")[1]["a"]["color"],
+                    "blue",
                 )
-        for whitespace in (" ", "\t", "\n", "\r", "\f", " \t\n\r\f"):
-            with self.subTest(whitespace=repr(whitespace)):
-                css = f"a {{ color: red !{whitespace}IMPORTANT{whitespace}; color: blue; }}"
-                self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
+                self.assertEqual(
+                    parse_css(f"a {{ color: {invalid}; }} a {{ color: blue; }}")[1]["a"]["color"],
+                    "blue",
+                )
+                self.assertEqual(parse_css(f"a {{ color: {invalid}; }}")[1]["a"]["color"], invalid)
+
+        for separator in (" ", "\t", "\n", "\r", "\f", " \t\n\r\f"):
+            with self.subTest(separator=repr(separator)):
+                for trailing in ("", separator):
+                    with self.subTest(trailing=repr(trailing)):
+                        css = f"a {{ color: red !{separator}IMPORTANT{trailing}; color: blue; }}"
+                        self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
 
     def test_important_scanner_ignores_strings_urls_and_escaped_bangs(self):
         css = (
