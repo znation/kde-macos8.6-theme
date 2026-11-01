@@ -5,7 +5,15 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Platinum GTK 4 calendars: override the stock disabled-selected day foreground (planned 2026-10-31 by the plan role)
+
+**Goal.** Extend the landed disabled-calendar foreground adaptation to GTK 4's more specific disabled-selected day selector, keeping its text at the existing inactive grey on the landed lavender selection.
+
+**Grounding.** The finished `Platinum GTK 4 calendars: grey disabled day-number text` entry in `PLANS-DONE.md` implemented `calendar:disabled > grid > label.day-number`, whose specificity is (0,2,3). The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, inspected with `gresource` on 2026-10-31, separately declares `calendar > grid > label.day-number:disabled:selected { color: #9ac2f2; }`, specificity (0,3,3). The shipped sheet has no matching override. The completed rows-and-view-children selection entry explicitly excludes this calendar member; the selected-text archive entry covers text and label nodes, not this calendar-qualified arm. This is a narrow cascade follow-up to the landed calendar work, not a replacement of its parent-disabled rule. No reference screenshot shows a disabled selected GTK calendar; reuse the landed inactive-grey adaptation rather than claiming calendar pixel fidelity.
+
+**Approach and files.** Append `calendar > grid > label.day-number:disabled:selected { color: #888888; }` at the tail of `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment recording the missing reference surface, resource probe and reuse of the landed inactive text. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_calendar_disabled_selected_day_text` beside `test_calendar_disabled_day_text`: use `assert_disabled_text` and an exact one-property dictionary assertion for the new stock-twin selector, compare with the existing parent-disabled rule, and retain the selected-day fill assertions. Extend the exact selector-set expectation in `test_disabled_selected_row_and_child_arms` with this one member and qualify its explanatory comment. Extend `TestCalendarDisabledGreyReference.test_disabled_day_grey_matches_reference_palette_pixel` to check both disabled calendar selectors against its existing lossless pixel (241,103). Add one row to `docs/invariants.md` under `## gtk`, naming the new test, toolkit source, inactive-grey provenance, supported user-CSS import and declaration-only scope.
+
+**Acceptance criteria.** Removing, renaming or recolouring the new rule fails the dedicated declaration test; the family-set assertion permits exactly the additional calendar member. The reference test re-derives the new foreground from its existing lossless palette sample. Preserve the existing parent-disabled selector, enabled selection, geometry and artwork. This run changes only the sheet, its suite and the invariant table; no GTK 3 sibling is required. `make check` passes. Declaration checks do not establish rendered calendar pixels.
 
 ## Done
 
