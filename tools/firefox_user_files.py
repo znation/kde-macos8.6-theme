@@ -42,6 +42,26 @@ class ConfigError(Exception):
 MAX_PROFILE_FILE_BYTES = 1 << 20
 
 
+def read_firefox_bytes(
+    path: Path, limit: int, description: str
+) -> bytes | None:
+    """Read a capped optional Firefox file, reporting failures as ``ConfigError``.
+
+    Profile text files and profile-discovery INIs share this bounded read and
+    missing-file behavior; their callers retain their own decoding and parsing.
+    """
+    try:
+        return read_capped_bytes(
+            path,
+            limit,
+            description,
+            missing_ok=True,
+            error=ConfigError,
+        )
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"cannot read {path}: {exc}") from exc
+
+
 def user_chrome_path(profile: Path) -> Path:
     """Return *profile*'s ``chrome/userChrome.css`` path."""
     return profile / "chrome" / "userChrome.css"
@@ -69,16 +89,10 @@ def read_profile_text(path: Path) -> str | None:
     ``MAX_PROFILE_FILE_BYTES`` is read, so an oversize profile file is
     refused by name instead of being loaded whole.
     """
-    try:
-        data = read_capped_bytes(
-            path,
-            MAX_PROFILE_FILE_BYTES,
-            "this installer reads; refusing to load it whole",
-            missing_ok=True,
-            error=ConfigError,
-        )
-    except (OSError, ValueError) as exc:
-        raise ConfigError(f"cannot read {path}: {exc}") from exc
+    data = read_firefox_bytes(
+        path, MAX_PROFILE_FILE_BYTES,
+        "this installer reads; refusing to load it whole",
+    )
     if data is None:
         return None
     try:

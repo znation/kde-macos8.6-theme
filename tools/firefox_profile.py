@@ -17,11 +17,11 @@ import os
 from pathlib import Path
 
 if __package__:
-    from tools.containment import read_capped_bytes, resolves_within
-    from tools.firefox_user_files import ConfigError
+    from tools.containment import resolves_within
+    from tools.firefox_user_files import ConfigError, read_firefox_bytes
 else:  # imported from a directly run tool
-    from containment import read_capped_bytes, resolves_within
-    from firefox_user_files import ConfigError
+    from containment import resolves_within
+    from firefox_user_files import ConfigError, read_firefox_bytes
 
 
 # Firefox's INI files are a few kilobytes at most. The path is the user's and
@@ -41,16 +41,11 @@ def _read_ini(path: Path) -> configparser.ConfigParser | None:
     refused. At most one byte past ``_MAX_INI_FILE_BYTES`` is read, so an
     oversize INI is refused by name instead of being loaded whole.
     """
-    try:
-        data = read_capped_bytes(
-            path,
-            _MAX_INI_FILE_BYTES,
-            "this discovery reads; refusing to load it whole",
-            missing_ok=True,
-            error=ConfigError,
-        )
-    except (OSError, ValueError) as exc:
-        raise ConfigError(f"cannot read {path}: {exc}") from exc
+    data = read_firefox_bytes(
+        path,
+        _MAX_INI_FILE_BYTES,
+        "this discovery reads; refusing to load it whole",
+    )
     if data is None:
         return None
     parser = configparser.ConfigParser(interpolation=None)
