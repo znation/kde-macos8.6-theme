@@ -594,6 +594,11 @@ with crop-relative `x`, `y` and `length`; text prints the same array after colum
 Runs end at every row boundary, and adjacent pixels stay in one run even when their delta
 magnitudes differ. Crop origins translate these coordinates to source images. Output can grow
 with the number of disjoint runs, so the option is opt-in; omitted runs skip the scan.
+Add `--difference-column-runs` for maximal vertical runs, ordered left-to-right and then
+top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`, `y` and
+`length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent
+pixels remain together across differing delta magnitudes. Crop origins translate their positions
+to either source image. Output can grow with disjoint runs, so this scan is opt-in.
 JSON adds a `channel_maxima` object and text prints the four maxima immediately before the
 verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque, and is
 independent of tolerance and verdict.

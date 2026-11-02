@@ -108,7 +108,7 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 percentiles=None, maxima=None,
                 passed: bool = False, *, max_rmse: float | None = None,
                 max_delta: int | None = None, rows=None, columns=None, row_bounds=None,
-                column_bounds=None, runs=None):
+                column_bounds=None, runs=None, column_runs=None):
     """Assemble the comparison's JSON result object.
 
     Paths, crop rectangles and the three thresholds are echoed as given;
@@ -147,6 +147,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["difference_column_bounds"] = column_bounds
     if runs is not None:
         result["difference_runs"] = runs
+    if column_runs is not None:
+        result["difference_column_runs"] = column_runs
     if histogram is not None:
         result["delta_histogram"] = histogram
     if percentiles is not None:
@@ -285,6 +287,9 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     runs = result.get("difference_runs")
     if runs is not None:
         lines.append("difference runs: " + json.dumps(runs, ensure_ascii=True))
+    column_runs = result.get("difference_column_runs")
+    if column_runs is not None:
+        lines.append("difference column runs: " + json.dumps(column_runs, ensure_ascii=True))
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
     mae_budget = "unset" if thresholds["max_mae"] is None else f"{thresholds['max_mae']:.4f}"

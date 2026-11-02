@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: locate disjoint vertical mismatch runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Locate separated errors along vertical window borders without including unchanged gaps. The existing column bounds enclose gaps and horizontal runs scan by row, so the fidelity CLI lacked this diagnostic.
+
+**Approach and files.** Added opt-in `--difference-column-runs` in both fidelity CLI import modes, using `_absolute_deltas` to emit maximal column-major vertical runs. Reports include crop-relative JSON records and a text line after horizontal runs; omission skips the helper. README and `docs/invariants.md` document the output and guarantee. Implementation and coverage are in `tools/fidelity_pixels.py`, `tools/fidelity.py`, `tools/fidelity_reports.py`, `tests/test_fidelity_column_runs.py`, `README.md` and `docs/invariants.md`.
+
+**Acceptance criteria.** Tests cover separated intervals, delta tolerance, alpha handling, length totals, crop-relative CLI output, composed options, opt-in omission and direct-script imports. `make check` verifies the project after the plan move.
+
 ### Fidelity diagnostics: locate disjoint horizontal mismatch runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Distinguish separated errors along a bevel from one continuous bad band. `tools/fidelity_pixels.py::difference_row_bounds` encloses unchanged gaps; `worst_pixels` limits the reported points. Source, test and plan-archive searches found no diagnostic reporting complete contiguous mismatch intervals. This is independent of the queued reference sampler extension.

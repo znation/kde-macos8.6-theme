@@ -43,7 +43,7 @@ if __package__:
         compare,
         crop,
     )
-    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs
+    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -61,7 +61,7 @@ else:  # run directly: python3 tools/fidelity.py
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
-    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs
+    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -155,6 +155,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="locate each column's vertical interval of pixels differing beyond --tolerance")
     parser.add_argument("--difference-runs", action="store_true",
                         help="locate disjoint horizontal runs of pixels differing beyond --tolerance")
+    parser.add_argument("--difference-column-runs", action="store_true",
+                        help="locate disjoint vertical runs of pixels differing beyond --tolerance")
     parser.add_argument("--delta-histogram", action="store_true",
                         help="count compared pixels by maximum RGBA channel delta")
     parser.add_argument("--delta-percentiles", action="store_true",
@@ -240,6 +242,8 @@ def main(argv: list[str] | None = None) -> int:
         column_bounds = (difference_column_bounds(candidate, reference, args.tolerance)
                          if args.difference_column_bounds else None)
         runs = difference_runs(candidate, reference, args.tolerance) if args.difference_runs else None
+        column_runs = (difference_column_runs(candidate, reference, args.tolerance)
+                       if args.difference_column_runs else None)
         histogram = (delta_histogram(candidate, reference)
                      if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
@@ -260,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
                          row_bounds=row_bounds,
                          column_bounds=column_bounds,
                          runs=runs,
+                         column_runs=column_runs,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
                          percentiles=(delta_percentiles(histogram)
