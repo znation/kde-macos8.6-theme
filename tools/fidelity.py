@@ -43,7 +43,7 @@ if __package__:
         compare,
         crop,
     )
-    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds
+    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -61,7 +61,7 @@ else:  # run directly: python3 tools/fidelity.py
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
-    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds
+    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -151,6 +151,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="count pixels differing beyond --tolerance in each compared column")
     parser.add_argument("--difference-row-bounds", action="store_true",
                         help="locate each row's horizontal interval of pixels differing beyond --tolerance")
+    parser.add_argument("--difference-column-bounds", action="store_true",
+                        help="locate each column's vertical interval of pixels differing beyond --tolerance")
     parser.add_argument("--delta-histogram", action="store_true",
                         help="count compared pixels by maximum RGBA channel delta")
     parser.add_argument("--delta-percentiles", action="store_true",
@@ -233,6 +235,8 @@ def main(argv: list[str] | None = None) -> int:
         columns = difference_columns(candidate, reference, args.tolerance) if args.difference_columns else None
         row_bounds = (difference_row_bounds(candidate, reference, args.tolerance)
                       if args.difference_row_bounds else None)
+        column_bounds = (difference_column_bounds(candidate, reference, args.tolerance)
+                         if args.difference_column_bounds else None)
         histogram = (delta_histogram(candidate, reference)
                      if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
@@ -251,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
                          rows=rows,
                          columns=columns,
                          row_bounds=row_bounds,
+                         column_bounds=column_bounds,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
                          percentiles=(delta_percentiles(histogram)

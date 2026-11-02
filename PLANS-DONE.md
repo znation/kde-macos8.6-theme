@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: locate vertical mismatch bounds per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Locate the vertical extent of side-border and widget-edge mismatches without inspecting individual pixels. `tools/fidelity_pixels.py::difference_columns` counts mismatches but does not locate them; `difference_row_bounds` provides the horizontal counterpart. Searches of source, tests and planned/finished entries found no column-bounds diagnostic. This is independent of the queued sampler extractions.
+
+**Approach and files.** Added opt-in `--difference-column-bounds` in `tools/fidelity.py`, wiring package and direct-script imports. Added `tools/fidelity_pixels.py::difference_column_bounds(candidate, reference, tolerance)` using `_absolute_deltas`: it returns a dense crop-relative x list, with `None` for unchanged columns or `{"y": first, "height": last-first+1}` for each smallest enclosing interval of raw RGBA deltas strictly above tolerance. Unchanged gaps may lie inside an interval; missing alpha means 255 and stored RGB beneath transparency participates. Extended `tools/fidelity_reports.py::report_data` with optional `column_bounds`, emitting `difference_column_bounds` only when supplied. Text prints it after row bounds and before the verdict. Added CLI and synthetic tests, documented coordinate translation in README.md, and added the tooling invariant in docs/invariants.md. No theme or dependency changes.
+
+**Acceptance criteria.** Tests cover unchanged columns, interval gaps, differing extents, bottom-edge positions, tolerance equality and 255, alpha and stored RGB, text/JSON output, unequal crop origins, composition with other bounds and counts, FAIL and budget PASS, direct-script execution, opt-in omission, malformed input and dimension mismatch.
+
 ### Split reference sampler report handlers by mode, part 4/4: scanline-runs handler (planned 2026-11-02 by the plan role; requires part 1/4 landed) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Isolate `_color_runs` and the runs-output branch of `tools/sample_reports.py::report`. Part 1/4 supplies shared primitives; parts 2/4 and 3/4 are independent extractions. Once the siblings merge, the dispatcher delegates four modes.

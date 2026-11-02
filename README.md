@@ -602,6 +602,12 @@ entry has `x` and `width`, and unchanged gaps inside the interval may be include
 dense `difference_row_bounds` array and text prints the same array immediately before the verdict.
 Add the corresponding crop's x origin to locate an interval in either source image. The report
 uses raw RGBA deltas, including RGB beneath transparency, and is omitted unless requested.
+Add `--difference-column-bounds` to report each compared column's smallest crop-relative vertical
+interval containing a pixel beyond tolerance. Columns without a mismatch are `null`; nonempty
+entries have `y` and `height`, and unchanged gaps inside the interval may be included. JSON adds a
+dense `difference_column_bounds` array and text prints it after row bounds and before the verdict.
+Add the corresponding crop's y origin to locate an interval in either source image. The report
+uses raw RGBA deltas, including RGB beneath transparency, and is omitted unless requested.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
