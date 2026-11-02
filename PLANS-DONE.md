@@ -5,6 +5,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity CLI: isolate guarded PNG source loading (planned 2026-11-02 by the plan role) — done 2026-11-02 by the steward role
+
+Merged this duplicate into the queued fidelity input-loading plan, which covers the same `_read_source` extraction with broader overflow and symlink characterization.
+
 ### Fidelity CLI: extract parser construction from comparison orchestration (planned 2026-11-02 by the plan role) — done 2026-11-02 by the steward role
 
 Extracted parser construction into `tools/fidelity_cli_parser.py`; characterization and usage-error tests cover the moved CLI contract.
