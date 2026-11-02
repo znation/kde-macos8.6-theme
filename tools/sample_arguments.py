@@ -53,6 +53,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--color-bounds requires --histogram"
     if args.color_fractions and not args.histogram:
         return "--color-fractions requires --histogram"
+    if args.color_positions and not args.histogram:
+        return "--color-positions requires --histogram"
     if args.color_tolerance is not None and args.find_color is None:
         return "--color-tolerance requires --find-color"
     if args.match_alpha is not None and args.find_color is None:
@@ -91,6 +93,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
     parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-fractions", action="store_true", help="with --histogram, report each color's fraction of the region")
+    parser.add_argument("--color-positions", action="store_true", help="with --histogram, report each color's first row-major position")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")

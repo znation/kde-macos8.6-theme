@@ -456,6 +456,13 @@ top-color summary still cover the full region. `--alpha` keeps different
 opacity values separate. JSON color records gain a `bounds` object, and text
 appends `bounds=X,Y,W,H` after each color's existing fields.
 
+Add `--color-positions` with `--histogram` to report the first row-major
+occurrence of each emitted color, using absolute image coordinates. JSON color
+records gain a `position` object with `x` and `y`; text appends
+`position=X,Y`. Cropping limits the search to the requested region, and
+`--alpha` keeps opacity variants separate. When combined with `--color-bounds`,
+both diagnostics share one positioned traversal.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle
