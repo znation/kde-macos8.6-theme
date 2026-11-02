@@ -510,9 +510,11 @@ By default a run passes only when no pixel differs from the reference by more th
 (a per-channel delta; 0, i.e. byte-exact, unless given). Each pixel's alpha byte is compared
 along with its red, green and blue bytes, so a transparent candidate cannot pass as an opaque
 reference. `--max-mae F` and `--max-frac F` set
-aggregate budgets instead: when either is given, a run passes when each given budget is met —
-`--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
-the default no-differing-pixel gate no longer applies. Add `--worst-pixels N` (1–1000) to list
+aggregate budgets instead: when one is given, a run passes when each given budget is met —
+`--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction, and
+`--max-rmse` bounds root mean square error — and the default no-differing-pixel gate no longer
+applies. RMSE uses the same raw channel bytes as the reported metric, including alpha, is
+independent of `--tolerance`, and is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
 includes `candidate_position` and `reference_position`, which add the corresponding crop origin

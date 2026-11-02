@@ -17,9 +17,9 @@ candidate image is outside this tool; ``tools/render_surface.py`` does it.
 Usage::
 
     python3 tools/fidelity.py CANDIDATE REFERENCE [--candidate-crop X,Y,W,H]
-        [--crop X,Y,W,H] [--max-mae F] [--max-frac F] [--tolerance N]
+        [--crop X,Y,W,H] [--max-mae F] [--max-frac F] [--max-rmse F] [--tolerance N]
 
-The verdict passes when every threshold set with ``--max-mae``/``--max-frac``
+    The verdict passes when every threshold set with ``--max-mae``/``--max-frac``/``--max-rmse``
 is met; when neither is set it passes only when no pixel differs from the
 reference by more than ``--tolerance``.
 
@@ -34,7 +34,7 @@ import argparse
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.fidelity_arguments import parse_crop, max_mae, max_frac, tolerance
+    from tools.fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, tolerance
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
@@ -56,7 +56,7 @@ if __package__:
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import EscapingArgumentParser
-    from fidelity_arguments import parse_crop, max_mae, max_frac, tolerance
+    from fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, tolerance
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
@@ -116,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(
             "exit status: 0 when the comparison passes, 1 when it fails, "
-            "2 usage or read error; passes when every --max-mae/--max-frac "
+            "2 usage or read error; passes when every --max-mae/--max-frac/--max-rmse "
             "threshold set is met, and otherwise when no pixel differs "
             "beyond --tolerance"
         ),
@@ -184,6 +184,15 @@ def main(argv: list[str] | None = None) -> int:
             "set, replaces the default no-differing-pixel gate"
         ),
     )
+    parser.add_argument(
+        "--max-rmse",
+        type=max_rmse,
+        default=None,
+        help=(
+            "fail when root mean square error exceeds this (0-255); when set, "
+            "replaces the default no-differing-pixel gate"
+        ),
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -213,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
-    ok = budget_verdict(metrics, args.max_mae, args.max_frac)
+    ok = budget_verdict(metrics, args.max_mae, args.max_frac, max_rmse=args.max_rmse)
     result = report_data(args.candidate, args.reference, args.candidate_crop,
                          args.crop, args.tolerance, args.max_mae, args.max_frac,
                          metrics, worst=worst, channels=channels,
@@ -222,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
                          histogram=histogram if args.delta_histogram else None,
                          percentiles=(delta_percentiles(histogram)
                                       if args.delta_percentiles else None),
-                         passed=ok)
+                         passed=ok, max_rmse=args.max_rmse)
     if args.json:
         print(render_json(result))
         return 0 if ok else 1

@@ -96,6 +96,12 @@ def max_mae(value: str) -> float:
     return _channel_amount(value, number, "--max-mae", "mean")
 
 
+def max_rmse(value: str) -> float:
+    """Return a finite ``--max-rmse`` value, a per-channel RMSE in 0..255."""
+    number = _finite_float(value, "--max-rmse")
+    return _channel_amount(value, number, "--max-rmse", "RMSE")
+
+
 def max_frac(value: str) -> float:
     """Return a finite ``--max-frac`` differing-pixel fraction in 0..1."""
     number = _finite_float(value, "--max-frac")
