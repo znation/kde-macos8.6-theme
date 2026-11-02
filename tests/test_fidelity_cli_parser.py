@@ -14,6 +14,15 @@ from tools.fidelity_cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):
+    def test_max_frac_accepts_endpoints_and_rejects_nonfinite_or_out_of_range(self):
+        self.assertEqual(fidelity_arguments.max_frac("0"), 0.0)
+        self.assertEqual(fidelity_arguments.max_frac("1"), 1.0)
+        for value in ("-0.01", "1.01", "nan", "inf", "-inf"):
+            with self.subTest(value=value), self.assertRaises(
+                fidelity_arguments.argparse.ArgumentTypeError
+            ):
+                fidelity_arguments.max_frac(value)
+
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
         for value, diagnostic in (
