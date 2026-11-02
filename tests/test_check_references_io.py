@@ -23,7 +23,7 @@ from support.check_references_fixtures import (
     symlinked_reference,
 )
 from support.repo_root import ROOT
-from tools import reference_validation
+from tools import reference_sources, reference_validation
 from tools.image_format import PNG_MAGIC
 
 
@@ -99,7 +99,7 @@ class TestOversizeSources(CheckerTestCase):
         module = self.checker
         limit = 4096
         with reference_set(module, b"#" * (limit + 1)) as root:
-            with mock.patch.object(reference_validation, "_MAX_SOURCES_BYTES", limit):
+            with mock.patch.object(reference_sources, "_MAX_SOURCES_BYTES", limit):
                 problems, peak = peak_allocation(
                     lambda: module.check_references(root)
                 )

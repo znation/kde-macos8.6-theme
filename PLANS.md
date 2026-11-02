@@ -13,14 +13,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** The optional commands still run under the existing data-home lock and scratch directory, after all required selections; either optional tool being missing, failing to start, timing out or exiting nonzero remains a note and leaves apply status unchanged. Existing command order, arguments, diagnostics and log filenames remain the same. Unit coverage exercises the extracted boundary, direct-script and package imports work, and `make check` passes.
 
-### Reference validation: separate manifest parsing from image filesystem checks (planned 2026-11-01 by the organize role)
-
-**Goal and grounding.** Reduce the mixed responsibility in `tools/reference_validation.py`: `_check_entries` parses `sources.txt` fields, URLs, bare filenames and duplicates, then immediately checks each image's containment, existence, LFS state and raster signature. `_check_undeclared` separately walks the directory and sniffs unlisted files. A focused parser module would make the provenance-record rules independently understandable while leaving filesystem trust checks together.
-
-**Approach and files.** Add `tools/reference_sources.py` for the bounded UTF-8-sig read and `sources.txt` record parsing: line splitting, field validation, URL validation, filename shape, duplicate detection, and collection of accepted `(filename, line)` declarations. Keep `tools/reference_validation.py` responsible for the reference-directory containment gate, checking declared files against those parsed declarations, scanning undeclared files, and combining diagnostics. Preserve existing diagnostic wording and ordering, including the current behavior where malformed entries do not reach filesystem checks. Keep direct-script imports working from `tools/check_references.py`; update `tests/test_check_references_validation.py` and any references that need to exercise the parser boundary. Files: `tools/reference_validation.py`, new `tools/reference_sources.py`, relevant checker tests, and `docs/invariants.md` only if its tooling ownership row needs correction.
-
-**Acceptance criteria.** Existing validation fixtures retain their exact diagnostic behavior for malformed lines, duplicate names, invalid URLs, unsafe filenames, missing and escaping paths, unreadable files, LFS pointers, invalid image payloads, and undeclared images. Add direct parser tests for line splitting, field/URL/name rules and declaration line numbers; retain bounded-read and UTF-8 diagnostics through the parser interface. Package imports and direct checker invocation work, source/tests/docs contain no stale moved-helper references, and `make check` passes.
-
 ## Done
 
 ### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)

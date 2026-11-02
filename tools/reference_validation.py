@@ -18,7 +18,6 @@ validation cases (``tests/test_check_references_io.py`` and
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 if __package__:
@@ -30,27 +29,23 @@ if __package__:
     from tools.image_format import LFS_POINTER_MAGIC, is_image
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
-    from tools.url_check import url_problem
+    from tools.reference_sources import (
+        SOURCES_NAME,
+        parse_sources,
+        read_sources_text,
+    )
 else:  # imported from a directly run tool
     from containment import open_regular_binary, require_within_repo, resolves_within
     from image_format import LFS_POINTER_MAGIC, is_image
     from repo_root import ROOT
     from terminal import escape_controls
-    from url_check import url_problem
+    from reference_sources import (
+        SOURCES_NAME,
+        parse_sources,
+        read_sources_text,
+    )
 
-SOURCES_NAME = "sources.txt"
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
-SEPARATOR = " | "
-# The provenance record is contributor-supplied, so a checked-in (or LFS-
-# smudged) multi-gigabyte sources.txt must not be loaded whole: read_text()
-# would allocate it and exhaust memory instead of reporting a diagnostic.
-# The real file is a few kilobytes; 1 MiB leaves ample room for growth while
-# bounding the read the way read_png bounds an oversize image.
-_MAX_SOURCES_BYTES = 1 << 20
-# Only CR, LF and CRLF end a sources.txt line. ``str.splitlines`` also breaks
-# on U+2028/U+2029, NEL and the C0 separators, so a version label containing
-# one would split into a phantom line and be reported as a malformed entry.
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
 
 def _is_lfs_pointer(path: Path) -> bool:
@@ -86,112 +81,36 @@ def _undeclared_image_problem(path: Path) -> str:
     )
 
 
-def _read_sources_text(sources: Path) -> tuple[str | None, str | None]:
-    """Return ``(text, None)`` for the provenance record, or ``(None, problem)``."""
-    try:
-        # Read at most one byte past the cap, so an oversize file is detected
-        # without loading the rest of it, then decode the bytes. utf-8-sig
-        # strips a leading UTF-8 BOM that an editor may have added: the BOM is
-        # invisible, so decoding as plain UTF-8 folds it into the first
-        # filename and the check reports a phantom missing file instead of the
-        # real one, which then looks undeclared. The shared regular-file
-        # reader refuses a FIFO or device the caller raced to put here, so the
-        # read cannot block on a pipe with no writer.
-        with open_regular_binary(sources) as handle:
-            data = handle.read(_MAX_SOURCES_BYTES + 1)
-    except (OSError, ValueError) as exc:
-        return None, f"{sources}: could not be read: {exc}"
-    if len(data) > _MAX_SOURCES_BYTES:
-        return None, (
-            f"{sources}: is larger than the {_MAX_SOURCES_BYTES}-byte limit "
-            "for a provenance record"
-        )
-    try:
-        return data.decode("utf-8-sig"), None
-    except UnicodeDecodeError as exc:
-        return None, f"{sources}: not valid UTF-8 text: {exc}"
-
-
 def _check_entries(
-    directory: Path, sources: Path, sources_text: str
-) -> tuple[list[str], dict[str, int]]:
-    """Validate each ``sources.txt`` entry; return ``(problems, entries)``.
-
-    ``entries`` maps each accepted filename to the line it was declared on.
-    """
-    problems: list[str] = []
-    entries: dict[str, int] = {}
-
-    for lineno, raw in enumerate(_LINE_BREAK.split(sources_text), 1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        fields = line.split(SEPARATOR)
-        if len(fields) != 3:
-            problems.append(
-                f"{sources}:{lineno}: expected 3 fields separated by {SEPARATOR.strip()!r}, "
-                f"got {len(fields)}: {line!r}"
-            )
-            continue
-        filename, url, label = (field.strip() for field in fields)
-        if not filename or not url or not label:
-            problems.append(f"{sources}:{lineno}: empty field in entry: {line!r}")
-            continue
-        if "\x00" in filename:
-            # A NUL byte cannot appear in a POSIX path, and os.path.realpath()
-            # raises ValueError on one; reject it here so a malformed entry
-            # becomes a diagnostic instead of aborting the whole check.
-            problems.append(
-                f"{sources}:{lineno}: {filename!r} contains a NUL byte and "
-                "cannot name a file"
-            )
-            continue
-        problem = url_problem(url)
-        if problem is not None:
-            problems.append(
-                f"{sources}:{lineno}: source URL {url!r} {problem}"
-            )
-            continue
-        if Path(filename).name != filename or filename in (".", ".."):
-            problems.append(
-                f"{sources}:{lineno}: {filename!r} must be a bare filename in "
-                f"{directory}/, not a path"
-            )
-            continue
-        if filename in entries:
-            problems.append(
-                f"{sources}:{lineno}: duplicate entry for {filename!r} "
-                f"(first at line {entries[filename]})"
-            )
-            continue
-        entries[filename] = lineno
+    directory: Path, sources: Path, entries: dict[str, int]
+) -> list[tuple[int, str]]:
+    """Check accepted declarations against files in the reference directory."""
+    problems: list[tuple[int, str]] = []
+    for filename, lineno in entries.items():
         image = directory / filename
         if not resolves_within(directory, image):
             problems.append(
-                f"{sources}:{lineno}: {filename!r} points outside "
-                f"{directory}/ (a symlink escape)"
+                (lineno, f"{sources}:{lineno}: {filename!r} points outside "
+                 f"{directory}/ (a symlink escape)")
             )
             continue
         if not image.is_file():
-            problems.append(f"{sources}:{lineno}: {filename!r} does not exist in {directory}/")
+            problems.append((lineno, f"{sources}:{lineno}: {filename!r} does not exist in {directory}/"))
             continue
         try:
             if _is_lfs_pointer(image):
                 problems.append(
-                    f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
-                    "run `git lfs install && git lfs pull` to fetch the image"
+                    (lineno, f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
+                     "run `git lfs install && git lfs pull` to fetch the image")
                 )
             elif not _looks_like_image(image):
                 problems.append(
-                    f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
-                    "it may be an HTML error page or a truncated download"
+                    (lineno, f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
+                     "it may be an HTML error page or a truncated download")
                 )
         except (OSError, ValueError) as exc:
-            problems.append(
-                f"{sources}:{lineno}: {filename!r} could not be read: {exc}"
-            )
-
-    return problems, entries
+            problems.append((lineno, f"{sources}:{lineno}: {filename!r} could not be read: {exc}"))
+    return problems
 
 
 def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
@@ -274,9 +193,11 @@ def check_references(directory: Path) -> list[str]:
     if not sources.is_file():
         return [f"{sources}: missing sources file"]
 
-    sources_text, read_problem = _read_sources_text(sources)
+    sources_text, read_problem = read_sources_text(sources)
     if sources_text is None:
         return [read_problem]
 
-    problems, entries = _check_entries(directory, sources, sources_text)
-    return problems + _check_undeclared(directory, entries)
+    parse_problems, entries = parse_sources(directory, sources, sources_text)
+    entry_problems = _check_entries(directory, sources, entries)
+    ordered = sorted(parse_problems + entry_problems, key=lambda item: item[0])
+    return [problem for _, problem in ordered] + _check_undeclared(directory, entries)

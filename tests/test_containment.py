@@ -452,6 +452,7 @@ class TestGuardIsShared(unittest.TestCase):
         "tests/support/placeholders.py",
         "tests/support/invariants.py",
         "tools/theme_defaults.py",
+        "tools/reference_sources.py",
         "tools/reference_validation.py",
     )
 

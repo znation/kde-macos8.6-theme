@@ -18,6 +18,31 @@ from support.check_references_fixtures import (
 )
 from support.error_assertions import assert_escapes_escape_character
 from tools.image_format import PNG_MAGIC
+from tools import reference_sources
+
+
+class TestSourceParser(unittest.TestCase):
+    """The record parser reports syntax and declarations without filesystem access."""
+
+    def test_line_splitting_and_declaration_line_numbers(self):
+        problems, entries = reference_sources.parse_sources(
+            Path("refs"), Path("refs/sources.txt"),
+            "# header\r\ngood.png | https://example.test/a | label\r"
+            "bad.png | https://example.test/b | label\n",
+        )
+        self.assertEqual(problems, [])
+        self.assertEqual(entries, {"good.png": 2, "bad.png": 3})
+
+    def test_invalid_url_name_and_duplicate_do_not_become_declarations(self):
+        problems, entries = reference_sources.parse_sources(
+            Path("refs"), Path("refs/sources.txt"),
+            "../unsafe.png | https://example.test/a | label\n"
+            "bad.png | https:///b | label\n"
+            "good.png | https://example.test/g | label\n"
+            "good.png | https://example.test/again | label\n",
+        )
+        self.assertEqual(entries, {"good.png": 3})
+        self.assertEqual([line for line, _ in problems], [1, 2, 4])
 
 
 def assert_url_problem_not_the_scheme(case, url, *needles):

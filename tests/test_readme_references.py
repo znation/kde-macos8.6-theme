@@ -31,7 +31,7 @@ from support import theme_install
 from support.check_references_fixtures import CheckerTestCase
 from support.process_assertions import assert_succeeded
 from support.symlink_fixtures import symlinked_repo
-from tools import reference_validation
+from tools import reference_sources
 
 _TOKEN = re.compile(r"`([^`]+)`")
 _GLOB_CHARS = "*?["
@@ -153,7 +153,7 @@ def declared_reference_names(checker):
     )
     return declared_files(
         containment.read_text(path, repo_root.ROOT, encoding="utf-8-sig"),
-        reference_validation.SEPARATOR,
+        reference_sources.SEPARATOR,
     )
 
 

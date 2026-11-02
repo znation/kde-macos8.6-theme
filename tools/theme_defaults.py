@@ -44,7 +44,7 @@ _LINE_BREAK = re.compile(r"\r\n|\r|\n")
 # would allocate it and raise ``MemoryError`` (which is neither an ``OSError``
 # nor a ``ValueError``, so the render's handler would not report it) instead of
 # a diagnostic. The real file is a few hundred bytes; 1 MiB leaves ample room
-# for growth while bounding the read the way ``reference_validation`` bounds
+# for growth while bounding the read the way ``reference_sources`` bounds
 # ``sources.txt`` and ``local_hook`` bounds an existing hook.
 _MAX_DEFAULTS_BYTES = 1 << 20
 
