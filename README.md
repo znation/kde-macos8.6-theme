@@ -549,13 +549,15 @@ a path outside the repository is read as before.
 By default a run passes only when no pixel differs from the reference by more than `--tolerance`
 (a per-channel delta; 0, i.e. byte-exact, unless given). Each pixel's alpha byte is compared
 along with its red, green and blue bytes, so a transparent candidate cannot pass as an opaque
-reference. `--max-mae F` and `--max-frac F` set
+reference. `--max-mae F`, `--max-frac F` and `--max-differing N` set
 aggregate budgets instead: when one is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction, and
 `--max-rmse` bounds root mean square error, and `--max-delta` caps the largest absolute RGBA
-channel difference — and the default no-differing-pixel gate no longer applies. Both use the
-comparison's raw bytes, including alpha and RGB beneath transparent pixels, and are independent
-of `--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
+channel difference; `--max-differing` caps the absolute number of pixels whose maximum RGBA
+channel delta exceeds `--tolerance` — and the default no-differing-pixel gate no longer applies.
+The count includes alpha and RGB beneath transparent pixels, treats missing alpha as 255, and
+counts each pixel once. The aggregate metrics use comparison raw bytes and are independent of
+`--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
 includes `candidate_position` and `reference_position`, which add the corresponding crop origin

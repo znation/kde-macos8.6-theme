@@ -18,9 +18,9 @@ Usage::
 
     python3 tools/fidelity.py CANDIDATE REFERENCE [--candidate-crop X,Y,W,H]
         [--crop X,Y,W,H] [--max-mae F] [--max-frac F] [--max-rmse F]
-        [--max-delta N] [--tolerance N]
+        [--max-delta N] [--max-differing N] [--tolerance N]
 
-    The verdict passes when every threshold set with ``--max-mae``/``--max-frac``/``--max-rmse``/``--max-delta``
+    The verdict passes when every threshold set with ``--max-mae``/``--max-frac``/``--max-rmse``/``--max-delta``/``--max-differing``
 is met; when neither is set it passes only when no pixel differs from the
 reference by more than ``--tolerance``.
 
@@ -35,7 +35,7 @@ import argparse
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, max_delta, tolerance
+    from tools.fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, max_delta, max_differing, tolerance
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
@@ -57,7 +57,7 @@ if __package__:
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import EscapingArgumentParser
-    from fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, max_delta, tolerance
+    from fidelity_arguments import parse_crop, max_mae, max_frac, max_rmse, max_delta, max_differing, tolerance
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
@@ -117,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(
             "exit status: 0 when the comparison passes, 1 when it fails, "
-            "2 usage or read error; passes when every --max-mae/--max-frac/--max-rmse/--max-delta "
+            "2 usage or read error; passes when every --max-mae/--max-frac/--max-rmse/--max-delta/--max-differing "
             "threshold set is met, and otherwise when no pixel differs "
             "beyond --tolerance"
         ),
@@ -213,6 +213,11 @@ def main(argv: list[str] | None = None) -> int:
         help=("fail when the worst raw RGBA channel delta exceeds this (0-255); "
               "independent of tolerance"),
     )
+    parser.add_argument(
+        "--max-differing", type=max_differing, default=None, metavar="N",
+        help=("fail when more than N pixels differ beyond --tolerance; "
+              "when set, replaces the default no-differing-pixel gate"),
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -253,7 +258,8 @@ def main(argv: list[str] | None = None) -> int:
         return report_error("fidelity", str(exc))
 
     ok = budget_verdict(metrics, args.max_mae, args.max_frac,
-                        max_rmse=args.max_rmse, max_delta=args.max_delta)
+                        max_rmse=args.max_rmse, max_delta=args.max_delta,
+                        max_differing=args.max_differing)
     result = report_data(args.candidate, args.reference, args.candidate_crop,
                          args.crop, args.tolerance, args.max_mae, args.max_frac,
                          metrics, worst=worst, channels=channels,
@@ -270,7 +276,8 @@ def main(argv: list[str] | None = None) -> int:
                          percentiles=(delta_percentiles(histogram)
                                       if args.delta_percentiles else None),
                          passed=ok, max_rmse=args.max_rmse,
-                         max_delta=args.max_delta)
+                         max_delta=args.max_delta,
+                         max_differing=args.max_differing)
     if args.json:
         print(render_json(result))
         return 0 if ok else 1

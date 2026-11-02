@@ -108,6 +108,16 @@ def max_delta(value: str) -> int:
     return _channel_amount(value, number, "--max-delta", "delta")
 
 
+def max_differing(value: str) -> int:
+    """Return a nonnegative ``--max-differing`` pixel count."""
+    number = plain_number(value, "--max-differing", "integer", "a", int)
+    if number < 0:
+        raise argparse.ArgumentTypeError(
+            f"--max-differing must not be negative: {value!r}"
+        )
+    return number
+
+
 def max_frac(value: str) -> float:
     """Return a finite ``--max-frac`` differing-pixel fraction in 0..1."""
     number = _finite_float(value, "--max-frac")

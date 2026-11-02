@@ -25,7 +25,8 @@ else:  # imported as a top-level module through tools/fidelity.py's direct run
 def budget_verdict(metrics, max_mae: float | None = None,
                    max_frac: float | None = None,
                    max_rmse: float | None = None,
-                   max_delta: int | None = None) -> bool:
+                   max_delta: int | None = None,
+                   max_differing: int | None = None) -> bool:
     """Return whether *metrics* meets the caller-set budgets.
 
     Every threshold the caller set is a budget that must be met. With no
@@ -44,6 +45,8 @@ def budget_verdict(metrics, max_mae: float | None = None,
         budgets.append(metrics.rmse <= max_rmse)
     if max_delta is not None:
         budgets.append(metrics.max_delta <= max_delta)
+    if max_differing is not None:
+        budgets.append(metrics.differing <= max_differing)
     return all(budgets) if budgets else metrics.frac_differing <= 0.0
 
 
@@ -107,7 +110,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 channels=None, bias=None, explanation=None, histogram=None,
                 percentiles=None, maxima=None,
                 passed: bool = False, *, max_rmse: float | None = None,
-                max_delta: int | None = None, rows=None, columns=None, row_bounds=None,
+                max_delta: int | None = None, max_differing: int | None = None,
+                rows=None, columns=None, row_bounds=None,
                 column_bounds=None, runs=None, column_runs=None):
     """Assemble the comparison's JSON result object.
 
@@ -131,6 +135,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["thresholds"]["max_rmse"] = max_rmse
     if max_delta is not None:
         result["thresholds"]["max_delta"] = max_delta
+    if max_differing is not None:
+        result["thresholds"]["max_differing"] = max_differing
     if channels is not None:
         result["channel_counts"] = channels
     if bias is not None:
@@ -298,10 +304,14 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     rmse_clause = "" if rmse_budget is None else f"max-rmse={rmse_budget:.4f} "
     delta_budget = thresholds.get("max_delta")
     delta_clause = "" if delta_budget is None else f"max-delta={delta_budget} "
+    differing_budget = thresholds.get("max_differing")
+    differing_clause = ("" if differing_budget is None
+                        else f"max-differing={differing_budget} ")
     lines.append(
         f"{verdict}: max-mae={mae_budget} max-frac={fraction_budget} "
         f"{rmse_clause}"
         f"{delta_clause}"
+        f"{differing_clause}"
         f"tolerance={thresholds['tolerance']}"
     )
     return lines
