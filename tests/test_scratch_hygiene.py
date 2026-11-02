@@ -41,7 +41,7 @@ def tracked_run_scratch_files(root):
             continue
         with open(path, "rb") as fh:
             first_line = fh.readline()
-        if first_line.startswith(b"/tmp/tumwater-run-"):
+        if first_line.startswith(b"/tmp/tumwater-run-") and b"/tmp." in first_line:
             offenders.append((name, first_line))
     return offenders
 
@@ -107,6 +107,17 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 tracked_run_scratch_files(directory),
                 [(leak_name, b"/tmp/tumwater-run-example/tmp.work")],
             )
+
+    def test_scan_ignores_run_path_without_scratch_directory(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            with open(os.path.join(directory, "note"), "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/log.txt\n")
+            subprocess.run(["git", "-C", directory, "add", "note"], check=True)
+
+            self.assertEqual(tracked_run_scratch_files(directory), [])
 
     def test_scan_does_not_follow_a_tracked_symlink(self):
         import tempfile
