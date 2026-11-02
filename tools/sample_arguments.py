@@ -67,6 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
     parser.add_argument("--match-fraction", action="store_true", help="with --find-color, report the matching fraction of the region")
     parser.add_argument("--match-runs", action="store_true", help="with --find-color, report contiguous horizontal matching segments")
+    parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors, or RGBA colors with --alpha, in the sampled region")
     modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors, or RGBA with --alpha, along one row or column")

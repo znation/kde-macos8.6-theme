@@ -496,6 +496,14 @@ stop at each row boundary, and merge adjacent matches even when their RGB
 values differ within tolerance. The report covers the full region independently
 of `--match-pixels`; potentially large output is opt-in.
 
+Add `--match-column-runs` with `--find-color` to report maximal contiguous
+vertical segments using the same match predicate. JSON adds `match.column_runs`
+with absolute `x`, `y` and `length`; text prints the records on a
+`matching column runs:` line after any horizontal runs. Segments are ordered
+by column then row, stop at each column boundary, and merge adjacent tolerance
+matches even when their RGB values differ. They cover the full region
+independently of `--match-pixels`; potentially large output is opt-in.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha

@@ -19,6 +19,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     matched_runs = []
     run_start = None
     run_y = None
+    column_starts = {}
+    matched_column_runs = []
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
     alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
     for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
@@ -28,6 +30,12 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             run_start = None
         alpha_matches = alphas is None or next(alphas) == args.match_alpha
         matches = alpha_matches and max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance
+        if args.match_column_runs:
+            if matches:
+                column_starts.setdefault(x, y)
+            elif x in column_starts:
+                start = column_starts.pop(x)
+                matched_column_runs.append({"x": x, "y": start, "length": y - start})
         if matches:
             if args.match_runs and run_start is None:
                 run_start, run_y = x, y
@@ -41,6 +49,11 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             run_start = None
     if args.match_runs and run_start is not None:
         matched_runs.append({"x": run_start, "y": run_y, "length": args.x + args.width - run_start})
+    matched_column_runs.extend(
+        {"x": x, "y": start, "length": args.y + args.height - start}
+        for x, start in column_starts.items()
+    )
+    matched_column_runs.sort(key=lambda run: (run["x"], run["y"]))
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
     color_hex = _hex(target)
@@ -52,6 +65,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             **({"pixels": matched_pixels, "omitted_pixels": count - len(matched_pixels)}
                if args.match_pixels is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
+            **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
             **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
             **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}}, ensure_ascii=True))
         return
@@ -74,3 +88,5 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"omitted pixels: {count - len(matched_pixels)}")
     if args.match_runs:
         print(f"matching runs: {json.dumps(matched_runs, separators=(',', ':'))}")
+    if args.match_column_runs:
+        print(f"matching column runs: {json.dumps(matched_column_runs, separators=(',', ':'))}")
