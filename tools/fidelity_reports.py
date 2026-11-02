@@ -98,7 +98,8 @@ def source_bounds(difference_bounds, crop_rect):
 
 def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 tolerance, max_mae, max_frac, metrics, worst=None,
-                channels=None, explanation=None, passed: bool = False):
+                channels=None, explanation=None, histogram=None,
+                passed: bool = False):
     """Assemble the comparison's JSON result object.
 
     Paths, crop rectangles and the three thresholds are echoed as given;
@@ -119,6 +120,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
     }
     if channels is not None:
         result["channel_counts"] = channels
+    if histogram is not None:
+        result["delta_histogram"] = histogram
     if worst is not None:
         result["worst_pixels"] = worst
     if explanation is not None:
@@ -209,6 +212,9 @@ def render_text(result: dict, candidate, reference) -> list[str]:
             f"channel differing pixels (R, G, B, A): {channels['r']} "
             f"{channels['g']} {channels['b']} {channels['a']}"
         )
+    histogram = result.get("delta_histogram")
+    if histogram is not None:
+        lines.append("delta histogram: " + json.dumps(histogram, ensure_ascii=True))
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
     mae_budget = "unset" if thresholds["max_mae"] is None else f"{thresholds['max_mae']:.4f}"

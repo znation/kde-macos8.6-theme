@@ -503,6 +503,13 @@ and text prints one `channel differing pixels (R, G, B, A)` line immediately bef
 verdict, on passing and failing runs alike. A pixel can contribute to several counts (a
 tint change moves three channels at once), so the counts overlap and must not be summed
 into a union; `metrics.differing` already holds that union count.
+Add `--delta-histogram` to report every compared pixel once, grouped by its
+maximum absolute RGBA channel delta from 0 through 255. The complete distribution
+includes zero and deltas at or below tolerance, and is independent of the gate:
+JSON adds `delta_histogram` records (`delta` and `count`), while text prints the
+same array as one `delta histogram:` line immediately before the verdict. The
+option reports on passing and failing comparisons; omitting it skips the scan
+and leaves the default output unchanged.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

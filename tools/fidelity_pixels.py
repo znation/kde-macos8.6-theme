@@ -97,3 +97,26 @@ def channel_counts(
         if alpha_delta > tolerance:
             counts["a"] += 1
     return counts
+
+
+def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
+    """Count compared pixels by their maximum absolute RGBA channel delta.
+
+    Inputs are equally sized validated images, as checked by the CLI's
+    comparison. Missing alpha planes represent opaque pixels.
+    """
+    counters = [0] * 256
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
+    for index in range(candidate.width * candidate.height):
+        offset = index * 3
+        delta = max(
+            abs(candidate_rgb[offset] - reference_rgb[offset]),
+            abs(candidate_rgb[offset + 1] - reference_rgb[offset + 1]),
+            abs(candidate_rgb[offset + 2] - reference_rgb[offset + 2]),
+            abs((255 if candidate_alpha is None else candidate_alpha[index])
+                - (255 if reference_alpha is None else reference_alpha[index])),
+        )
+        counters[delta] += 1
+    return [{"delta": delta, "count": count}
+            for delta, count in enumerate(counters) if count]
