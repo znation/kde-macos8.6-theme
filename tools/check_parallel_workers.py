@@ -116,14 +116,10 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
             for entry in running:
                 status = entry.process.poll()
                 if status is not None:
-                    if durations is not None:
-                        durations[entry.module] = (
-                            time.monotonic() - entry.started)
+                    _record_duration(entry, durations)
                     results[entry.module] = status
                 elif time.monotonic() >= entry.deadline:
-                    if durations is not None:
-                        durations[entry.module] = (
-                            time.monotonic() - entry.started)
+                    _record_duration(entry, durations)
                     _kill_group(entry.process)
                     _reap(entry.process)
                     results[entry.module] = None
@@ -161,3 +157,10 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
             _kill_group(entry.process)
             _reap(entry.process)
     return results
+
+
+def _record_duration(entry: _Worker,
+                     durations: dict[str, float] | None) -> None:
+    if durations is None:
+        return
+    durations[entry.module] = time.monotonic() - entry.started
