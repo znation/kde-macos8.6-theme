@@ -5,6 +5,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Fidelity diagnostics: summarize pixel error severity with a delta histogram (planned 2026-11-02 by the plan role)
+
+**Goal and grounding.** Show whether a comparison's errors cluster at small deltas or include many severe mismatches. Inspected `tools/fidelity.py::main`, `tools/fidelity_pixels.py::worst_pixels` and `channel_counts`, and `tools/fidelity_reports.py::report_data` and `render_text`: the optional diagnostics provide ranked examples and overlapping channel counts, but no severity distribution. Searches of fidelity source/tests and planned/archived headings found no delta-histogram capability; the archived sampler histograms count RGB colors instead. This plan is independent of the waiting apply-command extraction.
+
+**Approach and files.** Add `--delta-histogram` as an opt-in boolean in `tools/fidelity.py::main`. Add `delta_histogram(candidate, reference)` in `tools/fidelity_pixels.py`, called after `compare` validates the cropped surfaces and only when requested. Count each compared pixel once by its maximum absolute RGBA channel delta, treating an absent alpha plane as 255. Use a fixed 256-counter buffer; return ascending nonempty bins as records with integer `delta` and `count`. Include delta zero and deltas at or below tolerance: this is the complete error distribution, independent of the gate's tolerance. Extend `report_data` with an optional histogram argument and emit `delta_histogram` in JSON, or one `delta histogram: ` line containing the same JSON array immediately before the verdict in text. Keep verdict calculation and omitted-option output intact. Files: these three tools, new `tests/test_fidelity_delta_histogram.py` using `tests/support/fidelity_cli_case.py`, README.md's fidelity instructions, and a tooling row in `docs/invariants.md`. No decoder or theme-art change is needed.
+
+**Acceptance criteria.** Synthetic RGB/RGBA cases pin ascending bins, repeated counts, zero and 255, alpha-only differences, absent alpha as opaque, and one contribution per pixel even when several channels differ. Bin counts sum to compared area; the count above tolerance equals `metrics.differing`, including a delta exactly equal to tolerance. CLI tests pin text/JSON parity, independent offset crops excluding outside pixels, identical images yielding just the zero bin, and reporting on both passing aggregate-budget and failing runs. Changing tolerance changes the verdict/metrics but not the histogram for the same surfaces. Test omission of the key/line and mock the helper to prove no scan without the flag; include a direct-script success case and retain status 2 with empty stdout for a read or size error. Run `make check` after implementation and documentation changes.
+
 ## Done
 
 ### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)
