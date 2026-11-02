@@ -17,6 +17,14 @@ class LocalHookError(Exception):
     """A git invocation or filesystem condition the tool reports and refuses."""
 
 
+def _resolved_path(value: str, command: str) -> Path:
+    """Resolve a Git-reported path, translating filesystem errors for the CLI."""
+    try:
+        return Path(value).resolve()
+    except (OSError, RuntimeError) as exc:
+        raise LocalHookError(f"cannot resolve path from {command}: {exc}") from exc
+
+
 def _git(*args: str) -> str:
     """Run ``git *args*`` and remove its terminating output newline.
 
@@ -75,9 +83,11 @@ def hooks_dir() -> Path:
     checkout. Its output may be relative to the current directory, so it is
     resolved to an absolute path here.
     """
-    return Path(_git("rev-parse", "--git-path", "hooks")).resolve()
+    command = "git rev-parse --git-path hooks"
+    return _resolved_path(_git("rev-parse", "--git-path", "hooks"), command)
 
 
 def top_level() -> Path:
     """Return the absolute root of the current work tree."""
-    return Path(_git("rev-parse", "--show-toplevel")).resolve()
+    command = "git rev-parse --show-toplevel"
+    return _resolved_path(_git("rev-parse", "--show-toplevel"), command)

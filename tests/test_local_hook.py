@@ -270,6 +270,17 @@ class TestGitFailures(unittest.TestCase):
             ):
                 local_hook_git.hooks_dir()
 
+    def test_hooks_dir_reports_path_resolution_errors(self):
+        with mock.patch.object(local_hook_git, "_git", return_value="/hooks"), \
+                mock.patch.object(
+                    Path, "resolve", side_effect=RuntimeError("symlink loop")
+                ):
+            with self.assertRaisesRegex(
+                local_hook_git.LocalHookError,
+                "cannot resolve path from git rev-parse --git-path hooks: symlink loop",
+            ):
+                local_hook_git.hooks_dir()
+
 
 class TestGitDiscovery(unittest.TestCase):
     """Pin the Git path discovery ``local_hook_git`` documents.
