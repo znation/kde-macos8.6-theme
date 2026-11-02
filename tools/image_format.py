@@ -40,13 +40,13 @@ def _require_bytes(data: bytes | bytearray, name: str) -> None:
         )
 
 
-def is_webp(data: bytes) -> bool:
+def is_webp(data: bytes | bytearray) -> bool:
     """Return True when *data* begins with the RIFF/WEBP container signature."""
     _require_bytes(data, "is_webp")
     return data[:4] == _RIFF_MAGIC and data[8:12] == _WEBP_FOURCC
 
 
-def is_image(data: bytes) -> bool:
+def is_image(data: bytes | bytearray) -> bool:
     """Return True when *data* begins with a known raster image signature.
 
     PNG, JPEG, GIF and WebP are recognized; only the leading bytes decide,
@@ -56,7 +56,7 @@ def is_image(data: bytes) -> bool:
     return any(data.startswith(magic) for magic in IMAGE_MAGICS) or is_webp(data)
 
 
-def other_image_format(data: bytes) -> str | None:
+def other_image_format(data: bytes | bytearray) -> str | None:
     """Return the non-PNG raster format *data* starts with, or ``None``.
 
     Names the formats the reference set uses besides PNG (JPEG, GIF and WebP)
