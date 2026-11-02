@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: count over-tolerance pixels by column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Locate vertical mismatch bands when inspecting side borders and widget edges. `tools/fidelity_pixels.py::difference_rows` reports horizontal distributions, while bounds and bounded worst-pixel reports do not give a column distribution. This is a small counterpart to the row diagnostic, independently mergeable without changing its output.
+
+**Implementation.** Added opt-in `--difference-columns` with dense crop-relative x counts in JSON and text. The helper counts each pixel once when any raw RGBA delta exceeds tolerance, including missing-alpha and hidden-RGB cases; README and the tooling invariant document the output. Tests cover asymmetric columns, crop behavior, row combination, budget verdicts, omission and errors. The report function uses its existing optional-argument style for `columns`.
+
 ### Fidelity diagnostics: count over-tolerance pixels by row (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Locate horizontal mismatch bands without losing their distribution inside a single difference rectangle or a bounded worst-pixel list. This helps inspect artifacts such as the button rows reported in BUGS.md without prescribing their fix. Inspected `tools/fidelity_pixels.py::channel_counts`, `tools/fidelity.py::main` and `tools/fidelity_reports.py::report_data`/`render_text`; searches of fidelity source/tests, the queue and archived fidelity headings found no row-count diagnostic. The finished bounds and channel-count plans cover spatial extent and channel totals, respectively. This plan can merge independently of the queued channel-maxima diagnostic.

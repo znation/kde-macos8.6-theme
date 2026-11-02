@@ -586,6 +586,11 @@ transparency is compared as stored. JSON adds a dense `difference_rows` array, a
 the same array immediately before the verdict. Its indices are crop-relative y coordinates, so
 add the corresponding crop's y origin to locate a row in either source image. Zero rows are
 included, and the diagnostic is omitted unless requested.
+Add `--difference-columns` to count the same over-tolerance pixel union in each column. JSON
+adds a dense `difference_columns` array, and text prints it immediately after the row diagnostic
+when both are requested. Indices are crop-relative x coordinates; add the crop's x origin to
+locate a column in either source image. Zero columns are included, and the diagnostic is omitted
+unless requested.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

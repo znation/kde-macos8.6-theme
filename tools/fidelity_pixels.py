@@ -105,6 +105,17 @@ def channel_counts(
     return counts
 
 
+def difference_columns(candidate: Image, reference: Image, tolerance: int) -> list[int]:
+    """Count over-tolerance pixels in each column of equally sized images."""
+    width, height = candidate.width, candidate.height
+    counts = [0] * width
+    for index in range(width * height):
+        if max(_absolute_deltas(candidate.rgb, reference.rgb, candidate.alpha,
+                                reference.alpha, index)) > tolerance:
+            counts[index % width] += 1
+    return counts
+
+
 def channel_bias(candidate: Image, reference: Image) -> dict[str, float]:
     """Return mean candidate-minus-reference byte deltas for RGBA.
 
