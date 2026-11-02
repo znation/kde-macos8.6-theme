@@ -146,6 +146,29 @@ def _require_home(
     return path
 
 
+def _apply_selection(config_home: Path, data_home: Path) -> int:
+    """Select installed GTK sheets under both home locks."""
+    # Check the installed sheets before creating or locking any directory, so
+    # an apply that refuses a missing sheet leaves the config home absent.
+    sheets = _installed_sheets(data_home)
+    if sheets is None:
+        return 1
+    # Hold the data-home lock make install/uninstall hold, so an uninstall
+    # cannot remove the sheets between this check and the selection that
+    # names them; the re-check catches sheets removed before this run took it.
+    with installed_data_lock(
+        data_home,
+        "for the GTK selection",
+        LOCK_TIMEOUT,
+        error=ConfigError,
+    ):
+        sheets = _installed_sheets(data_home)
+        if sheets is None:
+            return 1
+        with _config_lock(config_home):
+            return _apply(sheets, config_home, _note)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the GTK selection CLI; *argv* excludes the program name."""
     parser = EscapingArgumentParser(
@@ -192,27 +215,7 @@ def main(argv: list[str] | None = None) -> int:
                 "XDG_DATA_HOME",
                 "$HOME/.local/share",
             )
-            # Check the installed sheets before creating or locking any
-            # directory, so an apply that refuses a missing sheet leaves the
-            # config home absent as it found it.
-            sheets = _installed_sheets(data_home)
-            if sheets is None:
-                return 1
-            # Hold the data-home lock make install/uninstall hold, so an
-            # uninstall cannot remove the sheets between this check and the
-            # selection that names them; the re-check under the lock catches
-            # sheets removed before this run took the lock.
-            with installed_data_lock(
-                data_home,
-                "for the GTK selection",
-                LOCK_TIMEOUT,
-                error=ConfigError,
-            ):
-                sheets = _installed_sheets(data_home)
-                if sheets is None:
-                    return 1
-                with _config_lock(config_home):
-                    status = _apply(sheets, config_home, _note)
+            status = _apply_selection(config_home, data_home)
     except ConfigError as exc:
         return report_error(TOOL, str(exc))
     if status == 0:
