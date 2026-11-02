@@ -596,6 +596,12 @@ adds a dense `difference_columns` array, and text prints it immediately after th
 when both are requested. Indices are crop-relative x coordinates; add the crop's x origin to
 locate a column in either source image. Zero columns are included, and the diagnostic is omitted
 unless requested.
+Add `--difference-row-bounds` to report each compared row's smallest crop-relative horizontal
+interval containing a pixel beyond tolerance. Rows without a mismatch are `null`; a nonempty
+entry has `x` and `width`, and unchanged gaps inside the interval may be included. JSON adds a
+dense `difference_row_bounds` array and text prints the same array immediately before the verdict.
+Add the corresponding crop's x origin to locate an interval in either source image. The report
+uses raw RGBA deltas, including RGB beneath transparency, and is omitted unless requested.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

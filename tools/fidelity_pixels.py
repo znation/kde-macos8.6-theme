@@ -173,6 +173,27 @@ def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[
     return rows
 
 
+def difference_row_bounds(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int] | None]:
+    """Return each differing row's smallest crop-relative horizontal interval.
+
+    Pixels count when any raw RGBA channel delta exceeds tolerance. Missing
+    alpha is opaque; RGB beneath transparency remains part of the comparison.
+    """
+    width, height = candidate.width, candidate.height
+    bounds = []
+    for y in range(height):
+        first = last = None
+        for x in range(width):
+            index = y * width + x
+            if max(_absolute_deltas(candidate.rgb, reference.rgb,
+                                    candidate.alpha, reference.alpha, index)) > tolerance:
+                if first is None:
+                    first = x
+                last = x
+        bounds.append(None if first is None else {"x": first, "width": last - first + 1})
+    return bounds
+
+
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     """Count compared pixels by their maximum absolute RGBA channel delta.
 
