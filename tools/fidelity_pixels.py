@@ -185,10 +185,11 @@ def difference_row_bounds(candidate: Image, reference: Image, tolerance: int) ->
         first = last = None
         for x in range(width):
             index = y * width + x
-            if max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                    candidate.alpha, reference.alpha, index)) > tolerance:
-                if first is None:
-                    first = x
+            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
+                                              candidate.alpha, reference.alpha, index)) > tolerance
+            if differing and first is None:
+                first = x
+            if differing:
                 last = x
         bounds.append(None if first is None else {"x": first, "width": last - first + 1})
     return bounds
@@ -206,10 +207,11 @@ def difference_column_bounds(candidate: Image, reference: Image, tolerance: int)
         first = last = None
         for y in range(height):
             index = y * width + x
-            if max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                    candidate.alpha, reference.alpha, index)) > tolerance:
-                if first is None:
-                    first = y
+            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
+                                              candidate.alpha, reference.alpha, index)) > tolerance
+            if differing and first is None:
+                first = y
+            if differing:
                 last = y
         bounds.append(None if first is None else {"y": first, "height": last - first + 1})
     return bounds
