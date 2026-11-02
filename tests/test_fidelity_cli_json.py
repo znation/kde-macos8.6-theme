@@ -16,7 +16,7 @@ class TestJsonCli(FidelityCliTestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertEqual(result.stderr, "")
         data = json.loads(result.stdout)
-        self.assertEqual(set(data), {"candidate", "reference", "candidate_crop", "reference_crop", "thresholds", "metrics", "passed"})
+        self.assertEqual(set(data), {"candidate", "reference", "candidate_crop", "reference_crop", "thresholds", "metrics", "candidate_difference_bounds", "reference_difference_bounds", "passed"})
         self.assertEqual(data["candidate"], candidate)
         self.assertEqual(data["reference"], altered)
         self.assertIsNone(data["candidate_crop"])

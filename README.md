@@ -463,6 +463,9 @@ The `metrics` object uses the field names from `tools/fidelity_metrics.py::Metri
 dimensions, worst-delta coordinates, and `difference_bounds` describe the compared surfaces.
 The bounds are `(x, y, width, height)` for the smallest rectangle containing pixels whose
 maximum channel delta exceeds tolerance, or `null`/`none` when no pixel exceeds it.
+The top-level `candidate_difference_bounds` and `reference_difference_bounds` translate that
+rectangle into each source image's coordinates, using the corresponding crop origin (or zero).
+Text output prints the same two source rectangles after the local bounds line.
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
 reference screenshot and reports mean absolute error, per-channel mean absolute error

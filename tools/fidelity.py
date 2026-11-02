@@ -202,6 +202,16 @@ def main(argv: list[str] | None = None) -> int:
     except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
+    def source_bounds(crop_rect):
+        if metrics.difference_bounds is None:
+            return None
+        x, y, width, height = metrics.difference_bounds
+        origin_x, origin_y = crop_rect[:2] if crop_rect else (0, 0)
+        return [x + origin_x, y + origin_y, width, height]
+
+    candidate_bounds = source_bounds(args.candidate_crop)
+    reference_bounds = source_bounds(args.crop)
+
     # Every threshold the caller set is a budget that must be met. With no
     # budget set the verdict falls back to the strictest one: no pixel
     # differing by more than --tolerance. --max-mae and --max-frac therefore
@@ -221,6 +231,8 @@ def main(argv: list[str] | None = None) -> int:
             "reference_crop": args.crop,
             "thresholds": {"tolerance": args.tolerance, "max_mae": args.max_mae, "max_frac": args.max_frac},
             "metrics": asdict(metrics),
+            "candidate_difference_bounds": candidate_bounds,
+            "reference_difference_bounds": reference_bounds,
             "passed": ok,
         }
         if worst is not None:
@@ -277,6 +289,8 @@ def main(argv: list[str] | None = None) -> int:
         print("difference bounds: none")
     else:
         print("difference bounds: " + ",".join(map(str, metrics.difference_bounds)))
+    for name, bounds in (("candidate", candidate_bounds), ("reference", reference_bounds)):
+        print(f"{name} difference bounds: " + ("none" if bounds is None else ",".join(map(str, bounds))))
     if worst is not None:
         print(f"worst pixels: {len(worst)}")
         for pixel in worst:

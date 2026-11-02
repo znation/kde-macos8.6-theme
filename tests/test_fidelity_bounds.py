@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import unittest
 
 from support import repo_root  # noqa: F401
@@ -59,7 +61,7 @@ class TestBoundsCli(FidelityCliTestCase):
     def test_text_and_json_report_crop_relative_bounds_with_aggregate_pass(self):
         def pixel(x, y):
             if 2 <= x < 4 and 1 <= y < 3:
-                return (1 if (x, y) == (2, 1) else (x - 2) * 9, (y - 1) * 9, 5)
+                return (1 if (x, y) == (3, 2) else (x - 2) * 9, (y - 1) * 9, 5)
             return (0, 0, 0)
 
         candidate_image, _ = rgb_image(5, 4, pixel)
@@ -67,17 +69,47 @@ class TestBoundsCli(FidelityCliTestCase):
         reference = self._padded_surface_png(6, 5, 1, 2)
         text_run = self._run_png_pair(candidate, reference, "--candidate-crop", "2,1,2,2", "--crop", "1,2,2,2", "--max-mae", "1")
         self._assert_pass(text_run)
-        self.assertIn("difference bounds: 0,0,1,1", text_run.stdout)
+        self.assertIn("difference bounds: 1,1,1,1", text_run.stdout)
+        self.assertIn("candidate difference bounds: 3,2,1,1", text_run.stdout)
+        self.assertIn("reference difference bounds: 2,3,1,1", text_run.stdout)
         json_run = self._run_png_pair(candidate, reference, "--candidate-crop", "2,1,2,2", "--crop", "1,2,2,2", "--max-mae", "1", "--json")
         result = json.loads(json_run.stdout)
         self.assertEqual(json_run.returncode, 0)
-        self.assertEqual(result["metrics"]["difference_bounds"], [0, 0, 1, 1])
+        self.assertEqual(result["metrics"]["difference_bounds"], [1, 1, 1, 1])
+        self.assertEqual(result["candidate_difference_bounds"], [3, 2, 1, 1])
+        self.assertEqual(result["reference_difference_bounds"], [2, 3, 1, 1])
         self.assertTrue(result["passed"])
 
     def test_json_null_for_no_differences(self):
         _, png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         result = self._run_png_pair(png, png, "--json")
         self.assertIsNone(json.loads(result.stdout)["metrics"]["difference_bounds"])
+        self.assertIsNone(json.loads(result.stdout)["candidate_difference_bounds"])
+        self.assertIsNone(json.loads(result.stdout)["reference_difference_bounds"])
+        text_run = self._run_png_pair(png, png)
+        self.assertIn("candidate difference bounds: none", text_run.stdout)
+        self.assertIn("reference difference bounds: none", text_run.stdout)
+
+    def test_source_bounds_use_zero_for_an_omitted_crop(self):
+        candidate, _ = rgb_image(2, 2, lambda x, y: (1 if (x, y) == (1, 1) else 0, 0, 0))
+        reference, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
+        run = self._run_png_pair(make_png(2, 2, [candidate.rgb[:6], candidate.rgb[6:]]),
+                                 make_png(2, 2, [reference.rgb[:6], reference.rgb[6:]]), "--json")
+        result = json.loads(run.stdout)
+        self.assertEqual(result["candidate_difference_bounds"], [1, 1, 1, 1])
+        self.assertEqual(result["reference_difference_bounds"], [1, 1, 1, 1])
+
+    def test_direct_script_emits_source_bounds(self):
+        _, candidate_png = rgb_image(1, 1, lambda x, y: (1, 0, 0))
+        _, reference_png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        tmp = self._tmp_dir()
+        candidate_path = self._write(tmp, "direct-candidate.png", candidate_png)
+        reference_path = self._write(tmp, "direct-reference.png", reference_png)
+        script = repo_root.ROOT / "tools" / "fidelity.py"
+        run = subprocess.run([sys.executable, str(script), candidate_path, reference_path, "--json", "--max-mae", "1"],
+                             capture_output=True, text=True, check=False)
+        self.assertEqual(run.returncode, 0)
+        self.assertEqual(json.loads(run.stdout)["candidate_difference_bounds"], [0, 0, 1, 1])
 
 
 if __name__ == "__main__":
