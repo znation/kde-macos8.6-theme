@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: summarize typical and tail errors with percentiles (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Make widespread rendering errors distinguishable from isolated outliers with a compact median/p95/p99 summary, reusing the existing maximum-RGBA-delta histogram.
+
+**Approach and files.** Added opt-in `--delta-percentiles`; nearest-rank p50, p95 and p99 are derived from one shared histogram scan. JSON and text report matching values, while percentile-only output omits histogram data. Added CLI and distribution coverage, README documentation and a dated fidelity invariant. Files: `tools/fidelity.py`, `tools/fidelity_reports.py`, `tests/test_fidelity_percentiles.py`, `README.md`, and `docs/invariants.md`.
+
+**Acceptance criteria.** Tests cover nearest-rank bins, zero and maximum deltas, sparse tails, alpha, crops, text/JSON, option omission, scan sharing, direct-script invocation, tolerance and budget independence, and PASS/FAIL gate behavior. `make check` passes.
+
 ### Reference-pixel sampler: locate colors within an explicit RGB tolerance (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Locate near-matching rendered colors without manually inspecting a pixel dump. `tools/sample_arguments.py::build_parser` exposes exact `--find-color`; `tools/sample_reports.py::report` tests `rgb == target`. The finished color-location plan specifies exact matching. Searches for color-tolerance, near-color and fuzzy matching in sampler source/tests and the plan files found no such option. This is independent of the queued fidelity delta histogram and is one bounded extension of the existing search mode.

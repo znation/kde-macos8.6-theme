@@ -99,6 +99,7 @@ def source_bounds(difference_bounds, crop_rect):
 def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 tolerance, max_mae, max_frac, metrics, worst=None,
                 channels=None, explanation=None, histogram=None,
+                percentiles=None,
                 passed: bool = False):
     """Assemble the comparison's JSON result object.
 
@@ -122,6 +123,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["channel_counts"] = channels
     if histogram is not None:
         result["delta_histogram"] = histogram
+    if percentiles is not None:
+        result["delta_percentiles"] = percentiles
     if worst is not None:
         result["worst_pixels"] = worst
     if explanation is not None:
@@ -132,6 +135,23 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
 def render_json(result: dict) -> str:
     """Return the assembled result as one ASCII-escaped JSON line."""
     return json.dumps(result, ensure_ascii=True)
+
+
+def delta_percentiles(histogram):
+    """Return nearest-rank p50, p95 and p99 from ascending histogram bins."""
+    total = sum(item["count"] for item in histogram)
+    if total <= 0:
+        raise ValueError("delta histogram must contain at least one pixel")
+    result = {}
+    for percentile in (50, 95, 99):
+        rank = (percentile * total + 99) // 100
+        cumulative = 0
+        for item in histogram:
+            cumulative += item["count"]
+            if cumulative >= rank:
+                result[f"p{percentile}"] = item["delta"]
+                break
+    return result
 
 
 def render_text(result: dict, candidate, reference) -> list[str]:
@@ -215,6 +235,9 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     histogram = result.get("delta_histogram")
     if histogram is not None:
         lines.append("delta histogram: " + json.dumps(histogram, ensure_ascii=True))
+    percentiles = result.get("delta_percentiles")
+    if percentiles is not None:
+        lines.append("delta percentiles: " + json.dumps(percentiles, ensure_ascii=True))
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
     mae_budget = "unset" if thresholds["max_mae"] is None else f"{thresholds['max_mae']:.4f}"

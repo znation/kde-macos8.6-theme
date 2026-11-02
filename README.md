@@ -516,6 +516,14 @@ JSON adds `delta_histogram` records (`delta` and `count`), while text prints the
 same array as one `delta histogram:` line immediately before the verdict. The
 option reports on passing and failing comparisons; omitting it skips the scan
 and leaves the default output unchanged.
+Add `--delta-percentiles` to summarize that same maximum-RGBA-delta distribution
+with nearest-rank p50, p95 and p99. Each rank is `ceil(p * pixel_count / 100)`;
+the reported delta is the smallest bin whose cumulative count reaches that
+rank. The complete compared crop, including zero and sub-tolerance deltas,
+contributes. Percentiles are diagnostic and do not affect the gate. JSON adds a
+`delta_percentiles` object and text prints the same object as one `delta percentiles:`
+line immediately before the verdict. Percentiles alone omit histogram output;
+both options share one histogram scan.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

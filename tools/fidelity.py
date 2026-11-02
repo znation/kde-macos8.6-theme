@@ -45,6 +45,7 @@ if __package__:
     from tools.fidelity_pixels import worst_pixels, channel_counts, delta_histogram
     from tools.fidelity_reports import (
         budget_verdict,
+        delta_percentiles,
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
@@ -62,6 +63,7 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_pixels import worst_pixels, channel_counts, delta_histogram
     from fidelity_reports import (
         budget_verdict,
+        delta_percentiles,
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
@@ -140,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
                         ))
     parser.add_argument("--delta-histogram", action="store_true",
                         help="count compared pixels by maximum RGBA channel delta")
+    parser.add_argument("--delta-percentiles", action="store_true",
+                        help="report median, p95 and p99 maximum RGBA deltas")
     parser.add_argument("--explain-worst", action="store_true",
                         help="show source RGBA values at the maximum-delta pixel")
     parser.add_argument(
@@ -199,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
         channels = (channel_counts(candidate, reference, args.tolerance)
                     if args.channel_counts else None)
         histogram = (delta_histogram(candidate, reference)
-                     if args.delta_histogram else None)
+                     if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
                                              args.candidate_crop, args.crop)
                        if args.explain_worst else None)
@@ -210,7 +214,11 @@ def main(argv: list[str] | None = None) -> int:
     result = report_data(args.candidate, args.reference, args.candidate_crop,
                          args.crop, args.tolerance, args.max_mae, args.max_frac,
                          metrics, worst=worst, channels=channels,
-                         explanation=explanation, histogram=histogram, passed=ok)
+                         explanation=explanation,
+                         histogram=histogram if args.delta_histogram else None,
+                         percentiles=(delta_percentiles(histogram)
+                                      if args.delta_percentiles else None),
+                         passed=ok)
     if args.json:
         print(render_json(result))
         return 0 if ok else 1
