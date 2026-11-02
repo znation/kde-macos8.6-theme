@@ -1,10 +1,11 @@
-"""Tests for tools/apply_cursor.py, tools/cursor_link.py and cursor targets.
+"""Tests for tools/apply_cursor.py, cursor helpers and cursor targets.
 
 The tool runs in-process with ``HOME``, ``XDG_DATA_HOME`` and
 ``XDG_CONFIG_HOME`` pointed at a temp root, and the selector is a shell stub on
 ``PATH`` that records its argv. Cursor link policy in ``tools/cursor_link.py``
-and command selection/removal are pinned without touching a real ``~/.icons``
-or Plasma configuration. The Makefile tests drive the public targets through
+and the ``kcminputrc`` reader in ``tools/cursor_config.py`` are pinned alongside
+command selection/removal without touching a real ``~/.icons`` or Plasma
+configuration. The Makefile tests drive the public targets through
 ``theme_install``, whose children run under the suite's timeout.
 """
 
@@ -31,7 +32,7 @@ from support.process_assertions import (
 from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
-from tools import apply_cursor, diagnostics, required_command
+from tools import apply_cursor, cursor_config, diagnostics, required_command
 
 
 class CursorCase(unittest.TestCase):
@@ -494,7 +495,7 @@ class TestCursorThemeSetting(unittest.TestCase):
         )
         self.assertEqual(
             apply_cursor.CURSOR_THEME,
-            apply_cursor._cursor_theme_setting(self.config),
+            cursor_config.cursor_theme_setting(self.config),
         )
 
     def test_a_setting_outside_the_mouse_section_is_ignored(self):
@@ -505,7 +506,7 @@ class TestCursorThemeSetting(unittest.TestCase):
             "[Other]\ncursorTheme=org.macos8.desktop\n",
             encoding="utf-8",
         )
-        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+        self.assertIsNone(cursor_config.cursor_theme_setting(self.config))
 
     def test_comments_and_spacing_around_the_key_are_handled(self):
         self.path.write_text(
@@ -517,16 +518,16 @@ class TestCursorThemeSetting(unittest.TestCase):
         )
         self.assertEqual(
             apply_cursor.CURSOR_THEME,
-            apply_cursor._cursor_theme_setting(self.config),
+            cursor_config.cursor_theme_setting(self.config),
         )
 
     def test_a_non_utf8_file_reads_as_no_setting(self):
         self.path.write_bytes(b"[Mouse]\ncursorTheme=\xff\n")
-        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+        self.assertIsNone(cursor_config.cursor_theme_setting(self.config))
 
     def test_a_directory_reads_as_no_setting(self):
         self.path.mkdir()
-        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+        self.assertIsNone(cursor_config.cursor_theme_setting(self.config))
 
 
 class TestMakeApplyCursor(ApplyTargetMakeCases, unittest.TestCase):

@@ -32,9 +32,9 @@ from pathlib import Path
 
 if __package__:
     from tools import cursor_link
+    from tools import cursor_config
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.containment import read_text
     from tools.diagnostics import (
         create_scratch_directory,
         report_error,
@@ -47,9 +47,9 @@ if __package__:
     from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_cursor.py
     import cursor_link
+    import cursor_config
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
-    from containment import read_text
     from diagnostics import (
         create_scratch_directory,
         report_error,
@@ -190,52 +190,12 @@ def _apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> 
     return status
 
 
-def _cursor_theme_setting(config_home: Path) -> str | None:
-    """Return ``[Mouse] cursorTheme`` from ``kcminputrc``, or ``None``.
-
-    Only the selection note reads this file; it is never edited. A missing,
-    unreadable, non-regular or non-UTF-8 file reads as no setting rather than
-    failing the removal. The shared regular-file reader opens with
-    ``O_NONBLOCK`` and checks the opened descriptor, so a FIFO or device at
-    the path is refused at once instead of blocking the removal.
-    """
-    path = config_home / "kcminputrc"
-    try:
-        text = read_text(path, ROOT, encoding="utf-8-sig")
-    except (OSError, UnicodeDecodeError, ValueError):
-        return None
-    section = None
-    value = None
-    for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith(("#", ";")):
-            continue
-        section, setting = _cursor_theme_line(stripped, section)
-        if setting is not None:
-            value = setting
-    return value
-
-
-def _cursor_theme_line(
-    line: str, section: str | None
-) -> tuple[str | None, str | None]:
-    """Return the updated section and any cursor-theme value on *line*."""
-    if line.startswith("[") and line.endswith("]"):
-        return line[1:-1].strip(), None
-    if section != "Mouse" or "=" not in line:
-        return section, None
-    key, _, setting = line.partition("=")
-    if key.strip() != "cursorTheme":
-        return section, None
-    return section, setting.strip()
-
-
 def _remove(home: Path, data_home: Path, config_home: Path) -> int:
     """Unlink only our Xcursor-path symlink; leave every foreign path alone."""
     target, foreign = cursor_link.remove_link(home, data_home)
     if foreign:
         _note(f"{target} is not our symlink; leaving it untouched")
-    if _cursor_theme_setting(config_home) == CURSOR_THEME:
+    if cursor_config.cursor_theme_setting(config_home) == CURSOR_THEME:
         _note(
             f"[Mouse] cursorTheme in {config_home / 'kcminputrc'} still names "
             f"{CURSOR_THEME}; run {SELECT_TOOL} breeze_cursors to reset"
