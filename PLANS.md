@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Split reference sampler report handlers by mode, part 2/4: histogram handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
-
-**Goal and grounding.** Isolate the Counter/selection/bounds/output branch in `tools/sample_reports.py::report`. Sibling part 1/4 supplies shared primitives; parts 3/4 and 4/4 extract independent search and runs branches and are not prerequisites.
-
-**Approach and files.** Move the histogram branch into `tools/sample_report_histogram.py::report_histogram(args, image, width, height, header)`, assembling its region metadata locally. Move `Counter` and `nsmallest` imports with it and import traversal/formatting primitives directly from `sample_report_pixels`, using explicit package/direct-script paths. Replace only the histogram branch with delegation in `sample_reports.report`; remove imports there only when no remaining branch uses them. Update `tests/test_sample_histogram_bounds.py` to patch the new handler module's `_positioned_region_pixels` binding, preserving the optional-traversal assertion. Use existing histogram tests for output regressions, adding a direct-script case only if missing. Do not redesign counting or bounds.
-
-**Acceptance criteria.** Histogram text/JSON fields and order, RGB/RGBA tuple tie sorting, top-color omitted totals, full-region fractions and absolute disconnected-color bounds retain their existing fixtures. `TestSampleHistogramBounds.test_bounds_traversal_is_optional_and_uses_single_decode` still proves plain histograms skip positioned traversal and each CLI call decodes once. Package and direct-script histogram invocations succeed. Search source/tests/markdown for stale ownership references; update docs only where a reference changes. Run `make check` after final edits. This part merges without parts 3/4 or 4/4.
-
 ### Split reference sampler report handlers by mode, part 3/4: color-search handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
 
 **Goal and grounding.** Isolate color matching and its report from `tools/sample_reports.py::report`. Sibling part 1/4 provides traversal/formatting primitives; histogram part 2/4 and runs part 4/4 are independent.
