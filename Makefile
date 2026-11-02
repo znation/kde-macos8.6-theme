@@ -370,6 +370,9 @@ require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in 
 # message. $(1) names the target.
 require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 3)' 2>/dev/null || { echo "$(1): PYTHON must be Python 3.10 or newer (the fidelity tool uses int.bit_count()): '$(PYTHON)'" >&2; exit 2; }
 
+# Targets that execute Python share both guards and target-specific diagnostics.
+require_python_ready = $(call require_python,$(1)) && $(call require_python_version,$(1))
+
 # The three apply targets (`apply`, `apply-gtk`, `apply-cursor`) share
 # one refusal line: each acts on the running session, and a DESTDIR
 # staged-tree has no business there. One snippet keeps the three refusals in
@@ -435,8 +438,7 @@ require_check_parallel = set -- "$(CHECK_PARALLEL)"; value="$$1"; while :; do ca
 PYTHON_RUN := $(if $(filter 1,$(words $(PYTHON))),$(if $(findstring /,$(PYTHON)),$(abspath $(PYTHON)),$(PYTHON)),$(PYTHON))
 
 check:
-	@$(call require_python,check)
-	@$(call require_python_version,check)
+	@$(call require_python_ready,check)
 	@$(call require_check_tests,check)
 ifeq ($(strip $(CHECK_TESTS)),)
 	@$(call require_check_pattern,check)
@@ -489,8 +491,7 @@ help:
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
 # out of `check`. The deterministic self-test runs first and fails fast.
 check-references:
-	@$(call require_python,check-references)
-	@$(call require_python_version,check-references)
+	@$(call require_python_ready,check-references)
 	$(PYTHON) tools/check_references.py --self-test
 	$(PYTHON) tools/check_references.py
 
@@ -502,8 +503,7 @@ check-references:
 RENDER_OUTPUT ?= render.png
 
 render:
-	@$(call require_python,render)
-	@$(call require_python_version,render)
+	@$(call require_python_ready,render)
 	$(PYTHON) tools/render_surface.py -- "$(RENDER_OUTPUT)"
 
 # Apply the just-built theme everywhere it reaches. `install` runs as a
@@ -521,8 +521,7 @@ render:
 # appear only on the next login or restart.
 apply:
 	@$(call refuse_destdir,apply)
-	@$(call require_python,apply)
-	@$(call require_python_version,apply)
+	@$(call require_python_ready,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
 	$(PYTHON) tools/apply_gtk.py
@@ -534,16 +533,14 @@ apply:
 # reason as `apply`.
 apply-gtk:
 	@$(call refuse_destdir,apply-gtk)
-	@$(call require_python,apply-gtk)
-	@$(call require_python_version,apply-gtk)
+	@$(call require_python_ready,apply-gtk)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
 	$(PYTHON) tools/apply_gtk.py
 
 # Clear only the GTK selection this theme wrote; a foreign gtk-theme-name and
 # a foreign gtk-4.0/gtk.css are left untouched.
 remove-gtk:
-	@$(call require_python,remove-gtk)
-	@$(call require_python_version,remove-gtk)
+	@$(call require_python_ready,remove-gtk)
 	$(PYTHON) tools/apply_gtk.py --remove
 
 # Apply the cursor: install the icon theme (which carries the Xcursor
@@ -553,8 +550,7 @@ remove-gtk:
 # as `apply`: the selection is for the running session, not a staged tree.
 apply-cursor:
 	@$(call refuse_destdir,apply-cursor)
-	@$(call require_python,apply-cursor)
-	@$(call require_python_version,apply-cursor)
+	@$(call require_python_ready,apply-cursor)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme
 	$(PYTHON) tools/apply_cursor.py
 
@@ -562,8 +558,7 @@ apply-cursor:
 # untouched (the tool notes the reset command when the selection still names
 # our theme).
 remove-cursor:
-	@$(call require_python,remove-cursor)
-	@$(call require_python_version,remove-cursor)
+	@$(call require_python_ready,remove-cursor)
 	$(PYTHON) tools/apply_cursor.py --remove
 
 # Copy the standalone Firefox userChrome.css and userContent.css sheets into
@@ -572,15 +567,13 @@ remove-cursor:
 # DESTDIR guard or data-home lock. `make apply` runs this with --optional, so a
 # machine without a Firefox profile still applies the other surfaces.
 install-firefox:
-	@$(call require_python,install-firefox)
-	@$(call require_python_version,install-firefox)
+	@$(call require_python_ready,install-firefox)
 	$(PYTHON) tools/install_firefox.py $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
 
 # Remove only the sheets and preference block this theme wrote; a foreign
 # userChrome.css or userContent.css and a foreign user_pref are left untouched.
 remove-firefox:
-	@$(call require_python,remove-firefox)
-	@$(call require_python_version,remove-firefox)
+	@$(call require_python_ready,remove-firefox)
 	$(PYTHON) tools/install_firefox.py --remove $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
 
 # Write a local-only post-commit hook (this clone's git hooks directory, never
@@ -588,13 +581,11 @@ remove-firefox:
 # to overwrite or remove a post-commit hook it did not write, so another tool's
 # hook (Git LFS, for example) is left alone with a diagnostic.
 install-local-hook:
-	@$(call require_python,install-local-hook)
-	@$(call require_python_version,install-local-hook)
+	@$(call require_python_ready,install-local-hook)
 	$(PYTHON) tools/local_hook.py install
 
 uninstall-local-hook:
-	@$(call require_python,uninstall-local-hook)
-	@$(call require_python_version,uninstall-local-hook)
+	@$(call require_python_ready,uninstall-local-hook)
 	$(PYTHON) tools/local_hook.py uninstall
 
 # `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
