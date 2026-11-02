@@ -35,7 +35,7 @@ import sys
 
 if __package__:
     from tools.fidelity_cli_parser import build_parser
-    from tools.containment import require_within_repo
+    from tools.fidelity_sources import read_source as _read_source
     from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
         FidelityError,
@@ -52,11 +52,10 @@ if __package__:
         render_json,
         render_text,
     )
-    from tools.png import PngError, read_png
-    from tools.repo_root import ROOT
+    from tools.png import PngError
 else:  # run directly: python3 tools/fidelity.py
     from fidelity_cli_parser import build_parser
-    from containment import require_within_repo
+    from fidelity_sources import read_source as _read_source
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
     from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
@@ -69,39 +68,7 @@ else:  # run directly: python3 tools/fidelity.py
         render_json,
         render_text,
     )
-    from png import PngError, read_png
-    from repo_root import ROOT
-
-
-def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
-    """Read *path*, decoding only the scanlines *crop_rect* needs when given.
-
-    ``crop`` slices the decoded pixel rows afterwards, so rows below the crop's
-    bottom edge would be decoded and thrown away. Passing ``max_rows`` lets the
-    PNG decoder skip their predictor work while still inflating and validating
-    the whole stream, which saves seconds on a large Paeth-filtered reference.
-    The bound shortens the returned height, so a rectangle that overflows the
-    image sideways is re-read whole; ``crop`` then reports it against the real
-    width and height as before. A rectangle that overflows vertically is
-    already read whole because the decoder clamps the bound to the height.
-    The alpha plane is decoded too, so a transparent candidate cannot compare
-    equal to an opaque reference.
-
-    A repository path that resolves outside the repository (a checked-in
-    symlink) is refused before it is read: the report's worst-delta values and
-    the pass/fail status would otherwise let a private image be probed against
-    a known candidate.
-    """
-    require_within_repo(path, ROOT)
-    if crop_rect is None:
-        return read_png(path, alpha=True)
-    x, y, width, height = crop_rect
-    image = read_png(path, max_rows=y + height, alpha=True)
-    if x + width > image.width:
-        # The crop is rejected either way; re-read unbounded only so its
-        # diagnostic names the file's real height rather than the bound's.
-        return read_png(path, alpha=True)
-    return image
+    from png import PngError
 
 
 def main(argv: list[str] | None = None) -> int:

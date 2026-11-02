@@ -27,7 +27,7 @@ from support.png_fixtures import (  # noqa: E402
     solid_rgb,
 )
 from support.symlink_fixtures import symlinked_repo  # noqa: E402
-from tools import fidelity  # noqa: E402
+from tools import fidelity, fidelity_sources  # noqa: E402
 
 
 class TestCli(FidelityCliTestCase):
@@ -45,6 +45,16 @@ class TestCli(FidelityCliTestCase):
         path = self._write(tmp, "reference.png", reference)
         result = self._run_script(path, path)
         self._assert_pass(result)
+
+    def test_script_cropped_comparison_matches_package_invocation(self):
+        _, reference = solid_rgb(2, 2)
+        path = self._write(self._tmp_dir(), "reference.png", reference)
+        args = ("--crop", "0,0,1,1")
+        package = self._run(path, path, *args)
+        direct = self._run_script(path, path, *args)
+        self.assertEqual(direct.returncode, package.returncode)
+        self.assertEqual(direct.stdout, package.stdout)
+        self.assertEqual(direct.stderr, package.stderr)
 
     def test_pass_and_fail(self):
         candidate, altered = self._write_altered_pair(self._tmp_dir())
@@ -400,7 +410,7 @@ class TestCli(FidelityCliTestCase):
         _, data = solid_rgb(1, 1)
         root, link = symlinked_repo(self._tmp_dir(), "reference.png", data)
         candidate = self._write(self._tmp_dir(), "candidate.png", data)
-        with mock.patch.object(fidelity, "ROOT", str(root)):
+        with mock.patch.object(fidelity_sources, "ROOT", str(root)):
             result = self._run(candidate, str(link))
         self._assert_usage_error(result, "resolves outside", str(root))
         self.assertNotIn("max channel delta", result.stdout)
@@ -412,7 +422,7 @@ class TestCli(FidelityCliTestCase):
         root, link = symlinked_repo(self._tmp_dir(), "candidate.png", data)
         reference = self._write(self._tmp_dir(), "reference.png", data)
         for extra in ((), ("--candidate-crop", "0,0,1,1")):
-            with self.subTest(extra=extra), mock.patch.object(fidelity, "ROOT", str(root)):
+            with self.subTest(extra=extra), mock.patch.object(fidelity_sources, "ROOT", str(root)):
                 result = self._run(str(link), reference, *extra)
             self._assert_usage_error(result, "resolves outside", str(root))
             self.assertNotIn("max channel delta", result.stdout)
@@ -423,7 +433,7 @@ class TestCli(FidelityCliTestCase):
             self._tmp_dir(), "reference.png", data, target="real/target.png"
         )
         candidate = self._write(self._tmp_dir(), "candidate.png", data)
-        with mock.patch.object(fidelity, "ROOT", str(root)):
+        with mock.patch.object(fidelity_sources, "ROOT", str(root)):
             result = self._run(candidate, str(link))
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

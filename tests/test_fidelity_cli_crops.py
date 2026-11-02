@@ -18,7 +18,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image  # noqa: E402
-from tools import fidelity, png  # noqa: E402
+from tools import fidelity, fidelity_sources, png  # noqa: E402
 
 
 class TestCliCrops(FidelityCliTestCase):
@@ -57,7 +57,7 @@ class TestCliCrops(FidelityCliTestCase):
         ):
             with self.subTest(option=option):
                 with mock.patch.object(
-                    fidelity, "read_png", wraps=png.read_png
+                    fidelity_sources, "read_png", wraps=png.read_png
                 ) as spy:
                     result = self._run(candidate, reference, option, "1,1,2,2")
                 self._assert_pass(result)

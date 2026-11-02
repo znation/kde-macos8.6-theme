@@ -555,7 +555,8 @@ surface region of the reference.
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 A candidate or reference path inside the repository that resolves outside it (a checked-in
 symlink) is refused by name before it is read, so a comparison cannot probe a private image;
-a path outside the repository is read as before.
+a path outside the repository is read as before. Guarded PNG reads and crop-bounded row decoding
+are handled by `tools/fidelity_sources.py`, called by the CLI in `tools/fidelity.py`.
 By default a run passes only when no pixel differs from the reference by more than `--tolerance`
 (a per-channel delta; 0, i.e. byte-exact, unless given). Each pixel's alpha byte is compared
 along with its red, green and blue bytes, so a transparent candidate cannot pass as an opaque
