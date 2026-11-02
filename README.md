@@ -520,10 +520,6 @@ and text prints one `channel differing pixels (R, G, B, A)` line immediately bef
 verdict, on passing and failing runs alike. A pixel can contribute to several counts (a
 tint change moves three channels at once), so the counts overlap and must not be summed
 into a union; `metrics.differing` already holds that union count.
-Add `--channel-bias` to report the mean signed candidate-minus-reference byte delta for each
-RGBA channel. Positive values mean the candidate channel is higher; opposite errors can cancel
-to zero even when pixels differ. This is a raw-byte diagnostic, not a perceptual color measure,
-and it does not affect the verdict.
 Add `--delta-histogram` to report every compared pixel once, grouped by its
 maximum absolute RGBA channel delta from 0 through 255. The complete distribution
 includes zero and deltas at or below tolerance, and is independent of the gate:
