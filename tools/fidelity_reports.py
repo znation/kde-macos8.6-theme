@@ -24,7 +24,8 @@ else:  # imported as a top-level module through tools/fidelity.py's direct run
 
 def budget_verdict(metrics, max_mae: float | None = None,
                    max_frac: float | None = None,
-                   max_rmse: float | None = None) -> bool:
+                   max_rmse: float | None = None,
+                   max_delta: int | None = None) -> bool:
     """Return whether *metrics* meets the caller-set budgets.
 
     Every threshold the caller set is a budget that must be met. With no
@@ -41,6 +42,8 @@ def budget_verdict(metrics, max_mae: float | None = None,
         budgets.append(metrics.frac_differing <= max_frac)
     if max_rmse is not None:
         budgets.append(metrics.rmse <= max_rmse)
+    if max_delta is not None:
+        budgets.append(metrics.max_delta <= max_delta)
     return all(budgets) if budgets else metrics.frac_differing <= 0.0
 
 
@@ -103,7 +106,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 tolerance, max_mae, max_frac, metrics, worst=None,
                 channels=None, bias=None, explanation=None, histogram=None,
                 percentiles=None,
-                passed: bool = False, *, max_rmse: float | None = None):
+                passed: bool = False, *, max_rmse: float | None = None,
+                max_delta: int | None = None):
     """Assemble the comparison's JSON result object.
 
     Paths, crop rectangles and the three thresholds are echoed as given;
@@ -124,6 +128,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
     }
     if max_rmse is not None:
         result["thresholds"]["max_rmse"] = max_rmse
+    if max_delta is not None:
+        result["thresholds"]["max_delta"] = max_delta
     if channels is not None:
         result["channel_counts"] = channels
     if bias is not None:
@@ -254,9 +260,12 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     fraction_budget = "unset" if thresholds["max_frac"] is None else f"{thresholds['max_frac']:.6f}"
     rmse_budget = thresholds.get("max_rmse")
     rmse_clause = "" if rmse_budget is None else f"max-rmse={rmse_budget:.4f} "
+    delta_budget = thresholds.get("max_delta")
+    delta_clause = "" if delta_budget is None else f"max-delta={delta_budget} "
     lines.append(
         f"{verdict}: max-mae={mae_budget} max-frac={fraction_budget} "
         f"{rmse_clause}"
+        f"{delta_clause}"
         f"tolerance={thresholds['tolerance']}"
     )
     return lines

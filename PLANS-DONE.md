@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity gate: cap the worst channel delta alongside aggregate budgets (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Allow an aggregate error budget to tolerate small differences while rejecting an isolated severe error. `tools/fidelity_metrics.py::Metrics.max_delta` already reports the worst absolute channel delta; `tools/fidelity_reports.py::budget_verdict` now gates it alongside MAE, differing fraction and RMSE. The RMSE budget remains supported.
+
+**Implementation.** Added `--max-delta N` with ASCII integer validation from 0 through 255. The gate combines each supplied budget, uses the already computed raw RGBA maximum, and keeps default output unchanged when omitted. JSON records `thresholds.max_delta`; text displays the cap before tolerance. Added CLI coverage, documented raw alpha and transparent RGB behavior in README.md, and updated the fidelity invariant. Verification: `make check` passed after the final edits.
+
 ### Fidelity gate: accept an explicit RMSE budget (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Let a comparison constrain concentrated channel errors with the root mean square error already computed by `tools/fidelity_metrics.py::compare`. `tools/fidelity.py::main` exposes MAE and differing-fraction budgets; `tools/fidelity_reports.py::budget_verdict` checks those two metrics, while `render_text` already prints RMSE. Searches for `max-rmse` and RMSE-budget terms in source, tests and planned/archived entries found no such gate. This is independent of the waiting sampler alpha-filter plan.

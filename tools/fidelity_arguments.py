@@ -102,6 +102,12 @@ def max_rmse(value: str) -> float:
     return _channel_amount(value, number, "--max-rmse", "RMSE")
 
 
+def max_delta(value: str) -> int:
+    """Return an integer ``--max-delta`` channel amount in 0..255."""
+    number = plain_number(value, "--max-delta", "integer", "a", int)
+    return _channel_amount(value, number, "--max-delta", "delta")
+
+
 def max_frac(value: str) -> float:
     """Return a finite ``--max-frac`` differing-pixel fraction in 0..1."""
     number = _finite_float(value, "--max-frac")

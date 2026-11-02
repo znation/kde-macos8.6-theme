@@ -512,9 +512,10 @@ along with its red, green and blue bytes, so a transparent candidate cannot pass
 reference. `--max-mae F` and `--max-frac F` set
 aggregate budgets instead: when one is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction, and
-`--max-rmse` bounds root mean square error — and the default no-differing-pixel gate no longer
-applies. RMSE uses the same raw channel bytes as the reported metric, including alpha, is
-independent of `--tolerance`, and is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
+`--max-rmse` bounds root mean square error, and `--max-delta` caps the largest absolute RGBA
+channel difference — and the default no-differing-pixel gate no longer applies. Both use the
+comparison's raw bytes, including alpha and RGB beneath transparent pixels, and are independent
+of `--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
 includes `candidate_position` and `reference_position`, which add the corresponding crop origin
