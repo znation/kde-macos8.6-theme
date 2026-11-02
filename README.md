@@ -570,6 +570,10 @@ lower. Opposite errors can cancel to zero even when pixels differ. This is a raw
 including RGB beneath transparent pixels, with missing alpha treated as opaque; it does not
 composite or describe perceptual color error. JSON adds a `channel_bias` object and text prints
 the same object immediately before the verdict. It is independent of tolerance and verdict.
+Add `--channel-maxima` to report the largest absolute byte delta seen in each RGBA channel.
+JSON adds a `channel_maxima` object and text prints the four maxima immediately before the
+verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque, and is
+independent of tolerance and verdict.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

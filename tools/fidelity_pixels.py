@@ -117,6 +117,26 @@ def channel_bias(candidate: Image, reference: Image) -> dict[str, float]:
     return {name: total / pixels for name, total in zip(("r", "g", "b", "a"), sums)}
 
 
+def channel_maxima(candidate: Image, reference: Image) -> dict[str, int]:
+    """Return maximum absolute byte delta for each compared RGBA channel.
+
+    Inputs are equally sized validated images. RGB bytes are compared raw,
+    including beneath transparent pixels, and a missing alpha plane is opaque.
+    """
+    maxima = [0, 0, 0, 0]
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
+    for index in range(candidate.width * candidate.height):
+        offset = index * 3
+        for channel in range(3):
+            maxima[channel] = max(maxima[channel], abs(candidate_rgb[offset + channel] - reference_rgb[offset + channel]))
+        maxima[3] = max(maxima[3], abs(
+            (255 if candidate_alpha is None else candidate_alpha[index])
+            - (255 if reference_alpha is None else reference_alpha[index])
+        ))
+    return dict(zip(("r", "g", "b", "a"), maxima))
+
+
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     """Count compared pixels by their maximum absolute RGBA channel delta.
 

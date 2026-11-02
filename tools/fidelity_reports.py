@@ -105,7 +105,7 @@ def source_bounds(difference_bounds, crop_rect):
 def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 tolerance, max_mae, max_frac, metrics, worst=None,
                 channels=None, bias=None, explanation=None, histogram=None,
-                percentiles=None,
+                percentiles=None, maxima=None,
                 passed: bool = False, *, max_rmse: float | None = None,
                 max_delta: int | None = None):
     """Assemble the comparison's JSON result object.
@@ -134,6 +134,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["channel_counts"] = channels
     if bias is not None:
         result["channel_bias"] = bias
+    if maxima is not None:
+        result["channel_maxima"] = maxima
     if histogram is not None:
         result["delta_histogram"] = histogram
     if percentiles is not None:
@@ -248,6 +250,9 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     bias = result.get("channel_bias")
     if bias is not None:
         lines.append("channel bias (candidate - reference): " + json.dumps(bias, ensure_ascii=True))
+    maxima = result.get("channel_maxima")
+    if maxima is not None:
+        lines.append(f"channel maximum delta (R, G, B, A): {maxima['r']} {maxima['g']} {maxima['b']} {maxima['a']}")
     histogram = result.get("delta_histogram")
     if histogram is not None:
         lines.append("delta histogram: " + json.dumps(histogram, ensure_ascii=True))
