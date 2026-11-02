@@ -116,6 +116,11 @@ SCALE_FOCUS = "scale:focus:focus-visible > trough > slider"
 SCALE_SLIDER = "scale > trough > slider"
 
 
+def _inline_link_state_selectors(*roots):
+    """Expand inline-link selectors across base, hover and active states."""
+    return tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+
+
 class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
     def test_header_subtitle_foreground(self):
         selectors = ("headerbar .subtitle", "windowtitle .subtitle")
@@ -465,7 +470,7 @@ for radio in (False, True):
 
     def test_selected_inline_link_foregrounds(self):
         roots = ("link:selected:not(:disabled)", "link:visited:selected:not(:disabled)")
-        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        selectors = _inline_link_state_selectors(*roots)
         css = strip_comments(self.css)
         for selector in selectors:
             self.assertEqual(self.selectors.count(selector), 1, selector)
@@ -475,7 +480,7 @@ for radio in (False, True):
 
     def test_disabled_selected_inline_link_foregrounds(self):
         roots = ("link:selected:disabled", "link:visited:selected:disabled")
-        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        selectors = _inline_link_state_selectors(*roots)
         css = strip_comments(self.css)
         ordinary_disabled = css.index("link:disabled")
         selected_links = css.index("link:selected:not(:disabled)")
@@ -487,7 +492,7 @@ for radio in (False, True):
 
     def test_selected_ancestor_inline_link_foregrounds(self):
         roots = (":selected link:not(:disabled)", ":selected link:visited:not(:disabled)")
-        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        selectors = _inline_link_state_selectors(*roots)
         css = strip_comments(self.css)
         selected_links = css.index("link:selected:not(:disabled)")
         for selector in selectors:
@@ -499,7 +504,7 @@ for radio in (False, True):
 
     def test_disabled_selected_ancestor_inline_link_foregrounds(self):
         roots = (":selected link:disabled", ":selected link:visited:disabled")
-        selectors = tuple(root + suffix for root in roots for suffix in ("", ":hover", ":active"))
+        selectors = _inline_link_state_selectors(*roots)
         css = strip_comments(self.css)
         ordinary_disabled = css.index("link:disabled")
         selected_ancestors = css.index(":selected link:not(:disabled)")
