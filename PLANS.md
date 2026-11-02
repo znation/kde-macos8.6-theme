@@ -15,4 +15,7 @@ _None yet._
 
 **Acceptance criteria.** Pin exact text lines and exact JSON serialization for a default report and a report combining optional diagnostics and configured budgets, including diagnostic order, empty arrays versus omitted fields, crop/source coordinates, PASS/FAIL, float formatting and escaped path controls/non-ASCII JSON. Retain the existing RGB/RGBA formatting cases. Renderer calls do not mutate their input dictionaries and require only width/height from the two image stubs. Existing CLI coverage plus direct-script and package invocations of the same small fixture agree on stdout, stderr and exit status for text and JSON. The extraction preserves signatures and output; PNG reads, metric computation and verdict calculation stay in their current owners. Run `make check` after final edits.
 
+Needs review 2026-11-02 by feature: too large for one run
+
+
 ## Done
