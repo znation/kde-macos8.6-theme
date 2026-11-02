@@ -10,6 +10,7 @@ dialog argv recipes in ``tools/render_clients.py``.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shlex
 import stat
@@ -364,6 +365,30 @@ class TestSessionScript(unittest.TestCase):
 
 
 class TestSessionCommand(unittest.TestCase):
+    @contextlib.contextmanager
+    def _dialog_command(self, client_builder):
+        """Yield ``(session, command)`` for one dialog client's render command.
+
+        The three dialog clients share the render's dialog geometry, settle
+        and supervision timeout, and each puts the ``kdialog`` word into the
+        in-session script, so one context manager drives the three wording
+        tests: each passes its client builder and asserts the words specific
+        to that dialog. The shared surface geometry and time values are the
+        dialog render's, so this helper must not serve the non-dialog case
+        with its own window size.
+        """
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session,
+                list(client_builder(session)),
+                2.5,
+                480,
+                360,
+                9.5,
+            )
+            self.assertIn("kdialog", command.argv[-1])
+            yield session, command
+
     def test_carries_the_geometry_the_script_and_the_surface_path(self):
         with render_session.Session.create() as session:
             command = render_session.session_command(
@@ -409,16 +434,7 @@ class TestSessionCommand(unittest.TestCase):
             )
 
     def test_carries_the_checkbox_dialog_client_words(self):
-        with render_session.Session.create() as session:
-            command = render_session.session_command(
-                session,
-                list(checkbox_dialog_client(session)),
-                2.5,
-                480,
-                360,
-                9.5,
-            )
-            self.assertIn("kdialog", command.argv[-1])
+        with self._dialog_command(checkbox_dialog_client) as (session, command):
             # The dontagain config file lands in the scratch config home, so
             # the client never writes the caller's configuration.
             self.assertIn(
@@ -426,16 +442,7 @@ class TestSessionCommand(unittest.TestCase):
             )
 
     def test_carries_the_combobox_dialog_client_words(self):
-        with render_session.Session.create() as session:
-            command = render_session.session_command(
-                session,
-                list(combobox_dialog_client(session)),
-                2.5,
-                480,
-                360,
-                9.5,
-            )
-            self.assertIn("kdialog", command.argv[-1])
+        with self._dialog_command(combobox_dialog_client) as (_, command):
             # The chooser's items travel as separate positional words of the
             # in-session script, so a space inside one cannot become shell
             # syntax.
@@ -443,16 +450,7 @@ class TestSessionCommand(unittest.TestCase):
 
 
     def test_carries_the_menu_dialog_client_words(self):
-        with render_session.Session.create() as session:
-            command = render_session.session_command(
-                session,
-                list(menu_dialog_client(session)),
-                2.5,
-                480,
-                360,
-                9.5,
-            )
-            self.assertIn("kdialog", command.argv[-1])
+        with self._dialog_command(menu_dialog_client) as (session, command):
             # The whole client suffix serializes exactly as built, with the
             # prompt kept as one quoted word despite its space.
             client = list(menu_dialog_client(session))
