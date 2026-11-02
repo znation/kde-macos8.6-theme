@@ -588,6 +588,12 @@ including RGB beneath transparent pixels, with missing alpha treated as opaque; 
 composite or describe perceptual color error. JSON adds a `channel_bias` object and text prints
 the same object immediately before the verdict. It is independent of tolerance and verdict.
 Add `--channel-maxima` to report the largest absolute byte delta seen in each RGBA channel.
+Add `--difference-runs` to report maximal contiguous horizontal runs of pixels whose maximum
+raw RGBA channel delta exceeds `--tolerance`. JSON adds row-major `difference_runs` records
+with crop-relative `x`, `y` and `length`; text prints the same array after column bounds.
+Runs end at every row boundary, and adjacent pixels stay in one run even when their delta
+magnitudes differ. Crop origins translate these coordinates to source images. Output can grow
+with the number of disjoint runs, so the option is opt-in; omitted runs skip the scan.
 JSON adds a `channel_maxima` object and text prints the four maxima immediately before the
 verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque, and is
 independent of tolerance and verdict.

@@ -215,6 +215,26 @@ def difference_column_bounds(candidate: Image, reference: Image, tolerance: int)
     return bounds
 
 
+def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
+    """Return maximal horizontal runs of over-tolerance pixels, row-major."""
+    width, height = candidate.width, candidate.height
+    records = []
+    for y in range(height):
+        start = None
+        for x in range(width):
+            index = y * width + x
+            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
+                                              candidate.alpha, reference.alpha, index)) > tolerance
+            if differing and start is None:
+                start = x
+            elif not differing and start is not None:
+                records.append({"x": start, "y": y, "length": x - start})
+                start = None
+        if start is not None:
+            records.append({"x": start, "y": y, "length": width - start})
+    return records
+
+
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     """Count compared pixels by their maximum absolute RGBA channel delta.
 
