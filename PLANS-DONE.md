@@ -37,8 +37,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** An offset multi-row fixture with disconnected matches pins exact text/JSON ordering and coordinates, excluding matching pixels outside the region. Cover N=1, N below/equal/above match count, and no matches; full count and enclosing bounds must include matches beyond the retained prefix. Test tolerance-boundary inclusion and exact-alpha exclusion, including opaque fallback and transparent RGB. Invalid N (zero, negative, over 1000, fractional, non-ASCII digits, empty or missing) and use without `--find-color` return 2 with empty stdout before header or row reads. Verify omitted-option output retains its existing schema, one direct-script invocation succeeds, and decoding still uses the requested bottom-row bound. Run `make check` after implementation and documentation edits.
 
-### Fidelity CLI: separate comparison orchestration from output formatting (planned 2026-11-01 by the organize role)
-— done 2026-11-02 by the feature role
+### Fidelity CLI: separate comparison orchestration from output formatting (planned 2026-11-01 by the organize role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Reduce the command entry point's mixed responsibilities: `tools/fidelity.py` is 336 lines (the channel-count helpers landed since this plan was queued at 304), and `main()` contains argument construction, input reads and comparison, optional diagnostics, pass/fail evaluation, and two output formats. Argument validators and comparison metrics already have dedicated modules, while text and JSON formatting remain embedded in the long CLI function. This focused split avoids moving the comparison algorithm or changing the interface.
 
@@ -46,8 +45,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Existing text and JSON output, crop reporting, optional diagnostics, threshold semantics, and exit codes remain unchanged. Direct-script invocation and package imports continue to work. Tests cover the report functions with explicit inputs, and the project check passes. No image decoding, comparison, or theme behavior moves into the report module.
 
-### Fidelity diagnostics: count over-tolerance pixels per channel (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Fidelity diagnostics: count over-tolerance pixels per channel (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Distinguish widespread color-channel errors from transparency errors without inferring their extent from a bounded worst-pixel list. Inspected `tools/fidelity_metrics.py::Metrics`, `tools/fidelity.py::main` and `tools/fidelity_pixels.py::worst_pixels`: metrics expose per-channel MAE and a union differing-pixel count, while the optional pixel report ranks individual mismatches. Searches of fidelity implementation and tests, queue and related finished fidelity entries found no per-channel over-tolerance count report. This is independently mergeable from the queued source-bounds report.
 
@@ -55,8 +53,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Tiny independently specified fixtures assert distinct channel counts, a pixel counted in multiple channels, an alpha-only mismatch against an RGB peer, and opaque alpha counts of zero for RGB-only peers. Pin strict tolerance boundaries, tolerance 255, and identical images. CLI text and JSON agree on counts; distinct nonzero crop origins exclude deliberately mismatching pixels outside the compared regions. An aggregate-budget PASS retains nonzero counts, and ordinary over-tolerance FAIL retains exit 1. Verify the optional key/line is absent and helper is not called without the flag, one direct-script invocation succeeds, and read or size errors with the flag return 2 with empty stdout. Run `make check` after implementation and documentation edits.
 
-### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Reference-pixel sampler: bound histogram output to the dominant colors (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make palette inspection manageable for reference regions with many colors. Inspected `tools/sample.py::main` and `tests/test_sample_histogram.py::TestSampleHistogram`: histogram mode counts the region and emits the entire sorted color list. Searches of sampler options and planned/archived sampler headings found no output-limit capability; the completed count-region-colors plan covers the unbounded report.
 
@@ -64,8 +61,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Tests use a synthetic offset rectangle with unequal frequencies and a tie crossing the cutoff: text and JSON return the same leading N entries in the established order, exclude outside-region colors, and retain original counts and full region metadata. Cover N=1, N equal to and greater than the distinct-color count, and omission preserving the existing complete-output assertions. Reject zero, negative, non-integer and missing N, and use without `--histogram` (including `--runs` and `--find-color`), with empty stdout and no header or row decoder calls. Include a script-entry-point success case. Retain bounded-row decoding and existing path/bounds error tests. Run `make check` after implementation and documentation changes.
 
-### Fidelity diagnostics: list a bounded selection of the worst differing pixels (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Fidelity diagnostics: list a bounded selection of the worst differing pixels (planned 2026-11-01 by the plan role — done 2026-11-01 by the feature role)
 
 **Goal and grounding.** Inspect several severe mismatches without repeatedly recropping a render. `tools/fidelity_metrics.py::compare` reports one worst location and the union's bounds; `tools/fidelity.py::main` exposes those aggregates in text and JSON. Neither reports a ranked pixel list. Searches of the fidelity implementation, tests, queue and archive found no worst-pixels option; the finished bounds and JSON plans cover different diagnostics. This is independent of the completed sampler color-location work.
 
@@ -73,8 +69,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Independently specified tiny fixtures pin descending severity, row-major ties spanning rows, N smaller/larger than the mismatch count, identical images, and tolerance-equal exclusion versus tolerance-exceeding inclusion. Include different RGB channels and an alpha-only mismatch against an RGB peer; reported RGBA values must identify the source pixels exactly. Compare helper results against a straightforward test-only full-sort oracle over a small deterministic matrix. CLI tests assert exact text and JSON records, different candidate/reference crop offsets yielding crop-relative coordinates, and an aggregate-budget PASS with a nonempty list. Invalid limits (zero, negative, over 1000, fractional, non-ASCII digits and empty) fail with status 2 and empty stdout before reads. Confirm default JSON has no added key and the helper is not called without the option; existing read, containment, metric and verdict regressions remain green. Run `make check`.
 
-### Reference-pixel sampler: add structured JSON output (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Reference-pixel sampler: add structured JSON output (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let measurement tooling consume reference pixels with their coordinates without parsing the sampler's prose. Checked 2026-11-01: `tools/sample.py::main` offers image, coordinates and rectangle extents and prints text headers and RGB/hex lines; its argument parser has no JSON option. Searches of planned and archived headings found no sampler JSON plan. This is independent of the waiting stylesheet custom-name plan.
 
@@ -82,8 +77,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Tests parse stdout with `json.loads` and compare the complete object for a single pixel and a multi-row rectangle from `_image`, including pixel order, uppercase zero-padded hex and the full header dimensions despite partial row decoding. Exercise `--json` through the script entry point and with a control-character filename, checking the original path round-trips and no raw control byte appears inside the serialized path. In JSON mode, out-of-bounds requests still skip row decoding; missing/corrupt images and escaping repository symlinks return 2 with empty stdout and the existing stderr diagnostic. Retain the default text and bounded-decoding regressions. Run `make check`. These four files and one output mode bound one implementation run.
 
-### Shared stylesheet parser: decode custom-property name escapes without folding case (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: decode custom-property name escapes without folding case (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make equivalent escaped and literal custom-property names share a cascade key in the GTK/Firefox test reader. Confirmed 2026-11-01: `parse_css(r"a { --tone: red !important; --t\6f ne: blue; }")` returns separate keys instead of keeping the important value under `--tone`. `_canonicalize_declaration_name` in `tests/support/gtk_css.py` explicitly returns source spelling for literal or decoded custom prefixes. The completed ordinary-name canonicalization plan deliberately excluded this behavior; this entry extends that contract. It is independent of the waiting empty-custom-value plan and uses nonempty values in its regressions.
 
@@ -92,8 +86,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 **Acceptance criteria.** The reproducer returns `({}, {"a": {"--tone": "red !important"}}, ["a"])`. Simple and hexadecimal escapes, including an escaped leading hyphen that decodes to the custom prefix, share literal keys. Test optional hex terminators including CRLF, invalid-scalar replacement and incomplete/newline fallback using the decoder's established rules. Custom names `--Tone` and `--tone` remain distinct after decoding, including non-ASCII case. Escaped colons decode within the key after the unescaped declaration separator is found. Named regressions exercise important precedence and later-wins ties within and across blocks and grouped selectors. Ordinary-name decoding and selector/value spelling retain their existing expectations. Run `make check`.
 
 
-### Shared stylesheet parser: accept empty custom-property values (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: accept empty custom-property values (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Let the GTK/Firefox test reader represent an empty custom-property value instead of rejecting valid declarations. Reproduced 2026-11-01: `parse_css("a { --empty: ; color: red; }")` raises a malformed-declaration `ValueError`. In `tests/support/gtk_css.py::parse_css`, the `not value` guard rejects custom and ordinary properties alike. This is independent of the waiting ordinary-name normalization entry.
 
@@ -101,8 +94,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** The reproducer returns `({}, {"a": {"--empty": "", "color": "red"}}, ["a"])`. Named tests cover no whitespace, CSS-whitespace-only and comment-only custom values, semicolon and closing-brace termination, grouped selectors and a following ordinary declaration. An empty custom value participates in later-wins ties within and across blocks; a prior important value beats a later empty normal value, while an empty normal value is replaced by a later important one. Case-distinct custom names stay distinct. Empty ordinary values, missing colons, empty names and an empty bare `--` retain source-prefixed malformed diagnostics. Run `make check`; no visual values change.
 
-### Shared stylesheet parser: decode ordinary property-name escapes before cascade merging (planned 2026-11-01 by the plan role)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: decode ordinary property-name escapes before cascade merging (planned 2026-11-01 by the plan role) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Make escaped ordinary property names share their decoded property's cascade slot. The parser previously ASCII-folded ordinary names without decoding CSS escapes.
 
@@ -110,8 +102,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Escaped/literal ordinary names merge with CSS priority and tie behavior, including grouped selectors; coverage pins escape forms, hex lengths and terminators, seventh digits, vendor prefixes, non-ASCII characters, invalid scalars, incomplete escapes, escaped colons and custom-property spelling. Preserve selector order and value spelling. Run `make check`.
 
-### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: preserve escaped colons in declaration names (planned 2026-11-01 by the plan role; independent of the completed define-color block-depth change) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Preserve literal custom-property names containing escaped colons. Reproduced 2026-11-01: `parse_css(r"a { --tone\:active: red; color: blue; }")` stores the key `--tone\` with value `active: red`. `tests/support/gtk_css.py::parse_css` uses `chunk.split(":", 1)` without respecting escapes. The completed declaration-name folding and escaped-whitespace plans do not cover this separator search; the completed block-depth change affects `_define_color_matches`, a separate scanner.
 
@@ -119,8 +110,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** The reproducer returns exactly `({}, {"a": {r"--tone\:active": "red", "color": "blue"}}, ["a"])`. Cover multiple escaped colons in a custom-property name, odd/even runs of backslashes immediately before a colon, and a value containing further colons (including a URL), preserving literal text. Repeated escaped-name declarations still obey important priority and later ties; grouped selectors receive the same preserved key. A declaration containing an escaped colon but no unescaped separator raises the existing source-prefixed malformed-declaration error, as do empty names and values. Keep trailing-backslash scanning bounded. No shipped stylesheet or visual value changes. Run `make check`.
 
-### Shared stylesheet parser: preserve escaped whitespace at value boundaries (planned 2026-11-01 by the plan role; independent of the completed ASCII priority-keyword change)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: preserve escaped whitespace at value boundaries (planned 2026-11-01 by the plan role; independent of the completed ASCII priority-keyword change) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep the GTK/Firefox test reader from dropping an escaped terminal character. Reproduced 2026-11-01: a custom-property value consisting of `token`, a backslash and a space returns just `token` and the backslash; a backslash followed by a tab loses the tab too. In `tests/support/gtk_css.py::parse_css`, the declaration is split from `chunk.strip(' \t\n\r\f')`, which deletes the character before `_collapse_whitespace` can preserve its escape. The finished non-CSS boundary plan explicitly excludes escaped CSS whitespace; the archived interior-normalization plans retain the escape scanner but do not address this earlier trim.
 
@@ -128,8 +118,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Through `parse_css`, custom-property values ending in a backslash plus space or tab retain both characters, with and without additional unescaped boundary spaces, both before a semicolon and before the closing brace without a final semicolon. In semicolon cases, the following `color` declaration and selector list remain correct. Cover one and three consecutive backslashes (the final whitespace is escaped) and two backslashes (the unescaped boundary whitespace disappears). Ordinary unescaped spaces/tabs still disappear; a quoted terminal space, non-CSS boundary characters, empty declaration chunks, empty values and source-prefixed malformed-declaration diagnostics retain their existing behavior. Add named tests for these cases, preserve the public return shape and priority merge behavior, and run `make check`. No shipped artwork or stylesheet values change.
 
-### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan)
-— done 2026-11-01 by the feature role
+### Shared stylesheet parser: preserve non-CSS spacing at declaration boundaries (planned 2026-11-01 by the plan role; independent of the waiting priority-token separator plan) — done 2026-11-01 by the feature role
 
 **Goal and grounding.** Keep the GTK/Firefox test reader from silently discarding literal declaration characters. Reproduced 2026-11-01: `parse_css('a { content: token\u00a0; }')` returns `token` without the trailing U+00A0, and a declaration chunk containing just U+00A0 is ignored. In `tests/support/gtk_css.py::parse_css`, `chunk.strip()` removes Unicode whitespace before `_collapse_whitespace` sees it. The finished interior-normalization plans leave boundary trimming outside scope; the waiting priority plan changes `_IMPORTANT_SUFFIX`, not this call.
 
