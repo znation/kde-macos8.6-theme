@@ -52,6 +52,20 @@ class TestBoundedLogText(unittest.TestCase):
         self.assertTrue(result.endswith("visible\n"), result[-80:])
         self.assertNotIn("x", result)
 
+    def test_large_single_line_log_stays_bounded_without_a_line_break(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "worker.log"
+            contents = b"x" * (_LOG_TAIL_BYTES + 20)
+            path.write_bytes(contents)
+
+            result = _bounded_log_text(str(path))
+
+        expected = (
+            f"check: 20 earlier log bytes hidden; showing the last {_LOG_TAIL_BYTES}\n"
+            + "x" * _LOG_TAIL_BYTES
+        )
+        self.assertEqual(result, expected)
+
 
 class TestPrintResults(unittest.TestCase):
     def test_directory_worker_log_fails_without_stopping_the_report(self):
