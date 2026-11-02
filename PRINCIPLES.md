@@ -10,6 +10,13 @@ and will tune it to this project.
 - Keep each file focused on one responsibility, and small enough to read in one sitting.
 - Every behavior change ships with a test.
 - Small, complete, and correct beats big and half-done: one focused change per tick.
+- Treat recovery and cleanup after SIGKILL as an accepted Won't Fix limitation across the
+  project. Roles should close reports whose sole failure requires SIGKILL as covered by this
+  decision, rather than file duplicates, plan recovery machinery, or reopen them without a new
+  user direction. Preserve existing guarantees for ordinary failures and catchable signals;
+  bugs reproducible without SIGKILL remain eligible for triage. The accepted limitation includes
+  partial publication across files and leftover temporary or backup files after SIGKILL.
+  (Directed by the user 2026-11-02; recorded by the director role.)
 - Present the theme as "Platinum" using oblique references and original placeholder graphics
   for now. Keep Apple graphical assets, logos, and Apple trademarked names or phrases
   (including "MacOS", "Mac OS" and "Apple") out of theme-owned UI labels and artwork.

@@ -18,22 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
-
-**Refused 2026-11-01 by bugfix: SIGKILL cannot run in-process rollback, and automatic recovery could overwrite user edits made after the interrupted commit.**
-
-`tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
-with separate replacements. Its rollback runs only when Python catches an exception; if the
-process receives `SIGKILL` after one replacement, later files retain their old contents while
-the first file contains the new selection, and its hidden hard-link backup remains. The GTK
-selection is then partly applied despite the caller never completing.
-
-Reproduce by staging different contents for two existing settings files, running `commit`, and
-delivering `SIGKILL` after the first `os.replace` returns but before the second begins. The first
-target contains new bytes, the second retains old bytes, and a `.backup` sibling remains. Recovery
-requires a durable transaction record or another crash-consistent publication design; the current
-in-process exception rollback cannot run after `SIGKILL`.
-
 ### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30)
 
 The dialog render this run (the checkbox gate's `--checkbox-dialog` render, a kdialog warning at
@@ -141,6 +125,25 @@ session infrastructure is proposed.
 
 ## Won't fix
 
-_None yet._
+### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
+
+**Won't fix 2026-11-02 by the director role — user accepted the refusal**
+
+Covered by the project-wide SIGKILL decision in PRINCIPLES.md (directed by the user
+2026-11-02). Partial publication and leftover backups after SIGKILL are accepted limitations;
+roles should use that standing decision when triaging equivalent reports.
+
+`tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
+with separate replacements. Its rollback runs only when Python catches an exception; if the
+process receives `SIGKILL` after one replacement, later files retain their old contents while
+the first file contains the new selection, and its hidden hard-link backup remains. The GTK
+selection is then partly applied despite the caller never completing.
+
+Reproduce by staging different contents for two existing settings files, running `commit`, and
+delivering `SIGKILL` after the first `os.replace` returns but before the second begins. The first
+target contains new bytes, the second retains old bytes, and a `.backup` sibling remains. Recovery
+would require a durable transaction record or another crash-consistent publication design;
+in-process exception rollback cannot run after `SIGKILL`, and automatic recovery could overwrite
+user edits made after the interrupted commit.
 
 ## Fixed
