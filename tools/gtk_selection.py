@@ -39,11 +39,12 @@ else:  # imported from a directly run tool
     from symlink_refusal import refuse_symlink
 
 TOOL = "apply_gtk"
+_GTK_VERSIONS = ("gtk-3.0", "gtk-4.0")
 
 
 def _refuse_symlinked_config_dirs(config_home: Path, action: str) -> None:
     """Keep GTK config operations inside the selected config home."""
-    for version in ("gtk-3.0", "gtk-4.0"):
+    for version in _GTK_VERSIONS:
         refuse_symlink(config_home / version, action, ConfigError)
 
 
@@ -82,7 +83,7 @@ def apply(
     # unreadable file leaves every file unmodified instead of applying half
     # the selection.
     writes = []
-    for version in ("gtk-3.0", "gtk-4.0"):
+    for version in _GTK_VERSIONS:
         path = settings_path(config_home, version)
         original = read_config_text(path) or ""
         updated = set_theme_name(original, GTK_ID)
@@ -114,7 +115,7 @@ def remove(config_home: Path) -> int:
     """Clear our selection from both settings files and the user CSS."""
     _refuse_symlinked_config_dirs(config_home, "remove")
     writes = []
-    for version in ("gtk-3.0", "gtk-4.0"):
+    for version in _GTK_VERSIONS:
         path = settings_path(config_home, version)
         original = read_config_text(path)
         if original is None:
