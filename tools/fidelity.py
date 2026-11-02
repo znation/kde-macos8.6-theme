@@ -43,7 +43,7 @@ if __package__:
         compare,
         crop,
     )
-    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -61,7 +61,7 @@ else:  # run directly: python3 tools/fidelity.py
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
-    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -145,6 +145,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="report signed mean candidate-minus-reference RGBA byte deltas")
     parser.add_argument("--channel-maxima", action="store_true",
                         help="report maximum absolute byte delta for each RGBA channel")
+    parser.add_argument("--difference-rows", action="store_true",
+                        help="count pixels differing beyond --tolerance in each compared row")
     parser.add_argument("--delta-histogram", action="store_true",
                         help="count compared pixels by maximum RGBA channel delta")
     parser.add_argument("--delta-percentiles", action="store_true",
@@ -223,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
                     if args.channel_counts else None)
         bias = channel_bias(candidate, reference) if args.channel_bias else None
         maxima = channel_maxima(candidate, reference) if args.channel_maxima else None
+        rows = difference_rows(candidate, reference, args.tolerance) if args.difference_rows else None
         histogram = (delta_histogram(candidate, reference)
                      if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
@@ -238,6 +241,7 @@ def main(argv: list[str] | None = None) -> int:
                          metrics, worst=worst, channels=channels,
                          bias=bias,
                          maxima=maxima,
+                         rows=rows,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
                          percentiles=(delta_percentiles(histogram)

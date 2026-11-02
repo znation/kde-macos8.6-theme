@@ -137,6 +137,35 @@ def channel_maxima(candidate: Image, reference: Image) -> dict[str, int]:
     return dict(zip(("r", "g", "b", "a"), maxima))
 
 
+def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[int]:
+    """Count over-tolerance pixels in each crop-relative row.
+
+    Inputs are equally sized validated images. A pixel counts once when any
+    raw RGBA channel delta exceeds tolerance; missing alpha is opaque.
+    """
+    width, height = candidate.width, candidate.height
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
+    rows = []
+    for y in range(height):
+        count = 0
+        for x in range(width):
+            index = y * width + x
+            offset = index * 3
+            differing = any(
+                abs(candidate_rgb[offset + channel] - reference_rgb[offset + channel]) > tolerance
+                for channel in range(3)
+            )
+            if not differing:
+                differing = abs(
+                    (255 if candidate_alpha is None else candidate_alpha[index])
+                    - (255 if reference_alpha is None else reference_alpha[index])
+                ) > tolerance
+            count += differing
+        rows.append(count)
+    return rows
+
+
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     """Count compared pixels by their maximum absolute RGBA channel delta.
 

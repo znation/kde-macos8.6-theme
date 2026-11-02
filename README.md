@@ -574,6 +574,12 @@ Add `--channel-maxima` to report the largest absolute byte delta seen in each RG
 JSON adds a `channel_maxima` object and text prints the four maxima immediately before the
 verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque, and is
 independent of tolerance and verdict.
+Add `--difference-rows` to count compared pixels beyond tolerance in each row. A pixel counts
+once when any RGBA channel exceeds tolerance; missing alpha is opaque and RGB beneath
+transparency is compared as stored. JSON adds a dense `difference_rows` array, and text prints
+the same array immediately before the verdict. Its indices are crop-relative y coordinates, so
+add the corresponding crop's y origin to locate a row in either source image. Zero rows are
+included, and the diagnostic is omitted unless requested.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
