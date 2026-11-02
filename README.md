@@ -497,6 +497,12 @@ to the compared surfaces; `candidate_position` and `reference_position` add each
 and point into the original images. The diagnostic appears as `worst_pixel` in JSON or as a
 JSON-formatted `worst pixel:` line immediately before the verdict. It is reported on passing
 comparisons too, including identical images, where the selected position is `(0, 0)`.
+Add `--channel-counts` to report, per channel, how many compared pixels exceed `--tolerance`
+on that channel alone. `--json` adds the counts as a top-level `channel_counts` object
+and text prints one `channel differing pixels (R, G, B, A)` line immediately before the
+verdict, on passing and failing runs alike. A pixel can contribute to several counts (a
+tint change moves three channels at once), so the counts overlap and must not be summed
+into a union; `metrics.differing` already holds that union count.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the

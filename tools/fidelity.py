@@ -40,7 +40,7 @@ if __package__:
         crop,
     )
     from tools.png import pixel_at
-    from tools.fidelity_pixels import worst_pixels
+    from tools.fidelity_pixels import worst_pixels, channel_counts
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
@@ -51,7 +51,7 @@ else:  # run directly: python3 tools/fidelity.py
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
     from png import pixel_at
-    from fidelity_pixels import worst_pixels
+    from fidelity_pixels import worst_pixels, channel_counts
     from png import PngError, read_png
     from repo_root import ROOT
     from terminal import escape_controls
@@ -138,6 +138,12 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
                         help="list up to N worst differing pixels (1-1000)")
+    parser.add_argument("--channel-counts", action="store_true",
+                        help=(
+                            "count the pixels each channel differs beyond "
+                            "--tolerance on; the counts overlap, so they must "
+                            "not be summed"
+                        ))
     parser.add_argument("--explain-worst", action="store_true",
                         help="show source RGBA values at the maximum-delta pixel")
     parser.add_argument(
@@ -196,6 +202,10 @@ def main(argv: list[str] | None = None) -> int:
                                                 pixel["y"] + candidate_origin[1]]
                 pixel["reference_position"] = [pixel["x"] + reference_origin[0],
                                                 pixel["y"] + reference_origin[1]]
+        # The per-channel count scan only runs when it was asked for: it adds
+        # a whole-image pass, so the default output must not pay for it.
+        channels = (channel_counts(candidate, reference, args.tolerance)
+                    if args.channel_counts else None)
         explanation = (_explain_worst_pixel(candidate, reference, metrics,
                                              args.candidate_crop, args.crop)
                        if args.explain_worst else None)
@@ -235,6 +245,8 @@ def main(argv: list[str] | None = None) -> int:
             "reference_difference_bounds": reference_bounds,
             "passed": ok,
         }
+        if channels is not None:
+            result["channel_counts"] = channels
         if worst is not None:
             result["worst_pixels"] = worst
         if explanation is not None:
@@ -304,6 +316,12 @@ def main(argv: list[str] | None = None) -> int:
             )
     if explanation is not None:
         print("worst pixel: " + json.dumps(explanation, ensure_ascii=True))
+    if channels is not None:
+        # Plain ints from the count scan, so no escaping is needed.
+        print(
+            f"channel differing pixels (R, G, B, A): {channels['r']} "
+            f"{channels['g']} {channels['b']} {channels['a']}"
+        )
     verdict = "PASS" if ok else "FAIL"
     mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
     fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"
