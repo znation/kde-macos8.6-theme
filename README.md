@@ -397,9 +397,11 @@ $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --json
 Pass `--alpha` for ordinary pixel and rectangle samples to include each pixel's
 alpha byte (255 when the PNG has no transparency). RGB remains unchanged even
 when alpha is zero. The flag adds `alpha` to JSON pixel records and `alpha=N`
-to text pixel lines. With `--runs`, it groups by both RGB and alpha and adds
-`alpha` to each run; RGB under transparent pixels is preserved. Alpha is still
-incompatible with `--histogram` and `--find-color`.
+to text pixel lines. With `--runs`, alpha is included in run equality, so
+adjacent pixels merge only when both RGB and alpha match; JSON run records add
+`alpha`, and text appends `alpha=N` after the run length. RGB under transparent
+pixels is preserved without compositing. The flag cannot be combined with
+`--histogram` or `--find-color`.
 
 Coordinates are plain ASCII integers and `--width`/`--height` must be at least 1; a
 coordinate or region outside the image, a missing file, or an unreadable PNG exits 2

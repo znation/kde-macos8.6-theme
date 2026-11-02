@@ -120,6 +120,59 @@ class TestSampleRuns(CliTestCase):
         self._assert_success(result)
         self.assertEqual([(run["length"], run["alpha"]) for run in json.loads(result.stdout)["runs"]], [(1, 0), (1, 255)])
 
+    def test_alpha_runs_group_rgba_and_preserve_transparent_rgb(self):
+        row = bytes((10, 20, 30, 0, 10, 20, 30, 0,
+                     10, 20, 30, 128, 1, 2, 3, 0,
+                     1, 2, 3, 255, 10, 20, 30, 0))
+        path = self._write(self._tmp_dir(), "rgba-runs.png",
+                           make_png(6, 1, [row], color_type=6))
+        result = self._run(path, "2", "0", "--width", "4", "--runs", "--alpha", "--json")
+        self._assert_success(result)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["axis"], "horizontal")
+        self.assertEqual(report["runs"], [
+            {"x": 2, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 128},
+            {"x": 3, "y": 0, "length": 1, "rgb": [1, 2, 3], "hex": "#010203", "alpha": 0},
+            {"x": 4, "y": 0, "length": 1, "rgb": [1, 2, 3], "hex": "#010203", "alpha": 255},
+            {"x": 5, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 0},
+        ])
+        self.assertEqual(sum(run["length"] for run in report["runs"]), 4)
+        text = self._run(path, "2", "0", "--width", "4", "--runs", "--alpha")
+        self._assert_success(text)
+        self.assertIn("(2, 0): 10,20,30  #0A141E  length=1  alpha=128", text.stdout)
+        rgb_only = self._run(path, "0", "0", "--width", "6", "--runs", "--json")
+        self._assert_success(rgb_only)
+        plain_runs = json.loads(rgb_only.stdout)["runs"]
+        self.assertNotIn("alpha", plain_runs[0])
+        self.assertEqual(plain_runs[0]["length"], 3)
+        self.assertEqual(plain_runs[-1]["length"], 1)
+
+    def test_alpha_vertical_runs_and_opaque_fallback(self):
+        rows = [bytes((5, 6, 7, alpha)) for alpha in (0, 128, 255)]
+        path = self._write(self._tmp_dir(), "vertical-rgba.png",
+                           make_png(1, 3, rows, color_type=6))
+        with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
+            result = self._run(path, "0", "1", "--height", "2", "--runs", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(read.call_args.kwargs, {"max_rows": 3, "alpha": True})
+        report = json.loads(result.stdout)
+        self.assertEqual(report["axis"], "vertical")
+        self.assertEqual(report["runs"], [
+            {"x": 0, "y": 1, "length": 1, "rgb": [5, 6, 7], "hex": "#050607", "alpha": 128},
+            {"x": 0, "y": 2, "length": 1, "rgb": [5, 6, 7], "hex": "#050607", "alpha": 255},
+        ])
+        opaque = self._write(self._tmp_dir(), "opaque-runs.png",
+                             make_png(2, 1, [bytes((2, 3, 4, 2, 3, 4))]))
+        result = self._run(opaque, "0", "0", "--width", "2", "--runs", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["runs"][0]["alpha"], 255)
+        trns = self._write(self._tmp_dir(), "trns-runs.png", make_png(
+            2, 1, [bytes((4, 5, 6, 7, 8, 9))], color_type=2,
+            trns=b"\x00\x04\x00\x05\x00\x06"))
+        result = self._run(trns, "0", "0", "--width", "2", "--runs", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual([run["alpha"] for run in json.loads(result.stdout)["runs"]], [0, 255])
+
     def test_invalid_regions_and_reads_have_no_stdout(self):
         path = self._fixture()
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
@@ -152,7 +205,7 @@ class TestSampleRuns(CliTestCase):
 
     def test_script_control_path_round_trips_as_json(self):
         with control_named_png() as path:
-            result = self._run_script(path, "0", "0", "--runs", "--json")
+            result = self._run_script(path, "0", "0", "--runs", "--alpha", "--json")
         self._assert_success(result)
         self.assertEqual(json.loads(result.stdout)["image"], path)
         self.assertNotIn("\x1b", result.stdout)
