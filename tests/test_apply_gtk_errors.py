@@ -366,6 +366,11 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         """Assert rejection left GTK 3 settings byte-for-byte intact."""
         self.assertEqual(expected, self.settings("gtk-3.0").read_bytes())
 
+    def assert_settings_unchanged(self, gtk3_expected, gtk4_expected):
+        """Assert rejection preserved both GTK settings files."""
+        self.assert_gtk3_unchanged(gtk3_expected)
+        self.assertEqual(gtk4_expected, self.settings("gtk-4.0").read_bytes())
+
     def test_apply_refuses_a_non_utf8_settings_file_before_writing_anything(self):
         self.install_sheet()
         gtk3 = self.settings("gtk-3.0")
@@ -523,8 +528,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn(str(css), result.stderr)
         self.assertIn("larger than", result.stderr)
-        self.assert_gtk3_unchanged(gtk3_before)
-        self.assertEqual(gtk4_before, gtk4.read_bytes())
+        self.assert_settings_unchanged(gtk3_before, gtk4_before)
         self.assertEqual(
             gtk_user_files.MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
         )
@@ -577,8 +581,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn(str(gtk4), result.stderr)
         self.assertIn("1048576-byte limit", result.stderr)
-        self.assert_gtk3_unchanged(gtk3_before)
-        self.assertEqual(data, gtk4.read_bytes())
+        self.assert_settings_unchanged(gtk3_before, data)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
 
