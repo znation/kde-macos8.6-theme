@@ -468,21 +468,33 @@ class TestCursorSet(unittest.TestCase):
         }
         for y in range(height):
             for x in range(width):
-                if (x, y) in slash or (x, y) in slash_outline:
+                if self._is_slash_cell(x, y, slash, slash_outline):
                     continue
-                if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 7.0**2:
-                    with self.subTest(interior=(x, y)):
-                        value = _pixel(rgba, width, x, y)
-                        if value == WHITE:
-                            # The ring's one-cell white inner outline is the
-                            # drawing set's shield between black and the
-                            # transparent interior, so the only whites inside
-                            # the disc must touch a ring black side-on.
-                            neighbours = [
-                                _pixel(rgba, width, x + dx, y + dy)
-                                for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1))
-                            ]
-                            self.assertIn(BLACK, neighbours)
+                if not self._is_inside_not_allowed_ring(x, y):
+                    continue
+                self._assert_white_ring_shield(rgba, width, x, y)
+
+    @staticmethod
+    def _is_slash_cell(x, y, slash, slash_outline):
+        return (x, y) in slash or (x, y) in slash_outline
+
+    @staticmethod
+    def _is_inside_not_allowed_ring(x, y):
+        return (x - 7.5) ** 2 + (y - 7.5) ** 2 < 7.0**2
+
+    def _assert_white_ring_shield(self, rgba, width, x, y):
+        if _pixel(rgba, width, x, y) != WHITE:
+            return
+        # The ring's one-cell white inner outline is the drawing set's
+        # shield between black and the transparent interior, so the only
+        # whites inside the disc must touch a ring black side-on.
+        neighbours = [
+            _pixel(rgba, width, x + dx, y + dy)
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1))
+        ]
+        with self.subTest(interior=(x, y)):
+            self.assertIn(BLACK, neighbours)
+
     def test_dnd_copy_is_a_centred_plus(self):
         cursor = _read_cursor(CURSORS / "dnd-copy")
         image = next(
@@ -593,14 +605,16 @@ class TestCursorSet(unittest.TestCase):
                 self.assertEqual({len(row) for row in rows}, {16})
                 for y, row in enumerate(rows):
                     for x, cell in enumerate(row):
-                        if cell != "#":
-                            continue
-                        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                            nx, ny = x + dx, y + dy
-                            inside = 0 <= nx < 16 and 0 <= ny < 16
-                            with self.subTest(black=(x, y)):
-                                self.assertTrue(inside)
-                                self.assertNotEqual(rows[ny][nx], " ")
+                        if cell == "#":
+                            self._assert_black_cell_is_shielded(rows, x, y)
+
+    def _assert_black_cell_is_shielded(self, rows, x, y):
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nx, ny = x + dx, y + dy
+            inside = 0 <= nx < 16 and 0 <= ny < 16
+            with self.subTest(black=(x, y)):
+                self.assertTrue(inside)
+                self.assertNotEqual(rows[ny][nx], " ")
 
     def _sixteen_pixel_image(self, canonical):
         cursor = _read_cursor(CURSORS / canonical)
