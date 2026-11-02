@@ -45,6 +45,16 @@ class TestSampleAlpha(CliTestCase):
         self._assert_success(ordinary)
         self.assertNotIn("alpha", json.loads(ordinary.stdout)["pixels"][0])
 
+    def test_text_rectangle_reports_alpha_in_row_major_order(self):
+        path = self._rgba()
+        result = self._run(path, "0", "0", "--width", "2", "--height", "2", "--alpha")
+        self._assert_success(result)
+        self.assertIn("region (0, 0) 2x2:", result.stdout)
+        self.assertIn("(0, 0): 10,20,30  #0A141E  alpha=0", result.stdout)
+        self.assertIn("(1, 0): 10,20,30  #0A141E  alpha=128", result.stdout)
+        self.assertIn("(0, 1): 40,50,60  #28323C  alpha=255", result.stdout)
+        self.assertIn("(1, 1): 70,80,90  #46505A  alpha=255", result.stdout)
+
     def test_script_json_and_control_path(self):
         with control_named_png() as path:
             result = self._run_script(path, "0", "0", "--alpha", "--json")
