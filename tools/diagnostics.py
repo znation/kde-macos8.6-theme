@@ -22,7 +22,6 @@ Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escapin
 from __future__ import annotations
 
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -31,8 +30,10 @@ from pathlib import Path
 
 if __package__:
     from tools.containment import open_regular_binary
+    from tools.text_lines import split_lines
 else:  # run directly: python3 tools/diagnostics.py
     from containment import open_regular_binary
+    from text_lines import split_lines
 
 if __package__:
     from tools.terminal import escape_controls
@@ -99,7 +100,6 @@ def create_scratch_directory(
 # split into two reported lines and, at the twelve-line tail boundary, push a
 # complete line out of the diagnostic. ``reference_sources`` splits its
 # contributor-supplied record for the same reason.
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LOG_TAIL_LINES = 12
 # The log belongs to the external command, not to us: a command that loops on
 # a warning for its whole timeout can leave a file far larger than the twelve
@@ -137,7 +137,7 @@ def _log_tail_lines(log: Path) -> list[str]:
             boundary = True
         handle.seek(start)
         data = handle.read(_LOG_TAIL_BYTES)
-    lines = _LINE_BREAK.split(data.decode("utf-8", errors="replace"))
+    lines = split_lines(data.decode("utf-8", errors="replace"))
     if lines and lines[-1] == "":
         # A file that ends in a break ends its last line there; splitlines
         # omits that final empty element, so drop the one re.split adds.

@@ -15,6 +15,11 @@ from collections.abc import Iterable
 from pathlib import Path
 
 if __package__:
+    from tools.text_lines import split_lines
+else:
+    from text_lines import split_lines
+
+if __package__:
     from tools.atomic_write import write_atomically
     from tools.containment import read_capped_bytes, require_within_repo
     from tools.repo_root import ROOT
@@ -38,7 +43,6 @@ _ANY_HEADING = re.compile(r"\[[^\]]*\]")
 # also breaks on U+2028/U+2029, NEL and the C0 separators, so a value containing
 # one would split into a phantom line and the rest of the value would be
 # silently dropped from the written config.
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 # ``contents/defaults`` is contributor-supplied, so a checked-in (or
 # LFS-smudged) multi-gigabyte file must not be loaded whole: ``read_text``
 # would allocate it and raise ``MemoryError`` (which is neither an ``OSError``
@@ -133,7 +137,7 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
     require_within_repo(path, ROOT)
-    for raw in _LINE_BREAK.split(_read_defaults_text(path)):
+    for raw in split_lines(_read_defaults_text(path)):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

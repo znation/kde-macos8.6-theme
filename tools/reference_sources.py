@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
+
+if __package__:
+    from tools.text_lines import split_lines
+else:
+    from text_lines import split_lines
 
 if __package__:
     from tools.containment import open_regular_binary
@@ -15,7 +19,6 @@ else:  # imported from a directly run tool
 SOURCES_NAME = "sources.txt"
 SEPARATOR = " | "
 _MAX_SOURCES_BYTES = 1 << 20
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
 
 def read_sources_text(sources: Path) -> tuple[str | None, str | None]:
@@ -42,7 +45,7 @@ def parse_sources(
     """Validate record syntax and return accepted filename declarations."""
     problems: list[tuple[int, str]] = []
     entries: dict[str, int] = {}
-    for lineno, raw in enumerate(_LINE_BREAK.split(text), 1):
+    for lineno, raw in enumerate(split_lines(text), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

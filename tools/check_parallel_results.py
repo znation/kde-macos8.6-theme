@@ -10,9 +10,11 @@ import sys
 if __package__:
     from tools.diagnostics import plural
     from tools.terminal import escape_controls
+    from tools.text_lines import split_lines
 else:
     from diagnostics import plural
     from terminal import escape_controls
+    from text_lines import split_lines
 
 _NO_TESTS_RAN = 5
 # The most of a worker log one printed section keeps. A worker killed at its
@@ -67,12 +69,7 @@ def _bounded_log_text(path: str) -> str:
         if break_at >= 0:
             window = window[break_at + 1 :]
     shown = len(window)
-    text = (
-        window.decode("utf-8", errors="replace")
-        .replace("\r\n", "\n")
-        .replace("\r", "\n")
-    )
-    lines = text.split("\n")
+    lines = split_lines(window.decode("utf-8", errors="replace"))
     if size > _LOG_TAIL_BYTES:
         hidden = size - shown
         lines.insert(
