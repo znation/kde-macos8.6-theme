@@ -115,6 +115,24 @@ class TestSampleCli(CliTestCase):
             ],
         })
 
+    def test_alpha_report_preserves_rgba_values_in_json_and_text(self):
+        rows = [bytes((12, 34, 56, 0, 78, 90, 123, 128))]
+        path = self._write(
+            self._tmp_dir(), "alpha.png", make_png(2, 1, rows, color_type=6)
+        )
+
+        result = self._run(path, "0", "0", "--width", "2", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["pixels"], [
+            {"x": 0, "y": 0, "rgb": [12, 34, 56], "hex": "#0C2238", "alpha": 0},
+            {"x": 1, "y": 0, "rgb": [78, 90, 123], "hex": "#4E5A7B", "alpha": 128},
+        ])
+
+        text = self._run(path, "0", "0", "--width", "2", "--alpha")
+        self._assert_success(text)
+        self.assertIn("(0, 0): 12,34,56  #0C2238  alpha=0", text.stdout)
+        self.assertIn("(1, 0): 78,90,123  #4E5A7B  alpha=128", text.stdout)
+
     def test_json_script_and_control_path_round_trip(self):
         with control_named_png() as path:
             result = self._run_script(path, "0", "0", "--json")
