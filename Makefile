@@ -9,12 +9,13 @@ PYTHON ?= python3
 # always lets it, so it is used as given. XDG_DATA_HOME_ENV keeps the raw
 # environment value so the guard below can tell an explicit absolute path from
 # the fallback.
-XDG_DATA_HOME_ENV := $(XDG_DATA_HOME)
+XDG_DATA_HOME_ENV := $(value XDG_DATA_HOME)
+HOME_ENV := $(value HOME)
 # Export the raw value so the guard below can name it in its diagnostic. The
 # recipe shell would otherwise see the make variable XDG_DATA_HOME, which the
 # line below rewrites to the $HOME fallback for a relative or empty input.
 export XDG_DATA_HOME_ENV
-XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)
+XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME_ENV)/.local/share)
 
 # DESTDIR takes the same route: the three apply targets below refuse a
 # non-empty staging value and name it in their diagnostics. `$(DESTDIR)`
@@ -34,7 +35,7 @@ export DESTDIR
 # with a diagnostic instead of guessing. $(1) names the target. An absolute
 # XDG_DATA_HOME -- including a command-line one -- resolves without $HOME and
 # passes.
-require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(filter /%,$(HOME))" ]; then if [ -z "$(HOME)" ]; then echo "$(1): HOME is unset and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; else echo "$(1): HOME is not an absolute path ('$$HOME') and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; fi; exit 2; fi
+require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(filter /%,$(HOME_ENV))" ]; then if [ -z "$(HOME_ENV)" ]; then echo "$(1): HOME is unset and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; else echo "$(1): HOME is not an absolute path ('$$HOME') and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; fi; exit 2; fi
 
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
@@ -74,7 +75,9 @@ DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 # still refused above. The bytes are built by `awk` and `printf`, not
 # written literally, so the Makefile text stays printable ASCII.
 shell_unsafe_chars = \ " $$ `
-shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$($(1)))))
+make_dollar := $$
+make_value = $(subst $(make_dollar)$(make_dollar),$(make_dollar),$(value $(1)))
+shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(value $(1)))))
 # The awk list leaves out the five blank bytes; tab and newline are the two
 # legal residuals, and the three generated alone into scalar variables below
 # are refused by the explicit tests in control_char_in -- a blank byte inside
@@ -86,14 +89,14 @@ control_chars = $(shell awk 'BEGIN { for (i = 1; i <= 31; i++) if (i != 9 && i !
 vt_byte := $(shell printf '\013')
 ff_byte := $(shell printf '\014')
 cr_byte := $(shell printf '\015')
-control_char_in = $(strip $(foreach c,$(control_chars),$(findstring $(c),$($(1)))))$(findstring $(vt_byte),$($(1)))$(findstring $(ff_byte),$($(1)))$(findstring $(cr_byte),$($(1)))
+control_char_in = $(strip $(foreach c,$(control_chars),$(findstring $(c),$(value $(1)))))$(findstring $(vt_byte),$(value $(1)))$(findstring $(ff_byte),$(value $(1)))$(findstring $(cr_byte),$(value $(1)))
 # The two refusal branches, control bytes first: the metacharacter branch's
 # diagnostic echoes the value, so it only ever sees a value the control-byte
 # branch has already cleared of terminal bytes. The check functions take the
 # variable NAME (a single `$(call ...)` argument, so the value's own commas
 # cannot split it away from the test) and read the value by indirection.
 control_refusal = $(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(1)) contains a control character -- a byte in the 0x01-0x1f or 0x7f range, e.g. an escape byte; it would reach a recipe or a diagnostic echo raw, where it mangles or forges the terminal text instead of naming a value; the value is not echoed back for the same reason; pass a printable path, timeout or scheme name)
-metachar_refusal = $(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(1)) contains a shell metacharacter ('$(call shell_unsafe_in,$(1))' in '$($(1))'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash)
+metachar_refusal = $(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(1)) contains a shell metacharacter ('$(call shell_unsafe_in,$(1))' in '$(call make_value,$(1))'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash)
 refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if $(call shell_unsafe_in,$(1)),$(metachar_refusal),))
 # FLOCK_TIMEOUT is in the list before `FLOCK_TIMEOUT ?= 60` is read: the
 # guard evaluates its default as still undefined (empty, harmless), while an
@@ -181,7 +184,7 @@ py_extra_unsafe_chars = ' ; | & < > $(open_paren) $(close_paren)
 # shell_unsafe_in reads its value by indirection. Check control bytes first:
 # the metacharacter diagnostic echoes PYTHON raw, so it must only handle
 # printable values.
-py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$($(1)))) $(if $(findstring $(newline),$($(1))),newline))
+py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$(value $(1)))) $(if $(findstring $(newline),$(value $(1))),newline))
 $(if $(call control_char_in,PYTHON),$(call control_refusal,PYTHON))
 $(if $(call py_unsafe_in,PYTHON),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,PYTHON)' in '<$(PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 

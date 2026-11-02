@@ -75,6 +75,18 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
         )
         self.assertFalse(os.path.exists(data_home), data_home)
 
+    def test_make_function_text_in_HOME_is_refused_without_evaluation(self):
+        tmp = make_tmp_dir(self)
+        canary = tmp / "make-function-executed"
+        env = theme_install.make_env("HOME", "XDG_DATA_HOME")
+        env["HOME"] = f"$(shell touch {canary})"
+        result = theme_install.run_captured(
+            ["make", "help"], cwd=str(repo_root.ROOT), env=env
+        )
+        assert_failed(self, result)
+        self.assertIn("HOME contains a shell metacharacter", result.stderr)
+        self.assertFalse(canary.exists(), canary)
+
     def test_each_metacharacter_is_refused_in_DESTDIR(self):
         for char, make_value, shown_value in self.HOSTILES:
             with self.subTest(char=char):
