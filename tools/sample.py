@@ -39,6 +39,8 @@ def main(argv: list[str] | None = None) -> int:
         return report_error("sample", "--match-alpha requires --find-color")
     if args.match_pixels is not None and args.find_color is None:
         return report_error("sample", "--match-pixels requires --find-color")
+    if args.match_fraction and args.find_color is None:
+        return report_error("sample", "--match-fraction requires --find-color")
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
     if args.alpha and args.find_color is not None:

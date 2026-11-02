@@ -64,6 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
+    parser.add_argument("--match-fraction", action="store_true", help="with --find-color, report the matching fraction of the region")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors, or RGBA colors with --alpha, in the sampled region")
     modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors, or RGBA with --alpha, along one row or column")

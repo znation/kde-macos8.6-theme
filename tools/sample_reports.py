@@ -157,6 +157,7 @@ def report(args, image, width: int, height: int, header: str) -> None:
             print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "match": {"rgb": list(target), "hex": color_hex,
                 "count": count, "bounds": bounds,
+                **({"fraction": count / (args.width * args.height)} if args.match_fraction else {}),
                 **({"pixels": matched_pixels, "omitted_pixels": count - len(matched_pixels)}
                    if args.match_pixels is not None else {}),
                 **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
@@ -170,6 +171,8 @@ def report(args, image, width: int, height: int, header: str) -> None:
         if args.match_alpha is not None:
             print(f"alpha: {args.match_alpha}")
         print(f"count: {count}")
+        if args.match_fraction:
+            print(f"fraction: {count / (args.width * args.height)}")
         print("bounds: none" if bounds is None else
               f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")
         if args.match_pixels is not None:

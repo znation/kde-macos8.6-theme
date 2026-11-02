@@ -483,6 +483,11 @@ the full region; JSON adds `pixels` and `omitted_pixels` to `match`, while
 text prints the retained coordinates and omitted count. The option uses the
 same RGB tolerance and exact-alpha filters as the match count.
 
+Add `--match-fraction` with `--find-color` to report the match count divided
+by the full requested region area. JSON adds numeric `fraction` to `match`;
+text prints `fraction:` after `count:`. It uses the same RGB tolerance and
+exact-alpha filters, and `--match-pixels` does not truncate its numerator.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha
