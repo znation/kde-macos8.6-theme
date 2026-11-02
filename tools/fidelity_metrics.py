@@ -174,9 +174,23 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     deltas = [
         abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
     ]
+    # A rendered surface and a reference screenshot are usually both fully
+    # opaque (an RGB PNG decodes to an all-255 alpha plane), so their alpha
+    # deltas are zero everywhere: ``alpha_a.count(255) == pixels`` proves a
+    # plane opaque in one C-speed scan, and skipping the appended
+    # ``abs_diff`` pass leaves every alpha-fed metric reading the zero
+    # contribution the plane would have produced. ``alpha_checked`` records
+    # whether the deltas carry a computed alpha channel.
+    alpha_checked = False
     if compare_alpha:
-        deltas.append(abs_diff(alpha_a, alpha_b))
-    channel_count = len(deltas)
+        if alpha_a.count(255) == pixels and alpha_b.count(255) == pixels:
+            alpha_checked = False
+        else:
+            deltas.append(abs_diff(alpha_a, alpha_b))
+            alpha_checked = True
+    # The compared alpha channel keeps its aggregate slot either way, so the
+    # mean and RMSE still divide by four channels when alpha is compared.
+    channel_count = len(deltas) if alpha_checked else (4 if compare_alpha else 3)
     totals = [sum(delta) for delta in deltas]
     total_abs_r, total_abs_g, total_abs_b = totals[:3]
     total_sq = sum(sum_squares(delta) for delta in deltas)
@@ -246,6 +260,6 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         max_y=max_y,
         differing=differing,
         frac_differing=differing / pixels,
-        mae_a=None if not compare_alpha else totals[3] / pixels,
+        mae_a=None if not compare_alpha else (totals[3] / pixels if alpha_checked else 0.0),
         difference_bounds=difference_bounds,
     )

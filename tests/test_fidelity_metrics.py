@@ -164,6 +164,34 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.differing, 0)
         self.assertAlmostEqual(metrics.mae_a, 0.0)
 
+    def test_all_opaque_alpha_planes_read_the_same_four_channel_metrics(self):
+        # Two fully opaque alpha planes (what an alpha-decoded RGB PNG
+        # produces) differ nowhere, so their alpha delta is zero everywhere:
+        # the metrics must read the same four-channel aggregates as if the
+        # zero delta had been appended -- handled apart from the plain
+        # per-channel case and not diluted by a dropped spare channel.
+        alpha = bytes([255])
+        candidate = fidelity_metrics.Image(1, 1, bytes([10, 20, 30]), alpha)
+        reference = fidelity_metrics.Image(1, 1, bytes([2, 4, 6]), alpha)
+        metrics = fidelity_metrics.compare(candidate, reference)
+        # The RGB deltas are 8, 16 and 24; the alpha delta is 0, and the mean
+        # keeps the compared alpha channel in its denominator: 48 / (4 * 1).
+        self.assertEqual(metrics.differing, 1)
+        self.assertEqual(metrics.max_delta, 24)
+        self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
+        self.assertEqual(metrics.mae_r, 8.0)
+        self.assertEqual(metrics.mae_g, 16.0)
+        self.assertEqual(metrics.mae_b, 24.0)
+        self.assertEqual(metrics.mae_a, 0.0)
+        self.assertAlmostEqual(metrics.mae, 12.0)
+        self.assertAlmostEqual(metrics.rmse, (896 / 4) ** 0.5)
+
+        identical = fidelity_metrics.compare(candidate, candidate)
+        self.assertEqual(identical.mae, 0.0)
+        self.assertEqual(identical.mae_a, 0.0)
+        self.assertEqual(identical.differing, 0)
+        self.assertEqual(identical.max_delta, 0)
+
     def test_tolerance_outside_channel_range_raises(self):
         # A per-channel delta is a byte, so a tolerance above 255 can never be
         # exceeded (every pixel reads as within tolerance) and a negative one
