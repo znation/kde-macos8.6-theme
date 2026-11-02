@@ -20,7 +20,13 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
-from tools import apply_theme, render_session, render_surface, render_workflow  # noqa: E402
+from tools import (
+    apply_theme,
+    render_session,
+    render_surface,
+    render_workflow,
+    theme_apply_optional,
+)  # noqa: E402
 from tools.render_clients import (
     checkbox_dialog_client,
     combobox_dialog_client,
@@ -563,7 +569,7 @@ class TestSessionThemeSources(unittest.TestCase):
         # `make install` copies, which tests/test_apply_theme.py pins from
         # the apply side.
         self.assertEqual(
-            render_session.KVANTUM_THEME, apply_theme.KVANTUM_THEME
+            render_session.KVANTUM_THEME, theme_apply_optional.KVANTUM_THEME
         )
         self.assertTrue(
             (apply_theme.ROOT / "theme" / "kvantum" / render_session.KVANTUM_THEME)

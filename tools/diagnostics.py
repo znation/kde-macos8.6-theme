@@ -9,8 +9,9 @@ through :func:`report_missing_tool`. A successful run with something to tell
 the operator prints one ``<tool>: note: <message>`` line through
 :func:`report_note`. Keeping the formats and the exit statuses here means they
 cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
-``tools/apply_theme.py``, ``tools/apply_gtk.py``, ``tools/local_hook.py``,
-``tools/make_wallpaper.py``, ``tools/render_surface.py``,
+``tools/theme_apply_optional.py``, ``tools/apply_gtk.py``,
+``tools/local_hook.py``, ``tools/make_wallpaper.py``,
+``tools/render_surface.py``,
 ``tools/make_cursors.py``, ``tools/install_firefox.py``,
 ``tools/apply_cursor.py`` and ``tools/check_references.py``.
 

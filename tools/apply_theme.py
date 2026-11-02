@@ -13,6 +13,11 @@ leaves them alone. The color scheme and desktop theme are selected after the
 global theme because ``lookandfeeltool`` applies the theme's defaults
 wholesale; the explicit selections then hold whatever the user had chosen.
 
+The best-effort selections -- telling Kvantum which of its installed themes
+to draw and asking KWin to reconfigure -- and their missing-tool and failure
+policies live in ``theme_apply_optional``; this module owns the required
+selections, the locks and the exit status.
+
 Usage::
 
     python3 tools/apply_theme.py
@@ -37,35 +42,31 @@ if __package__:
         create_scratch_directory,
         report_error,
         report_missing_tool,
-        report_note,
     )
     from tools.file_lock import installed_data_lock
     from tools import xdg_homes
-    from tools.process_group import exit_on_termination, run_logged
+    from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
     from tools.required_command import run_required
+    from tools.theme_apply_optional import run_optional_selections
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
         create_scratch_directory,
         report_error,
         report_missing_tool,
-        report_note,
     )
     from file_lock import installed_data_lock
     import xdg_homes
-    from process_group import exit_on_termination, run_logged
+    from process_group import exit_on_termination
     from repo_root import ROOT
     from required_command import run_required
+    from theme_apply_optional import run_optional_selections
 
 TOOL = "apply_theme"
 LNF_ID = "org.macos8.desktop"
 DTHEME_ID = "org.macos8.desktop"
 COLOR_SCHEME = "MacOS8"
-# The Kvantum theme name, i.e. the directory under ``theme/kvantum/`` that
-# ``make install`` copies into Kvantum's search path. tests/test_apply_theme.py
-# pins it to that shipped package so the two cannot drift.
-KVANTUM_THEME = "org.macos8.desktop"
 
 
 class ApplyError(Exception):
@@ -73,7 +74,8 @@ class ApplyError(Exception):
 
 # The commands steps 1-3 need; a missing one is a hard error. qdbus and
 # kvantummanager are not in this list: the KWin reconfigure and the Kvantum
-# theme selection are best-effort, so a missing one only prints a note.
+# theme selection are best-effort (theme_apply_optional), so a missing one
+# only prints a note.
 REQUIRED_TOOLS = (
     "lookandfeeltool",
     "plasma-apply-colorscheme",
@@ -90,11 +92,6 @@ COMMAND_TIMEOUT = 60.0
 # FLOCK_TIMEOUT default, so a holder stopped with SIGSTOP cannot block this
 # run forever either.
 LOCK_TIMEOUT = 60.0
-
-
-def _note(message: str) -> None:
-    """Print ``apply_theme: note: <message>`` to stderr."""
-    report_note(TOOL, message, err=True)
 
 
 def _session_env(environ: dict[str, str]) -> dict[str, str]:
@@ -115,90 +112,6 @@ def _session_env(environ: dict[str, str]) -> dict[str, str]:
         if bus.exists():
             env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={bus}"
     return env
-
-
-def _run_best_effort(
-    scratch: Path,
-    env: dict[str, str],
-    argv: list[str],
-    log_name: str,
-    *,
-    label: str,
-    consequence: str,
-) -> None:
-    """Run *argv*, noting a timeout, exit or start failure; never change the status.
-
-    *label* names the command in the note and *consequence* completes the
-    sentence with what happens because the command did not run. A command that
-    ``shutil.which`` found can still fail to start (a corrupt binary, or a
-    script whose interpreter is missing); ``run_logged`` reports that as an
-    ``OSError``, and a best-effort selection must turn it into a note like any
-    other failure rather than aborting the apply. The missing-tool note is the
-    caller's, since each tool needs a different remedy. A successful run prints
-    nothing.
-    """
-    log = scratch / log_name
-    try:
-        status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
-    except OSError as exc:
-        _note(f"{label} could not be started: {exc}; {consequence}")
-        return
-    if status is None:
-        _note(f"{label} timed out after {COMMAND_TIMEOUT:g}s; {consequence}")
-    elif status != 0:
-        _note(f"{label} exited {status}; {consequence}")
-
-
-def _reconfigure_kwin(scratch: Path, env: dict[str, str]) -> int:
-    """Ask KWin to reload the decoration; a failure is a note, never an error.
-
-    The reconfigure is best-effort: KWin reloads the decoration on its next
-    start anyway, so a missing qdbus6/qdbus, a timeout, or a non-zero exit
-    only prints a note and leaves the exit status at 0.
-    """
-    qdbus = shutil.which("qdbus6") or shutil.which("qdbus")
-    if qdbus is None:
-        _note(
-            "neither qdbus6 nor qdbus is on PATH; KWin reloads the decoration "
-            "on its next start"
-        )
-        return 0
-    _run_best_effort(
-        scratch,
-        env,
-        [qdbus, "org.kde.KWin", "/KWin", "reconfigure"],
-        "qdbus.log",
-        label="KWin reconfigure",
-        consequence="KWin reloads the decoration on its next start",
-    )
-    return 0
-
-
-def _select_kvantum_theme(scratch: Path, env: dict[str, str]) -> int:
-    """Select our Kvantum theme; a missing engine is a note, never an error.
-
-    The global theme sets ``widgetStyle=kvantum``, but Kvantum draws whichever
-    of its installed themes was selected last; this points it at ours. The
-    selection is best-effort because Kvantum is a separate package the theme
-    cannot install: without ``kvantummanager`` the widgets fall back to another
-    style and the apply still succeeds.
-    """
-    manager = shutil.which("kvantummanager")
-    if manager is None:
-        _note(
-            "kvantummanager is not on PATH; install Kvantum and choose its "
-            f"{KVANTUM_THEME} theme in System Settings -> Application Style"
-        )
-        return 0
-    _run_best_effort(
-        scratch,
-        env,
-        [manager, "--set", KVANTUM_THEME],
-        "kvantummanager.log",
-        label="kvantummanager --set",
-        consequence="the widgets fall back to another style",
-    )
-    return 0
 
 
 def _apply(data_home: Path, environ: dict[str, str]) -> int:
@@ -229,8 +142,8 @@ def _apply(data_home: Path, environ: dict[str, str]) -> int:
                 )
                 if status is not None:
                     return status
-            _select_kvantum_theme(scratch, env)
-            return _reconfigure_kwin(scratch, env)
+            run_optional_selections(scratch, env, COMMAND_TIMEOUT)
+            return 0
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 

@@ -1,4 +1,5 @@
-"""Tests for tools/apply_theme.py and the `make apply` target.
+"""Tests for tools/apply_theme.py, its theme_apply_optional boundary and the
+`make apply` target.
 
 `apply_theme.main` runs the re-selection commands against fake
 executables on `PATH`, which record their argv and the
@@ -10,6 +11,8 @@ running Plasma session. The Makefile tests drive the `apply` target through
 
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import shutil
 import signal
@@ -26,7 +29,7 @@ from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.recorded_lines import recorded_lines
-from tools import apply_theme, diagnostics, required_command
+from tools import apply_theme, diagnostics, required_command, theme_apply_optional
 
 
 class StubTools(unittest.TestCase):
@@ -195,7 +198,8 @@ class TestTimeoutPaths(StubTools):
     ``COMMAND_TIMEOUT``. A real timeout would need a hung child and the full
     timeout, so these patch it to report the timeout directly and pin the
     diagnostic each call site prints: the shared required-command runner for
-    the steps, and ``apply_theme.run_logged`` for the best-effort selections.
+    the steps, and ``theme_apply_optional.run_logged`` for the best-effort
+    selections.
     ``test_render_surface`` covers the process-group kill that produces the
     ``None`` in the first place.
     """
@@ -217,7 +221,9 @@ class TestTimeoutPaths(StubTools):
             # The three required steps succeed; the KWin reconfigure times out.
             return None if argv[0].endswith("qdbus6") else 0
 
-        with mock.patch.object(apply_theme, "run_logged", side_effect=run_logged):
+        with mock.patch.object(
+            theme_apply_optional, "run_logged", side_effect=run_logged
+        ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn(
@@ -230,7 +236,9 @@ class TestTimeoutPaths(StubTools):
             # The three required steps succeed; the Kvantum selection times out.
             return None if argv[0].endswith("kvantummanager") else 0
 
-        with mock.patch.object(apply_theme, "run_logged", side_effect=run_logged):
+        with mock.patch.object(
+            theme_apply_optional, "run_logged", side_effect=run_logged
+        ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn(
@@ -425,13 +433,65 @@ class TestSessionBus(StubTools):
 class TestKvantumSelection(unittest.TestCase):
     def test_the_selected_theme_is_the_shipped_package(self):
         """`make install` copies the `theme/kvantum/` package into Kvantum's
-        search path, so the name `apply_theme` selects must be that package's
-        directory name; otherwise the selection silently misses."""
+        search path, so the name the best-effort selection picks
+        (``theme_apply_optional``) must be that package's directory name;
+        otherwise the selection silently misses."""
         package_root = Path(apply_theme.ROOT) / "theme" / "kvantum"
         shipped = {
             entry.name for entry in package_root.iterdir() if entry.is_dir()
         }
-        self.assertEqual({apply_theme.KVANTUM_THEME}, shipped)
+        self.assertEqual({theme_apply_optional.KVANTUM_THEME}, shipped)
+
+
+class TestOptionalSelectionHelpers(unittest.TestCase):
+    """Direct coverage of the extracted theme_apply_optional boundary.
+
+    The stub-tool classes above exercise the boundary through
+    ``apply_theme.main``; these call the module's own functions against a
+    narrowed PATH, so the notes and the always-0 status are pinned beside the
+    extraction rather than only through the orchestrator.
+    """
+
+    def test_run_optional_selections_notes_both_missing_tools_and_returns_0(self):
+        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        empty_bin = root / "bin"
+        empty_bin.mkdir()
+        env = {"PATH": str(empty_bin)}
+        stderr = io.StringIO()
+        with mock.patch.dict(os.environ, env, clear=False):
+            with contextlib.redirect_stderr(stderr):
+                status = theme_apply_optional.run_optional_selections(
+                    root, dict(os.environ), 60.0
+                )
+        self.assertEqual(0, status)
+        text = stderr.getvalue()
+        self.assertIn("apply_theme: note:", text)
+        self.assertIn("kvantummanager is not on PATH", text)
+        self.assertIn("neither qdbus6 nor qdbus is on PATH", text)
+
+    def test_run_best_effort_success_prints_nothing(self):
+        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        stub_bin = root / "bin"
+        stub_bin.mkdir()
+        stub = stub_bin / "tool"
+        stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
+        stderr = io.StringIO()
+        with mock.patch.dict(os.environ, {"PATH": str(stub_bin)}, clear=False):
+            with contextlib.redirect_stderr(stderr):
+                theme_apply_optional.run_best_effort(
+                    root,
+                    dict(os.environ),
+                    ["tool"],
+                    "tool.log",
+                    60.0,
+                    label="tool call",
+                    consequence="nothing happens",
+                )
+        self.assertEqual("", stderr.getvalue())
+        self.assertTrue((root / "tool.log").exists())
 
 
 class TestMakeApply(unittest.TestCase):

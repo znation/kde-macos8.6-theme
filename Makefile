@@ -512,7 +512,8 @@ render:
 # tools/apply_theme.py re-selects the global theme (without --resetLayout, so
 # the user's panels survive), the color scheme and the desktop theme, selects
 # the Kvantum widget theme when kvantummanager is available, then asks KWin to
-# reconfigure. tools/apply_gtk.py selects the installed GTK 3 and GTK 4
+# reconfigure; the two best-effort selections and their command policy live
+# in tools/theme_apply_optional.py. tools/apply_gtk.py selects the installed GTK 3 and GTK 4
 # schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
 # (skipping the selection when plasma-apply-cursortheme is absent), and
 # tools/install_firefox.py installs the standalone sheets into the active
