@@ -28,22 +28,27 @@ def _region_alpha(image, x: int, y: int, width: int, height: int):
             yield 255 if alpha is None else alpha[index]
 
 
-def _color_runs(image, x: int, y: int, width: int, height: int):
+def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: bool = False):
     horizontal = height == 1
     segments = []
+    alphas = _region_alpha(image, x, y, width, height) if alpha_aware else None
     for offset, rgb in enumerate(_region_pixels(image, x, y, width, height)):
+        alpha = next(alphas) if alphas is not None else None
         px, py = (x + offset, y) if horizontal else (x, y + offset)
-        if segments and segments[-1]["rgb"] == rgb:
+        if segments and segments[-1]["rgb"] == rgb and (not alpha_aware or segments[-1]["alpha"] == alpha):
             segments[-1]["length"] += 1
         else:
-            segments.append({"x": px, "y": py, "length": 1, "rgb": rgb})
+            segment = {"x": px, "y": py, "length": 1, "rgb": rgb}
+            if alpha_aware:
+                segment["alpha"] = alpha
+            segments.append(segment)
     return ("horizontal" if horizontal else "vertical"), segments
 
 
 def report(args, image, width: int, height: int, header: str) -> None:
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
     if args.runs:
-        axis, runs = _color_runs(image, args.x, args.y, args.width, args.height)
+        axis, runs = _color_runs(image, args.x, args.y, args.width, args.height, args.alpha)
         if args.json:
             print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "axis": axis, "runs": [
@@ -55,7 +60,8 @@ def report(args, image, width: int, height: int, header: str) -> None:
         print(f"axis: {axis}")
         for run in runs:
             rgb = run["rgb"]
-            print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}")
+            suffix = f"  alpha={run['alpha']}" if args.alpha else ""
+            print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}{suffix}")
         return
 
     if args.histogram:

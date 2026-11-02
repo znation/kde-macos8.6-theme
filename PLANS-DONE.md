@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: measure transparency boundaries in scanline runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Report contiguous RGBA bands in scanline samples.
+
+**Approach and files.** `tools/sample.py` now permits `--alpha --runs` while retaining conflicts with histogram and color search. `tools/sample_reports.py` groups on RGB and alpha when requested, uses opaque alpha for images without transparency, and preserves RGB beneath transparency. Parser help, README.md, the scanline invariant, and sampler tests were updated.
+
+**Acceptance criteria.** Horizontal and vertical JSON/text reporting covers alpha groups and preserves the RGB-only mode. Fixtures cover alpha 0/128/255, transparent RGB, opaque RGB and truecolor `tRNS`; tests cover bounded decode, invalid two-dimensional scans, direct-script invocation, and missing/corrupt input. `make check` is run after the final edit.
+
 ### Fidelity diagnostics: report signed channel bias for palette tuning (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Show whether candidate channel values trend above or below the reference when tuning the Platinum palette. `tools/fidelity.py::main` currently offers absolute-error diagnostics; `tools/fidelity_pixels.py::channel_counts` counts threshold crossings, and `tools/fidelity_reports.py::report_data` / `render_text` format those diagnostics. Searches of fidelity source/tests and planned/archived entries for signed error and bias found no signed-mean diagnostic. The finished channel-count and percentile plans measure extent and magnitude, rather than direction. This is independent of the completed sampler alpha work. Implemented `--channel-bias` with signed raw-byte means, report integration, README documentation, and invariant coverage.

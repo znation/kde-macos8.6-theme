@@ -41,11 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--width", type=positive_int("--width"), default=1, metavar="W", help="pixels to sample to the right of x (default 1)")
     parser.add_argument("--height", type=positive_int("--height"), default=1, metavar="H", help="pixels to sample below y (default 1)")
     parser.add_argument("--json", action="store_true", help="print structured JSON")
-    parser.add_argument("--alpha", action="store_true", help="include alpha for individual pixel samples")
+    parser.add_argument("--alpha", action="store_true", help="include alpha in pixel samples and group runs by RGBA")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors in the sampled region")
-    modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors along one row or column")
+    modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors, or RGBA with --alpha, along one row or column")
     modes.add_argument("--find-color", type=rgb_argument, metavar="RRGGBB", help="locate an RGB color in the sampled region")
     return parser

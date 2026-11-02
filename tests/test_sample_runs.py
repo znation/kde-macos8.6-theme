@@ -7,7 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import control_named_png, rgb_image, solid_rgb
+from support.png_fixtures import control_named_png, make_png, rgb_image, solid_rgb
 from support.symlink_fixtures import symlinked_repo
 from tools import sample
 
@@ -71,6 +71,55 @@ class TestSampleRuns(CliTestCase):
         self.assertEqual(data["axis"], "horizontal")
         self.assertEqual(data["runs"][0]["length"], 1)
 
+    def test_alpha_runs_group_by_rgba_and_preserve_transparent_rgb(self):
+        colors = [(10, 20, 30, 0), (10, 20, 30, 128), (10, 20, 30, 255),
+                  (10, 20, 30, 255), (40, 50, 60, 0), (70, 80, 90, 0)]
+        rows = [b"".join(bytes(pixel) for pixel in colors[:3]),
+                b"".join(bytes(pixel) for pixel in colors[3:])]
+        path = self._write(self._tmp_dir(), "rgba-runs.png", make_png(3, 2, rows, color_type=6))
+        result = self._run(path, "0", "0", "--width", "3", "--alpha", "--runs", "--json")
+        self._assert_success(result)
+        parsed = json.loads(result.stdout)
+        self.assertEqual(parsed["runs"], [
+            {"x": 0, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 0},
+            {"x": 1, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 128},
+            {"x": 2, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 255},
+        ])
+        self.assertEqual(sum(run["length"] for run in parsed["runs"]), 3)
+        text = self._run(path, "0", "0", "--width", "3", "--alpha", "--runs")
+        self._assert_success(text)
+        self.assertTrue(text.stdout.endswith("(2, 0): 10,20,30  #0A141E  length=1  alpha=255\n"))
+
+        vertical = self._run(path, "2", "0", "--height", "2", "--alpha", "--runs", "--json")
+        self._assert_success(vertical)
+        vertical_data = json.loads(vertical.stdout)
+        self.assertEqual(vertical_data["axis"], "vertical")
+        self.assertEqual(vertical_data["runs"], [
+            {"x": 2, "y": 0, "length": 1, "rgb": [10, 20, 30], "hex": "#0A141E", "alpha": 255},
+            {"x": 2, "y": 1, "length": 1, "rgb": [70, 80, 90], "hex": "#46505A", "alpha": 0},
+        ])
+
+        rgb_only = self._run(path, "0", "0", "--width", "3", "--runs", "--json")
+        self._assert_success(rgb_only)
+        self.assertEqual(json.loads(rgb_only.stdout)["runs"], [
+            {"x": 0, "y": 0, "length": 3, "rgb": [10, 20, 30], "hex": "#0A141E"},
+        ])
+
+    def test_alpha_runs_keep_opaque_and_trns_defaults(self):
+        opaque = self._write(self._tmp_dir(), "opaque.png", rgb_image(2, 1, lambda x, y: (1, 2, 3))[1])
+        with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
+            result = self._run(opaque, "0", "0", "--width", "2", "--alpha", "--runs", "--json")
+        self._assert_success(result)
+        self.assertEqual([run["alpha"] for run in json.loads(result.stdout)["runs"]], [255])
+        self.assertTrue(read.call_args.kwargs["alpha"])
+        self.assertEqual(read.call_args.kwargs["max_rows"], 1)
+        trns = self._write(self._tmp_dir(), "trns.png", make_png(
+            2, 1, [bytes((1, 2, 3, 1, 2, 4))], color_type=2,
+            trns=b"\x00\x01\x00\x02\x00\x03"))
+        result = self._run(trns, "0", "0", "--width", "2", "--alpha", "--runs", "--json")
+        self._assert_success(result)
+        self.assertEqual([(run["length"], run["alpha"]) for run in json.loads(result.stdout)["runs"]], [(1, 0), (1, 255)])
+
     def test_invalid_regions_and_reads_have_no_stdout(self):
         path = self._fixture()
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
@@ -80,6 +129,9 @@ class TestSampleRuns(CliTestCase):
         conflict = self._run(path, "0", "0", "--runs", "--histogram")
         self._assert_usage_error(conflict)
         self.assertEqual(conflict.stdout, "")
+        invalid_alpha_runs = self._run(path, "0", "0", "--width", "2", "--height", "2", "--runs", "--alpha")
+        self._assert_usage_error(invalid_alpha_runs, "single row or column")
+        self.assertEqual(invalid_alpha_runs.stdout, "")
 
         outside = self._run(path, "5", "2", "--width", "2", "--runs")
         self._assert_usage_error(outside, "outside the 6x5 image")
