@@ -8,6 +8,7 @@ format, and an untrusted name must be escaped before it reaches a terminal.
 
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from support.check_references_fixtures import (
@@ -18,7 +19,7 @@ from support.check_references_fixtures import (
 )
 from support.error_assertions import assert_escapes_escape_character
 from tools.image_format import PNG_MAGIC
-from tools import reference_sources
+from tools import reference_sources, reference_validation
 
 
 class TestSourceParser(unittest.TestCase):
@@ -229,6 +230,20 @@ class TestAcceptedImageFormats(CheckerTestCase):
         assert_problem(
             self, problems, "sound.png", "not a PNG, JPEG, GIF or WebP"
         )
+
+    def test_declared_image_prefix_is_read_with_one_open(self):
+        module = self.checker
+        original_open = reference_validation.open_regular_binary
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+            {"good.png": PNG_MAGIC},
+        ) as root:
+            with mock.patch.object(
+                reference_validation, "open_regular_binary", wraps=original_open
+            ) as opened:
+                self.assertEqual(module.check_references(root), [])
+        self.assertEqual(opened.call_count, 1)
 
 
 class TestUndeclaredImageExtension(CheckerTestCase):

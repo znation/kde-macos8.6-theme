@@ -48,29 +48,14 @@ else:  # imported from a directly run tool
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 
 
-def _is_lfs_pointer(path: Path) -> bool:
-    """Return True when *path* is an unmaterialized Git LFS pointer, not data.
+def _image_prefix(path: Path) -> bytes:
+    """Read enough leading bytes to check both LFS and image signatures.
 
-    The file is opened through the shared regular-file reader: a regular file
-    that a concurrent writer replaces with a FIFO between the caller's
-    ``is_file`` check and this read is refused by its opened descriptor
-    instead of blocking on an open that waits for a writer.
+    The same bounded prefix is sufficient for both checks. Opening once also
+    keeps the declared-image path from doing two filesystem opens per file.
     """
     with open_regular_binary(path) as handle:
-        return handle.read(len(LFS_POINTER_MAGIC)) == LFS_POINTER_MAGIC
-
-
-def _looks_like_image(path: Path) -> bool:
-    """Return True when *path* begins with a known raster image signature.
-
-    Only the bytes decide, never the extension: ``sherlock_fandom.jpg`` is a
-    WebP payload by design, so the WebP signature is accepted here too. The
-    read goes through the shared regular-file reader for the same reason as
-    :func:`_is_lfs_pointer`.
-    """
-    with open_regular_binary(path) as handle:
-        head = handle.read(12)
-    return is_image(head)
+        return handle.read(max(len(LFS_POINTER_MAGIC), 12))
 
 
 def _undeclared_image_problem(path: Path) -> str:
@@ -98,12 +83,13 @@ def _check_entries(
             problems.append((lineno, f"{sources}:{lineno}: {filename!r} does not exist in {directory}/"))
             continue
         try:
-            if _is_lfs_pointer(image):
+            prefix = _image_prefix(image)
+            if prefix.startswith(LFS_POINTER_MAGIC):
                 problems.append(
                     (lineno, f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
                      "run `git lfs install && git lfs pull` to fetch the image")
                 )
-            elif not _looks_like_image(image):
+            elif not is_image(prefix):
                 problems.append(
                     (lineno, f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
                      "it may be an HTML error page or a truncated download")
@@ -154,7 +140,7 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
         # not an image, so a stray or half-downloaded file cannot hide behind
         # its name.
         try:
-            has_image_bytes = _looks_like_image(path)
+            has_image_bytes = is_image(_image_prefix(path))
         except (OSError, ValueError) as exc:
             problems.append(
                 f"{escape_controls(str(path))}: could not be read: {exc}"
