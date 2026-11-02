@@ -8,25 +8,29 @@ and writes them.
 """
 
 # The circle-slash draws a black ring with a black NW-SE slash through its
-# centre; the hotspot is the middle of the slash.
+# centre; the hotspot is the middle of the slash. The ring is a two-cell
+# black band with the shared one-cell white outline on its inner and outer
+# edges, the interior stays transparent, and the slash is a diagonal black
+# band whose corridor cells are white on both sides so no black touches the
+# interior.
 NOT_ALLOWED_HOTSPOT = (7, 7)
 NOT_ALLOWED_GRID = (
-    "    ........    ",
-    "   ..######..   ",
-    "  ..########..  ",
-    " ..##      ##.. ",
-    "..###.      ##..",
-    ".## .#.      ##.",
-    ".##  .#.     ##.",
-    ".##   .#.    ##.",
-    ".##    .#.   ##.",
-    ".##     .#.  ##.",
-    ".##      .#. ##.",
-    "..##      .###..",
-    " ..##      ##.. ",
-    "  ..########..  ",
-    "   ..######..   ",
-    "    ........    ",
+    "   ..........   ",
+    "  ...######...  ",
+    " ..##########.. ",
+    "..###......###..",
+    "..###.     .##..",
+    ".##..#.     .##.",
+    ".##. .#.    .##.",
+    ".##.  .#.   .##.",
+    ".##.   .#.  .##.",
+    ".##.    .#. .##.",
+    ".##.     .#..##.",
+    "..##.     .###..",
+    "..###......###..",
+    " ..##########.. ",
+    "  ...######...  ",
+    "   ..........   ",
 )
 
 # The copy plus draws a black vertical bar and two horizontal arms; the

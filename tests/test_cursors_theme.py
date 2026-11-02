@@ -472,9 +472,17 @@ class TestCursorSet(unittest.TestCase):
                     continue
                 if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 7.0**2:
                     with self.subTest(interior=(x, y)):
-                        self.assertNotEqual(
-                            _pixel(rgba, width, x, y), WHITE
-                        )
+                        value = _pixel(rgba, width, x, y)
+                        if value == WHITE:
+                            # The ring's one-cell white inner outline is the
+                            # drawing set's shield between black and the
+                            # transparent interior, so the only whites inside
+                            # the disc must touch a ring black side-on.
+                            neighbours = [
+                                _pixel(rgba, width, x + dx, y + dy)
+                                for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1))
+                            ]
+                            self.assertIn(BLACK, neighbours)
     def test_dnd_copy_is_a_centred_plus(self):
         cursor = _read_cursor(CURSORS / "dnd-copy")
         image = next(
@@ -535,18 +543,64 @@ class TestCursorSet(unittest.TestCase):
                 )
 
 
+    def test_context_menu_keeps_the_arrow_cells(self):
+        # The panel restates, never redraws, the landed arrow: every cell the
+        # arrow draws black stays black at the same grid coordinates.
+        arrow_blacks = {
+            (x, y)
+            for y, row in enumerate(cursor_art.ARROW_GRID)
+            for x, cell in enumerate(row)
+            if cell == "#"
+        }
+        menu_blacks = {
+            (x, y)
+            for y, row in enumerate(cursor_art.CONTEXT_MENU_GRID)
+            for x, cell in enumerate(row)
+            if cell == "#"
+        }
+        self.assertEqual(menu_blacks & arrow_blacks, arrow_blacks)
+
     def test_context_menu_pins_the_menu_panel(self):
         cursor = _read_cursor(CURSORS / "context-menu")
         image = next(
             image for image in cursor.images if image.nominal_size == 16
         )
         width, _, rgba = decode_rgba(image.png)
-        for x, y in ((1, 1), (8, 9), (8, 10), (14, 10), (10, 11), (10, 13), (11, 13), (8, 14)):
+        # The panel's walls and its two text bars sit on the redrawn cells.
+        for x, y in (
+            (8, 11), (11, 11), (14, 11),
+            (8, 12), (14, 12),
+            (8, 14), (11, 14), (14, 14),
+            (10, 12), (11, 12), (12, 12),
+            (10, 13), (11, 13),
+        ):
             with self.subTest(black=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), BLACK)
-        for x, y in ((0, 0), (1, 9), (2, 9), (3, 9), (7, 10), (9, 10), (15, 10)):
+        for x, y in (
+            (0, 0), (11, 10), (13, 10), (7, 12), (9, 12),
+            (13, 12), (9, 13), (12, 13), (13, 13), (15, 13), (9, 15),
+        ):
             with self.subTest(white=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+
+    def test_every_cursor_grid_shields_its_black_from_transparent(self):
+        # The set's shared drawing language: a one-cell white outline
+        # separates every black cell from transparent pixels and from the
+        # frame edge, orthogonal on every side, in every shipped grid.
+        for canonical, rows, _, _ in cursor_art.CURSORS:
+            with self.subTest(canonical=canonical):
+                self.assertEqual(len(rows), 16)
+                self.assertEqual({len(row) for row in rows}, {16})
+                for y, row in enumerate(rows):
+                    for x, cell in enumerate(row):
+                        if cell != "#":
+                            continue
+                        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                            nx, ny = x + dx, y + dy
+                            inside = 0 <= nx < 16 and 0 <= ny < 16
+                            with self.subTest(black=(x, y)):
+                                self.assertTrue(inside)
+                                self.assertNotEqual(rows[ny][nx], " ")
 
     def _sixteen_pixel_image(self, canonical):
         cursor = _read_cursor(CURSORS / canonical)
@@ -710,8 +764,10 @@ class TestCursorSet(unittest.TestCase):
         width, _, zoom_out = images["zoom-out"]
         for x, y in ((5, 7), (9, 7)):
             self.assertEqual(_pixel(zoom_out, width, x, y), BLACK)
+        # Dropping the vertical arm colour its four cells back into the
+        # white glass; the pair still differs only at the plus arms.
         for x, y in ((7, 5), (7, 9)):
-            self.assertEqual(_pixel(zoom_out, width, x, y), TRANSPARENT)
+            self.assertEqual(_pixel(zoom_out, width, x, y), WHITE)
 
     def test_help_and_progress_alias_names_reuse_their_canonical(self):
         for alias, canonical in (

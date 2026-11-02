@@ -115,25 +115,27 @@ SIZE_BDIAG_GRID = (
     "                ",
 )
 
-# The precision cross puts a one-pixel black arm on row 7 and another on
-# column 7, crossing at the hotspot; every other cell is outline or blank.
+# The precision cross puts a one-pixel black arm on the centre row's column
+# and another on the centre column's row, crossing at the hotspot; the bars
+# stay inside the frame and every black edge carries the shared one-cell
+# white outline, so the arm ends are outline caps, not frame edges.
 CROSSHAIR_HOTSPOT = (7, 7)
 CROSSHAIR_GRID = (
+    "      ...       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    " ......#....... ",
+    ".##############.",
+    " ......#....... ",
     "      .#.       ",
     "      .#.       ",
     "      .#.       ",
     "      .#.       ",
     "      .#.       ",
     "      .#.       ",
-    ".......#........",
-    "################",
-    ".......#........",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
+    "      ...       ",
 )
 

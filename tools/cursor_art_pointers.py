@@ -170,24 +170,26 @@ PENCIL_GRID = (
     "  .             ",
 )
 
-# The zoom pointers share a white-outlined black lens ring and a black
-# handle; their hotspots are the lens centre. ``zoom-in`` fills the plus and
-# ``zoom-out`` keeps only its horizontal bar.
+# The zoom pointers share a white-outlined black lens ring, a transparent
+# glass holding the centred black arms, and a black handle to the bottom
+# right; their hotspots are the lens centre. ``zoom-in`` fills the plus and
+# ``zoom-out`` keeps only its horizontal bar: each pair differs only at the
+# vertical plus arm's four cells.
 ZOOM_IN_HOTSPOT = (7, 7)
 ZOOM_IN_GRID = (
     "                ",
     "                ",
     "     .....      ",
     "    .#####.     ",
-    "   .##...##.    ",
-    "  .##. # .##.   ",
-    "  .#.  #  .#.   ",
-    "  .#.#####.#.   ",
-    "  .#.  #  .#.   ",
-    "  .##. # .##.   ",
-    "   .##...##.    ",
+    "   .#######.    ",
+    "  .##..#..##.   ",
+    "  .##..#..##.   ",
+    "  .##########.  ",
+    "  .##..#..##.   ",
+    "  .##..#..##.   ",
+    "   .#######.    ",
     "    .#####.#.   ",
-    "     ..... .#.  ",
+    "     .......#.  ",
     "            .#. ",
     "             .  ",
     "                ",
@@ -199,39 +201,41 @@ ZOOM_OUT_GRID = (
     "                ",
     "     .....      ",
     "    .#####.     ",
-    "   .##...##.    ",
-    "  .##.   .##.   ",
-    "  .#.     .#.   ",
-    "  .#.#####.#.   ",
-    "  .#.     .#.   ",
-    "  .##.   .##.   ",
-    "   .##...##.    ",
+    "   .#######.    ",
+    "  .##.....##.   ",
+    "  .##.....##.   ",
+    "  .##########.  ",
+    "  .##.....##.   ",
+    "  .##.....##.   ",
+    "   .#######.    ",
     "    .#####.#.   ",
-    "     ..... .#.  ",
+    "     .......#.  ",
     "            .#. ",
     "             .  ",
     "                ",
 )
 
-# The context-menu pointer adds a white-faced, black-bordered menu panel to
-# the arrow's right, with two black text bars; its hotspot is the arrow tip.
+# The context-menu pointer is the landed arrow at exactly ``ARROW_GRID``'s
+# cells plus a black-bordered menu panel beside the tail, with two black text
+# bars and the shared one-cell white outline round its walls; its hotspot is
+# the arrow tip.
 CONTEXT_MENU_HOTSPOT = (1, 1)
 CONTEXT_MENU_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
+    "..              ",
+    ".#.             ",
+    ".##.            ",
+    ".###.           ",
+    ".####.          ",
+    ".#####.         ",
+    ".######.        ",
+    ".#######.       ",
     ".########.      ",
-    "....##..#######.",
-    "   .##..#.....#.",
-    "   .##..#.###.#.",
-    "   .##..#.....#.",
-    "   .##..#.##..#.",
-    "   .##..#######.",
-    "   ....         ",
+    ".#########.     ",
+    ".##########.....",
+    ".######.#######.",
+    " ....##.#.###.#.",
+    "    .##.#.##..#.",
+    "    .##.#######.",
+    "    ........... ",
 )
 
