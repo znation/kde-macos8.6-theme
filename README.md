@@ -488,6 +488,14 @@ by the full requested region area. JSON adds numeric `fraction` to `match`;
 text prints `fraction:` after `count:`. It uses the same RGB tolerance and
 exact-alpha filters, and `--match-pixels` does not truncate its numerator.
 
+Add `--match-runs` with `--find-color` to report maximal contiguous horizontal
+segments matching the same RGB tolerance and exact-alpha predicate. JSON adds
+`match.runs` records with absolute `x`, `y` and `length`; text prints the same
+records on a `matching runs:` line. Segments are ordered by row then column,
+stop at each row boundary, and merge adjacent matches even when their RGB
+values differ within tolerance. The report covers the full region independently
+of `--match-pixels`; potentially large output is opt-in.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha

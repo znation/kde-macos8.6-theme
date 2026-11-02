@@ -5,9 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Reference-pixel sampler: measure contiguous matching-color segments (planned 2026-11-02 by the plan role)
+### Reference-pixel sampler: measure contiguous matching-color segments (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Measure separated border segments and gaps for a chosen reference color, including tolerance-grouped matches. `tools/sample_report_search.py::report_search` reports enclosing bounds and a bounded coordinate prefix; `tools/sample_report_runs.py::_color_runs` groups equal colors rather than the search predicate. Searches of sampler source/tests and related finished sampler plans found no match-run report. This is independent of the queued fidelity vertical-run diagnostic.
 
