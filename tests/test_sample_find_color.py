@@ -48,6 +48,10 @@ class TestSampleFindColor(CliTestCase):
         absent = self._run(path, "0", "0", "--find-color", "000000", "--json")
         self._assert_success(absent)
         self.assertEqual(json.loads(absent.stdout)["match"], {"rgb": [0, 0, 0], "hex": "#000000", "count": 0, "bounds": None})
+        absent_text = self._run(path, "0", "0", "--find-color", "000000")
+        self._assert_success(absent_text)
+        self.assertIn("count: 0", absent_text.stdout)
+        self.assertIn("bounds: none", absent_text.stdout)
 
     def test_alpha_does_not_change_rgb_matching(self):
         data = make_png(2, 1, [bytes((9, 8, 7, 0, 9, 8, 7, 255))], color_type=6)
