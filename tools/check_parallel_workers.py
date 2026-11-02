@@ -127,14 +127,14 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
     running: list[_Worker] = []
     try:
         while queue or running:
-            for entry in running[:]:
+            remaining: list[_Worker] = []
+            for entry in running:
                 status = entry.process.poll()
                 if status is not None:
                     if durations is not None:
                         durations[entry.module] = (
                             time.monotonic() - entry.started)
                     results[entry.module] = status
-                    running.remove(entry)
                 elif time.monotonic() >= entry.deadline:
                     if durations is not None:
                         durations[entry.module] = (
@@ -142,7 +142,9 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                     _kill_group(entry.process)
                     _reap(entry.process)
                     results[entry.module] = None
-                    running.remove(entry)
+                else:
+                    remaining.append(entry)
+            running = remaining
             while len(running) < workers and queue:
                 module = queue.pop(0)
                 try:
