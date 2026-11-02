@@ -10,6 +10,24 @@ else:  # imported by a directly run CLI
     from png import Image
 
 
+def _absolute_deltas(
+    candidate_rgb: bytes,
+    reference_rgb: bytes,
+    candidate_alpha: bytes | None,
+    reference_alpha: bytes | None,
+    index: int,
+) -> tuple[int, int, int, int]:
+    """Return one raw RGBA absolute delta tuple; absent alpha means opaque."""
+    offset = index * 3
+    return (
+        abs(candidate_rgb[offset] - reference_rgb[offset]),
+        abs(candidate_rgb[offset + 1] - reference_rgb[offset + 1]),
+        abs(candidate_rgb[offset + 2] - reference_rgb[offset + 2]),
+        abs((255 if candidate_alpha is None else candidate_alpha[index])
+            - (255 if reference_alpha is None else reference_alpha[index])),
+    )
+
+
 def worst_pixels(
     candidate: Image,
     reference: Image,
@@ -29,17 +47,9 @@ def worst_pixels(
 
     def ranked():
         for index in range(width * height):
-            rgb_offset = index * 3
-            red_delta = abs(candidate_rgb[rgb_offset] - reference_rgb[rgb_offset])
-            green_delta = abs(candidate_rgb[rgb_offset + 1] - reference_rgb[rgb_offset + 1])
-            blue_delta = abs(candidate_rgb[rgb_offset + 2] - reference_rgb[rgb_offset + 2])
-            alpha_delta = abs(
-                (255 if candidate_alpha is None else candidate_alpha[index])
-                - (255 if reference_alpha is None else reference_alpha[index])
-            )
-            delta = max(
-                red_delta, green_delta, blue_delta, alpha_delta
-            )
+            delta = max(_absolute_deltas(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+            ))
             if delta > tolerance:
                 yield (-delta, index)
 
@@ -80,14 +90,10 @@ def channel_counts(
     reference_alpha = reference.alpha
     counts = {"r": 0, "g": 0, "b": 0, "a": 0}
     for index in range(width * height):
-        rgb_offset = index * 3
-        red_delta = abs(candidate_rgb[rgb_offset] - reference_rgb[rgb_offset])
-        green_delta = abs(candidate_rgb[rgb_offset + 1] - reference_rgb[rgb_offset + 1])
-        blue_delta = abs(candidate_rgb[rgb_offset + 2] - reference_rgb[rgb_offset + 2])
-        alpha_delta = abs(
-            (255 if candidate_alpha is None else candidate_alpha[index])
-            - (255 if reference_alpha is None else reference_alpha[index])
+        deltas = _absolute_deltas(
+            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
         )
+        red_delta, green_delta, blue_delta, alpha_delta = deltas
         if red_delta > tolerance:
             counts["r"] += 1
         if green_delta > tolerance:
@@ -127,13 +133,10 @@ def channel_maxima(candidate: Image, reference: Image) -> dict[str, int]:
     candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
     for index in range(candidate.width * candidate.height):
-        offset = index * 3
-        for channel in range(3):
-            maxima[channel] = max(maxima[channel], abs(candidate_rgb[offset + channel] - reference_rgb[offset + channel]))
-        maxima[3] = max(maxima[3], abs(
-            (255 if candidate_alpha is None else candidate_alpha[index])
-            - (255 if reference_alpha is None else reference_alpha[index])
-        ))
+        for channel, delta in enumerate(_absolute_deltas(
+            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+        )):
+            maxima[channel] = max(maxima[channel], delta)
     return dict(zip(("r", "g", "b", "a"), maxima))
 
 
@@ -151,16 +154,9 @@ def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[
         count = 0
         for x in range(width):
             index = y * width + x
-            offset = index * 3
-            differing = any(
-                abs(candidate_rgb[offset + channel] - reference_rgb[offset + channel]) > tolerance
-                for channel in range(3)
-            )
-            if not differing:
-                differing = abs(
-                    (255 if candidate_alpha is None else candidate_alpha[index])
-                    - (255 if reference_alpha is None else reference_alpha[index])
-                ) > tolerance
+            differing = any(delta > tolerance for delta in _absolute_deltas(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+            ))
             count += differing
         rows.append(count)
     return rows
@@ -176,14 +172,9 @@ def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
     for index in range(candidate.width * candidate.height):
-        offset = index * 3
-        delta = max(
-            abs(candidate_rgb[offset] - reference_rgb[offset]),
-            abs(candidate_rgb[offset + 1] - reference_rgb[offset + 1]),
-            abs(candidate_rgb[offset + 2] - reference_rgb[offset + 2]),
-            abs((255 if candidate_alpha is None else candidate_alpha[index])
-                - (255 if reference_alpha is None else reference_alpha[index])),
-        )
+        delta = max(_absolute_deltas(
+            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+        ))
         counters[delta] += 1
     return [{"delta": delta, "count": count}
             for delta, count in enumerate(counters) if count]
