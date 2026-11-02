@@ -1,7 +1,8 @@
-"""Crop and comparison-budget argument types for the fidelity CLI.
+"""Crop and comparison argument types for the fidelity CLI.
 
 Validate CLI text using the shared numeric grammar and metric rectangle checks.
-Image loading and reporting live in ``tools/fidelity.py``.
+Parser construction lives in ``tools/fidelity_cli_parser.py``; image loading
+and reporting live in ``tools/fidelity.py``.
 """
 
 from __future__ import annotations
@@ -132,3 +133,17 @@ def tolerance(value: str) -> int:
     """Return a ``--tolerance`` integer per-channel delta in 0..255."""
     number = plain_number(value, "--tolerance", "integer", "an", int)
     return _channel_amount(value, number, "--tolerance", "delta")
+
+
+def worst_pixel_limit(value: str) -> int:
+    """Return a ``--worst-pixels`` limit in the inclusive range 1..1000."""
+    if not value or not value.isascii() or not value.isdecimal():
+        raise argparse.ArgumentTypeError(
+            "--worst-pixels must be an ASCII integer from 1 to 1000"
+        )
+    number = int(value)
+    if not 1 <= number <= 1000:
+        raise argparse.ArgumentTypeError(
+            "--worst-pixels must be an ASCII integer from 1 to 1000"
+        )
+    return number
