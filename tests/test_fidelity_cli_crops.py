@@ -24,6 +24,17 @@ from tools import fidelity, fidelity_sources, png  # noqa: E402
 class TestCliCrops(FidelityCliTestCase):
     """The ``--crop`` and ``--candidate-crop`` options."""
 
+    def test_direct_script_cropped_comparison_matches_package_entry(self):
+        tmp = self._tmp_dir()
+        surface, padded = self._write_padded_surface_pair(tmp)
+        args = (surface, padded, "--crop", "1,1,2,2")
+        package = self._run(*args)
+        direct = self._run_script(*args)
+        self.assertEqual(
+            (direct.returncode, direct.stdout, direct.stderr),
+            (package.returncode, package.stdout, package.stderr),
+        )
+
     def test_crop_region_passes(self):
         tmp = self._tmp_dir()
         candidate, reference = self._write_padded_surface_pair(tmp)
