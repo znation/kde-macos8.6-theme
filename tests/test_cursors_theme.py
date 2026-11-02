@@ -112,7 +112,7 @@ HOTSPOTS = {
     "left_ptr": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
     "xterm": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "hand2": {16: (7, 2), 24: (11, 3), 32: (14, 4)},
-    "watch": {16: (7, 5), 24: (11, 8), 32: (14, 10)},
+    "watch": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "fleur": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "size_hor": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "size_ver": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
@@ -136,7 +136,7 @@ PINNED_PIXELS = {
     "left_ptr": {"face": (1, 1), "outline": (0, 0)},
     "xterm": {"face": (7, 7), "outline": (6, 7)},
     "hand2": {"face": (7, 2), "outline": (7, 1)},
-    "watch": {"face": (7, 5), "outline": (6, 5)},
+    "watch": {"face": (7, 4), "outline": (6, 5)},
     "fleur": {"face": (7, 7), "outline": (7, 0)},
     "size_hor": {"face": (7, 7), "outline": (7, 6)},
     "size_ver": {"face": (7, 7), "outline": (6, 7)},
@@ -548,31 +548,131 @@ class TestCursorSet(unittest.TestCase):
             with self.subTest(white=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), WHITE)
 
-    def test_help_pins_the_arrow_and_question_mark(self):
-        cursor = _read_cursor(CURSORS / "help")
+    def _sixteen_pixel_image(self, canonical):
+        cursor = _read_cursor(CURSORS / canonical)
         image = next(
             image for image in cursor.images if image.nominal_size == 16
         )
-        width, _, rgba = decode_rgba(image.png)
-        for x, y in ((1, 1), (10, 3), (13, 5), (12, 7)):
+        return (image,) + decode_rgba(image.png)
+
+    def test_left_ptr_draws_the_classic_silhouette(self):
+        image, width, _, rgba = self._sixteen_pixel_image("left_ptr")
+        self.assertEqual((image.hotspot_x, image.hotspot_y), (1, 1))
+        # The vertical left edge rises to the untouched tip at the hotspot.
+        for y in range(1, 12):
+            with self.subTest(edge=y):
+                self.assertEqual(_pixel(rgba, width, 1, y), BLACK)
+                self.assertEqual(_pixel(rgba, width, 0, y), WHITE)
+        for x in range(9, 11):
+            with self.subTest(trailing=x):
+                self.assertEqual(_pixel(rgba, width, x, 10), BLACK)
+        self.assertEqual(_pixel(rgba, width, 11, 10), WHITE)
+        # The two-cell black tail hangs below the notch.
+        for y in range(12, 15):
+            with self.subTest(tail=y):
+                self.assertEqual(_pixel(rgba, width, 5, y), BLACK)
+                self.assertEqual(_pixel(rgba, width, 6, y), BLACK)
+                self.assertEqual(_pixel(rgba, width, 4, y), WHITE)
+                self.assertEqual(_pixel(rgba, width, 7, y), WHITE)
+        for x in range(4, 8):
+            with self.subTest(tail_base=x):
+                self.assertEqual(_pixel(rgba, width, x, 15), WHITE)
+
+    def test_watch_draws_the_round_faced_wristwatch(self):
+        image, width, _, rgba = self._sixteen_pixel_image("watch")
+        self.assertEqual((image.hotspot_x, image.hotspot_y), (7, 7))
+        # The crown sits above the ring.
+        self.assertEqual(_pixel(rgba, width, 7, 2), BLACK)
+        for x, y in ((6, 2), (8, 2), (7, 3)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+        # The closed round ring reaches its cardinals before its diagonals.
+        for x, y in ((7, 4), (7, 10), (4, 7), (10, 7)):
+            with self.subTest(cardinal=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((5, 4), (4, 5), (10, 5), (5, 9), (9, 9)):
+            with self.subTest(shoulder=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in (
+            (4, 4),
+            (10, 4),
+            (4, 3),
+            (3, 7),
+            (4, 10),
+            (11, 7),
+            (6, 5),
+            (5, 6),
+            (6, 6),
+        ):
+            with self.subTest(outline_or_face=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+        # The two-cell minute hand stands on the centre and the hour hand
+        # crosses it to the right.
+        for x, y in ((7, 5), (7, 6), (7, 7), (8, 7)):
+            with self.subTest(hand=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+
+    def test_help_pins_the_arrow_and_question_mark(self):
+        image, width, _, rgba = self._sixteen_pixel_image("help")
+        self.assertEqual((image.hotspot_x, image.hotspot_y), (1, 1))
+        arrow_blacks = {
+            (x, y)
+            for y, row in enumerate(cursor_art.ARROW_GRID)
+            for x, cell in enumerate(row)
+            if cell == "#"
+        }
+        for x, y in sorted(arrow_blacks):
+            with self.subTest(arrow=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((10, 3), (13, 5), (12, 7)):
             with self.subTest(black=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), BLACK)
         for x, y in ((0, 0), (12, 6)):
             with self.subTest(white=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), WHITE)
 
-    def test_progress_pins_the_arrow_and_hourglass(self):
-        cursor = _read_cursor(CURSORS / "progress")
-        image = next(
-            image for image in cursor.images if image.nominal_size == 16
-        )
-        width, _, rgba = decode_rgba(image.png)
-        for x, y in ((1, 1), (10, 9), (11, 10), (11, 11), (11, 12), (12, 11), (10, 13)):
+    def test_progress_pins_the_arrow_and_watch_face(self):
+        image, width, _, rgba = self._sixteen_pixel_image("progress")
+        self.assertEqual((image.hotspot_x, image.hotspot_y), (1, 1))
+        arrow_blacks = {
+            (x, y)
+            for y, row in enumerate(cursor_art.ARROW_GRID)
+            for x, cell in enumerate(row)
+            if cell == "#"
+        }
+        for x, y in sorted(arrow_blacks):
+            with self.subTest(arrow=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        # The miniature of the busy watch's round face: ring top, two-cell
+        # hands and the white interior between them.
+        for x, y in ((11, 3), (12, 3), (13, 3), (12, 4), (12, 5), (13, 5)):
             with self.subTest(black=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), BLACK)
-        for x, y in ((12, 8), (12, 14)):
+        for x, y in ((11, 5), (12, 6), (9, 5), (12, 8)):
             with self.subTest(white=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+
+    def test_help_and_progress_draw_the_arrow_cells_at_the_same_coordinates(self):
+        arrow_blacks = {
+            (x, y)
+            for y, row in enumerate(cursor_art.ARROW_GRID)
+            for x, cell in enumerate(row)
+            if cell == "#"
+        }
+        for name, grid in (
+            ("help", cursor_art.HELP_GRID),
+            ("progress", cursor_art.PROGRESS_GRID),
+        ):
+            extras = {
+                (x, y)
+                for y, row in enumerate(grid)
+                for x, cell in enumerate(row)
+                if cell == "#"
+            } - arrow_blacks
+            with self.subTest(name=name):
+                # The restated question mark and mini-face cells live only in
+                # the free right-hand area beside the untouched arrow cells.
+                self.assertTrue(all(x >= 9 for x, _ in extras))
 
     def test_pencil_draws_a_diagonal_shaft_to_its_writing_tip(self):
         cursor = _read_cursor(CURSORS / "pencil")

@@ -1,7 +1,7 @@
 """The pointer and magnifier cursor grids for the Platinum pointer set.
 
 The 16x16 ASCII grids and hotspots for the arrow, text I-beam, pointing hand,
-busy hourglass, help and progress arrows, pencil, zoom magnifiers and
+busy wristwatch, help and progress arrows, pencil, zoom magnifiers and
 context-menu arrow. ``#`` is the black face, ``.`` the white outline and a
 space is transparent. The grids in this module are bound to their canonical X
 names and aliases by ``tools/cursor_art.py``; ``tools/make_cursors.py`` scales
@@ -10,26 +10,29 @@ and writes them.
 
 HOTSPOT = (1, 1)
 
-# The arrow's tip is at grid (1, 1). ``#`` is the black face, ``.`` the white
-# outline and a space is transparent. The art is drawn at 16x16 and scaled
-# nearest-neighbour to the larger nominal sizes.
+# The arrow is the classic silhouette: a vertical left edge rising to the tip
+# at grid (1, 1), a longer shallow trailing edge that reaches its widest point
+# low in the frame, and the two-cell black tail hanging below the notch.
+# ``#`` is the black face, ``.`` the white outline and a space is transparent.
+# The art is drawn at 16x16 and scaled nearest-neighbour to the larger nominal
+# sizes.
 ARROW_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
+    "..              ",
+    ".#.             ",
+    ".##.            ",
+    ".###.           ",
+    ".####.          ",
+    ".#####.         ",
+    ".######.        ",
+    ".#######.       ",
     ".########.      ",
-    "....##....      ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   ....         ",
+    ".#########.     ",
+    ".##########.    ",
+    ".######....     ",
+    " ....##.        ",
+    "    .##.        ",
+    "    .##.        ",
+    "    ....        ",
 )
 
 # The text I-beam has serifs at the top and bottom of a centred stem; its
@@ -76,22 +79,23 @@ HAND2_GRID = (
     "                ",
 )
 
-# The busy hourglass joins a wide top and bottom through a narrow waist; its
-# hotspot is the waist.
-WATCH_HOTSPOT = (7, 5)
+# The busy watch is a small round-faced wristwatch: a crown above a round
+# ring that surrounds a white face carrying two black hands; its hotspot is
+# the hands' crossing point at the face centre.
+WATCH_HOTSPOT = (7, 7)
 WATCH_GRID = (
-    "    ........    ",
-    "    .######.    ",
-    "    .######.    ",
-    "     .####.     ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "     .####.     ",
-    "    .######.    ",
-    "    .######.    ",
-    "    ........    ",
     "                ",
+    "      ...       ",
+    "      .#.       ",
+    "    .......     ",
+    "    .#####.     ",
+    "   .##.#.##.    ",
+    "   .#..#..#.    ",
+    "   .#..##.#.    ",
+    "   .#.....#.    ",
+    "   .##...##.    ",
+    "    .#####.     ",
+    "     .....      ",
     "                ",
     "                ",
     "                ",
@@ -103,44 +107,44 @@ WATCH_GRID = (
 # right-hand area; its hotspot is the arrow tip.
 HELP_HOTSPOT = (1, 1)
 HELP_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..    ...... ",
-    ".###..   .####. ",
-    ".####..  ....#. ",
-    ".#####.. ...##. ",
+    "..              ",
+    ".#.             ",
+    ".##.     ...... ",
+    ".###.    .###.  ",
+    ".####.   ....#. ",
+    ".#####.  ...##. ",
     ".######........ ",
     ".#######....#.. ",
     ".########...... ",
-    "....##....      ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   ....         ",
+    ".#########.     ",
+    ".##########.    ",
+    ".######....     ",
+    " ....##.        ",
+    "    .##.        ",
+    "    .##.        ",
+    "    ....        ",
 )
 
-# The progress pointer is the arrow with a small hourglass in the free
-# right-hand area; its hotspot is the arrow tip.
+# The progress pointer is the arrow with a miniature of the busy watch's
+# round face in the free right-hand area; its hotspot is the arrow tip.
 PROGRESS_HOTSPOT = (1, 1)
 PROGRESS_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
-    ".########...... ",
-    "....##....####. ",
-    "   .##.  ..##.. ",
-    "   .##.  ..##.. ",
-    "   .##.  ..##.. ",
-    "   .##.  .####. ",
-    "   .##.  ...... ",
-    "   ....         ",
+    "..              ",
+    ".#.             ",
+    ".##.       ...  ",
+    ".###.     .###. ",
+    ".####.   .#.#.#.",
+    ".#####.  .#.###.",
+    ".######. .#...#.",
+    ".#######...###. ",
+    ".########. ...  ",
+    ".#########.     ",
+    ".##########.    ",
+    ".######....     ",
+    " ....##.        ",
+    "    .##.        ",
+    "    .##.        ",
+    "    ....        ",
 )
 
 # The pencil draws a two-pixel black shaft on the anti-diagonal band x+y =
