@@ -5,6 +5,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity CLI: extract parser construction from comparison orchestration (planned 2026-11-02 by the plan role) — done 2026-11-02 by the steward role
+
+Extracted parser construction into `tools/fidelity_cli_parser.py`; characterization and usage-error tests cover the moved CLI contract.
+
 ### Reference-pixel sampler: measure vertical matching-color segments (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Measure disjoint vertical border segments for a chosen reference color, including tolerance-grouped matches. `tools/sample_report_search.py::report_search` currently accumulates horizontal `--match-runs` during its row-major search. The finished horizontal-match plan explicitly leaves that option horizontal; ordinary `--runs --run-axis vertical` groups equal colors rather than matches to a search predicate. Source, test and archive searches found no vertical color-search run report. This is independent of the queued fidelity budget.
