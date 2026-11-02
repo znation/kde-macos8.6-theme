@@ -6,6 +6,16 @@ required `**Validation gap:** <tag> — <one sentence>` line recording what made
 confirm (tag one of: none, no-repro, no-fake, real-run-needed, no-observability, slow-check,
 unclear-invariant).
 
+Bugs no role can fix under the project's rules are refused with a dated
+`**Refused <date> by <role>: <one-line reason>**` note under the entry's heading; they stay in
+`## Open` only while the user has not accepted the refusal. Once accepted, move the entry to
+`## Won't fix` — positioned after `## Open` so triage reads only fixable entries first — with a
+dated `**Won't fix <date> by the <role> role — user accepted the refusal**` line that records the
+limitation the theme now carries and what a fix would have required. A refusal whose reason is
+"the fix is a redesign, not a repair" does not end there by default: route the redesign to a
+PLANS.md plan and let the user decide whether to fund it before moving the bug. (Directed by the
+user 2026-11-01; recorded by the director role.)
+
 ## Open
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
@@ -128,5 +138,9 @@ must name `tools/render_clients.py`'s `checkbox_dialog_client`/`combobox_dialog_
 requirement is visible where the widgets are constructed. That module owns the dialog argv
 recipes. `make check` owns the renders, so no new
 session infrastructure is proposed.
+
+## Won't fix
+
+_None yet._
 
 ## Fixed
