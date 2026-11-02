@@ -65,7 +65,12 @@ def report(args, image, width: int, height: int, header: str) -> None:
         return
 
     if args.histogram:
-        counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
+        if args.alpha:
+            pixels = zip(_region_pixels(image, args.x, args.y, args.width, args.height),
+                         _region_alpha(image, args.x, args.y, args.width, args.height))
+            counts = Counter((*rgb, alpha) for rgb, alpha in pixels)
+        else:
+            counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
         if args.top_colors is not None:
             total_colors = len(counts)
             colors = nsmallest(
@@ -79,7 +84,8 @@ def report(args, image, width: int, height: int, header: str) -> None:
         if args.json:
             result = {"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "colors": [
-                    {"rgb": list(rgb), "hex": _hex(rgb), "count": count} for rgb, count in colors
+                    {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
+                     **({"alpha": color[3]} if args.alpha else {})} for color, count in colors
                 ]}
             if args.top_colors is not None:
                 result["total_colors"] = total_colors
@@ -88,8 +94,10 @@ def report(args, image, width: int, height: int, header: str) -> None:
             return
         print(header)
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-        for rgb, count in colors:
-            print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}")
+        for color, count in colors:
+            rgb = color[:3]
+            suffix = f"  alpha={color[3]}" if args.alpha else ""
+            print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}{suffix}")
         if args.top_colors is not None:
             print(f"total colors: {total_colors}")
             print(f"omitted pixels: {omitted_pixels}")

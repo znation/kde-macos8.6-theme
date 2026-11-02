@@ -7,7 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import control_named_png, rgb_image, solid_rgb
+from support.png_fixtures import control_named_png, make_png, rgb_image, solid_rgb
 from support.symlink_fixtures import symlinked_repo
 from tools import sample
 
@@ -47,6 +47,54 @@ class TestSampleHistogram(CliTestCase):
                                "--histogram", "--json")
         self._assert_success(result)
         self.assertEqual(sum(color["count"] for color in json.loads(result.stdout)["colors"]), 8)
+
+    def test_alpha_histogram_counts_rgba_in_crop_and_preserves_rgb_under_transparency(self):
+        rows = [bytes((9, 9, 9, 255, 1, 2, 3, 0, 7, 8, 9, 128)),
+                bytes((8, 8, 8, 255, 1, 2, 3, 128, 1, 2, 3, 255))]
+        path = self._write(self._tmp_dir(), "rgba-hist.png", make_png(3, 2, rows, color_type=6))
+        with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
+            result = self._run(path, "1", "0", "--width", "2", "--height", "2",
+                               "--histogram", "--alpha", "--top-colors", "2", "--json")
+        self._assert_success(result)
+        payload = json.loads(result.stdout)
+        self.assertEqual((payload["image_width"], payload["image_height"]), (3, 2))
+        self.assertEqual(payload["colors"], [
+            {"rgb": [1, 2, 3], "hex": "#010203", "count": 1, "alpha": 0},
+            {"rgb": [1, 2, 3], "hex": "#010203", "count": 1, "alpha": 128},
+        ])
+        self.assertEqual((payload["total_colors"], payload["omitted_pixels"]), (4, 2))
+        read.assert_called_once_with(path, max_rows=2, alpha=True)
+        text = self._run(path, "1", "0", "--width", "2", "--height", "2", "--histogram", "--alpha")
+        self._assert_success(text)
+        self.assertIn("1,2,3  #010203  count=1  alpha=0", text.stdout)
+        self.assertIn("1,2,3  #010203  count=1  alpha=128", text.stdout)
+        for limit in (4, 5):
+            complete = self._run(path, "1", "0", "--width", "2", "--height", "2",
+                                 "--histogram", "--alpha", "--top-colors", str(limit), "--json")
+            self._assert_success(complete)
+            self.assertEqual(json.loads(complete.stdout)["total_colors"], 4)
+            self.assertEqual(json.loads(complete.stdout)["omitted_pixels"], 0)
+
+    def test_alpha_histogram_defaults_opaque_and_preserves_rgb_only_schema(self):
+        _, rgba = solid_rgb(1, 1, (4, 5, 6))
+        path = self._write(self._tmp_dir(), "opaque.png", rgba)
+        result = self._run(path, "0", "0", "--histogram", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["colors"], [
+            {"rgb": [4, 5, 6], "hex": "#040506", "count": 1, "alpha": 255},
+        ])
+        rgb = self._run(path, "0", "0", "--histogram", "--json")
+        self._assert_success(rgb)
+        self.assertEqual(json.loads(rgb.stdout)["colors"], [
+            {"rgb": [4, 5, 6], "hex": "#040506", "count": 1},
+        ])
+        transparent = self._write(self._tmp_dir(), "trns.png", make_png(
+            1, 1, [bytes((4, 5, 6))], color_type=2, trns=b"\x00\x04\x00\x05\x00\x06"))
+        result = self._run_script(transparent, "0", "0", "--histogram", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["colors"], [
+            {"rgb": [4, 5, 6], "hex": "#040506", "count": 1, "alpha": 0},
+        ])
 
     def test_text_output_and_single_pixel_json_schema(self):
         path = self._fixture()

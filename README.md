@@ -400,8 +400,10 @@ when alpha is zero. The flag adds `alpha` to JSON pixel records and `alpha=N`
 to text pixel lines. With `--runs`, alpha is included in run equality, so
 adjacent pixels merge only when both RGB and alpha match; JSON run records add
 `alpha`, and text appends `alpha=N` after the run length. RGB under transparent
-pixels is preserved without compositing. The flag cannot be combined with
-`--histogram` or `--find-color`.
+pixels is preserved without compositing. With `--histogram`, `--alpha` counts
+RGBA colors, sorts ties by RGBA tuple, and adds `alpha` to JSON colors or
+`alpha=N` after text counts; opaque images use alpha 255. The flag cannot be
+combined with `--find-color`.
 
 Coordinates are plain ASCII integers and `--width`/`--height` must be at least 1; a
 coordinate or region outside the image, a missing file, or an unreadable PNG exits 2
@@ -419,7 +421,8 @@ requested region and row-major pixel records:
 
 Pass `--histogram` to count the RGB colors in the requested rectangle instead
 of listing its pixels. Counts sort from largest to smallest, with RGB tuple
-order breaking ties; combine it with `--json` for a `colors` array containing
+order breaking ties; with `--alpha`, distinct RGBA tuples sort by RGBA order.
+Combine it with `--json` for a `colors` array containing
 `rgb`, `hex` and `count` fields:
 
 ```sh

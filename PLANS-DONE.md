@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: distinguish alpha levels in palette histograms (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Count transparent artwork colors without merging identical RGB values that have different opacity. `tools/sample.py::main` explicitly rejected `--alpha --histogram`; `tools/sample_reports.py::report` counted RGB tuples despite `_region_alpha` supplying bounded alpha samples with an opaque fallback. The sampler had pixel-alpha and scanline-alpha work, but no RGBA histogram capability.
+
+**Approach and files.** Permit `--alpha --histogram` in `tools/sample.py::main`, retaining the alpha/find-color conflict. In `tools/sample_reports.py::report`, count RGBA tuples when alpha is requested and RGB tuples otherwise, sort by descending count then ascending tuple, and retain bounded `nsmallest` selection for `--top-colors`. Alpha-mode JSON records retain `rgb`, `hex` and `count` and add integer `alpha`; text appends `alpha=N`. Missing alpha is 255 and RGB beneath zero alpha remains uncomposited. Updated parser help, histogram and alpha tests, README sampling documentation and the histogram/top-colors invariants. No decoder change or dependency was needed.
+
+**Acceptance criteria.** Tests cover alpha 0/128/255, RGB beneath transparency, tie ordering, an offset multi-row crop, opaque RGB and truecolor tRNS; text/JSON schemas; bounded alpha decoding; top-color truncation and totals; unchanged RGB-only behavior; and direct-script JSON. `make check` passed after the final edits.
+
 ### Reference-pixel sampler: measure transparency boundaries in scanline runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Measure transparent artwork's contiguous RGBA bands without counting individual pixel output. `tools/sample.py::main` rejects `--alpha --runs`; `tools/sample_reports.py::_color_runs` merges adjacent equal RGB values irrespective of alpha. Searches of source, tests and plan archives found the completed RGB scanline and individual-alpha plans, which explicitly exclude this combination, rather than an RGBA run capability. This is independent of the waiting signed-channel-bias plan.

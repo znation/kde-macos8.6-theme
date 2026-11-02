@@ -70,7 +70,7 @@ class TestSampleAlpha(CliTestCase):
             result = self._run(path, "1", "0", "--height", "2", "--alpha")
             self._assert_success(result)
             read.assert_called_once_with(path, max_rows=2, alpha=True)
-        for mode in ("--histogram", "--find-color", "000000"):
+        for mode in ("--find-color", "000000"):
             args = (path, "0", "0", "--alpha", mode) if mode != "000000" else (path, "0", "0", "--alpha", "--find-color", mode)
             with mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded")):
                 result = self._run(*args)
