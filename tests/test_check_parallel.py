@@ -856,6 +856,67 @@ class TestSpawnDefenses(unittest.TestCase):
             Path(log_path).read_text(encoding="utf-8"),
         )
 
+    def test_a_non_regular_log_path_is_refused_not_written_through(self):
+        # _open_log's write-side regular-file check mirrors the read-side
+        # check _print_results pins through the FIFO and directory log
+        # tests: a worker log path that opens successfully but is not a
+        # regular file must not become the sink the worker's output is
+        # streamed into. /dev/zero is the one non-regular file the open
+        # flags (O_WRONLY|O_CREAT|O_TRUNC|O_NONBLOCK) still succeed on --
+        # O_CREAT and O_TRUNC are ignored on a device -- so only the
+        # regular-file check can refuse it, while a FIFO ENXIOes before
+        # the check runs (pinned at test_fifo_worker_log_fails...
+        # through _supervise).
+        if not os.path.exists("/dev/zero"):
+            self.skipTest("/dev/zero is Linux-specific")
+        with self.assertRaisesRegex(
+            OSError, r"/dev/zero is not a regular file"
+        ):
+            check_parallel_workers._open_log("/dev/zero")
+
+    def test_a_non_regular_log_closes_the_descriptor_it_opened(self):
+        # Refusing must not leak the descriptor _open_log opened, or a
+        # scratch volume seeded with openable non-regular names would drain
+        # the run's open-file limit one descriptor per module. /proc/self/fd
+        # is the sure way to observe that a descriptor this process opened
+        # and did not hand out is gone; skip where it is unavailable.
+        if not os.path.exists("/dev/zero"):
+            self.skipTest("/dev/zero is Linux-specific")
+        if not os.path.isdir("/proc/self/fd"):
+            self.skipTest("/proc/self/fd is Linux-specific")
+        open_before = len(os.listdir("/proc/self/fd"))
+        with self.assertRaises(OSError):
+            check_parallel_workers._open_log("/dev/zero")
+        self.assertEqual(len(os.listdir("/proc/self/fd")), open_before)
+
+    def test_a_non_regular_log_fails_only_its_module(self):
+        # Through _supervise: the refusal arrives as an OSError like any
+        # other failed log open, so the module is recorded as never started
+        # (exit 1) with one stderr diagnostic naming it and the refused
+        # path, and the other workers still run -- never a traceback
+        # killing the run.
+        if not os.path.exists("/dev/zero"):
+            self.skipTest("/dev/zero is Linux-specific")
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        _write_module(tests_dir, "test_two.py", OK_MODULE)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            statuses = check_parallel_workers._supervise(
+                ["test_ok", "test_two"],
+                [sys.executable, "-m", "unittest", "-v"],
+                tests_dir,
+                {"test_ok": "/dev/zero", "test_two":
+                 str(make_tmp_dir(self) / "worker.log")},
+                60,
+                2,
+            )
+        self.assertEqual(1, statuses["test_ok"])
+        self.assertEqual(0, statuses["test_two"])
+        stderr_text = stderr.getvalue()
+        self.assertIn("cannot open the worker log for test_ok", stderr_text)
+        self.assertIn("/dev/zero is not a regular file", stderr_text)
+
     def test_log_close_failure_kills_a_started_worker(self):
         log_path = str(make_tmp_dir(self) / "spawn.log")
         processes = []
