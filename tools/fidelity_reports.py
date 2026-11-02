@@ -98,7 +98,7 @@ def source_bounds(difference_bounds, crop_rect):
 
 def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 tolerance, max_mae, max_frac, metrics, worst=None,
-                channels=None, explanation=None, histogram=None,
+                channels=None, bias=None, explanation=None, histogram=None,
                 percentiles=None,
                 passed: bool = False):
     """Assemble the comparison's JSON result object.
@@ -121,6 +121,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
     }
     if channels is not None:
         result["channel_counts"] = channels
+    if bias is not None:
+        result["channel_bias"] = bias
     if histogram is not None:
         result["delta_histogram"] = histogram
     if percentiles is not None:
@@ -232,6 +234,9 @@ def render_text(result: dict, candidate, reference) -> list[str]:
             f"channel differing pixels (R, G, B, A): {channels['r']} "
             f"{channels['g']} {channels['b']} {channels['a']}"
         )
+    bias = result.get("channel_bias")
+    if bias is not None:
+        lines.append("channel bias (candidate - reference): " + json.dumps(bias, ensure_ascii=True))
     histogram = result.get("delta_histogram")
     if histogram is not None:
         lines.append("delta histogram: " + json.dumps(histogram, ensure_ascii=True))

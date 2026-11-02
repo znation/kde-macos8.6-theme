@@ -1,4 +1,4 @@
-"""Per-channel counts and ranked pixels for fidelity surfaces with over-tolerance deltas."""
+"""Pixel diagnostics for fidelity surfaces."""
 
 from __future__ import annotations
 
@@ -97,6 +97,24 @@ def channel_counts(
         if alpha_delta > tolerance:
             counts["a"] += 1
     return counts
+
+
+def channel_bias(candidate: Image, reference: Image) -> dict[str, float]:
+    """Return mean candidate-minus-reference byte deltas for RGBA.
+
+    Inputs are equally sized validated images. RGB bytes are compared raw,
+    including under transparent pixels, and a missing alpha plane is opaque.
+    """
+    pixels = candidate.width * candidate.height
+    sums = [0, 0, 0, 0]
+    for index in range(pixels):
+        offset = index * 3
+        for channel in range(3):
+            sums[channel] += candidate.rgb[offset + channel] - reference.rgb[offset + channel]
+        sums[3] += (255 if candidate.alpha is None else candidate.alpha[index]) - (
+            255 if reference.alpha is None else reference.alpha[index]
+        )
+    return {name: total / pixels for name, total in zip(("r", "g", "b", "a"), sums)}
 
 
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:

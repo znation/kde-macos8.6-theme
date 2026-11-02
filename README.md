@@ -530,6 +530,12 @@ contributes. Percentiles are diagnostic and do not affect the gate. JSON adds a
 `delta_percentiles` object and text prints the same object as one `delta percentiles:`
 line immediately before the verdict. Percentiles alone omit histogram output;
 both options share one histogram scan.
+Add `--channel-bias` to report the signed mean candidate-minus-reference byte delta for each
+RGBA channel. Positive values mean the candidate trends higher; negative values mean it trends
+lower. Opposite errors can cancel to zero even when pixels differ. This is a raw-byte diagnostic,
+including RGB beneath transparent pixels, with missing alpha treated as opaque; it does not
+composite or describe perceptual color error. JSON adds a `channel_bias` object and text prints
+the same object immediately before the verdict. It is independent of tolerance and verdict.
 `make render` invokes the CLI
 (`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
