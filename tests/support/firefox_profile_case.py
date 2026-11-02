@@ -87,12 +87,54 @@ class FirefoxProfileTestCase(unittest.TestCase):
 
         return flaky_write
 
+    def interrupt_write_to(self, target, *, after_publish=False):
+        """Return a ``write_atomically`` stand-in that interrupts at *target*.
+
+        The stand-in raises ``KeyboardInterrupt`` while handling *target*:
+        before the real writer never rewrites it, or, with ``after_publish``,
+        once the real writer has published the file, so a test can pin what a
+        roll-back sees after a write that took effect. Other paths still
+        reach the real writer. Five callers in
+        ``tests/test_install_firefox.py``; the failure twin is
+        :meth:`fail_write_to`.
+        """
+        real_write = firefox_user_files.write_atomically
+
+        def interrupted_write(path, writer):
+            if Path(path) == target:
+                if after_publish:
+                    real_write(path, writer)
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        return interrupted_write
+
+    def interrupt_unlink_to(self, target):
+        """Return a ``Path.unlink`` stand-in that removes *target*, then raises.
+
+        The stand-in unlinks *target* really and raises ``KeyboardInterrupt``
+        on the way back, so a test pins what survives a removal whose unlink
+        took effect before the caller recorded it. Other paths still unlink
+        really. Two callers in ``tests/test_install_firefox.py``; the
+        failure twin is :meth:`fail_unlink_to`.
+        """
+        real_unlink = Path.unlink
+
+        def interrupted_unlink(path, *args, **kwargs):
+            if Path(path) == target:
+                real_unlink(path, *args, **kwargs)
+                raise KeyboardInterrupt
+            return real_unlink(path, *args, **kwargs)
+
+        return interrupted_unlink
+
     def fail_unlink_to(self, target):
         """Return a ``Path.unlink`` stand-in that fails on *target*.
 
         Other paths still unlink really, so a test can pin which of the
         profile files a failed removal names and what the others hold.
-        The write-failure twin is :meth:`fail_write_to`.
+        The write-failure twin is :meth:`fail_write_to`; the
+        remove-then-interrupt twin is :meth:`interrupt_unlink_to`.
         """
         real_unlink = Path.unlink
 

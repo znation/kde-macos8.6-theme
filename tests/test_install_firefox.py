@@ -411,15 +411,10 @@ class TestInstall(FirefoxProfileTestCase):
         # swallowed; otherwise Ctrl-C leaves a half-installed profile.
         previous = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
         _write(self.sheet_path(), previous)
-        real_write = firefox_user_files.write_atomically
-
-        def interrupt_the_user_js_write(path, writer):
-            if Path(path) == self.user_js_path():
-                raise KeyboardInterrupt
-            return real_write(path, writer)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", interrupt_the_user_js_write
+            firefox_user_files,
+            "write_atomically",
+            self.interrupt_write_to(self.user_js_path()),
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
@@ -435,16 +430,10 @@ class TestInstall(FirefoxProfileTestCase):
         previous_js = 'user_pref("keep.me", true);\n'
         _write(self.sheet_path(), previous_sheet)
         _write(self.user_js_path(), previous_js)
-        real_write = firefox_user_files.write_atomically
-
-        def interrupt_after_the_user_js_write(path, writer):
-            if Path(path) == self.user_js_path():
-                real_write(path, writer)
-                raise KeyboardInterrupt
-            return real_write(path, writer)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", interrupt_after_the_user_js_write
+            firefox_user_files,
+            "write_atomically",
+            self.interrupt_write_to(self.user_js_path(), after_publish=True),
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
@@ -456,16 +445,10 @@ class TestInstall(FirefoxProfileTestCase):
         # A first install has no previous user.js, so when the write
         # publishes it and then raises, the rollback removes the file it
         # created instead of leaving the preference block behind.
-        real_write = firefox_user_files.write_atomically
-
-        def interrupt_after_the_user_js_write(path, writer):
-            if Path(path) == self.user_js_path():
-                real_write(path, writer)
-                raise KeyboardInterrupt
-            return real_write(path, writer)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", interrupt_after_the_user_js_write
+            firefox_user_files,
+            "write_atomically",
+            self.interrupt_write_to(self.user_js_path(), after_publish=True),
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
@@ -505,16 +488,10 @@ class TestInstall(FirefoxProfileTestCase):
         # caller records any state. A rollback flag set after the write would
         # miss that interrupt and leave the sheet behind; the install must
         # remove the sheet it just published and propagate the interrupt.
-        real_write = firefox_user_files.write_atomically
-
-        def interrupt_after_the_sheet_write(path, writer):
-            if Path(path) == self.sheet_path():
-                real_write(path, writer)
-                raise KeyboardInterrupt
-            return real_write(path, writer)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", interrupt_after_the_sheet_write
+            firefox_user_files,
+            "write_atomically",
+            self.interrupt_write_to(self.sheet_path(), after_publish=True),
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
@@ -581,16 +558,10 @@ class TestInstall(FirefoxProfileTestCase):
         # The content-sheet write can publish its file and then raise before
         # the call returns. The rollback must remove that sheet as well as the
         # already published chrome sheet, and leave no user.js behind.
-        real_write = firefox_user_files.write_atomically
-
-        def interrupt_after_the_content_write(path, writer):
-            if Path(path) == self.content_sheet_path():
-                real_write(path, writer)
-                raise KeyboardInterrupt
-            return real_write(path, writer)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", interrupt_after_the_content_write
+            firefox_user_files,
+            "write_atomically",
+            self.interrupt_write_to(self.content_sheet_path(), after_publish=True),
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
@@ -1140,15 +1111,9 @@ class TestRemove(FirefoxProfileTestCase):
         # user.js back instead of keeping the rewritten one.
         self.install()
         before_js = _read(self.user_js_path())
-        real_unlink = Path.unlink
-
-        def interrupt_after_the_chrome_unlink(path, *args, **kwargs):
-            if Path(path) == self.sheet_path():
-                real_unlink(path, *args, **kwargs)
-                raise KeyboardInterrupt
-            return real_unlink(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "unlink", interrupt_after_the_chrome_unlink):
+        with mock.patch.object(
+            Path, "unlink", self.interrupt_unlink_to(self.sheet_path())
+        ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--remove", "--profile", str(self.profile))
         self.assertFalse(self.sheet_path().exists())
@@ -1233,15 +1198,9 @@ class TestRemove(FirefoxProfileTestCase):
         # rollback keyed on a late flag would leave a preference with no sheet.
         self.install()
         before_js = _read(self.user_js_path())
-        real_unlink = Path.unlink
-
-        def interrupt_after_the_last_sheet_unlink(path, *args, **kwargs):
-            if Path(path) == self.content_sheet_path():
-                real_unlink(path, *args, **kwargs)
-                raise KeyboardInterrupt
-            return real_unlink(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "unlink", interrupt_after_the_last_sheet_unlink):
+        with mock.patch.object(
+            Path, "unlink", self.interrupt_unlink_to(self.content_sheet_path())
+        ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--remove", "--profile", str(self.profile))
         self.assertFalse(self.sheet_path().exists())
