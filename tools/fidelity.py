@@ -5,6 +5,11 @@ comparison metrics from the sibling ``tools/fidelity_metrics.py``: mean
 absolute error, per-channel mean absolute error (R, G, B, A), RMSE, the worst
 per-channel delta and where it occurs, and the fraction of differing pixels.
 
+This entry point owns orchestration only: argument handling, the reads and
+comparison, and the exit-status selection. The report's data assembly and
+JSON/text rendering live in the sibling ``tools/fidelity_reports.py``, and
+the metrics themselves in ``tools/fidelity_metrics.py``.
+
 Only PNG is read, so the harness crops a reference screenshot to a surface and
 saves it as PNG before comparing. The Plasma render step that produces the
 candidate image is outside this tool; ``tools/render_surface.py`` does it.
@@ -25,9 +30,7 @@ read error.
 from __future__ import annotations
 
 import sys
-import json
 import argparse
-from dataclasses import asdict
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
@@ -39,22 +42,34 @@ if __package__:
         compare,
         crop,
     )
-    from tools.png import pixel_at
     from tools.fidelity_pixels import worst_pixels, channel_counts
+    from tools.fidelity_reports import (
+        budget_verdict,
+        explain_worst_pixel,
+        locate_worst_pixels,
+        report_data,
+        render_json,
+        render_text,
+    )
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
-    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import EscapingArgumentParser
     from fidelity_arguments import parse_crop, max_mae, max_frac, tolerance
     from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
-    from png import pixel_at
     from fidelity_pixels import worst_pixels, channel_counts
+    from fidelity_reports import (
+        budget_verdict,
+        explain_worst_pixel,
+        locate_worst_pixels,
+        report_data,
+        render_json,
+        render_text,
+    )
     from png import PngError, read_png
     from repo_root import ROOT
-    from terminal import escape_controls
 
 
 def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
@@ -86,27 +101,6 @@ def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
         # diagnostic names the file's real height rather than the bound's.
         return read_png(path, alpha=True)
     return image
-
-
-def _explain_worst_pixel(candidate, reference, metrics, candidate_crop, reference_crop):
-    """Return source colors and coordinates for the comparator's worst pixel."""
-    x, y = metrics.max_x, metrics.max_y
-    candidate_rgb = pixel_at(candidate, x, y)
-    reference_rgb = pixel_at(reference, x, y)
-    candidate_alpha = candidate.alpha[y * candidate.width + x] if candidate.alpha is not None else 255
-    reference_alpha = reference.alpha[y * reference.width + x] if reference.alpha is not None else 255
-    candidate_rgba = [*candidate_rgb, candidate_alpha]
-    reference_rgba = [*reference_rgb, reference_alpha]
-    candidate_origin = (candidate_crop[0], candidate_crop[1]) if candidate_crop else (0, 0)
-    reference_origin = (reference_crop[0], reference_crop[1]) if reference_crop else (0, 0)
-    return {
-        "position": [x, y],
-        "candidate_position": [x + candidate_origin[0], y + candidate_origin[1]],
-        "reference_position": [x + reference_origin[0], y + reference_origin[1]],
-        "candidate_rgba": candidate_rgba,
-        "reference_rgba": reference_rgba,
-        "absolute_delta": [abs(a - b) for a, b in zip(candidate_rgba, reference_rgba)],
-    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -194,141 +188,30 @@ def main(argv: list[str] | None = None) -> int:
         metrics = compare(candidate, reference, tolerance=args.tolerance)
         worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels)
                  if args.worst_pixels is not None else None)
+        # The optional records' source positions are report data, so they are
+        # translated beside the rendering, not next to the scan.
         if worst is not None:
-            candidate_origin = args.candidate_crop[:2] if args.candidate_crop else (0, 0)
-            reference_origin = args.crop[:2] if args.crop else (0, 0)
-            for pixel in worst:
-                pixel["candidate_position"] = [pixel["x"] + candidate_origin[0],
-                                                pixel["y"] + candidate_origin[1]]
-                pixel["reference_position"] = [pixel["x"] + reference_origin[0],
-                                                pixel["y"] + reference_origin[1]]
+            worst = locate_worst_pixels(worst, args.candidate_crop, args.crop)
         # The per-channel count scan only runs when it was asked for: it adds
         # a whole-image pass, so the default output must not pay for it.
         channels = (channel_counts(candidate, reference, args.tolerance)
                     if args.channel_counts else None)
-        explanation = (_explain_worst_pixel(candidate, reference, metrics,
+        explanation = (explain_worst_pixel(candidate, reference, metrics,
                                              args.candidate_crop, args.crop)
                        if args.explain_worst else None)
     except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
-    def source_bounds(crop_rect):
-        if metrics.difference_bounds is None:
-            return None
-        x, y, width, height = metrics.difference_bounds
-        origin_x, origin_y = crop_rect[:2] if crop_rect else (0, 0)
-        return [x + origin_x, y + origin_y, width, height]
-
-    candidate_bounds = source_bounds(args.candidate_crop)
-    reference_bounds = source_bounds(args.crop)
-
-    # Every threshold the caller set is a budget that must be met. With no
-    # budget set the verdict falls back to the strictest one: no pixel
-    # differing by more than --tolerance. --max-mae and --max-frac therefore
-    # replace the default gate rather than silently defaulting to zero, which
-    # would require byte-exactness no matter what --tolerance says.
-    budgets = []
-    if args.max_mae is not None:
-        budgets.append(metrics.mae <= args.max_mae)
-    if args.max_frac is not None:
-        budgets.append(metrics.frac_differing <= args.max_frac)
-    ok = all(budgets) if budgets else metrics.frac_differing <= 0.0
+    ok = budget_verdict(metrics, args.max_mae, args.max_frac)
+    result = report_data(args.candidate, args.reference, args.candidate_crop,
+                         args.crop, args.tolerance, args.max_mae, args.max_frac,
+                         metrics, worst=worst, channels=channels,
+                         explanation=explanation, passed=ok)
     if args.json:
-        result = {
-            "candidate": args.candidate,
-            "reference": args.reference,
-            "candidate_crop": args.candidate_crop,
-            "reference_crop": args.crop,
-            "thresholds": {"tolerance": args.tolerance, "max_mae": args.max_mae, "max_frac": args.max_frac},
-            "metrics": asdict(metrics),
-            "candidate_difference_bounds": candidate_bounds,
-            "reference_difference_bounds": reference_bounds,
-            "passed": ok,
-        }
-        if channels is not None:
-            result["channel_counts"] = channels
-        if worst is not None:
-            result["worst_pixels"] = worst
-        if explanation is not None:
-            result["worst_pixel"] = explanation
-        print(json.dumps(result, ensure_ascii=True))
+        print(render_json(result))
         return 0 if ok else 1
-    print(
-        f"candidate: {escape_controls(args.candidate)}  "
-        f"{candidate.width}x{candidate.height}"
-    )
-    print(
-        f"reference: {escape_controls(args.reference)}  "
-        f"{reference.width}x{reference.height}"
-    )
-    if args.candidate_crop is not None:
-        # The candidate line names the cropped size but not the rectangle it
-        # came from, so a transcript could not be replayed without the
-        # original --candidate-crop argument. Echo it; the fields are plain
-        # ints from parse_crop, so no escaping is needed.
-        x, y, width, height = args.candidate_crop
-        print(f"candidate crop: {x},{y},{width},{height}")
-    if args.crop is not None:
-        # The reference line names the cropped size but not the rectangle it
-        # came from, so a transcript could not be replayed without the
-        # original --crop argument. Echo it; the fields are plain ints from
-        # parse_crop, so no escaping is needed.
-        x, y, width, height = args.crop
-        print(f"reference crop: {x},{y},{width},{height}")
-    print(f"pixels compared: {metrics.pixels}")
-    print(f"mean absolute error: {metrics.mae:.4f}")
-    if metrics.mae_a is None:
-        print(
-            f"per-channel MAE (R, G, B): {metrics.mae_r:.4f} "
-            f"{metrics.mae_g:.4f} {metrics.mae_b:.4f}"
-        )
-    else:
-        print(
-            f"per-channel MAE (R, G, B, A): {metrics.mae_r:.4f} "
-            f"{metrics.mae_g:.4f} {metrics.mae_b:.4f} "
-            f"{metrics.mae_a:.4f}"
-        )
-    print(f"RMSE: {metrics.rmse:.4f}")
-    print(
-        f"max channel delta: {metrics.max_delta} "
-        f"at ({metrics.max_x}, {metrics.max_y})"
-    )
-    print(
-        f"differing pixels: {metrics.differing} / {metrics.pixels} "
-        f"({metrics.frac_differing:.6f})"
-    )
-    if metrics.difference_bounds is None:
-        print("difference bounds: none")
-    else:
-        print("difference bounds: " + ",".join(map(str, metrics.difference_bounds)))
-    for name, bounds in (("candidate", candidate_bounds), ("reference", reference_bounds)):
-        print(f"{name} difference bounds: " + ("none" if bounds is None else ",".join(map(str, bounds))))
-    if worst is not None:
-        print(f"worst pixels: {len(worst)}")
-        for pixel in worst:
-            print(
-                f"pixel ({pixel['x']}, {pixel['y']}): "
-                f"candidate={','.join(map(str, pixel['candidate_rgba']))} "
-                f"reference={','.join(map(str, pixel['reference_rgba']))} "
-                f"max_delta={pixel['max_delta']} "
-                f"candidate_position={','.join(map(str, pixel['candidate_position']))} "
-                f"reference_position={','.join(map(str, pixel['reference_position']))}"
-            )
-    if explanation is not None:
-        print("worst pixel: " + json.dumps(explanation, ensure_ascii=True))
-    if channels is not None:
-        # Plain ints from the count scan, so no escaping is needed.
-        print(
-            f"channel differing pixels (R, G, B, A): {channels['r']} "
-            f"{channels['g']} {channels['b']} {channels['a']}"
-        )
-    verdict = "PASS" if ok else "FAIL"
-    mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
-    fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"
-    print(
-        f"{verdict}: max-mae={mae_budget} max-frac={fraction_budget} "
-        f"tolerance={args.tolerance}"
-    )
+    for line in render_text(result, candidate, reference):
+        print(line)
     return 0 if ok else 1
 
 

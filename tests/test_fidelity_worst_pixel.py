@@ -10,7 +10,7 @@ import unittest
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image  # noqa: E402
-from tools.fidelity import _explain_worst_pixel
+from tools.fidelity_reports import explain_worst_pixel
 from tools.fidelity_metrics import Image, compare  # noqa: E402
 
 
@@ -31,12 +31,12 @@ class TestWorstPixel(FidelityCliTestCase):
     def test_alpha_only_and_equal_images(self):
         candidate = Image(2, 1, bytes(6), bytes([200, 200]))
         reference = Image(2, 1, bytes(6), bytes([255, 255]))
-        explained = _explain_worst_pixel(candidate, reference, compare(candidate, reference), None, None)
+        explained = explain_worst_pixel(candidate, reference, compare(candidate, reference), None, None)
         self.assertEqual(explained["candidate_rgba"], [0, 0, 0, 200])
         self.assertEqual(explained["reference_rgba"], [0, 0, 0, 255])
         self.assertEqual(explained["absolute_delta"], [0, 0, 0, 55])
         same = Image(1, 1, bytes([1, 2, 3]))
-        self.assertEqual(_explain_worst_pixel(same, same, compare(same, same), None, None)["position"], [0, 0])
+        self.assertEqual(explain_worst_pixel(same, same, compare(same, same), None, None)["position"], [0, 0])
 
     def test_text_json_pass_and_unrequested_output(self):
         _, candidate = rgb_image(1, 1, lambda x, y: (3, 0, 0))
