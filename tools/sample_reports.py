@@ -83,11 +83,12 @@ def report(args, image, width: int, height: int, header: str) -> None:
 
     if args.find_color is not None:
         target = args.find_color
+        tolerance = args.color_tolerance if args.color_tolerance is not None else 0
         count = 0
         min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
         for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
             x, y = args.x + index % args.width, args.y + index // args.width
-            if rgb == target:
+            if max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance:
                 count += 1
                 min_x, min_y = min(min_x, x), min(min_y, y)
                 max_x, max_y = max(max_x, x), max(max_y, y)
@@ -97,11 +98,14 @@ def report(args, image, width: int, height: int, header: str) -> None:
         if args.json:
             print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "match": {"rgb": list(target), "hex": color_hex,
-                "count": count, "bounds": bounds}}, ensure_ascii=True))
+                "count": count, "bounds": bounds,
+                **({"tolerance": tolerance} if args.color_tolerance is not None else {})}}, ensure_ascii=True))
             return
         print(header)
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
         print(f"color: {color_hex}")
+        if args.color_tolerance is not None:
+            print(f"tolerance: {tolerance}")
         print(f"count: {count}")
         print("bounds: none" if bounds is None else
               f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")

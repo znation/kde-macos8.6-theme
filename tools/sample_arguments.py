@@ -21,6 +21,14 @@ def rgb_argument(value: str) -> tuple[int, int, int]:
     return tuple(int(digits[i:i + 2], 16) for i in (0, 2, 4))
 
 
+def color_tolerance(value: str) -> int:
+    """Parse a plain ASCII RGB channel tolerance from 0 through 255."""
+    parsed = plain_number(value, "--color-tolerance", "integer", "an", int)
+    if not 0 <= parsed <= 255:
+        raise argparse.ArgumentTypeError("--color-tolerance must be between 0 and 255")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = EscapingArgumentParser(
         prog="sample",
@@ -34,8 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--height", type=positive_int("--height"), default=1, metavar="H", help="pixels to sample below y (default 1)")
     parser.add_argument("--json", action="store_true", help="print structured JSON")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
+    parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors in the sampled region")
     modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors along one row or column")
-    modes.add_argument("--find-color", type=rgb_argument, metavar="RRGGBB", help="locate an exact RGB color in the sampled region")
+    modes.add_argument("--find-color", type=rgb_argument, metavar="RRGGBB", help="locate an RGB color in the sampled region")
     return parser

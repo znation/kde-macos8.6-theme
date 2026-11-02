@@ -29,6 +29,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.top_colors is not None and not args.histogram:
         return report_error("sample", "--top-colors requires --histogram")
+    if args.color_tolerance is not None and args.find_color is None:
+        return report_error("sample", "--color-tolerance requires --find-color")
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
 

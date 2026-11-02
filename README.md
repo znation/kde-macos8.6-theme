@@ -438,6 +438,12 @@ and `bounds` (`null` when absent):
 python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 0 0 --width 240 --height 180 --find-color '#63639C' --json
 ```
 
+Add `--color-tolerance N` to include pixels whose red, green and blue channel
+differences are each at most N (0–255). This helps locate colors affected by
+rendering or capture variation; alpha is ignored. The option requires
+`--find-color`. When supplied, including as `--color-tolerance 0`, its value
+appears in the text and JSON match report; omitting it preserves exact-match output.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 With `--height 1` (the default), traversal is horizontal; otherwise use
 `--width 1` for a vertical scan. A two-dimensional region is rejected. Add

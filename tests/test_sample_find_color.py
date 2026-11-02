@@ -56,6 +56,52 @@ class TestSampleFindColor(CliTestCase):
         self._assert_success(result)
         self.assertEqual(json.loads(result.stdout)["match"]["count"], 2)
 
+    def test_tolerance_threshold_channel_boundary_and_absolute_bounds(self):
+        pixels = [(255, 0, 0), (10, 20, 30), (13, 20, 30), (12, 18, 32), (10, 23, 30), (255, 0, 0)]
+        _, data = rgb_image(6, 1, lambda x, y: pixels[x])
+        path = self._write(self._tmp_dir(), "tolerance.png", data)
+        result = self._run(path, "1", "0", "--width", "4", "--find-color", "0a141e",
+                           "--color-tolerance", "2", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["match"], {
+            "rgb": [10, 20, 30], "hex": "#0A141E", "count": 2,
+            "bounds": {"x": 1, "y": 0, "width": 3, "height": 1}, "tolerance": 2,
+        })
+        full = self._run(path, "0", "0", "--width", "6", "--find-color", "0a141e",
+                         "--color-tolerance", "2", "--json")
+        self._assert_success(full)
+        self.assertEqual(json.loads(full.stdout)["match"]["count"], 2)
+        maximum = self._run(path, "5", "0", "--find-color", "0a141e", "--color-tolerance", "255", "--json")
+        self._assert_success(maximum)
+        self.assertEqual(json.loads(maximum.stdout)["match"]["count"], 1)
+
+    def test_explicit_zero_schema_text_and_invalid_tolerance(self):
+        path = self._image()
+        omitted = self._run(path, "0", "0", "--find-color", "010203", "--json")
+        zero = self._run(path, "0", "0", "--find-color", "010203", "--color-tolerance", "0", "--json")
+        self._assert_success(omitted)
+        self._assert_success(zero)
+        self.assertNotIn("tolerance", json.loads(omitted.stdout)["match"])
+        self.assertEqual(json.loads(zero.stdout)["match"]["tolerance"], 0)
+        text = self._run(path, "0", "0", "--find-color", "010203", "--color-tolerance", "0")
+        self._assert_success(text)
+        self.assertIn("tolerance: 0", text.stdout)
+        self.assertEqual(next(line for line in text.stdout.splitlines() if line.startswith("count:")),
+                         f"count: {json.loads(zero.stdout)['match']['count']}")
+        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
+            unused = self._run(path, "0", "0", "--color-tolerance", "0")
+        self._assert_usage_error(unused, "requires --find-color")
+        for invalid in ("-1", "256", "1.5", "١", "1_0", ""):
+            bad = self._run(path, "0", "0", "--find-color", "010203", "--color-tolerance", invalid)
+            self._assert_usage_error(bad)
+            self.assertEqual(bad.stdout, "")
+
+    def test_direct_script_tolerance(self):
+        path = self._image()
+        result = self._run_script(path, "0", "0", "--find-color", "010203", "--color-tolerance", "255", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["match"]["tolerance"], 255)
+
     def test_invalid_modes_bounds_decoder_and_path_safety(self):
         path = self._image()
         with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:

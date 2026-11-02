@@ -7,14 +7,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
-### Reference-pixel sampler: locate colors within an explicit RGB tolerance (planned 2026-11-02 by the plan role)
-
-**Goal and grounding.** Locate near-matching rendered colors without manually inspecting a pixel dump. `tools/sample_arguments.py::build_parser` exposes exact `--find-color`; `tools/sample_reports.py::report` tests `rgb == target`. The finished color-location plan specifies exact matching. Searches for color-tolerance, near-color and fuzzy matching in sampler source/tests and the plan files found no such option. This is independent of the queued fidelity delta histogram and is one bounded extension of the existing search mode.
-
-**Approach and files.** Add optional `--color-tolerance N` in `tools/sample_arguments.py::build_parser`, accepting plain ASCII integers from 0 through 255 using the existing numeric-validation conventions. In `tools/sample.py::main`, reject its explicit use without `--find-color` before image reads, including an explicit zero. In the find-color branch of `tools/sample_reports.py::report`, include a pixel when the maximum absolute RGB channel difference from the target is at most N; ignore alpha as the exact search does. An omitted option uses zero and retains the existing output. When explicitly supplied, add integer `tolerance` inside JSON's `match` object and a `tolerance: N` text line after `color:`. Keep the existing target RGB/hex, count and absolute enclosing-bounds semantics. Extend `tests/test_sample_find_color.py::TestSampleFindColor`, document the option and its diagnostic purpose in README.md, and amend the exact-match tooling row in `docs/invariants.md` to distinguish default exact search from explicit tolerance. These six files bound the run; no new dependency, decoder change or theme value is needed.
-
-**Acceptance criteria.** Fixtures independently enumerate expected matches for zero, an intermediate tolerance and 255; cover equality at the threshold, exclusion one above it, a pixel excluded because just one channel exceeds it, and disconnected matches with nonzero crop origins. Check text/JSON agreement, absolute bounds, no-match null bounds, alpha independence and exclusion of pixels outside the region. Explicit zero has exact-search counts plus the tolerance field; omission retains the existing schema and text. Reject negative, over-255, fractional, non-ASCII and malformed values and use without find-color with status 2 and empty stdout before image reads. Retain bounded decoding and existing read/containment errors; exercise the direct script entry point. Update the invariant with the new test anchors and run `make check` after the final edit.
-
 ## Done
 
 ### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)
