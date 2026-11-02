@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from heapq import nsmallest
 
 
 def _hex(rgb: tuple[int, int, int]) -> str:
@@ -51,11 +52,16 @@ def report(args, image, width: int, height: int, header: str) -> None:
 
     if args.histogram:
         counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
-        colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
         if args.top_colors is not None:
-            total_colors = len(colors)
-            colors = colors[:args.top_colors]
+            total_colors = len(counts)
+            colors = nsmallest(
+                args.top_colors,
+                counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )
             omitted_pixels = args.width * args.height - sum(count for _, count in colors)
+        else:
+            colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
         if args.json:
             result = {"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "colors": [
