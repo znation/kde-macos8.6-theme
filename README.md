@@ -455,6 +455,12 @@ differences are each at most N (0–255). This helps locate colors affected by
 rendering or capture variation; alpha is ignored. The option requires
 `--find-color`. When supplied, including as `--color-tolerance 0`, its value
 appears in the text and JSON match report; omitting it preserves exact-match output.
+Add `--match-alpha N` (0–255) to require an exact PNG alpha value as well as the RGB
+predicate. It requires `--find-color`, preserves RGB bytes beneath transparency, and
+uses alpha 255 for images without transparency. JSON adds `alpha` to `match`; text
+prints `alpha: N` after the optional tolerance. RGB tolerance never relaxes this alpha
+match. This option filters matches and can be combined with `--color-tolerance`, but
+not with `--alpha`.
 
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries

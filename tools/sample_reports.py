@@ -114,10 +114,12 @@ def report(args, image, width: int, height: int, header: str) -> None:
         tolerance = args.color_tolerance if args.color_tolerance is not None else 0
         count = 0
         min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
+        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
         for x, y, rgb in _positioned_region_pixels(
             image, args.x, args.y, args.width, args.height
         ):
-            if max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance:
+            alpha_matches = alphas is None or next(alphas) == args.match_alpha
+            if alpha_matches and max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance:
                 count += 1
                 min_x, min_y = min(min_x, x), min(min_y, y)
                 max_x, max_y = max(max_x, x), max(max_y, y)
@@ -128,13 +130,16 @@ def report(args, image, width: int, height: int, header: str) -> None:
             print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "match": {"rgb": list(target), "hex": color_hex,
                 "count": count, "bounds": bounds,
-                **({"tolerance": tolerance} if args.color_tolerance is not None else {})}}, ensure_ascii=True))
+                **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
+                **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}}, ensure_ascii=True))
             return
         print(header)
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
         print(f"color: {color_hex}")
         if args.color_tolerance is not None:
             print(f"tolerance: {tolerance}")
+        if args.match_alpha is not None:
+            print(f"alpha: {args.match_alpha}")
         print(f"count: {count}")
         print("bounds: none" if bounds is None else
               f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")

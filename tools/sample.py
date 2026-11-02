@@ -31,6 +31,8 @@ def main(argv: list[str] | None = None) -> int:
         return report_error("sample", "--top-colors requires --histogram")
     if args.color_tolerance is not None and args.find_color is None:
         return report_error("sample", "--color-tolerance requires --find-color")
+    if args.match_alpha is not None and args.find_color is None:
+        return report_error("sample", "--match-alpha requires --find-color")
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
     if args.alpha and args.find_color is not None:
@@ -65,7 +67,8 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     try:
-        image = read_png(args.image, max_rows=args.y + args.height, **({"alpha": True} if args.alpha else {}))
+        image = read_png(args.image, max_rows=args.y + args.height,
+                         **({"alpha": True} if args.alpha or args.match_alpha is not None else {}))
     except PngError as exc:
         return report_error("sample", str(exc))
     header = f"image: {escape_controls(args.image)}  {width}x{height}"
