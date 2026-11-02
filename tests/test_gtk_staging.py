@@ -116,6 +116,26 @@ class TestStageAll(StagingCase):
         self.assertFalse(good.exists())
         self.assertTrue(blocked.is_dir())
 
+    def test_reports_when_failed_staging_cannot_be_discarded(self):
+        good = self.root / "gtk-3.0" / "settings.ini"
+        blocked = self.root / "gtk-4.0" / "settings.ini"
+        blocked.mkdir(parents=True)
+        staging = self.staging_of(good)
+        real_unlink = Path.unlink
+
+        def fail_staging_unlink(path, *args, **kwargs):
+            if path == staging:
+                raise OSError("injected cleanup failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_staging_unlink):
+            with self.assertRaises(ConfigError) as caught:
+                stage_all([(good, "new\\n"), (blocked, "new\\n")])
+
+        self.assertIn(f"cannot write {blocked}", str(caught.exception))
+        self.assertIn(f"cannot remove staging file {staging}", str(caught.exception))
+        self.assertTrue(staging.exists())
+
     def test_an_empty_write_list_stages_nothing(self):
         self.assertEqual([], stage_all([]))
 
