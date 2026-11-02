@@ -210,13 +210,24 @@ def _cursor_theme_setting(config_home: Path) -> str | None:
         stripped = line.strip()
         if not stripped or stripped.startswith(("#", ";")):
             continue
-        if stripped.startswith("[") and stripped.endswith("]"):
-            section = stripped[1:-1].strip()
-        elif section == "Mouse" and "=" in stripped:
-            key, _, setting = stripped.partition("=")
-            if key.strip() == "cursorTheme":
-                value = setting.strip()
+        section, setting = _cursor_theme_line(stripped, section)
+        if setting is not None:
+            value = setting
     return value
+
+
+def _cursor_theme_line(
+    line: str, section: str | None
+) -> tuple[str | None, str | None]:
+    """Return the updated section and any cursor-theme value on *line*."""
+    if line.startswith("[") and line.endswith("]"):
+        return line[1:-1].strip(), None
+    if section != "Mouse" or "=" not in line:
+        return section, None
+    key, _, setting = line.partition("=")
+    if key.strip() != "cursorTheme":
+        return section, None
+    return section, setting.strip()
 
 
 def _remove(home: Path, data_home: Path, config_home: Path) -> int:
