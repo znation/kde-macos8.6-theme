@@ -9,10 +9,22 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from tools import fidelity
+from tools import fidelity_arguments
 from tools.fidelity_cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):
+    def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
+        self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
+        for value, diagnostic in (
+            ("1,,3,4", "crop field 2 is empty"),
+            ("1,2,3,", "crop field 4 is empty"),
+        ):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError, diagnostic
+            ):
+                fidelity_arguments.parse_crop(value)
+
     def test_help_text_is_stable(self):
         help_text = build_parser().format_help()
         self.assertIn("usage: fidelity [-h] [--json] [--worst-pixels N]", help_text)
