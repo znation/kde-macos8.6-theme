@@ -5,9 +5,11 @@ apply-gtk`` does the same for only the GTK theme files.
 It sets ``gtk-theme-name=org.macos8.desktop`` in the GTK 3 and GTK 4
 ``settings.ini`` files and writes a ``gtk-4.0/gtk.css`` user stylesheet that
 imports the installed GTK 4 sheet, because libadwaita applications read user
-CSS instead of the ``gtk-theme-name`` setting. ``make remove-gtk`` runs the
+CSS instead of the ``gtk-theme-name`` setting. A ``gtk.css`` that is not ours
+is copied byte-for-byte to an unused ``gtk.css.bak`` sibling before it is
+replaced; an existing backup is never overwritten. ``make remove-gtk`` runs the
 same script with ``--remove``: it deletes only our ``gtk-theme-name`` lines and
-the marker user stylesheet, leaving foreign values and files alone. An apply
+the marker user stylesheet, leaving foreign values, files and backups alone. An apply
 and a removal serialize on a lock over the directory containing the config
 home, so two concurrent runs cannot publish a stale edit over the other's
 result. An apply also holds the data-home lock that ``make install`` and

@@ -129,7 +129,7 @@ class TestApply(ApplyGtkTestCase):
             f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
             css.read_text(encoding="utf-8"),
         )
-        self.assertNotIn("not our user CSS", result.stdout)
+        self.assertFalse(css.with_name("gtk.css.bak").exists())
 
     def test_a_bom_before_our_marker_keeps_the_user_css_ours(self):
         # A UTF-8 BOM is valid in a CSS file and some editors add one. It must
@@ -145,17 +145,55 @@ class TestApply(ApplyGtkTestCase):
             f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
             css.read_text(encoding="utf-8"),
         )
-        self.assertNotIn("not our user CSS", result.stdout)
+        self.assertFalse(css.with_name("gtk.css.bak").exists())
 
-    def test_foreign_user_css_is_left_byte_identical_with_a_note(self):
+    def test_foreign_user_css_is_backed_up_then_replaced(self):
         self.install_sheet()
         css = self.config / "gtk-4.0" / "gtk.css"
         foreign = "/* my own user css */\n@import url(\"file:///tmp/other.css\");\n"
         self.write(css, foreign)
+
         result = self.run_tool()
+
         assert_succeeded(self, result)
-        self.assertEqual(foreign, css.read_text(encoding="utf-8"))
-        self.assertIn("gtk.css", result.stdout)
+        backup = css.with_name("gtk.css.bak")
+        self.assertEqual(foreign, backup.read_text(encoding="utf-8"))
+        self.assertEqual(
+            f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
+            css.read_text(encoding="utf-8"),
+        )
+        self.assertIn(f"backed up {css} to {backup}", result.stdout)
+
+    def test_a_foreign_user_css_never_overwrites_an_existing_backup(self):
+        self.install_sheet()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        first = self.config / "gtk-4.0" / "gtk.css.bak"
+        self.write(first, "an older backup\n")
+        foreign = "/* my own user css */\n"
+        self.write(css, foreign)
+
+        result = self.run_tool()
+
+        assert_succeeded(self, result)
+        self.assertEqual("an older backup\n", first.read_text(encoding="utf-8"))
+        second = css.with_name("gtk.css.bak.1")
+        self.assertEqual(foreign, second.read_text(encoding="utf-8"))
+        self.assertIn(f"backed up {css} to {second}", result.stdout)
+
+    def test_a_second_apply_does_not_back_up_our_own_user_css(self):
+        self.install_sheet()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, "/* foreign */\n")
+        assert_succeeded(self, self.run_tool())
+        backups = sorted(css.parent.glob("gtk.css.bak*"))
+        self.assertEqual([css.with_name("gtk.css.bak")], backups)
+
+        assert_succeeded(self, self.run_tool())
+
+        self.assertEqual(
+            [css.with_name("gtk.css.bak")],
+            sorted(css.parent.glob("gtk.css.bak*")),
+        )
 
 
 class TestRemove(ApplyGtkTestCase):

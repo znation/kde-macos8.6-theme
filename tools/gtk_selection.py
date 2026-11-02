@@ -2,8 +2,8 @@
 
 Home resolution, lock ordering and CLI diagnostics belong to
 ``tools/apply_gtk.py``. This module owns the config-file workflow once those
-paths and locks are established: checking installed sheets, preserving
-foreign content, and publishing or removing the selection.
+paths and locks are established: checking installed sheets, backing up
+foreign user content, and publishing or removing the selection.
 """
 
 from __future__ import annotations
@@ -14,12 +14,13 @@ from pathlib import Path
 if __package__:
     from tools.diagnostics import report_failure
     from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from tools.gtk_staging import commit, stage_all
+    from tools.gtk_staging import commit, discard, stage_all
     from tools.gtk_user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,
         settings_path,
+        user_css_backup,
         user_css_remove,
         user_css_write,
     )
@@ -27,12 +28,13 @@ if __package__:
 else:  # imported from a directly run tool
     from diagnostics import report_failure
     from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from gtk_staging import commit, stage_all
+    from gtk_staging import commit, discard, stage_all
     from gtk_user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,
         settings_path,
+        user_css_backup,
         user_css_remove,
         user_css_write,
     )
@@ -89,9 +91,11 @@ def apply(
         updated = set_theme_name(original, GTK_ID)
         if updated != original:
             writes.append((path, updated))
-    css = user_css_write(config_home, sheet, note)
+    css = user_css_write(config_home, sheet)
+    css_backup = None
     if css is not None:
-        writes.append(css)
+        css_path, css_text, css_backup = css
+        writes.append((css_path, css_text))
     # A symlinked config path is the user's link, not ours: refuse it before
     # staging any write instead of replacing the link with a regular file.
     for path, _text in writes:
@@ -107,7 +111,20 @@ def apply(
             )
     # Stage every write before replacing anything: an unwritable settings
     # file or user CSS leaves all of them unmodified.
-    commit(stage_all(writes))
+    staged = stage_all(writes)
+    # A foreign user CSS is preserved beside itself before the commit
+    # replaces it. The copy is made after staging, so a settings file that
+    # cannot be staged leaves no backup behind, and after the symlink checks,
+    # so a refused link is never copied.
+    if css_backup is not None:
+        try:
+            backup = user_css_backup(css_backup)
+        except ConfigError:
+            for _path, staging in staged:
+                discard(staging)
+            raise
+        note(f"backed up {css_backup} to {backup} before replacing it")
+    commit(staged)
     return 0
 
 

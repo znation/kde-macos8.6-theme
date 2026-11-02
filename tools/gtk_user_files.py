@@ -6,7 +6,8 @@ The GTK selection touches three files under the user's config home:
 user stylesheet that imports the installed GTK 4 sheet. This module holds
 where those files live, the bounded non-blocking read they share, and the
 marker policy for the user stylesheet: an empty file is adopted, our
-marker-led file is rewritten, and a foreign file is left untouched.
+marker-led file is rewritten, and a foreign file is copied to an unused
+``.bak`` sibling before it is replaced.
 
 :class:`ConfigError` is the GTK selection's refusal type: every read and
 write below raises it, and so do the staging and workflow modules, so
@@ -22,7 +23,6 @@ from __future__ import annotations
 import errno
 import os
 import stat
-from collections.abc import Callable
 from pathlib import Path
 
 
@@ -42,6 +42,13 @@ MAX_CONFIG_FILE_BYTES = 1 << 20
 
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
 _BOM = "\ufeff"
+
+# A foreign stylesheet is copied beside itself under this suffix before it is
+# replaced. The plain name is tried first; an existing backup is never
+# overwritten, so later suffixes (``gtk.css.bak.1`` and up) keep every copy
+# the user already has.
+USER_CSS_BACKUP_SUFFIX = ".bak"
+_BACKUP_NAME_ATTEMPTS = 100
 
 
 def _is_our_user_css(text: str) -> bool:
@@ -116,25 +123,92 @@ def user_css_path(config_home: Path) -> Path:
     return config_home / "gtk-4.0" / "gtk.css"
 
 
-def user_css_write(
-    config_home: Path, sheet: Path, note: Callable[[str], None]
-) -> tuple[Path, str] | None:
-    """Return the ``(path, text)`` user-CSS write, or None to leave it alone.
+def _discard_backup(path: Path) -> None:
+    """Remove a partial backup, ignoring a removal that fails."""
+    try:
+        path.unlink()
+    except OSError:
+        pass
 
-    A foreign ``gtk.css`` is read and left untouched, and *note* reports that
-    decision through the calling tool's own note channel. An empty file has
-    no foreign content to preserve, so it is adopted (filled with our marker
-    and import) instead of being mistaken for a foreign sheet. The read
+
+def _close_quietly(descriptor: int) -> None:
+    """Close *descriptor*, ignoring a close that fails."""
+    try:
+        os.close(descriptor)
+    except OSError:
+        pass
+
+
+def user_css_backup(path: Path) -> Path:
+    """Copy the user stylesheet at *path* to an unused ``.bak`` sibling.
+
+    The copy is byte-for-byte (the text read is decoded as UTF-8 and encoded
+    back, which round-trips a BOM and every line ending), so the backup is
+    exactly what the apply replaced. The sibling is created exclusively at
+    its final name, so a backup the user already keeps is never replaced; the
+    next free ``.bak.N`` name is used instead. A failed copy removes the
+    partial file and leaves *path* untouched.
+
+    This is a copy, not a hard link: editing the live stylesheet afterwards
+    must not change the backup.
+    """
+    text = read_config_text(path)
+    if text is None:
+        raise ConfigError(f"cannot back up {path}: it disappeared before the copy")
+    data = text.encode("utf-8")
+    for index in range(_BACKUP_NAME_ATTEMPTS):
+        suffix = "" if index == 0 else f".{index}"
+        backup = path.with_name(f"{path.name}{USER_CSS_BACKUP_SUFFIX}{suffix}")
+        try:
+            descriptor = os.open(
+                backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666
+            )
+        except FileExistsError:
+            continue
+        except OSError as exc:
+            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+        try:
+            destination = os.fdopen(descriptor, "wb")
+        except OSError as exc:
+            _close_quietly(descriptor)
+            _discard_backup(backup)
+            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+        except BaseException:
+            _close_quietly(descriptor)
+            _discard_backup(backup)
+            raise
+        try:
+            with destination:
+                destination.write(data)
+        except OSError as exc:
+            _discard_backup(backup)
+            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+        except BaseException:
+            _discard_backup(backup)
+            raise
+        return backup
+    raise ConfigError(f"cannot find an unused backup name for {path}")
+
+
+def user_css_write(
+    config_home: Path, sheet: Path
+) -> tuple[Path, str, Path | None] | None:
+    """Return the ``(path, text, backup)`` user-CSS write, or None.
+
+    A foreign ``gtk.css`` is replaced after it is copied, so *backup* names
+    the file :func:`user_css_backup` must copy first; the caller does that
+    after its symlink checks, so a refused link is never copied. An empty
+    file has no foreign content to preserve, so it is adopted (filled with our
+    marker and import) instead of being mistaken for a foreign sheet, and an
+    absent file needs no backup; *backup* is ``None`` for both. The read
     happens here, before any settings write, so an unreadable file changes
     nothing.
     """
     path = user_css_path(config_home)
     existing = read_config_text(path)
-    if existing and not _is_our_user_css(existing):
-        note(f"{path} exists but is not our user CSS; leaving it untouched")
-        return None
+    backup = path if existing and not _is_our_user_css(existing) else None
     content = f'{GTK4_CSS_MARKER}\n@import url("{sheet.as_uri()}");\n'
-    return path, content
+    return path, content, backup
 
 
 def user_css_remove(config_home: Path) -> Path | None:

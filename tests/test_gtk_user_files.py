@@ -126,7 +126,6 @@ class TestUserCssDecisions(unittest.TestCase):
     def setUp(self):
         self.config = tmp_dir.make_tmp_dir(self)
         self.sheet = self.config / "share" / "gtk.css"
-        self.notes: list[str] = []
 
     def css(self, text: str | None) -> Path:
         path = gtk_user_files.user_css_path(self.config)
@@ -136,7 +135,7 @@ class TestUserCssDecisions(unittest.TestCase):
         return path
 
     def write(self):
-        return gtk_user_files.user_css_write(self.config, self.sheet, self.notes.append)
+        return gtk_user_files.user_css_write(self.config, self.sheet)
 
     def test_paths_sit_below_the_versioned_config_directories(self):
         self.assertEqual(
@@ -155,21 +154,30 @@ class TestUserCssDecisions(unittest.TestCase):
                 path,
                 f'{gtk_user_files.GTK4_CSS_MARKER}\n'
                 f'@import url("{self.sheet.as_uri()}");\n',
+                None,
             ),
             self.write(),
         )
-        self.assertEqual([], self.notes)
 
     def test_our_marker_led_file_is_rewritten_even_with_other_content(self):
         path = self.css(f"{gtk_user_files.GTK4_CSS_MARKER}\r\nold\n")
         result = self.write()
         self.assertEqual(path, result[0])
         self.assertNotIn("old", result[1])
+        self.assertIsNone(result[2])
 
-    def test_a_marker_only_on_a_later_line_is_foreign(self):
+    def test_a_foreign_file_is_rewritten_and_named_as_the_backup_source(self):
         path = self.css(f"a {{}}\n{gtk_user_files.GTK4_CSS_MARKER}\n")
-        self.assertIsNone(self.write())
-        self.assertEqual([f"{path} exists but is not our user CSS; leaving it untouched"], self.notes)
+        result = self.write()
+        self.assertEqual(
+            (
+                path,
+                f'{gtk_user_files.GTK4_CSS_MARKER}\n'
+                f'@import url("{self.sheet.as_uri()}");\n',
+                path,
+            ),
+            result,
+        )
 
     def test_remove_returns_the_path_only_for_our_file(self):
         self.assertIsNone(gtk_user_files.user_css_remove(self.config))
@@ -181,6 +189,50 @@ class TestUserCssDecisions(unittest.TestCase):
     def test_remove_keeps_an_empty_file(self):
         self.css("")
         self.assertIsNone(gtk_user_files.user_css_remove(self.config))
+
+
+class TestUserCssBackup(unittest.TestCase):
+    def setUp(self):
+        self.directory = tmp_dir.make_tmp_dir(self)
+        self.path = gtk_user_files.user_css_path(self.directory)
+
+    def css(self, text: str) -> Path:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_bytes(text.encode("utf-8"))
+        return self.path
+
+    def test_the_plain_bak_name_copies_every_byte(self):
+        text = "\ufeff/* foreign */\r\n@import url(\"x.css\");\n"
+        path = self.css(text)
+        backup = gtk_user_files.user_css_backup(path)
+        self.assertEqual(path.with_name("gtk.css.bak"), backup)
+        self.assertEqual(text.encode("utf-8"), backup.read_bytes())
+        self.assertEqual(text.encode("utf-8"), path.read_bytes())
+
+    def test_an_existing_backup_is_never_overwritten(self):
+        path = self.css("first\n")
+        existing = path.with_name("gtk.css.bak")
+        existing.write_bytes(b"older backup\n")
+        path.write_bytes(b"second\n")
+        backup = gtk_user_files.user_css_backup(path)
+        self.assertEqual(path.with_name("gtk.css.bak.1"), backup)
+        self.assertEqual(b"older backup\n", existing.read_bytes())
+        self.assertEqual(b"second\n", backup.read_bytes())
+
+    def test_a_missing_file_is_refused_by_name(self):
+        with self.assertRaises(gtk_user_files.ConfigError) as caught:
+            gtk_user_files.user_css_backup(self.path)
+        self.assertIn(str(self.path), str(caught.exception))
+
+    def test_a_failed_copy_leaves_no_partial_backup(self):
+        path = self.css("x\n")
+        with mock.patch.object(
+            os, "fdopen", side_effect=OSError("injected close failure")
+        ):
+            with self.assertRaises(gtk_user_files.ConfigError):
+                gtk_user_files.user_css_backup(path)
+        self.assertFalse(path.with_name("gtk.css.bak").exists())
+        self.assertEqual(b"x\n", path.read_bytes())
 
 
 if __name__ == "__main__":

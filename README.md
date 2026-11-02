@@ -64,11 +64,13 @@ selects them: it sets `gtk-theme-name=org.macos8.desktop` in `[Settings]` of
 `$XDG_CONFIG_HOME/gtk-3.0/settings.ini` and `gtk-4.0/settings.ini` (the XDG default
 `$HOME/.config`), and writes `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` with the
 `/* org.macos8.desktop GTK 4 user CSS */` marker and an `@import url(...)` of the installed GTK 4
-sheet, so libadwaita applications use it too. `make apply-gtk` installs and selects only this surface. Restart running GTK applications to pick up the
+sheet, so libadwaita applications use it too. A `gtk.css` that is not ours is copied byte-for-byte
+to an unused `gtk.css.bak` sibling first (`.bak.1`, `.bak.2` and up when that name is taken, so an
+earlier backup is never overwritten) and then replaced. `make apply-gtk` installs and selects only this surface. Restart running GTK applications to pick up the
 selection; KDE users can also choose the theme in System Settings -> Application Style ->
 GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it removes only our
-`gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched. The
-two targets serialize on a lock over the config home's parent directory, so a concurrent apply
+`gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file and any backup
+untouched. The two targets serialize on a lock over the config home's parent directory, so a concurrent apply
 and removal cannot publish a stale selection; a run that cannot take that lock within its bounded
 wait exits 2 with a diagnostic. An apply also holds the data-home lock that `make install` and
 `make uninstall` hold for their whole run, re-checks the installed sheets under it and keeps it
