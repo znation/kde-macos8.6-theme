@@ -101,6 +101,11 @@ class TestCache(unittest.TestCase):
             self.assertEqual({}, check_parallel_order.load_durations(path))
         self.assertEqual({}, check_parallel_order.load_durations("/missing/cache.json"))
 
+    def test_deeply_nested_json_cache_loads_nothing(self):
+        path = make_tmp_dir(self) / "cache.json"
+        path.write_text("[" * 10000 + "0" + "]" * 10000, encoding="utf-8")
+        self.assertEqual({}, check_parallel_order.load_durations(str(path)))
+
     def test_a_fifo_cache_does_not_block_the_coordinator(self):
         path = make_tmp_dir(self) / "cache.json"
         make_fifo(self, path)

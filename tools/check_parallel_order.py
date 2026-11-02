@@ -58,7 +58,7 @@ def load_durations(path: str) -> dict[str, float]:
             path, _MAX_CACHE_BYTES, "duration cache; ignoring it"
         )
         record = json.loads(data)
-    except (OSError, ValueError):
+    except (OSError, ValueError, RecursionError):
         return {}
     version = record.get("version") if isinstance(record, dict) else None
     if isinstance(version, bool) or version != _CACHE_VERSION:
