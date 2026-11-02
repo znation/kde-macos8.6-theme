@@ -13,8 +13,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Small independently calculated PNG fixtures demonstrate an isolated error passing MAE or fraction budgets but failing the delta cap; equality passes and one byte below fails. A delta-only budget replaces the strict default, combinations require each budget to pass, and omitting it retains existing verdicts and report shapes. Exercise caps 0 and 255, identical inputs, an alpha-only mismatch against an opaque RGB peer, and RGB differences beneath zero alpha. A tolerance of 255 must not hide a failing delta cap. Nonzero candidate/reference crops must exclude an outside severe error while retaining an inside error. Assert JSON integer threshold, text verdict, and exit statuses 0/1 agree. Negative, over-255, fractional, nonfinite, non-ASCII, malformed and missing values return 2 with empty stdout before image reads; exercise the direct-script path and help text. Existing budget/report regressions must pass. Run `make check` after the final code and documentation edit.
 
-## Done
-
 ### Fidelity gate: accept an explicit RMSE budget (planned 2026-11-02 by the plan role)
 
 **Goal and grounding.** Let a comparison constrain concentrated channel errors with the root mean square error already computed by `tools/fidelity_metrics.py::compare`. `tools/fidelity.py::main` exposes MAE and differing-fraction budgets; `tools/fidelity_reports.py::budget_verdict` checks those two metrics, while `render_text` already prints RMSE. Searches for `max-rmse` and RMSE-budget terms in source, tests and planned/archived entries found no such gate. This is independent of the waiting sampler alpha-filter plan.
@@ -845,3 +843,5 @@ text. Scope is the GTK 4 sheet, `tests/test_gtk4_theme.py`,
 `docs/invariants.md` and nothing else: no GTK 3 rule, no Firefox sheet, no
 new asset, colour literal beyond the landed `#DDDDDD`, `#FFFFFF`,
 `#888888` and `#000000`, dependency or `!important`. `make check` passes.
+
+## Done
