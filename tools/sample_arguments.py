@@ -37,6 +37,14 @@ def match_alpha(value: str) -> int:
     return parsed
 
 
+def match_pixels(value: str) -> int:
+    """Parse a bounded count of matching positions to report."""
+    parsed = plain_number(value, "--match-pixels", "integer", "an", int)
+    if not 1 <= parsed <= 1000:
+        raise argparse.ArgumentTypeError("--match-pixels must be between 1 and 1000")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = EscapingArgumentParser(
         prog="sample",
@@ -54,6 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
+    parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors, or RGBA colors with --alpha, in the sampled region")
     modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors, or RGBA with --alpha, along one row or column")

@@ -470,6 +470,13 @@ prints `alpha: N` after the optional tolerance. RGB tolerance never relaxes this
 match. This option filters matches and can be combined with `--color-tolerance`, but
 not with `--alpha`.
 
+Add `--match-pixels N` (1–1000) with `--find-color` to list the first N
+matching coordinates in row-major order. Coordinates are absolute image
+positions within the requested region. Matching count and bounds still cover
+the full region; JSON adds `pixels` and `omitted_pixels` to `match`, while
+text prints the retained coordinates and omitted count. The option uses the
+same RGB tolerance and exact-alpha filters as the match count.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha
