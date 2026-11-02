@@ -33,6 +33,9 @@ def main(argv: list[str] | None = None) -> int:
         return report_error("sample", "--color-tolerance requires --find-color")
     if args.runs and args.width > 1 and args.height > 1:
         return report_error("sample", "--runs requires a single row or column")
+    if args.alpha and (args.histogram or args.runs or args.find_color is not None):
+        mode = "--histogram" if args.histogram else "--runs" if args.runs else "--find-color"
+        return report_error("sample", f"--alpha cannot be combined with {mode}")
 
     # A checked-in link that escapes the repository could expose a private
     # image through its pixels, so refuse it before either read.
@@ -63,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     try:
-        image = read_png(args.image, max_rows=args.y + args.height)
+        image = read_png(args.image, max_rows=args.y + args.height, **({"alpha": True} if args.alpha else {}))
     except PngError as exc:
         return report_error("sample", str(exc))
     header = f"image: {escape_controls(args.image)}  {width}x{height}"

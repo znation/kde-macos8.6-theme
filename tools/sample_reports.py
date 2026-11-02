@@ -20,6 +20,14 @@ def _region_pixels(image, x: int, y: int, width: int, height: int):
             yield (rgb[offset], rgb[offset + 1], rgb[offset + 2])
 
 
+def _region_alpha(image, x: int, y: int, width: int, height: int):
+    alpha = image.alpha
+    for row in range(y, y + height):
+        offset = row * image.width + x
+        for index in range(offset, offset + width):
+            yield 255 if alpha is None else alpha[index]
+
+
 def _color_runs(image, x: int, y: int, width: int, height: int):
     horizontal = height == 1
     segments = []
@@ -113,9 +121,13 @@ def report(args, image, width: int, height: int, header: str) -> None:
 
     if args.json:
         pixels = []
+        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
         for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
             x, y = args.x + index % args.width, args.y + index // args.width
-            pixels.append({"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)})
+            pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)}
+            if alphas is not None:
+                pixel["alpha"] = next(alphas)
+            pixels.append(pixel)
         print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
             "region": region, "pixels": pixels}, ensure_ascii=True))
         return
@@ -123,10 +135,13 @@ def report(args, image, width: int, height: int, header: str) -> None:
         rgb = (image.rgb[(args.y * image.width + args.x) * 3 + i] for i in range(3))
         rgb = tuple(rgb)
         print(header)
-        print(f"pixel ({args.x}, {args.y}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}")
+        suffix = f"  alpha={next(_region_alpha(image, args.x, args.y, 1, 1))}" if args.alpha else ""
+        print(f"pixel ({args.x}, {args.y}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}{suffix}")
         return
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
     for index, (r, g, b) in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
         x, y = args.x + index % args.width, args.y + index // args.width
-        print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}")
+        suffix = f"  alpha={next(alphas)}" if alphas is not None else ""
+        print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}{suffix}")
