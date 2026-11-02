@@ -60,6 +60,22 @@ class TestSampleHistogramBounds(CliTestCase):
         self._assert_success(fallback)
         self.assertEqual(json.loads(fallback.stdout)["colors"][0]["alpha"], 255)
 
+    def test_top_colors_alpha_bounds_cover_only_emitted_rgba_color(self):
+        path = self._write(self._tmp_dir(), "rgba-top.png", make_png(3, 2, [
+            bytes((1, 2, 3, 0, 1, 2, 3, 128, 1, 2, 3, 255)),
+            bytes((1, 2, 3, 0, 1, 2, 3, 128, 1, 2, 3, 255)),
+        ], color_type=6))
+        result = self._run(path, "0", "0", "--width", "3", "--height", "2",
+                           "--histogram", "--alpha", "--top-colors", "1",
+                           "--color-bounds", "--json")
+        self._assert_success(result)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["colors"], [{
+            "rgb": [1, 2, 3], "hex": "#010203", "count": 2, "alpha": 0,
+            "bounds": {"x": 0, "y": 0, "width": 1, "height": 2},
+        }])
+        self.assertEqual((payload["total_colors"], payload["omitted_pixels"]), (3, 4))
+
     def test_bounds_traversal_is_optional_and_uses_single_decode(self):
         _, data = rgb_image(2, 2, lambda _x, _y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "small.png", data)
