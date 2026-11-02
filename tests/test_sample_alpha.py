@@ -82,6 +82,16 @@ class TestSampleAlpha(CliTestCase):
         self.assertEqual([pixel["alpha"] for pixel in json.loads(result.stdout)["pixels"]],
                          [255, 255, 255, 255])
 
+    def test_opaque_text_rectangle_reports_255_alpha_in_row_major_order(self):
+        opaque = self._write(self._tmp_dir(), "opaque-text-rect.png", make_png(
+            2, 2, [bytes((4, 5, 6, 7, 8, 9)), bytes((10, 11, 12, 13, 14, 15))]))
+        result = self._run(opaque, "0", "0", "--width", "2", "--height", "2", "--alpha")
+        self._assert_success(result)
+        self.assertIn("(0, 0): 4,5,6  #040506  alpha=255", result.stdout)
+        self.assertIn("(1, 0): 7,8,9  #070809  alpha=255", result.stdout)
+        self.assertIn("(0, 1): 10,11,12  #0A0B0C  alpha=255", result.stdout)
+        self.assertIn("(1, 1): 13,14,15  #0D0E0F  alpha=255", result.stdout)
+
     def test_alpha_read_is_bounded_and_mode_conflicts_skip_decode(self):
         path = self._rgba()
         with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
