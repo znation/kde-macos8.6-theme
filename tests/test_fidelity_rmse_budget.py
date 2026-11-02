@@ -14,6 +14,7 @@ from tools import fidelity  # noqa: E402
 class TestRmseBudget(FidelityCliTestCase):
     def test_rmse_budget_detects_sparse_error_and_replaces_default(self):
         candidate, altered = self._write_altered_pair(self._tmp_dir())
+        self._assert_pass(self._run(candidate, altered, "--max-mae", "2"))
         result = self._run(candidate, altered, "--max-mae", "2", "--max-rmse", "8")
         self._assert_fail(result)
         self.assertIn("FAIL:", result.stdout)
@@ -33,7 +34,12 @@ class TestRmseBudget(FidelityCliTestCase):
         failed = self._run(candidate, reference, "--max-rmse", "0.499", "--json")
         self.assertEqual(failed.returncode, 1)
         self.assertFalse(json.loads(failed.stdout)["passed"])
-        self.assertIn("FAIL:", self._run(candidate, reference, "--max-rmse", "0.499").stdout)
+        text = self._run(candidate, reference, "--max-rmse", "0.499")
+        self.assertIn("FAIL: max-mae=unset max-frac=unset max-rmse=0.4990 tolerance=0", text.stdout)
+        self.assertEqual(self._run(candidate, reference, "--max-rmse", "0.5").returncode, 0)
+        self._assert_fail(self._run(candidate, reference, "--max-rmse", "0.5", "--max-mae", "0.1"))
+        self._assert_fail(self._run(candidate, reference, "--max-rmse", "0.5", "--max-frac", "0"))
+        self._assert_pass(self._run(candidate, reference, "--max-rmse", "0.5", "--max-mae", "1"))
 
     def test_alpha_crop_tolerance_and_upper_bound(self):
         candidate_png = make_png(3, 1, [bytes([0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255])], color_type=6)
@@ -44,6 +50,10 @@ class TestRmseBudget(FidelityCliTestCase):
         alpha_full = make_png(1, 1, [bytes([0, 0, 0, 255])], color_type=6)
         self._assert_fail(self._run_png_pair(alpha_clear, alpha_full, "--tolerance", "255", "--max-rmse", "127.499"))
         self._assert_pass(self._run_png_pair(alpha_clear, alpha_full, "--max-rmse", "127.5"))
+        transparent_a = make_png(1, 1, [bytes([1, 0, 0, 0])], color_type=6)
+        transparent_b = make_png(1, 1, [bytes([0, 0, 0, 0])], color_type=6)
+        self._assert_fail(self._run_png_pair(transparent_a, transparent_b, "--max-rmse", "0.49"))
+        self._assert_pass(self._run_png_pair(transparent_a, transparent_b, "--max-rmse", "0.5"))
         all_channels_clear = make_png(1, 1, [bytes([0, 0, 0, 0])], color_type=6)
         all_channels_full = make_png(1, 1, [bytes([255, 255, 255, 255])], color_type=6)
         self._assert_pass(self._run_png_pair(all_channels_clear, all_channels_full, "--max-rmse", "255"))
@@ -54,6 +64,10 @@ class TestRmseBudget(FidelityCliTestCase):
                 result = self._run("missing.png", "missing.png", "--max-rmse", value)
                 self.assertEqual(result.returncode, 2)
                 self.assertEqual(result.stdout, "")
+        with mock.patch.object(fidelity, "_read_source", side_effect=AssertionError("read")):
+            missing = self._run("missing.png", "missing.png", "--max-rmse")
+            self.assertEqual(missing.returncode, 2)
+            self.assertEqual(missing.stdout, "")
 
     def test_omitted_budget_shape_and_direct_script(self):
         _, png = solid_rgb(1, 1)
@@ -65,6 +79,9 @@ class TestRmseBudget(FidelityCliTestCase):
         direct = self._run_script(candidate, candidate, "--max-rmse", "0", "--json")
         self.assertEqual(direct.returncode, 0)
         self.assertIn('"passed": true', direct.stdout)
+        help_result = self._run("--help")
+        self.assertEqual(help_result.returncode, 0)
+        self.assertIn("--max-rmse", help_result.stdout)
 
 
 if __name__ == "__main__":

@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Fidelity gate: accept an explicit RMSE budget (planned 2026-11-02 by the plan role)
-
-**Goal and grounding.** Let a comparison constrain concentrated channel errors with the root mean square error already computed by `tools/fidelity_metrics.py::compare`. `tools/fidelity.py::main` exposes MAE and differing-fraction budgets; `tools/fidelity_reports.py::budget_verdict` checks those two metrics, while `render_text` already prints RMSE. Searches for `max-rmse` and RMSE-budget terms in source, tests and planned/archived entries found no such gate. This is independent of the waiting sampler alpha-filter plan.
-
-**Approach and files.** Add `--max-rmse F` to `tools/fidelity.py::main`, with a `max_rmse` validator in `tools/fidelity_arguments.py` reusing `_finite_float` and `_channel_amount` to accept finite plain ASCII numbers in 0..255. Extend `tools/fidelity_reports.py::budget_verdict` with an optional trailing `max_rmse=None` parameter: compare the existing full-precision `metrics.rmse <= max_rmse`, require each supplied budget to pass, and use the current no-differing-pixel fallback only when no budget is supplied. Pass the new value by keyword. Extend `report_data` with a defaulted keyword parameter without moving existing positional parameters; add `thresholds.max_rmse` only when supplied. In `render_text`, insert `max-rmse=F` formatted to four decimals before `tolerance=` on the verdict line only when supplied. Preserve omitted-option text and JSON shapes. Update the CLI synopsis/help and README.md's Fidelity checking budget explanation: RMSE uses the existing raw channel bytes, including alpha as computed today, is independent of tolerance, and is not perceptual error. Add `tests/test_fidelity_rmse_budget.py` using `support.fidelity_cli_case.FidelityCliTestCase`, and update the aggregate-budget tooling row in `docs/invariants.md` with the implementation date. These six files bound one run; no metric computation, image decoder, render gate invocation or dependency changes are needed.
-
-**Acceptance criteria.** Use independently calculated small PNG fixtures to show a sparse large error passing MAE but failing RMSE; an RMSE-only budget replaces the strict default; and combinations fail whenever any supplied budget fails. Pin exact equality and just-below thresholds with an exactly representable RMSE fixture, zero on identical/different images, and the upper bound 255. Cover alpha-only differences, opaque RGB inputs (the CLI decodes alpha), nonzero candidate/reference crops excluding an outside error, and tolerance 255 still allowing an RMSE-budget failure. Assert full-precision JSON threshold, matching text verdict/status, and omitted-option output compatibility with the existing schema and verdict line. Invalid negative, over-255, nonfinite, fractional-malformed, non-ASCII and missing values return 2 with empty stdout before image reads; ordinary decimal fractions remain valid. Exercise direct-script JSON invocation and help text. Existing budget/report regressions must stay green. Run `make check` after the final implementation/documentation edit.
-
 ### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)
 — done 2026-11-02 by the feature role
 
@@ -837,3 +829,4 @@ new asset, colour literal beyond the landed `#DDDDDD`, `#FFFFFF`,
 `#888888` and `#000000`, dependency or `!important`. `make check` passes.
 
 ## Done
+_None yet._
