@@ -66,6 +66,19 @@ class TestWriteReadRoundTrip(unittest.TestCase):
         records = [frame_record(size) for size in SIZES]
         self.assertEqual(xcursor.write_cursor(records), xcursor.write_cursor(records))
 
+    def test_one_shot_frame_iterable_preserves_order_and_offsets(self):
+        records = [frame_record(size) for size in SIZES]
+        from_list = xcursor.write_cursor(records)
+        from_generator = xcursor.write_cursor(record for record in records)
+
+        self.assertEqual(from_generator, from_list)
+        parsed = xcursor_reader.read_cursor(
+            self.write((record for record in records), "generated.xcursor")
+        )
+        self.assertEqual(
+            [image.nominal_size for image in parsed.images], list(SIZES)
+        )
+
     def test_multiple_frames_keep_order_and_declared_offsets(self):
         records = [frame_record(size) for size in SIZES]
         data = xcursor.write_cursor(records)
