@@ -406,6 +406,17 @@ class TestSelectorMatching(unittest.TestCase):
             # A hex escape without a terminator ends at the first non-hex digit.
             self.assertTrue(matches('[title=x\\22y]', element("x", attrs={"title": 'x"y'})))
 
+    def test_invalid_css_hex_code_points_match_the_replacement_character(self):
+        # CSS replaces NULL, surrogate and out-of-range escape values with
+        # U+FFFD instead of asking Python to construct an invalid character.
+        replacement = element("button", attrs={"title": "\ufffd"})
+        ordinary = element("button", attrs={"title": "x"})
+        for selector in (r"[title=\0]", r"[title=\d800]", r"[title=\110000]"):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, replacement))
+                self.assertFalse(matches(selector, ordinary))
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not
