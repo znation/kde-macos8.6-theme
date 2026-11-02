@@ -32,8 +32,6 @@ from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from tools import process_group
-
 from tools import (
     check_parallel,
     check_parallel_discovery,
@@ -834,10 +832,9 @@ class TestCoordinator(unittest.TestCase):
 class TestSpawnDefenses(unittest.TestCase):
     """The spawn/kill primitives keep the guarantees test_process_group pins.
 
-    ``tools/process_group.py::run_logged`` defers SIGTERM, SIGHUP and Ctrl-C
-    around its child's start and never signals a non-positive pid; _spawn
-    and _kill_group are the same primitive for the coordinator's workers, so
-    the same behavior is pinned here.
+    ``tools.process_group.py::_popen_deferred`` protects both command and
+    worker starts from SIGTERM, SIGHUP and Ctrl-C races; worker cleanup also
+    never signals a non-positive pid.
     """
 
     def test_a_worker_start_error_is_recorded_in_its_log(self):
@@ -969,14 +966,14 @@ class TestSpawnDefenses(unittest.TestCase):
                 side_effect=RuntimeError("broken popen wrapper"),
             ),
             mock.patch.object(
-                check_parallel_workers, "_defer_signals",
+                process_group, "_defer_signals",
                 side_effect=[termination_handlers, interrupt_handlers],
             ),
             mock.patch.object(
-                check_parallel_workers, "_restore_termination"
+                process_group, "_restore_termination"
             ) as restore,
             mock.patch.object(
-                check_parallel_workers, "_replay_deferred"
+                process_group, "_replay_deferred"
             ) as replay,
         ):
             with self.assertRaisesRegex(RuntimeError, "broken popen wrapper"):

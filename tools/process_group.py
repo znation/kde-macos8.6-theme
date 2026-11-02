@@ -83,6 +83,23 @@ def _restore_termination(previous: list[tuple[int, object]]) -> None:
     previous.clear()
 
 
+def _popen_deferred(*args, **kwargs) -> tuple[subprocess.Popen, list[int]]:
+    """Start a child with catchable signals deferred; return them for replay."""
+    deferred: list[int] = []
+    previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
+    previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
+    try:
+        process = subprocess.Popen(*args, **kwargs)
+    except BaseException:
+        _restore_termination(previous)
+        _restore_termination(previous_interrupts)
+        _replay_deferred(deferred)
+        raise
+    _restore_termination(previous)
+    _restore_termination(previous_interrupts)
+    return process, deferred
+
+
 def _kill_group(process: subprocess.Popen) -> None:
     """Kill *process*'s group, ignoring a nonpositive pid or gone group."""
     if process.pid <= 0:
@@ -117,36 +134,17 @@ def run_logged(
     timeout result or the in-flight ``SystemExit``/``KeyboardInterrupt``.
     """
     with log.open("wb") as sink:
-        # Popen returns only after fork/exec, so a termination signal or
-        # Ctrl-C can arrive while it is still returning, before the cleanup
-        # below exists. exit_on_termination's SIGHUP/SIGTERM handler raises
-        # SystemExit at the next bytecode and SIGINT's default handler raises
-        # KeyboardInterrupt, so either would skip the group kill and leave the
-        # command running after the caller dies. Swap in handlers that record
-        # the signal instead, restore the real handlers once the try is
-        # entered, and raise the recorded signal's exception there, where the
-        # cleanup runs.
-        deferred: list[int] = []
-        previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
-        previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
+        # Defer signals until the cleanup try below is ready to own the child.
+        process, deferred = _popen_deferred(
+            argv,
+            cwd=cwd,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=sink,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
         try:
-            process = subprocess.Popen(
-                argv,
-                cwd=cwd,
-                env=env,
-                stdin=subprocess.DEVNULL,
-                stdout=sink,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
-            )
-        except BaseException:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
-            raise
-        try:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
             _replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:

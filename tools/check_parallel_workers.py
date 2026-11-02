@@ -10,14 +10,12 @@ import time
 
 if __package__:
     from tools.process_group import (
-        _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
-        _kill_group, _reap, _replay_deferred, _restore_termination,
+        _kill_group, _popen_deferred, _reap, _replay_deferred,
     )
     from tools.terminal import escape_controls
 else:
     from process_group import (
-        _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
-        _kill_group, _reap, _replay_deferred, _restore_termination,
+        _kill_group, _popen_deferred, _reap, _replay_deferred,
     )
     from terminal import escape_controls
 
@@ -76,28 +74,15 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
     process: subprocess.Popen | _NeverStarted = _NeverStarted()
     try:
         with _open_log(log_path) as sink:
-            deferred: list[int] = []
-            previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
-            previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
             try:
-                process = subprocess.Popen(
+                process, deferred = _popen_deferred(
                     argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
                     stderr=subprocess.STDOUT, start_new_session=True,
                 )
-            except OSError as failure:
-                _restore_termination(previous)
-                _restore_termination(previous_interrupts)
                 _replay_deferred(deferred)
+            except OSError as failure:
                 process = _NeverStarted()
                 exc = failure
-            except BaseException:
-                _restore_termination(previous)
-                _restore_termination(previous_interrupts)
-                _replay_deferred(deferred)
-                raise
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
     except BaseException:
         _kill_group(process)
         _reap(process)
