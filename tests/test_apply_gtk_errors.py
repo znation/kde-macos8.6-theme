@@ -362,6 +362,10 @@ class TestUnreadableConfig(ApplyGtkTestCase):
     file's bytes must stay exactly as they were.
     """
 
+    def assert_gtk3_unchanged(self, expected):
+        """Assert rejection left GTK 3 settings byte-for-byte intact."""
+        self.assertEqual(expected, self.settings("gtk-3.0").read_bytes())
+
     def test_apply_refuses_a_non_utf8_settings_file_before_writing_anything(self):
         self.install_sheet()
         gtk3 = self.settings("gtk-3.0")
@@ -377,7 +381,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertIn("settings.ini", result.stderr)
         self.assertIn("utf-8", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
     def test_remove_refuses_a_non_utf8_settings_file_before_clearing_anything(self):
@@ -396,7 +400,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn("utf-8", result.stderr)
-        self.assertEqual(gtk3_before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(gtk3_before)
         self.assertTrue(css.is_file())
 
     def test_apply_refuses_a_fifo_settings_file_before_writing_anything(self):
@@ -410,7 +414,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         result = self.run_tool_in_child()
 
         assert_fifo_refused(self, result, gtk4)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
     def test_a_fifo_swapped_in_for_a_regular_settings_file_is_refused(self):
@@ -448,7 +452,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         result = self.run_tool_in_child()
 
         assert_fifo_refused(self, result, css)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
         self.assertFalse(self.settings("gtk-4.0").exists())
 
     def test_remove_refuses_a_fifo_settings_file_before_clearing_anything(self):
@@ -463,7 +467,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         result = self.run_tool_in_child("--remove")
 
         assert_fifo_refused(self, result, gtk4)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
         self.assertTrue(css.is_file())
 
     def test_remove_refuses_a_fifo_user_css_before_clearing_anything(self):
@@ -476,7 +480,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         result = self.run_tool_in_child("--remove")
 
         assert_fifo_refused(self, result, css)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
 
     def test_apply_refuses_an_oversize_settings_file_before_writing_anything(
         self,
@@ -499,7 +503,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertIn(str(gtk4), result.stderr)
         self.assertIn("larger than", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
-        self.assertEqual(before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(before)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
     def test_remove_refuses_an_oversize_user_css_before_clearing_anything(self):
@@ -519,7 +523,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn(str(css), result.stderr)
         self.assertIn("larger than", result.stderr)
-        self.assertEqual(gtk3_before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(gtk3_before)
         self.assertEqual(gtk4_before, gtk4.read_bytes())
         self.assertEqual(
             gtk_user_files.MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
@@ -573,7 +577,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn(str(gtk4), result.stderr)
         self.assertIn("1048576-byte limit", result.stderr)
-        self.assertEqual(gtk3_before, gtk3.read_bytes())
+        self.assert_gtk3_unchanged(gtk3_before)
         self.assertEqual(data, gtk4.read_bytes())
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
