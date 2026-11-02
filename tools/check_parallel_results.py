@@ -83,44 +83,46 @@ def _bounded_log_text(path: str) -> str:
     return "\n".join(escape_controls(line) for line in lines)
 
 
+def _module_verdict(module: str, statuses: dict[str, int | None],
+                    log_paths: dict[str, str], timeout: float
+                    ) -> tuple[str, str, str]:
+    """Return a module's display verdict, summary category and log text."""
+    log_text = ""
+    if module in log_paths:
+        try:
+            log_text = _bounded_log_text(log_paths[module])
+        except OSError:
+            return "worker log could not be read", "failed", ""
+    if module not in statuses:
+        return "did not finish", "not_finished", log_text
+    status = statuses[module]
+    if status is None:
+        return (f"timed out after {timeout:.0f}s (process group killed)",
+                "timed_out", log_text)
+    if status != _NO_TESTS_RAN:
+        return f"exit {status}", "failed" if status != 0 else "ok", log_text
+    has_summary = all(marker in log_text for marker in _NO_TESTS_RAN_MARKERS)
+    if has_summary and not _TEST_STARTED.search(log_text):
+        return "ran no tests (unittest's NO TESTS RAN, exit 5)", "no_tests", log_text
+    if not has_summary:
+        return ("exit 5 but the log shows no unittest NO TESTS RAN summary",
+                "failed", log_text)
+    return ("exit 5 but the log shows a started test beside "
+            "unittest's NO TESTS RAN summary", "failed", log_text)
+
+
 def _print_results(modules: list[str], statuses: dict[str, int | None],
                    log_paths: dict[str, str], timeout: float) -> int:
     """Print each module's section in discovery order and return its status."""
     failed = timed_out = not_finished = no_tests = 0
     for module in modules:
-        log_text = ""
-        log_error = None
-        if module in log_paths:
-            try:
-                log_text = _bounded_log_text(log_paths[module])
-            except OSError:
-                log_error = "worker log could not be read"
-        if log_error is not None:
-            verdict = log_error
-            failed += 1
-        elif module not in statuses:
-            verdict = "did not finish"
-            not_finished += 1
-        elif statuses[module] is None:
-            verdict = f"timed out after {timeout:.0f}s (process group killed)"
-            timed_out += 1
-        elif (statuses[module] == _NO_TESTS_RAN
-              and all(marker in log_text for marker in _NO_TESTS_RAN_MARKERS)
-              and not _TEST_STARTED.search(log_text)):
-            verdict = "ran no tests (unittest's NO TESTS RAN, exit 5)"
-            no_tests += 1
-        elif statuses[module] == _NO_TESTS_RAN and not all(
-            marker in log_text for marker in _NO_TESTS_RAN_MARKERS
-        ):
-            verdict = "exit 5 but the log shows no unittest NO TESTS RAN summary"
-            failed += 1
-        elif statuses[module] == _NO_TESTS_RAN:
-            verdict = ("exit 5 but the log shows a started test beside "
-                       "unittest's NO TESTS RAN summary")
-            failed += 1
-        else:
-            verdict = f"exit {statuses[module]}"
-            failed += statuses[module] != 0
+        verdict, category, log_text = _module_verdict(
+            module, statuses, log_paths, timeout
+        )
+        failed += category == "failed"
+        timed_out += category == "timed_out"
+        not_finished += category == "not_finished"
+        no_tests += category == "no_tests"
         print(f"===== {module}: {verdict} =====")
         sys.stdout.write(log_text)
         if log_text and not log_text.endswith("\n"):
