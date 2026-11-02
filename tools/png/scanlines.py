@@ -152,7 +152,11 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
 
 
 def drop_alpha(
-    raw: bytes, width: int, height: int, max_cols: int | None = None
+    raw: bytes,
+    width: int,
+    height: int,
+    max_cols: int | None = None,
+    max_rows: int | None = None,
 ) -> bytes:
     """Return ``raw`` with the alpha byte of every pixel removed.
 
@@ -167,20 +171,27 @@ def drop_alpha(
     reads only a prefix does not copy the rest of every row. The returned rows
     are ``cols * 3`` samples after their filter byte, where *cols* is
     *max_cols* clamped to *width*.
+
+    *max_rows* limits alpha removal to the rows that will be unfiltered. Later
+    rows retain their filter byte and have zero-filled sample bytes; the
+    unfilterer's row bound skips those samples while still validating every
+    filter byte.
     """
     _require_raw_length(raw, width, height, 4)
     cols = width if max_cols is None else min(max_cols, width)
+    rows = height if max_rows is None else min(max_rows, height)
     stride = width * 4
     out = bytearray(height * (cols * 3 + 1))
     src = 0
     dst = 0
-    for _ in range(height):
+    for row in range(height):
         out[dst] = raw[src]
         src += 1
         dst += 1
-        line = bytearray(raw[src : src + cols * 4])
-        del line[3::4]
-        out[dst : dst + cols * 3] = line
+        if row < rows:
+            line = bytearray(raw[src : src + cols * 4])
+            del line[3::4]
+            out[dst : dst + cols * 3] = line
         src += stride
         dst += cols * 3
     return bytes(out)

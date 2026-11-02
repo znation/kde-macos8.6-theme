@@ -186,7 +186,7 @@ def decode_png(
         # three colour channels directly instead of all four. drop_alpha
         # emits the column bound as the stream's own row width.
         samples = unfilter(
-            drop_alpha(raw, width, height, max_cols), cols, height, 3, rows
+            drop_alpha(raw, width, height, max_cols, rows), cols, height, 3, rows
         )
         return Image(cols, rows, samples)
     if color_type == 3:

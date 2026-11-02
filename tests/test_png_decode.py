@@ -144,6 +144,20 @@ class TestDecode(unittest.TestCase):
                 )
                 self.assertEqual(prefix, png.Image(cols, len(rows), expected))
 
+    def test_color_type_6_row_bound_skips_alpha_removal_after_bound(self):
+        width, height = 3, 5
+        rows = [bytes((row * 17 + i * 9) % 256 for i in range(width * 4))
+                for row in range(height)]
+        data = make_png(width, height, rows, color_type=6,
+                        filter_types=[0, 1, 2, 3, 4])
+        full = png.decode_png(data)
+        bounded = png.decode_png(data, max_rows=2, max_cols=2)
+        expected = b"".join(
+            full.rgb[row * width * 3 : row * width * 3 + 2 * 3]
+            for row in range(2)
+        )
+        self.assertEqual(bounded, png.Image(2, 2, expected))
+
     def test_all_filter_types(self):
         rows = [
             bytes([1, 2, 3, 4, 5, 6, 7, 8, 9]),
