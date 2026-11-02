@@ -15,12 +15,11 @@ if __package__:
         combobox_dialog_client,
         menu_dialog_client,
     )
-    from tools.render_session import (
+    from tools.render_session import Session, session_command
+    from tools.render_setup import (
         CONFIG_FILES,
-        Session,
         install_theme,
         link_kvantum_themes,
-        session_command,
         write_kvantum_selection,
         write_session_configs,
     )
@@ -31,12 +30,11 @@ else:  # run directly from render_surface.py
     from process_group import run_logged
     from render_output import publish
     from render_clients import checkbox_dialog_client, combobox_dialog_client, menu_dialog_client
-    from render_session import (
+    from render_session import Session, session_command
+    from render_setup import (
         CONFIG_FILES,
-        Session,
         install_theme,
         link_kvantum_themes,
-        session_command,
         write_kvantum_selection,
         write_session_configs,
     )

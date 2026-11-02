@@ -4,7 +4,8 @@ The render's end-to-end capture and its failure orchestration live in
 ``tests/test_render_surface.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: ``render_surface.main``'s argument validation and workflow delegation,
-scratch environment and KWin session command construction in ``tools/render_session.py`` plus the
+scratch environment and KWin session command construction in ``tools/render_session.py`` and
+theme installation/configuration in ``tools/render_setup.py``, plus the
 dialog argv recipes in ``tools/render_clients.py``.
 """
 
@@ -23,6 +24,7 @@ from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E
 from tools import (
     apply_theme,
     render_session,
+    render_setup,
     render_surface,
     render_workflow,
     theme_apply_optional,
@@ -247,14 +249,14 @@ class TestSessionSetup(unittest.TestCase):
         # throwaway install targets satisfies: the session links the two, so
         # a Qt client in the session reads the installed theme directory.
         with render_session.Session.create() as session:
-            error, themes = render_session.link_kvantum_themes(session)
+            error, themes = render_setup.link_kvantum_themes(session)
             self.assertIsNone(error)
             self.assertTrue(themes.is_symlink())
             self.assertEqual(str(session.data / "themes"), os.readlink(themes))
             # A session is linked once, so a second call is refused with the
             # first link still in place: the CLI reports it to the caller
             # rather than overwrite a working session link.
-            second, link = render_session.link_kvantum_themes(session)
+            second, link = render_setup.link_kvantum_themes(session)
             self.assertIsInstance(second, FileExistsError)
             self.assertTrue(link.is_symlink())
 
@@ -487,7 +489,7 @@ class TestSessionThemeSources(unittest.TestCase):
         # fast copy into the scratch data home, so this is the visible result
         # of the wiring (argv, environment, cwd) rather than a re-derivation.
         with render_session.Session.create() as session:
-            status, install_log = render_session.install_theme(session)
+            status, install_log = render_setup.install_theme(session)
             self.assertEqual(0, status)
             self.assertTrue(install_log.exists(), "the install log is missing")
             for artifact in (
@@ -506,7 +508,7 @@ class TestSessionThemeSources(unittest.TestCase):
 
     def test_write_session_configs_writes_both_themed_configs_into_the_config_home(self):
         with render_session.Session.create() as session:
-            render_session.write_session_configs(session)
+            render_setup.write_session_configs(session)
             written = sorted(
                 path.name for path in session.config.iterdir() if path.is_file()
             )
@@ -524,7 +526,7 @@ class TestSessionThemeSources(unittest.TestCase):
         # render shows the engine's compiled-in default theme, and the
         # pipeline tests (which read only kwinrc) would stay green.
         with render_session.Session.create() as session:
-            render_session.write_kvantum_selection(session)
+            render_setup.write_kvantum_selection(session)
             selection = (
                 session.config / "Kvantum" / "kvantum.kvconfig"
             ).read_text(encoding="utf-8")
@@ -540,7 +542,7 @@ class TestSessionThemeSources(unittest.TestCase):
             (directory / "kvantum.kvconfig").write_text(
                 "[General]\ntheme=Another\n", encoding="utf-8"
             )
-            render_session.write_kvantum_selection(session)
+            render_setup.write_kvantum_selection(session)
             selection = (
                 directory / "kvantum.kvconfig"
             ).read_text(encoding="utf-8")
@@ -553,10 +555,10 @@ class TestSessionThemeSources(unittest.TestCase):
             target = directory / "kvantum.kvconfig"
             target.write_text("previous selection\n", encoding="utf-8")
             with mock.patch.object(
-                render_session, "write_bytes_atomically", side_effect=OSError("disk full")
+                render_setup, "write_bytes_atomically", side_effect=OSError("disk full")
             ):
                 with self.assertRaisesRegex(OSError, "disk full"):
-                    render_session.write_kvantum_selection(session)
+                    render_setup.write_kvantum_selection(session)
             self.assertEqual("previous selection\n", target.read_text(encoding="utf-8"))
 
     def test_the_session_selection_names_the_theme_id_the_cli_pins(self):
@@ -569,10 +571,10 @@ class TestSessionThemeSources(unittest.TestCase):
         # `make install` copies, which tests/test_apply_theme.py pins from
         # the apply side.
         self.assertEqual(
-            render_session.KVANTUM_THEME, theme_apply_optional.KVANTUM_THEME
+            render_setup.KVANTUM_THEME, theme_apply_optional.KVANTUM_THEME
         )
         self.assertTrue(
-            (apply_theme.ROOT / "theme" / "kvantum" / render_session.KVANTUM_THEME)
+            (apply_theme.ROOT / "theme" / "kvantum" / render_setup.KVANTUM_THEME)
             .is_dir(),
             "the session's Kvantum id is not the shipped package directory",
         )

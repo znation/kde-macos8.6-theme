@@ -3,7 +3,8 @@
 ``tools/render_surface.py`` parses and validates arguments, while
 ``tools/render_workflow.py`` runs the session through capture and publication.
 ``tools/render_session.py`` owns scratch-session state and KWin command building,
-while ``tools/render_clients.py`` builds the dialog client argv;
+``tools/render_setup.py`` installs and configures its theme, and
+``tools/render_clients.py`` builds the dialog client argv;
 this module drives the workflow through the public CLI.
 """
 
@@ -33,7 +34,7 @@ from support.svg_case import parse_svg
 from svg_assertions import render_slices
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
-from tools import render_session, render_surface, render_workflow  # noqa: E402
+from tools import render_session, render_setup, render_surface, render_workflow  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -217,9 +218,9 @@ class TestFailurePaths(StubTools):
             self.assertEqual(1, status)
             dialog_files = write_configs.call_args.kwargs["files"]
 
-        self.assertEqual(render_session.CONFIG_FILES, applet_files)
+        self.assertEqual(render_setup.CONFIG_FILES, applet_files)
         self.assertEqual(
-            render_session.CONFIG_FILES + ("kdeglobals",), dialog_files
+            render_setup.CONFIG_FILES + ("kdeglobals",), dialog_files
         )
         self.assert_scratch_removed()
 
@@ -286,7 +287,7 @@ class TestFailurePaths(StubTools):
             ),
         ):
             with self.subTest(label):
-                with mock.patch.object(render_session, "write_configs", die):
+                with mock.patch.object(render_setup, "write_configs", die):
                     status, stderr, output = self.run_main()
                 self.assertEqual(1, status)
                 self.assertIn("render_surface: error:", stderr)
@@ -345,7 +346,7 @@ class TestFailurePaths(StubTools):
         # long, so run_logged is stubbed instead of waited out; the render
         # session's own timeout is covered by
         # test_timeout_kills_the_session_group_and_exits_1.
-        with mock.patch.object(render_session, "run_logged", return_value=None):
+        with mock.patch.object(render_setup, "run_logged", return_value=None):
             status, stderr, output = self.run_main()
         self.assertEqual(1, status)
         self.assertIn("make install timed out", stderr)

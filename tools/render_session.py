@@ -28,37 +28,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-if __package__:
-    from tools.process_group import run_logged
-    from tools.repo_root import ROOT
-    from tools.theme_defaults import write_configs
-    from tools.atomic_write import write_bytes_atomically
-else:  # run directly: python3 tools/render_surface.py
-    from process_group import run_logged
-    from repo_root import ROOT
-    from theme_defaults import write_configs
-    from atomic_write import write_bytes_atomically
-
-# The config files the global theme's defaults feed that `plasma-apply-colorscheme`
-# does not write. The render applies the colour scheme in the session and leaves the
-# `[kdeglobals][KDE] widgetStyle` default unapplied.
-CONFIG_FILES = ("kwinrc", "plasmarc")
-COLOR_SCHEME = "MacOS8"
-KVANTUM_THEME = "org.macos8.desktop"
 SOCKET = "render-surface"
-INSTALL_TIMEOUT = 60.0
-
-# The caller's display, staging and config-search settings must not reach the
-# session: it starts its own virtual display, installs into the scratch data
-# home, and reads configuration only from the scratch config home.
-_DROPPED_ENVIRONMENT = (
-    "WAYLAND_DISPLAY",
-    "DISPLAY",
-    "DESTDIR",
-    "MAKEFLAGS",
-    "MAKEFILES",
-    "XDG_CONFIG_DIRS",
-)
+COLOR_SCHEME = "MacOS8"
 
 
 @dataclass(frozen=True)
@@ -95,10 +66,14 @@ class Session:
             # and, when the caller ran `make DESTDIR=... render`, through
             # MAKEFLAGS, which the child make imports as a command-line
             # override.
+            dropped_environment = (
+                "WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS",
+                "MAKEFILES", "XDG_CONFIG_DIRS",
+            )
             environment = {
                 key: value
                 for key, value in os.environ.items()
-                if key not in _DROPPED_ENVIRONMENT
+                if key not in dropped_environment
             }
             environment.update(
                 XDG_RUNTIME_DIR=str(runtime),
@@ -169,59 +144,6 @@ def session_script() -> str:
         'kill "$client" 2>/dev/null; '
         'wait "$client" 2>/dev/null; '
         "exit $status"
-    )
-
-
-def link_kvantum_themes(session: Session) -> tuple[OSError | None, Path]:
-    """Link the scratch home's ``themes`` onto the data home's.
-
-    Kvantum searches its theme under the literal
-    ``$HOME/.local/share/themes/`` path the README records, which the scratch
-    ``XDG_DATA_HOME`` does not satisfy: the session home is linked so the
-    engine reads the same theme directory ``make install`` populated. Runs
-    after that install -- at creation the data home holds no ``themes/`` --
-    so this, not :meth:`Session.create`, is the one place the link is made.
-    """
-    themes = session.home / ".local" / "share" / "themes"
-    try:
-        (session.home / ".local" / "share").mkdir(parents=True, exist_ok=False)
-        themes.symlink_to(session.data / "themes")
-    except OSError as exc:
-        return exc, themes
-    return None, themes
-
-
-def install_theme(session: Session) -> tuple[int | None, Path]:
-    """Run ``make install`` into *session*'s data home and return its result."""
-    status = run_logged(
-        ["make", "install", f"XDG_DATA_HOME={session.data}"],
-        session.environment,
-        session.install_log,
-        INSTALL_TIMEOUT,
-        ROOT,
-    )
-    return status, session.install_log
-
-
-def write_session_configs(session: Session, files: tuple[str, ...] = CONFIG_FILES) -> None:
-    """Write the global theme's config defaults into the scratch config home."""
-    write_configs(session.config, files)
-
-
-def write_kvantum_selection(session: Session) -> None:
-    """Select ``KVANTUM_THEME`` in the scratch config home for Qt clients.
-
-    Plasma applets draw through the desktop theme, but every other Qt
-    client (``kdialog`` and friends) reads ``widgetStyle=kvantum`` from
-    ``kdeglobals``, then the Kvantum engine reads its selected theme name
-    from this file. Without the name the engine falls back to its
-    compiled-in default theme.
-    """
-    directory = session.config / "Kvantum"
-    directory.mkdir(parents=True, exist_ok=True)
-    write_bytes_atomically(
-        directory / "kvantum.kvconfig",
-        f"[General]\ntheme={KVANTUM_THEME}\n".encode("utf-8"),
     )
 
 
