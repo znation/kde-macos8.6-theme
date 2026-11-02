@@ -310,6 +310,15 @@ class TestCli(FidelityCliTestCase):
                 result = self._run(reference, reference, "--max-mae", value)
                 self._assert_usage_error(result, "255")
 
+    def test_max_rmse_above_channel_range_rejected(self):
+        # Per-channel RMSE is bounded by the largest possible byte delta;
+        # accepting a larger budget would silently make this gate vacuous.
+        reference = self._solid_reference()
+        for value in ("255.5", "256"):
+            with self.subTest(value=value):
+                result = self._run(reference, reference, "--max-rmse", value)
+                self._assert_usage_error(result, "--max-rmse must be at most 255")
+
     def test_valid_numeric_boundaries_accepted(self):
         reference = self._solid_reference()
         result = self._run(
