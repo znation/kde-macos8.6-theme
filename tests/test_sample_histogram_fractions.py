@@ -77,6 +77,23 @@ class TestSampleHistogramFractions(CliTestCase):
         self._assert_success(separate)
         self.assertEqual([c["fraction"] for c in json.loads(separate.stdout)["colors"]], [0.5, 0.5])
 
+    def test_text_combines_alpha_bounds_and_fractions(self):
+        path = self._write(self._tmp_dir(), "combined.png", make_png(
+            3, 2,
+            [bytes((1, 2, 3, 0, 1, 2, 3, 255, 1, 2, 3, 0)),
+             bytes((9, 8, 7, 255, 1, 2, 3, 255, 9, 8, 7, 255))],
+            color_type=6))
+        result = self._run(path, "1", "0", "--width", "2", "--height", "2",
+                           "--histogram", "--alpha", "--color-bounds", "--color-fractions")
+        self._assert_success(result)
+        self.assertEqual(result.stdout.splitlines(), [
+            f"image: {path}  3x2",
+            "region (1, 0) 2x2:",
+            "1,2,3  #010203  count=2  alpha=255  bounds=1,0,1,2  fraction=0.5",
+            "1,2,3  #010203  count=1  alpha=0  bounds=2,0,1,1  fraction=0.25",
+            "9,8,7  #090807  count=1  alpha=255  bounds=2,1,1,1  fraction=0.25",
+        ])
+
     def test_option_requires_histogram_before_image_reads_and_direct_script_works(self):
         path = self._rgb_fixture()
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
