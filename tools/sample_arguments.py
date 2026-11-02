@@ -51,6 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true", help="print structured JSON")
     parser.add_argument("--alpha", action="store_true", help="include alpha in pixel samples, histogram colors and run grouping")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
+    parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     modes = parser.add_mutually_exclusive_group()

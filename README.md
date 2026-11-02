@@ -440,6 +440,14 @@ Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
 
+Add `--color-bounds` with `--histogram` to report each emitted color's
+smallest enclosing rectangle, using absolute image coordinates. The bounds
+include disconnected occurrences and do not imply a solid rectangle. With
+`--top-colors`, bounds are calculated only for colors shown; counts and the
+top-color summary still cover the full region. `--alpha` keeps different
+opacity values separate. JSON color records gain a `bounds` object, and text
+appends `bounds=X,Y,W,H` after each color's existing fields.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle
