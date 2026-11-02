@@ -1,9 +1,8 @@
-"""Tests for tools/theme_defaults.py, the global theme's ``defaults`` reader."""
+"""Tests for the global defaults reader and its config writer."""
 
 from __future__ import annotations
 
 import os
-import pathlib
 import tempfile
 import unittest
 from unittest import mock
@@ -14,7 +13,7 @@ from support.close_tracking import tracking_closes
 from support.fifo_fixtures import assert_fifo_read_refused
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
-from tools import theme_defaults  # noqa: E402
+from tools import theme_config_writer, theme_defaults  # noqa: E402
 
 
 def _run_defaults_groups_in_child(path):
@@ -370,14 +369,13 @@ class TestWriteConfigs(unittest.TestCase):
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
         original_mode = target.stat().st_mode & 0o777
-        td = theme_defaults
         real_replace = os.replace
         def boom(src, dst):
             raise OSError("simulated failure")
         os.replace = boom
         try:
             with self.assertRaises(OSError):
-                td._write_config_atomically(target, "NEW\n")
+                theme_config_writer.write_config_atomically(target, "NEW\n")
         finally:
             os.replace = real_replace
         self.assertEqual("ORIGINAL\n", target.read_text(encoding="utf-8"))
@@ -390,7 +388,6 @@ class TestWriteConfigs(unittest.TestCase):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
-        td = theme_defaults
         real_chmod = os.fchmod
         def boom(path, mode):
             raise OSError("simulated failure")
@@ -398,7 +395,7 @@ class TestWriteConfigs(unittest.TestCase):
         try:
             with tracking_closes() as closed:
                 with self.assertRaises(OSError):
-                    td._write_config_atomically(target, "NEW\n")
+                    theme_config_writer.write_config_atomically(target, "NEW\n")
         finally:
             os.fchmod = real_chmod
         self.assertEqual("ORIGINAL\n", target.read_text(encoding="utf-8"))
@@ -410,24 +407,19 @@ class TestWriteConfigs(unittest.TestCase):
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
         target.chmod(0o644)
-        theme_defaults._write_config_atomically(target, "NEW\n")
+        theme_config_writer.write_config_atomically(target, "NEW\n")
         self.assertEqual(0o644, target.stat().st_mode & 0o777)
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
 
-    def test_removal_between_the_exists_check_and_the_stat_writes(self):
+    def test_removal_before_the_stat_lookup_writes(self):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
-        td = theme_defaults
         # A partner (a KWin session saving its scratch config at exit) removes
-        # the file right after _write_config_atomically's exists()/stat()
-        # probe returns True: exists() already answers True when the file is
-        # gone, so the later stat() raises FileNotFoundError instead of
-        # falling through to the umask-defaulted write a never-present file
-        # would take.
+        # the file before the stat lookup. A missing target must fall through
+        # to the umask-defaulted write used for a never-present file.
         target.unlink()
-        with mock.patch.object(pathlib.Path, "exists", lambda self: True):
-            td._write_config_atomically(target, "NEW\n")
+        theme_config_writer.write_config_atomically(target, "NEW\n")
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
         self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
 
@@ -436,7 +428,7 @@ class TestWriteConfigs(unittest.TestCase):
         target = directory / "kwinrc"
         old = os.umask(0o022)
         try:
-            theme_defaults._write_config_atomically(target, "NEW\n")
+            theme_config_writer.write_config_atomically(target, "NEW\n")
         finally:
             os.umask(old)
         self.assertEqual(0o644, target.stat().st_mode & 0o777)

@@ -20,13 +20,13 @@ else:
     from text_lines import split_lines
 
 if __package__:
-    from tools.atomic_write import write_atomically
     from tools.containment import read_capped_bytes, require_within_repo
     from tools.repo_root import ROOT
+    from tools.theme_config_writer import write_configs as _write_configs
 else:  # imported from a directly run tool
-    from atomic_write import write_atomically
     from containment import read_capped_bytes, require_within_repo
     from repo_root import ROOT
+    from theme_config_writer import write_configs as _write_configs
 
 DEFAULTS = (
     ROOT
@@ -160,62 +160,6 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     return groups
 
 
-def _write_config_atomically(path: Path, content: str) -> None:
-    """Write *content* to *path* so it is either the old file or the whole new one.
-
-    A crash mid-write leaves the previous config (or no file) rather than a
-    truncated one that Plasma would read as malformed; see
-    :func:`tools.atomic_write.write_atomically`.
-
-    The mode is read with one guarded ``stat``, not an ``exists()`` probe
-    followed by a ``stat()``: a partner writing the same config home (a KWin
-    session's scratch config, saved at exit) can remove the file between the
-    two calls, and an unguarded second lookup would then raise a bare
-    ``FileNotFoundError`` out of the middle of :func:`write_configs`, after
-    some configs were written and before the rest. A file removed before the
-    lookup reads exactly like one that never existed: the write carries the
-    umask's default mode.
-    """
-    mode: int | None = None
-    try:
-        mode = path.stat().st_mode & 0o777
-    except FileNotFoundError:
-        pass
-    write_atomically(
-        path,
-        lambda destination: destination.write(content.encode("utf-8")),
-        mode=mode,
-    )
-
-
-def _config_name(name: object) -> str:
-    """Return *name* as a plain config filename, refusing a path.
-
-    :func:`write_configs` joins each name onto the caller's config home, so a
-    name carrying a separator (``../kwinrc``) or an absolute path would write
-    outside it. The defaults file only ever names flat files such as
-    ``kwinrc``, so anything that is not its own basename is refused before a
-    single file is written. A NUL byte is refused too: ``open()`` would raise
-    ``ValueError`` for it after the earlier files had already been written.
-    """
-    if not isinstance(name, str):
-        raise ValueError(
-            f"write_configs names must be str config filenames, not "
-            f"{type(name).__name__}"
-        )
-    if (
-        not name
-        or name in (".", "..")
-        or name != Path(name).name
-        or "\0" in name
-    ):
-        raise ValueError(
-            f"write_configs names must be plain config filenames inside "
-            f"the config home: {name!r}"
-        )
-    return name
-
-
 def write_configs(config_home: Path, names: Iterable[str]) -> None:
     """Write one config file per name in *names* from the defaults' sections for it.
 
@@ -228,34 +172,9 @@ def write_configs(config_home: Path, names: Iterable[str]) -> None:
     for that file. All names are checked before the first one is written, so
     a missing section leaves every config unchanged.
     """
-    if not isinstance(config_home, Path):
-        raise ValueError(
-            f"write_configs config_home must be a pathlib.Path, not "
-            f"{type(config_home).__name__}"
-        )
-    if isinstance(names, (str, bytes)):
-        raise ValueError(
-            "write_configs names must be a sequence of config filenames, "
-            f"not a single {type(names).__name__}: {names!r}"
-        )
-    wanted = [_config_name(name) for name in names]
-    groups = defaults_groups(DEFAULTS)
-    missing = [
-        name
-        for name in wanted
-        if not any(section_file == name for section_file, _ in groups)
-    ]
-    if missing:
-        raise ValueError(
-            f"{DEFAULTS}: no [<file>][<group>] section defines "
-            f"{', '.join(missing)}; refusing to write an empty config"
-        )
-    for name in wanted:
-        lines: list[str] = []
-        for (section_file, group), values in groups.items():
-            if section_file != name:
-                continue
-            lines.append(f"[{group}]")
-            lines.extend(f"{key}={value}" for key, value in values.items())
-            lines.append("")
-        _write_config_atomically(config_home / name, "\n".join(lines))
+    _write_configs(
+        config_home,
+        names,
+        defaults_path=DEFAULTS,
+        read_groups=defaults_groups,
+    )
