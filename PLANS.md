@@ -5,6 +5,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+## Done
+
 ### Fidelity CLI: separate comparison orchestration from output formatting (planned 2026-11-01 by the organize role)
 — done 2026-11-02 by the feature role
 
@@ -818,5 +820,3 @@ text. Scope is the GTK 4 sheet, `tests/test_gtk4_theme.py`,
 `docs/invariants.md` and nothing else: no GTK 3 rule, no Firefox sheet, no
 new asset, colour literal beyond the landed `#DDDDDD`, `#FFFFFF`,
 `#888888` and `#000000`, dependency or `!important`. `make check` passes.
-
-## Done
