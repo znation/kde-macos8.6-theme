@@ -31,6 +31,8 @@ def main(argv: list[str] | None = None) -> int:
         return report_error("sample", "--top-colors requires --histogram")
     if args.color_bounds and not args.histogram:
         return report_error("sample", "--color-bounds requires --histogram")
+    if args.color_fractions and not args.histogram:
+        return report_error("sample", "--color-fractions requires --histogram")
     if args.color_tolerance is not None and args.find_color is None:
         return report_error("sample", "--color-tolerance requires --find-color")
     if args.match_alpha is not None and args.find_color is None:

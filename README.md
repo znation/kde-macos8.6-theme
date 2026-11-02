@@ -440,6 +440,12 @@ Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
 
+Add `--color-fractions` with `--histogram` to add each emitted color's share
+of the complete requested region (`count / width / height`). JSON color
+records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions
+use ordinary Python float formatting and are not rounded. With `--top-colors`,
+the denominator still includes pixels omitted from the displayed palette.
+
 Add `--color-bounds` with `--histogram` to report each emitted color's
 smallest enclosing rectangle, using absolute image coordinates. The bounds
 include disconnected occurrences and do not imply a solid rectangle. With

@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: report histogram color fractions (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Compare palette coverage between differently sized reference crops without manually dividing counts. Histogram records exposed counts but no fractions.
+
+**Approach and files.** Added opt-in `--color-fractions`; it requires `--histogram` and derives each reported share from the existing histogram count divided by requested region area, without another traversal. JSON color objects gain numeric `fraction`, and text appends its ordinary Python float representation. The complete requested area remains the denominator with `--top-colors`. Added dedicated tests, README documentation and a tooling invariant.
+
+**Acceptance criteria.** Coverage pins offset-region fractions, ties and fraction 1.0, confirms the full-region denominator under truncation, RGB/RGBA grouping and opaque fallback, bounds composition, pre-read misuse rejection, bounded decoding and direct-script use. `make check` passed after the final implementation and documentation edit.
+
 ### Fidelity diagnostics: report maximum absolute error per channel (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Expose a sparse channel outlier even when another channel dominates the global maximum. `tools/fidelity_metrics.py::compare` computes channel maxima internally but `Metrics` retains just the global maximum; channel counts and bias describe extent and direction rather than each channel's peak. Searches of fidelity source/tests and planned/archived headings found no per-channel peak report. Related finished entries cover channel counts, bias and the global maximum-delta gate. This plan is independent of the waiting sampler coordinate-list plan.

@@ -102,10 +102,12 @@ def report(args, image, width: int, height: int, header: str) -> None:
                 "width": bounds[2] - bounds[0] + 1, "height": bounds[3] - bounds[1] + 1}
                 for color, bounds in bounds_by_color.items()}
         if args.json:
+            denominator = args.width * args.height
             result = {"image": args.image, "image_width": width, "image_height": height,
                 "region": region, "colors": [
                     {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
                      **({"alpha": color[3]} if args.alpha else {}),
+                     **({"fraction": count / denominator} if args.color_fractions else {}),
                      **({"bounds": bounds_by_color[color]} if bounds_by_color is not None else {})}
                     for color, count in colors
                 ]}
@@ -116,12 +118,15 @@ def report(args, image, width: int, height: int, header: str) -> None:
             return
         print(header)
         print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+        denominator = args.width * args.height
         for color, count in colors:
             rgb = color[:3]
             suffix = f"  alpha={color[3]}" if args.alpha else ""
             if bounds_by_color is not None:
                 bounds = bounds_by_color[color]
                 suffix += f"  bounds={bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}"
+            if args.color_fractions:
+                suffix += f"  fraction={count / denominator}"
             print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  count={count}{suffix}")
         if args.top_colors is not None:
             print(f"total colors: {total_colors}")
