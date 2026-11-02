@@ -56,8 +56,15 @@ def _git(*args: str) -> str:
             or f"git {' '.join(args)} exited {result.returncode}"
         )
     # Spaces and tabs at either end can belong to a path (notably a
-    # relative core.hooksPath). Remove Git's record terminator only.
-    return result.stdout.removesuffix("\n")
+    # relative core.hooksPath). Remove Git's record terminator only, then
+    # reject replies that cannot name a filesystem path before Path accepts
+    # an empty string as the current directory or errors on an embedded NUL.
+    path = result.stdout.removesuffix("\n")
+    if not path:
+        raise LocalHookError(f"git {' '.join(args)} returned an empty path")
+    if "\0" in path:
+        raise LocalHookError(f"git {' '.join(args)} returned a NUL in path")
+    return path
 
 
 def hooks_dir() -> Path:

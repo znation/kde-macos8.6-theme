@@ -246,6 +246,30 @@ class TestGitFailures(unittest.TestCase):
                 " /hooks ",
             )
 
+    def test_success_with_empty_path_reply_is_rejected(self):
+        with mock.patch.object(
+            local_hook_git.subprocess,
+            "run",
+            return_value=mock.Mock(returncode=0, stderr="", stdout="\n"),
+        ):
+            with self.assertRaisesRegex(
+                local_hook_git.LocalHookError, "empty path"
+            ):
+                local_hook_git.hooks_dir()
+
+    def test_success_with_nul_path_reply_is_rejected(self):
+        with mock.patch.object(
+            local_hook_git.subprocess,
+            "run",
+            return_value=mock.Mock(
+                returncode=0, stderr="", stdout="/hooks\0garbage\n"
+            ),
+        ):
+            with self.assertRaisesRegex(
+                local_hook_git.LocalHookError, "NUL in path"
+            ):
+                local_hook_git.hooks_dir()
+
 
 class TestGitDiscovery(unittest.TestCase):
     """Pin the Git path discovery ``local_hook_git`` documents.
