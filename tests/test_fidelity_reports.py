@@ -63,6 +63,12 @@ class TestBudgetVerdict(unittest.TestCase):
         self.assertFalse(budget_verdict(_metrics(mae=3.0, frac_differing=0.4),
                                         max_mae=2.0, max_frac=0.5))
 
+    def test_rmse_and_max_delta_budgets_must_each_be_met(self):
+        metrics = _metrics(rmse=2.5, max_delta=7)
+        self.assertTrue(budget_verdict(metrics, max_rmse=2.5, max_delta=7))
+        self.assertFalse(budget_verdict(metrics, max_rmse=2.4, max_delta=7))
+        self.assertFalse(budget_verdict(metrics, max_rmse=2.5, max_delta=6))
+
 
 class TestSourceBounds(unittest.TestCase):
     def test_absent_bounds_stay_none(self):
