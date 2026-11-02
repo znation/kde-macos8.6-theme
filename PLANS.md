@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Split reference sampler report handlers by mode, part 3/4: color-search handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
-
-**Goal and grounding.** Isolate color matching and its report from `tools/sample_reports.py::report`. Sibling part 1/4 provides traversal/formatting primitives; histogram part 2/4 and runs part 4/4 are independent.
-
-**Approach and files.** Extract the find-color branch into `tools/sample_report_search.py::report_search(args, image, width, height, header)`, including local region metadata assembly. Import helpers directly from `sample_report_pixels` with explicit package/direct-script paths and delegate only this branch in `sample_reports.report`. Preserve full-region scanning and the bounded retained-coordinate prefix; avoid algorithm or parser changes. Use `tests/test_sample_find_color.py` and the existing match-alpha/pixels/fraction suites; add a missing exact-output or direct-script case in the relevant suite only if needed. Remove dispatcher imports only when unused by its remaining branches.
-
-**Acceptance criteria.** Existing text and JSON search fixtures preserve default exact matching, explicit tolerance zero versus omission, exact alpha filtering with opaque fallback, stored RGB beneath transparency, absent-match null bounds, absolute disconnected-match bounds, bounded row-major coordinate prefixes and full-region fractions. Package and direct-script search invocations succeed; validation-before-read and bounded decode tests pass. Search source/tests/markdown for stale references and update actual ownership references only. Run `make check` after final edits. This part merges without parts 2/4 or 4/4.
-
 ### Split reference sampler report handlers by mode, part 4/4: scanline-runs handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
 
 **Goal and grounding.** Isolate `_color_runs` and the runs-output branch of `tools/sample_reports.py::report`. Part 1/4 supplies shared primitives; parts 2/4 and 3/4 are independent extractions. Once the siblings merge, the dispatcher delegates four modes.

@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split reference sampler report handlers by mode, part 3/4: color-search handler (planned 2026-11-02 by the plan role; requires part 1/4 landed) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Isolate color matching and its report from `tools/sample_reports.py::report`. Sibling part 1/4 provides traversal/formatting primitives; histogram part 2/4 and runs part 4/4 are independent.
+
+**Approach and files.** Extract the find-color branch into `tools/sample_report_search.py::report_search(args, image, width, height, header)`, including local region metadata assembly. Import helpers directly from `sample_report_pixels` with explicit package/direct-script paths and delegate only this branch in `sample_reports.report`. Preserve full-region scanning and the bounded retained-coordinate prefix; avoid algorithm or parser changes. Use `tests/test_sample_find_color.py` and the existing match-alpha/pixels/fraction suites; add a missing exact-output or direct-script case in the relevant suite only if needed. Remove dispatcher imports only when unused by its remaining branches.
+
+**Acceptance criteria.** Existing text and JSON search fixtures preserve default exact matching, explicit tolerance zero versus omission, exact alpha filtering with opaque fallback, stored RGB beneath transparency, absent-match null bounds, absolute disconnected-match bounds, bounded row-major coordinate prefixes and full-region fractions. Package and direct-script search invocations succeed; validation-before-read and bounded decode tests pass. Search source/tests/markdown for stale references and update actual ownership references only. Run `make check` after final edits. This part merges without parts 2/4 or 4/4.
+
+SUMMARY: Restore the alpha helper import used by the remaining runs handler
+WHY: Extracting color-search reporting left the shared dispatcher without `_region_alpha`, which the runs handler still needs. Restore the import for package and direct-script execution.
+RISK: Alpha-aware scanline runs could fail if the helper import is removed; inspect `tools/sample_reports.py` and `tools/sample_report_pixels.py`.
+VERIFIED: `make check` passed; the scanline-runs tests and the eight XDG-home tests reported OK.
+Objection 1: done
+Objection 2: unchanged-by-design because the config-home fallback test passed and its behavior is outside this extraction.
+Objection 3: unchanged-by-design because the absolute data-home test passed and its behavior is outside this extraction.
+Objection 4: unchanged-by-design because the missing-home data test passed and its behavior is outside this extraction.
+Objection 5: unchanged-by-design because the empty data-home fallback test passed and its behavior is outside this extraction.
+Objection 6: unchanged-by-design because the relative data-home fallback test passed and its behavior is outside this extraction.
+Objection 7: unchanged-by-design because this is the passing test-run separator/footer.
+Objection 8: unchanged-by-design because this reports the passing run's test total.
+Objection 9: unchanged-by-design because this reports that the XDG-home tests passed.
+Objection 10: done
+Objection 11: done
+
 ### Split reference sampler report handlers by mode, part 2/4: histogram handler (planned 2026-11-02 by the plan role; requires part 1/4 landed) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Isolate the Counter/selection/bounds/output branch in `tools/sample_reports.py::report`. Sibling part 1/4 supplies shared primitives; parts 3/4 and 4/4 extract independent search and runs branches and are not prerequisites.
