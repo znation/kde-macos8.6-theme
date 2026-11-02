@@ -37,7 +37,7 @@ def tracked_run_scratch_files(root):
         if "/" in name:
             continue
         path = os.path.join(root, name)
-        if not os.path.isfile(path):
+        if os.path.islink(path) or not os.path.isfile(path):
             continue
         with open(path, "rb") as fh:
             first_line = fh.readline()
@@ -107,6 +107,22 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 tracked_run_scratch_files(directory),
                 [(leak_name, b"/tmp/tumwater-run-example/tmp.work")],
             )
+
+    def test_scan_does_not_follow_a_tracked_symlink(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            target = os.path.join(directory, "target")
+            with open(target, "wb") as fh:
+                fh.write(b"/tmp/tumwater-run-example/tmp.work\n")
+            link = os.path.join(directory, "link")
+            os.symlink("target", link)
+            subprocess.run(["git", "-C", directory, "add", "link"], check=True)
+
+            # Git records a symlink's target text, not the target file's
+            # contents, so the scanner must not treat it as leaked bookkeeping.
+            self.assertEqual(tracked_run_scratch_files(directory), [])
 
 
 if __name__ == "__main__":
