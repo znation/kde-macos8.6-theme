@@ -494,7 +494,13 @@ even when neighboring pixels have the same RGB values; an image without alpha
 uses 255 for every run. RGB values remain uncomposited, including beneath
 fully transparent pixels.
 With `--height 1` (the default), traversal is horizontal; otherwise use
-`--width 1` for a vertical scan. A two-dimensional region is rejected. Add
+`--width 1` for a vertical scan. A two-dimensional region is rejected unless
+`--run-axis horizontal` or `--run-axis vertical` selects parallel scanlines.
+Horizontal scans visit rows top-to-bottom and pixels left-to-right; vertical
+scans visit columns left-to-right and pixels top-to-bottom. Runs never cross
+scanline boundaries, even when adjacent scanlines end and begin with equal colors.
+For example, `--width 4 --height 3 --runs --run-axis vertical` reports four
+independent top-to-bottom column scans. Add
 `--json` to return the `axis` and traversal-ordered `runs`, each with its
 absolute starting coordinate, `length`, `rgb` and `hex`:
 

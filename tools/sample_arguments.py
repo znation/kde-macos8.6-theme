@@ -58,6 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--height", type=positive_int("--height"), default=1, metavar="H", help="pixels to sample below y (default 1)")
     parser.add_argument("--json", action="store_true", help="print structured JSON")
     parser.add_argument("--alpha", action="store_true", help="include alpha in pixel samples, histogram colors and run grouping")
+    parser.add_argument("--run-axis", choices=("horizontal", "vertical"), help="scan each row or column of a --runs rectangle")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
     parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-fractions", action="store_true", help="with --histogram, report each color's fraction of the region")

@@ -29,7 +29,15 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
 
 def report_runs(args, image, width: int, height: int, header: str) -> None:
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
-    axis, runs = _color_runs(image, args.x, args.y, args.width, args.height, args.alpha)
+    axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
+    runs = []
+    if axis == "horizontal":
+        scans = ((args.x, args.y + row, args.width, 1) for row in range(args.height))
+    else:
+        scans = ((args.x + column, args.y, 1, args.height) for column in range(args.width))
+    for x, y, scan_width, scan_height in scans:
+        _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
+        runs.extend(line_runs)
     if args.json:
         print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
             "region": region, "axis": axis, "runs": [

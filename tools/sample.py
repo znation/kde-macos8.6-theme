@@ -42,7 +42,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.match_fraction and args.find_color is None:
         return report_error("sample", "--match-fraction requires --find-color")
     if args.runs and args.width > 1 and args.height > 1:
-        return report_error("sample", "--runs requires a single row or column")
+        if args.run_axis is None:
+            return report_error("sample", "--runs requires a single row or column unless --run-axis is given")
+    if args.run_axis is not None and not args.runs:
+        return report_error("sample", "--run-axis requires --runs")
     if args.alpha and args.find_color is not None:
         return report_error("sample", "--alpha cannot be combined with --find-color")
 

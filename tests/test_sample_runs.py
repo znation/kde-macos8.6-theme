@@ -71,6 +71,33 @@ class TestSampleRuns(CliTestCase):
         self.assertEqual(data["axis"], "horizontal")
         self.assertEqual(data["runs"][0]["length"], 1)
 
+    def test_rectangular_axes_keep_scanlines_independent(self):
+        _, data = rgb_image(4, 3, lambda x, y: (1, 2, 3) if x < 3 else (9, 8, 7))
+        path = self._write(self._tmp_dir(), "rectangle.png", data)
+        horizontal = self._run(path, "1", "0", "--width", "2", "--height", "3",
+                               "--runs", "--run-axis", "horizontal", "--json")
+        self._assert_success(horizontal)
+        parsed = json.loads(horizontal.stdout)
+        self.assertEqual(parsed["axis"], "horizontal")
+        self.assertEqual([(run["x"], run["y"], run["length"]) for run in parsed["runs"]],
+                         [(1, 0, 2), (1, 1, 2), (1, 2, 2)])
+        vertical = self._run(path, "0", "0", "--width", "4", "--height", "3",
+                             "--runs", "--run-axis", "vertical", "--json")
+        self._assert_success(vertical)
+        parsed = json.loads(vertical.stdout)
+        self.assertEqual(parsed["axis"], "vertical")
+        self.assertEqual([(run["x"], run["y"], run["length"]) for run in parsed["runs"]],
+                         [(0, 0, 3), (1, 0, 3), (2, 0, 3), (3, 0, 3)])
+        one_pixel = self._run(path, "0", "0", "--runs", "--run-axis", "vertical", "--json")
+        self._assert_success(one_pixel)
+        self.assertEqual(json.loads(one_pixel.stdout)["axis"], "vertical")
+
+    def test_run_axis_requires_runs_before_read(self):
+        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
+            result = self._run("missing.png", "0", "0", "--run-axis", "vertical")
+        self._assert_usage_error(result, "requires --runs")
+        self.assertEqual(result.stdout, "")
+
     def test_alpha_runs_group_by_rgba_and_preserve_transparent_rgb(self):
         colors = [(10, 20, 30, 0), (10, 20, 30, 128), (10, 20, 30, 255),
                   (10, 20, 30, 255), (40, 50, 60, 0), (70, 80, 90, 0)]

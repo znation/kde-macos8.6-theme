@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: measure parallel scanline runs in a rectangle (planned 2026-11-02 by the plan role; requires the reference sampler report-handler split) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Inspect a complete bevel's color bands in one invocation rather than sampling each row or column separately. `tools/sample.py::main` rejects two-dimensional `--runs` regions; `tools/sample_report_runs.py::_color_runs` handles one scanline. Source and archive searches found single-scanline RGB/RGBA reporting and its extraction, but no explicit rectangular run axis. This is independent of the waiting fidelity diagnostic.
+
+**Approach and files.** Added `--run-axis {horizontal,vertical}` (default absent) in `tools/sample_arguments.py::build_parser`, requiring `--runs` before image reads in `tools/sample.py::main`. Kept the existing two-dimensional rejection when the option is absent. In `tools/sample_report_runs.py::report_runs`, explicit axes enumerate independent scanlines: horizontal visits rows top-to-bottom, each left-to-right; vertical visits columns left-to-right, each top-to-bottom. `_color_runs` handles each one-row/one-column subregion and records flatten into the existing `runs` array; runs do not merge across scanline boundaries. Explicit vertical scans including a single pixel retain the vertical axis. The output format, absolute origins, RGB/RGBA equality and opaque alpha fallback remain supported. Added coverage in `tests/test_sample_runs.py`, documented ordering and an example in README.md, and updated the scanline guarantee in `docs/invariants.md` on 2026-11-02. Decode remains once and bounded by the requested bottom row.
+
+**Acceptance criteria.** Rectangular horizontal and vertical JSON scans assert independent scanlines and ordering, including an explicit vertical single-pixel scan. Invalid `--run-axis` use without `--runs` returns 2 before image reads. Existing single-line run coverage continues to exercise RGB/RGBA semantics, decoding bounds, and output.
+
 ### Fidelity diagnostics: locate vertical mismatch bounds per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Locate the vertical extent of side-border and widget-edge mismatches without inspecting individual pixels. `tools/fidelity_pixels.py::difference_columns` counts mismatches but does not locate them; `difference_row_bounds` provides the horizontal counterpart. Searches of source, tests and planned/finished entries found no column-bounds diagnostic. This is independent of the queued sampler extractions.
