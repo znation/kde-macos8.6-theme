@@ -45,6 +45,35 @@ def match_pixels(value: str) -> int:
     return parsed
 
 
+def option_error(args: argparse.Namespace) -> str | None:
+    """Return the first incompatible option combination, if any."""
+    if args.top_colors is not None and not args.histogram:
+        return "--top-colors requires --histogram"
+    if args.color_bounds and not args.histogram:
+        return "--color-bounds requires --histogram"
+    if args.color_fractions and not args.histogram:
+        return "--color-fractions requires --histogram"
+    if args.color_tolerance is not None and args.find_color is None:
+        return "--color-tolerance requires --find-color"
+    if args.match_alpha is not None and args.find_color is None:
+        return "--match-alpha requires --find-color"
+    if args.match_pixels is not None and args.find_color is None:
+        return "--match-pixels requires --find-color"
+    if args.match_fraction and args.find_color is None:
+        return "--match-fraction requires --find-color"
+    if args.match_runs and args.find_color is None:
+        return "--match-runs requires --find-color"
+    if args.match_column_runs and args.find_color is None:
+        return "--match-column-runs requires --find-color"
+    if args.runs and args.width > 1 and args.height > 1 and args.run_axis is None:
+        return "--runs requires a single row or column unless --run-axis is given"
+    if args.run_axis is not None and not args.runs:
+        return "--run-axis requires --runs"
+    if args.alpha and args.find_color is not None:
+        return "--alpha cannot be combined with --find-color"
+    return None
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = EscapingArgumentParser(
         prog="sample",

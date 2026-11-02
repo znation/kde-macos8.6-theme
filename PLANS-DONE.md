@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: separate option compatibility validation from image loading (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Keep `tools/sample.py::main` focused on loading a validated region and dispatching its report. It checked histogram/search option dependencies, scan-axis compatibility and the alpha/search conflict inline, while `tools/sample_arguments.py` owned parser construction and scalar validators. This task is independent of the waiting fidelity parser extraction.
+
+**Approach and files.** Add `tools/sample_arguments.py::option_error(args) -> str | None`, moving the pre-containment option-combination checks from `main` into this pure helper in their existing order. Return the first existing diagnostic string, or `None`; do not print, exit, mutate the namespace or access the filesystem. In `tools/sample.py::main`, call it immediately after parsing and pass a returned message to the existing `report_error("sample", message)`. Preserve package and direct-script imports. Keep argparse's scalar/mutually-exclusive-mode validation, containment, image bounds and PNG reads in their current owners. Limit implementation to those two modules and new `tests/test_sample_option_validation.py`; no table-driven rule engine or new dependency is needed.
+
+**Acceptance criteria.** Each compatibility rejection is tested through `sample.main` with exact stderr, status 2 and empty stdout, while `read_png_size` and `read_png` are mocked to prove neither is called. Tests pin precedence between a dependent search option and the alpha/search conflict. Direct helper tests cover valid ordinary, histogram, search and explicit-axis rectangular-run namespaces without mutation, including explicit zero tolerance/alpha and a one-pixel run. Existing successful CLI coverage remains, with a direct-script invalid-combination case. `make check` passed after the final edits. The sampler contract row in `docs/invariants.md` now names the validator and test.
+
 ### Fidelity CLI: isolate guarded PNG source loading (planned 2026-11-02 by the plan role) — done 2026-11-02 by the steward role
 
 Merged this duplicate into the queued fidelity input-loading plan, which covers the same `_read_source` extraction with broader overflow and symlink characterization.

@@ -11,7 +11,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
-    from tools.sample_arguments import build_parser
+    from tools.sample_arguments import build_parser, option_error
     from tools.sample_reports import report
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
@@ -19,7 +19,7 @@ else:  # run directly: python3 tools/sample.py
     from diagnostics import report_error
     from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
-    from sample_arguments import build_parser
+    from sample_arguments import build_parser, option_error
     from sample_reports import report
     from terminal import escape_controls
 
@@ -27,31 +27,9 @@ else:  # run directly: python3 tools/sample.py
 def main(argv: list[str] | None = None) -> int:
     """Validate and load the requested region, then dispatch its report."""
     args = build_parser().parse_args(argv)
-    if args.top_colors is not None and not args.histogram:
-        return report_error("sample", "--top-colors requires --histogram")
-    if args.color_bounds and not args.histogram:
-        return report_error("sample", "--color-bounds requires --histogram")
-    if args.color_fractions and not args.histogram:
-        return report_error("sample", "--color-fractions requires --histogram")
-    if args.color_tolerance is not None and args.find_color is None:
-        return report_error("sample", "--color-tolerance requires --find-color")
-    if args.match_alpha is not None and args.find_color is None:
-        return report_error("sample", "--match-alpha requires --find-color")
-    if args.match_pixels is not None and args.find_color is None:
-        return report_error("sample", "--match-pixels requires --find-color")
-    if args.match_fraction and args.find_color is None:
-        return report_error("sample", "--match-fraction requires --find-color")
-    if args.match_runs and args.find_color is None:
-        return report_error("sample", "--match-runs requires --find-color")
-    if args.match_column_runs and args.find_color is None:
-        return report_error("sample", "--match-column-runs requires --find-color")
-    if args.runs and args.width > 1 and args.height > 1:
-        if args.run_axis is None:
-            return report_error("sample", "--runs requires a single row or column unless --run-axis is given")
-    if args.run_axis is not None and not args.runs:
-        return report_error("sample", "--run-axis requires --runs")
-    if args.alpha and args.find_color is not None:
-        return report_error("sample", "--alpha cannot be combined with --find-color")
+    message = option_error(args)
+    if message is not None:
+        return report_error("sample", message)
 
     # A checked-in link that escapes the repository could expose a private
     # image through its pixels, so refuse it before either read.
