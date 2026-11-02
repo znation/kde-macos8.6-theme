@@ -5,7 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Fidelity diagnostics: report signed channel bias for palette tuning (planned 2026-11-02 by the plan role)
+### Fidelity diagnostics: report signed channel bias for palette tuning (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Show whether candidate channel values trend above or below the reference when tuning the Platinum palette. `tools/fidelity.py::main` currently offers absolute-error diagnostics; `tools/fidelity_pixels.py::channel_counts` counts threshold crossings, and `tools/fidelity_reports.py::report_data` / `render_text` format those diagnostics. Searches of fidelity source/tests and planned/archived entries for signed error and bias found no signed-mean diagnostic. The finished channel-count and percentile plans measure extent and magnitude, rather than direction. This is independent of the completed sampler alpha work.
 
@@ -21,7 +21,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Approach and files.** In `tools/sample.py::main`, allow `--alpha --runs` while retaining alpha conflicts with histogram and find-color modes and the single-row/column validation. Reuse the existing bounded alpha decode. Extend `tools/sample_reports.py::_color_runs` with an optional alpha-aware mode, using `_region_alpha` alongside `_region_pixels`: merge only when both RGB and alpha match, use 255 for missing alpha, and preserve RGB under zero alpha without compositing. `report` passes the flag, adds integer `alpha` to each JSON run, and appends `  alpha=N` after `length=N` in each text run. Without the flag retain RGB grouping and output. Update `tools/sample_arguments.py::build_parser` help, `tests/test_sample_runs.py::TestSampleRuns`, and the conflict loop in `tests/test_sample_alpha.py::TestSampleAlpha::test_alpha_read_is_bounded_and_mode_conflicts_skip_decode`. Document the combination and RGBA grouping under README.md's Sampling reference pixels, and update the scanline guarantee in `docs/invariants.md` with the implementation date. These seven files bound one run; no decoder changes or theme values are needed.
 
 **Acceptance criteria.** Fixtures assert exact text and JSON runs for offset horizontal and vertical scans containing repeated RGBA values, equal RGB with distinct alpha 0/128/255, and distinct RGB under alpha zero. Assert absolute origins, run lengths summing to the requested scan length, separated equal runs remaining separate, and horizontal axis for a single pixel. Cover opaque RGB and truecolor `tRNS` via existing PNG fixtures. Compare the same transparency fixture without the flag to prove RGB-only merging and absence of alpha fields. Mock reads to verify `alpha=True` and the requested bottom-row bound; invalid two-dimensional scans and retained mode conflicts must fail before reads. Exercise direct-script invocation and missing/corrupt images returning 2 with empty stdout. Retain ordinary alpha sample regressions and run `make check` after the final edit.
-
 ## Done
 
 ### Theme apply: separate optional integrations from required selections (planned 2026-11-01 by the organize role)

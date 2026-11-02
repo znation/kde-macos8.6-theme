@@ -19,9 +19,10 @@ BIAS_LINE = "channel bias (candidate - reference): "
 class TestChannelBias(unittest.TestCase):
     def test_signed_fractional_and_cancelling_means(self):
         reference = Image(2, 1, bytes(6))
-        candidate = Image(2, 1, bytes([1, 0, 0, 0, 0, 0]))
+        candidate = Image(2, 1, bytes([1, 0, 0, 0, 3, 0]))
         self.assertEqual(channel_bias(candidate, reference),
-                         {"r": 0.5, "g": 0.0, "b": 0.0, "a": 0.0})
+                         {"r": 0.5, "g": 1.5, "b": 0.0, "a": 0.0})
+        self.assertEqual(channel_bias(reference, candidate)["r"], -0.5)
         opposite = Image(2, 1, bytes([1, 0, 0, 0, 0, 0]))
         peer = Image(2, 1, bytes([0, 0, 0, 1, 0, 0]))
         self.assertEqual(channel_bias(peer, opposite)["r"], 0.0)
@@ -42,6 +43,19 @@ class TestChannelBias(unittest.TestCase):
 
 
 class TestChannelBiasCli(FidelityCliTestCase):
+    def _run_altered_pair(self, *args: str):
+        candidate, reference = self._write_altered_pair(self._tmp_dir())
+        return self._run(candidate, reference, *args)
+
+    def test_text_json_and_channel_count_outputs_agree(self):
+        args = ("--max-mae", "2", "--channel-bias", "--channel-counts")
+        text = self._run_altered_pair(*args)
+        self._assert_pass(text)
+        self.assertIn('channel bias (candidate - reference): {"r": 0.0, "g": -5.555555555555555, "b": 0.0, "a": 0.0}', text.stdout)
+        data = json.loads(self._run_altered_pair(*args, "--json").stdout)
+        self.assertEqual(data["channel_bias"]["g"], -50 / 9)
+        self.assertIn("channel_counts", data)
+
     def test_text_json_agree_and_flag_does_not_change_fail_or_budget_pass(self):
         tmp = self._tmp_dir()
         reference = make_png(2, 1, [bytes(6)])
