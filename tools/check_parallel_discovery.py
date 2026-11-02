@@ -46,7 +46,8 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
             if os.path.isdir(path):
                 if os.path.isfile(os.path.join(path, "__init__.py")):
                     visit(path, f"{prefix}{entry}.")
-            elif _VALID_MODULE_NAME.match(entry) and fnmatch.fnmatch(entry, pattern):
+                continue
+            if _VALID_MODULE_NAME.match(entry) and fnmatch.fnmatch(entry, pattern):
                 names.append(f"{prefix}{entry[:-len('.py')]}")
 
     visit(tests_dir, "")
