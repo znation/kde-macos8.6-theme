@@ -20,6 +20,12 @@ def _region_pixels(image, x: int, y: int, width: int, height: int):
             yield (rgb[offset], rgb[offset + 1], rgb[offset + 2])
 
 
+def _positioned_region_pixels(image, x: int, y: int, width: int, height: int):
+    """Yield each RGB pixel in a rectangle with its absolute image position."""
+    for index, rgb in enumerate(_region_pixels(image, x, y, width, height)):
+        yield x + index % width, y + index // width, rgb
+
+
 def _region_alpha(image, x: int, y: int, width: int, height: int):
     alpha = image.alpha
     for row in range(y, y + height):
@@ -108,8 +114,9 @@ def report(args, image, width: int, height: int, header: str) -> None:
         tolerance = args.color_tolerance if args.color_tolerance is not None else 0
         count = 0
         min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
-        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-            x, y = args.x + index % args.width, args.y + index // args.width
+        for x, y, rgb in _positioned_region_pixels(
+            image, args.x, args.y, args.width, args.height
+        ):
             if max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance:
                 count += 1
                 min_x, min_y = min(min_x, x), min(min_y, y)
@@ -136,8 +143,9 @@ def report(args, image, width: int, height: int, header: str) -> None:
     if args.json:
         pixels = []
         alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-        for index, rgb in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-            x, y = args.x + index % args.width, args.y + index // args.width
+        for x, y, rgb in _positioned_region_pixels(
+            image, args.x, args.y, args.width, args.height
+        ):
             pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)}
             if alphas is not None:
                 pixel["alpha"] = next(alphas)
@@ -155,7 +163,8 @@ def report(args, image, width: int, height: int, header: str) -> None:
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
     alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    for index, (r, g, b) in enumerate(_region_pixels(image, args.x, args.y, args.width, args.height)):
-        x, y = args.x + index % args.width, args.y + index // args.width
+    for x, y, (r, g, b) in _positioned_region_pixels(
+        image, args.x, args.y, args.width, args.height
+    ):
         suffix = f"  alpha={next(alphas)}" if alphas is not None else ""
         print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}{suffix}")
