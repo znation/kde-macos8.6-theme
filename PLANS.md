@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Split reference sampler report handlers by mode, part 1/4: pixel reports and shared traversal (planned 2026-11-02 by the plan role)
-
-**Goal and grounding.** Make the ordinary pixel report independently readable and establish shared primitives for sibling parts 2/4 (histogram), 3/4 (search), and 4/4 (runs). Inspected `tools/sample_reports.py::report`: its final branches format JSON pixels, single-pixel text and rectangle text; `_hex`, `_region_pixels`, `_positioned_region_pixels` and `_region_alpha` serve several modes. The finished 2026-11-01 CLI split moved reporting into this module, not into separate mode handlers. This replaces the held whole-dispatcher refactor with one bounded extraction.
-
-**Approach and files.** Add `tools/sample_report_pixels.py` containing those four primitives and `report_pixels(args, image, width, height, header)` for the three ordinary-output branches. Keep region metadata assembly inside the handler. In `tools/sample_reports.py`, import the primitives for remaining modes and delegate the final fallback to `report_pixels`; preserve runs/histogram/find-color precedence. Use explicit package/direct-script imports as in `tools/sample.py`; the new module must not import the dispatcher. Keep `_positioned_region_pixels` imported in the dispatcher while its histogram branch and patch seam still live there. Touch these two source files and `tests/test_sample_cli.py` / `tests/test_sample_alpha.py` only as needed for focused coverage. Leave parser, validation, loading and diagnostics in `sample.main`. No new framework or compatibility wrapper.
-
-**Acceptance criteria.** Existing exact text and JSON pixel/rectangle fixtures pass through `sample.main`, including absolute row-major coordinates, control-bearing paths, alpha 255 fallback and stored RGB beneath zero alpha. Add a missing direct-script ordinary-output case if needed. Histogram, search and runs tests still pass with the moved helpers; `TestSampleHistogramBounds.test_bounds_traversal_is_optional_and_uses_single_decode` retains its patch target until part 2/4. Search source/tests/markdown for moved symbols and correct stale references. README.md and tooling invariants need edits only if an actual reference or test owner changes; the CLI contract stays intact. Run `make check` after final edits.
-
 ### Split reference sampler report handlers by mode, part 2/4: histogram handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
 
 **Goal and grounding.** Isolate the Counter/selection/bounds/output branch in `tools/sample_reports.py::report`. Sibling part 1/4 supplies shared primitives; parts 3/4 and 4/4 extract independent search and runs branches and are not prerequisites.
