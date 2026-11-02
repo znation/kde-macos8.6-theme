@@ -37,6 +37,17 @@ class TestUnfilterLanes(unittest.TestCase):
                 expected = bytes((x + y) & 0xFF for x, y in zip(a, b))
                 self.assertEqual(filters._byte_add(a, b), expected)
 
+    def test_lane_mask_cache_is_bounded(self):
+        filters._lane_masks.cache_clear()
+        self.addCleanup(filters._lane_masks.cache_clear)
+        for length in range(1, 20):
+            filters._lane_masks(length)
+        info = filters._lane_masks.cache_info()
+        self.assertEqual(info.maxsize, 8)
+        self.assertEqual(info.currsize, 8)
+        filters._lane_masks(19)
+        self.assertEqual(filters._lane_masks.cache_info().hits, 1)
+
     def test_byte_add_unequal_lengths_raise(self):
         assert_rejects_unequal_lengths(self, filters._byte_add)
 

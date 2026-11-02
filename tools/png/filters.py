@@ -9,6 +9,8 @@ or error class, so they live here and are pinned directly by ``tests/test_png_fi
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 try:
     from tools.byteops import require_equal_lengths
 except ImportError:  # imported as the top-level package `png` by a directly run tool
@@ -86,9 +88,7 @@ def _paeth_delta_rows() -> tuple[bytes, ...]:
     return rows
 
 
-_LANE_MASKS_CACHE: dict[int, tuple[int, int]] = {}
-
-
+@lru_cache(maxsize=8)
 def _lane_masks(length: int) -> tuple[int, int]:
     """Return the low-seven-bit and high-bit masks for *length* packed bytes.
 
@@ -98,15 +98,10 @@ def _lane_masks(length: int) -> tuple[int, int]:
     the Sub/Up hot path, and rebuilding the two big-integer masks each time
     is pure waste.
     """
-    cached = _LANE_MASKS_CACHE.get(length)
-    if cached is not None:
-        return cached
-    masks = (
+    return (
         int.from_bytes(b"\x7f" * length, "little"),
         int.from_bytes(b"\x80" * length, "little"),
     )
-    _LANE_MASKS_CACHE[length] = masks
-    return masks
 
 
 def _lane_add(x: int, y: int, low7: int, high: int) -> int:
