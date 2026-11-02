@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Split reference sampler report handlers by mode, part 4/4: scanline-runs handler (planned 2026-11-02 by the plan role; requires part 1/4 landed)
-
-**Goal and grounding.** Isolate `_color_runs` and the runs-output branch of `tools/sample_reports.py::report`. Part 1/4 supplies shared primitives; parts 2/4 and 3/4 are independent extractions. Once the siblings merge, the dispatcher delegates four modes.
-
-**Approach and files.** Move `_color_runs` and its branch into `tools/sample_report_runs.py`, exposing `report_runs(args, image, width, height, header)` and assembling region metadata there. Import helpers directly from `sample_report_pixels` with explicit package/direct-script paths. Delegate only the runs branch in `sample_reports.report`; remove its imports and local region metadata only when unused by remaining branches. Use `tests/test_sample_runs.py` for exact-output regressions and add a missing direct-script case there only if needed. Do not change run grouping or argument validation.
-
-**Acceptance criteria.** Existing horizontal, vertical, single-pixel and separated-equal-color fixtures preserve run origins, lengths, order, hex formatting and text/JSON layout. RGBA equality distinguishes alpha transitions, missing alpha uses 255 and transparent RGB stays uncomposited. Package and direct-script runs invocations succeed; two-dimensional run requests still fail before reads. Search source/tests/markdown for stale symbol references and update actual ownership references only. Run `make check` after final edits. This part merges without parts 2/4 or 3/4.
-
 ### Fidelity diagnostics: locate vertical mismatch bounds per column (planned 2026-11-02 by the plan role)
 
 **Goal and grounding.** Locate the vertical extent of side-border and widget-edge mismatches without inspecting individual pixels. `tools/fidelity_pixels.py::difference_columns` counts mismatches but does not locate them; `difference_row_bounds` provides the horizontal counterpart. Searches of source, tests and planned/finished entries found no column-bounds diagnostic. This is independent of the queued sampler extractions.

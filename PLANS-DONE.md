@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split reference sampler report handlers by mode, part 4/4: scanline-runs handler (planned 2026-11-02 by the plan role; requires part 1/4 landed) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Isolate `_color_runs` and the runs-output branch of `tools/sample_reports.py::report`. Part 1/4 supplies shared primitives; parts 2/4 and 3/4 are independent extractions. Once the siblings merge, the dispatcher delegates four modes.
+
+**Approach and files.** Move `_color_runs` and its branch into `tools/sample_report_runs.py`, exposing `report_runs(args, image, width, height, header)` and assembling region metadata there. Import helpers directly from `sample_report_pixels` with explicit package/direct-script paths. Delegate only the runs branch in `sample_reports.report`; remove its imports and local region metadata only when unused by remaining branches. Use `tests/test_sample_runs.py` for exact-output regressions and add a missing direct-script case there only if needed. Do not change run grouping or argument validation.
+
+**Acceptance criteria.** Existing horizontal, vertical, single-pixel and separated-equal-color fixtures preserve run origins, lengths, order, hex formatting and text/JSON layout. RGBA equality distinguishes alpha transitions, missing alpha uses 255 and transparent RGB stays uncomposited. Package and direct-script runs invocations succeed; two-dimensional run requests still fail before reads. Search source/tests/markdown for stale symbol references and update actual ownership references only. Run `make check` after final edits. This part merges without parts 2/4 or 3/4.
+
 ### Split reference sampler report handlers by mode, part 3/4: color-search handler (planned 2026-11-02 by the plan role; requires part 1/4 landed) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Isolate color matching and its report from `tools/sample_reports.py::report`. Sibling part 1/4 provides traversal/formatting primitives; histogram part 2/4 and runs part 4/4 are independent.
