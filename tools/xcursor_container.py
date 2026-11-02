@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import struct
+from collections.abc import Sequence
 
 MAGIC = b"Xcur"
 FILE_VERSION = 0x00010000
@@ -12,9 +13,10 @@ IMAGE_TYPE = 0xFFFD0002
 CHUNK_VERSION = 1
 IMAGE_HEADER_SIZE = 36
 MAX_IMAGE_SIZE = 0x7FFF
+Frame = tuple[int, int, int, int, int, bytes]
 
 
-def assemble(frames) -> bytes:
+def assemble(frames: Sequence[Frame]) -> bytes:
     """Return the Xcursor bytes for already-validated, non-empty *frames*."""
     if not frames:
         raise ValueError(
