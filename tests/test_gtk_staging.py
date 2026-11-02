@@ -121,6 +121,15 @@ class TestStageAll(StagingCase):
 
 
 class TestCommit(StagingCase):
+    def test_removing_a_missing_file_is_a_no_op(self):
+        missing = self.root / "gtk-4.0" / "gtk.css"
+
+        commit([], removals=[missing])
+
+        self.assertFalse(missing.exists())
+        self.assertFalse(missing.parent.exists())
+        self.assertEqual([], self.backups_of(missing))
+
     def test_renames_each_staged_file_over_its_target(self):
         first = self.root / "gtk-3.0" / "settings.ini"
         second = self.root / "gtk-4.0" / "settings.ini"
