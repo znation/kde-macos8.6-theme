@@ -12,6 +12,15 @@ else:  # run directly: python3 tools/sample.py
     from sample_match_runs import _MatchRuns
 
 
+def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
+                        coordinate_key: str, length_key: str) -> None:
+    bound = bounds[index]
+    if bound is None:
+        bounds[index] = {coordinate_key: coordinate, length_key: 1}
+    else:
+        bound[length_key] = position - bound[coordinate_key] + 1
+
+
 def _search_match(args, image) -> dict:
     target = args.find_color
     tolerance = args.color_tolerance if args.color_tolerance is not None else 0
@@ -43,17 +52,11 @@ def _search_match(args, image) -> dict:
             if matching_columns is not None:
                 matching_columns[x - args.x] += 1
             if matching_row_bounds is not None:
-                row = matching_row_bounds[y - args.y]
-                if row is None:
-                    matching_row_bounds[y - args.y] = {"x": x, "width": 1}
-                else:
-                    row["width"] = x - row["x"] + 1
+                _extend_match_bound(
+                    matching_row_bounds, y - args.y, x, x, "x", "width")
             if matching_column_bounds is not None:
-                column = matching_column_bounds[x - args.x]
-                if column is None:
-                    matching_column_bounds[x - args.x] = {"y": y, "height": 1}
-                else:
-                    column["height"] = y - column["y"] + 1
+                _extend_match_bound(
+                    matching_column_bounds, x - args.x, y, y, "y", "height")
             if args.match_centroid:
                 sum_x += x
                 sum_y += y
