@@ -501,6 +501,29 @@ class TestCursorSet(unittest.TestCase):
             image for image in cursor.images if image.nominal_size == 16
         )
         width, _, rgba = decode_rgba(image.png)
+        expected = (
+            "                ",
+            "       .        ",
+            "      .#.       ",
+            "      .#.       ",
+            "      .#.       ",
+            "      .#.       ",
+            "  .....#.....   ",
+            " .####.#.####.  ",
+            "  .....#.....   ",
+            "      .#.       ",
+            "      .#.       ",
+            "      .#.       ",
+            "      .#.       ",
+            "       .        ",
+            "                ",
+            "                ",
+        )
+        colors = {" ": TRANSPARENT, ".": WHITE, "#": BLACK}
+        for y, row in enumerate(expected):
+            for x, cell in enumerate(row):
+                with self.subTest(x=x, y=y):
+                    self.assertEqual(_pixel(rgba, width, x, y), colors[cell])
         for x, y in ((7, 2), (7, 12), (2, 7), (12, 7), (7, 7)):
             with self.subTest(black=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), BLACK)
