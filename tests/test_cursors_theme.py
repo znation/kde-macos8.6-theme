@@ -454,6 +454,14 @@ class TestCursorSet(unittest.TestCase):
             with self.subTest(cardinal=(x, y)):
                 self.assertEqual(_pixel(rgba, width, x, y), WHITE)
 
+    def test_dnd_copy_plus_outline_separates_the_arms(self):
+        rgba = make_cursors.render_rgba(cursor_art.DND_COPY_GRID, 16)
+        self.assertEqual(_pixel(rgba, 16, 7, 7), BLACK)
+        self.assertEqual(_pixel(rgba, 16, 3, 7), BLACK)
+        self.assertEqual(_pixel(rgba, 16, 11, 7), BLACK)
+        self.assertEqual(_pixel(rgba, 16, 6, 7), WHITE)
+        self.assertEqual(_pixel(rgba, 16, 8, 7), WHITE)
+
     def test_not_allowed_ring_interior_is_transparent_except_the_slash(self):
         cursor = _read_cursor(CURSORS / "not-allowed")
         image = next(
