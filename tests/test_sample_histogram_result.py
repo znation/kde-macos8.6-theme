@@ -48,6 +48,18 @@ class TestSampleHistogramResult(CliTestCase):
             {"rgb": [7, 8, 9], "hex": "#070809", "count": 1, "alpha": 255},
         ])
 
+    def test_filtering_every_color_keeps_empty_page_totals(self):
+        image = SimpleNamespace(width=2, rgb=bytes((1, 2, 3, 4, 5, 6)), alpha=None)
+        args = SimpleNamespace(image="fixture.png", x=0, y=0, width=2, height=1,
+                               alpha=False, top_colors=None, color_offset=None,
+                               min_color_count=3, max_color_count=None,
+                               min_color_fraction=None, max_color_fraction=None,
+                               exclude_colors=None, color_bounds=False,
+                               color_positions=False, color_fractions=True)
+        result = sample_report_histogram._histogram_result(args, image, 2, 1)
+        self.assertEqual(result["colors"], [])
+        self.assertEqual((result["total_colors"], result["omitted_pixels"]), (2, 2))
+
     def test_cropped_alpha_result_and_combined_cli_order(self):
         path = self._write(self._tmp_dir(), "rgba.png", make_png(4, 2, [
             bytes((9, 9, 9, 255, 1, 2, 3, 0, 4, 5, 6, 128, 8, 8, 8, 255)),
