@@ -1502,6 +1502,69 @@ for radio in (False, True):
             set(fields + focus + motion),
         )
 
+    def test_editable_label_cells(self):
+        # The landed entry recipe governs the stock editable-label family:
+        # the sheet restates the stock field arm and the four column-view
+        # cell-editing arms with byte-equal twins declaring ENTRY_FIELD, the
+        # landed focus-black outline and TEXT_SELECTION, so an editable
+        # label and a column view's cell being edited paint the raised
+        # field, the black focus ring and the landed selection fill instead
+        # of stock's warm-grey border and blue accent tints.
+        field = "editablelabel > stack > text"
+        focus = (
+            "columnview row:not(:selected) cell"
+            " editablelabel:not(.editing):focus-within",
+            "columnview row:not(:selected) cell"
+            " editablelabel.editing:focus-within",
+        )
+        selection = (
+            "columnview row:not(:selected) cell"
+            " editablelabel.editing text selection",
+            "columnview row:not(:selected) cell"
+            " editablelabel.editing text selection:focus-within",
+        )
+        self.assertEqual(self.rules[field], ENTRY_FIELD)
+        self.assertEqual(self.selectors.count(field), 1)
+        for selector in focus:
+            self.assert_rule(selector, {"outline-color": BLACK})
+            self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in selection:
+            self.assert_rule(selector, TEXT_SELECTION)
+            self.assertEqual(self.rules[selector], TEXT_SELECTION)
+            self.assertEqual(self.selectors.count(selector), 1)
+        # No other editablelabel spelling exists beyond the landed selection
+        # restatement and the five new spellings, and no other columnview row
+        # spelling exists at all: the family scans kill renamed and stray
+        # variants alike.
+        self.assertEqual(
+            {s for s in self.rules if "editablelabel" in s},
+            {
+                field,
+                "editablelabel > stack > text > selection",
+                "editablelabel > stack > text > selection:focus-within",
+                *focus,
+                *selection,
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("columnview row")},
+            set(focus + selection),
+        )
+        # The restatements sit between the landed selected-text groups and
+        # the landed calendar disabled-selected day group: source order is
+        # part of what lets the restatements govern the cell arms, which
+        # outrank the landed editable-label selection twins by specificity.
+        landed_tail = self.selectors.index(
+            "editablelabel > stack > text > selection:focus-within"
+        )
+        calendar = self.selectors.index(
+            "calendar > grid > label.day-number:disabled:selected"
+        )
+        for selector in (field, *focus, *selection):
+            self.assertGreater(self.selectors.index(selector), landed_tail)
+            self.assertGreater(calendar, self.selectors.index(selector))
+
     def test_title_buttons(self):
         for scope in ("headerbar", ".titlebar"):
             for control, asset in TITLE_BUTTON_ASSETS:

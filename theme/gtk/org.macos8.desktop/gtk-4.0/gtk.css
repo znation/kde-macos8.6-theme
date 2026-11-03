@@ -2837,6 +2837,38 @@ textview > text:disabled:selected:focus {
   color: #888888;
 }
 
+/* Adaptation 2026-11-03: no reference screenshot shows a GTK editable
+   label or a column view's cell editing. libgtk-4 4.18.6 stock arms from
+   /org/gtk/libgtk/theme/Default/Default-light.css (full library path in
+   docs/invariants.md):
+   editablelabel > stack > text { color: black; border-color: #cdc7c2; background-color: #ffffff; }
+   columnview row:not(:selected) cell editablelabel:not(.editing):focus-within { outline: 2px solid rgba(53, 132, 228, 0.5); }
+   columnview row:not(:selected) cell editablelabel.editing:focus-within { outline: 2px solid #3584e4; }
+   columnview row:not(:selected) cell editablelabel.editing text selection { background-color: rgba(141, 141, 141, 0.5); color: transparent; }
+   columnview row:not(:selected) cell editablelabel.editing text selection:focus-within { background-color: rgba(53, 132, 228, 0.3); color: #2e3436; }
+   are restated with the landed ENTRY_FIELD recipe, the landed focus-black
+   outline and the landed TEXT_SELECTION fill; stock's outline geometry
+   stays in force per-property. */
+
+editablelabel > stack > text {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+columnview row:not(:selected) cell editablelabel:not(.editing):focus-within,
+columnview row:not(:selected) cell editablelabel.editing:focus-within {
+  outline-color: #000000;
+}
+
+columnview row:not(:selected) cell editablelabel.editing text selection,
+columnview row:not(:selected) cell editablelabel.editing text selection:focus-within {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
 /* Adaptation 2026-10-31: no reference screenshot shows a disabled selected
    GTK calendar day. GTK 4.18.6's Default-light.css stock arm is restated with
    the inactive-text grey already used for disabled calendar days. */
