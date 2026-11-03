@@ -42,7 +42,8 @@ if __package__:
         compare,
         crop,
     )
-    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
+    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from tools.fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -57,7 +58,8 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_sources import read_source as _read_source
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
-    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
+    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,

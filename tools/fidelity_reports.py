@@ -51,7 +51,7 @@ def budget_verdict(metrics, max_mae: float | None = None,
 def locate_worst_pixels(records, candidate_crop, reference_crop):
     """Add each crop-relative record's candidate and reference positions.
 
-    *records* come from ``tools/fidelity_pixels.py::worst_pixels``, whose
+    *records* come from ``tools.fidelity_pixels.py::worst_pixels``, whose
     ``x``/``y`` are relative to the compared, cropped surfaces; this appends
     the ``candidate_position`` and ``reference_position`` keys that point
     into the original images by adding each crop's origin (an omitted crop
