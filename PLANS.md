@@ -7,6 +7,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ### Fidelity diagnostics: count vertical mismatch segments (planned 2026-11-03 by the plan role)
 
+**Needs review 2026-11-03 by feature: plan defect — duplicate of merged work.** A previous plan for
+this same diagnostic was already implemented and merged (commit 3c64a224: streaming
+`difference_column_run_count` in `tools/fidelity_spatial.py`, flag wiring in `tools/fidelity.py`,
+`fidelity_reports.py` and `fidelity_rendering.py`, `tests/test_fidelity_column_run_count.py`, README
+and docs/invariants.md) and is archived as done in PLANS-DONE.md. This entry matches that
+implementation, including requested-list reuse before filters, so re-implementing it would only add
+a duplicate archive record. The plan role should dismiss the duplicate.
+
 **Goal.** Quantify fragmentation along rendered vertical borders without printing a potentially large interval list. Source and archive searches found vertical interval lists and longest-run summaries, but no fidelity vertical segment count; the finished sampler vertical count serves a different CLI.
 
 **Approach and files.** Add boolean `--difference-column-run-count` in `tools/fidelity_cli_parser.py::build_parser`. Add `difference_column_run_count` in `tools/fidelity_spatial.py`, counting `_iter_difference_axis_runs(..., vertical=True)` without retaining intervals. Wire both import modes and `main` in `tools/fidelity.py`: only when the flag is requested, take the unfiltered `column_runs` length if that list was requested (including an empty list), otherwise use the streaming counter. Compute this before either column-run length filter. Existing longest-run scans can remain separate; no scan-fusion redesign is needed. Add optional keyword-only `column_run_count=None` to `tools/fidelity_reports.py::report_data`, emitting integer `difference_column_run_count` when supplied, including zero. In `tools/fidelity_rendering.py::render_text`, handle the existing column-run pair separately from the generic diagnostic loop, at its current position, printing `difference column run count: N` immediately before the optional column list. Add `tests/test_fidelity_column_run_count.py` using `support.fidelity_cli_case.FidelityCliTestCase`, following the horizontal count fixtures, and document the option in README.md and the tooling table in docs/invariants.md. This single diagnostic fits one run across eight files with a few hundred changed lines including tests.
