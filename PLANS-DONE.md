@@ -5,6 +5,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: report enclosing color-match spans per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+Added opt-in `--match-column-bounds` to the reference color sampler. It emits one dense JSON/text entry per requested column, with absolute y and inclusive height or null for no match. It shares the existing positioned scan and RGB-tolerance/exact-alpha predicate; coordinate limits do not truncate spans. Coverage includes offset/disconnected spans, empty and singleton columns, narrow crops, alpha filtering, combined diagnostics, validation, help and direct invocation. The PNG read remains bounded to the requested region. Files touched: `tools/sample_arguments.py`, `tools/sample_report_search.py`, `tests/test_sample_match_column_bounds.py`, `README.md`, `docs/invariants.md`.
+
 ### Reference-pixel sampler: report enclosing color-match spans per row (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Measure the horizontal extent of a sampled bevel color on each row without listing every matching run. `tools/sample_report_search.py::_search_match` reports whole-region bounds, row counts and contiguous runs, but no dense row-span summary; searches of sampler code/tests and planned/finished entries found no matching capability. The finished fidelity row-bounds diagnostic compares two images; this addition locates a color in one reference image and is independently usable.

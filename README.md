@@ -559,6 +559,14 @@ matches enclose intervening pixels. The report covers the full region regardless
 of `--match-pixels`, uses the same tolerance and exact-alpha predicate, and is
 omitted unless requested.
 
+Add `--match-column-bounds` with `--find-color` to report the smallest vertical
+interval enclosing matches in each column. JSON adds dense `match.column_bounds`
+entries: `null` for an empty column, otherwise absolute `y` and inclusive
+`height`; text prints the same array on a `matching column bounds:` line.
+Disconnected matches enclose intervening pixels. The report covers the full
+region regardless of `--match-pixels`, uses the same tolerance and exact-alpha
+predicate, and is omitted unless requested.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha
