@@ -457,6 +457,21 @@ images materialized, so it stays separate from `make check`.
 
 ## Sampling reference pixels
 
+### Choosing a sampling mode
+
+Choose a command based on the measurement you need. Coordinates are absolute image pixels;
+`--width` and `--height` set the sampled region starting at that coordinate, and both default
+to 1. The reference PNGs are stored with Git LFS; materialize them as described in
+[Validating the reference set](#validating-the-reference-set). Run `python3 tools/sample.py --help`
+for the complete option list.
+
+| Task | Command | Result |
+| --- | --- | --- |
+| Read one pixel | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5` | RGB and hex values |
+| Rank a small region's palette | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3` | Up to three colors, ranked by count |
+| Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors and their lengths |
+| Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
+
 `python3 tools/sample.py IMAGE X Y` prints the RGB value of one pixel of a reference
 screenshot, in both forms the theme files use:
 
