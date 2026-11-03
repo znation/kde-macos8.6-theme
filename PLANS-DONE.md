@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 headerbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued toolbar-button focus plan) — done 2026-11-03 by the feature role
+
+**Goal and grounding.** Preserve the landed generic button's black keyboard-focus colour on headerbar buttons. The shipped GTK 4 sheet has headerbar face, backdrop and window-control artwork rules, but no headerbar focus-visible colour restatement. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below setting an accent/transparent mixed outline colour, with specificity above `button:focus:focus-visible`. The GTK default resource `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no headerbar focus-visible outline-colour group. No collected reference shows GTK headerbar keyboard focus; black is a platform adaptation reusing the landed generic button focus policy. The archived headerbar-height/backdrop plan covers different properties; the queued toolbar plan explicitly excludes headerbars.
+
+**Approach and files.** Append one dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring only `outline-color: #000000`, with these exact stock twins (one selector per line here; comma-separate in CSS):
+
+```css
+headerbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+headerbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+headerbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible
+headerbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+headerbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+headerbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible
+```
+
+The GTK 4 user stylesheet import supplies the supported override path; exact twins win the stock ties there. Leave inherited outline geometry in place: the probed first two arms set width 2px and offset 1px; the remaining six set width 2px and offset -2px. Keep the library name out of CSS comments as required by `TestGtk4Theme::test_stands_alone`. Toolbar, actionbar and searchbar focus, splitbutton separators, and headerbar face/height/artwork are outside scope.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme::test_headerbar_button_focus_outline_color` beside `test_button_focus_outline_color`, following `test_filechooser_breadcrumb_focus_outline_color`: exact complete dictionaries, occurrence counts and a family-set check over selectors starting with `headerbar ` and containing `:focus:focus-visible`. Extend `docs/invariants.md` under `## gtk` with a dated row naming the test, the missing reference surface, reused colour source, full resource probe, inherited geometry and user-import scope. These are the three implementation files; no dependency or artwork is needed.
+
+**Acceptance criteria.** Parsing the shipped sheet yields exactly `{"outline-color": "#000000"}` once for each of the eight spellings, with the same colour as the generic button focus rule. The headerbar focus-visible family is exactly this set. Omitting or renaming an arm, substituting an accent colour, duplicating a selector or adding an outline width/offset declaration fails the new test. Existing headerbar and generic button tests remain green, and the invariant register resolves the new test reference. Declaration checks establish neither rendered pixels nor keyboard traversal. `make check` passes after the final edit.
+
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 Added the eight exact GTK 4 toolbar focus selectors with only `outline-color: #000000`, a declaration test asserting selector set, single occurrence and equality with generic button focus, and the GTK invariant provenance row. The color is a platform adaptation because no collected reference shows toolbar keyboard focus; stock width and offset remain inherited.

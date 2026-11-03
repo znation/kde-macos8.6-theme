@@ -754,6 +754,35 @@ for radio in (False, True):
     def test_button_focus_outline_color(self):
         self.assert_scale_focus_outline("button:focus:focus-visible")
 
+    def test_headerbar_button_focus_outline_color(self):
+        selectors = {
+            "headerbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "headerbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "headerbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
+            "headerbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "headerbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "headerbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
+            "headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if selector.startswith("headerbar ")
+                and ":focus:focus-visible" in selector
+            },
+            selectors,
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["button:focus:focus-visible"]["outline-color"],
+                )
+
     def test_toolbar_button_focus_outline_color(self):
         selectors = {
             ".toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
