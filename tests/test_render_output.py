@@ -21,6 +21,22 @@ from tools import render_output  # noqa: E402
 class TestPublish(unittest.TestCase):
     """`publish` must not write through a symlink planted at a guessable name."""
 
+    def test_existing_output_symlink_is_replaced_without_changing_its_target(self):
+        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            source.write_bytes(b"the new render")
+            victim = root / "victim.txt"
+            victim.write_bytes(b"keep the old target")
+            output = root / "render.png"
+            output.symlink_to(victim)
+
+            render_output.publish(source, output)
+
+            self.assertFalse(output.is_symlink())
+            self.assertEqual(b"the new render", output.read_bytes())
+            self.assertEqual(b"keep the old target", victim.read_bytes())
+
     def test_a_planted_symlink_does_not_redirect_the_copy(self):
         with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
             root = Path(directory)
