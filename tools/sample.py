@@ -64,8 +64,8 @@ def main(argv: list[str] | None = None) -> int:
                              **({"alpha": True} if args.alpha or args.match_alpha is not None else {}))
         finally:
             os.close(fd)
-    except OSError:
-        return report_error("sample", f"cannot read {args.image}")
+    except OSError as exc:
+        return report_error("sample", f"cannot read {args.image}: {exc}")
     except PngError as exc:
         return report_error("sample", str(exc))
     header = f"image: {escape_controls(args.image)}  {width}x{height}"

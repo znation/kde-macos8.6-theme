@@ -352,6 +352,19 @@ class TestSampleCli(CliTestCase):
         result = self._run(missing, "0", "0", "--json")
         self._assert_usage_error(result, "cannot read", missing)
 
+    def test_missing_file_error_names_the_os_reason(self):
+        """An OS-level read refusal reports why, naming the underlying error.
+
+        A bare ``cannot read <path>`` leaves the operator guessing between a
+        absent path, an unreadable parent directory and a permission denial;
+        the OSError's own message disambiguates them.
+        """
+        tmp = self._tmp_dir()
+        missing = str(tmp / "absent.png")
+        result = self._run(missing, "0", "0")
+        self._assert_usage_error(result, "cannot read", missing)
+        self.assertIn("No such file or directory", result.stderr)
+
     def test_rejects_an_image_that_symlinks_outside_the_repository(self):
         # A checked-in symlink at a reference image can point at a private
         # image; sampling it would print that image's pixels. The path is
