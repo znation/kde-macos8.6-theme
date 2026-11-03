@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 import os
 import stat
 import subprocess
@@ -108,7 +109,7 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
     next run's ordering needs.
     """
     results: dict[str, int | None] = {}
-    queue = list(modules)
+    queue = deque(modules)
     running: list[_Worker] = []
     try:
         while queue or running:
@@ -143,7 +144,7 @@ def _fill_workers(queue: list[str], running: list[_Worker],
                   workers: int) -> None:
     """Start queued workers until the concurrency limit is reached."""
     while len(running) < workers and queue:
-        module = queue.pop(0)
+        module = queue.popleft()
         try:
             running.append(_spawn(module, [*argv_prefix, module], cwd,
                                   log_paths[module], timeout))
