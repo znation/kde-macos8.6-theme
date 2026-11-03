@@ -282,6 +282,27 @@ class TestInstall(CursorCase):
         self.assertFalse(self.link.parent.exists())
         self.assertEqual([], self.recorded())
 
+    def test_failed_link_creation_preserves_a_concurrently_populated_icons_dir(self):
+        self.install_theme()
+        self.stub_selector()
+
+        def populate_then_fail(source, target, *args, **kwargs):
+            # Model another process creating content after our mkdir but before
+            # the symlink operation fails.
+            (self.home / ".icons" / "foreign-entry").write_text("keep\n")
+            raise OSError("simulated link failure")
+
+        with mock.patch.object(apply_cursor.os, "symlink", populate_then_fail):
+            result = self.run_tool()
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertEqual(
+            "keep\n",
+            (self.home / ".icons" / "foreign-entry").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(os.path.lexists(self.link))
+        self.assertEqual([], self.recorded())
+
 
 class TestSelection(CursorCase):
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
