@@ -626,6 +626,13 @@ by column then row, stop at each column boundary, and merge adjacent tolerance
 matches even when their RGB values differ. They cover the full region
 independently of `--match-pixels`; potentially large output is opt-in.
 
+Add `--match-column-run-count` with `--find-color` to report the number of
+maximal vertical matching segments as `match.column_run_count` in JSON or a
+`matching column run count:` text line. It counts the full region with the same
+RGB tolerance and exact-alpha predicate, independent of coordinate paging.
+The interval list remains omitted unless `--match-column-runs` is requested;
+when both options are used, the count appears immediately before the list.
+
 Add `--min-match-column-run-length N` with `--match-column-runs` to omit
 vertical match segments shorter than `N` pixels. The inclusive cutoff filters
 only the reported list; match counts and diagnostics, including the longest

@@ -20,6 +20,7 @@ class _MatchRuns:
         self.longest_run = None
         self.longest_column_run = None
         self.column_runs = []
+        self.column_run_count = 0
         self.run_start = self.run_y = None
         self.column_starts = {}
 
@@ -57,6 +58,7 @@ class _MatchRuns:
         self._record_column_run(run)
 
     def _record_column_run(self, run: dict) -> None:
+        self.column_run_count += 1
         best = self.longest_column_run
         if self.summarize_columns and (best is None or
                 (-run["length"], run["x"], run["y"]) <

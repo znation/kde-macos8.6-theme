@@ -73,6 +73,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--longest-match-column-run requires --find-color"
     if args.match_column_runs and args.find_color is None:
         return "--match-column-runs requires --find-color"
+    if getattr(args, "match_column_run_count", False) and args.find_color is None:
+        return "--match-column-run-count requires --find-color"
     if args.min_match_column_run_length is not None and not args.match_column_runs:
         return "--min-match-column-run-length requires --match-column-runs"
     if args.max_match_column_run_length is not None and not args.match_column_runs:
@@ -151,6 +153,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--longest-match-run", action="store_true", help="with --find-color, report the longest horizontal matching segment")
     parser.add_argument("--longest-match-column-run", action="store_true", help="with --find-color, report the longest vertical matching segment")
     parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")
+    parser.add_argument("--match-column-run-count", action="store_true", help="with --find-color, report the number of vertical matching segments")
     parser.add_argument("--min-match-column-run-length", type=positive_int("--min-match-column-run-length"), metavar="N", help="with --match-column-runs, omit matching segments shorter than N pixels")
     parser.add_argument("--max-match-column-run-length", type=positive_int("--max-match-column-run-length"), metavar="N", help="with --match-column-runs, omit matching segments longer than N pixels")
     parser.add_argument("--match-rows", action="store_true", help="with --find-color, count matches in each row")
