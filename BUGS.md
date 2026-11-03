@@ -58,9 +58,67 @@ remain `#000000` across the interior, while row 210 is `#DDDDDD`. Setting Kvantu
 so the exact state lookup or other drawing pass still needs to be identified. No workaround has
 been retained.
 
-**Needs review 2026-10-30 by bugfix: inspect Kvantum's frame and default-indicator element lookup
-for the rendered button; the next pixel probe should identify which pass paints `#000000` at
-(195,209) and (195,228), despite `button-normal` containing only `#DDDDDD` in its interior.**
+**Review resolved 2026-11-02 at the user's direction. The rows are the engine's focus
+rectangle, not a frame/interior slicing error; the reference puts the default mark outside the
+bevel, so the steering is `[PanelButtonCommand] focusRectElement=focus-none`.**
+
+What the probe found: Kvantum's `Style::drawFocusRect` (`Kvantum.cpp`, read 2026-11-02) renders
+the `[Focus]` group's `focus` element 1px around the focused widget's `interiorRect`, and the
+kdialog warning puts the keyboard focus on its default Yes button — the only button in the
+capture that draws the ring. Three probes on this capture prove it. Recolouring
+the four `focus-*` bands to `#FF00FF` changed exactly the 188 band pixels at (159..234, 209),
+(159..234, 228), (158, 210..227) and (235, 210..227) and nothing else. Setting
+`[Focus] frame=false` cleared exactly 192 pixels — those 188 plus the four corner pixels
+(158/235, 209/228) — and left the rest of the capture byte-identical, so the shipped
+`button-normal` frame and interior slices do draw correctly underneath the ring (the No button in
+the same capture, unfocused, shows only the shipped bands). Setting
+`[PanelButtonCommand] focusRectElement=focus-none` on an unmodified SVG produced a capture
+byte-identical to the `frame=false` one, which is the scoped knob: `PE_FrameFocusRect` reads
+`[Focus]` directly for item views, so that ring survives.
+
+What the reference says, as the 2026-10-30 direction required: sampled from
+`macos8.6-screenshots/opendialog_macrumors86.jpg` (Japanese Open dialog, a recompressed JPEG, so
+one-pixel bands carry a shade of ringing). Its default 閉く button occupies x=258..343,
+y=141..166 (86x26, against the plain 取消し button's 20 rows at y=114..133), and its
+outermost pixel row and column are a black ring with one-pixel-stepped rounded corners: going
+down the left edge the corner steps through (261, 141), (260, 142), (259, 143), (258, 144) and
+closes with (259, 164), (260, 165), (261, 166), mirrored on the right. The pixel row and column
+immediately inside the ring read the face colour (`#DDDDDD` at (259, 155) and (300, 142)), the
+button's own raised bevel and its label lie strictly inside that gap, and a label-free stretch of
+the interior (rows 147..160, columns 324..335) reads only `#DDDDDD` to `#DFDFDF`. The 取消し button beside it has the same
+bevel and no ring. So the black band is the default-button mark drawn *outside* the bevel, on the
+widget's outermost edge, and no reference screenshot shows a black band on a raised button's
+interior. Keep-black is therefore refused: the ring goes.
+
+Steering, and why it takes this shape: the push-button frame margins are the shared 2px `fspec`
+and no frame is rendered outside the widget rect, so the reference's outer default mark cannot be
+drawn by config; only the ring's placement and existence are steerable. Use
+`[PanelButtonCommand] focusRectElement=focus-none`, a name with no art in either the theme SVG or
+Kvantum's compiled-in `default.svg`, and do not use `[Focus] frame=false`, which would also
+suppress the item-view rings the menu capture relies on.
+
+Second artifact in the same button, to fix in the same change: the default push button also
+carries `button-default-indicator`, which the theme does not ship, so Kvantum's compiled-in art
+paints a light 7x7 corner wedge (edge `#E4E4E4`, fill `#E7E7E7`) at the interior's bottom-right —
+(229..235, 222..228) in this capture's Yes button and (240..246, 214..220) in the
+`--combobox-dialog` OK button. A magenta rect under that element id painted exactly its 8x8 slot
+(227..234, 220..227), so the id is live. The 2026-10-30 progress note's "adding `button-default-*`
+slices left the output unchanged" holds only for slices that repeat the normal bands: a magenta
+`button-default-top` painted rows 207..208 at x=158..235, so that channel is live too. It still
+draws at the same 2px margins and cannot supply the reference ring. Since the reference's default
+interior is flat, ship a theme-owned `button-default-indicator` (invisible, or the reference's
+mark if one is sampled later) rather than leaving compiled-in art on the face.
+
+Verified pin target for this entry's last step: with the steering applied, the
+`--checkbox-dialog` Yes button (156, 207, 82, 24) renders row 207 `#000000` x=156..237; row 208
+`#000000`(156), `#FFFFFF`(157..235), `#AAAAAA`(236), `#000000`(237); rows 209..213
+`#000000`(156), `#FFFFFF`(157), `#DDDDDD`(158..235), `#AAAAAA`(236), `#000000`(237), and the same
+four band columns run down the interior's remaining rows, whose middle carries the Yes label
+(non-face pixels at 179..235, 214..228); row 229 `#000000`(156), `#FFFFFF`(157), `#AAAAAA`(158..236),
+`#000000`(237); row 230 `#000000` x=156..237. The interior's bottom-right 7x7 holds the
+default-indicator wedge above, so either land that element first or exclude the corner from the
+flush-face comparison. The entry is
+actionable as written; nothing else waits on review.
 
 ### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30)
 
@@ -100,9 +158,87 @@ dialog captures successfully at 480x360. The region coordinates and expected
 band runs for the unpinned buttons and combo field have not been verified, so
 no pixel assertions were added; guessed crops could pin unrelated dialog pixels.
 
-**Needs review 2026-10-30 by bugfix: derive verified button and combo-field
-regions from the live captures, then add one mutation-backed assertion per
-region; the menu-dialog item's border runs also need measurement.**
+**Review resolved 2026-11-02 at the user's direction: every region below was measured on fresh
+`--checkbox-dialog`, `--combobox-dialog` and `--menu-dialog` renders of the current tree, and the
+art slice each region maps to was confirmed by recolouring that slice in the theme SVG and
+diffing the capture. The assertions are now writable without guessing; no further review is
+needed.**
+
+All three captures are 480x360 and each dialog is the session's only centred window, so the
+rects are fixed geometry. Region rects are `(x, y, width, height)`; colour runs list the
+shipped slice each maps to.
+
+`--checkbox-dialog`, `tools/render_clients.py::checkbox_dialog_client` — the check box cell
+`CHECKBOX_CROP` (156, 187, 14, 14) and its face ring `CHECKBOX_FACE_RING_CROP` (155, 186, 16, 16)
+are already pinned; add:
+
+- Yes button (156, 207, 82, 24), the `button-normal` frame under the interior ring recorded in
+  the entry above. Row 207 `#000000` x=156..237; row 208 `#000000`(156), `#FFFFFF`(157..235),
+  `#AAAAAA`(236), `#000000`(237); rows 209..213 `#000000`(156), `#FFFFFF`(157), `#DDDDDD`(158..235),
+  `#AAAAAA`(236), `#000000`(237), the same band columns running down the whole interior; row 229
+  `#000000`(156), `#FFFFFF`(157), `#AAAAAA`(158..236), `#000000`(237); row 230 `#000000`
+  x=156..237. The interior also holds the label, the focus ring and the
+  default-indicator wedge described in that entry, so this assertion lands after that steering
+  (or excludes the bottom-right 7x7).
+- No button (241, 207, 82, 24), the same frame with the interior 243..320 x 209..228 flat
+  `#DDDDDD`: row 207 `#000000` x=241..322; row 208 `#000000`(241), `#FFFFFF`(242..320),
+  `#AAAAAA`(321), `#000000`(322); row 229 `#000000`(241), `#FFFFFF`(242), `#AAAAAA`(243..321),
+  `#000000`(322); row 230 `#000000` x=241..322. It carries no focus or default artifact, so pin it
+  first.
+- The interiors also carry their labels, and label pixels are not face pixels: the non-face
+  extents are (179..235, 214..228) in Yes and (265..299, 213..224) in No. Pair each band-run
+  assertion with a face rectangle outside those extents — rows 209..212 run face across both
+  buttons — rather than comparing a whole interior.
+
+`--combobox-dialog`, `tools/render_clients.py::combobox_dialog_client` — the combo arrow cell
+`COMBOBOX_CROP` (316, 178, 12, 12) is already pinned; add:
+
+- combo field (146, 172, 188, 24). Its bands are the shipped `button-pressed-*` slices, not
+  `button-normal-*`: recolouring `button-pressed-top/bottom/left/right` changed exactly its 408
+  outline pixels and recolouring `button-normal-*` changed nothing. Kvantum's `CC_ComboBox` frame
+  status picks "pressed" for `State_Sunken || State_Selected`, so the field paints the pressed
+  bevel rather than the reference's raised one; which of those two states this widget supplies is
+  not settled here and does not change the assertion. Row 172 `#000000` x=146..333; row 173 `#000000`(146),
+  `#AAAAAA`(147..331), `#FFFFFF`(332), `#000000`(333); rows 174..193 interior `#DDDDDD`
+  x=148..331 (the selected text and the pinned arrow cell sit in it); row 194 `#000000`(146),
+  `#AAAAAA`(147), `#FFFFFF`(148..332), `#000000`(333); row 195 `#000000` x=146..333; left column
+  146 `#000000`, 147 `#AAAAAA`; right column 332 `#FFFFFF`, 333 `#000000`.
+- OK button (167, 199, 82, 24): row 199 `#000000` x=167..248; row 200 `#000000`(167),
+  `#FFFFFF`(168..246), `#AAAAAA`(247), `#000000`(248); rows 201..220 `#000000`(167),
+  `#FFFFFF`(168), `#DDDDDD`(169..246), `#AAAAAA`(247), `#000000`(248) except the default-indicator
+  wedge at (240..246, 214..220); row 221 `#000000`(167), `#FFFFFF`(168), `#AAAAAA`(169..247),
+  `#000000`(248); row 222 `#000000` x=167..248.
+- Cancel button (252, 199, 82, 24): the same bands with the interior 254..331 x 201..220 flat
+  `#DDDDDD` and no wedge — row 199 `#000000` x=252..333, row 200 `#000000`(252), `#FFFFFF`(253..331),
+  `#AAAAAA`(332), `#000000`(333), row 221 `#000000`(252), `#FFFFFF`(253), `#AAAAAA`(254..332),
+  `#000000`(333), row 222 `#000000`.
+- These two interiors carry their labels too: non-face extents are (190..246, 206..220) in OK
+  (which includes the wedge) and (265..321, 205..216) in Cancel, so rows 201..204 run face across
+  both buttons and rows 217..220 across Cancel.
+
+`--menu-dialog`, `tools/render_clients.py::menu_dialog_client` — the render CLI and client already
+exist but no gate runs the mode: add a fourth kind to `_Renders.KINDS` and a
+`TestMenuDialogRender` class under the same `_dialog_gate_guard()`. Its engine-drawn region is:
+
+- item-view field (112, 93, 256, 182), a 2px `itemview` frame drawn in the focused state (its art
+  is identical to the normal state). Row 93 `#999999` x=112..366 with (367, 93) the window face
+  `#DDDDDD`; row 94 `#999999`(112), `#000000`(113..366), `#FFFFFF`(367); left column 112
+  `#999999` y=93..273 and 113 `#000000` y=94..273; right column 366 `#000000` y=94..273 and 367
+  `#FFFFFF` y=94..274; row 273 `#999999`(112), `#000000`(113..366), `#FFFFFF`(367); row 274
+  `#FFFFFF` x=113..367 with (112, 274) the window face `#DDDDDD`; interior `#FFFFFF` x=114..365,
+  y=95..272. The two unpainted corners are the shipped art's own unpainted corner pixels, not the
+  face slice, so state them explicitly rather than deriving them from a composer.
+- the current item's `[Focus]` ring, black 1px at (115..364, 96..113), sits inside that field and
+  is engine focus art, not field art: recolouring `focus-*` changed exactly its 528 pixels. Exclude
+  it from the field comparison or assert it separately as `[Focus]`.
+
+Look deviation found while verifying the combo field, recorded for its own triage: the reference's
+pop-up buttons are raised — `opendialog_macrumors86.jpg` rows 15..33 (black outline, `#FFFFFF` top
+highlight, `#DDDDDD` face, `#AAAAAA` bottom shadow), and `systeminfo_betawiki.png` rows 102..121
+for the "Show:" popup the `comboarrow` cell is grounded in — while the capture's combo box renders the
+pressed bevel (dark top-left, white bottom-right). The field assertion therefore pins the
+`button-pressed-*` mapping the engine actually uses; the raised look needs a state steering or a
+bug entry of its own.
 
 **Decided by the user 2026-10-30 (recorded by the director role): explicit per-widget regions,
 no capture walker.** Extend the two existing dialog gates with one byte-comparison or band-run
