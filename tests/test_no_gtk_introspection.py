@@ -77,7 +77,8 @@ class TestNoGtkIntrospection(unittest.TestCase):
             for path in sorted((ROOT / directory).rglob("*.py")):
                 if "__pycache__" in path.parts:
                     continue
-                if not _has_importable_gi(source := path.read_text(encoding="utf-8")):
+                source = path.read_text(encoding="utf-8")
+                if not _has_importable_gi(source):
                     continue
                 findings.extend(
                     _gi_import_messages(
@@ -157,20 +158,20 @@ class TestNoGtkIntrospection(unittest.TestCase):
         # parsed and re-scanned: the gate may overmatch, but every repo file
         # it admits that holds no real Import node must yield no finding, so
         # the tree-scan assertion below stays a statement about real code.
+        findings: list[str] = []
+        for directory in _SCANNED_DIRS:
+            for path in (ROOT / directory).rglob("*.py"):
+                if "__pycache__" in path.parts:
+                    continue
+                source = path.read_text(encoding="utf-8")
+                if not _has_importable_gi(source):
+                    continue
+                findings.extend(
+                    _gi_import_messages(str(path.relative_to(ROOT)), source)
+                )
         self.assertEqual(
             [],
-            [
-                message
-                for directory in _SCANNED_DIRS
-                for path in (ROOT / directory).rglob("*.py")
-                if "__pycache__" not in path.parts
-                and _has_importable_gi(
-                    (source := path.read_text(encoding="utf-8"))
-                )
-                for message in _gi_import_messages(
-                    str(path.relative_to(ROOT)), source
-                )
-            ],
+            findings,
             "a file the text gate admits carries a real gi import: the "
             "repository is not clean",
         )
