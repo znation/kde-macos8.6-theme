@@ -154,6 +154,16 @@ class TestMissingTool(unittest.TestCase):
         self.assertIn(render_surface.REQUIRED_TOOLS[0], stderr)
         self.assertIn("render_surface: error:", stderr)
 
+    def test_applet_id_with_nul_is_rejected_as_usage_error(self):
+        with tempfile.TemporaryDirectory() as empty:
+            with mock.patch.dict(os.environ, {"PATH": empty}):
+                status, stderr = call_main(
+                    render_surface.main, "out.png", "--applet", "org.example\0widget"
+                )
+        self.assertEqual(2, status)
+        self.assertIn("--applet must be a plasmoid id without NUL", stderr)
+        self.assertNotIn("Traceback", stderr)
+
     def test_a_single_missing_tool_is_the_one_named(self):
         assert_missing_tool_named(
             self, render_surface.main, render_surface.REQUIRED_TOOLS, ("out.png",)

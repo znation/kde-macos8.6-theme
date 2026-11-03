@@ -82,9 +82,9 @@ def _seconds(option: str, minimum: float) -> Callable[[str], float]:
 
 
 def _applet(value: str) -> str:
-    if not value or value.startswith("-"):
+    if not value or value.startswith("-") or "\0" in value:
         raise argparse.ArgumentTypeError(
-            f"--applet must be a plasmoid id, not empty or option-like: {value!r}"
+            f"--applet must be a plasmoid id without NUL, not empty or option-like: {value!r}"
         )
     return value
 
