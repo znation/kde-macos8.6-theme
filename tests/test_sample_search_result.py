@@ -13,6 +13,22 @@ from tools.sample_report_search import _search_match
 
 
 class TestSampleSearchResult(TestCase):
+    def test_empty_match_set_has_no_bounds_centroid_or_runs(self):
+        args = build_parser().parse_args([
+            "fixture.png", "1", "0", "--width", "3", "--height", "2",
+            "--find-color", "0a141e", "--match-centroid", "--match-runs",
+            "--match-column-runs",
+        ])
+        image = SimpleNamespace(width=5, rgb=bytes((0, 0, 0) * 10), alpha=None)
+
+        result = _search_match(args, image)
+
+        self.assertEqual(result["count"], 0)
+        self.assertIsNone(result["bounds"])
+        self.assertIsNone(result["centroid"])
+        self.assertEqual(result["runs"], [])
+        self.assertEqual(result["column_runs"], [])
+
     def test_combined_diagnostics_return_without_printing_or_mutation(self):
         args = build_parser().parse_args([
             "fixture.png", "1", "0", "--width", "3", "--height", "2",
