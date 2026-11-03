@@ -575,6 +575,15 @@ the earliest row-major segment. The summary uses the same tolerance and exact
 alpha filters, covers the full region regardless of `--match-pixels`, and does
 not emit the full run list unless `--match-runs` is also requested.
 
+Add `--longest-match-column-run` with `--find-color` to report the longest
+contiguous vertical matching segment. JSON adds `match.longest_column_run`
+with absolute `x`, `y` and `length`, or `null` when there are no matches; text
+prints `longest matching column run: X,Y,LENGTH` or
+`longest matching column run: none`. Ties prefer greater length, then the
+lowest x and y. The summary uses the same tolerance and exact-alpha filters,
+covers the full region regardless of `--match-pixels`, and does not emit the
+full column-run list unless `--match-column-runs` is also requested.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha
