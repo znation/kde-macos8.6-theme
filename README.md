@@ -470,6 +470,13 @@ records gain a `position` object with `x` and `y`; text appends
 `--alpha` keeps opacity variants separate. When combined with `--color-bounds`,
 both diagnostics share one positioned traversal.
 
+Add `--color-centroids` with `--histogram` to report each emitted color's
+arithmetic mean of absolute integer pixel coordinates. JSON color records gain
+a `centroid` object with `x` and `y`; text appends `centroid=X,Y`. Coordinates
+have no half-pixel offset, and `--alpha` keeps opacity variants separate.
+Centroids include every occurrence of an emitted color even with `--top-colors`;
+centroids, bounds and positions share one positioned traversal.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle
