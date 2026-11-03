@@ -51,6 +51,7 @@ if __package__:
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
     from tools.required_command import run_required
+    from tools.session_bus import session_env
     from tools.theme_apply_optional import run_optional_selections
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
@@ -64,6 +65,7 @@ else:  # run directly: python3 tools/apply_theme.py
     from process_group import exit_on_termination
     from repo_root import ROOT
     from required_command import run_required
+    from session_bus import session_env
     from theme_apply_optional import run_optional_selections
 
 TOOL = "apply_theme"
@@ -120,26 +122,6 @@ COMMAND_TIMEOUT = 60.0
 LOCK_TIMEOUT = 60.0
 
 
-def _session_env(environ: dict[str, str]) -> dict[str, str]:
-    """Return ``os.environ`` with the session bus address defaulted if needed.
-
-    A non-login shell (the local post-commit hook, for example) may run
-    without ``DBUS_SESSION_BUS_ADDRESS`` set. When it is unset, the runtime
-    directory is an absolute path, and ``$XDG_RUNTIME_DIR/bus`` exists, point
-    the variable at that socket so the ``plasma-apply-*`` tools can reach the
-    running session. Otherwise the environment is returned unchanged.
-    """
-    env = dict(environ)
-    if env.get("DBUS_SESSION_BUS_ADDRESS"):
-        return env
-    runtime = env.get("XDG_RUNTIME_DIR", "")
-    if os.path.isabs(runtime):
-        bus = Path(runtime) / "bus"
-        if bus.exists():
-            env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={bus}"
-    return env
-
-
 def _apply(data_home: Path, environ: dict[str, str]) -> int:
     """Run the required steps, then the best-effort selections."""
     scratch = create_scratch_directory(TOOL, "apply-theme-")
@@ -156,7 +138,7 @@ def _apply(data_home: Path, environ: dict[str, str]) -> int:
         with installed_data_lock(
             data_home, "for the theme apply", LOCK_TIMEOUT, error=ApplyError
         ):
-            env = _session_env(environ)
+            env = session_env(environ)
             for argv in STEPS:
                 status = run_required(
                     TOOL,

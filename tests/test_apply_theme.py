@@ -580,6 +580,7 @@ class TestMakeApply(unittest.TestCase):
         steps = [
             "--no-print-directory install",
             "tools/apply_theme.py",
+            "tools/apply_keymap.py",
             "tools/apply_gtk.py",
             "tools/apply_cursor.py --optional",
             "tools/install_firefox.py --optional",

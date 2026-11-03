@@ -259,9 +259,21 @@ window-button layout into `kwinrc` (close box at the leading edge, zoom and coll
 trailing edge — Plasma's look-and-feel apply drops those two keys), tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
 KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
-it notes that and leaves KWin to reload on its next start). It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
+it notes that and leaves KWin to reload on its next start). It then opts the current user into the
+reference's modifier layout: `tools/apply_keymap.py` appends `ctrl:swap_lalt_lctl` to
+`[Layout] Options` in `kxkbrc` (keeping every other XKB option), sets `ResetOldOptions` so KWin
+applies those options on Wayland, and emits `org.kde.keyboard /Layouts reloadConfig` so the swap
+takes effect without a logout. After the swap the physical left Alt produces Control and the
+physical left Control produces Alt for every application in this user's session, putting Cut, Copy,
+Paste and the rest of the reference's shortcut modifier at the Command-key position; right Alt
+(AltGr) and other users' sessions are unchanged, and a repeat apply keeps one copy. The reload is
+best effort: when neither `dbus-send` nor `busctl` is on `PATH`, or the emitted signal fails, it
+notes that the swap takes effect at the next login. The setting persists after `make uninstall`;
+remove `ctrl:swap_lalt_lctl` from `Options` in System Settings → Keyboard → Key Bindings to revert
+it. It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
-`plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`, exiting 2 naming the first one that is
+`plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6` and `kreadconfig6`,
+exiting 2 naming the first one that is
 missing or cannot be started, or reporting the scratch directory it cannot create. The three
 Plasma re-selections and the button-layout write run under the data-home flock that `make install` and `make uninstall` hold: a run
 that cannot take that lock within its bounded wait exits 2 naming the data home, so a concurrent

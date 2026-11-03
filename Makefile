@@ -518,8 +518,11 @@ render:
 # look-and-feel apply drops those two keys, leaving the stock right-hand
 # cluster), selects the Kvantum widget theme when kvantummanager is available,
 # then asks KWin to reconfigure; the two best-effort selections and their
-# command policy live in tools/theme_apply_optional.py. tools/apply_gtk.py
-# selects the installed GTK 3 and GTK 4
+# command policy live in tools/theme_apply_optional.py.
+# tools/apply_keymap.py swaps the left Control and Alt keys for this user at
+# the XKB level (the reference's Command-key position holds Alt on PC
+# hardware), preserving the user's other keyboard options and asking KWin to
+# reload the keymap. tools/apply_gtk.py selects the installed GTK 3 and GTK 4
 # schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
 # (skipping the selection when plasma-apply-cursortheme is absent), and
 # tools/install_firefox.py installs the standalone sheets into the active
@@ -530,6 +533,7 @@ apply:
 	@$(call require_python_ready,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
+	$(PYTHON) tools/apply_keymap.py
 	$(PYTHON) tools/apply_gtk.py
 	$(PYTHON) tools/apply_cursor.py --optional
 	$(PYTHON) tools/install_firefox.py --optional$(if $(FIREFOX_PROFILE), --profile "$(FIREFOX_PROFILE)")
