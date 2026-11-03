@@ -41,6 +41,21 @@ class TestSampleValidators(unittest.TestCase):
                 with self.assertRaises(argparse.ArgumentTypeError):
                     parser(value)
 
+    def test_fraction_range_errors_include_the_rejected_value(self):
+        cases = (
+            (validators.color_fraction, "1.1",
+             "--min-color-fraction must be between 0 and 1: '1.1'"),
+            (validators.color_fraction, "1e9999",
+             "--min-color-fraction must be between 0 and 1: '1e9999'"),
+            (validators.max_color_fraction, "-0.1",
+             "--max-color-fraction must be between 0 and 1: '-0.1'"),
+        )
+        for parser, value, message in cases:
+            with self.subTest(value=value), self.assertRaisesRegex(
+                argparse.ArgumentTypeError, f"^{message}$"
+            ):
+                parser(value)
+
 
 if __name__ == "__main__":
     unittest.main()

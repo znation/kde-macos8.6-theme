@@ -66,7 +66,9 @@ def color_fraction(value: str) -> float:
     """Parse a finite histogram fraction from zero through one."""
     parsed = plain_number(value, "--min-color-fraction", "number", "a", float)
     if not math.isfinite(parsed) or not 0 <= parsed <= 1:
-        raise argparse.ArgumentTypeError("--min-color-fraction must be between 0 and 1")
+        raise argparse.ArgumentTypeError(
+            f"--min-color-fraction must be between 0 and 1: {value!r}"
+        )
     return parsed
 
 
@@ -74,5 +76,7 @@ def max_color_fraction(value: str) -> float:
     """Parse a finite maximum histogram fraction from zero through one."""
     parsed = plain_number(value, "--max-color-fraction", "number", "a", float)
     if not math.isfinite(parsed) or not 0 <= parsed <= 1:
-        raise argparse.ArgumentTypeError("--max-color-fraction must be between 0 and 1")
+        raise argparse.ArgumentTypeError(
+            f"--max-color-fraction must be between 0 and 1: {value!r}"
+        )
     return parsed
