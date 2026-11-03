@@ -34,6 +34,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
     runs = []
     run_count = 0 if args.run_count else None
+    scanline_run_counts = [] if getattr(args, "scanline_run_counts", False) else None
     track_longest = args.longest_run
     longest_run = None
     if axis == "horizontal":
@@ -44,6 +45,8 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
         if run_count is not None:
             run_count += len(line_runs)
+        if scanline_run_counts is not None:
+            scanline_run_counts.append(len(line_runs))
         if track_longest:
             for run in line_runs:
                 if longest_run is None or run["length"] > longest_run["length"]:
@@ -59,6 +62,8 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         ]}
     if run_count is not None:
         result["run_count"] = run_count
+    if scanline_run_counts is not None:
+        result["scanline_run_counts"] = scanline_run_counts
     if track_longest:
         result["longest_run"] = {
             "x": longest_run["x"], "y": longest_run["y"], "length": longest_run["length"],
@@ -82,6 +87,8 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
         print(f"longest run: {run['x']},{run['y']},{run['length']}")
     if "run_count" in result:
         print(f"run count: {result['run_count']}")
+    if "scanline_run_counts" in result:
+        print("scanline run counts: " + ", ".join(str(count) for count in result["scanline_run_counts"]))
     for run in result["runs"]:
         rgb = run["rgb"]
         suffix = f"  alpha={run['alpha']}" if args.alpha else ""

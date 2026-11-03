@@ -792,6 +792,18 @@ count covering all scanlines of the region. What `runs` lists does not change;
 omitting the flag omits the JSON key, the text line and the counting. The flag
 requires `--runs`.
 
+Pass `--scanline-run-counts` with `--runs` to add one run count per scanline
+alongside the list: JSON gains a top-level `scanline_run_counts` and text
+prints `scanline run counts: N, N, ...` immediately after the optional
+`run count` line, before the run list. Each count is the same unfiltered
+per-scanline total `--run-count` sums — taken before `--run-color` selection,
+`--exclude-run-color` and the inclusive length filters — listed in scanning
+order, top-to-bottom rows for the horizontal axis and left-to-right columns
+for the vertical; every scanline yields at least one run, so the list is never
+empty for a nonempty region. Filters change what `runs` lists but never the
+counts; omitting the flag omits the JSON key, the text line and the counting.
+The flag requires `--runs`.
+
 Pass `--longest-run` with `--runs` to add the dominant scanline run as a
 scalar: JSON gains a top-level `longest_run` mirroring one `runs` entry (`x`,
 `y`, `length`, `rgb`, `hex`, plus `alpha` under `--alpha`) and text prints

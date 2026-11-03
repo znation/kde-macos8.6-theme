@@ -26,10 +26,7 @@ def _histogram_spatial_fields(args, image, colors):
     bounds = ({color: [args.x + args.width, args.y + args.height, -1, -1]
                for color, _ in colors} if args.color_bounds else None)
     sums = {color: [0, 0] for color, _ in colors} if color_centroids else None
-    if args.color_bounds:
-        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    else:
-        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
     for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
         color = (*rgb, next(alphas)) if alphas is not None else rgb
         if color not in fields:
