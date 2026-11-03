@@ -1439,6 +1439,21 @@ for radio in (False, True):
                 self.rules[selector]["border-radius"],
                 self.rules["popover > contents"]["border-radius"],
             )
+        # Stock's grey colour arms still govern the hover, disabled and
+        # pressed-selected states of a standalone flat modelbutton and the
+        # pressed-selected state inside a popover menu; the byte-twin
+        # restatements paint the landed selection fill and disabled text
+        # there (Default-light.css in libgtk-4 4.18.6, probed 2026-11-03).
+        for selector in (
+            "popover.menu modelbutton:selected:active",
+            "modelbutton.flat:hover",
+        ):
+            self.assert_rule(selector, {"background-color": SELECTION})
+            self.assertEqual(
+                self.rules[selector]["background-color"],
+                self.rules["popover.menu modelbutton:hover"]["background-color"],
+            )
+        self.assert_rule("modelbutton.flat:disabled", {"color": ETCH_DARK})
         # The landed sheet carries no other modelbutton arm: any stray,
         # renamed or removed kind fails the family bound.
         self.assertEqual(
@@ -1446,6 +1461,7 @@ for radio in (False, True):
             {
                 "popover.menu modelbutton:hover",
                 "popover.menu modelbutton:selected",
+                "popover.menu modelbutton:selected:active",
                 "popover modelbutton check",
                 "popover modelbutton radio",
                 "popover.background modelbutton check",
@@ -1453,6 +1469,8 @@ for radio in (False, True):
                 "popover.menu modelbutton > arrow.right",
                 "popover.menu modelbutton",
                 "modelbutton.flat",
+                "modelbutton.flat:hover",
+                "modelbutton.flat:disabled",
             },
         )
         # Both squaring arms sit after the landed hover/select block, the
@@ -1466,6 +1484,23 @@ for radio in (False, True):
                 self.selectors.index(selector),
                 self.selectors.index("popover.menu modelbutton:selected"),
             )
+        # Each colour arm sits after the landed hover/select blocks and the
+        # squaring radius arms, the source position that beats stock's
+        # equal-specificity grey arms and keeps the family together.
+        for selector in (
+            "popover.menu modelbutton:selected:active",
+            "modelbutton.flat:hover",
+            "modelbutton.flat:disabled",
+        ):
+            for earlier in (
+                "popover.menu modelbutton:hover",
+                "popover.menu modelbutton:selected",
+                "popover.menu modelbutton",
+                "modelbutton.flat",
+            ):
+                self.assertGreater(
+                    self.selectors.index(selector), self.selectors.index(earlier)
+                )
 
     def test_toast_surface(self):
         selectors = {"toast", "toast:backdrop"}

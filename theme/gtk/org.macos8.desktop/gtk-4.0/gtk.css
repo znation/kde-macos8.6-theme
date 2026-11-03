@@ -632,6 +632,34 @@ modelbutton.flat {
   border-radius: 0;
 }
 
+/* No reference screenshot shows a GTK popover menu row or a standalone
+ * flat modelbutton (the standing GTK-scope adaptation premise), so the
+ * hover, disabled and pressed-selected fills reuse the landed
+ * popover-menu `#CCCCFF` selection fill and the landed `#888888`
+ * inactive-text grey, not new samples. Stock's grey arms declare what
+ * the restatements erase (probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1, libgtk-4 4.18.6:
+ * `modelbutton.flat:hover { background-color: #e8e6e3; }`,
+ * `modelbutton.flat:disabled { color: #929595; }`, and
+ * `popover.menu modelbutton:selected:active {
+ * background-color: #d6d1cd; }`). Each restated selector is the exact
+ * stock twin and sits after the base transparent-face and radius arms,
+ * so user CSS source order wins every equal-specificity tie and stock
+ * members these entries do not restate stay in force per-property.
+ * Recorded 2026-11-03 by the feature role. */
+popover.menu modelbutton:selected:active {
+  background-color: #CCCCFF;
+}
+
+modelbutton.flat:hover {
+  background-color: #CCCCFF;
+}
+
+modelbutton.flat:disabled {
+  color: #888888;
+}
+
 tooltip {
   background-color: #FFFFCC;
   color: #000000;
