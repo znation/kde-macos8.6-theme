@@ -13,6 +13,17 @@ from tools.gtk_selection import installed_sheet, installed_sheets
 
 
 class TestInstalledSheets(unittest.TestCase):
+    def test_missing_first_sheet_reports_gtk4_before_gtk3(self):
+        with tempfile.TemporaryDirectory() as directory:
+            errors = io.StringIO()
+
+            with contextlib.redirect_stderr(errors):
+                result = installed_sheets(Path(directory))
+
+            self.assertIsNone(result)
+            self.assertIn("installed gtk-4.0 sheet is missing", errors.getvalue())
+            self.assertNotIn("installed gtk-3.0 sheet is missing", errors.getvalue())
+
     def test_returns_both_installed_sheets(self):
         with tempfile.TemporaryDirectory() as directory:
             data_home = Path(directory)
