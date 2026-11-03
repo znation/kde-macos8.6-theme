@@ -884,6 +884,37 @@ differing pixels.
 Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
 surface region of the reference.
 
+### Capturing a candidate
+
+Capture the default Plasma calculator with `make render`, setting its output path with
+`RENDER_OUTPUT`:
+
+```sh
+make render RENDER_OUTPUT=calculator.png
+```
+
+The Make target passes only the output path. Use the Python CLI directly for dialog captures;
+each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
+non-default `--applet`:
+
+| Surface | Command | Image size |
+| --- | --- | --- |
+| Checkbox dialog | `python3 tools/render_surface.py --checkbox-dialog checkbox.png` | 480x360 |
+| Combo box dialog | `python3 tools/render_surface.py --combobox-dialog combobox.png` | 480x360 |
+| Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
+
+The calculator capture defaults to 320x240. Dialog captures also need `kdialog` on `PATH`;
+see [Prerequisites](#prerequisites) for the render tools. To allow a slower calculator paint,
+increase the settle wait and set a longer timeout (which must exceed settle):
+
+```sh
+python3 tools/render_surface.py --settle 12 --timeout 120 calculator.png
+```
+
+A longer wait does not guarantee a successful capture. Compare the candidate with the relevant
+reference surface using the [fidelity checker](#fidelity-checking); use its crop options to
+compare a region rather than assuming a full capture matches a reference screenshot.
+
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
