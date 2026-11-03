@@ -17,14 +17,6 @@ only grows: search it with grep, or read one entry by its line range. Never read
 - Count-only output omits the interval list; default output omits the new field. Help, direct-script invocation and dependency validation before image reads are covered.
 - `make check` passes after the final edits.
 
-### Reference-pixel sampler: count vertical matching segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
-
-**Goal.** Quantify fragmentation of a reference side-border color without printing its vertical interval list. Searches of sampler source, tests and plan headings found vertical lists and longest-run summaries, but no vertical segment count. This is independent of the queued fidelity diagnostic and complements the finished horizontal sampler count.
-
-**Approach and files.** Added the count option, streaming counter, report output, validation, focused tests, README documentation and invariant. Vertical counting uses the existing positioned traversal and does not retain interval records unless requested.
-
-**Acceptance criteria.** Implemented the scalar count and verified the offset crop, filtering, paging, empty result, no-list collector, validation, text/JSON and direct-script behavior with the focused and project checks. Corrected the fixture's matching-pixel total from 7 to 6: the four stated rows contain 2+1+1+2 matches; the expected vertical segment count remains 4.
-
 ### Fidelity diagnostics: count horizontal mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Quantify fragmentation of a rendered border defect with a scalar instead of printing its complete interval list. Searches of fidelity source and related finished plans found horizontal lists and longest-run summaries, but no segment-count diagnostic. This is independent of the waiting reference-sampler plan.
