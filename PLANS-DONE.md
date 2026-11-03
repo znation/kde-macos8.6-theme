@@ -7,6 +7,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
+Added the eight exact GTK 4 toolbar focus selectors with only `outline-color: #000000`, a declaration test asserting selector set, single occurrence and equality with generic button focus, and the GTK invariant provenance row. The color is a platform adaptation because no collected reference shows toolbar keyboard focus; stock width and offset remain inherited.
+
+### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
 **Goal and grounding.** Keep toolbar-button keyboard-focus outlines black like the landed generic `button:focus:focus-visible` policy. The shipped sheet has no `.toolbar` focus-visible restatement; the finished sidebar, emoji and tab-focus plans explicitly exclude toolbar focus. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below declaring `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent)`. Their greater specificity defeats the generic button colour. No collected reference shows GTK toolbar keyboard focus: black is a platform adaptation reusing the landed focus policy, not a newly sampled metric.
 
 **Approach and files.** Append a dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring only `outline-color: #000000`. Use these exact stock selector twins (each line is one selector):
