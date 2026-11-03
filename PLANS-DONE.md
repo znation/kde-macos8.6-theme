@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: count horizontal mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Quantify fragmentation of a rendered border defect with a scalar instead of printing its complete interval list. Implemented as specified.
+
+**Approach and files.** Added `--difference-run-count`, streaming counting, JSON/text output, tests and documentation. Run lists provide the count before their length filters.
+
+**Acceptance criteria.** The focused test covers run segmentation, JSON/text output, count omission by default, and reuse of requested runs. `make check` passed after final edits.
+
 ### Reference-pixel sampler: count horizontal matching segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Measure fragmentation of a reference border color with a compact count instead of printing its full horizontal interval list. Searches of sampler source and related finished plans found lists and longest-run summaries, but no match-run count. This is independent of the waiting ordinary-run color exclusion.

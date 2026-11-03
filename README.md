@@ -772,6 +772,10 @@ reports `null`. When combined with `--difference-runs`, it reuses those interval
 comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
 JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
 combined with `--difference-column-runs`, it reuses those intervals.
+`--difference-run-count` reports the number of maximal horizontal mismatch intervals as
+`difference_run_count` in JSON or `difference run count: N` in text. It counts before run-length
+filters; requested run lists supply the count, while count-only mode streams without retaining
+intervals.
 The count includes alpha and RGB beneath transparent pixels, treats missing alpha as 255, and
 counts each pixel once. The aggregate metrics use comparison raw bytes and are independent of
 `--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list

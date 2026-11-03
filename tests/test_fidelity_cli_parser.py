@@ -121,6 +121,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_row_bounds": False,
             "difference_column_bounds": False,
             "difference_runs": False,
+            "difference_run_count": False,
             "min_difference_run_length": None,
             "max_difference_run_length": None,
             "min_difference_column_run_length": None,

@@ -69,6 +69,8 @@ def build_parser() -> EscapingArgumentParser:
                         help="locate each column's vertical interval of pixels differing beyond --tolerance")
     parser.add_argument("--difference-runs", action="store_true",
                         help="locate disjoint horizontal runs of pixels differing beyond --tolerance")
+    parser.add_argument("--difference-run-count", action="store_true",
+                        help="count horizontal mismatch runs without listing them")
     parser.add_argument("--min-difference-run-length", type=positive_int("--min-difference-run-length"),
                         default=None, metavar="N",
                         help="omit horizontal difference runs shorter than N (requires --difference-runs)")

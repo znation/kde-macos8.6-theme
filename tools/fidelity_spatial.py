@@ -135,6 +135,13 @@ def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[
     return _difference_axis_runs(candidate, reference, tolerance, vertical=False)
 
 
+def difference_run_count(candidate: Image, reference: Image, tolerance: int) -> int:
+    """Count horizontal mismatch runs without retaining their intervals."""
+    return sum(1 for _ in _iter_difference_axis_runs(
+        candidate, reference, tolerance, vertical=False
+    ))
+
+
 def difference_column_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
     """Return maximal vertical runs of over-tolerance pixels, column-major."""
     return _difference_axis_runs(candidate, reference, tolerance, vertical=True)
