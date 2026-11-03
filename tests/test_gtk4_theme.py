@@ -1345,11 +1345,44 @@ for radio in (False, True):
         for selector in selectors:
             self.assertEqual(self.rules[selector], ENTRY_FIELD)
             self.assertEqual(self.selectors.count(selector), 1)
-        # No other flat entry or spinbutton spelling exists in the sheet:
+        # No other flat entry or spinbutton spelling exists beyond the
+        # treeview-embedded flat twins the treeview entry restatement adds:
         # the family scan kills renamed and stray variants alike.
         self.assertEqual(
             {s for s in self.rules if "flat" in s and ("entry" in s or "spinbutton" in s)},
-            set(selectors),
+            set(selectors) | {"treeview entry.flat", "treeview entry.flat:focus-within"},
+        )
+
+    def test_treeview_entry_fields(self):
+        # The landed entry recipe governs the stock treeview-embedded entry
+        # family too: the sheet restates the three stock grouped arms with
+        # byte-equal twins declaring ENTRY_FIELD, a black focus border and
+        # the landed no-motion policy, so a resting, focused, flat or
+        # plain editable cell paints the raised field instead of stock's
+        # blue focus border and stock's color/background focus transition.
+        fields = ("treeview entry.flat", "treeview entry")
+        focus = (
+            "treeview entry.flat:focus-within",
+            "treeview entry:focus-within",
+        )
+        motion = (
+            "treeview entry:focus-within:dir(rtl)",
+            "treeview entry:focus-within:dir(ltr)",
+        )
+        for selector in fields:
+            self.assertEqual(self.rules[selector], ENTRY_FIELD)
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in focus:
+            self.assertEqual(self.rules[selector], {"border-color": BLACK})
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in motion:
+            self.assertEqual(self.rules[selector], {"transition": "none"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        # No other treeview entry spelling exists in the sheet: the family
+        # scan kills renamed and stray variants alike.
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("treeview entry")},
+            set(fields + focus + motion),
         )
 
     def test_title_buttons(self):

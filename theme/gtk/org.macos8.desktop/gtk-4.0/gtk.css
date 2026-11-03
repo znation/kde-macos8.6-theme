@@ -363,6 +363,39 @@ entry.flat {
   color: #000000;
 }
 
+/* No collected reference screenshot shows a GTK treeview-embedded entry,
+ * the standing GTK-scope adaptation premise: restating the stock
+ * treeview-embedded entry arms with the landed entry recipe above. Stock
+ * grouped arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `treeview entry.flat, treeview entry { border-radius: 0;
+ * background-image: none; background-color: #ffffff }`,
+ * `treeview entry.flat:focus-within, treeview entry:focus-within
+ * { border-color: #3584e4 }` and `treeview
+ * entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr)
+ * { background-color: #ffffff; transition-property: color, background }`.
+ * Each restated selector is the byte-equal stock twin and the groups sit
+ * after the landed base arms, so later source order wins every tie inside
+ * a treeview: the field recipe, a black focus border and the entry motion
+ * policy apply there too, while stock's `background-image: none` stays in
+ * force because the cascade is per-property. */
+treeview entry.flat, treeview entry {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+treeview entry.flat:focus-within, treeview entry:focus-within {
+  border-color: #000000;
+}
+
+treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
+  transition: none;
+}
+
 check, radio {
   min-height: 14px;
   min-width: 14px;
