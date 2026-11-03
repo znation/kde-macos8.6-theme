@@ -6,7 +6,11 @@ the worktree instead of ``$TMPDIR`` and an accidental ``git add`` tracked it
 single path into that run's temporary scratch directory carries nothing another
 clone can resolve, and no repository file or recipe reads it. These tests fail
 when such a file is tracked again, so stray bookkeeping at the repository root
-cannot hide in the tracked tree while every check stays green.
+cannot hide in the tracked tree while every check stays green. A follow-up
+run tracked one run's full ``make check`` capture as ``check.log`` at the
+root (entry found by the plan role 2026-11-03); a file whose first line is
+the check harness invocation is scan-blocked alongside the bookkeeping
+paths.
 
 Run with the project's check harness (stdlib unittest) via ``make check``.
 """
@@ -42,6 +46,29 @@ def tracked_run_scratch_files(root):
         with open(path, "rb") as fh:
             first_line = fh.readline()
         if first_line.startswith(b"/tmp/tumwater-run-") and b"/tmp." in first_line:
+            offenders.append((name, first_line))
+    return offenders
+
+
+def tracked_check_output_files(root):
+    """Return tracked top-level files that look like a check-run capture.
+
+    A full ``make check`` capture opens with the harness invocation line
+    ("python3 tools/check_parallel.py …"), which no repository file, recipe
+    or doc contains as its first line. Such a file is one run's log output:
+    it carries nothing another clone can resolve and would go stale with
+    every check run.
+    """
+    offenders = []
+    for name in tracked_files(root):
+        if "/" in name:
+            continue
+        path = os.path.join(root, name)
+        if os.path.islink(path) or not os.path.isfile(path):
+            continue
+        with open(path, "rb") as fh:
+            first_line = fh.readline().rstrip(b"\r\n")
+        if first_line.startswith(b"python3 tools/check_parallel.py"):
             offenders.append((name, first_line))
     return offenders
 
@@ -118,6 +145,62 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             subprocess.run(["git", "-C", directory, "add", "note"], check=True)
 
             self.assertEqual(tracked_run_scratch_files(directory), [])
+
+    def test_check_log_is_not_tracked(self):
+        if "check.log" in tracked_files(repo_root.ROOT):
+            raise _TrackFailure(
+                "'check.log' is tracked; remove it (git rm) — check output "
+                "belongs under $TMPDIR"
+            )
+
+    def test_no_tracked_top_level_file_is_a_check_run_capture(self):
+        # A top-level tracked file whose first line is the check harness
+        # invocation is one run's full-check capture (entry found by the
+        # plan role 2026-11-03), not repository content.
+        for name, first_line in tracked_check_output_files(repo_root.ROOT):
+            raise _TrackFailure(
+                f"tracked top-level file {name!r} opens with the check "
+                f"harness invocation: {first_line!r}"
+            )
+
+    def test_scan_finds_check_capture_and_ignores_nested_file(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            os.makedirs(os.path.join(directory, "nested"))
+            with open(os.path.join(directory, "check.log"), "wb") as fh:
+                fh.write(b"python3 tools/check_parallel.py -p 'test*.py'\n")
+            with open(os.path.join(directory, "nested", "check.log"), "wb") as fh:
+                fh.write(b"python3 tools/check_parallel.py\n")
+            with open(os.path.join(directory, "ordinary"), "wb") as fh:
+                fh.write(b"python3 tools/apply_cursor.py\n")
+            subprocess.run(
+                ["git", "-C", directory, "add", "check.log", "nested/check.log",
+                 "ordinary"],
+                check=True,
+            )
+
+            self.assertEqual(
+                tracked_check_output_files(directory),
+                [
+                    ("check.log", b"python3 tools/check_parallel.py -p 'test*.py'")
+                ],
+            )
+
+    def test_check_capture_without_a_trailing_newline_is_flagged(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            with open(os.path.join(directory, "log"), "wb") as fh:
+                fh.write(b"python3 tools/check_parallel.py")
+            subprocess.run(["git", "-C", directory, "add", "log"], check=True)
+
+            self.assertEqual(
+                tracked_check_output_files(directory),
+                [("log", b"python3 tools/check_parallel.py")],
+            )
 
     def test_scan_does_not_follow_a_tracked_symlink(self):
         import tempfile

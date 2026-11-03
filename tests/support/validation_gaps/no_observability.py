@@ -13,7 +13,7 @@ from .records import Reproduction
 
 # The number of ``no-observability`` records the archive held when the ledger
 # landed. A new record must be retired with a test instead of raising this.
-NO_OBSERVABILITY_BASELINE = 22
+NO_OBSERVABILITY_BASELINE = 23
 
 NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
@@ -71,6 +71,12 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
         "palette-provenance",
         ("Palette anchors are not re-derivable",),
         "tests/test_colorscheme.py::TestProvenanceNote",
+    ),
+    Reproduction(
+        "checklog-tracked",
+        ("`check.log` full-check output is tracked",),
+        "tests/test_scratch_hygiene.py::TestNoTrackedScratchFiles"
+        "::test_check_log_is_not_tracked",
     ),
     Reproduction(
         "scratchpath-tracked",

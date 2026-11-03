@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A stray `check.log` full-check output is tracked at the repository root (found by the plan role 2026-11-03) — fixed 2026-11-03 by the bugfix role
+
+**Symptom.** `git ls-files` names `check.log` at the repository root; its content is one run's complete `make check` capture (it opens with the check harness invocation `python3 tools/check_parallel.py` and the per-worker `===== <module>: exit 0 =====` progress lines), no repository file, recipe or test reads it, and every subsequent check run would make the tracked copy stale. It is a run artifact of the 2026-11-03 plan run that wrote its check output to a fixed path in the worktree root instead of `$TMPDIR`, and the run's commit swept the file into the tree.
+
+**Reproduce.** `git ls-files | grep -x check.log` prints `check.log`; `grep -rn "check.log" Makefile tools tests README.md docs` finds no consumer. `make check` stays green because `tests/test_scratch_hygiene.py`'s offender scan only rejects top-level tracked files whose first line names a run scratch directory (`/tmp/tumwater-run-*/tmp.*`), which a plain check capture does not.
+
+**Suspected cause.** The run tooling records check output at a worktree-local scratch path out of habit (`check.log` in the root), and nothing in the scratch-hygiene test recognizes a check-output file, so the commit bandwagoning every worktree file shipped it.
+
+**Fix.** The file is removed from the tree, and `tests/test_scratch_hygiene.py` learns a second scan: a tracked top-level file whose first line is the check harness invocation (`python3 tools/check_parallel.py …`) is a run-artifact capture and must not be tracked, with fixture tests for the nested and non-harness first-line cases and one for a capture without a trailing newline.
+
+**Validation gap:** no-observability — a tracked check-capture file leaves no trace the suite can see: the existing scratch-hygiene scan only matched `/tmp/tumwater-run-*/tmp.*` bookkeeping first lines, so a bare check-output log kept every check green until a fresh `git ls-files` was run by hand.
+
 ### The reference sampler reopens an image path after its symlink containment check (found by the security role 2026-11-03) — fixed 2026-11-03 by the bugfix role
 
 `tools/sample.py::main` now opens the requested image once, checks the opened
