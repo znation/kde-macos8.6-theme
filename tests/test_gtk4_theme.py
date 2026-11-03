@@ -1909,6 +1909,7 @@ for radio in (False, True):
             "flowbox > flowboxchild:selected",
             "flowbox > flowboxchild:selected:backdrop",
             "flowbox > flowboxchild:disabled:selected",
+            "flowbox > flowboxchild:focus:focus-visible",
             # The rubberband view-specific recipe names this node (2026-11-01).
             "flowbox > rubberband",
         }
@@ -1917,7 +1918,8 @@ for radio in (False, True):
             expected,
         )
         self.assertEqual(
-            self.rules["flowbox > flowboxchild"], {"border-radius": "0"}
+            self.rules["flowbox > flowboxchild"],
+            {"border-radius": "0", "transition": "none"},
         )
         self.assert_matches_frame("flowbox > flowboxchild", "border-radius")
 
@@ -2009,6 +2011,7 @@ for radio in (False, True):
         expected = {
             "gridview > child",
             "filechooser gridview > child",
+            "gridview > child:focus:focus-visible",
             # The filechooser undershoot mirror names the same view substring.
             "filechooser gridview ~ undershoot.top",
             # The selected view-child restatement names the same nodes.
@@ -2030,7 +2033,10 @@ for radio in (False, True):
             {"gridview > child", "filechooser gridview > child"}
         ):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(
+                    self.rules[selector],
+                    {"border-radius": "0", "transition": "none"},
+                )
                 self.assert_matches_frame(selector, "border-radius")
 
     def test_iconview_selected_arms(self):
@@ -2056,10 +2062,47 @@ for radio in (False, True):
             {selector for selector in self.rules if "iconview" in selector},
             {
                 "iconview > dndtarget:drop(active)",
+                "iconview",
+                "iconview:focus:focus-visible",
                 "iconview.view:selected",
                 "iconview.view:selected:focus",
                 "iconview.view:backdrop:selected",
             },
+        )
+
+    def test_view_child_focus_outlines(self):
+        selectors = (
+            "iconview:focus:focus-visible",
+            "flowbox > flowboxchild:focus:focus-visible",
+            "gridview > child:focus:focus-visible",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["scale:focus:focus-visible > trough > slider"][
+                        "outline-color"
+                    ],
+                )
+                self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(self.selectors.count("iconview"), 1)
+        self.assert_rule("iconview", {"transition": "none"})
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.endswith("child:focus:focus-visible")
+            },
+            set(selectors[1:]),
+        )
+        self.assertGreater(
+            self.selectors.index("iconview:focus:focus-visible"),
+            self.selectors.index("iconview.view:backdrop:selected"),
+        )
+        self.assertLess(
+            self.selectors.index("iconview:focus:focus-visible"),
+            self.selectors.index("row:disabled:selected"),
         )
 
     def test_generic_view_selected_arms(self):
