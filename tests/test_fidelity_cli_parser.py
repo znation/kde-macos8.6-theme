@@ -47,6 +47,27 @@ class TestFidelityCliParser(unittest.TestCase):
             ):
                 fidelity_arguments.max_frac(value)
 
+    def test_max_differing_accepts_zero_and_rejects_negative_counts(self):
+        self.assertEqual(fidelity_arguments.max_differing("0"), 0)
+        self.assertEqual(fidelity_arguments.max_differing("-0"), 0)
+        self.assertEqual(fidelity_arguments.max_differing("123"), 123)
+        for value in ("-1",):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError,
+                "--max-differing must not be negative",
+            ):
+                fidelity_arguments.max_differing(value)
+
+    def test_worst_pixel_limit_accepts_inclusive_bounds_and_ascii_digits_only(self):
+        self.assertEqual(fidelity_arguments.worst_pixel_limit("1"), 1)
+        self.assertEqual(fidelity_arguments.worst_pixel_limit("1000"), 1000)
+        for value in ("0", "1001", "+1", "１", "1.0", ""):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError,
+                "ASCII integer from 1 to 1000",
+            ):
+                fidelity_arguments.worst_pixel_limit(value)
+
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
         for value, diagnostic in (
