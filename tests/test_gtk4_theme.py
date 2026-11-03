@@ -1142,8 +1142,13 @@ for radio in (False, True):
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
+        # The restated entry colour-class twins carry .warning/.error
+        # spellings, so the ban covers infobar selectors alone: no
+        # infobar-family rule names a message type.
         for message_type in (".info", ".question", ".warning", ".error"):
-            self.assertNotIn(message_type, self.css, message_type)
+            for selector in self.selectors:
+                if "infobar" in selector:
+                    self.assertNotIn(message_type, selector, message_type)
 
     def test_banner_surface(self):
         selectors = {
@@ -1351,6 +1356,43 @@ for radio in (False, True):
         self.assertEqual(
             {s for s in self.rules if "flat" in s and ("entry" in s or "spinbutton" in s)},
             set(selectors) | {"treeview entry.flat", "treeview entry.flat:focus-within"},
+        )
+
+    def test_entry_colour_classes(self):
+        # The landed entry policy takes no colour class: the sheet restates
+        # the four stock error/warning colour-class arms with byte-equal
+        # twins declaring the landed black text, the immediate motion
+        # policy and the black focus outline, so an entry carrying the
+        # `error` or `warning` class paints the raised field recipe instead
+        # of stock's red or orange.
+        bases = (
+            "spinbutton.vertical > text.error",
+            "spinbutton.error:not(.vertical)",
+            "entry.error",
+            "spinbutton.vertical > text.warning",
+            "spinbutton.warning:not(.vertical)",
+            "entry.warning",
+        )
+        focus = (
+            "spinbutton.vertical > text.error:focus-within",
+            "spinbutton.error:focus-within:not(.vertical)",
+            "entry.error:focus-within",
+            "spinbutton.vertical > text.warning:focus-within",
+            "spinbutton.warning:focus-within:not(.vertical)",
+            "entry.warning:focus-within",
+        )
+        for selector in bases:
+            self.assertEqual(self.rules[selector], {"color": BLACK, "transition": "none"})
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in focus:
+            self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+            self.assertEqual(self.selectors.count(selector), 1)
+        # No other error or warning selector exists in the sheet: the
+        # family scan kills renamed, dropped and stray class spellings
+        # alike (including the stock '> selection' arms, out of scope).
+        self.assertEqual(
+            {s for s in self.rules if ".error" in s or ".warning" in s},
+            set(bases + focus),
         )
 
     def test_treeview_entry_fields(self):

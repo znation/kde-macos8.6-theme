@@ -363,6 +363,56 @@ entry.flat {
   color: #000000;
 }
 
+/* No collected reference screenshot shows a GTK error- or warning-classed
+ * entry, the standing GTK-scope adaptation premise: the landed entry policy
+ * takes no colour class, so an entry carrying the `error` or `warning`
+ * class paints the landed recipe above instead of stock's red or orange.
+ * Stock colour-class arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `spinbutton.vertical > text.error, spinbutton.error:not(.vertical),
+ * entry.error { color: #cc0000; transition-property: outline,
+ * outline-width, outline-offset, outline-color; transition-duration:
+ * 300ms; animation-timing-function: ease-in-out; }` and the
+ * per-property-identical warning twin with `color: #f57900`, each with a
+ * `:focus-within` twin declaring `outline-color: rgba(204, 0, 0, 0.5);
+ * outline-width: 2px; outline-offset: -2px;` (warning:
+ * `rgba(245, 121, 0, 0.5)`). Each restated selector is the byte-equal
+ * stock twin and each group sits after the landed base arms, so later
+ * source order wins every colour-class tie and the class keeps its place
+ * in the cascade while its paint falls back to the raised field. Stock's
+ * `animation-timing-function: ease-in-out` stays in force but is inert:
+ * the resource declares no `animation-name` anywhere. Stock's
+ * class-specific outline-reset arm (`outline: 0 solid transparent;
+ * outline-offset: 4px`) is per-property identical to the stock generic
+ * base arm at the plain `entry` spellings, so nothing deviates there, and
+ * the focused `outline-width: 2px; outline-offset: -2px` geometry is what
+ * the landed `entry:focus-within` arm already inherits. The resource's
+ * later error repeat colour arm is per-property identical to its first,
+ * and this sheet sits entirely after the stock resource, so one twin
+ * group per class and one per class-state covers every order tie. */
+spinbutton.vertical > text.error, spinbutton.error:not(.vertical),
+entry.error {
+  color: #000000;
+  transition: none;
+}
+
+spinbutton.vertical > text.error:focus-within,
+spinbutton.error:focus-within:not(.vertical), entry.error:focus-within {
+  outline-color: #000000;
+}
+
+spinbutton.vertical > text.warning, spinbutton.warning:not(.vertical),
+entry.warning {
+  color: #000000;
+  transition: none;
+}
+
+spinbutton.vertical > text.warning:focus-within,
+spinbutton.warning:focus-within:not(.vertical), entry.warning:focus-within {
+  outline-color: #000000;
+}
+
 /* No collected reference screenshot shows a GTK treeview-embedded entry,
  * the standing GTK-scope adaptation premise: restating the stock
  * treeview-embedded entry arms with the landed entry recipe above. Stock
