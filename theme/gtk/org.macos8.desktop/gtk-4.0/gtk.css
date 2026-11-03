@@ -1578,6 +1578,37 @@ label.dimmed {
   opacity: 1;
 }
 
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+ * error-classed label, the standing GTK-scope adaptation premise, so the
+ * stock colour-class distinction is erased and the class keeps its place
+ * in the cascade while its paint falls back to the landed label policy.
+ * Stock colour-class arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `label.error { color: #cc0000; }` and
+ * `label.error:disabled { color: rgba(204, 0, 0, 0.5); }`; a grep over the
+ * resource confirms the family ships nothing else - no `label.warning`
+ * arm exists, so a warning-classed label inherits black with no override
+ * and needs no restatement. The disabled arm widens stock's plain
+ * `label:disabled { color: #929595; }` grey to translucent red with one
+ * class token, so it out-ranks the landed `label:disabled` grey.
+ * The base arm conflicts with no landed rule; labels inherit black from
+ * the landed `window, .background` group. Each restated selector is the
+ * byte-equal stock twin and this sheet sits entirely after the stock
+ * resource, so one twin per arm covers every order tie. The colours reuse
+ * the landed label-policy values: the inherited window foreground
+ * (`#000000`) and the insensitive grey (`#888888`) already in the sheet.
+ * `label.error > selection` and `label.error:selected` stay out of scope:
+ * the resource ships no such arm, so the landed selection groups still
+ * govern. */
+label.error {
+  color: #000000;
+}
+
+label.error:disabled {
+  color: #888888;
+}
+
 /* Links take the scheme's link blue and visited purple; a link button has no face. */
 button.link {
   background-color: transparent;

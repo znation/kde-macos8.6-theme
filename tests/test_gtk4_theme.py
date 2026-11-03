@@ -524,6 +524,19 @@ for radio in (False, True):
             ("label:disabled", "text:disabled", "spinbutton.vertical > text:disabled")
         )
 
+    def test_label_error_colour_class(self):
+        # The landed label policy takes no colour class: the sheet restates
+        # the two stock error colour-class arms with byte-equal twins
+        # declaring the landed inherited black text and the landed
+        # insensitive grey, so an error-classed label paints the landed
+        # policy instead of stock's red, and its disabled twin paints the
+        # landed grey instead of stock's translucent red. Stock ships no
+        # `label.warning` arm, so there is nothing to restate there.
+        for selector in ("label.error", "label.error:disabled"):
+            self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(self.rules["label.error"], {"color": BLACK})
+        self.assertEqual(self.rules["label.error:disabled"], {"color": ETCH_DARK})
+
     def test_dim_label_foreground(self):
         selector = ".dim-label"
         self.assert_disabled_text((selector,))
@@ -1390,9 +1403,14 @@ for radio in (False, True):
         # No other error or warning selector exists in the sheet: the
         # family scan kills renamed, dropped and stray class spellings
         # alike (including the stock '> selection' arms, out of scope).
+        # No other error or warning selector exists in the sheet: the
+        # family scan kills renamed, dropped and stray class spellings
+        # alike (including the stock '> selection' arms, out of scope).
+        # The landed `label.error` label colour-class twins share the
+        # `.error` spelling, so the scan covers them too.
         self.assertEqual(
             {s for s in self.rules if ".error" in s or ".warning" in s},
-            set(bases + focus),
+            set(bases + focus) | {"label.error", "label.error:disabled"},
         )
 
     def test_treeview_entry_fields(self):
