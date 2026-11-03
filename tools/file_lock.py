@@ -28,6 +28,45 @@ from pathlib import Path
 POLL_SECONDS = 0.05
 
 
+def _wait_for_flock_error(
+    exc: OSError,
+    directory: Path,
+    artifact: str,
+    holder: str,
+    timeout: float,
+    deadline: float,
+    error: type[Exception],
+) -> None:
+    if exc.errno not in (errno.EINTR, errno.EACCES, errno.EAGAIN):
+        raise error(f"cannot lock {directory} {artifact}: {exc}") from exc
+    if time.monotonic() >= deadline:
+        raise error(
+            f"gave up after {timeout:g}s waiting for "
+            f"{holder}; nothing was changed"
+        )
+    if exc.errno != errno.EINTR:
+        time.sleep(POLL_SECONDS)
+
+
+def _acquire_flock(
+    descriptor: int,
+    directory: Path,
+    artifact: str,
+    holder: str,
+    timeout: float,
+    error: type[Exception],
+) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except OSError as exc:
+            _wait_for_flock_error(
+                exc, directory, artifact, holder, timeout, deadline, error
+            )
+
+
 @contextlib.contextmanager
 def exclusive_flock(
     directory: Path,
@@ -58,23 +97,7 @@ def exclusive_flock(
     except OSError as exc:
         raise error(f"cannot lock {directory} {artifact}: {exc}") from exc
     try:
-        deadline = time.monotonic() + timeout
-        while True:
-            try:
-                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError as exc:
-                if exc.errno not in (errno.EINTR, errno.EACCES, errno.EAGAIN):
-                    raise error(
-                        f"cannot lock {directory} {artifact}: {exc}"
-                    ) from exc
-                if time.monotonic() >= deadline:
-                    raise error(
-                        f"gave up after {timeout:g}s waiting for "
-                        f"{holder}; nothing was changed"
-                    )
-                if exc.errno != errno.EINTR:
-                    time.sleep(POLL_SECONDS)
+        _acquire_flock(descriptor, directory, artifact, holder, timeout, error)
         yield
     finally:
         # Closing the descriptor releases the lock even when the body raised.
