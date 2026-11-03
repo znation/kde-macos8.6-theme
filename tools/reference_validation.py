@@ -73,9 +73,10 @@ def _check_entries(
     problems: list[tuple[int, str]] = []
     for filename, lineno in entries.items():
         image = directory / filename
+        safe_filename = escape_controls(filename)
         if not resolves_within(directory, image):
             problems.append(
-                (lineno, f"{sources}:{lineno}: {filename!r} points outside "
+                (lineno, f"{sources}:{lineno}: {safe_filename!r} points outside "
                  f"{directory}/ (a symlink escape)")
             )
             continue

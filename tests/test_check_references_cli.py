@@ -289,6 +289,21 @@ class TestProblemListEscaping(CheckerTestCase):
         self.assertIn("could not be read", child.stderr)
         assert_escapes_escape_character(self, child.stderr)
 
+    def test_declared_symlink_escape_names_the_file_escaped(self):
+        module = self.checker
+        hostile = "evil" + chr(27) + "]2;pwned" + chr(7) + ".png"
+        with reference_set(
+            module,
+            f"{hostile} | https://example.test/e.png | label\n",
+        ) as root:
+            outside = root.parent / "outside.png"
+            outside.write_bytes(PNG_MAGIC)
+            os.symlink(outside, root / hostile)
+            problems = module.check_references(root)
+        joined = "\n".join(problems)
+        self.assertIn("points outside", joined)
+        assert_escapes_escape_character(self, joined)
+
 
 class TestScriptEntryPoint(unittest.TestCase):
     """The checker must still run as ``python3 tools/check_references.py``.
