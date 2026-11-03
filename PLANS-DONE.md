@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README standalone setup: list GTK, cursor and Firefox prerequisites (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Make the standalone application setup paths discoverable from the prerequisites table. Its current rows cover KDE use, package installation, aggregate apply, rendering and references; the GTK, cursor and Firefox requirements appear deeper in Installing. This extends the archived compact setup map with these specific task rows, independently of the queued render recipes.
+
+**Approach and files.** Edit README.md only, in `## Prerequisites`. Add three task rows: GTK selection through `make apply-gtk` (Python 3.10+, the package-install utilities already listed, writable data/config homes, and restarting GTK applications); cursor selection through `make apply-cursor` (Python 3.10+, the package-install utilities, and `plasma-apply-cursortheme` on PATH); Firefox sheets through `make install-firefox` (Python 3.10+ and an existing writable Firefox profile, discovered automatically or supplied with `FIREFOX_PROFILE=/absolute/profile`). Link to Installing for selection, backup and restart details. In the cursor and Firefox rows, briefly distinguish the standalone requirement from aggregate `make apply`, which skips a missing cursor selector or an undiscovered Firefox profile with a note. Keep package names distribution-neutral. No runtime, artwork or invariant changes; no new prose-pinning tests.
+
+**Grounding.** Makefile's `apply-gtk`, `apply-cursor` and `install-firefox` recipes supply the installation and Python requirements; its `apply` recipe passes `--optional` to the latter two selection tools. `tools/apply_gtk.py::main` resolves config/data homes and requests an application restart. `tools/apply_cursor.py::_select` checks `SELECT_TOOL` and implements the optional missing-tool skip. `tools/install_firefox.py::main` accepts `--profile` and skips when optional profile discovery returns no profile. These are evidence anchors, not files to edit. The archived prerequisites-map plan covers the existing general rows, rather than these standalone task rows.
+
+**Acceptance criteria.** A reader at Prerequisites can identify the command and setup requirements for each of the three standalone tasks without searching the installation narrative. The cursor row identifies the required selector; the Firefox row gives an absolute explicit-profile example and explains automatic discovery. The table distinguishes optional aggregate skips from standalone requirements and links to the existing Installing section. Review the rows against the cited recipes and CLI branches, then run `make check` after the final edit.
+
 ### README render recipes: show copyable captures for each supported mode (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Give contributors a compact route from choosing a surface to producing a candidate PNG. Installing describes the renderer and its dialog switches in prose, but supplies no copyable dialog capture commands. Searches of the planned queue and archived README headings found prose corrections for the render gates, rather than a capture recipe guide.
