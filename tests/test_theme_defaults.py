@@ -419,6 +419,20 @@ class TestWriteConfigs(unittest.TestCase):
         self.assertEqual(0o644, target.stat().st_mode & 0o777)
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
 
+    def test_write_replaces_output_symlink_without_changing_its_target(self):
+        directory = make_tmp_dir(self)
+        target = directory / "kwinrc"
+        linked_file = directory / "linked-config"
+        linked_file.write_text("KEEP\n", encoding="utf-8")
+        target.symlink_to(linked_file.name)
+
+        theme_config_writer.write_config_atomically(target, "NEW\n")
+
+        self.assertFalse(target.is_symlink())
+        self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
+        self.assertEqual("KEEP\n", linked_file.read_text(encoding="utf-8"))
+        self.assertEqual({"kwinrc", "linked-config"}, set(os.listdir(directory)))
+
     def test_removal_before_the_stat_lookup_writes(self):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"
