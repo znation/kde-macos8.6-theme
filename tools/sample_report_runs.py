@@ -34,6 +34,8 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
     runs = []
     run_count = 0 if args.run_count else None
+    track_longest = args.longest_run
+    longest_run = None
     if axis == "horizontal":
         scans = ((args.x, args.y + row, args.width, 1) for row in range(args.height))
     else:
@@ -42,6 +44,10 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
         if run_count is not None:
             run_count += len(line_runs)
+        if track_longest:
+            for run in line_runs:
+                if longest_run is None or run["length"] > longest_run["length"]:
+                    longest_run = run
         runs.extend(run for run in line_runs
                     if (selected_colors is None or run["rgb"] in selected_colors)
                     if run["rgb"] not in excluded_colors
@@ -53,6 +59,12 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         ]}
     if run_count is not None:
         result["run_count"] = run_count
+    if track_longest:
+        result["longest_run"] = {
+            "x": longest_run["x"], "y": longest_run["y"], "length": longest_run["length"],
+            "rgb": list(longest_run["rgb"]), "hex": _hex(longest_run["rgb"]),
+            **({"alpha": longest_run["alpha"]} if args.alpha else {}),
+        }
     return result
 
 
@@ -65,6 +77,9 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
     region = result["region"]
     print(f"region ({region['x']}, {region['y']}) {region['width']}x{region['height']}:")
     print(f"axis: {result['axis']}")
+    if "longest_run" in result:
+        run = result["longest_run"]
+        print(f"longest run: {run['x']},{run['y']},{run['length']}")
     if "run_count" in result:
         print(f"run count: {result['run_count']}")
     for run in result["runs"]:

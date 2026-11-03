@@ -39,6 +39,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--run-color requires --runs"
     if getattr(args, "excluded_run_colors", None) and not args.runs:
         return "--exclude-run-color requires --runs"
+    if getattr(args, "longest_run", False) and not args.runs:
+        return "--longest-run requires --runs"
     if getattr(args, "run_count", False) and not args.runs:
         return "--run-count requires --runs"
     if args.color_bounds and not args.histogram:
@@ -133,6 +135,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-color", dest="run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, retain this RGB color (repeatable)")
     parser.add_argument("--exclude-run-color", dest="excluded_run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, omit this RGB color (repeatable)")
     parser.add_argument("--run-count", action="store_true", help="with --runs, report the total number of scanline color runs before filters")
+    parser.add_argument("--longest-run", action="store_true", help="with --runs, report the longest scanline color run before filters")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
     parser.add_argument("--color-offset", type=color_offset, metavar="K", help="with --top-colors, skip the first K ranked colors")
     parser.add_argument("--min-color-count", type=positive_int("--min-color-count"), metavar="N", help="with --histogram, omit colors occurring fewer than N times")

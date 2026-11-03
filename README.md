@@ -778,6 +778,18 @@ count covering all scanlines of the region. What `runs` lists does not change;
 omitting the flag omits the JSON key, the text line and the counting. The flag
 requires `--runs`.
 
+Pass `--longest-run` with `--runs` to add the dominant scanline run as a
+scalar: JSON gains a top-level `longest_run` mirroring one `runs` entry (`x`,
+`y`, `length`, `rgb`, `hex`, plus `alpha` under `--alpha`) and text prints
+`longest run: X,Y,LENGTH` immediately after the `axis:` line. The summary
+covers every scan run of the region before `--run-color` selection,
+`--exclude-run-color` and the inclusive length filters, resolving ties in
+scanning order — top-to-bottom rows for the horizontal axis, left-to-right
+columns for the vertical, and the earliest run within a scanline. Every
+scanline yields at least one run, so the summary is never null. What `runs`
+lists does not change; omitting the flag omits the JSON key, the text line and
+the comparison. The flag requires `--runs`.
+
 
 
 ## Fidelity checking
