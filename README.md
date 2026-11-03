@@ -458,6 +458,12 @@ denominator, while spatial diagnostics describe only emitted colors. A cutoff
 larger than the region area returns an empty palette and marks the full region
 omitted.
 
+Add `--min-color-fraction F` with `--histogram` to omit colors whose share of
+the requested region is below F (0 through 1 inclusive). Filtering runs before
+`--top-colors` and combines with `--min-color-count`; both predicates must pass.
+The share uses the full region area, and explicit filtering reports the original
+`total_colors` and `omitted_pixels`. At F=0 the palette is unchanged.
+
 Add `--color-fractions` with `--histogram` to add each emitted color's share
 of the complete requested region (`count / width / height`). JSON color
 records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions

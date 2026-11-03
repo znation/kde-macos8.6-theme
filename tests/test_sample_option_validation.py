@@ -20,6 +20,7 @@ class TestSampleOptionValidation(CliTestCase):
             (("--top-colors", "1"), "--top-colors requires --histogram"),
             (("--color-bounds",), "--color-bounds requires --histogram"),
             (("--color-fractions",), "--color-fractions requires --histogram"),
+            (("--min-color-fraction", "0.5"), "--min-color-fraction requires --histogram"),
             (("--color-tolerance", "0"), "--color-tolerance requires --find-color"),
             (("--match-alpha", "0"), "--match-alpha requires --find-color"),
             (("--match-pixels", "1"), "--match-pixels requires --find-color"),
@@ -61,6 +62,7 @@ class TestSampleOptionValidation(CliTestCase):
         cases = (
             ("image.png", "0", "0"),
             ("image.png", "0", "0", "--histogram", "--top-colors", "2"),
+            ("image.png", "0", "0", "--histogram", "--min-color-fraction", "0.5"),
             ("image.png", "0", "0", "--find-color", "010203", "--color-tolerance", "0", "--match-alpha", "0"),
             ("image.png", "0", "0", "--width", "2", "--height", "2", "--runs", "--run-axis", "vertical"),
             ("image.png", "0", "0", "--width", "1", "--height", "1", "--runs"),
