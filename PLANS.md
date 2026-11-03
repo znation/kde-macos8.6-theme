@@ -5,16 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Reference-pixel sampler centroid, part 1/2: separate search result assembly from printing (planned 2026-11-02 by the plan role)
-
-**Goal and grounding.** Resolve the centroid plan's sizing hold by separating its preparation from its new behavior. `tools/sample_report_search.py::report_search` currently performs matching, run accumulation, match-dictionary assembly and printing in one function. The archived color-search handler extraction moved that entire branch together; it did not separate result assembly. This part makes the search result directly testable before sibling part 2/2 adds centroid reporting, and is useful without that feature.
-
-**Approach and files.** In `tools/sample_report_search.py`, extract `_search_match(args, image) -> dict` from `report_search`: it owns the existing positioned traversal, alpha/tolerance predicate, bounds and optional diagnostics, returning exactly the current JSON `match` dictionary. Keep both helpers in this file; introduce no module, result class or compatibility wrapper. `report_search` calls it once and prints the existing envelope/text from its keys. Preserve dictionary insertion order and text diagnostic order. Add `tests/test_sample_search_result.py` using `build_parser` namespaces and synthetic images; keep existing CLI suites as integration coverage. Read the sampler section of `docs/invariants.md` and update its search ownership description for the helper. These three files bound this part; no parser or user-visible behavior changes.
-
-**Acceptance criteria.** Direct helper tests pin a no-match result and an offset crop with tolerance, exact alpha, bounded positions, fraction and both run diagnostics enabled together, including final-row/final-column flushes and sorted column runs. Assert no printing or namespace mutation. Add exact text and JSON CLI characterization for the combined case, with explicit expected values, and compare package/direct-script stdout, stderr and status. Keep the predicate and scan algorithm intact, with one positioned traversal per call and the retained-coordinate limit unchanged. Run `make check` after final edits. Part 2/2 requires this part merged; the waiting fidelity-rendering plan is independent.
-
 ### Reference-pixel sampler centroid, part 2/2: report the centroid of matching pixels (planned 2026-11-02 by the plan role; requires part 1/2 landed)
 
 **Goal and grounding.** Measure the placement of irregular or disconnected color features without treating their enclosing rectangle's center as their center of mass. `tools/sample_report_search.py::report_search` already counts matching pixels and reports bounds, optional coordinate prefixes and runs, but does not accumulate coordinate sums. Searches for centroid/center-of-mass support in tools, tests and planned/finished plan headings found no existing capability. This is independent of the fidelity-rendering extraction above.

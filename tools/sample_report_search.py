@@ -10,8 +10,7 @@ else:  # run directly: python3 tools/sample.py
     from sample_report_pixels import _hex, _positioned_region_pixels, _region_alpha
 
 
-def report_search(args, image, width: int, height: int, header: str) -> None:
-    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+def _search_match(args, image) -> dict:
     target = args.find_color
     tolerance = args.color_tolerance if args.color_tolerance is not None else 0
     count = 0
@@ -60,11 +59,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     matched_column_runs.sort(key=lambda run: (run["x"], run["y"]))
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
-    color_hex = _hex(target)
-    if args.json:
-        print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
-            "region": region, "match": {"rgb": list(target), "hex": color_hex,
-            "count": count, "bounds": bounds,
+    return {"rgb": list(target), "hex": _hex(target), "count": count,
+            "bounds": bounds,
             **({"fraction": count / (args.width * args.height)} if args.match_fraction else {}),
             **({"centroid": None if count == 0 else {"x": sum_x / count, "y": sum_y / count}}
                if args.match_centroid else {}),
@@ -73,28 +69,40 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             **({"runs": matched_runs} if args.match_runs else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
             **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
-            **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}}, ensure_ascii=True))
+            **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}
+
+
+def report_search(args, image, width: int, height: int, header: str) -> None:
+    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+    match = _search_match(args, image)
+    count = match["count"]
+    bounds = match["bounds"]
+    color_hex = match["hex"]
+    if args.json:
+        print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
+            "region": region, "match": match}, ensure_ascii=True))
         return
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
     print(f"color: {color_hex}")
     if args.color_tolerance is not None:
-        print(f"tolerance: {tolerance}")
+        print(f"tolerance: {match['tolerance']}")
     if args.match_alpha is not None:
         print(f"alpha: {args.match_alpha}")
     print(f"count: {count}")
-    if args.match_fraction:
-        print(f"fraction: {count / (args.width * args.height)}")
+    if "fraction" in match:
+        print(f"fraction: {match['fraction']}")
     print("bounds: none" if bounds is None else
           f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")
-    if args.match_centroid:
-        print("centroid: none" if count == 0 else f"centroid: {sum_x / count},{sum_y / count}")
+    if "centroid" in match:
+        centroid = match["centroid"]
+        print("centroid: none" if centroid is None else f"centroid: {centroid['x']},{centroid['y']}")
     if args.match_pixels is not None:
-        print(f"matching pixels: {len(matched_pixels)}")
-        for pixel in matched_pixels:
+        print(f"matching pixels: {len(match['pixels'])}")
+        for pixel in match["pixels"]:
             print(f"pixel ({pixel['x']}, {pixel['y']})")
-        print(f"omitted pixels: {count - len(matched_pixels)}")
+        print(f"omitted pixels: {match['omitted_pixels']}")
     if args.match_runs:
-        print(f"matching runs: {json.dumps(matched_runs, separators=(',', ':'))}")
+        print(f"matching runs: {json.dumps(match['runs'], separators=(',', ':'))}")
     if args.match_column_runs:
-        print(f"matching column runs: {json.dumps(matched_column_runs, separators=(',', ':'))}")
+        print(f"matching column runs: {json.dumps(match['column_runs'], separators=(',', ':'))}")

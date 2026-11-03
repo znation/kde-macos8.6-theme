@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler centroid, part 1/2: separate search result assembly from printing (planned 2026-11-02 by the plan role — done 2026-11-02 by the feature role)
+
+**Goal and grounding.** Resolve the centroid plan's sizing hold by separating its preparation from its new behavior. `tools/sample_report_search.py::report_search` previously performed matching, run accumulation, match-dictionary assembly and printing in one function. This part makes the search result directly testable before sibling part 2/2 adds centroid reporting, and is useful without that feature.
+
+**Approach and files.** In `tools/sample_report_search.py`, extracted `_search_match(args, image) -> dict`: it owns the existing positioned traversal, alpha/tolerance predicate, bounds and optional diagnostics, returning the JSON `match` dictionary. `report_search` calls it once and formats the existing envelope/text. Added `tests/test_sample_search_result.py` using parser namespaces and a synthetic image, and updated the sampler invariant in `docs/invariants.md`. The later centroid fields and diagnostics remain part of the result dictionary.
+
+**Acceptance criteria.** The direct helper test covers tolerance, alpha fallback, bounded positions, fraction and both run diagnostics together; it asserts no printing or namespace mutation. `make check` verifies existing CLI coverage and package/direct-script behavior. The scan algorithm retains one positioned traversal and the coordinate list remains bounded. Part 2/2 requires this part merged; the waiting fidelity-rendering plan is independent.
+
 ### Fidelity reports: isolate text and JSON rendering from report assembly (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Keep output formatting readable as fidelity diagnostics grow. `tools/fidelity_reports.py` now combines report assembly, verdict and coordinate helpers with `render_text` and `render_json`; its text renderer alone spans roughly 125 lines. The finished CLI/report split extracted these responsibilities together, rather than providing a dedicated rendering module. Searches of source and plan headings found no subsequent rendering-module extraction. This maintenance task is independent of the waiting sampler feature.
