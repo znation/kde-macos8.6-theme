@@ -135,32 +135,24 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["thresholds"]["max_delta"] = max_delta
     if max_differing is not None:
         result["thresholds"]["max_differing"] = max_differing
-    if channels is not None:
-        result["channel_counts"] = channels
-    if bias is not None:
-        result["channel_bias"] = bias
-    if maxima is not None:
-        result["channel_maxima"] = maxima
-    if rows is not None:
-        result["difference_rows"] = rows
-    if columns is not None:
-        result["difference_columns"] = columns
-    if row_bounds is not None:
-        result["difference_row_bounds"] = row_bounds
-    if column_bounds is not None:
-        result["difference_column_bounds"] = column_bounds
-    if runs is not None:
-        result["difference_runs"] = runs
-    if column_runs is not None:
-        result["difference_column_runs"] = column_runs
-    if histogram is not None:
-        result["delta_histogram"] = histogram
-    if percentiles is not None:
-        result["delta_percentiles"] = percentiles
-    if worst is not None:
-        result["worst_pixels"] = worst
-    if explanation is not None:
-        result["worst_pixel"] = explanation
+    diagnostics = (
+        ("channel_counts", channels),
+        ("channel_bias", bias),
+        ("channel_maxima", maxima),
+        ("difference_rows", rows),
+        ("difference_columns", columns),
+        ("difference_row_bounds", row_bounds),
+        ("difference_column_bounds", column_bounds),
+        ("difference_runs", runs),
+        ("difference_column_runs", column_runs),
+        ("delta_histogram", histogram),
+        ("delta_percentiles", percentiles),
+        ("worst_pixels", worst),
+        ("worst_pixel", explanation),
+    )
+    for key, value in diagnostics:
+        if value is not None:
+            result[key] = value
     return result
 
 

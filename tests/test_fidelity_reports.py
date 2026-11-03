@@ -10,6 +10,7 @@ exercising the reads or the comparison the CLI is otherwise covered by.
 
 from __future__ import annotations
 
+import copy
 import json
 import unittest
 
@@ -99,6 +100,77 @@ class TestLocateWorstPixels(unittest.TestCase):
 
 
 class TestReportData(unittest.TestCase):
+    def test_optional_diagnostics_map_each_keyword_to_its_output_key(self):
+        diagnostics = (
+            ("channels", "channel_counts", {"r": 1}),
+            ("bias", "channel_bias", {"r": -1.0}),
+            ("maxima", "channel_maxima", {"r": 1}),
+            ("rows", "difference_rows", [1]),
+            ("columns", "difference_columns", [1]),
+            ("row_bounds", "difference_row_bounds", [[0, 1]]),
+            ("column_bounds", "difference_column_bounds", [[0, 1]]),
+            ("runs", "difference_runs", [[0, 1]]),
+            ("column_runs", "difference_column_runs", [[0, 1]]),
+            ("histogram", "delta_histogram", [{"delta": 1, "count": 1}]),
+            ("percentiles", "delta_percentiles", {"p50": 1}),
+            ("worst", "worst_pixels", [{"x": 0, "y": 0}]),
+            ("explanation", "worst_pixel", {"position": [0, 0]}),
+        )
+        optional_keys = {output_key for _, output_key, _ in diagnostics}
+        for keyword, output_key, value in diagnostics:
+            with self.subTest(keyword=keyword):
+                data = report_data("c", "r", None, None, 0, None, None,
+                                   _metrics(), **{keyword: value})
+                self.assertEqual(data[output_key], value)
+                self.assertIs(data[output_key], value)
+                self.assertEqual(optional_keys.intersection(data), {output_key})
+
+    def test_none_omits_diagnostics_but_empty_collections_are_present(self):
+        diagnostics = (
+            ("channels", "channel_counts", {}),
+            ("bias", "channel_bias", {}),
+            ("rows", "difference_rows", []),
+            ("histogram", "delta_histogram", []),
+        )
+        for keyword, output_key, empty_value in diagnostics:
+            with self.subTest(keyword=keyword, value="None"):
+                data = report_data("c", "r", None, None, 0, None, None,
+                                   _metrics(), **{keyword: None})
+                self.assertNotIn(output_key, data)
+            with self.subTest(keyword=keyword, value="empty"):
+                data = report_data("c", "r", None, None, 0, None, None,
+                                   _metrics(), **{keyword: empty_value})
+                self.assertIn(output_key, data)
+                self.assertIs(data[output_key], empty_value)
+
+    def test_combined_diagnostics_keep_mapping_order_and_nested_values(self):
+        diagnostics = (
+            ("channels", "channel_counts", {"r": 1}),
+            ("bias", "channel_bias", {"r": -1.0}),
+            ("maxima", "channel_maxima", {"r": 1}),
+            ("rows", "difference_rows", [1]),
+            ("columns", "difference_columns", [2]),
+            ("row_bounds", "difference_row_bounds", [[0, 1]]),
+            ("column_bounds", "difference_column_bounds", [[0, 2]]),
+            ("runs", "difference_runs", [[0, 1]]),
+            ("column_runs", "difference_column_runs", [[0, 2]]),
+            ("histogram", "delta_histogram", [{"delta": 1, "count": 1}]),
+            ("percentiles", "delta_percentiles", {"p50": 1}),
+            ("worst", "worst_pixels", [{"x": 0, "y": 0}]),
+            ("explanation", "worst_pixel", {"position": [0, 0]}),
+        )
+        original = [(keyword, output_key, copy.deepcopy(value))
+                    for keyword, output_key, value in diagnostics]
+        data = report_data("c", "r", None, None, 0, None, None, _metrics(),
+                           **{keyword: value for keyword, _, value in diagnostics})
+        self.assertEqual([key for key in data if key in {k for _, k, _ in diagnostics}],
+                         [output_key for _, output_key, _ in diagnostics])
+        for keyword, output_key, value in diagnostics:
+            with self.subTest(keyword=keyword):
+                self.assertEqual(value, next(copy for name, key, copy in original
+                                              if name == keyword and key == output_key))
+                self.assertIs(data[output_key], value)
+
     def test_a_default_run_carries_no_optional_keys(self):
         data = report_data("candidate.png", "reference.png", None, None,
                            0, None, None, _metrics())
