@@ -106,28 +106,46 @@ def remove_profile(profile: Path) -> int:
         sheet_path = path_for(profile)
         existing_sheet = read_profile_text(sheet_path)
         if existing_sheet is not None and _is_our_sheet(existing_sheet, marker):
-            owned.append(sheet_path)
+            owned.append((sheet_path, existing_sheet))
     js_path = user_js_path(profile)
     existing_js = read_profile_text(js_path)
     updated = None if existing_js is None else remove_user_js(existing_js)
     rewrite_js = updated is not None and updated != existing_js
-    for sheet_path in owned:
+    for sheet_path, _previous in owned:
         refuse_symlink(sheet_path, "remove", ConfigError)
     if rewrite_js:
         refuse_symlink(js_path, "remove", ConfigError)
     try:
         if rewrite_js:
             write_profile_text(js_path, updated)
-        for sheet_path in owned:
+        for sheet_path, _previous in owned:
             try:
                 sheet_path.unlink()
             except OSError as exc:
                 raise ConfigError(f"cannot remove {sheet_path}: {exc}") from exc
     except BaseException as exc:
-        if rewrite_js and any(path.exists() for path in owned):
-            try:
-                write_profile_text(js_path, existing_js)
-            except ConfigError as rollback:
-                raise ConfigError(f"{exc}; {rollback}") from exc
+        # A sheet whose unlink succeeded would otherwise stay deleted beside
+        # the restored preference block: the rollback puts every already
+        # deleted owned sheet back with the text the removal read, so a
+        # removal that fails partway leaves the profile exactly as it was.
+        # A run whose unlinks all took effect (an interrupt after the last
+        # one) keeps the completed rewrite instead.
+        any_sheet_left = any(path.exists() for path, _previous in owned)
+        if any_sheet_left:
+            rollback_errors = []
+            if rewrite_js:
+                try:
+                    write_profile_text(js_path, existing_js)
+                except ConfigError as rollback:
+                    rollback_errors.append(str(rollback))
+            for sheet_path, previous in owned:
+                if sheet_path.exists():
+                    continue
+                try:
+                    write_profile_text(sheet_path, previous)
+                except ConfigError as rollback:
+                    rollback_errors.append(str(rollback))
+            if rollback_errors:
+                raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
         raise
     return 0

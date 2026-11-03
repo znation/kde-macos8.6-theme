@@ -1066,12 +1066,17 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertEqual(sheet, _read(self.sheet_path()))
         self.assertEqual(before_js, _read(self.user_js_path()))
 
-    def test_a_failed_user_content_unlink_is_reported_by_path(self):
+    def test_a_failed_user_content_unlink_restores_the_published_user_chrome(
+        self,
+    ):
         # Both owned sheets are deleted in SHEETS order. A failure on the
-        # second unlink must name that sheet, leave it in place, and restore
-        # the user.js rewrite because the content sheet still remains.
+        # second unlink must name that sheet, leave it in place, and undo
+        # both earlier steps: the user.js rewrite goes back and the user
+        # chrome the first unlink took is written back byte-for-byte, so a
+        # removal that fails partway leaves the profile exactly as it was.
         self.install()
         before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
         before_content = _read(self.content_sheet_path())
         with mock.patch.object(
             Path, "unlink", self.fail_unlink_to(self.content_sheet_path())
@@ -1079,22 +1084,69 @@ class TestRemove(FirefoxProfileTestCase):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
+        self.assertEqual(before_content, _read(self.content_sheet_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+
+    def test_a_failed_deleted_sheet_restore_names_both_during_removal(self):
+        # When the second unlink fails and the deleted user chrome cannot be
+        # written back either, the removal cannot fully restore the pair. The
+        # error must name both failures so the absent sheet is visible
+        # instead of the rollback failure being swallowed.
+        self.install()
+        before_content = _read(self.content_sheet_path())
+        real_write = firefox_user_files.write_atomically
+
+        def failing_restore(path, writer):
+            if Path(path) == self.sheet_path():
+                raise OSError("simulated restore failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            Path, "unlink", self.fail_unlink_to(self.content_sheet_path())
+        ), mock.patch.object(
+            firefox_user_files, "write_atomically", failing_restore
+        ):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)
+        self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
         self.assertFalse(self.sheet_path().exists())
         self.assertEqual(before_content, _read(self.content_sheet_path()))
+
+    def test_a_failed_unlink_restores_an_outdated_sheet_reading_it_had(self):
+        # A repeat install can adopt an outdated sheet that is still ours. A
+        # removal of it that fails after the first unlink must restore the
+        # sheet's own text, the one the removal read, not the shipped sheet
+        # it shares a marker with.
+        self.install()
+        outdated = f"{install_firefox.CSS_MARKER}\n/* outdated sheet */\n"
+        _write(self.sheet_path(), outdated)
+        before_js = _read(self.user_js_path())
+        with mock.patch.object(
+            Path, "unlink", self.fail_unlink_to(self.content_sheet_path())
+        ):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)
+        self.assertEqual(outdated, _read(self.sheet_path()))
         self.assertEqual(before_js, _read(self.user_js_path()))
 
     def test_an_interrupt_after_only_the_first_sheet_unlink_restores_user_js(self):
         # An interrupt after the first sheet unlink leaves the second sheet
-        # present, so the removal is half-applied and must put the previous
-        # user.js back instead of keeping the rewritten one.
+        # present, so the removal is half-applied and must undo it: the
+        # previous user.js goes back and the deleted user chrome is restored,
+        # leaving the profile exactly as it was instead of keeping the
+        # rewritten one.
         self.install()
         before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
         with mock.patch.object(
             Path, "unlink", self.interrupt_unlink_to(self.sheet_path())
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
         self.assertTrue(self.content_sheet_path().exists())
         self.assertEqual(before_js, _read(self.user_js_path()))
 
