@@ -343,8 +343,10 @@ for radio in (False, True):
         active = {"border-radius": "0", "box-shadow": f"0 0 0 1px {BLACK}"}
         backdrop = {"box-shadow": f"0 0 0 1px {INACTIVE_OUTLINE}"}
         flat = {"border-radius": "0", "box-shadow": "none"}
-        solid = {"padding": "0", "border": "none",
-                 "box-shadow": f"inset 0 0 0 1px {BLACK}"}
+        solid = {"padding": "0", "border": f"solid 1px {BLACK}",
+                 "box-shadow": "none"}
+        solid_backdrop = {"border-color": INACTIVE_OUTLINE,
+                          "box-shadow": "none"}
         expected = {
             "window.csd": active,
             "window.csd:backdrop": {**backdrop, "transition": "none"},
@@ -367,8 +369,7 @@ for radio in (False, True):
             "window.tiled-bottom:backdrop": backdrop,
             "window.ssd": {"box-shadow": "none"},
             "window.solid-csd": solid,
-            "window.solid-csd:backdrop": {
-                "box-shadow": f"inset 0 0 0 1px {INACTIVE_OUTLINE}"},
+            "window.solid-csd:backdrop": solid_backdrop,
             "tooltip.csd": flat,
         }
         for selector, expected_rule in expected.items():
@@ -391,7 +392,23 @@ for radio in (False, True):
         # Each appended arm sits after the landed window group it out-ranks,
         # and the backdrop arms sit after window.csd:backdrop, which otherwise
         # ties them on specificity: without that order an unfocused maximized
-        # or tiled window would paint the active outline.
+        # or tiled window would paint the active outline. The solid-csd arms
+        # follow the stock "Window Decorations" order: after the window.csd
+        # arms they beat on source position, before window.maximized so a
+        # maximized or tiled solid-csd window keeps the later flats, and the
+        # backdrop arm follows its base arm so the recolour wins the tie.
+        self.assertGreater(
+            self.selectors.index("window.solid-csd"),
+            self.selectors.index("window.csd"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.maximized"),
+            self.selectors.index("window.solid-csd"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.solid-csd:backdrop"),
+            self.selectors.index("window.solid-csd"),
+        )
         for selector in "window.csd", "window.csd:backdrop", "window.maximized":
             self.assertGreater(
                 self.selectors.index(selector), self.selectors.index("window")
