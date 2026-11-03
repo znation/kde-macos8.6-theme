@@ -112,6 +112,14 @@ Append one dated row at the end of the `## gtk` table in `docs/invariants.md` na
 
 **Acceptance criteria.** Reading the shipped GTK 4 sheet shows the stocked six-selector twin group appended between the landed `spinbutton:focus-within` block and the landed `check, radio` block, declaring exactly the five `ENTRY_FIELD` declarations and no state spellings beyond the six stock twins; deleting the group, dropping any of the six spellings (including `entry.flat:focus-within`, `entry.flat:backdrop` and `entry.flat:disabled`), renaming any selector off its byte-equal stock twin, or adding a seventh spelling or a sixth declaration fails `test_flat_entry_fields` (per-selector equality, count 1, or the family scan respectively). The landed entry recipe and spin-button field tests stay green, the landed sheet's other rules are untouched, `tests/invariants.py`, via `make check`'s invariants gate, accepts the new gtk row, and `make check` is green after the final edit.
 
+### README fidelity introduction: present the comparison command before JSON output (planned 2026-11-03 by the plan role)
+
+**Goal.** Make `## Fidelity checking` introduce its basic comparison command before its optional JSON format. Today the section opens with `Add --json` and schema details before explaining what the CLI compares.
+
+**Approach and files.** Edit only README.md outside the brief block. Move the existing command-and-crop paragraph to the start of `## Fidelity checking`, followed by the existing exit-status sentence, then the existing JSON/schema paragraph. Keep the remaining path-containment and budget guidance following that introduction. Preserve the examples, metric descriptions, crop coordinate semantics, source-bound translations and flag spellings; this is a paragraph reorder, not a CLI change. Ground the prose against `tools/fidelity_cli_parser.py::build_parser`, `tools/fidelity.py::main`, and `tools/fidelity_reports.py::report_data` / `source_bounds`, which define the command, status and report shape. No new prose-order test is needed for this documentation-only change; use the existing check and manual comparison of the moved text.
+
+**Acceptance criteria.** A reader entering `## Fidelity checking` encounters `python3 tools/fidelity.py CANDIDATE REFERENCE`, the compared metrics and the two crop options before the exit-status explanation and optional `--json` schema. The introduction still explains statuses 0/1/2, retains the JSON example and distinguishes crop-relative bounds from candidate/reference source bounds. A diff shows the existing introductory text relocated without changing the later diagnostic option descriptions or the brief. Run `make check` after the final edit.
+
 ## Done
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)
