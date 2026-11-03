@@ -714,6 +714,11 @@ separated runs of the same color. A minimum cutoff of 1 keeps the unfiltered res
 Pass `--max-run-length N` to omit completed runs longer than `N`; it combines
 inclusively with the minimum cutoff after segmentation and does not join separated runs.
 A maximum at least as large as the scanline keeps the unfiltered result.
+Pass repeatable `--run-color RRGGBB` to retain runs whose RGB value is named;
+values accept an optional `#` and are case-insensitive. Color selection follows
+segmentation, so distinct adjacent selected colors and separated runs stay
+separate; it combines with the inclusive length filters. With `--alpha`, runs
+are still segmented by RGBA while selection matches RGB regardless of opacity.
 
 ## Fidelity checking
 
