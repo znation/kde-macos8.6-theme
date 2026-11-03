@@ -1371,6 +1371,42 @@ for radio in (False, True):
             {cell_spelling},
         )
 
+    def test_dropdown_list_rows(self):
+        """Open dropdown and combobox popover lists use the landed row recipes."""
+        padding_spellings = (
+            "dropdown popover listview > row.activatable",
+            "combobox popover listview > row.activatable",
+        )
+        selected_spellings = (
+            "dropdown popover listview > row.activatable:selected",
+            "dropdown popover listview > row.activatable:selected:hover",
+            "combobox popover listview > row.activatable:selected",
+            "combobox popover listview > row.activatable:selected:hover",
+        )
+        backlog_order = self.selectors.index("columnview.view:selected:backdrop")
+        separator_order = self.selectors.index("listview.horizontal row.separator")
+        for selector, expected_rule in (
+            [(selector, {"padding": "2px"}) for selector in padding_spellings]
+            + [(selector, ROW_SELECTED) for selector in selected_spellings]
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected_rule)
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertGreater(self.selectors.index(selector), backlog_order)
+                self.assertLess(self.selectors.index(selector), separator_order)
+        # Exactly the stocked dropdown twin spellings exist and nothing else:
+        # no landed rule elsewhere in the sheet names a popover listview, so the
+        # family scan kills renamed and stray variants.
+        self.assertEqual(
+            {selector for selector in self.rules if "popover listview" in selector},
+            set(padding_spellings) | set(selected_spellings),
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector.endswith("popover listview > row.activatable")},
+            set(padding_spellings),
+        )
+
     def test_header_drop_indicator(self):
         expected = {
             "background-color": SELECTION,

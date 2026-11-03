@@ -999,6 +999,50 @@ columnview.view:selected:backdrop, listview > row.activatable:selected:backdrop 
 }
 
 /* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+   dropdown list or a combobox popover list (the standing GTK-scope adaptation
+   premise), but stock GTK 4 paints a dropdown's or a combobox's open popover
+   list rows with two grouped arms this sheet has never restated (both probed
+   2026-11-03 with gresource from
+   /org/gtk/libgtk/theme/Default/Default-light.css inside
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1, libgtk-4 4.18.6):
+   `dropdown popover listview > row.activatable, combobox popover listview >
+   row.activatable { padding: 8px; }` and the selected twin `dropdown popover
+   listview > row.activatable:selected, dropdown popover listview >
+   row.activatable:selected:hover, combobox popover listview >
+   row.activatable:selected, combobox popover listview >
+   row.activatable:selected:hover { outline-color: rgba(255, 255, 255, 0.8);
+   color: black; background-color: #e8e6e3; box-shadow: none; border-radius:
+   5px; }`. The dropdown/combobox ancestors out-rank the landed row groups by
+   specificity, so an open dropdown list today shows 8px-padded rows, twice the
+   height of this sheet's other list rows, and a selected row painted stock's
+   warm grey with rounded corners inside the landed lavender-square selection
+   policy (`background-color: #CCCCFF; color: #000000; border-radius: 0`).
+   Each rule below is the byte-equal stock twin and sits after the landed
+   selection-backdrop group, so later source order wins every tie: the padding
+   twin restates the 2px list-row padding stock's own generic arm
+   `listview > row, list > row { padding: 2px; }` keeps in force (this sheet
+   never restates that generic arm), so dropdown rows use the same cell padding
+   as every other landed view row, and the selected twin restates the landed
+   selection recipe. Stock's `outline-color: rgba(255, 255, 255, 0.8)` and
+   `box-shadow: none` stay in force per-property, matching every landed
+   selection surface, and the stock selected-row outline colour stays
+   unrestated. Recorded 2026-11-03 by the feature role. */
+
+dropdown popover listview > row.activatable,
+combobox popover listview > row.activatable {
+  padding: 2px;
+}
+
+dropdown popover listview > row.activatable:selected,
+dropdown popover listview > row.activatable:selected:hover,
+combobox popover listview > row.activatable:selected,
+combobox popover listview > row.activatable:selected:hover {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
    view separator, but when an application asks for separators (show-separators,
    the row separator class or column separators) the stock GTK 4 scheme paints
    the asked-for lines pale -- the separator colour field between a tree view's
