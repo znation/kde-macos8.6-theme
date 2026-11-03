@@ -11,7 +11,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
-    from tools.sample_arguments import build_parser, option_error
+    from tools.sample_arguments import build_parser, option_error, region_error
     from tools.sample_reports import report
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
@@ -19,7 +19,7 @@ else:  # run directly: python3 tools/sample.py
     from diagnostics import report_error
     from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
-    from sample_arguments import build_parser, option_error
+    from sample_arguments import build_parser, option_error, region_error
     from sample_reports import report
     from terminal import escape_controls
 
@@ -51,13 +51,9 @@ def main(argv: list[str] | None = None) -> int:
     except PngError as exc:
         return report_error("sample", str(exc))
 
-    if args.width == 1 and args.height == 1:
-        if not (0 <= args.x < width and 0 <= args.y < height):
-            return report_error("sample", f"pixel ({args.x}, {args.y}) is outside the {width}x{height} image")
-    elif (args.x < 0 or args.y < 0 or args.x + args.width > width or args.y + args.height > height):
-        return report_error(
-            "sample", f"region ({args.x}, {args.y}) {args.width}x{args.height} is outside the {width}x{height} image"
-        )
+    message = region_error(args, width, height)
+    if message is not None:
+        return report_error("sample", message)
 
     try:
         image = read_png(args.image, max_rows=args.y + args.height,

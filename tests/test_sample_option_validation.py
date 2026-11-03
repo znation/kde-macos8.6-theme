@@ -8,7 +8,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from tools import sample
-from tools.sample_arguments import build_parser, option_error
+from tools.sample_arguments import build_parser, option_error, region_error
 
 
 class TestSampleOptionValidation(CliTestCase):
@@ -66,6 +66,63 @@ class TestSampleOptionValidation(CliTestCase):
                 before = copy.deepcopy(vars(args))
                 self.assertIsNone(option_error(args))
                 self.assertEqual(vars(args), before)
+
+    def test_region_error_validates_pixel_and_rectangle_bounds_without_mutation(self):
+        parser = build_parser()
+        cases = (
+            (("0", "0"), 4, 3, None),
+            (("3", "2"), 4, 3, None),
+            (("0", "0", "--width", "4", "--height", "3"), 4, 3, None),
+            (("3", "0", "--width", "1", "--height", "3"), 4, 3, None),
+            (("0", "2", "--width", "4", "--height", "1"), 4, 3, None),
+            (("-1", "0"), 4, 3, "pixel (-1, 0) is outside the 4x3 image"),
+            (("0", "-1", "--width", "2"), 4, 3,
+             "region (0, -1) 2x1 is outside the 4x3 image"),
+            (("4", "0"), 4, 3, "pixel (4, 0) is outside the 4x3 image"),
+            (("0", "3"), 4, 3, "pixel (0, 3) is outside the 4x3 image"),
+            (("3", "0", "--width", "2"), 4, 3,
+             "region (3, 0) 2x1 is outside the 4x3 image"),
+            (("0", "2", "--height", "2"), 4, 3,
+             "region (0, 2) 1x2 is outside the 4x3 image"),
+            (("3", "2", "--width", "2", "--height", "2"), 4, 3,
+             "region (3, 2) 2x2 is outside the 4x3 image"),
+        )
+        for argv, width, height, expected in cases:
+            with self.subTest(argv=argv):
+                args = parser.parse_args(("image.png", *argv))
+                before = copy.deepcopy(vars(args))
+                self.assertEqual(region_error(args, width, height), expected)
+                self.assertEqual(vars(args), before)
+
+    def test_cli_reports_header_bounds_before_decoding(self):
+        cases = (
+            (("4", "0"), "pixel (4, 0) is outside the 4x3 image"),
+            (("-1", "0", "--width", "2"),
+             "region (-1, 0) 2x1 is outside the 4x3 image"),
+            (("3", "2", "--width", "2", "--height", "2"),
+             "region (3, 2) 2x2 is outside the 4x3 image"),
+        )
+        for argv, diagnostic in cases:
+            with self.subTest(argv=argv), \
+                    mock.patch.object(sample, "read_png_size", return_value=(4, 3)), \
+                    mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded invalid region")):
+                result = self._run("header-only.png", *argv)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.stderr, f"sample: error: {diagnostic}\n")
+
+    def test_package_and_direct_script_report_same_invalid_rectangle(self):
+        from support.png_fixtures import rgb_image
+
+        _, data = rgb_image(4, 3, lambda x, y: (x, y, x + y))
+        path = self._write(self._tmp_dir(), "reference.png", data)
+        arguments = (path, "3", "2", "--width", "2", "--height", "2")
+        package = self._run(*arguments)
+        direct = self._run_script(*arguments)
+        self.assertEqual((package.returncode, package.stdout, package.stderr),
+                         (direct.returncode, direct.stdout, direct.stderr))
+        self.assertEqual(package.stderr,
+                         "sample: error: region (3, 2) 2x2 is outside the 4x3 image\n")
 
 
 if __name__ == "__main__":

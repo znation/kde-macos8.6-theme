@@ -78,6 +78,20 @@ def option_error(args: argparse.Namespace) -> str | None:
     return None
 
 
+def region_error(args: argparse.Namespace, image_width: int, image_height: int) -> str | None:
+    """Return the bounds diagnostic for a parsed pixel or region, if invalid."""
+    if args.width == 1 and args.height == 1:
+        if not (0 <= args.x < image_width and 0 <= args.y < image_height):
+            return f"pixel ({args.x}, {args.y}) is outside the {image_width}x{image_height} image"
+    elif (args.x < 0 or args.y < 0 or args.x + args.width > image_width
+          or args.y + args.height > image_height):
+        return (
+            f"region ({args.x}, {args.y}) {args.width}x{args.height} "
+            f"is outside the {image_width}x{image_height} image"
+        )
+    return None
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = EscapingArgumentParser(
         prog="sample",
