@@ -1407,6 +1407,48 @@ for radio in (False, True):
             set(padding_spellings),
         )
 
+    def test_list_row_focus_outlines(self):
+        """Keyboard-focused rows paint the landed black focus colour."""
+        spellings = (
+            "row:focus:focus-visible",
+            ".boxed-list > row:focus:focus-visible",
+            "stacksidebar row:focus:focus-visible",
+            ".navigation-sidebar > row:focus-visible:focus-within",
+            "list.boxed-list > row:focus:focus-visible",
+            "list.content > row:focus:focus-visible",
+            "list.boxed-list > row.expander row.header:focus:focus-visible",
+            "list.content > row.expander row.header:focus:focus-visible",
+            "row.expander list.nested > row:focus:focus-visible",
+            "list.boxed-list-separate > row:focus:focus-visible",
+            "list.boxed-list-separate > row.expander row.header:focus:focus-visible",
+        )
+        for selector in spellings:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+        # The restated spellings are the only row focus arms the sheet
+        # declares: the scan kills renamed and stray variants.
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector.endswith("row:focus:focus-visible")
+             or selector.endswith("row.header:focus:focus-visible")
+             or selector.endswith("row:focus-visible:focus-within")},
+            set(spellings),
+        )
+        # Stock's generic 300 ms outline-motion arm is removed.
+        self.assert_rule("row", {"transition": "none"})
+        # Source order: the focus group sits after the landed
+        # disabled-selected backdrop group and before the landed tab-close
+        # block.
+        self.assertGreater(
+            self.selectors.index("row:focus:focus-visible"),
+            self.selectors.index("columnview.view:disabled:selected:backdrop"),
+        )
+        self.assertLess(
+            self.selectors.index("row:focus:focus-visible"),
+            self.selectors.index(
+                "notebook > header > tabs > tab button.flat:disabled"),
+        )
+
     def test_header_drop_indicator(self):
         expected = {
             "background-color": SELECTION,
@@ -2161,15 +2203,23 @@ for radio in (False, True):
             ".navigation-sidebar > child",
             ".navigation-sidebar > flowboxchild",
         }
+        # The landed row-focus entry (2026-11-03) adds one stock focus twin
+        # under the same prefix; it states the focus outline, not the corner
+        # radius, and test_list_row_focus_outlines pins its spelling.
+        focus = {".navigation-sidebar > row:focus-visible:focus-within"}
         self.assertEqual(
             {selector for selector in self.rules
              if selector.startswith(".navigation-sidebar > ")},
-            expected,
+            expected | focus,
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
+        self.assert_rule(
+            ".navigation-sidebar > row:focus-visible:focus-within",
+            {"outline-color": BLACK},
+        )
 
     def test_boxed_list_corners(self):
         roots = ("list.boxed-list", "list.content")
@@ -2184,16 +2234,28 @@ for radio in (False, True):
             " > row:last-child.expander:checked list.nested > row:last-child",
         )
         expected = {root + suffix for root in roots for suffix in suffixes}
+        # The landed row-focus entry (2026-11-03) adds two stock focus twins
+        # under each root; they state the focus outline, not the corner
+        # radius, and test_list_row_focus_outlines pins their spelling.
+        focus = {
+            "list.boxed-list > row:focus:focus-visible",
+            "list.boxed-list > row.expander row.header:focus:focus-visible",
+            "list.content > row:focus:focus-visible",
+            "list.content > row.expander row.header:focus:focus-visible",
+        }
         self.assertEqual(
             {selector for selector in self.rules
              if any(selector == root or selector.startswith(root + " ")
                     for root in roots)},
-            expected,
+            expected | focus,
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
+        for selector in sorted(focus):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
 
     def test_separate_boxed_row_corners(self):
         expected = {
@@ -2203,15 +2265,25 @@ for radio in (False, True):
             "list.boxed-list-separate > row.expander.expander:checked list.nested",
             "list.boxed-list-separate > row.expander.expander:checked list.nested > row:last-child",
         }
+        # The landed row-focus entry (2026-11-03) adds two stock focus twins
+        # under the same root; they state the focus outline, not the corner
+        # radius, and test_list_row_focus_outlines pins their spelling.
+        focus = {
+            "list.boxed-list-separate > row:focus:focus-visible",
+            "list.boxed-list-separate > row.expander row.header:focus:focus-visible",
+        }
         self.assertEqual(
             {selector for selector in self.rules
              if "list.boxed-list-separate" in selector},
-            expected,
+            expected | focus,
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
+        for selector in sorted(focus):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
 
     def test_color_swatch_corners(self):
         self.assert_color_swatch_corners(" > overlay")

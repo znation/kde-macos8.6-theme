@@ -2835,6 +2835,60 @@ treeview.view:disabled:selected:backdrop {
   color: #888888;
 }
 
+/* 2026-11-03: GTK 4 keyboard-focused list rows. No collected reference
+ * screenshot in macos8.6-screenshots/ shows a GTK list row's keyboard
+ * focus ring (the collected lists show flat or icon selections, and a
+ * tree or column view's focused row is not collected), so the ring colour
+ * reuses the landed black focus-outline policy this sheet already states
+ * for buttons, entries, spin buttons and check buttons; stock's outline
+ * width and offset stay inherited per-property, and one bare `row` arm
+ * removes stock's 300 ms outline fade the landed transition policy drops
+ * on the other controls. Stock arms probed 2026-11-03 with gresource —
+ * four row focus arms from `/org/gtk/libgtk/theme/Default/Default-light.css`
+ * inside `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6):
+ *   row:focus:focus-visible { outline-color: rgba(53, 132, 228, 0.5);
+ *     outline-width: 2px; outline-offset: -2px; }
+ *   .boxed-list > row:focus:focus-visible { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -1px; }
+ *   stacksidebar row:focus:focus-visible { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -2px; }
+ *   .navigation-sidebar > row:focus-visible:focus-within { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -2px; }
+ * — plus, for the deeper list-family spellings, the platform style
+ * library's base.css resource (both paths and probes recorded in
+ * docs/invariants.md): it carries its own generic `row:focus:focus-visible`
+ * arm byte-equal to the toolkit's (so both resources share that spelling
+ * above) and seven deeper spellings with the same outline geometry (the
+ * boxed lists' `-1px` offset):
+ *   list.boxed-list > row:focus:focus-visible,
+ *   list.content > row:focus:focus-visible,
+ *   list.boxed-list > row.expander row.header:focus:focus-visible,
+ *   list.content > row.expander row.header:focus:focus-visible,
+ *   row.expander list.nested > row:focus:focus-visible,
+ *   list.boxed-list-separate > row:focus:focus-visible,
+ *   list.boxed-list-separate > row.expander row.header:focus:focus-visible
+ * Eleven distinct spellings in all; each selector below is the byte-equal
+ * stock twin, and the two groups sit after the landed disabled-selected
+ * groups above, so later source order wins every tie. Declaration checks
+ * do not establish rendered pixels. */
+row {
+  transition: none;
+}
+
+row:focus:focus-visible,
+.boxed-list > row:focus:focus-visible,
+stacksidebar row:focus:focus-visible,
+.navigation-sidebar > row:focus-visible:focus-within,
+list.boxed-list > row:focus:focus-visible,
+list.content > row:focus:focus-visible,
+list.boxed-list > row.expander row.header:focus:focus-visible,
+list.content > row.expander row.header:focus:focus-visible,
+row.expander list.nested > row:focus:focus-visible,
+list.boxed-list-separate > row:focus:focus-visible,
+list.boxed-list-separate > row.expander row.header:focus:focus-visible {
+  outline-color: #000000;
+}
+
 /* 2026-10-31: libgtk-4 4.18.6 tab-close ink from its bundled GTK resource
  * (full resource path in docs/invariants.md); no reference screenshot shows
  * this control. Reuse the landed black label and insensitive grey. */
