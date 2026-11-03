@@ -768,6 +768,18 @@ Exclusion ignores opacity and wins when the same value is also selected with
 `--run-color`. It combines with the inclusive length filters and requires
 `--runs`.
 
+Pass `--run-count` with `--runs` to add a scalar run total alongside the list:
+JSON gains a top-level `run_count` and text prints `run count: N` immediately
+after the `axis:` line. The count is the complete unfiltered number of scanline
+runs each scan produces — counted before `--run-color` selection,
+`--exclude-run-color` and the inclusive length filters, including zero when a
+scan yields none — with runs of different scanlines counted separately and the
+count covering all scanlines of the region. What `runs` lists does not change;
+omitting the flag omits the JSON key, the text line and the counting. The flag
+requires `--runs`.
+
+
+
 ## Fidelity checking
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
