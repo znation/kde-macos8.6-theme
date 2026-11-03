@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
@@ -39,6 +40,41 @@ class TestSampleHistogramOffset(CliTestCase):
         args = build_parser().parse_args(("image.png", "0", "0"))
         self.assertIsNone(args.color_offset)
         self.assertIn("--color-offset K", build_parser().format_help())
+
+
+    def test_ranked_pages_filters_metadata_and_text(self):
+        pixels = ((0, 0, 0),) * 3 + ((0, 1, 0),) * 2 + ((1, 0, 0),) * 2 + ((2, 0, 0),)
+        path = self._write(self._tmp_dir(), "page.png", rgb_image(8, 1, lambda x, y: pixels[x])[1])
+        base = (path, "0", "0", "--width", "8", "--histogram", "--top-colors", "2")
+        first = json.loads(self._run(*base, "--color-offset", "1", "--color-fractions", "--json").stdout)
+        self.assertEqual([c["rgb"] for c in first["colors"]], [[0, 1, 0], [1, 0, 0]])
+        self.assertEqual([c["fraction"] for c in first["colors"]], [0.25, 0.25])
+        self.assertEqual((first["total_colors"], first["omitted_pixels"], first["color_offset"]), (4, 4, 1))
+        later = json.loads(self._run(*base, "--color-offset", "3", "--json").stdout)
+        self.assertEqual([c["rgb"] for c in later["colors"]], [[2, 0, 0]])
+        self.assertEqual(later["omitted_pixels"], 7)
+        empty = json.loads(self._run(*base, "--color-offset", "100000", "--json").stdout)
+        self.assertEqual((empty["colors"], empty["omitted_pixels"]), ([], 8))
+        excluded = json.loads(self._run(*base, "--exclude-color", "000000", "--color-offset", "1", "--top-colors", "1", "--json").stdout)
+        self.assertEqual(excluded["colors"][0]["rgb"], [1, 0, 0])
+        text = self._run(*base, "--color-offset", "1")
+        self.assertIn("color offset: 1", text.stdout)
+        self.assertIn("omitted pixels: 4", text.stdout)
+        self.assertEqual(json.loads(self._run(*base, "--color-offset", "0", "--json").stdout)["colors"],
+                         json.loads(self._run(*base, "--json").stdout)["colors"])
+        self.assertIsNone(build_parser().parse_args(("x", "0", "0")).color_offset)
+        self.assertIn("--color-offset", build_parser().format_help())
+
+    def test_invalid_offset_and_missing_limit_fail_before_reads(self):
+        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
+            for value in ("-1", "1.2", "1e2", "1_0", " 1", "١", "x", "9" * 5000):
+                result = self._run("missing.png", "0", "0", "--histogram", "--top-colors", "1", "--color-offset", value)
+                self.assertEqual((result.returncode, result.stdout), (2, ""))
+                self.assertNotIn("Traceback", result.stderr)
+            for mode in (("--histogram",), (), ("--runs",), ("--find-color", "000000")):
+                result = self._run("missing.png", "0", "0", "--color-offset", "0", *mode)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("--color-offset requires --top-colors", result.stderr)
 
 
 if __name__ == "__main__":

@@ -525,6 +525,13 @@ limits reported colors while retaining all occurrences of each emitted color
 in its centroid. Centroids share one positioned traversal with bounds and
 positions.
 
+Use `--color-offset K` with `--top-colors N` to page through the ranked
+histogram after its exclusions and count/fraction filters. Ranking remains
+descending count then ascending RGB/RGBA tuple; explicit zero selects the first
+page. JSON includes `color_offset` and text prints `color offset: K`. The
+selection retains at most `min(K + N, distinct color count)` entries; totals,
+omitted pixels and fractions retain their existing full-region meanings.
+
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
 disconnected matches, and do not imply that every pixel inside the rectangle

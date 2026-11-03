@@ -20,6 +20,7 @@ class TestSampleOptionValidation(CliTestCase):
         cases = (
             (("--top-colors", "1"), "--top-colors requires --histogram"),
             (("--color-offset", "0"), "--color-offset requires --top-colors"),
+            (("--histogram", "--color-offset", "0"), "--color-offset requires --top-colors"),
             (("--color-bounds",), "--color-bounds requires --histogram"),
             (("--color-fractions",), "--color-fractions requires --histogram"),
             (("--min-color-fraction", "0.5"), "--min-color-fraction requires --histogram"),
