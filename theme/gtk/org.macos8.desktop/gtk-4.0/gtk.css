@@ -1148,6 +1148,24 @@ scrolledwindow > overshoot.right {
   background-image: none;
 }
 
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+   scrollbar-corner junction, but the stock GTK 4 scheme paints the corner
+   node a scrolled window builds between two visible scrollbars with a beige
+   fill and two 1px grey trough-line gradients —
+   scrolledwindow > junction { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to right, transparent 1px, #cecece 1px); }
+   scrolledwindow > junction:dir(rtl) { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to left, transparent 1px, #cecece 1px); }
+   — while the landed scrollbar trough is a flat #EEEEEE band with a 1px
+   black border and no gradient lines. Restate both arms (the right-to-left
+   twin must be restated too: its opposite-direction gradient line otherwise
+   wins over the plain twin there and leaves a leftover line in that
+   corner) with the landed trough band colour and no image, so the corner
+   square reads as the same flat scrollbar band in both directions. */
+scrolledwindow > junction,
+scrolledwindow > junction:dir(rtl) {
+  background-color: #EEEEEE;
+  background-image: none;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK overlay trough spacing; reuse the ordinary trough's zero-margin policy. */
 scrollbar.overlay-indicator.horizontal.hovering > range > trough,
 scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough,

@@ -2284,6 +2284,33 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"background-image": "none"})
 
+    def test_scrolled_corner_junction_shares_the_scrollbar_band(self):
+        """Both scrollbar-corner junction arms paint the landed trough band."""
+        expected = {"background-color": TROUGH, "background-image": "none"}
+        for selector in (
+            "scrolledwindow > junction",
+            "scrolledwindow > junction:dir(rtl)",
+        ):
+            self.assert_rule(selector, expected)
+            self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            {s for s in self.rules if "junction" in s},
+            {
+                "scrolledwindow > junction",
+                "scrolledwindow > junction:dir(rtl)",
+            },
+        )
+        self.assertLess(
+            self.selectors.index("scrolledwindow > overshoot.right"),
+            self.selectors.index("scrolledwindow > junction"),
+        )
+        self.assertLess(
+            self.selectors.index("scrolledwindow > junction:dir(rtl)"),
+            self.selectors.index(
+                "scrollbar.overlay-indicator.hovering > range > trough"
+            ),
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar > trough",
