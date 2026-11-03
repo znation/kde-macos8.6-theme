@@ -14,6 +14,30 @@ from tools.fidelity_cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):
+    def test_per_channel_limits_accept_bounds_and_reject_values_outside_them(self):
+        for validator in (
+            fidelity_arguments.max_mae,
+            fidelity_arguments.max_rmse,
+            fidelity_arguments.max_delta,
+            fidelity_arguments.tolerance,
+        ):
+            with self.subTest(validator=validator.__name__):
+                self.assertEqual(validator("0"), 0)
+                self.assertEqual(validator("255"), 255)
+                for value in ("-1", "256"):
+                    with self.subTest(value=value), self.assertRaises(
+                        fidelity_arguments.argparse.ArgumentTypeError
+                    ):
+                        validator(value)
+
+        for validator in (fidelity_arguments.max_mae, fidelity_arguments.max_rmse):
+            for value in ("nan", "inf", "-inf"):
+                with self.subTest(validator=validator.__name__, value=value), \
+                        self.assertRaises(
+                            fidelity_arguments.argparse.ArgumentTypeError
+                        ):
+                    validator(value)
+
     def test_max_frac_accepts_endpoints_and_rejects_nonfinite_or_out_of_range(self):
         self.assertEqual(fidelity_arguments.max_frac("0"), 0.0)
         self.assertEqual(fidelity_arguments.max_frac("1"), 1.0)
