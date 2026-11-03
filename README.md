@@ -719,6 +719,11 @@ values accept an optional `#` and are case-insensitive. Color selection follows
 segmentation, so distinct adjacent selected colors and separated runs stay
 separate; it combines with the inclusive length filters. With `--alpha`, runs
 are still segmented by RGBA while selection matches RGB regardless of opacity.
+Pass repeatable `--exclude-run-color RRGGBB` to omit runs with a named RGB
+value after segmentation; values accept an optional `#` and are case-insensitive.
+Exclusion ignores opacity and wins when the same value is also selected with
+`--run-color`. It combines with the inclusive length filters and requires
+`--runs`.
 
 ## Fidelity checking
 

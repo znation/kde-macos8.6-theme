@@ -31,6 +31,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
     axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
     selected_colors = set(args.run_colors) if args.run_colors else None
+    excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
     runs = []
     if axis == "horizontal":
         scans = ((args.x, args.y + row, args.width, 1) for row in range(args.height))
@@ -40,6 +41,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
         runs.extend(run for run in line_runs
                     if (selected_colors is None or run["rgb"] in selected_colors)
+                    if run["rgb"] not in excluded_colors
                     if (args.min_run_length is None or run["length"] >= args.min_run_length)
                     and (args.max_run_length is None or run["length"] <= args.max_run_length))
     return {"image": args.image, "image_width": width, "image_height": height,

@@ -5,18 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Reference-pixel sampler: exclude background colors from scanline runs (planned 2026-11-03 by the plan role)
-
-**Goal.** Inspect border and stripe segments without listing known background shades. The sampler supports histogram exclusions and named run inclusion, but source and related finished-plan searches found no run exclusion option.
-
-**Approach and files.** Add repeatable `--exclude-run-color RRGGBB` (destination `excluded_run_colors`, default None) in `tools/sample_arguments.py::build_parser`, using `tools/sample_validators.py::rgb_argument`. In `option_error`, immediately after the `--run-color` dependency check, require `--runs` with diagnostic `--exclude-run-color requires --runs`. In `tools/sample_report_runs.py::_runs_result`, build an exclusion set once and reject matching RGB values from completed `_color_runs` records, alongside inclusion and length predicates. Exclusion wins over inclusion and ignores opacity; segmentation remains RGB/RGBA according to `--alpha`. Keep the existing output schema and traversal order. Add `tests/test_sample_runs_exclusions.py` patterned on `tests/test_sample_runs_colors.py::TestSampleRunsColors`, extend `tests/test_sample_option_validation.py::TestSampleOptionValidation`, and document the flag beside run selection in README.md and the scanline-run row in docs/invariants.md. This single option spans six files and should fit a few hundred changed lines including tests.
-
-**Acceptance criteria.**
-- For an eight-pixel crop at (2,1) containing A,A,B,B,B,A,C,C, where A=`010203`, B=`090807`, C=`040506`, excluding B emits starts (2,1), (7,1), (8,1) with lengths 2, 1, 2 and respective colors A,A,C. Minimum length 2 removes the singleton A; maximum length 1 retains that singleton. Excluding B and C leaves the two separate A records. Including A and B while excluding B retains only A. Adjacent retained colors remain separate records.
-- Repeated names, lowercase and optional `#` yield equivalent results. Excluding an absent color matches the unfiltered report; excluding the crop palette yields JSON `runs: []` and text containing image, region and axis lines without run lines or added metadata. Literal expected records cover an offset nonsquare rectangle in both axes, scanline boundaries, crop edges and inferred single-column traversal. Text and JSON describe the same retained runs, package and direct-script invocations agree, and omitted-option fixtures still pass.
-- For RGBA pixels (1,2,3,0), (1,2,3,128), (4,5,6,255), excluding `010203` removes both opacity variants in RGB and alpha modes. Excluding an absent color retains one length-2 A run in RGB mode and two length-1 A runs with alpha 0 and 128 in alpha mode. An RGB-only fixture reports alpha 255 when requested.
-- Missing or malformed values exit 2 with empty stdout before image access. Valid exclusion without runs, including ordinary sampling, histogram and find-color modes, exits 2 with `--exclude-run-color requires --runs`; validation tests guard `os.open`, `read_png_size` and `read_png`. Existing earlier incompatible-option diagnostics retain precedence. Help lists the repeatable option and the absent parser default is None. Run `make check` after final edits.
-
 ## Done
 
 ### Reference-pixel sampler: page through ranked histogram colors (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
