@@ -18,6 +18,7 @@ def _search_match(args, image) -> dict:
     count = 0
     sum_x = sum_y = 0
     matched_pixels = []
+    matching_rows = [0] * args.height if args.match_rows else None
     intervals = _MatchRuns(args.x, args.y, args.width, args.height,
                            args.match_runs, args.match_column_runs)
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
@@ -28,6 +29,8 @@ def _search_match(args, image) -> dict:
         intervals.observe(x, y, matches)
         if matches:
             count += 1
+            if matching_rows is not None:
+                matching_rows[y - args.y] += 1
             if args.match_centroid:
                 sum_x += x
                 sum_y += y
@@ -47,6 +50,7 @@ def _search_match(args, image) -> dict:
                if args.match_pixels is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
+            **({"rows": matching_rows} if matching_rows is not None else {}),
             **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
             **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}
 
@@ -85,3 +89,5 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"matching runs: {json.dumps(match['runs'], separators=(',', ':'))}")
     if args.match_column_runs:
         print(f"matching column runs: {json.dumps(match['column_runs'], separators=(',', ':'))}")
+    if args.match_rows:
+        print(f"matching rows: {json.dumps(match['rows'], separators=(',', ':'))}")

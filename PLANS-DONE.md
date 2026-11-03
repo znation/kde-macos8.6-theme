@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: count color matches per row (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Locate horizontal bands of a sampled color without dumping matching coordinates or intervals. The sampler's existing color-search traversal applies RGB tolerance and exact-alpha predicates once per pixel; row counts now summarize those accepted matches.
+
+**Implemented.** Added opt-in `--match-rows` with a dense region-relative row count in JSON and text. Collection shares the existing match traversal and predicate; tests cover offset regions, empty rows, tolerance, alpha filtering, output omission, option validation, one traversal, crop-bounded decoding, and direct-script behavior.
+
 ### Fidelity diagnostics: report the centroid of mismatching pixels (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Locate the spatial centre of scattered rendering errors without treating their enclosing rectangle's midpoint as their centre. `tools/fidelity_spatial.py` reports row/column counts, bounds and runs; searches found no mismatch-centroid diagnostic.
