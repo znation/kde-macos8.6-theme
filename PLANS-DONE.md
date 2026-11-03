@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: isolate scalar argument parsers (planned 2026-11-03 by the plan role — done 2026-11-03 by the feature role)
+
+**Goal.** Keep scalar syntax and range rules separate from sampler parser construction and option compatibility. `tools/sample_arguments.py` currently owns six scalar parsers alongside `build_parser`, `option_error` and `region_error`. Source and related archive searches found the earlier compatibility extraction, but no scalar-parser extraction.
+
+**Approach and files.** Move `rgb_argument`, `color_tolerance`, `match_alpha`, `match_pixels`, `match_pixel_offset` and `color_fraction` verbatim into new `tools/sample_validators.py`, moving their `math`/`re` imports and retaining `argparse.ArgumentTypeError` and the existing `plain_number` dependency. Import the six names back into `tools/sample_arguments.py` in both package and direct-script branches, preserving their existing import locations for callers. Leave coordinate/dimension parsing, parser construction, compatibility precedence and region checks in place. Add focused `tests/test_sample_validators.py`; these three files bound the implementation. Read the sampler tooling guarantees in `docs/invariants.md`; this extraction preserves them and adds no option, shared validation framework or dependency.
+
+**Acceptance criteria.** Direct validator tests cover optional-`#` mixed-case RGB, byte bounds, coordinate-list bounds, offset bounds, fraction boundaries and exponent notation, plus malformed and out-of-range inputs. Existing option-validation and sampler fixtures exercise parser integration and compatibility; run `make check` after final edits.
+
 ### Reference-pixel sampler: page through matching coordinates (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Inspect later color matches without increasing the bounded coordinate list or manually changing the crop. The existing `--match-pixels` retains a row-major prefix; provide an offset into that same match sequence, independently of the waiting histogram-exclusion plan.
