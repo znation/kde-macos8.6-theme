@@ -71,6 +71,63 @@ class TestSampleHistogramCentroids(CliTestCase):
         self.assertIn("--color-centroids", self._run("--help").stdout)
 
 
+    def test_crop_centroids_json_text_and_top_color_contributors(self):
+        _, data = rgb_image(5, 3, lambda x, y: (
+            (1, 2, 3) if (x, y) in {(1, 1), (3, 1), (1, 2)} else
+            (4, 5, 6) if (x, y) == (2, 2) else (9, 9, 9)
+        ))
+        path = self._write(self._tmp_dir(), "centroids.png", data)
+        args = (path, "1", "1", "--width", "3", "--height", "2", "--histogram", "--color-centroids")
+        result = self._run(*args, "--json")
+        self._assert_success(result)
+        colors = json.loads(result.stdout)["colors"]
+        self.assertEqual([item["centroid"] for item in colors], [
+            {"x": 5 / 3, "y": 4 / 3}, {"x": 2.5, "y": 1.5}, {"x": 2.0, "y": 2.0},
+        ])
+        text = self._run(*args)
+        self._assert_success(text)
+        self.assertIn("centroid=1.6666666666666667,1.3333333333333333", text.stdout)
+        top = self._run(*args, "--top-colors", "1", "--json")
+        self._assert_success(top)
+        self.assertEqual(json.loads(top.stdout)["colors"][0]["centroid"], {"x": 5 / 3, "y": 4 / 3})
+
+    def test_rgba_keys_share_positioned_pass_and_plain_skips_it(self):
+        path = self._write(self._tmp_dir(), "rgba.png", make_png(3, 1, [
+            bytes((1, 2, 3, 0, 1, 2, 3, 128, 1, 2, 3, 0)),
+        ], color_type=6))
+        with mock.patch.object(sample_report_histogram, "_positioned_region_pixels",
+                               wraps=sample_report_histogram._positioned_region_pixels) as positioned:
+            result = self._run(path, "0", "0", "--width", "3", "--histogram", "--alpha",
+                               "--color-centroids", "--color-bounds", "--color-positions", "--json")
+        self._assert_success(result)
+        records = json.loads(result.stdout)["colors"]
+        self.assertEqual([item["alpha"] for item in records], [0, 128])
+        self.assertEqual([item["centroid"] for item in records], [
+            {"x": 1.0, "y": 0.0}, {"x": 1.0, "y": 0.0},
+        ])
+        positioned.assert_called_once()
+        with mock.patch.object(sample_report_histogram, "_positioned_region_pixels",
+                               wraps=sample_report_histogram._positioned_region_pixels) as positioned:
+            plain = self._run(path, "0", "0", "--width", "3", "--histogram", "--json")
+        self._assert_success(plain)
+        self.assertNotIn("centroid", json.loads(plain.stdout)["colors"][0])
+        positioned.assert_not_called()
+
+    def test_requires_histogram_before_reads_and_direct_script_parity(self):
+        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
+            result = self._run("not-read.png", "0", "0", "--color-centroids")
+        self._assert_usage_error(result, "requires --histogram")
+        self.assertEqual(result.stdout, "")
+        _, data = rgb_image(2, 1, lambda x, _y: (x, 0, 0))
+        path = self._write(self._tmp_dir(), "script.png", data)
+        args = (path, "0", "0", "--width", "2", "--histogram", "--color-centroids", "--json")
+        package = self._run(*args)
+        script = self._run_script(*args)
+        self._assert_success(package)
+        self._assert_success(script)
+        self.assertEqual(json.loads(package.stdout), json.loads(script.stdout))
+
+
 if __name__ == "__main__":
     import unittest
 

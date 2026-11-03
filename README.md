@@ -471,11 +471,13 @@ records gain a `position` object with `x` and `y`; text appends
 both diagnostics share one positioned traversal.
 
 Add `--color-centroids` with `--histogram` to report each emitted color's
-arithmetic mean of absolute integer pixel coordinates. JSON color records gain
-a `centroid` object with `x` and `y`; text appends `centroid=X,Y`. Coordinates
-have no half-pixel offset, and `--alpha` keeps opacity variants separate.
-Centroids include every occurrence of an emitted color even with `--top-colors`;
-centroids, bounds and positions share one positioned traversal.
+arithmetic mean pixel coordinate in absolute image coordinates. JSON color
+records gain a `centroid` object with `x` and `y`; text appends
+`centroid=X,Y`. Coordinates use integer pixel indices without a half-pixel
+offset. Cropping and `--alpha` determine the sampled group, and `--top-colors`
+limits reported colors while retaining all occurrences of each emitted color
+in its centroid. Centroids share one positioned traversal with bounds and
+positions.
 
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
