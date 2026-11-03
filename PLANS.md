@@ -121,6 +121,14 @@ Append one dated row at the end of the `## gtk` table in `docs/invariants.md` na
 
 **Acceptance criteria.** A reader finds one dedicated `--color-offset K` explanation, immediately after `--top-colors`, containing the preserved behaviors above; the paragraph after `--column-color-counts` no longer repeats pagination guidance. Review the diff against `_histogram_result`, `report_histogram` and `TestSampleHistogramOffset` to confirm each retained statement; the change affects only the two pagination passages in README.md. Run `make check` after the final edit; existing sampler behavior tests pass without introducing tests that pin prose wording.
 
+### README vertical match counts: consolidate the repeated option guidance (planned 2026-11-03 by the plan role)
+
+**Goal and grounding.** Give sampler users one complete explanation of `--match-column-run-count`. README.md currently explains it both before and after the column-run length options. Searches of Planned and finished-plan headings found the implemented vertical-count feature, but no consolidation of these passages. `tools/sample_report_search.py::_search_match` obtains the collector count independently of the filtered list; `report_search` prints the count immediately before the optional vertical list. `tests/test_sample_match_column_run_count.py::TestSampleMatchColumnRunCount::test_offset_crop_count_and_filtered_lists` covers filtering, coordinate paging and text order. This task is separate from the queued histogram-pagination consolidation and edits different README passages.
+
+**Approach and files.** Edit only README.md outside its brief block. Fold the later paragraph's explicit pre-length-filter guarantee into the first `--match-column-run-count` paragraph, then remove the later duplicate. Preserve the requirement for `--find-color`, maximal vertical segment semantics, JSON `match.column_run_count`, text `matching column run count:`, full-region coverage with the same RGB tolerance and exact-alpha predicate, independence from coordinate paging, optional list emission, and count-before-list text order. Leave the adjacent minimum/maximum column-run length explanations intact. This is a prose change with no behavior or invariant change; do not add tests that pin prose wording.
+
+**Acceptance criteria.** A reader finds one dedicated vertical-count explanation between `--match-column-runs` and the minimum column-run length option, including every behavior listed above. The paragraph after the maximum column-run length explanation no longer repeats the option. Review the README diff against `_search_match`, `report_search` and the existing vertical-count tests to confirm the retained statements. The implementation diff affects only these two README passages; run `make check` after the final edit and retain the existing sampler behavior coverage.
+
 ## Done
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)
