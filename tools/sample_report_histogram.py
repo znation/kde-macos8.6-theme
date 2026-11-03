@@ -55,6 +55,30 @@ def _histogram_spatial_fields(args, image, colors):
     return fields
 
 
+def _scanline_color_counts(args, image):
+    """Collect per-row and per-column distinct regional colors over one traversal.
+
+    Colors group exactly like the histogram's emitted colors: RGB alone, or
+    RGBA tuples with ``--alpha`` including each transparent pixel's stored RGB.
+    Counts cover the complete region and are unaffected by displayed-palette
+    filters. Either scanline axis is None when it was not requested.
+    """
+    row_sets = [set() for _ in range(args.height)] if getattr(args, "row_color_counts", False) else None
+    column_sets = [set() for _ in range(args.width)] if getattr(args, "column_color_counts", False) else None
+    if row_sets is None and column_sets is None:
+        return None, None
+    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
+        color = (*rgb, next(alphas)) if alphas is not None else rgb
+        if row_sets is not None:
+            row_sets[y - args.y].add(color)
+        if column_sets is not None:
+            column_sets[x - args.x].add(color)
+    rows = [len(row_set) for row_set in row_sets] if row_sets is not None else None
+    columns = [len(column_set) for column_set in column_sets] if column_sets is not None else None
+    return rows, columns
+
+
 def _histogram_result(args, image, width: int, height: int) -> dict:
     """Assemble the complete histogram report without printing or mutating args."""
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
@@ -102,6 +126,9 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         omitted_pixels = args.width * args.height - sum(count for _, count in colors)
     else:
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    row_counts, column_counts = None, None
+    if getattr(args, "row_color_counts", False) or getattr(args, "column_color_counts", False):
+        row_counts, column_counts = _scanline_color_counts(args, image)
     spatial = _histogram_spatial_fields(args, image, colors)
     denominator = args.width * args.height
     cumulative_fractions = {}
@@ -120,6 +147,10 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
              **spatial[color]}
             for color, count in colors
         ]}
+    if row_counts is not None:
+        result["row_color_counts"] = row_counts
+    if column_counts is not None:
+        result["column_color_counts"] = column_counts
     if color_offset is not None:
         result["color_offset"] = color_offset
     if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
@@ -161,6 +192,10 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             centroid = color["centroid"]
             suffix += f"  centroid={centroid['x']},{centroid['y']}"
         print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {color['hex']}  count={color['count']}{suffix}")
+    if "row_color_counts" in result:
+        print(f"row color counts: {json.dumps(result['row_color_counts'], separators=(',', ':'))}")
+    if "column_color_counts" in result:
+        print(f"column color counts: {json.dumps(result['column_color_counts'], separators=(',', ':'))}")
     if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
             or getattr(args, "max_color_count", None) is not None
             or getattr(args, "min_color_fraction", None) is not None

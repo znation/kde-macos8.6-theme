@@ -560,6 +560,20 @@ limits reported colors while retaining all occurrences of each emitted color
 in its centroid. Centroids share one positioned traversal with bounds and
 positions.
 
+Add `--row-color-counts` with `--histogram` to report how many distinct colors
+each region row holds. The array lists one count per crop row in top-to-bottom
+order, grouped like the emitted colors (RGB alone, or RGBA with `--alpha`, which
+keeps opacity variants apart while a transparent pixel still contributes its
+stored RGB). Counts cover the complete region, so displayed-palette filters and
+`--top-colors` paging never change them. JSON adds `row_color_counts`, and text
+adds a `row color counts:` line after the color list and before the totals.
+
+Add `--column-color-counts` with `--histogram` to do the same for region
+columns, one count per crop column in left-to-right order. JSON adds
+`column_color_counts`, and text adds a `column color counts:` line after the
+optional `row color counts:` line. Omitting both options adds neither count,
+neither line and no traversal.
+
 Use `--color-offset K` with `--top-colors N` to page through the ranked
 histogram after its exclusions and count/fraction filters. Ranking remains
 descending count then ascending RGB/RGBA tuple; explicit zero selects the first

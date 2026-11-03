@@ -53,6 +53,10 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--color-positions requires --histogram"
     if args.color_centroids and not args.histogram:
         return "--color-centroids requires --histogram"
+    if getattr(args, "row_color_counts", False) and not args.histogram:
+        return "--row-color-counts requires --histogram"
+    if getattr(args, "column_color_counts", False) and not args.histogram:
+        return "--column-color-counts requires --histogram"
     if args.color_tolerance is not None and args.find_color is None:
         return "--color-tolerance requires --find-color"
     if args.match_alpha is not None and args.find_color is None:
@@ -149,6 +153,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--color-cumulative-fractions", action="store_true", help="with --histogram, report each color's cumulative share of the region across the displayed page")
     parser.add_argument("--color-positions", action="store_true", help="with --histogram, report each color's first row-major position")
     parser.add_argument("--color-centroids", action="store_true", help="with --histogram, report each color's mean pixel coordinate")
+    parser.add_argument("--row-color-counts", action="store_true", help="with --histogram, report each region row's distinct-color count")
+    parser.add_argument("--column-color-counts", action="store_true", help="with --histogram, report each region column's distinct-color count")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
