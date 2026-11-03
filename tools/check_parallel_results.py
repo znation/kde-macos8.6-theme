@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import stat
 import sys
 
@@ -24,7 +23,6 @@ _NO_TESTS_RAN = 5
 # tail with (tools/diagnostics.py's _LOG_TAIL_BYTES).
 _LOG_TAIL_BYTES = 1 << 16
 _NO_TESTS_RAN_MARKERS = ("Ran 0 tests", "NO TESTS RAN")
-_TEST_STARTED = re.compile(r"\)\s(?:[^\n]*\s)?\.\.\.\s")
 
 
 def _plural(count: int, noun: str) -> str:
@@ -80,6 +78,36 @@ def _bounded_log_text(path: str) -> str:
     return "\n".join(escape_controls(line) for line in lines)
 
 
+def _log_has_started_test(path: str) -> bool:
+    """Find unittest's verbose test-start marker without loading the log."""
+    state = 0
+    dots = 0
+    with open(path, "rb") as log:
+        while chunk := log.read(8192):
+            for byte in chunk:
+                if state == 0:
+                    if byte == ord(")"):
+                        state = 1
+                elif state == 1:
+                    if byte in b" \t\r\n\v\f":
+                        state = 2
+                        dots = 0
+                    elif byte == ord(")"):
+                        state = 1
+                    else:
+                        state = 0
+                elif byte in b"\r\n":
+                    state = 0
+                    dots = 0
+                elif byte == ord("."):
+                    dots += 1
+                elif dots == 3 and byte in b" \t\v\f":
+                    return True
+                else:
+                    dots = 0
+    return False
+
+
 def _module_verdict(module: str, statuses: dict[str, int | None],
                     log_paths: dict[str, str], timeout: float
                     ) -> tuple[str, str, str]:
@@ -98,8 +126,15 @@ def _module_verdict(module: str, statuses: dict[str, int | None],
                 "timed_out", log_text)
     if status != _NO_TESTS_RAN:
         return f"exit {status}", "failed" if status != 0 else "ok", log_text
+    if module in log_paths:
+        try:
+            started_test = _log_has_started_test(log_paths[module])
+        except OSError:
+            return "worker log could not be read", "failed", ""
+    else:
+        started_test = False
     has_summary = all(marker in log_text for marker in _NO_TESTS_RAN_MARKERS)
-    if has_summary and not _TEST_STARTED.search(log_text):
+    if has_summary and not started_test:
         return "ran no tests (unittest's NO TESTS RAN, exit 5)", "no_tests", log_text
     if not has_summary:
         return ("exit 5 but the log shows no unittest NO TESTS RAN summary",

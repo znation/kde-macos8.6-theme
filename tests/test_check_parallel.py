@@ -516,6 +516,29 @@ class TestCoordinator(unittest.TestCase):
     def test_a_forged_summary_with_a_test_docstring_fails_the_run(self):
         self._assert_forged_summary_fails('        """An ordinary test description."""\n')
 
+    def test_a_started_test_hidden_before_the_bounded_log_tail_fails(self):
+        tests_dir = self._project(
+            {
+                "test_forge.py": (
+                    "import os, sys, unittest\n"
+                    "\n\n"
+                    "class TestForge(unittest.TestCase):\n"
+                    "    def test_forge(self):\n"
+                    "        print('x' * 70000, flush=True)\n"
+                    "        print('Ran 0 tests in 0.000s\\n\\nNO TESTS RAN', flush=True)\n"
+                    "        os._exit(5)\n"
+                ),
+                "test_ok.py": OK_MODULE,
+            }
+        )
+        result = self._run("--tests-dir", tests_dir, "--workers", "2")
+        assert_failed(self, result)
+        self.assertIn(
+            "===== test_forge: exit 5 but the log shows a started test "
+            "beside unittest's NO TESTS RAN summary =====",
+            result.stdout,
+        )
+
     def _assert_forged_summary_fails(self, docstring):
         # The printed summary is only proof when nothing ran: unittest's
         # verbose runner writes one `test ... (...) ... ` line per test
