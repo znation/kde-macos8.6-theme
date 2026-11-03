@@ -34,6 +34,11 @@ def link_target(home: Path) -> Path:
     return home / ".icons" / CURSOR_THEME
 
 
+def symlink_target(path: Path) -> str | None:
+    """Return *path*'s literal symlink target, or ``None`` when it is not a link."""
+    return os.readlink(path) if path.is_symlink() else None
+
+
 def install_link(home: Path, theme: Path) -> None:
     """Create our Xcursor link, refusing to replace a foreign path."""
     icons = home / ".icons"
@@ -45,8 +50,8 @@ def install_link(home: Path, theme: Path) -> None:
         )
     if os.path.lexists(icons) and not icons.is_dir():
         raise CursorError(f"{icons} exists but is not a directory")
-    if target.is_symlink():
-        link = os.readlink(target)
+    link = symlink_target(target)
+    if link is not None:
         if link == str(theme):
             return
         raise CursorError(
@@ -74,12 +79,13 @@ def install_link(home: Path, theme: Path) -> None:
 def remove_link(home: Path, data_home: Path) -> tuple[Path, bool]:
     """Remove our link and return its path and whether a foreign path remains."""
     target = link_target(home)
-    if target.is_symlink():
-        if os.readlink(target) == str(installed_theme(data_home)):
-            try:
-                target.unlink()
-            except OSError as exc:
-                raise CursorError(f"cannot remove {target}: {exc}") from exc
-            return target, False
+    link = symlink_target(target)
+    if link == str(installed_theme(data_home)):
+        try:
+            target.unlink()
+        except OSError as exc:
+            raise CursorError(f"cannot remove {target}: {exc}") from exc
+        return target, False
+    if link is not None:
         return target, True
     return target, os.path.lexists(target)
