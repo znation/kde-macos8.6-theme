@@ -2664,3 +2664,87 @@ link:visited:selected:disabled:hover,
 link:visited:selected:disabled:active {
   color: #888888;
 }
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK window
+   shell, so the CSD top-level frames restate the stock shell arms with the
+   shipped Aurorae chrome's outline instead of sampled metrics: square corners
+   and a hard 1px #000000 outline on the active frame, recoloured #555555 when
+   the window is unfocused -- the same outline and recolour the landed
+   headerbar:backdrop pair carries, pinned on the Aurorae frame by
+   tests/test_aurorae_frame.py -- and no soft shadow. The cleared stock claims
+   come from the "Window Decorations" section of
+   /org/gtk/libgtk/theme/Default/Default-light.css inside
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6), extracted with
+   gresource and verified 2026-11-03: window.csd rounds the top corners 8px
+   under blurred rgba shadows plus a translucent ring, with a weaker backdrop
+   set behind a 200ms transition; window.csd.popup and tooltip.csd round 5px;
+   window.csd.dialog.message rounds 8px; and the maximized, fullscreen, tiled
+   and ssd arms each carry a shadow arm of their own. Every rule below
+   restates the byte-equal stock twin so the later source position wins every
+   equal-specificity tie exactly as the landed restatements do; the
+   maximized/fullscreen and tiled :backdrop arms carry their own :backdrop
+   classes, or the window.csd:backdrop arm would itself out-rank them and
+   paint an active outline on an unfocused maximized or tiled window. Stock's
+   tiled/maximized radius-zero arms already square those states' corners of
+   their own, and the landed window.dialog.message.csd.background group
+   already squares the message-dialog body. */
+window.csd {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.csd.popup {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd.dialog.message {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd.dialog.message:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.maximized,
+window.fullscreen {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+window.maximized:backdrop,
+window.fullscreen:backdrop {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+window.tiled,
+window.tiled-top,
+window.tiled-left,
+window.tiled-right,
+window.tiled-bottom {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.tiled:backdrop,
+window.tiled-top:backdrop,
+window.tiled-left:backdrop,
+window.tiled-right:backdrop,
+window.tiled-bottom:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.ssd {
+  box-shadow: none;
+}
+
+tooltip.csd {
+  border-radius: 0;
+  box-shadow: none;
+}

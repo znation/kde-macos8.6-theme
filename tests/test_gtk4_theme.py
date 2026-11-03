@@ -338,6 +338,71 @@ for radio in (False, True):
                 },
             )
 
+    def test_csd_window_shell(self):
+        """The CSD top levels draw the shipped Aurorae frame, not stock's blur."""
+        active = {"border-radius": "0", "box-shadow": f"0 0 0 1px {BLACK}"}
+        backdrop = {"box-shadow": f"0 0 0 1px {INACTIVE_OUTLINE}"}
+        flat = {"border-radius": "0", "box-shadow": "none"}
+        expected = {
+            "window.csd": active,
+            "window.csd:backdrop": backdrop,
+            "window.csd.popup": active,
+            "window.csd.dialog.message": active,
+            "window.csd.dialog.message:backdrop": backdrop,
+            "window.maximized": flat,
+            "window.fullscreen": flat,
+            "window.maximized:backdrop": flat,
+            "window.fullscreen:backdrop": flat,
+            "window.tiled": active,
+            "window.tiled-top": active,
+            "window.tiled-left": active,
+            "window.tiled-right": active,
+            "window.tiled-bottom": active,
+            "window.tiled:backdrop": backdrop,
+            "window.tiled-top:backdrop": backdrop,
+            "window.tiled-left:backdrop": backdrop,
+            "window.tiled-right:backdrop": backdrop,
+            "window.tiled-bottom:backdrop": backdrop,
+            "window.ssd": {"box-shadow": "none"},
+            "tooltip.csd": flat,
+        }
+        for selector, expected_rule in expected.items():
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected_rule)
+                self.assertEqual(self.rules[selector], expected_rule)
+                self.assertEqual(self.selectors.count(selector), 1)
+
+        # The appended tail block is a family bound: every shell top-level
+        # selector (a window.-prefixed node selector without descendant
+        # combinators, plus tooltip.csd) is one of the restated twinned arms
+        # or the landed message-dialog body squaring, and none beyond them.
+        family = {
+            selector
+            for selector in self.selectors
+            if selector == "tooltip.csd" or re.fullmatch(r"window\.[\w:.-]+", selector)
+        }
+        self.assertEqual(family, {*expected, "window.dialog.message.csd.background"})
+
+        # Each appended arm sits after the landed window group it out-ranks,
+        # and the backdrop arms sit after window.csd:backdrop, which otherwise
+        # ties them on specificity: without that order an unfocused maximized
+        # or tiled window would paint the active outline.
+        for selector in "window.csd", "window.csd:backdrop", "window.maximized":
+            self.assertGreater(
+                self.selectors.index(selector), self.selectors.index("window")
+            )
+        self.assertGreater(
+            self.selectors.index("tooltip.csd"), self.selectors.index("tooltip")
+        )
+        self.assertGreater(
+            self.selectors.index("window.maximized:backdrop"),
+            self.selectors.index("window.csd:backdrop"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.tiled:backdrop"),
+            self.selectors.index("window.csd:backdrop"),
+        )
+
     def test_expander_arrows(self):
         self.assert_expander_arrows(
             ("treeview.view.expander", "expander"),
