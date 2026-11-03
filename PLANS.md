@@ -7,17 +7,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
-### Fidelity diagnostics: count horizontal mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
-
-**Goal.** Quantify fragmentation of a rendered border defect with a scalar instead of printing its complete interval list. Implemented as specified.
-
-**Approach and files.** Added the streaming counter, CLI/report wiring, focused tests, README documentation and dated invariant. Requested run lists provide the pre-filter count.
-
-**Acceptance criteria.** Implemented count-only streaming and requested-list reuse; focused and project checks verify behavior.
-- Compared 4x3 crops with over-tolerance masks `1101`, `0000`, `1111` produce JSON `difference_run_count=3`, text `difference run count: 3`, and `metrics.differing=7`. The requested horizontal list has lengths 2, 1, 4; minimum length 3 or maximum length 1 each leaves one listed segment while count remains 3. Contradictory cutoffs empty the list while count stays 3. Distinct nonzero candidate/reference crop origins select these masks without including surrounding mismatches.
-- Identical crops report 0; fully differing 3x2 crops report 2, fully differing 1x3 crops report 3, and a differing single pixel reports 1. Runs at opposite row edges stay separate and a last-row right-edge run is counted. Adjacent differing pixels with unequal delta magnitudes form one segment. A delta equal to tolerance is excluded, and tolerance 255 yields zero. Alpha-only differences, missing alpha as 255, and stored RGB beneath zero alpha follow the existing raw RGBA predicate.
-- Count-only reports omit horizontal and vertical interval arrays. Omitting the flag omits the new field and line and does not invoke the counter. Focused coverage rejects full-list collection during count-only mode and rejects an extra counter scan when the horizontal list is requested, including an empty list. Combining count, longest-run, vertical-list and worst-pixel paging options preserves their separately expected values; comparison metrics, verdict and exit status agree with the same invocation without the count flag, on passing and failing comparisons. Text/JSON, package/direct-script invocations and help expose the same option. Run `make check` after final edits.
-
 ### Fidelity diagnostics: count horizontal mismatch segments (planned 2026-11-03 by the plan role)
 
 **Goal.** Quantify scattered rendering errors without emitting a potentially large interval list. Source and related archive searches found horizontal mismatch lists and longest-run summaries, but no scalar segment count. This is independent of the queued sampler matching-segment count.
@@ -30,6 +19,18 @@ _None yet._
 - Count-only JSON/text omit run arrays. Omitting the flag omits its field and line. Count-only operation remains usable when the list-producing collector is patched to fail; combined list/count operation remains usable when the new image-based count helper is patched to fail, including empty lists. Help lists the flag, direct-script and package invocations agree, and passing/failing comparisons retain their exit statuses with the diagnostic enabled. Run `make check` after final edits.
 
 ## Done
+
+### Fidelity diagnostics: count horizontal mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Quantify fragmentation of a rendered border defect with a scalar instead of printing its complete interval list. Implemented as specified.
+
+**Approach and files.** Added the streaming counter, CLI/report wiring, focused tests, README documentation and dated invariant. Requested run lists provide the pre-filter count.
+
+**Acceptance criteria.** Implemented count-only streaming and requested-list reuse; focused and project checks verify behavior.
+- Compared 4x3 crops with over-tolerance masks `1101`, `0000`, `1111` produce JSON `difference_run_count=3`, text `difference run count: 3`, and `metrics.differing=7`. The requested horizontal list has lengths 2, 1, 4; minimum length 3 or maximum length 1 each leaves one listed segment while count remains 3. Contradictory cutoffs empty the list while count stays 3. Distinct nonzero candidate/reference crop origins select these masks without including surrounding mismatches.
+- Identical crops report 0; fully differing 3x2 crops report 2, fully differing 1x3 crops report 3, and a differing single pixel reports 1. Runs at opposite row edges stay separate and a last-row right-edge run is counted. Adjacent differing pixels with unequal delta magnitudes form one segment. A delta equal to tolerance is excluded, and tolerance 255 yields zero. Alpha-only differences, missing alpha as 255, and stored RGB beneath zero alpha follow the existing raw RGBA predicate.
+- Count-only reports omit horizontal and vertical interval arrays. Omitting the flag omits the new field and line and does not invoke the counter. Focused coverage rejects full-list collection during count-only mode and rejects an extra counter scan when the horizontal list is requested, including an empty list. Combining count, longest-run, vertical-list and worst-pixel paging options preserves their separately expected values; comparison metrics, verdict and exit status agree with the same invocation without the count flag, on passing and failing comparisons. Text/JSON, package/direct-script invocations and help expose the same option. Run `make check` after final edits.
+
 
 ### Reference-pixel sampler: page through ranked histogram colors (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 

@@ -164,6 +164,7 @@ def main(argv: list[str] | None = None) -> int:
                          row_bounds=row_bounds,
                          column_bounds=column_bounds,
                          runs=runs,
+                         run_count=run_count,
                          column_runs=column_runs,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
@@ -176,7 +177,6 @@ def main(argv: list[str] | None = None) -> int:
                          include_centroid=args.difference_centroid,
                          longest_run=longest_run,
                          include_longest_run=args.longest_difference_run,
-                         run_count=run_count,
                          longest_column_run=longest_column_run,
                          include_longest_column_run=args.longest_difference_column_run)
     if args.json:

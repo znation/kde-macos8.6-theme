@@ -148,7 +148,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--candidate-crop", "1,2,3,4", "--crop", "5,6,7,8",
             "--channel-counts", "--channel-bias", "--channel-maxima",
             "--difference-rows", "--difference-columns", "--difference-row-bounds",
-            "--difference-column-bounds", "--difference-runs",
+            "--difference-column-bounds", "--difference-runs", "--difference-run-count",
             "--min-difference-run-length", "2",
             "--max-difference-run-length", "4",
             "--min-difference-column-run-length", "3",
@@ -162,6 +162,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertEqual(explicit.crop, (5, 6, 7, 8))
         self.assertEqual((explicit.worst_pixels, explicit.tolerance), (7, 9))
         self.assertEqual(explicit.worst_pixel_offset, 3)
+        self.assertTrue(explicit.difference_run_count)
         self.assertEqual((explicit.max_mae, explicit.max_frac, explicit.max_rmse),
                          (1.5, 0.25, 2.5))
         self.assertEqual((explicit.max_delta, explicit.max_differing), (12, 3))

@@ -830,6 +830,11 @@ with crop-relative `x`, `y` and `length`; text prints the same array after colum
 Runs end at every row boundary, and adjacent pixels stay in one run even when their delta
 magnitudes differ. Crop origins translate these coordinates to source images. Output can grow
 with the number of disjoint runs, so the option is opt-in; omitted runs skip the scan.
+Add `--difference-run-count` to report the number of maximal horizontal mismatch runs as
+`difference_run_count` in JSON or a `difference run count:` text line. It counts unfiltered
+segments, so length cutoffs affect the optional run list but not the scalar. Combined with
+`--difference-runs`, it reuses that scan; by itself it streams the count without retaining run
+records. The diagnostic is omitted unless requested.
 Pass `--min-difference-run-length N` with `--difference-runs` to omit completed runs shorter than
 `N`. The inclusive cutoff filters the reported list after segmentation, so separated runs stay
 separate and comparison metrics and longest-run summaries still use the complete mismatch data.
