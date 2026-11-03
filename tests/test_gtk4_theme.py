@@ -1883,6 +1883,7 @@ for radio in (False, True):
         expected = {
             ".card",
             "menubutton.card > button",
+            "tabthumbnail .card picture",
             "tabgrid > tabgridchild .card",
             "tabgrid > tabgridchild:focus:focus-visible .card",
         }
@@ -2230,6 +2231,18 @@ for radio in (False, True):
                     video_image["border-radius"],
                     self.rules[selector]["border-radius"],
                 )
+
+    def test_tab_thumbnail_corners(self):
+        expected = {"tabthumbnail", "tabthumbnail .card picture"}
+        self.assertEqual(
+            {selector for selector in self.rules if "tabthumbnail" in selector},
+            expected,
+        )
+        for selector in expected:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_split_button_container_corners(self):
         self.assertEqual(

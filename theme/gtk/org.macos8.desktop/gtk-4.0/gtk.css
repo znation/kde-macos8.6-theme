@@ -3213,3 +3213,11 @@ tooltip.csd {
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Adaptation 2026-11-03: no collected reference shows GTK tab previews.
+   Keep their nested clip hierarchy square, following the frame and .frame
+   corner policy. The stock selectors were probed in base.css. */
+tabthumbnail,
+tabthumbnail .card picture {
+  border-radius: 0;
+}
