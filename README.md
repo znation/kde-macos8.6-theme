@@ -996,12 +996,9 @@ role cannot change that concurrency setting, so the operator sets it from the pr
 `tumwater config set maxConcurrent 6` (requested 2026-10-18: run six roles at once).
 
 The project check is `make check`, without `CHECK_PATTERN` or `CHECK_TESTS` overrides.
-The feature role renewed this command request on 2026-11-01 through
-`.tumwater-config-request.json` with `{"check":{"command":"make check"}}`.
-Tumwater runs the requested check before applying the configuration and removes the request
-file afterward. The renewed request is pending until merge. After merge, confirm the primary project's declaration with
+From the primary checkout, operators can inspect the configured check with
 `tumwater doctor check --json` (the `check` row should read `ok`) and
-`tumwater status --json` (no `noDeclaredCheck`). Before merge these commands still reflect
-the previous configuration. For manual setup, the operator can run
-`tumwater config set check.command 'make check'` from the primary checkout.
+`tumwater status --json` (the output should have no `noDeclaredCheck`). If a clone has no
+declared check, configure it from the primary checkout with
+`tumwater config set check.command 'make check'`.
 The separate reference-image validation remains `make check-references`.

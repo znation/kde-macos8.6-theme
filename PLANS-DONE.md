@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README project check: replace the expired merge-pending narrative with operator guidance (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Make README.md's `## Development team` check instructions useful after the declaration-request run has finished, without asserting the live configuration of an arbitrary clone.
+
+**Grounding.** The section still says the renewed request is pending until merge and describes what commands show before that merge. The worktree has no `.tumwater-config-request.json`. The archived "Declare the project's deterministic check" entry records the request and its merge-time verification, rather than a standing documentation cleanup. `Makefile`'s `check` target and `CHECK_PATTERN`, `CHECK_TESTS` and `CHECK_PARALLEL` defaults provide the existing check; this plan changes no target or configuration. Heading and phrase searches in PLANS.md and PLANS-DONE.md found no separate cleanup plan covering this prose.
+
+**Approach and files touched.** Edit only README.md's check paragraphs under `## Development team`. Keep the exact declared command `make check`, without selection overrides. Remove the dated renewal, pending-request claim and before/after-this-merge language. Present `tumwater doctor check --json` and `tumwater status --json` as operator verification commands from the primary checkout, with `check` row `ok` and absence of `noDeclaredCheck` as the expected configured state. Keep `tumwater config set check.command 'make check'` as the manual remedy when a clone lacks the declaration, and keep `make check-references` separate. Do not claim either verification command was run or succeeds in the reader's clone. This is one prose correction; no behavior change or new test is needed.
+
+**Acceptance criteria.** A reader of Development team sees the check command, how to inspect their configuration, the expected configured-state indicators, and the manual setup command with its primary-checkout context. They are no longer told a particular historical request awaits merge or that verification must wait for that merge. Reference validation remains a separate command. The brief block is preserved. Review the final README diff and run `make check` after final edits, including the plan's completion record.
+
 ### README fidelity introduction: present the comparison command before JSON output (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Make `## Fidelity checking` introduce its basic comparison command before its optional JSON format. Today the section opens with `Add --json` and schema details before explaining what the CLI compares.
