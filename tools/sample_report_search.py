@@ -20,6 +20,7 @@ def _search_match(args, image) -> dict:
     matched_pixels = []
     matching_rows = [0] * args.height if args.match_rows else None
     matching_columns = [0] * args.width if args.match_columns else None
+    matching_row_bounds = [None] * args.height if args.match_row_bounds else None
     intervals = _MatchRuns(args.x, args.y, args.width, args.height,
                            args.match_runs, args.match_column_runs)
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
@@ -34,6 +35,12 @@ def _search_match(args, image) -> dict:
                 matching_rows[y - args.y] += 1
             if matching_columns is not None:
                 matching_columns[x - args.x] += 1
+            if matching_row_bounds is not None:
+                row = matching_row_bounds[y - args.y]
+                if row is None:
+                    matching_row_bounds[y - args.y] = {"x": x, "width": 1}
+                else:
+                    row["width"] = x - row["x"] + 1
             if args.match_centroid:
                 sum_x += x
                 sum_y += y
@@ -55,6 +62,7 @@ def _search_match(args, image) -> dict:
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
             **({"rows": matching_rows} if matching_rows is not None else {}),
             **({"columns": matching_columns} if matching_columns is not None else {}),
+            **({"row_bounds": matching_row_bounds} if matching_row_bounds is not None else {}),
             **({"tolerance": tolerance} if args.color_tolerance is not None else {}),
             **({"alpha": args.match_alpha} if args.match_alpha is not None else {})}
 
@@ -97,3 +105,5 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"matching rows: {json.dumps(match['rows'], separators=(',', ':'))}")
     if args.match_columns:
         print(f"matching columns: {json.dumps(match['columns'], separators=(',', ':'))}")
+    if args.match_row_bounds:
+        print(f"matching row bounds: {json.dumps(match['row_bounds'], separators=(',', ':'))}")

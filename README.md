@@ -551,6 +551,14 @@ are included. Counts use the same RGB tolerance and exact-alpha predicate and
 cover the full region regardless of `--match-pixels`. The diagnostic is
 omitted unless requested.
 
+Add `--match-row-bounds` with `--find-color` to report the smallest horizontal
+interval enclosing matches on each row. JSON adds dense `match.row_bounds`
+entries: `null` for an empty row, otherwise absolute `x` and inclusive `width`;
+text prints the same array on a `matching row bounds:` line. Disconnected
+matches enclose intervening pixels. The report covers the full region regardless
+of `--match-pixels`, uses the same tolerance and exact-alpha predicate, and is
+omitted unless requested.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha

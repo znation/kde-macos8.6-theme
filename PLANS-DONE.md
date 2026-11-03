@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: report enclosing color-match spans per row (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Measure the horizontal extent of a sampled bevel color on each row without listing every matching run. `tools/sample_report_search.py::_search_match` reports whole-region bounds, row counts and contiguous runs, but no dense row-span summary; searches of sampler code/tests and planned/finished entries found no matching capability. The finished fidelity row-bounds diagnostic compares two images; this addition locates a color in one reference image and is independently usable.
+
+**Approach and files.** Added opt-in `--match-row-bounds` to `tools/sample_arguments.py::build_parser`, with `option_error` requiring `--find-color` before image reads. `_search_match` allocates a height-sized list only when requested and updates each accepted match's row inside the existing positioned traversal and RGB-tolerance/exact-alpha predicate. JSON adds `match.row_bounds`: one entry per requested row, `null` for no match, otherwise `{"x": LEFT, "width": RIGHT-LEFT+1}` with absolute image x coordinates. Index zero denotes the region's first row. Disconnected matches enclose intervening gaps. `report_search` prints compact JSON on `matching row bounds: [...]` after existing row/column summaries. `--match-pixels` limits only the coordinate list. Touched the specified modules, test, README.md and docs/invariants.md; `_MatchRuns` is unchanged.
+
+**Acceptance criteria.** The added `tests/test_sample_match_row_bounds.py::TestSampleMatchRowBounds` covers offset disconnected matches, empty and singleton rows, full/empty regions, pixel crops, tolerance, exact alpha with hidden RGB, combined diagnostics and coordinate limit, default omission, text/JSON, help/direct script, pre-read rejection, a single positioned traversal and bounded PNG decoding. `make check` is run after the plan update.
+
 ### Reference-pixel sampler: count color matches per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Measure vertical color bands without listing matching coordinates or intervals. `tools/sample_report_search.py::_search_match` already collects per-row counts, but searches of the sampler, its tests and the plan archive found no `--match-columns` summary. This complements the finished per-row plan with one independently usable diagnostic.

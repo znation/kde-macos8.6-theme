@@ -75,6 +75,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--match-rows requires --find-color"
     if args.match_columns and args.find_color is None:
         return "--match-columns requires --find-color"
+    if args.match_row_bounds and args.find_color is None:
+        return "--match-row-bounds requires --find-color"
     if args.runs and args.width > 1 and args.height > 1 and args.run_axis is None:
         return "--runs requires a single row or column unless --run-axis is given"
     if args.run_axis is not None and not args.runs:
@@ -126,6 +128,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")
     parser.add_argument("--match-rows", action="store_true", help="with --find-color, count matches in each row")
     parser.add_argument("--match-columns", action="store_true", help="with --find-color, count matches in each column")
+    parser.add_argument("--match-row-bounds", action="store_true", help="with --find-color, report enclosing match bounds in each row")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--histogram", action="store_true", help="count RGB colors, or RGBA colors with --alpha, in the sampled region")
     modes.add_argument("--runs", action="store_true", help="group adjacent RGB colors, or RGBA with --alpha, along one row or column")
