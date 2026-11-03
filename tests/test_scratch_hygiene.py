@@ -202,6 +202,22 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 [("log", b"python3 tools/check_parallel.py")],
             )
 
+    def test_check_capture_scan_does_not_follow_a_tracked_symlink(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            target = os.path.join(directory, "target")
+            with open(target, "wb") as fh:
+                fh.write(b"python3 tools/check_parallel.py\\n")
+            link = os.path.join(directory, "link")
+            os.symlink("target", link)
+            subprocess.run(["git", "-C", directory, "add", "link"], check=True)
+
+            # Git records the symlink target text, not the target file's
+            # contents; the check-capture scan must not follow the link.
+            self.assertEqual(tracked_check_output_files(directory), [])
+
     def test_scan_does_not_follow_a_tracked_symlink(self):
         import tempfile
 
