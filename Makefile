@@ -265,6 +265,27 @@ GTK_ID := org.macos8.desktop
 GTK_PACKAGE := theme/gtk/$(GTK_ID)
 GTK_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(GTK_ID)
 
+# The files `make install` copies from the GTK package directory into the
+# install dir, relative to both, in the order the GTK staging and rename
+# phases copy them. This one list drives the staging loop, the rename loop,
+# the staging-cleanup trap and the uninstall removals together
+# (gtk_stage_loop and its siblings below), so a file added here cannot miss
+# one of those four spellings. Each staged copy is a hidden
+# `.<basename>.staging` sibling inside the file's own directory.
+GTK_FILES := index.theme \
+	gtk-3.0/gtk.css \
+	gtk-4.0/gtk.css \
+	assets/checkmark.svg \
+	assets/bullet.svg \
+	assets/check-mixed.svg \
+	assets/arrow-down.svg \
+	assets/arrow-up.svg \
+	assets/arrow-right.svg \
+	assets/submenu-arrow.svg \
+	assets/window-close.svg \
+	assets/window-maximize.svg \
+	assets/window-minimize.svg
+
 # The marker comment `tools/gtk_selection.py` publishes as the first line of
 # `$XDG_CONFIG_HOME/gtk-4.0/gtk.css`; uninstall's dangling-selection diagnostic
 # recognizes a published GTK user CSS by that literal comment.
@@ -675,35 +696,32 @@ define install_kvantum
 	done
 endef
 
+# The per-file loops that stage, rename, trap-clean and remove the GTK theme
+# files (GTK_FILES above). They live beside the guards as top-level
+# variables, not inside a `define`, so the `$${dest##*/}` basename pattern's
+# `##` can be escaped the way require_flock_timeout does (a `define` stores
+# text verbatim and the escape would reach the recipe shell still escaped).
+# Each loop derives its file's hidden `.<basename>.staging` sibling from the
+# destination, so the two phases cannot drift apart. A `call` splices one
+# into the caller's recipe shell, as the guards do.
+gtk_stage_loop = for name in $(GTK_FILES); do dest="$(GTK_INSTALL_DIR)/$$name"; staging="$${dest%/*}/.$${dest\#\#*/}.staging"; install -Dm644 "$(GTK_PACKAGE)/$$name" "$$staging" || exit 1; done
+gtk_rename_loop = for name in $(GTK_FILES); do dest="$(GTK_INSTALL_DIR)/$$name"; mv "$${dest%/*}/.$${dest\#\#*/}.staging" "$$dest" || exit 1; done
+gtk_staging_cleanup_loop = for name in $(GTK_FILES); do dest="$(GTK_INSTALL_DIR)/$$name"; rm -f "$${dest%/*}/.$${dest\#\#*/}.staging"; done
+gtk_remove_loop = for name in $(GTK_FILES); do dest="$(GTK_INSTALL_DIR)/$$name"; rm -f "$$dest" "$${dest%/*}/.$${dest\#\#*/}.staging"; done
+
+# Stage each GTK theme file as a hidden sibling and rename it in, as the
+# color scheme does; the files spread across index.theme and the gtk-3.0/,
+# gtk-4.0/ and assets/ subtrees of the shared directory, so the
+# package-directory swap `install_package` performs does not fit. Every
+# staging step runs before every rename as before, so a staging failure
+# leaves the working files alone and the EXIT trap clears the staging
+# siblings, while a rename that fails after other renames commit leaves
+# those earlier renames standing, as `test_gtk_install` pins.
 define install_gtk
 	@install -d "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; \
-	trap 'rm -f "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/assets/.checkmark.svg.staging" "$(GTK_INSTALL_DIR)/assets/.bullet.svg.staging" "$(GTK_INSTALL_DIR)/assets/.check-mixed.svg.staging" "$(GTK_INSTALL_DIR)/assets/.arrow-down.svg.staging" "$(GTK_INSTALL_DIR)/assets/.arrow-up.svg.staging" "$(GTK_INSTALL_DIR)/assets/.arrow-right.svg.staging" "$(GTK_INSTALL_DIR)/assets/.submenu-arrow.svg.staging" "$(GTK_INSTALL_DIR)/assets/.window-close.svg.staging" "$(GTK_INSTALL_DIR)/assets/.window-maximize.svg.staging" "$(GTK_INSTALL_DIR)/assets/.window-minimize.svg.staging"' EXIT; \
-	install -Dm644 "$(GTK_PACKAGE)/index.theme" "$(GTK_INSTALL_DIR)/.index.theme.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/gtk-3.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/gtk-4.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/checkmark.svg" "$(GTK_INSTALL_DIR)/assets/.checkmark.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/bullet.svg" "$(GTK_INSTALL_DIR)/assets/.bullet.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/check-mixed.svg" "$(GTK_INSTALL_DIR)/assets/.check-mixed.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/arrow-down.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-down.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/arrow-up.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-up.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/arrow-right.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-right.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/submenu-arrow.svg" "$(GTK_INSTALL_DIR)/assets/.submenu-arrow.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/window-close.svg" "$(GTK_INSTALL_DIR)/assets/.window-close.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/window-maximize.svg" "$(GTK_INSTALL_DIR)/assets/.window-maximize.svg.staging" && \
-	install -Dm644 "$(GTK_PACKAGE)/assets/window-minimize.svg" "$(GTK_INSTALL_DIR)/assets/.window-minimize.svg.staging" && \
-	mv "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/index.theme" && \
-	mv "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/gtk.css" && \
-	mv "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/gtk.css" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.checkmark.svg.staging" "$(GTK_INSTALL_DIR)/assets/checkmark.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.bullet.svg.staging" "$(GTK_INSTALL_DIR)/assets/bullet.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.check-mixed.svg.staging" "$(GTK_INSTALL_DIR)/assets/check-mixed.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.arrow-down.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-down.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.arrow-up.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-up.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.arrow-right.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-right.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.submenu-arrow.svg.staging" "$(GTK_INSTALL_DIR)/assets/submenu-arrow.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.window-close.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-close.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.window-maximize.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-maximize.svg" && \
-	mv "$(GTK_INSTALL_DIR)/assets/.window-minimize.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-minimize.svg"
+	trap '$(call gtk_staging_cleanup_loop)' EXIT; \
+	{ $(call gtk_stage_loop); } && \
+	{ $(call gtk_rename_loop); }
 endef
 
 _install:
@@ -751,7 +769,7 @@ _uninstall:
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"; \
 	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"; \
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"; \
-	rm -f "$(GTK_INSTALL_DIR)/index.theme" "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/assets/checkmark.svg" "$(GTK_INSTALL_DIR)/assets/.checkmark.svg.staging" "$(GTK_INSTALL_DIR)/assets/bullet.svg" "$(GTK_INSTALL_DIR)/assets/.bullet.svg.staging" "$(GTK_INSTALL_DIR)/assets/check-mixed.svg" "$(GTK_INSTALL_DIR)/assets/.check-mixed.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-down.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-down.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-up.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-up.svg.staging" "$(GTK_INSTALL_DIR)/assets/arrow-right.svg" "$(GTK_INSTALL_DIR)/assets/.arrow-right.svg.staging" "$(GTK_INSTALL_DIR)/assets/submenu-arrow.svg" "$(GTK_INSTALL_DIR)/assets/.submenu-arrow.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-close.svg" "$(GTK_INSTALL_DIR)/assets/.window-close.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-maximize.svg" "$(GTK_INSTALL_DIR)/assets/.window-maximize.svg.staging" "$(GTK_INSTALL_DIR)/assets/window-minimize.svg" "$(GTK_INSTALL_DIR)/assets/.window-minimize.svg.staging"; \
+	{ $(call gtk_remove_loop); }; \
 	rmdir "$(GTK_INSTALL_DIR)/assets" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" 2>/dev/null || true
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the
