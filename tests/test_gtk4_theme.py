@@ -763,6 +763,19 @@ for radio in (False, True):
             self.rules["button:focus:focus-visible"]["outline-color"],
         )
 
+    def test_emoji_section_button_focus_outline_color(self):
+        selector = "button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)"
+        self.assert_rule(selector, {"outline-color": BLACK})
+        self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            self.rules[selector]["outline-color"],
+            self.rules["button:focus:focus-visible"]["outline-color"],
+        )
+        self.assertEqual(
+            {item for item in self.selectors if "emoji-section" in item},
+            {selector},
+        )
+
     def test_entry_focus_outline_color(self):
         self.assert_scale_focus_outline("entry:focus-within")
 

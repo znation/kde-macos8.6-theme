@@ -3228,3 +3228,9 @@ tabthumbnail .card picture {
 button.sidebar-button:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK emoji section keyboard focus has no collected reference surface; reuse
+   the landed black focus colour. The stock selector was inspected 2026-11-03. */
+button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) {
+  outline-color: #000000;
+}
