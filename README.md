@@ -14,6 +14,18 @@ Pre-alpha: the Platinum theme covers KDE/Qt, GTK 3 and GTK 4, Firefox chrome and
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
+## Contents
+
+- [Prerequisites](#prerequisites)
+- [Installing](#installing)
+- [Generating the wallpaper](#generating-the-wallpaper)
+- [Reference screenshots](#reference-screenshots)
+- [Validating the reference set](#validating-the-reference-set)
+- [Sampling reference pixels](#sampling-reference-pixels)
+- [Fidelity checking](#fidelity-checking)
+- [Invariants](#invariants)
+- [Development team](#development-team)
+
 ## Prerequisites
 
 | Task | Requirements |
