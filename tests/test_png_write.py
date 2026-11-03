@@ -88,6 +88,19 @@ class TestEncodePng(unittest.TestCase):
                 )
                 self.assertIn(f"{name}={value}", str(caught.exception))
 
+    def test_dimension_at_the_png_header_limit_reaches_buffer_validation(self):
+        # The maximum is inclusive: both axes may equal 2**31 - 1. An empty
+        # buffer then fails the ordinary size check without allocating an
+        # impractically large image.
+        limit = 2_147_483_647
+        for name, width, height in (
+            ("width", limit, 1),
+            ("height", 1, limit),
+        ):
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(ValueError, "bytes given"):
+                    encode_png(width, height, b"")
+
     def test_non_integer_dimension_is_rejected_naming_the_field(self):
         # A float or str extent would otherwise reach the RGB length check (a
         # float byte count) or struct.pack (a bare struct.error), naming
