@@ -5,11 +5,15 @@ from __future__ import annotations
 
 class _MatchRuns:
     def __init__(self, x: int, y: int, width: int, height: int,
-                 horizontal: bool, vertical: bool) -> None:
+                 horizontal: bool, vertical: bool, summarize: bool = False,
+                 collect_runs: bool = True) -> None:
         self.x, self.y = x, y
         self.right, self.bottom = x + width, y + height
         self.horizontal, self.vertical = horizontal, vertical
+        self.summarize = summarize
+        self.collect_runs = collect_runs
         self.runs = []
+        self.longest_run = None
         self.column_runs = []
         self.run_start = self.run_y = None
         self.column_starts = {}
@@ -26,13 +30,19 @@ class _MatchRuns:
             if matches and self.run_start is None:
                 self.run_start, self.run_y = x, y
             elif not matches and self.run_start is not None:
-                self.runs.append({"x": self.run_start, "y": self.run_y,
-                                  "length": x - self.run_start})
+                self._close_run(x - self.run_start)
                 self.run_start = self.run_y = None
 
     def _end_row(self) -> None:
-        self.runs.append({"x": self.run_start, "y": self.run_y,
-                          "length": self.right - self.run_start})
+        self._close_run(self.right - self.run_start)
+
+    def _close_run(self, length: int) -> None:
+        run = {"x": self.run_start, "y": self.run_y, "length": length}
+        if not self.summarize or self.longest_run is None or length > self.longest_run["length"]:
+            if self.summarize:
+                self.longest_run = run
+        if self.collect_runs:
+            self.runs.append(run)
         self.run_start = self.run_y = None
 
     def _end_column(self, x: int, y: int) -> None:

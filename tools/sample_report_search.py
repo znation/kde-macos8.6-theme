@@ -23,7 +23,9 @@ def _search_match(args, image) -> dict:
     matching_row_bounds = [None] * args.height if args.match_row_bounds else None
     matching_column_bounds = [None] * args.width if args.match_column_bounds else None
     intervals = _MatchRuns(args.x, args.y, args.width, args.height,
-                           args.match_runs, args.match_column_runs)
+                           args.match_runs or args.longest_match_run,
+                           args.match_column_runs, args.longest_match_run,
+                           args.match_runs)
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
     alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
     for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
@@ -66,6 +68,7 @@ def _search_match(args, image) -> dict:
             **({"pixels": matched_pixels, "omitted_pixels": count - len(matched_pixels)}
                if args.match_pixels is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
+            **({"longest_run": intervals.longest_run} if args.longest_match_run else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
             **({"rows": matching_rows} if matching_rows is not None else {}),
             **({"columns": matching_columns} if matching_columns is not None else {}),
@@ -117,3 +120,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"matching row bounds: {json.dumps(match['row_bounds'], separators=(',', ':'))}")
     if args.match_column_bounds:
         print(f"matching column bounds: {json.dumps(match['column_bounds'], separators=(',', ':'))}")
+    if args.longest_match_run:
+        run = match["longest_run"]
+        print("longest matching run: none" if run is None else
+              f"longest matching run: {run['x']},{run['y']},{run['length']}")

@@ -567,6 +567,14 @@ Disconnected matches enclose intervening pixels. The report covers the full
 region regardless of `--match-pixels`, uses the same tolerance and exact-alpha
 predicate, and is omitted unless requested.
 
+Add `--longest-match-run` with `--find-color` to report the longest contiguous
+horizontal matching segment. JSON adds `match.longest_run` with absolute `x`,
+`y` and `length`, or `null` when there are no matches; text prints
+`longest matching run: X,Y,LENGTH` or `longest matching run: none`. Ties keep
+the earliest row-major segment. The summary uses the same tolerance and exact
+alpha filters, covers the full region regardless of `--match-pixels`, and does
+not emit the full run list unless `--match-runs` is also requested.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha
