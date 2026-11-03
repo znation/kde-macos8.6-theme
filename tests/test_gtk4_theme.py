@@ -754,6 +754,34 @@ for radio in (False, True):
     def test_button_focus_outline_color(self):
         self.assert_scale_focus_outline("button:focus:focus-visible")
 
+    def test_toolbar_button_focus_outline_color(self):
+        selectors = {
+            ".toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            ".toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            ".toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
+            ".toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            ".toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            ".toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            ".toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
+            ".toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if ".toolbar" in selector and ":focus:focus-visible" in selector
+            },
+            selectors,
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["button:focus:focus-visible"]["outline-color"],
+                )
+
     def test_filechooser_breadcrumb_focus_outline_color(self):
         selectors = {
             "filechooser #pathbarbox > stack > box > button:focus:focus-visible",
@@ -2287,7 +2315,11 @@ for radio in (False, True):
 
     def test_split_button_container_corners(self):
         self.assertEqual(
-            {selector for selector in self.rules if "splitbutton" in selector},
+            {
+                selector
+                for selector, declarations in self.rules.items()
+                if "splitbutton" in selector and "border-radius" in declarations
+            },
             {"splitbutton"},
         )
         splitbutton = self.rules["splitbutton"]

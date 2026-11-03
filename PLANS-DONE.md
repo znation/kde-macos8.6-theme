@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal and grounding.** Keep toolbar-button keyboard-focus outlines black like the landed generic `button:focus:focus-visible` policy. The shipped sheet has no `.toolbar` focus-visible restatement; the finished sidebar, emoji and tab-focus plans explicitly exclude toolbar focus. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below declaring `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent)`. Their greater specificity defeats the generic button colour. No collected reference shows GTK toolbar keyboard focus: black is a platform adaptation reusing the landed focus policy, not a newly sampled metric.
+
+**Approach and files.** Append a dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring only `outline-color: #000000`. Use these exact stock selector twins (each line is one selector):
+
+```css
+.toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+.toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+.toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible
+.toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+.toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+.toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible
+```
+
+The GTK 4 user stylesheet import supplies the override path; exact twins win stock ties by later user-CSS order. Leave stock outline geometry inherited (2px width; 1px offset for the first two arms, -2px for the others). This is one toolbar focus-colour family; headerbar, actionbar, searchbar and splitbutton separator paint are outside scope.
+
+Add `TestGtk4Theme::test_toolbar_button_focus_outline_color` in `tests/test_gtk4_theme.py` beside `test_button_focus_outline_color`, following the breadcrumb test's per-selector declaration, occurrence and family-set assertions. Extend `docs/invariants.md` under `## gtk` with a dated row naming that test, the resource probe, missing reference surface, inherited geometry and user-import path; explicitly limit coverage to declarations rather than rendered pixels or keyboard traversal.
+
+**Acceptance criteria.** For each of the eight spellings above, parsing the shipped sheet yields exactly `{"outline-color": "#000000"}`, the colour equals the generic button focus colour, and the selector occurs once. The shipped selectors containing both the `.toolbar` class token and `:focus:focus-visible` are exactly this set. Removing an arm, substituting an accent colour or adding an outline-width/offset declaration fails the new test. No GTK 3, artwork or installation change is required. `make check` passes after the final edit, including the invariant register validation.
+
 ### Platinum GTK 4 emoji section buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued sidebar-button focus plan) — done 2026-11-03 by the feature role
 
 **Goal and grounding.** Give keyboard-focused emoji section buttons the landed black focus colour. The shipped generic `button:focus:focus-visible` rule is less specific than the stock `button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)` arm. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found that arm grouped with `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent); outline-width: 2px; outline-offset: -2px`. The corresponding probe of `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` found no emoji focus-visible arm. Searches for `emoji-section` in the shipped GTK 4 sheet, tests, PLANS.md and PLANS-DONE.md found no existing treatment; finished emoji-picker and emoji-completion plans address corners instead. No collected reference shows GTK emoji section keyboard focus; black reuses the landed button focus policy as a platform adaptation.

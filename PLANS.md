@@ -133,30 +133,8 @@ Keep the library name outside the CSS, following `test_stands_alone`. In `tests/
 
 **Acceptance criteria.** The shipped stylesheet declares opaque black once for each of the eight toolbar focus selectors, with no added outline width, offset or transition declaration. The generic button-focus colour and the toolbar colours agree. Dropping a selector, misspelling an exclusion, retaining accent colour or adding geometry makes the new declaration test fail. The invariant records the supported `make apply-gtk` user-CSS import path and limits the guarantee to declarations, without claiming rendered pixels or keyboard traversal. Existing button-state checks and the invariant register pass; run `make check` after final edits. No GTK 3 sheet or artwork change is required.
 
-### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)
-
-**Goal and grounding.** Keep toolbar-button keyboard-focus outlines black like the landed generic `button:focus:focus-visible` policy. The shipped sheet has no `.toolbar` focus-visible restatement; the finished sidebar, emoji and tab-focus plans explicitly exclude toolbar focus. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below declaring `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent)`. Their greater specificity defeats the generic button colour. No collected reference shows GTK toolbar keyboard focus: black is a platform adaptation reusing the landed focus policy, not a newly sampled metric.
-
-**Approach and files.** Append a dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring only `outline-color: #000000`. Use these exact stock selector twins (each line is one selector):
-
-```css
-.toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-.toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-.toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible
-.toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-.toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-.toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible
-.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible
-```
-
-The GTK 4 user stylesheet import supplies the override path; exact twins win stock ties by later user-CSS order. Leave stock outline geometry inherited (2px width; 1px offset for the first two arms, -2px for the others). This is one toolbar focus-colour family; headerbar, actionbar, searchbar and splitbutton separator paint are outside scope.
-
-Add `TestGtk4Theme::test_toolbar_button_focus_outline_color` in `tests/test_gtk4_theme.py` beside `test_button_focus_outline_color`, following the breadcrumb test's per-selector declaration, occurrence and family-set assertions. Extend `docs/invariants.md` under `## gtk` with a dated row naming that test, the resource probe, missing reference surface, inherited geometry and user-import path; explicitly limit coverage to declarations rather than rendered pixels or keyboard traversal.
-
-**Acceptance criteria.** For each of the eight spellings above, parsing the shipped sheet yields exactly `{"outline-color": "#000000"}`, the colour equals the generic button focus colour, and the selector occurs once. The shipped selectors containing both the `.toolbar` class token and `:focus:focus-visible` are exactly this set. Removing an arm, substituting an accent colour or adding an outline-width/offset declaration fails the new test. No GTK 3, artwork or installation change is required. `make check` passes after the final edit, including the invariant register validation.
-
 ## Done
+
 ### Platinum GTK 4 file-chooser breadcrumbs: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued emoji-section focus plan)
 
 **Goal and grounding.** Give the file chooser's breadcrumb buttons the landed black keyboard-focus colour. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found these three arms grouped with `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent); outline-width: 2px; outline-offset: -2px`:

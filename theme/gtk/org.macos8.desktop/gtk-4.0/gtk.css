@@ -3242,3 +3242,16 @@ filechooser #pathbarbox > stack > box > box > button:focus:focus-visible,
 filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK toolbar keyboard focus has no collected reference surface; reuse the
+   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+.toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+.toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
