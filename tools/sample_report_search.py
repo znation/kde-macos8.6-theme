@@ -70,6 +70,9 @@ def _search_match(args, image) -> dict:
     if args.min_match_run_length is not None:
         matched_runs = [run for run in matched_runs
                         if run["length"] >= args.min_match_run_length]
+    if args.max_match_run_length is not None:
+        matched_runs = [run for run in matched_runs
+                        if run["length"] <= args.max_match_run_length]
     if args.min_match_column_run_length is not None:
         matched_column_runs = [run for run in matched_column_runs
                                if run["length"] >= args.min_match_column_run_length]

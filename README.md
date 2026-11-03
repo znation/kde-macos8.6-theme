@@ -596,6 +596,11 @@ reported list; match counts and other full-region diagnostics, including the
 longest-run summary, still use every matching pixel. A cutoff above the longest
 segment reports an empty `match.runs` array (or `matching runs: []` in text).
 
+Add `--max-match-run-length N` with `--match-runs` to omit horizontal match
+segments longer than `N` pixels. The inclusive cutoff filters completed
+segments; match counts and summaries still use the full search. Minimum and
+maximum cutoffs combine, and contradictory cutoffs report an empty run list.
+
 Add `--match-column-runs` with `--find-color` to report maximal contiguous
 vertical segments using the same match predicate. JSON adds `match.column_runs`
 with absolute `x`, `y` and `length`; text prints the records on a

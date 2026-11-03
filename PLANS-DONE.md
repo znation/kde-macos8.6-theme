@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: isolate short horizontal color-match runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Inspect short reference-color details without long matching background spans filling the horizontal run report.
+
+**Implementation.** Added `--max-match-run-length N` with positive integer validation and a `--match-runs` dependency check. Completed horizontal runs are filtered inclusively after collection, alongside the minimum filter, leaving search statistics and summaries based on the full region. Added CLI coverage, help documentation, and the invariant row.
+
+**Acceptance.** The 9x2 offset-region fixture verifies exact emitted coordinates, maximum-only and combined filtering, empty contradictory and no-match results, unchanged full-search diagnostics, text/JSON agreement, direct-script invocation, validation errors, and help. Existing horizontal-run coverage exercises tolerance and alpha matching.
+
 ### Fidelity diagnostics: isolate short horizontal mismatch runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Inspect short local rendering defects without long border mismatches filling the horizontal run report. Source and archive searches find minimum-length filtering and longest-run summaries, but no maximum horizontal mismatch-run length. This work is independent of the queued sampler histogram pagination.
