@@ -543,6 +543,14 @@ region's first row; rows with no matches are included. Counts use the same RGB
 tolerance and exact-alpha predicate and cover the full region regardless of
 `--match-pixels`. The diagnostic is omitted unless requested.
 
+Add `--match-columns` with `--find-color` to count matching pixels in each
+column of the requested region. JSON adds a dense `match.columns` array and
+text prints the same array on a `matching columns:` line after any matching
+rows line. Index zero is the region's first column; columns with no matches
+are included. Counts use the same RGB tolerance and exact-alpha predicate and
+cover the full region regardless of `--match-pixels`. The diagnostic is
+omitted unless requested.
+
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
 even when neighboring pixels have the same RGB values; an image without alpha

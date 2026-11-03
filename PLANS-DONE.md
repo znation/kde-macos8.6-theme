@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: count color matches per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Measure vertical color bands without listing matching coordinates or intervals. `tools/sample_report_search.py::_search_match` already collects per-row counts, but searches of the sampler, its tests and the plan archive found no `--match-columns` summary. This complements the finished per-row plan with one independently usable diagnostic.
+
+**Approach and files.** Added opt-in `--match-columns` in `tools/sample_arguments.py`, requiring `--find-color` through `option_error`. `_search_match` allocates a width-sized zero array only when requested and increments it inside the existing accepted-match branch, sharing RGB-tolerance and exact-alpha qualification and the positioned traversal. JSON emits `match.columns`; text prints `matching columns: [..]` after any matching-rows line. Index zero denotes the region's first column; zero-match columns remain present, and `--match-pixels` does not limit these counts. Documented the interface in README.md, added `tests/test_sample_match_columns.py`, and updated the sampler invariant. No dependency or interval refactor was needed.
+
+**Acceptance criteria.** Tests pin an offset, asymmetric rectangle containing zero-match columns; the array length equals region width and its sum equals `match.count`. Cover empty/full matches, single-row/column/pixel regions, RGB tolerance boundaries, exact alpha including hidden RGB and opaque fallback, and combination with `--match-rows` and `--match-pixels 1`. Assert exact JSON/text arrays, omission without the flag, help and direct-script output, and rejection without `--find-color` before image reads. A mocked positioned iterator proves combined row/column summaries use one traversal; a PNG-read assertion preserves crop-bounded decoding. Run `make check`.
+
 ### Reference-pixel sampler: count color matches per row (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Locate horizontal bands of a sampled color without dumping matching coordinates or intervals. The sampler's existing color-search traversal applies RGB tolerance and exact-alpha predicates once per pixel; row counts now summarize those accepted matches.
