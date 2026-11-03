@@ -464,6 +464,15 @@ the requested region is below F (0 through 1 inclusive). Filtering runs before
 The share uses the full region area, and explicit filtering reports the original
 `total_colors` and `omitted_pixels`. At F=0 the palette is unchanged.
 
+Add repeatable `--exclude-color RRGGBB` with `--histogram` to omit named RGB
+colors before minimum-count, minimum-fraction and top-color selection. Values
+accept six hexadecimal digits with optional `#` and are case-insensitive.
+With `--alpha`, every opacity variant is excluded, including stored RGB under
+zero alpha. The original distinct-color total and full-region denominator are
+preserved; explicit exclusions report totals even when a named color is absent.
+Omitted pixels include exclusions and other filters without double counting.
+Spatial diagnostics apply only to emitted colors.
+
 Add `--color-fractions` with `--histogram` to add each emitted color's share
 of the complete requested region (`count / width / height`). JSON color
 records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions

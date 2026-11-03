@@ -6,7 +6,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 ## Planned
 
 
-### Reference-pixel sampler: exclude known background colors from histograms (planned 2026-11-02 by the plan role)
+### Reference-pixel sampler: exclude known background colors from histograms (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Inspect bevel and accent palettes without known background colors consuming the `--top-colors` slots. Existing minimum-count and fraction filters suppress rare colors, but cannot remove a named dominant background.
 

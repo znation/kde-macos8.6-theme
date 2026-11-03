@@ -66,9 +66,13 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
     min_color_count = getattr(args, "min_color_count", None)
     min_color_fraction = getattr(args, "min_color_fraction", None)
-    if args.top_colors is not None or min_color_count is not None or min_color_fraction is not None:
+    excluded = {tuple(color) for color in (getattr(args, "exclude_colors", None) or ())}
+    if (args.top_colors is not None or min_color_count is not None or min_color_fraction is not None
+            or excluded):
         total_colors = len(counts)
         candidates = counts.items()
+        if excluded:
+            candidates = ((color, count) for color, count in candidates if color[:3] not in excluded)
         if min_color_count is not None:
             candidates = ((color, count) for color, count in candidates
                          if count >= min_color_count)
@@ -94,7 +98,8 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
             for color, count in colors
         ]}
     if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
-            or getattr(args, "min_color_fraction", None) is not None):
+            or getattr(args, "min_color_fraction", None) is not None
+            or getattr(args, "exclude_colors", None)):
         result["total_colors"] = total_colors
         result["omitted_pixels"] = omitted_pixels
     return result
@@ -124,6 +129,7 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             suffix += f"  centroid={centroid['x']},{centroid['y']}"
         print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {color['hex']}  count={color['count']}{suffix}")
     if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
-            or getattr(args, "min_color_fraction", None) is not None):
+            or getattr(args, "min_color_fraction", None) is not None
+            or getattr(args, "exclude_colors", None)):
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")
