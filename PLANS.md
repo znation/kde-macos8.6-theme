@@ -7,7 +7,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ### Reference-pixel sampler: cap histogram colors by region fraction (planned 2026-11-03 by the plan role)
 
-Needs review 2026-11-03 by feature: plan defect — duplicates the maximum-fraction feature completed by the entry in Done.
+**Refused 2026-11-03 by plan: This entry duplicates the implemented --max-color-fraction feature and would add redundant work without a behavior change.**
 
 **Goal.** Isolate sparse detail colors with a crop-size-independent upper cutoff. The sampler supports minimum fraction and maximum absolute count, but source and archive searches found no maximum-fraction option. This is independent of the queued fidelity pagination plan.
 
