@@ -497,6 +497,13 @@ by the full requested region area. JSON adds numeric `fraction` to `match`;
 text prints `fraction:` after `count:`. It uses the same RGB tolerance and
 exact-alpha filters, and `--match-pixels` does not truncate its numerator.
 
+Add `--match-centroid` with `--find-color` to report the arithmetic mean of
+matching pixel coordinates. JSON adds `match.centroid` with absolute `x` and
+`y` values, or `null` when no pixels match; text prints `centroid: X,Y` or
+`centroid: none` after bounds. Pixel indices are used without a half-pixel
+offset. Tolerance and exact-alpha filters apply, and `--match-pixels` does not
+truncate the centroid calculation.
+
 Add `--match-runs` with `--find-color` to report maximal contiguous horizontal
 segments matching the same RGB tolerance and exact-alpha predicate. JSON adds
 `match.runs` records with absolute `x`, `y` and `length`; text prints the same

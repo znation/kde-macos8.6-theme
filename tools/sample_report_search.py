@@ -15,6 +15,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     target = args.find_color
     tolerance = args.color_tolerance if args.color_tolerance is not None else 0
     count = 0
+    sum_x = sum_y = 0
     matched_pixels = []
     matched_runs = []
     run_start = None
@@ -40,6 +41,9 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             if args.match_runs and run_start is None:
                 run_start, run_y = x, y
             count += 1
+            if args.match_centroid:
+                sum_x += x
+                sum_y += y
             if args.match_pixels is not None and len(matched_pixels) < args.match_pixels:
                 matched_pixels.append({"x": x, "y": y})
             min_x, min_y = min(min_x, x), min(min_y, y)
@@ -62,6 +66,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             "region": region, "match": {"rgb": list(target), "hex": color_hex,
             "count": count, "bounds": bounds,
             **({"fraction": count / (args.width * args.height)} if args.match_fraction else {}),
+            **({"centroid": None if count == 0 else {"x": sum_x / count, "y": sum_y / count}}
+               if args.match_centroid else {}),
             **({"pixels": matched_pixels, "omitted_pixels": count - len(matched_pixels)}
                if args.match_pixels is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
@@ -81,6 +87,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"fraction: {count / (args.width * args.height)}")
     print("bounds: none" if bounds is None else
           f"bounds: {bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}")
+    if args.match_centroid:
+        print("centroid: none" if count == 0 else f"centroid: {sum_x / count},{sum_y / count}")
     if args.match_pixels is not None:
         print(f"matching pixels: {len(matched_pixels)}")
         for pixel in matched_pixels:

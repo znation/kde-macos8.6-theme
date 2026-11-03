@@ -31,5 +31,4 @@ _None yet._
 
 **Acceptance criteria.** A cropped asymmetric fixture with disconnected matches proves absolute fractional means and distinguishes the centroid from the bounds midpoint; an out-of-crop match is excluded. Pin text and JSON for zero matches, a singleton and multiple matches. Tolerance, exact-alpha filtering (including RGB under zero alpha) and opaque alpha fallback select the same pixels as count/bounds; `--match-pixels 1` does not truncate the centroid. Exercise the option alongside fraction and both run diagnostics. Without the flag the field and text line are absent and existing reports retain their format. Invalid use without `--find-color` returns 2 with empty stdout before containment or PNG reads; extend the compatibility tests accordingly. Confirm direct-script output and package CLI output agree for a fixture and decoding retains `max_rows=y+height`. Run `make check` after final edits. Keep this to the two tool modules, focused tests and the two documentation files.
 
-
 ## Done

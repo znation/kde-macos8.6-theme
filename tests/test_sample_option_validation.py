@@ -24,6 +24,7 @@ class TestSampleOptionValidation(CliTestCase):
             (("--match-alpha", "0"), "--match-alpha requires --find-color"),
             (("--match-pixels", "1"), "--match-pixels requires --find-color"),
             (("--match-fraction",), "--match-fraction requires --find-color"),
+            (("--match-centroid",), "--match-centroid requires --find-color"),
             (("--match-runs",), "--match-runs requires --find-color"),
             (("--match-column-runs",), "--match-column-runs requires --find-color"),
             (("--runs", "--width", "2", "--height", "2"),

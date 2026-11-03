@@ -63,6 +63,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--match-pixels requires --find-color"
     if args.match_fraction and args.find_color is None:
         return "--match-fraction requires --find-color"
+    if args.match_centroid and args.find_color is None:
+        return "--match-centroid requires --find-color"
     if args.match_runs and args.find_color is None:
         return "--match-runs requires --find-color"
     if args.match_column_runs and args.find_color is None:
@@ -98,6 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
     parser.add_argument("--match-fraction", action="store_true", help="with --find-color, report the matching fraction of the region")
+    parser.add_argument("--match-centroid", action="store_true", help="with --find-color, report the centroid of matching pixel coordinates")
     parser.add_argument("--match-runs", action="store_true", help="with --find-color, report contiguous horizontal matching segments")
     parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")
     modes = parser.add_mutually_exclusive_group()
