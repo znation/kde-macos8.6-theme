@@ -343,9 +343,11 @@ for radio in (False, True):
         active = {"border-radius": "0", "box-shadow": f"0 0 0 1px {BLACK}"}
         backdrop = {"box-shadow": f"0 0 0 1px {INACTIVE_OUTLINE}"}
         flat = {"border-radius": "0", "box-shadow": "none"}
+        solid = {"padding": "0", "border-radius": "0",
+                 "box-shadow": f"0 0 0 1px {BLACK}"}
         expected = {
             "window.csd": active,
-            "window.csd:backdrop": backdrop,
+            "window.csd:backdrop": {**backdrop, "transition": "none"},
             "window.csd.popup": active,
             "window.csd.dialog.message": active,
             "window.csd.dialog.message:backdrop": backdrop,
@@ -364,6 +366,8 @@ for radio in (False, True):
             "window.tiled-right:backdrop": backdrop,
             "window.tiled-bottom:backdrop": backdrop,
             "window.ssd": {"box-shadow": "none"},
+            "window.solid-csd": solid,
+            "window.solid-csd:backdrop": backdrop,
             "tooltip.csd": flat,
         }
         for selector, expected_rule in expected.items():

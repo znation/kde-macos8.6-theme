@@ -2679,21 +2679,28 @@ link:visited:selected:disabled:active {
    under blurred rgba shadows plus a translucent ring, with a weaker backdrop
    set behind a 200ms transition; window.csd.popup and tooltip.csd round 5px;
    window.csd.dialog.message rounds 8px; and the maximized, fullscreen, tiled
-   and ssd arms each carry a shadow arm of their own. Every rule below
-   restates the byte-equal stock twin so the later source position wins every
+   and ssd arms each carry a shadow arm of their own, while window.solid-csd
+   -- the stock shell arm GTK 4 selects for a decorated top level without an
+   alpha visual, which no reference screenshot shows -- pads 4px and frames
+   itself with inset #cdc7c2 and white shadows. Every rule below restates
+   the byte-equal stock twin so the later source position wins every
    equal-specificity tie exactly as the landed restatements do; the
    maximized/fullscreen and tiled :backdrop arms carry their own :backdrop
    classes, or the window.csd:backdrop arm would itself out-rank them and
    paint an active outline on an unfocused maximized or tiled window. Stock's
    tiled/maximized radius-zero arms already square those states' corners of
    their own, and the landed window.dialog.message.csd.background group
-   already squares the message-dialog body. */
+   already squares the message-dialog body. Stock's window.csd:backdrop
+   carries a 200ms box-shadow transition of its own; it is restated to none
+   like the landed button group's transition policy, so the outline switches
+   hard between focus states instead of cross-fading. */
 window.csd {
   border-radius: 0;
   box-shadow: 0 0 0 1px #000000;
 }
 
 window.csd:backdrop {
+  transition: none;
   box-shadow: 0 0 0 1px #555555;
 }
 
@@ -2742,6 +2749,18 @@ window.tiled-bottom:backdrop {
 
 window.ssd {
   box-shadow: none;
+}
+
+/* The solid-csd twin sits after window.csd's arms like every restated twin;
+   if a decorated window carries both classes the later arms win the tie. */
+window.solid-csd {
+  padding: 0;
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.solid-csd:backdrop {
+  box-shadow: 0 0 0 1px #555555;
 }
 
 tooltip.csd {
