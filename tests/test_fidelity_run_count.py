@@ -42,6 +42,18 @@ class TestDifferenceRunCountCli(FidelityCliTestCase):
         ordinary = self._run_png_pair(candidate, reference, "--json")
         self.assertNotIn("difference_run_count", json.loads(ordinary.stdout))
 
+    def test_count_is_absent_when_only_the_run_list_is_requested(self):
+        candidate = make_png(4, 3, [bytes([11, 0, 0, 12, 0, 0, 0, 0, 0, 11, 0, 0]),
+                                   bytes(12),
+                                   bytes([11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0])])
+        reference = make_png(4, 3, [bytes(12), bytes(12), bytes(12)])
+        with mock.patch.object(fidelity, "difference_run_count", side_effect=AssertionError):
+            listed = self._run_png_pair(candidate, reference, "--difference-runs", "--json")
+        data = json.loads(listed.stdout)
+        self.assertNotIn("difference_run_count", data)
+        text = self._run_png_pair(candidate, reference, "--difference-runs")
+        self.assertNotIn("difference run count:", text.stdout)
+
 
 
 class TestCountDifferenceRuns(unittest.TestCase):

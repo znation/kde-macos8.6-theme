@@ -121,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
         run_count = (len(runs) if runs is not None else
                      difference_run_count(candidate, reference, args.tolerance)
                      if args.difference_run_count else None)
+        if not args.difference_run_count:
+            run_count = None
         longest_run = (select_longest_run(runs)
                        if args.longest_difference_run and runs is not None else
                        longest_difference_run(candidate, reference, args.tolerance)
