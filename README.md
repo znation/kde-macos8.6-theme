@@ -941,7 +941,36 @@ A longer wait does not guarantee a successful capture. Compare the candidate wit
 reference surface using the [fidelity checker](#fidelity-checking); use its crop options to
 compare a region rather than assuming a full capture matches a reference screenshot.
 
+### Comparing a region
+
+The documented calculator title-strip gate compares these corresponding 80x22 rectangles:
+
+```sh
+python3 tools/fidelity.py calculator.png macos8.6-screenshots/aboutsystem_betawiki.png --candidate-crop 30,0,80,22 --crop 30,25,80,22
+```
+
+Use [Rendering a candidate](#rendering-a-candidate) to produce `calculator.png`; see
+[Capturing a candidate](#capturing-a-candidate) for capture options, and
+[Validating the reference set](#validating-the-reference-set) to materialize the images.
+These coordinates belong to the documented calculator/title-strip gate, not arbitrary windows.
+For another surface, choose corresponding rectangles independently in the two images; they must
+have equal dimensions. `aboutsystem_betawiki.png` is the documented beta window-chrome proxy:
+its relevant chrome is pixel-identical to the retail reference, as pinned by the
+retail-equivalence test. It is not general evidence for retail palette values.
+
+Add mismatch locations and RGBA values in JSON with:
+
+```sh
+python3 tools/fidelity.py calculator.png macos8.6-screenshots/aboutsystem_betawiki.png --candidate-crop 30,0,80,22 --crop 30,25,80,22 --worst-pixels 5 --explain-worst --json
+```
+
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
+
+Reported `x`/`y` positions are relative to the compared crops. `candidate_position` and
+`reference_position` locate each result in the original images; `--explain-worst` gives both
+pixels' RGBA values and their channel differences. A mismatch is a useful report with exit status
+1; status 2 means usage or image reading failed. See the diagnostic reference below for other
+reports.
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
