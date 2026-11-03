@@ -998,6 +998,38 @@ columnview.view:selected:backdrop, listview > row.activatable:selected:backdrop 
   border-radius: 0;
 }
 
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+   view separator, but when an application asks for separators (show-separators,
+   the row separator class or column separators) the stock GTK 4 scheme paints
+   the asked-for lines pale -- the separator colour field between a tree view's
+   or column view's rows, a left border for a horizontal list's lines, a bottom
+   border for a vertical list's lines and a left colour for a column view's
+   column lines -- inside the landed white view field. Platinum's etched
+   separator is the pinned paint: the dark half of the etched line art paints
+   each asked-for line. Each rule below names one of the stock painting arms
+   verbatim in a group and restates only the tone; stock's separator height
+   field and the transparent left border each view cell paints by default stay
+   in force per-property, and these groups sit after the selection arms so the
+   selected rows keep the selection's paint. */
+
+columnview.view.separator, treeview.view.separator {
+  color: #888888;
+}
+
+listview.horizontal row.separator, listview.separators.horizontal > row:not(.separator),
+list.horizontal row.separator, list.separators.horizontal > row:not(.separator) {
+  border-left: 1px solid #888888;
+}
+
+listview:not(.horizontal) row.separator, listview.separators:not(.horizontal) > row:not(.separator),
+list:not(.horizontal) row.separator, list.separators:not(.horizontal) > row:not(.separator) {
+  border-bottom: 1px solid #888888;
+}
+
+columnview.column-separators > listview > row > cell {
+  border-left-color: #888888;
+}
+
 /* Adaptation 2026-10-30: no collected reference screenshot shows a GTK
    drag-and-drop state, but the stock GTK 4 scheme paints the drop surfaces
    with its accent family -- an accent border around the icon view's drop

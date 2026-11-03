@@ -1314,6 +1314,63 @@ for radio in (False, True):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, expected)
 
+    def test_view_row_separators(self):
+        """Asked-for view separators paint the etched separator's dark half."""
+        horizontal = ("listview.horizontal row.separator",
+                      "listview.separators.horizontal > row:not(.separator)",
+                      "list.horizontal row.separator",
+                      "list.separators.horizontal > row:not(.separator)")
+        vertical = ("listview:not(.horizontal) row.separator",
+                    "listview.separators:not(.horizontal) > row:not(.separator)",
+                    "list:not(.horizontal) row.separator",
+                    "list.separators:not(.horizontal) > row:not(.separator)")
+        view_spelling = {"columnview.view.separator", "treeview.view.separator"}
+        cell_spelling = "columnview.column-separators > listview > row > cell"
+        expected = [
+            (selector, {"color": ETCH_DARK}) for selector in sorted(view_spelling)
+        ]
+        expected += [(selector, {"border-left": f"1px solid {ETCH_DARK}"})
+                     for selector in horizontal]
+        expected += [(selector, {"border-bottom": f"1px solid {ETCH_DARK}"})
+                     for selector in vertical]
+        expected.append((cell_spelling, {"border-left-color": ETCH_DARK}))
+        backdrop_order = self.selectors.index("columnview.view:selected:backdrop")
+        drop_order = self.selectors.index("columnview.view > dndtarget:drop(active)")
+        for selector, expected_rule in expected:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected_rule)
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertGreater(self.selectors.index(selector), backdrop_order)
+                self.assertLess(self.selectors.index(selector), drop_order)
+        # The restated tone is the only separator paint at these view spellings:
+        # no landed selector carries any of the stock arm's tokens, and every
+        # selector ending on one of them is one of the restated spellings.
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector.endswith("view.separator")},
+            view_spelling,
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "row:not(.separator)" in selector},
+            {"listview.separators.horizontal > row:not(.separator)",
+             "list.separators.horizontal > row:not(.separator)",
+             "listview.separators:not(.horizontal) > row:not(.separator)",
+             "list.separators:not(.horizontal) > row:not(.separator)"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector.endswith("row.separator")},
+            {"listview.horizontal row.separator",
+             "list.horizontal row.separator",
+             "listview:not(.horizontal) row.separator",
+             "list:not(.horizontal) row.separator"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules if "column-separators" in selector},
+            {cell_spelling},
+        )
+
     def test_header_drop_indicator(self):
         expected = {
             "background-color": SELECTION,
