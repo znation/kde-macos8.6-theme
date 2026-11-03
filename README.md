@@ -789,6 +789,10 @@ Pass `--min-difference-run-length N` with `--difference-runs` to omit completed 
 `N`. The inclusive cutoff filters the reported list after segmentation, so separated runs stay
 separate and comparison metrics and longest-run summaries still use the complete mismatch data.
 An empty requested list is reported as `[]`.
+Pass `--max-difference-run-length N` with `--difference-runs` to omit completed runs longer
+than `N`. The inclusive maximum combines with the minimum cutoff; if the cutoffs conflict,
+the requested list is empty. Segmentation, comparison metrics and longest-run summaries still
+use the complete mismatch data.
 Add `--difference-column-runs` for maximal vertical runs, ordered left-to-right and then
 top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`, `y` and
 `length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent

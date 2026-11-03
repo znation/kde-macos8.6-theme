@@ -81,6 +81,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.min_difference_run_length is not None and not args.difference_runs:
         parser.error("--min-difference-run-length requires --difference-runs")
+    if args.max_difference_run_length is not None and not args.difference_runs:
+        parser.error("--max-difference-run-length requires --difference-runs")
     if args.min_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
     if args.worst_pixel_offset is not None and args.worst_pixels is None:
@@ -120,6 +122,8 @@ def main(argv: list[str] | None = None) -> int:
                        if args.longest_difference_run else None)
         if runs is not None and args.min_difference_run_length is not None:
             runs = [run for run in runs if run["length"] >= args.min_difference_run_length]
+        if runs is not None and args.max_difference_run_length is not None:
+            runs = [run for run in runs if run["length"] <= args.max_difference_run_length]
         column_runs = (difference_column_runs(candidate, reference, args.tolerance)
                        if args.difference_column_runs else None)
         longest_column_run = (select_longest_run(column_runs)

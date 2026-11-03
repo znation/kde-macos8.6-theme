@@ -121,6 +121,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_column_bounds": False,
             "difference_runs": False,
             "min_difference_run_length": None,
+            "max_difference_run_length": None,
             "min_difference_column_run_length": None,
             "difference_column_runs": False,
             "difference_centroid": False,
@@ -146,6 +147,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--difference-rows", "--difference-columns", "--difference-row-bounds",
             "--difference-column-bounds", "--difference-runs",
             "--min-difference-run-length", "2",
+            "--max-difference-run-length", "4",
             "--min-difference-column-run-length", "3",
             "--difference-column-runs", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
             "--explain-worst", "--tolerance", "9", "--max-mae", "1.5",
@@ -160,6 +162,7 @@ class TestFidelityCliParser(unittest.TestCase):
                          (1.5, 0.25, 2.5))
         self.assertEqual((explicit.max_delta, explicit.max_differing), (12, 3))
         self.assertEqual(explicit.min_difference_run_length, 2)
+        self.assertEqual(explicit.max_difference_run_length, 4)
         self.assertEqual(explicit.min_difference_column_run_length, 3)
         self.assertTrue(all(getattr(explicit, name) for name in (
             "json", "channel_counts", "channel_bias", "channel_maxima",
