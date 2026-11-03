@@ -192,7 +192,18 @@ def _apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> 
 
 def _remove(home: Path, data_home: Path, config_home: Path) -> int:
     """Unlink only our Xcursor-path symlink; leave every foreign path alone."""
-    target, foreign = cursor_link.remove_link(home, data_home)
+    if data_home.is_dir():
+        with installed_data_lock(
+            data_home,
+            "for the cursor removal",
+            LOCK_TIMEOUT,
+            error=CursorError,
+        ):
+            target, foreign = cursor_link.remove_link(home, data_home)
+    else:
+        # Removal remains useful after the data home has already been removed;
+        # an apply cannot pass its installed-theme check in that state.
+        target, foreign = cursor_link.remove_link(home, data_home)
     if foreign:
         _note(f"{target} is not our symlink; leaving it untouched")
     if cursor_config.cursor_theme_setting(config_home) == CURSOR_THEME:

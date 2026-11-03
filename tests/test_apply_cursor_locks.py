@@ -69,7 +69,20 @@ class CursorLockCase(unittest.TestCase):
 
 
 class TestDataHomeLock(CursorLockCase):
-    """An apply serializes on the data-home lock make install/uninstall hold."""
+    """Cursor apply and removal serialize on the installed data-home lock."""
+
+    def test_remove_times_out_without_unlinking_while_apply_holds_the_lock(self):
+        self.link.parent.mkdir()
+        os.symlink(str(self.installed), str(self.link))
+        self.hold_data_lock()
+
+        with mock.patch.object(apply_cursor, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool("--remove")
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another install or uninstall", result.stderr)
+        self.assertTrue(self.link.is_symlink())
 
     def test_apply_times_out_without_linking_while_an_install_or_uninstall_holds_the_data_home_lock(self):
         self.hold_data_lock()
