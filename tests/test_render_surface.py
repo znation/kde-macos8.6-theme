@@ -872,7 +872,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             set(DIALOG_REAL_TOOLS) - set(render_surface.REQUIRED_TOOLS),
         )
 
-    def test_both_dialog_gates_skip_only_when_a_tool_is_absent(self):
+    def test_all_dialog_gates_skip_only_when_a_tool_is_absent(self):
         tools = DIALOG_REAL_TOOLS
         expected = not all(shutil.which(tool) for tool in tools)
         for gate in (TestCheckboxDialogRender, TestComboboxDialogRender, TestMenuDialogRender):
@@ -945,11 +945,11 @@ class _Renders:
 
 
 class _DialogGate:
-    """Test scaffolding both dialog render gates share.
+    """Test scaffolding the three dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
-    ``_Renders`` render; the two gates differ in the kind key they wait
+    ``_Renders`` render; the gates differ in the kind key they wait
     on, in the shipped slice and cell geometry they byte-compare and in the
     extra widget-specific tests they add below.
     """
