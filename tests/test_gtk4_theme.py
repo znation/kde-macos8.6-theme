@@ -811,6 +811,34 @@ for radio in (False, True):
                     self.rules["button:focus:focus-visible"]["outline-color"],
                 )
 
+    def test_actionbar_button_focus_outline_color(self):
+        selectors = {
+            "actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
+            "actionbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "actionbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "actionbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
+            "actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if "actionbar" in selector and ":focus:focus-visible" in selector
+            },
+            selectors,
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["button:focus:focus-visible"]["outline-color"],
+                )
+
     def test_filechooser_breadcrumb_focus_outline_color(self):
         selectors = {
             "filechooser #pathbarbox > stack > box > button:focus:focus-visible",

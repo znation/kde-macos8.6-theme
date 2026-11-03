@@ -3268,3 +3268,16 @@ headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-actio
 headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK actionbar keyboard focus has no collected reference surface; reuse the
+   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+actionbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}

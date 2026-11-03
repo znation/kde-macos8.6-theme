@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 actionbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued headerbar focus plan) — done 2026-11-03 by the feature role
+
+**Goal and grounding.** Keep the landed generic button's black keyboard-focus colour on actionbar buttons. The shipped GTK 4 sheet paints `actionbar > revealer > box` but has no actionbar focus-visible override. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below declaring `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent)`, at higher specificity than `button:focus:focus-visible`. The GTK default resource `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no actionbar focus-visible outline-colour group. Archive and backlog searches found no actionbar focus plan; the queued headerbar plan explicitly excludes it. No collected reference shows GTK actionbar keyboard focus: black is a platform adaptation reusing the landed generic button focus policy, not a new sampled value.
+
+**Approach and files.** Append a dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with exactly `outline-color: #000000` and these exact stock selector twins (comma-separate in CSS):
+
+```css
+actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible
+actionbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+actionbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+actionbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible
+```
+
+The GTK 4 user stylesheet import supplies the supported override path, where later exact twins win stock ties. Leave outline geometry inherited: the probe gives the first two arms width 2px and offset 1px, and the remaining six width 2px and offset -2px. Keep the library name out of CSS comments to satisfy `TestGtk4Theme::test_stands_alone`. Searchbar focus is an independent future candidate; headerbar focus belongs to the queued sibling. Actionbar band paint and splitbutton separators are outside this change.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme::test_actionbar_button_focus_outline_color` beside `test_toolbar_button_focus_outline_color`, following that test's complete dictionaries, occurrence counts and generic-button colour comparison. Bound the family to exactly these eight selectors by scanning `self.selectors` for selectors containing `actionbar` and `:focus:focus-visible`. Extend `docs/invariants.md` under `## gtk` with a dated row naming the new test, missing reference surface, reused colour source, resource probe, inherited geometry and user-import scope. These are the three implementation files; the change fits one run.
+
+**Acceptance criteria.** Parsing the shipped sheet yields exactly `{"outline-color": "#000000"}` once for each listed selector, matching the generic button focus colour. The actionbar focus-visible family contains exactly those eight spellings. A missing or renamed arm, duplicate selector, accent colour, or added width/offset declaration fails the new test. Existing actionbar band and generic button tests pass, the invariant register resolves the new test reference, and `make check` passes after the final edit. Declaration checks establish neither rendered focus pixels nor keyboard traversal.
+
 ### Platinum GTK 4 headerbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued toolbar-button focus plan) — done 2026-11-03 by the feature role
 
 **Goal and grounding.** Preserve the landed generic button's black keyboard-focus colour on headerbar buttons. The shipped GTK 4 sheet has headerbar face, backdrop and window-control artwork rules, but no headerbar focus-visible colour restatement. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the eight selectors below setting an accent/transparent mixed outline colour, with specificity above `button:focus:focus-visible`. The GTK default resource `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no headerbar focus-visible outline-colour group. No collected reference shows GTK headerbar keyboard focus; black is a platform adaptation reusing the landed generic button focus policy. The archived headerbar-height/backdrop plan covers different properties; the queued toolbar plan explicitly excludes headerbars.
