@@ -68,6 +68,15 @@ class TestFidelityCliParser(unittest.TestCase):
             ):
                 fidelity_arguments.worst_pixel_limit(value)
 
+    def test_worst_pixel_offset_accepts_nonnegative_ascii_decimal(self):
+        self.assertEqual(fidelity_arguments.worst_pixel_offset("0"), 0)
+        self.assertEqual(fidelity_arguments.worst_pixel_offset("123"), 123)
+        for value in ("-1", "+1", "1.0", "", "١"):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError, "nonnegative ASCII integer"
+            ):
+                fidelity_arguments.worst_pixel_offset(value)
+
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
         for value, diagnostic in (
@@ -83,6 +92,7 @@ class TestFidelityCliParser(unittest.TestCase):
         help_text = build_parser().format_help()
         self.assertIn("usage: fidelity [-h] [--json] [--worst-pixels N]", help_text)
         self.assertIn("--candidate-crop X,Y,W,H", help_text)
+        self.assertIn("--worst-pixel-offset K", help_text)
         self.assertIn("--max-differing N", help_text)
         self.assertIn("exit status: 0 when the comparison passes", help_text)
         self.assertIn("--difference-column-runs", help_text)
@@ -101,6 +111,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "reference": "reference.png",
             "json": False,
             "worst_pixels": None,
+            "worst_pixel_offset": None,
             "channel_counts": False,
             "channel_bias": False,
             "channel_maxima": False,
@@ -129,6 +140,7 @@ class TestFidelityCliParser(unittest.TestCase):
         })
         explicit = second.parse_args([
             "candidate.png", "reference.png", "--json", "--worst-pixels", "7",
+            "--worst-pixel-offset", "3",
             "--candidate-crop", "1,2,3,4", "--crop", "5,6,7,8",
             "--channel-counts", "--channel-bias", "--channel-maxima",
             "--difference-rows", "--difference-columns", "--difference-row-bounds",
@@ -143,6 +155,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertEqual(explicit.candidate_crop, (1, 2, 3, 4))
         self.assertEqual(explicit.crop, (5, 6, 7, 8))
         self.assertEqual((explicit.worst_pixels, explicit.tolerance), (7, 9))
+        self.assertEqual(explicit.worst_pixel_offset, 3)
         self.assertEqual((explicit.max_mae, explicit.max_frac, explicit.max_rmse),
                          (1.5, 0.25, 2.5))
         self.assertEqual((explicit.max_delta, explicit.max_differing), (12, 3))

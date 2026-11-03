@@ -83,6 +83,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--min-difference-run-length requires --difference-runs")
     if args.min_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
+    if args.worst_pixel_offset is not None and args.worst_pixels is None:
+        parser.error("--worst-pixel-offset requires --worst-pixels")
 
     try:
         candidate = _read_source(args.candidate, args.candidate_crop)
@@ -92,7 +94,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
-        worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels)
+        worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels,
+                               offset=args.worst_pixel_offset or 0)
                  if args.worst_pixels is not None else None)
         # The optional records' source positions are report data, so they are
         # translated beside the rendering, not next to the scan.

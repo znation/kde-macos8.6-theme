@@ -719,6 +719,11 @@ includes `candidate_position` and `reference_position`, which add the correspond
 and point into the original images (an omitted crop has origin 0,0). Text lines show both source
 positions too. With `--json`, the records appear in a `worst_pixels` array; the default output and
 work remain unchanged.
+Use `--worst-pixel-offset K` with `--worst-pixels N` to page through the same ranked list;
+the offset is a nonnegative ASCII decimal integer. Ranking, tolerance and comparison metrics
+are unchanged by pagination. Selection storage grows with `K + N`, capped at the compared image
+area; decoding and comparison still process the requested images as before. An offset beyond the
+available mismatches emits an empty `worst_pixels` array (or no records in text output).
 Add `--explain-worst` to report the candidate and reference RGBA values at the comparator's
 maximum-delta pixel, along with the absolute per-channel differences. Its `position` is relative
 to the compared surfaces; `candidate_position` and `reference_position` add each crop's origin

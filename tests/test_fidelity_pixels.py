@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import unittest
 from unittest import mock
@@ -25,6 +27,24 @@ class TestWorstPixels(unittest.TestCase):
                          [(1, 0, 9), (2, 0, 8)])
         self.assertEqual(worst_pixels(cand, ref, 9, 10), [])
 
+    def test_offset_pages_clamp_to_area_and_preserve_ranking(self):
+        red = [9, 5, 9, 0, 7, 9]
+        cand = Image(3, 2, bytes(channel for value in red for channel in (value, 0, 0)))
+        ref = Image(3, 2, bytes(18))
+        record = lambda offset: [(p["x"], p["y"], p["max_delta"])
+                                 for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+        self.assertEqual(record(0), [(0, 0, 9), (2, 0, 9)])
+        self.assertEqual(record(1), [(2, 0, 9), (2, 1, 9)])
+        self.assertEqual(record(3), [(1, 1, 7)])
+        self.assertEqual(record(4), [])
+        self.assertEqual(record(100), [])
+
+    def test_offset_ranks_alpha_and_rgb_under_zero_alpha(self):
+        cand = Image(2, 1, bytes((20, 0, 0, 0, 0, 0)), bytes((0, 10)))
+        ref = Image(2, 1, bytes(6), bytes((0, 255)))
+        got = worst_pixels(cand, ref, 0, 2, offset=1)
+        self.assertEqual([(p["x"], p["max_delta"]) for p in got], [(0, 20)])
+
     def test_deterministic_matrices_match_full_sort(self):
         for width, height in ((1, 1), (3, 2), (4, 2)):
             ref = Image(width, height, bytes(width * height * 3))
@@ -41,6 +61,44 @@ class TestWorstPixels(unittest.TestCase):
 
 
 class TestWorstPixelsCli(FidelityCliTestCase):
+    def test_offset_pages_json_text_and_different_crop_origins(self):
+        _, candidate = rgb_image(5, 3, lambda x, y: (
+            9 if (x, y) in ((1, 1), (2, 1)) else 7 if (x, y) == (3, 2) else 0, 0, 0))
+        reference = make_png(6, 4, [bytes(18) for _ in range(4)])
+        args = ("--candidate-crop", "1,1,3,2", "--crop", "2,2,3,2",
+                "--max-mae", "2", "--worst-pixels", "2", "--worst-pixel-offset", "1")
+        data = json.loads(self._run_png_pair(candidate, reference, *args, "--json").stdout)
+        pixels = data["worst_pixels"]
+        self.assertEqual([(p["x"], p["y"], p["max_delta"], p["candidate_position"],
+                           p["reference_position"]) for p in pixels],
+                         [(1, 0, 9, [2, 1], [3, 2]), (2, 1, 7, [3, 2], [4, 3])])
+        self.assertEqual(data["metrics"]["mae"], 25 / 24)
+        text = self._run_png_pair(candidate, reference, *args)
+        self.assertEqual(text.returncode, 0)
+        self.assertIn("candidate_position=2,1 reference_position=3,2", text.stdout)
+        empty_result = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,3,2",
+                                          "--crop", "2,2,3,2", "--max-mae", "2",
+                                          "--worst-pixels", "2", "--worst-pixel-offset", "100",
+                                          "--json")
+        empty = json.loads(empty_result.stdout)
+        self.assertEqual(empty["worst_pixels"], [])
+
+    def test_offset_argument_validation_precedes_source_reads(self):
+        for invalid in ("-1", "1.2", "", "١"):
+            result = self._run_png_pair(b"not a png", b"not a png", "--worst-pixels", "1",
+                                        "--worst-pixel-offset", invalid)
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+        with mock.patch.object(fidelity, "_read_source", side_effect=AssertionError("read")):
+            for value in ("0", "1"):
+                with self.subTest(value=value):
+                    stdout = io.StringIO()
+                    stderr = io.StringIO()
+                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                        with self.assertRaises(SystemExit) as raised:
+                            fidelity.main(["missing.png", "missing.png", "--worst-pixel-offset", value])
+                    self.assertEqual(raised.exception.code, 2)
+                    self.assertEqual(stdout.getvalue(), "")
+
     def test_json_and_text_and_crop_relative_coordinates(self):
         surface, candidate = rgb_image(2, 1, lambda x, y: (10 if x == 1 else 0, 0, 0))
         reference = make_png(4, 1, [bytes(12)])
@@ -102,7 +160,8 @@ class TestWorstPixelsCli(FidelityCliTestCase):
         tmp = self._tmp_dir()
         candidate_path = self._write(tmp, "candidate.png", candidate)
         reference_path = self._write(tmp, "reference.png", reference)
-        result = self._run_script(candidate_path, reference_path, "--worst-pixels", "1", "--json")
+        result = self._run_script(candidate_path, reference_path, "--worst-pixels", "1",
+                                  "--worst-pixel-offset", "0", "--json")
         self.assertEqual(result.returncode, 1)
         pixel = json.loads(result.stdout)["worst_pixels"][0]
         self.assertEqual((pixel["candidate_position"], pixel["reference_position"]),

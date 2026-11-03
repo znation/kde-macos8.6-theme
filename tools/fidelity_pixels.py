@@ -33,11 +33,15 @@ def worst_pixels(
     reference: Image,
     tolerance: int,
     limit: int,
+    *,
+    offset: int = 0,
 ) -> list[dict[str, object]]:
     """Return up to *limit* pixels exceeding *tolerance*, ranked by delta.
 
     Inputs are equally sized validated images, a tolerance in 0..255, and a
     limit in 1..1000. Ties follow row-major order; coordinates are image-local.
+    The optional offset skips earlier ranked records; selection storage is
+    bounded by the image area and grows with the requested page position.
     """
     width, height = candidate.width, candidate.height
     candidate_rgb = candidate.rgb
@@ -53,7 +57,9 @@ def worst_pixels(
             if delta > tolerance:
                 yield (-delta, index)
 
-    selected = heapq.nsmallest(limit, ranked())
+    area = width * height
+    selection_size = min(offset + limit, area)
+    selected = heapq.nsmallest(selection_size, ranked())[offset:]
     records = []
     for negative_delta, index in selected:
         offset = index * 3

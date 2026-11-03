@@ -147,3 +147,12 @@ def worst_pixel_limit(value: str) -> int:
             "--worst-pixels must be an ASCII integer from 1 to 1000"
         )
     return number
+
+
+def worst_pixel_offset(value: str) -> int:
+    """Return a nonnegative ASCII decimal ``--worst-pixel-offset`` value."""
+    if not value or not value.isascii() or not value.isdecimal():
+        raise argparse.ArgumentTypeError(
+            "--worst-pixel-offset must be a nonnegative ASCII integer"
+        )
+    return int(value)

@@ -12,6 +12,7 @@ if __package__:
         max_rmse,
         parse_crop,
         tolerance,
+        worst_pixel_offset,
         worst_pixel_limit,
     )
 else:  # run directly: python3 tools/fidelity.py
@@ -24,6 +25,7 @@ else:  # run directly: python3 tools/fidelity.py
         max_rmse,
         parse_crop,
         tolerance,
+        worst_pixel_offset,
         worst_pixel_limit,
     )
 
@@ -45,6 +47,8 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--json", action="store_true", help="emit comparison as JSON")
     parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
                         help="list up to N worst differing pixels (1-1000)")
+    parser.add_argument("--worst-pixel-offset", type=worst_pixel_offset, metavar="K",
+                        default=None, help="skip the first K ranked pixels (requires --worst-pixels)")
     parser.add_argument("--channel-counts", action="store_true",
                         help=(
                             "count the pixels each channel differs beyond "
