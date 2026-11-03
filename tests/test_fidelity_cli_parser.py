@@ -86,6 +86,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--max-differing N", help_text)
         self.assertIn("exit status: 0 when the comparison passes", help_text)
         self.assertIn("--difference-column-runs", help_text)
+        self.assertIn("--difference-centroid", help_text)
 
     def test_defaults_and_explicit_options(self):
         first = build_parser()
@@ -105,6 +106,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_column_bounds": False,
             "difference_runs": False,
             "difference_column_runs": False,
+            "difference_centroid": False,
             "delta_histogram": False,
             "delta_percentiles": False,
             "explain_worst": False,
@@ -123,7 +125,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--channel-counts", "--channel-bias", "--channel-maxima",
             "--difference-rows", "--difference-columns", "--difference-row-bounds",
             "--difference-column-bounds", "--difference-runs",
-            "--difference-column-runs", "--delta-histogram", "--delta-percentiles",
+            "--difference-column-runs", "--difference-centroid", "--delta-histogram", "--delta-percentiles",
             "--explain-worst", "--tolerance", "9", "--max-mae", "1.5",
             "--max-frac", "0.25", "--max-rmse", "2.5", "--max-delta", "12",
             "--max-differing", "3",
@@ -138,7 +140,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "json", "channel_counts", "channel_bias", "channel_maxima",
             "difference_rows", "difference_columns", "difference_row_bounds",
             "difference_column_bounds", "difference_runs", "difference_column_runs",
-            "delta_histogram", "delta_percentiles", "explain_worst",
+            "difference_centroid", "delta_histogram", "delta_percentiles", "explain_worst",
         )))
 
     def test_usage_errors_keep_status_two_and_escape_controls_without_reading(self):

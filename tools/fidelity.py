@@ -43,7 +43,7 @@ if __package__:
         crop,
     )
     from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
+    from tools.fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs, difference_centroid
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -59,7 +59,7 @@ else:  # run directly: python3 tools/fidelity.py
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop
     from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs
+    from fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_column_runs, difference_centroid
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -108,6 +108,8 @@ def main(argv: list[str] | None = None) -> int:
         runs = difference_runs(candidate, reference, args.tolerance) if args.difference_runs else None
         column_runs = (difference_column_runs(candidate, reference, args.tolerance)
                        if args.difference_column_runs else None)
+        centroid = (difference_centroid(candidate, reference, args.tolerance)
+                    if args.difference_centroid else None)
         histogram = (delta_histogram(candidate, reference)
                      if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
@@ -136,7 +138,9 @@ def main(argv: list[str] | None = None) -> int:
                                       if args.delta_percentiles else None),
                          passed=ok, max_rmse=args.max_rmse,
                          max_delta=args.max_delta,
-                         max_differing=args.max_differing)
+                         max_differing=args.max_differing,
+                         centroid=centroid,
+                         include_centroid=args.difference_centroid)
     if args.json:
         print(render_json(result))
         return 0 if ok else 1

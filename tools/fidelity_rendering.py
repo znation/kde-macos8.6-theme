@@ -73,6 +73,8 @@ def render_text(result: dict, candidate, reference) -> list[str]:
         value = result.get(key)
         if value is not None:
             lines.append(f"{label}: " + json.dumps(value, ensure_ascii=True))
+    if "difference_centroid" in result:
+        lines.append("difference centroid: " + json.dumps(result["difference_centroid"], ensure_ascii=True))
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
     mae = "unset" if thresholds["max_mae"] is None else f"{thresholds['max_mae']:.4f}"

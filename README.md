@@ -650,6 +650,10 @@ top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`
 `length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent
 pixels remain together across differing delta magnitudes. Crop origins translate their positions
 to either source image. Output can grow with disjoint runs, so this scan is opt-in.
+Add `--difference-centroid` to report the equal-weight mean `(x, y)` of pixels whose maximum raw
+RGBA channel delta exceeds tolerance. Coordinates are crop-relative integer pixel indices; delta
+magnitude does not affect weight. JSON includes `difference_centroid` and text prints it immediately
+before the verdict, with `null` when no pixel differs. The scan is opt-in.
 JSON adds a `channel_maxima` object and text prints the four maxima immediately before the
 verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque, and is
 independent of tolerance and verdict.

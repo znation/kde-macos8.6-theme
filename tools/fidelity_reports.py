@@ -110,7 +110,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 passed: bool = False, *, max_rmse: float | None = None,
                 max_delta: int | None = None, max_differing: int | None = None,
                 rows=None, columns=None, row_bounds=None,
-                column_bounds=None, runs=None, column_runs=None):
+                column_bounds=None, runs=None, column_runs=None,
+                centroid=None, include_centroid: bool = False):
     """Assemble the comparison's JSON result object.
 
     Paths, crop rectangles and the three thresholds are echoed as given;
@@ -153,6 +154,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
     for key, value in diagnostics:
         if value is not None:
             result[key] = value
+    if include_centroid:
+        result["difference_centroid"] = centroid
     return result
 
 

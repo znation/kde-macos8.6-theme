@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: report the centroid of mismatching pixels (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Locate the spatial centre of scattered rendering errors without treating their enclosing rectangle's midpoint as their centre. `tools/fidelity_spatial.py` reports row/column counts, bounds and runs; searches found no mismatch-centroid diagnostic.
+
+**Implemented.** Added opt-in `--difference-centroid`, a constant-space row-major scan using the existing raw RGBA predicate, crop-relative mean coordinates, explicit JSON/text null for no mismatches, tests, and documentation. The test fixture covers unequal mismatch magnitudes, tolerance exclusion, hidden RGB and opaque-alpha fallback; CLI coverage checks cropped coordinates, both verdict outcomes, and default omission. (planned 2026-11-02 by the plan role; completed within this run.)
+
 ### Fidelity mismatch runs: share axis traversal and interval assembly (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal and grounding.** Keep horizontal and vertical mismatch segmentation consistent as fidelity tooling evolves. `tools/fidelity_spatial.py::difference_runs` and `difference_column_runs` duplicate predicate evaluation, gap handling and final-interval flushing with swapped axes. Source and archive heading searches found the two diagnostic additions, but no shared fidelity run collector. This maintenance task is independent of the waiting histogram extraction.

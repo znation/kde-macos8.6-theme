@@ -112,3 +112,20 @@ def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[
 def difference_column_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
     """Return maximal vertical runs of over-tolerance pixels, column-major."""
     return _difference_axis_runs(candidate, reference, tolerance, vertical=True)
+
+
+def difference_centroid(candidate: Image, reference: Image, tolerance: int) -> dict[str, float] | None:
+    """Return the equal-pixel centroid of over-tolerance pixels, crop-relative."""
+    width, height = candidate.width, candidate.height
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
+    count = sum_x = sum_y = 0
+    for index in range(width * height):
+        if max(_absolute_deltas(candidate_rgb, reference_rgb, candidate_alpha,
+                                reference_alpha, index)) > tolerance:
+            count += 1
+            sum_x += index % width
+            sum_y += index // width
+    if not count:
+        return None
+    return {"x": sum_x / count, "y": sum_y / count}
