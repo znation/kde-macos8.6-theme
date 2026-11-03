@@ -532,6 +532,15 @@ the full region; JSON adds `pixels` and `omitted_pixels` to `match`, while
 text prints the retained coordinates and omitted count. The option uses the
 same RGB tolerance and exact-alpha filters as the match count.
 
+Add `--match-pixel-offset N` with `--match-pixels` to list a later page of the
+same row-major match sequence. The offset counts matching pixels, not scanned
+pixels; `--match-pixel-offset 0` selects the original first page. JSON adds
+`pixel_offset` when explicitly requested, and text prints `pixel offset:` before
+the coordinate list. `omitted_pixels` includes both skipped matches and matches
+after the current page. Count, bounds and optional match diagnostics still cover
+the full region, and an offset at or beyond the match count returns an empty
+coordinate list.
+
 Add `--match-fraction` with `--find-color` to report the match count divided
 by the full requested region area. JSON adds numeric `fraction` to `match`;
 text prints `fraction:` after `count:`. It uses the same RGB tolerance and

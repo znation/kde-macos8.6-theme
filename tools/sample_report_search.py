@@ -60,7 +60,9 @@ def _search_match(args, image) -> dict:
             if args.match_centroid:
                 sum_x += x
                 sum_y += y
-            if args.match_pixels is not None and len(matched_pixels) < args.match_pixels:
+            offset = args.match_pixel_offset or 0
+            if (args.match_pixels is not None and count > offset
+                    and len(matched_pixels) < args.match_pixels):
                 matched_pixels.append({"x": x, "y": y})
             min_x, min_y = min(min_x, x), min(min_y, y)
             max_x, max_y = max(max_x, x), max(max_y, y)
@@ -80,6 +82,8 @@ def _search_match(args, image) -> dict:
                if args.match_centroid else {}),
             **({"pixels": matched_pixels, "omitted_pixels": count - len(matched_pixels)}
                if args.match_pixels is not None else {}),
+            **({"pixel_offset": args.match_pixel_offset}
+               if args.match_pixel_offset is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
             **({"longest_run": intervals.longest_run} if args.longest_match_run else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
@@ -119,6 +123,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         centroid = match["centroid"]
         print("centroid: none" if centroid is None else f"centroid: {centroid['x']},{centroid['y']}")
     if args.match_pixels is not None:
+        if args.match_pixel_offset is not None:
+            print(f"pixel offset: {args.match_pixel_offset}")
         print(f"matching pixels: {len(match['pixels'])}")
         for pixel in match["pixels"]:
             print(f"pixel ({pixel['x']}, {pixel['y']})")

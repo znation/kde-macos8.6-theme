@@ -46,6 +46,14 @@ def match_pixels(value: str) -> int:
     return parsed
 
 
+def match_pixel_offset(value: str) -> int:
+    """Parse a nonnegative plain ASCII match-coordinate offset."""
+    parsed = plain_number(value, "--match-pixel-offset", "integer", "a", int)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("--match-pixel-offset must be nonnegative")
+    return parsed
+
+
 def color_fraction(value: str) -> float:
     """Parse a finite histogram fraction from zero through one."""
     parsed = plain_number(value, "--min-color-fraction", "number", "a", float)
@@ -80,6 +88,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--match-alpha requires --find-color"
     if args.match_pixels is not None and args.find_color is None:
         return "--match-pixels requires --find-color"
+    if args.match_pixel_offset is not None and args.match_pixels is None:
+        return "--match-pixel-offset requires --match-pixels"
     if args.match_fraction and args.find_color is None:
         return "--match-fraction requires --find-color"
     if args.match_centroid and args.find_color is None:
@@ -153,6 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
     parser.add_argument("--match-alpha", type=match_alpha, metavar="N", help="with --find-color, require exact PNG alpha N")
     parser.add_argument("--match-pixels", type=match_pixels, metavar="N", help="with --find-color, list up to N matching coordinates")
+    parser.add_argument("--match-pixel-offset", type=match_pixel_offset, metavar="N", help="with --match-pixels, skip the first N matches")
     parser.add_argument("--match-fraction", action="store_true", help="with --find-color, report the matching fraction of the region")
     parser.add_argument("--match-centroid", action="store_true", help="with --find-color, report the centroid of matching pixel coordinates")
     parser.add_argument("--match-runs", action="store_true", help="with --find-color, report contiguous horizontal matching segments")

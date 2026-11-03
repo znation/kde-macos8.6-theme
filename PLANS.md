@@ -14,7 +14,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Pin text/JSON output for an offset crop with a dominant excluded background, remaining count ties and `--top-colors`; prove exclusion precedes truncation. Cover repeated exclusions, duplicates, lowercase and optional `#`, absent colors, and exclusion of the entire palette (empty colors, full area omitted). Combine with minimum count/fraction, fractions and spatial fields, verifying retained values use full-region occurrences and denominator. RGBA fixtures distinguish original opacity-key totals while excluding every matching RGB variant; include opaque fallback and transparent stored RGB. Missing/malformed color arguments and use without histogram (ordinary, runs and find-color modes) exit 2 with empty stdout before header or image decoding reads. Verify omitted-option output retains existing fixtures, help/default parsing, and package/direct-script parity. Run `make check` after final edits.
 
-### Reference-pixel sampler: page through matching coordinates (planned 2026-11-02 by the plan role)
+### Reference-pixel sampler: page through matching coordinates (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Inspect later color matches without increasing the bounded coordinate list or manually changing the crop. The existing `--match-pixels` retains a row-major prefix; provide an offset into that same match sequence, independently of the waiting histogram-exclusion plan.
 
