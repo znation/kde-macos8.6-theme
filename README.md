@@ -458,6 +458,14 @@ denominator, while spatial diagnostics describe only emitted colors. A cutoff
 larger than the region area returns an empty palette and marks the full region
 omitted.
 
+Add `--max-color-count N` with `--histogram` to omit colors occurring more
+than N times. The inclusive cutoff combines with minimum count, minimum
+fraction and named-color exclusions before `--top-colors`; contradictory
+minimum and maximum counts produce an empty palette. Explicit use reports the
+original `total_colors` and `omitted_pixels`, even when every color remains.
+Fractions still use the full region area, and spatial diagnostics describe
+only emitted colors.
+
 Add `--min-color-fraction F` with `--histogram` to omit colors whose share of
 the requested region is below F (0 through 1 inclusive). Filtering runs before
 `--top-colors` and combines with `--min-color-count`; both predicates must pass.
