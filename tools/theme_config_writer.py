@@ -68,7 +68,14 @@ def write_configs(
             "write_configs names must be a sequence of config filenames, "
             f"not a single {type(names).__name__}: {names!r}"
         )
-    wanted = [_config_name(name) for name in names]
+    try:
+        name_iterator = iter(names)
+    except TypeError as exc:
+        raise ValueError(
+            f"write_configs names must be an iterable of config filenames, "
+            f"not {type(names).__name__}"
+        ) from exc
+    wanted = [_config_name(name) for name in name_iterator]
     groups = read_groups(defaults_path)
     missing = [
         name

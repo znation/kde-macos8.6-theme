@@ -302,6 +302,14 @@ class TestWriteConfigs(unittest.TestCase):
         self.assertIn("sequence", str(raised.exception))
         self.assertEqual(set(), set(os.listdir(directory)))
 
+    def test_rejects_non_iterable_names_with_a_clear_error(self):
+        directory = make_tmp_dir(self)
+        with self.assertRaises(ValueError) as raised:
+            theme_defaults.write_configs(directory, 42)
+        self.assertIn("iterable of config filenames", str(raised.exception))
+        self.assertIn("int", str(raised.exception))
+        self.assertEqual(set(), set(os.listdir(directory)))
+
     def test_rejects_names_that_escape_the_config_home(self):
         base = make_tmp_dir(self)
         directory = base / "config"
