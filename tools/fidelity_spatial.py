@@ -12,31 +12,32 @@ else:  # imported by a directly run CLI
 
 def difference_columns(candidate: Image, reference: Image, tolerance: int) -> list[int]:
     """Count over-tolerance pixels in each column of equally sized images."""
-    width, height = candidate.width, candidate.height
-    counts = [0] * width
-    for index in range(width * height):
-        if max(_absolute_deltas(candidate.rgb, reference.rgb, candidate.alpha,
-                                reference.alpha, index)) > tolerance:
-            counts[index % width] += 1
-    return counts
+    return _difference_axis_counts(candidate, reference, tolerance, vertical=True)
 
 
 def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[int]:
     """Count over-tolerance pixels in each crop-relative row."""
+    return _difference_axis_counts(candidate, reference, tolerance, vertical=False)
+
+
+def _difference_axis_counts(
+    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+) -> list[int]:
+    """Count each over-tolerance pixel once in its row or column."""
     width, height = candidate.width, candidate.height
+    scanline_count, scanline_length = (width, height) if vertical else (height, width)
     candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
-    rows = []
-    for y in range(height):
+    counts = []
+    for scanline in range(scanline_count):
         count = 0
-        for x in range(width):
-            index = y * width + x
-            differing = any(delta > tolerance for delta in _absolute_deltas(
+        for offset in range(scanline_length):
+            index = offset * width + scanline if vertical else scanline * width + offset
+            count += max(_absolute_deltas(
                 candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-            ))
-            count += differing
-        rows.append(count)
-    return rows
+            )) > tolerance
+        counts.append(count)
+    return counts
 
 
 def _difference_axis_bounds(

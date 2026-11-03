@@ -9,6 +9,7 @@ from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
 from tools import fidelity  # noqa: E402
 from tools.fidelity_spatial import difference_columns  # noqa: E402
+from tools.fidelity_metrics import compare  # noqa: E402
 from tools.png import Image  # noqa: E402
 
 
@@ -22,6 +23,7 @@ class TestDifferenceColumns(unittest.TestCase):
         rgb[2 * 12 + 2 * 3 + 2] = 12
         candidate = Image(4, 3, bytes(rgb), bytes([255] * 12))
         self.assertEqual(difference_columns(candidate, reference, 10), [1, 1, 1, 0])
+        self.assertEqual(sum(difference_columns(candidate, reference, 10)), compare(candidate, reference, 10).differing)
         self.assertEqual(difference_columns(candidate, reference, 255), [0, 0, 0, 0])
         self.assertEqual(difference_columns(reference, reference, 0), [0, 0, 0, 0])
 
@@ -56,6 +58,8 @@ class TestDifferenceColumnsCli(FidelityCliTestCase):
         self.assertEqual(passed_data["difference_columns"], [1, 1])
         combined = self._run_png_pair(candidate, reference, "--difference-columns", "--difference-rows", "--json")
         combined_data = json.loads(combined.stdout)
+        self.assertEqual(combined_data["difference_rows"], [1, 1, 0, 1])
+        self.assertEqual(combined_data["difference_columns"], [1, 1, 1, 0])
         self.assertEqual(sum(combined_data["difference_columns"]), sum(combined_data["difference_rows"]))
         with mock.patch.object(fidelity, "difference_columns") as helper:
             ordinary = self._run_png_pair(candidate, reference, "--json")
