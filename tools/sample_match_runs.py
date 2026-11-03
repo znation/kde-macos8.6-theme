@@ -5,7 +5,7 @@ from __future__ import annotations
 
 class _MatchRuns:
     def __init__(self, x: int, y: int, width: int, height: int,
-                 horizontal: bool, vertical: bool, summarize: bool = False,
+                 *, horizontal: bool, vertical: bool, summarize: bool = False,
                  collect_runs: bool = True, summarize_columns: bool = False,
                  collect_column_runs: bool = True) -> None:
         self.x, self.y = x, y

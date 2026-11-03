@@ -49,12 +49,40 @@ class TestSampleLongestMatchRun(CliTestCase):
                           "--longest-match-run", "--json")
         self.assertIsNone(json.loads(empty.stdout)["match"]["longest_run"])
         from tools.sample_match_runs import _MatchRuns
-        collector = _MatchRuns(0, 0, 100, 1, True, False, True, False)
+        collector = _MatchRuns(0, 0, 100, 1, horizontal=True, vertical=False,
+                               summarize=True, collect_runs=False)
         for x in range(100):
             collector.observe(x, 0, x % 2 == 0)
         collector.finish()
         self.assertEqual(collector.runs, [])
         self.assertEqual(collector.longest_run, {"x": 0, "y": 0, "length": 1})
+
+    def test_crossed_summary_and_opposite_axis_list_modes(self):
+        target = (10, 20, 30)
+        cells = {(1, 1), (2, 1), (3, 1), (2, 2), (2, 3), (3, 3)}
+        _, encoded = rgb_image(6, 5, lambda x, y: target if (x, y) in cells else (0, 0, 0))
+        path = self._write(self._tmp_dir(), "crossed.png", encoded)
+        horizontal = self._run(path, "1", "1", "--width", "4", "--height", "3",
+                               "--find-color", "0a141e", "--longest-match-run",
+                               "--match-column-runs", "--json")
+        match = json.loads(horizontal.stdout)["match"]
+        self.assertEqual(match["longest_run"], {"x": 1, "y": 1, "length": 3})
+        self.assertEqual(match["column_runs"], [
+            {"x": 1, "y": 1, "length": 1}, {"x": 2, "y": 1, "length": 3},
+            {"x": 3, "y": 1, "length": 1}, {"x": 3, "y": 3, "length": 1}])
+        self.assertNotIn("runs", match)
+        self.assertNotIn("longest_column_run", match)
+
+        vertical = self._run(path, "1", "1", "--width", "4", "--height", "3",
+                             "--find-color", "0a141e", "--match-runs",
+                             "--longest-match-column-run", "--json")
+        match = json.loads(vertical.stdout)["match"]
+        self.assertEqual(match["longest_column_run"], {"x": 2, "y": 1, "length": 3})
+        self.assertEqual(match["runs"], [
+            {"x": 1, "y": 1, "length": 3}, {"x": 2, "y": 2, "length": 1},
+            {"x": 2, "y": 3, "length": 2}])
+        self.assertNotIn("column_runs", match)
+        self.assertNotIn("longest_run", match)
 
     def test_requires_find_color_help_and_direct_script(self):
         _, encoded = rgb_image(1, 1, lambda _x, _y: (1, 2, 3))

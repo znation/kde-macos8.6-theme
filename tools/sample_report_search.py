@@ -22,13 +22,14 @@ def _search_match(args, image) -> dict:
     matching_columns = [0] * args.width if args.match_columns else None
     matching_row_bounds = [None] * args.height if args.match_row_bounds else None
     matching_column_bounds = [None] * args.width if args.match_column_bounds else None
-    intervals = _MatchRuns(args.x, args.y, args.width, args.height,
-                           args.match_runs or args.longest_match_run,
-                           args.match_column_runs or args.longest_match_column_run,
-                           args.longest_match_run,
-                           args.match_runs,
-                           args.longest_match_column_run,
-                           args.match_column_runs)
+    intervals = _MatchRuns(
+        args.x, args.y, args.width, args.height,
+        horizontal=args.match_runs or args.longest_match_run,
+        vertical=args.match_column_runs or args.longest_match_column_run,
+        summarize=args.longest_match_run,
+        collect_runs=args.match_runs,
+        summarize_columns=args.longest_match_column_run,
+        collect_column_runs=args.match_column_runs)
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
     alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
     for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
