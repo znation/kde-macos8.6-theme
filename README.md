@@ -462,11 +462,18 @@ Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
 
-Add `--color-offset K` with `--top-colors N` to skip the first K eligible
-ranked colors and emit the next N. Filters run before paging. Explicit use
-adds `color_offset` to JSON and a `color offset: K` text line; totals and
-omitted pixels retain their usual meaning. Selection stores at most the
-original distinct-color count, even for a very large offset.
+Add `--color-offset K` with `--top-colors N` to page through the ranked
+histogram after named-color exclusions and count/fraction filters. Ranking is
+descending count, then ascending RGB or RGBA tuple; explicit zero selects the
+first page. Named-color inclusion and exclusion, plus count and fraction
+filters, run before paging. JSON adds `color_offset` and text prints
+`color offset: K`. Totals and fractions retain their full-region meanings, and
+omitted pixels include filtered colors, skipped colors and trailing colors.
+Selection stores at most `min(K + N, distinct color count)` entries.
+
+```sh
+python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 0 0 --histogram --top-colors 2 --color-offset 1 --json
+```
 
 Add `--min-color-count N` with `--histogram` to omit colors whose count is
 below N. The cutoff is inclusive and runs before `--top-colors`. JSON and text
@@ -574,13 +581,6 @@ columns, one count per crop column in left-to-right order. JSON adds
 `column_color_counts`, and text adds a `column color counts:` line after the
 optional `row color counts:` line. Omitting both options adds neither count,
 neither line and no traversal.
-
-Use `--color-offset K` with `--top-colors N` to page through the ranked
-histogram after its exclusions and count/fraction filters. Ranking remains
-descending count then ascending RGB/RGBA tuple; explicit zero selects the first
-page. JSON includes `color_offset` and text prints `color offset: K`. The
-selection retains at most `min(K + N, distinct color count)` entries; totals,
-omitted pixels and fractions retain their existing full-region meanings.
 
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
