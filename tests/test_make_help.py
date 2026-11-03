@@ -186,6 +186,32 @@ class TestHelp(unittest.TestCase):
                 names.append(name)
         return names
 
+    def test_lists_reference_analysis_commands(self):
+        section = self._help_section(
+            "Reference tools (run from the repository root):"
+        )
+        expected = (
+            ("python3 tools/sample.py IMAGE X Y", "sample reference PNG pixels"),
+            (
+                "python3 tools/fidelity.py CANDIDATE REFERENCE",
+                "compare rendered and reference PNGs",
+            ),
+        )
+        for command, purpose in expected:
+            with self.subTest(command=command):
+                line = next((line for line in section if command in line), "")
+                self.assertTrue(line, f"help does not list {command!r}")
+                self.assertIn(purpose, line)
+                script = command.split()[1]
+                self.assertTrue(
+                    os.path.isfile(os.path.join(repo_root.ROOT, script)),
+                    f"help lists missing repository script {script!r}",
+                )
+        self.assertTrue(
+            any("Append --help to either command for options." in line for line in section),
+            "help does not explain how to discover command options",
+        )
+
     def _used_variables(self):
         r"""Return the names the Makefile assigns or references in expansions.
 

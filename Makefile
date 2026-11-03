@@ -511,6 +511,11 @@ help:
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
 	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
+	@echo ""
+	@echo "Reference tools (run from the repository root):"
+	@echo "  python3 tools/sample.py IMAGE X Y          sample reference PNG pixels"
+	@echo "  python3 tools/fidelity.py CANDIDATE REFERENCE  compare rendered and reference PNGs"
+	@echo "  Append --help to either command for options."
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
 # out of `check`. The deterministic self-test runs first and fails fast.

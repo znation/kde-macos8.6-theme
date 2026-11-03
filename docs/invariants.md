@@ -519,6 +519,7 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
+| `make help` lists the reference sampler and fidelity comparison commands, their purposes, repository script paths and the `--help` route to options. | `tests/test_make_help.py::TestHelp::test_lists_reference_analysis_commands` | none (tooling addition 2026-11-03; no reference-pixel provenance applies) |
 | The render CLI rejects NUL-containing applet IDs as usage errors before launching external tools. | `tests/test_render_surface.py::TestMissingTool::test_applet_id_with_nul_is_rejected_as_usage_error` | none |
 | The reference sampler's validated region scans read packed RGB bytes directly, avoiding a repeated bounds check for each pixel while preserving row-major results. | `tests/test_sample_histogram.py::TestSampleHistogram::test_histogram_scans_validated_rgb_bytes_without_pixel_accessor` | none |
 | The reference sampler checks containment on the opened image target and performs size and pixel reads through that same stable handle, so swapping the original symlink after open cannot redirect the read. | `tests/test_sample_cli.py::TestSampleCli::test_symlink_swap_after_open_cannot_redirect_sample` | none |

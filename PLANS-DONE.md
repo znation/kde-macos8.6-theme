@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Make help: expose the reference sampling and comparison commands (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Let contributors discover the pixel-analysis CLIs from `make help`.
+
+**Completed.** Added a static section with the sampler and fidelity command examples, purpose descriptions and `--help` hint. Added a focused help test checking each command, its purpose, script file existence and the options hint; registered the tooling guarantee in `docs/invariants.md`. The recipe prints documentation strings and does not execute either tool.
+
+**Acceptance criteria.** `make help` exits successfully and displays the command forms, purposes and route to option help; existing target and variable sections remain intact. The test detects a missing command, purpose, script path or hint. The invariant register names the test and records that no reference-pixel provenance applies.
+
 ### README project check: replace the expired merge-pending narrative with operator guidance (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Make README.md's `## Development team` check instructions useful after the declaration-request run has finished, without asserting the live configuration of an arbitrary clone.
