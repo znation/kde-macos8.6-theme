@@ -92,6 +92,21 @@ class TestSampleRuns(CliTestCase):
         self._assert_success(one_pixel)
         self.assertEqual(json.loads(one_pixel.stdout)["axis"], "vertical")
 
+    def test_explicit_vertical_axis_keeps_one_row_pixels_in_separate_columns(self):
+        _, data = rgb_image(3, 1, lambda x, y: (7, 6, 5))
+        path = self._write(self._tmp_dir(), "one-row.png", data)
+        result = self._run(path, "0", "0", "--width", "3", "--height", "1",
+                           "--runs", "--run-axis", "vertical", "--json")
+        self._assert_success(result)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["axis"], "vertical")
+        self.assertEqual([(run["x"], run["y"], run["length"], run["rgb"])
+                          for run in report["runs"]], [
+            (0, 0, 1, [7, 6, 5]),
+            (1, 0, 1, [7, 6, 5]),
+            (2, 0, 1, [7, 6, 5]),
+        ])
+
     def test_run_axis_requires_runs_before_read(self):
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
             result = self._run("missing.png", "0", "0", "--run-axis", "vertical")
