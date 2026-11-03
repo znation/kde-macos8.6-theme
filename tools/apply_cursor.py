@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import stat
 import sys
 from pathlib import Path
 
@@ -192,7 +193,13 @@ def _apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> 
 
 def _remove(home: Path, data_home: Path, config_home: Path) -> int:
     """Unlink only our Xcursor-path symlink; leave every foreign path alone."""
-    if data_home.is_dir():
+    try:
+        data_home_mode = data_home.stat().st_mode
+    except FileNotFoundError:
+        data_home_mode = None
+    except OSError as exc:
+        raise CursorError(f"cannot inspect data home {data_home}: {exc}") from exc
+    if data_home_mode is not None and stat.S_ISDIR(data_home_mode):
         with installed_data_lock(
             data_home,
             "for the cursor removal",

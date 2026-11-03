@@ -405,6 +405,22 @@ class TestRemove(CursorCase):
         self.assertFalse(os.path.lexists(self.link))
         self.assertTrue((self.home / ".icons").is_dir())
 
+    def test_data_home_inspection_failure_is_reported_before_removing_link(self):
+        self.make_our_link()
+        original_stat = Path.stat
+
+        def failing_stat(path, *args, **kwargs):
+            if path == self.data:
+                raise PermissionError("simulated inspection failure")
+            return original_stat(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "stat", failing_stat):
+            result = self.run_tool("--remove")
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot inspect data home {self.data}", result.stderr)
+        self.assertTrue(self.link.is_symlink())
+
     def test_removal_accepts_a_dangling_link_to_our_theme(self):
         self.make_our_link()
         self.assertFalse(self.installed.exists())
