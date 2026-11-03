@@ -122,4 +122,20 @@ In `tests/test_gtk4_theme.py`, add `TestGtk4Theme::test_emoji_section_button_foc
 
 **Acceptance criteria.** The shipped stylesheet declares opaque black once for the exact emoji section keyboard-focus arm, with no outline width or offset declaration. The new test fails if the rule is absent, a `:not(...)` qualifier is lost, an accent colour remains, an extra declaration appears, or a second emoji-section spelling is added. Existing picker-cell and completion-row corner tests remain green. The invariant register resolves the new test reference and records the missing reference surface and chosen value's source. Declaration coverage establishes neither rendered focus pixels nor keyboard traversal. Run `make check` after final edits.
 
+### Platinum GTK 4 file-chooser breadcrumbs: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued emoji-section focus plan)
+
+**Goal and grounding.** Give the file chooser's breadcrumb buttons the landed black keyboard-focus colour. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found these three arms grouped with `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent); outline-width: 2px; outline-offset: -2px`:
+
+- `filechooser #pathbarbox > stack > box > button:focus:focus-visible`
+- `filechooser #pathbarbox > stack > box > box > button:focus:focus-visible`
+- `filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible`
+
+Their ID-qualified specificity outranks the shipped `button:focus:focus-visible` colour. The corresponding `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no `pathbar` focus-visible arm. Searches of the shipped GTK 4 sheet, its tests, PLANS.md, PLANS-DONE.md and the invariant register found no `pathbarbox` treatment. The landed `pathbar > scrolledwindow > viewport` recipe targets a different node hierarchy. No collected reference shows GTK file-chooser breadcrumb focus; black is a platform adaptation reusing the landed generic button focus policy.
+
+**Approach and files.** Append one grouped rule with exactly the three selectors above and only `outline-color: #000000` to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Use a dated adaptation comment naming the missing reference surface and reused button focus colour; keep the library name out of CSS comments because `TestGtk4Theme::test_stands_alone` rejects it. In the supported GTK 4 user-import path, later user CSS wins against each exact stock twin. Width and offset stay inherited.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme::test_filechooser_breadcrumb_focus_outline_color` beside `test_button_focus_outline_color`. For each exact selector, assert its complete parsed dictionary equals `{"outline-color": BLACK}`, its count in `self.selectors` is one, and its colour equals the generic button focus colour. Assert the set of parsed selectors containing `pathbarbox` equals these three spellings. Add a dated row under `## gtk` in `docs/invariants.md` linking this test, recording the full resource probe above, missing reference surface, chosen colour's source and user-import scope. Limit implementation to these three files; GTK 3, toolbar focus and breadcrumb face geometry are outside this plan.
+
+**Acceptance criteria.** The shipped stylesheet declares opaque black once for each of the three exact breadcrumb keyboard-focus arms, with no width or offset declaration in those rules. The new test fails if a selector is omitted or renamed, an accent colour is substituted, an extra declaration is added, or another `pathbarbox` spelling appears. Existing generic button focus and `pathbar` face tests remain green. The invariant register resolves the new test reference and records the adaptation provenance. Declaration checks establish neither rendered pixels nor keyboard traversal. Run `make check` after the final edit.
+
 ## Done
