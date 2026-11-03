@@ -201,6 +201,26 @@ class TestInstall(CursorCase):
         self.assertEqual(str(elsewhere), os.readlink(self.link))
         self.assertEqual([], self.recorded())
 
+    def test_unreadable_cursor_symlink_is_reported_without_traceback(self):
+        self.install_theme()
+        self.stub_selector()
+        self.link.parent.mkdir()
+        os.symlink(str(self.installed), str(self.link))
+        real_readlink = os.readlink
+
+        def failing_readlink(path, *args, **kwargs):
+            if Path(path) == self.link:
+                raise PermissionError("simulated readlink failure")
+            return real_readlink(path, *args, **kwargs)
+
+        with mock.patch.object(apply_cursor.os, "readlink", failing_readlink):
+            result = self.run_tool()
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn("cannot read symlink", result.stderr)
+        self.assertIn(str(self.link), result.stderr)
+        self.assertEqual([], self.recorded())
+
     def test_real_directory_is_refused_and_unchanged(self):
         self.install_theme()
         self.stub_selector()

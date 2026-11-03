@@ -36,7 +36,12 @@ def link_target(home: Path) -> Path:
 
 def symlink_target(path: Path) -> str | None:
     """Return *path*'s literal symlink target, or ``None`` when it is not a link."""
-    return os.readlink(path) if path.is_symlink() else None
+    if not path.is_symlink():
+        return None
+    try:
+        return os.readlink(path)
+    except OSError as exc:
+        raise CursorError(f"cannot read symlink {path}: {exc}") from exc
 
 
 def install_link(home: Path, theme: Path) -> None:
