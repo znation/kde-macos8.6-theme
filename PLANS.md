@@ -5,7 +5,17 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Fidelity diagnostics: count vertical mismatch segments (planned 2026-11-03 by the plan role)
+
+**Goal.** Measure fragmentation of vertical border defects without emitting a potentially large interval list. The CLI exposes horizontal `--difference-run-count` and vertical interval lists, but source and finished-plan searches found no vertical mismatch-count option.
+
+**Approach and files.** Add `--difference-column-run-count` in `tools/fidelity_cli_parser.py::build_parser`. Add `difference_column_run_count` in `tools/fidelity_spatial.py`, counting the existing `_iter_difference_axis_runs` iterator with `vertical=True` without retaining intervals. Wire both import modes and `main` in `tools/fidelity.py`: when requested, count the unfiltered `column_runs` list if present (including an empty list), otherwise use the streaming counter; calculate before either column-length filter. In `tools/fidelity_reports.py::report_data`, accept optional `column_run_count` and emit `difference_column_run_count` only when requested. Extend text rendering in `tools/fidelity_rendering.py` with `difference column run count: N`, immediately before a requested column-run list. Add focused coverage in `tests/test_fidelity_column_run_count.py`, following `tests/test_fidelity_run_count.py`, and the flag to parser coverage in `tests/test_fidelity_cli_parser.py`; document the option in README.md and the matching tooling section of docs/invariants.md. This is one bounded diagnostic, expected to need at most a few hundred changed lines including tests.
+
+**Acceptance criteria.**
+- For a 3x4 comparison whose over-tolerance row masks are `101`, `100`, `001`, `111`, JSON reports `difference_column_run_count=5`, text reports `difference column run count: 5`, and `metrics.differing=7`. The unfiltered vertical intervals have lengths 2, 1, 1, 1, 2 in column-major order. Minimum length 2 leaves two listed intervals, maximum length 1 leaves three, and contradictory cutoffs leave an empty list; the count stays 5. Distinct nonzero candidate and reference crop origins select the same mask without counting surrounding mismatches.
+- Identical crops report 0; fully differing 3x2 crops report 3, fully differing 1x3 crops report 1, and a differing single pixel reports 1. Opposite column-edge runs stay separate, bottom-edge open runs count, and adjacent differing pixels with unequal deltas remain one interval. Deltas equal to tolerance are excluded and tolerance 255 reports zero. Alpha-only differences, missing alpha as 255, and stored RGB beneath zero alpha follow the existing raw RGBA predicate.
+- Count-only reports omit interval arrays and do not retain a full interval collection. Requesting the vertical list avoids an additional counter traversal, including when that list is empty. Focused tests enforce these storage/scan constraints. Omitting the new flag omits its field and line and skips its counter, including when the vertical list is requested.
+- Combined horizontal-count, vertical-list, longest-column-run and worst-pixel paging diagnostics retain their independently expected values; comparison metrics, verdict and exit status match the same invocation without the new flag on passing and failing comparisons. Text and JSON, package and direct-script invocations, and help expose the option consistently. Run `make check` after final edits.
 
 ## Done
 
