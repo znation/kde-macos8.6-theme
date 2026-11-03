@@ -13,6 +13,8 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Acceptance criteria.** Added tests for crop-relative vertical intervals, inclusive filtering, cutoff one, empty output, retained longest summaries, helper reuse, parser behavior, invalid values and pre-read dependency validation. `make check` verifies the completed change.
 
+The duplicate queue entry was consolidated here — duplicate removed 2026-11-02 by the steward role.
+
 ### Reference-pixel sampler: filter short vertical color-match runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Isolate sustained reference side-border spans while suppressing short matching glyph fragments. Source and related archive searches found vertical match lists and longest summaries, and a horizontal minimum-length filter, but no vertical match-list cutoff. This is independent of the waiting fidelity CLI plan.
