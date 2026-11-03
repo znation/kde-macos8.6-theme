@@ -551,6 +551,13 @@ by column then row, stop at each column boundary, and merge adjacent tolerance
 matches even when their RGB values differ. They cover the full region
 independently of `--match-pixels`; potentially large output is opt-in.
 
+Add `--min-match-column-run-length N` with `--match-column-runs` to omit
+vertical match segments shorter than `N` pixels. The inclusive cutoff filters
+only the reported list; match counts and diagnostics, including the longest
+vertical-run summary, still use every matching pixel. A cutoff above the
+longest segment reports an empty `match.column_runs` array (or
+`matching column runs: []` in text).
+
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the
 same array on a `matching rows:` line after interval reports. Index zero is the
