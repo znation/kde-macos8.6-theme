@@ -45,6 +45,9 @@ class TestSampleOptionValidation(CliTestCase):
              "--runs requires a single row or column unless --run-axis is given"),
             (("--run-axis", "vertical"), "--run-axis requires --runs"),
             (("--min-run-length", "2"), "--min-run-length requires --runs"),
+            (("--max-run-length", "2"), "--max-run-length requires --runs"),
+            (("--min-run-length", "2", "--max-run-length", "1"),
+             "--min-run-length requires --runs"),
             (("--find-color", "010203", "--alpha"), "--alpha cannot be combined with --find-color"),
         )
         for options, diagnostic in cases:
@@ -77,6 +80,7 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--width", "2", "--height", "2", "--runs", "--run-axis", "vertical"),
             ("image.png", "0", "0", "--width", "1", "--height", "1", "--runs"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1"),
+            ("image.png", "0", "0", "--runs", "--max-run-length", "1"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
              "--min-match-run-length", "1"),
         )

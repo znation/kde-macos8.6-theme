@@ -38,7 +38,8 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     for x, y, scan_width, scan_height in scans:
         _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
         runs.extend(run for run in line_runs
-                    if args.min_run_length is None or run["length"] >= args.min_run_length)
+                    if (args.min_run_length is None or run["length"] >= args.min_run_length)
+                    and (args.max_run_length is None or run["length"] <= args.max_run_length))
     return {"image": args.image, "image_width": width, "image_height": height,
         "region": region, "axis": axis, "runs": [
             {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
