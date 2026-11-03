@@ -100,11 +100,17 @@ CHECKBOX_CROP = (156, 187, 14, 14)
 # A 1px face ring around the cell catches resampling bleed: at the engine's
 # native size the cells around the art stay the flat client face.
 CHECKBOX_FACE_RING_CROP = (155, 186, 16, 16)
+CHECKBOX_YES_BUTTON = (156, 207, 82, 24)
+CHECKBOX_NO_BUTTON = (241, 207, 82, 24)
 # The rendered combo box indicator: the shipped 12x12 canvas at 1:1, measured
 # against `tests/test_kvantum_combobox_reference.py`'s reference cell. The
 # combo dialog is the session's only window like the checkbox dialog, so the
 # crop is measured on the same 480x360 capture.
 COMBOBOX_CROP = (316, 178, 12, 12)
+COMBOBOX_FIELD = (146, 172, 188, 24)
+COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
+COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
+MENU_ITEM_VIEW = (112, 93, 256, 182)
 
 
 class StubTools(unittest.TestCase):
@@ -866,7 +872,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
     def test_both_dialog_gates_skip_only_when_a_tool_is_absent(self):
         tools = DIALOG_REAL_TOOLS
         expected = not all(shutil.which(tool) for tool in tools)
-        for gate in (TestCheckboxDialogRender, TestComboboxDialogRender):
+        for gate in (TestCheckboxDialogRender, TestComboboxDialogRender, TestMenuDialogRender):
             with self.subTest(gate=gate.__name__):
                 self.assertEqual(expected, gate.__unittest_skip__)
 
@@ -892,6 +898,7 @@ class _Renders:
         ("applet", (), "render.png"),
         ("checkbox", ("--checkbox-dialog",), "dialog.png"),
         ("combobox", ("--combobox-dialog",), "dialog.png"),
+        ("menu", ("--menu-dialog",), "dialog.png"),
     )
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
@@ -989,6 +996,24 @@ class _DialogGate:
         }
         self.assertEqual(expected, actual)
 
+    def assert_pixel(self, x, y, colour):
+        self.assertEqual(colour, hex_colour(pixel_at(self.candidate_image(), x, y)))
+
+    def assert_button_frame(self, rect, *, flat_rows=()):
+        """Pin a button's outline/bevel and label-free face rows."""
+        x, y, width, height = rect
+        for xx in range(x, x + width):
+            self.assert_pixel(xx, y, "#000000")
+            self.assert_pixel(xx, y + height - 1, "#000000")
+        for yy in range(y + 1, y + height - 1):
+            self.assert_pixel(x, yy, "#000000")
+            self.assert_pixel(x + 1, yy, "#FFFFFF")
+            self.assert_pixel(x + width - 2, yy, "#AAAAAA")
+            self.assert_pixel(x + width - 1, yy, "#000000")
+        for row in flat_rows:
+            self.assert_pixel(x + 2, row, "#DDDDDD")
+            self.assert_pixel(x + width - 3, row, "#DDDDDD")
+
 
 def _dialog_gate_guard():
     """Return the skip guard both dialog render gates share.
@@ -1078,6 +1103,10 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
             with self.subTest(x=x, y=y):
                 self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x, y)))
 
+    def test_yes_and_no_buttons_keep_their_engine_drawn_frames(self):
+        self.assert_button_frame(CHECKBOX_YES_BUTTON, flat_rows=(209, 210, 211, 212))
+        self.assert_button_frame(CHECKBOX_NO_BUTTON, flat_rows=(209, 210, 211, 212))
+
 
 @_dialog_gate_guard()
 class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
@@ -1099,6 +1128,52 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
         # _DialogGate.assert_cell_matches): a squashed or blended arrow shows
         # up here immediately.
         self.assert_cell_matches("comboarrow-normal", COMBOBOX_CROP)
+
+    def test_combo_field_keeps_its_engine_drawn_pressed_frame(self):
+        x, y, width, height = COMBOBOX_FIELD
+        for xx in range(x, x + width):
+            self.assert_pixel(xx, y, "#000000")
+            self.assert_pixel(xx, y + height - 1, "#000000")
+        for yy in range(y + 1, y + height - 1):
+            self.assert_pixel(x, yy, "#000000")
+            self.assert_pixel(x + 1, yy, "#AAAAAA")
+            self.assert_pixel(x + width - 2, yy, "#FFFFFF")
+            self.assert_pixel(x + width - 1, yy, "#000000")
+
+    def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
+        self.assert_button_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
+        self.assert_button_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
+
+
+@_dialog_gate_guard()
+class TestMenuDialogRender(_DialogGate, unittest.TestCase):
+    """The menu dialog's item view keeps its engine-drawn sunken frame."""
+
+    KIND = "menu"
+
+    def test_item_view_frame_matches_its_measured_border_runs(self):
+        x, y, width, height = MENU_ITEM_VIEW
+        for xx in range(x, x + width - 1):
+            self.assert_pixel(xx, y, "#999999")
+        for xx in range(x + 1, x + width):
+            self.assert_pixel(xx, y + height - 1, "#FFFFFF")
+        for xx in range(x + 1, x + width - 1):
+            self.assert_pixel(xx, y + height - 2, "#000000")
+        for yy in range(y, y + height - 1):
+            self.assert_pixel(x, yy, "#999999")
+        for yy in range(y + 1, y + height - 1):
+            self.assert_pixel(x + 1, yy, "#000000")
+            self.assert_pixel(x + width - 2, yy, "#000000")
+            self.assert_pixel(x + width - 1, yy, "#FFFFFF")
+        self.assert_pixel(x, y + height - 1, "#DDDDDD")
+
+    def test_current_item_focus_ring_is_pinned_inside_the_field(self):
+        for xx in range(115, 365):
+            self.assert_pixel(xx, 96, "#000000")
+            self.assert_pixel(xx, 113, "#000000")
+        for yy in range(96, 114):
+            self.assert_pixel(115, yy, "#000000")
+            self.assert_pixel(364, yy, "#000000")
 
 
 if __name__ == "__main__":
