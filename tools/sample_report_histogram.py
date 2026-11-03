@@ -16,6 +16,45 @@ else:  # run directly: python3 tools/sample.py
     )
 
 
+def _histogram_spatial_fields(args, image, colors):
+    """Collect requested absolute positions, centroids and bounds for emitted colors."""
+    fields = {color: {} for color, _ in colors}
+    color_centroids = getattr(args, "color_centroids", False)
+    if not (args.color_bounds or args.color_positions or color_centroids):
+        return fields
+    positions = {color: None for color, _ in colors} if args.color_positions else None
+    bounds = ({color: [args.x + args.width, args.y + args.height, -1, -1]
+               for color, _ in colors} if args.color_bounds else None)
+    sums = {color: [0, 0] for color, _ in colors} if color_centroids else None
+    if args.color_bounds:
+        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    else:
+        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
+        color = (*rgb, next(alphas)) if alphas is not None else rgb
+        if color not in fields:
+            continue
+        if positions is not None and positions[color] is None:
+            positions[color] = {"x": x, "y": y}
+        if sums is not None:
+            sums[color][0] += x
+            sums[color][1] += y
+        if bounds is not None:
+            box = bounds[color]
+            box[0], box[1] = min(box[0], x), min(box[1], y)
+            box[2], box[3] = max(box[2], x), max(box[3], y)
+    for color, count in colors:
+        if positions is not None:
+            fields[color]["position"] = positions[color]
+        if sums is not None:
+            fields[color]["centroid"] = {"x": sums[color][0] / count, "y": sums[color][1] / count}
+        if bounds is not None:
+            box = bounds[color]
+            fields[color]["bounds"] = {"x": box[0], "y": box[1],
+                "width": box[2] - box[0] + 1, "height": box[3] - box[1] + 1}
+    return fields
+
+
 def _histogram_result(args, image, width: int, height: int) -> dict:
     """Assemble the complete histogram report without printing or mutating args."""
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
@@ -27,55 +66,18 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
     if args.top_colors is not None:
         total_colors = len(counts)
-        colors = nsmallest(
-            args.top_colors,
-            counts.items(),
-            key=lambda item: (-item[1], item[0]),
-        )
+        colors = nsmallest(args.top_colors, counts.items(), key=lambda item: (-item[1], item[0]))
         omitted_pixels = args.width * args.height - sum(count for _, count in colors)
     else:
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
-    bounds_by_color = None
-    positions_by_color = None
-    coordinate_sums = None
-    color_centroids = getattr(args, "color_centroids", False)
-    if args.color_bounds or args.color_positions or color_centroids:
-        positions_by_color = {} if args.color_positions else None
-        if positions_by_color is not None:
-            positions_by_color = {color: None for color, _ in colors}
-    if args.color_bounds:
-        bounds_by_color = {color: [args.x + args.width, args.y + args.height, -1, -1]
-                           for color, _ in colors}
-    if color_centroids:
-        coordinate_sums = {color: [0, 0] for color, _ in colors}
-    if args.color_bounds or args.color_positions or color_centroids:
-        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-        for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
-            color = (*rgb, next(alphas)) if alphas is not None else rgb
-            if positions_by_color is not None and positions_by_color.get(color) is None:
-                positions_by_color[color] = {"x": x, "y": y}
-            if coordinate_sums is not None and color in coordinate_sums:
-                coordinate_sums[color][0] += x
-                coordinate_sums[color][1] += y
-            if bounds_by_color is not None and color in bounds_by_color:
-                bounds = bounds_by_color[color]
-                bounds[0], bounds[1] = min(bounds[0], x), min(bounds[1], y)
-                bounds[2], bounds[3] = max(bounds[2], x), max(bounds[3], y)
-    if bounds_by_color is not None:
-        bounds_by_color = {color: {"x": bounds[0], "y": bounds[1],
-            "width": bounds[2] - bounds[0] + 1, "height": bounds[3] - bounds[1] + 1}
-            for color, bounds in bounds_by_color.items()}
+    spatial = _histogram_spatial_fields(args, image, colors)
     denominator = args.width * args.height
     result = {"image": args.image, "image_width": width, "image_height": height,
         "region": region, "colors": [
             {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
              **({"alpha": color[3]} if args.alpha else {}),
              **({"fraction": count / denominator} if args.color_fractions else {}),
-             **({"position": positions_by_color[color]} if positions_by_color is not None else {}),
-             **({"centroid": {"x": coordinate_sums[color][0] / count,
-                               "y": coordinate_sums[color][1] / count}}
-                if coordinate_sums is not None else {}),
-             **({"bounds": bounds_by_color[color]} if bounds_by_color is not None else {})}
+             **spatial[color]}
             for color, count in colors
         ]}
     if args.top_colors is not None:
