@@ -96,6 +96,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--max-differing N", help_text)
         self.assertIn("exit status: 0 when the comparison passes", help_text)
         self.assertIn("--difference-column-runs", help_text)
+        self.assertIn("--difference-column-run-count", help_text)
         self.assertIn("--difference-centroid", help_text)
         self.assertIn("--longest-difference-run", help_text)
         self.assertIn("--longest-difference-column-run", help_text)
@@ -122,6 +123,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_column_bounds": False,
             "difference_runs": False,
             "difference_run_count": False,
+            "difference_column_run_count": False,
             "min_difference_run_length": None,
             "max_difference_run_length": None,
             "min_difference_column_run_length": None,
@@ -153,7 +155,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--max-difference-run-length", "4",
             "--min-difference-column-run-length", "3",
             "--max-difference-column-run-length", "5",
-            "--difference-column-runs", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
+            "--difference-column-runs", "--difference-column-run-count", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
             "--explain-worst", "--tolerance", "9", "--max-mae", "1.5",
             "--max-frac", "0.25", "--max-rmse", "2.5", "--max-delta", "12",
             "--max-differing", "3",

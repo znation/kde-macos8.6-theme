@@ -67,13 +67,16 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     for key, label in (("delta_histogram", "delta histogram"), ("delta_percentiles", "delta percentiles"),
                        ("difference_rows", "difference rows"), ("difference_columns", "difference columns"),
                        ("difference_row_bounds", "difference row bounds"),
-                       ("difference_column_bounds", "difference column bounds"),
-                       ("difference_column_runs", "difference column runs")):
+                       ("difference_column_bounds", "difference column bounds")):
         value = result.get(key)
         if value is not None:
             lines.append(f"{label}: " + json.dumps(value, ensure_ascii=True))
     if "difference_run_count" in result:
         lines.append(f"difference run count: {result['difference_run_count']}")
+    if "difference_column_run_count" in result:
+        lines.append(f"difference column run count: {result['difference_column_run_count']}")
+    if result.get("difference_column_runs") is not None:
+        lines.append("difference column runs: " + json.dumps(result["difference_column_runs"], ensure_ascii=True))
     if result.get("difference_runs") is not None:
         lines.append("difference runs: " + json.dumps(result["difference_runs"], ensure_ascii=True))
     if "difference_centroid" in result:

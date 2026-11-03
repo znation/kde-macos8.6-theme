@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: count vertical mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Measure fragmentation of vertical border defects without emitting a potentially large interval list. Implemented as specified.
+
+**Approach and files.** Added the streaming counter, CLI/report wiring, focused tests, README documentation and dated invariant. Requested column-run lists provide the pre-filter count.
+
+**Acceptance criteria.** Implemented count-only streaming and requested-list reuse; tests cover the representative mask, crop origins, filters, output modes, direct-script use, omission, and zero count. The project check verifies the integrated behavior.
+
 ### Reference-pixel sampler: count vertical matching segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Measure fragmentation of vertical reference-color strokes without printing their interval list. Sampler source and archive-heading searches found vertical lists and longest-run summaries, plus the finished horizontal count, but no vertical segment count. This is independent of the waiting fidelity diagnostic.

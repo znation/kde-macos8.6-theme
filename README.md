@@ -867,6 +867,11 @@ comparison metrics and longest-column summaries. An empty requested list is repo
 Pass `--max-difference-column-run-length N` with `--difference-column-runs` to omit completed runs
 longer than `N`. The inclusive maximum combines with the minimum cutoff; conflicting cutoffs yield
 an empty list. Segmentation, metrics and longest-column summaries use the complete mismatch data.
+Add `--difference-column-run-count` to report the number of maximal vertical mismatch runs as
+`difference_column_run_count` in JSON or `difference column run count: N` in text. It counts
+unfiltered segments, so length cutoffs affect the optional run list but not the scalar. Combined
+with `--difference-column-runs`, it reuses that scan; by itself it streams the count without
+retaining intervals. The diagnostic is omitted unless requested.
 Add `--difference-centroid` to report the equal-weight mean `(x, y)` of pixels whose maximum raw
 RGBA channel delta exceeds tolerance. Coordinates are crop-relative integer pixel indices; delta
 magnitude does not affect weight. JSON includes `difference_centroid` and text prints it immediately
