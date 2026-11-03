@@ -449,6 +449,15 @@ Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
 
+Add `--min-color-count N` with `--histogram` to omit colors whose count is
+below N. The cutoff is inclusive and runs before `--top-colors`. JSON and text
+include `total_colors` and `omitted_pixels` whenever either option is used;
+the distinct-color total is measured before filtering, and omitted pixels
+include filtered and truncated colors. Fractions retain the full-region
+denominator, while spatial diagnostics describe only emitted colors. A cutoff
+larger than the region area returns an empty palette and marks the full region
+omitted.
+
 Add `--color-fractions` with `--histogram` to add each emitted color's share
 of the complete requested region (`count / width / height`). JSON color
 records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions

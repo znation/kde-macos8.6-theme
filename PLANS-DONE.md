@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: filter histogram colors by minimum count (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal.** Let palette measurements suppress rare color fragments with an explicit frequency cutoff.
+
+**Approach and files.** Added `--min-color-count N` to `tools/sample_arguments.py` and inclusive filtering before top-color selection in `tools/sample_report_histogram.py`. Totals report original distinct colors and all omitted pixels; spatial diagnostics retain their existing emitted-color semantics. Added `tests/test_sample_histogram_min_count.py`, documented the option in README.md and `docs/invariants.md`.
+
+**Acceptance criteria.** Tested crop scoping, thresholding, tie order, cutoff composition with top-N, empty output, direct-script parity, spatial diagnostics and invalid use before image reads. `make check` is the final verification.
+
 ### Fidelity diagnostics: summarize the longest horizontal mismatch run (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Locate a long horizontal border defect without printing the full mismatch-run list. `tools/fidelity_spatial.py::_difference_axis_runs` currently accumulates intervals; code and archive searches found run-list diagnostics but no longest-mismatch summary. This is independent of the waiting sampler call-interface cleanup.

@@ -49,6 +49,8 @@ def option_error(args: argparse.Namespace) -> str | None:
     """Return the first incompatible option combination, if any."""
     if args.top_colors is not None and not args.histogram:
         return "--top-colors requires --histogram"
+    if args.min_color_count is not None and not args.histogram:
+        return "--min-color-count requires --histogram"
     if args.color_bounds and not args.histogram:
         return "--color-bounds requires --histogram"
     if args.color_fractions and not args.histogram:
@@ -121,6 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--alpha", action="store_true", help="include alpha in pixel samples, histogram colors and run grouping")
     parser.add_argument("--run-axis", choices=("horizontal", "vertical"), help="scan each row or column of a --runs rectangle")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
+    parser.add_argument("--min-color-count", type=positive_int("--min-color-count"), metavar="N", help="with --histogram, omit colors occurring fewer than N times")
     parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-fractions", action="store_true", help="with --histogram, report each color's fraction of the region")
     parser.add_argument("--color-positions", action="store_true", help="with --histogram, report each color's first row-major position")

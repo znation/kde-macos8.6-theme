@@ -64,9 +64,17 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         counts = Counter((*rgb, alpha) for rgb, alpha in pixels)
     else:
         counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
-    if args.top_colors is not None:
+    min_color_count = getattr(args, "min_color_count", None)
+    if args.top_colors is not None or min_color_count is not None:
         total_colors = len(counts)
-        colors = nsmallest(args.top_colors, counts.items(), key=lambda item: (-item[1], item[0]))
+        candidates = counts.items()
+        if min_color_count is not None:
+            candidates = ((color, count) for color, count in candidates
+                         if count >= min_color_count)
+        if args.top_colors is not None:
+            colors = nsmallest(args.top_colors, candidates, key=lambda item: (-item[1], item[0]))
+        else:
+            colors = sorted(candidates, key=lambda item: (-item[1], item[0]))
         omitted_pixels = args.width * args.height - sum(count for _, count in colors)
     else:
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
@@ -80,7 +88,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
              **spatial[color]}
             for color, count in colors
         ]}
-    if args.top_colors is not None:
+    if args.top_colors is not None or getattr(args, "min_color_count", None) is not None:
         result["total_colors"] = total_colors
         result["omitted_pixels"] = omitted_pixels
     return result
@@ -109,6 +117,6 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             centroid = color["centroid"]
             suffix += f"  centroid={centroid['x']},{centroid['y']}"
         print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {color['hex']}  count={color['count']}{suffix}")
-    if args.top_colors is not None:
+    if args.top_colors is not None or getattr(args, "min_color_count", None) is not None:
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")
