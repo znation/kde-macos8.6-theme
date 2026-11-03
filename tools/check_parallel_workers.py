@@ -126,30 +126,8 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                 else:
                     remaining.append(entry)
             running = remaining
-            while len(running) < workers and queue:
-                module = queue.pop(0)
-                try:
-                    running.append(_spawn(module, [*argv_prefix, module], cwd,
-                                          log_paths[module], timeout))
-                except OSError as exc:
-                    # _spawn opens the log before the worker starts; an open
-                    # that cannot succeed -- a scratch volume that filled
-                    # mid-run, or a log path a sweep removed -- must not get
-                    # out: it would unwind _supervise past every module that
-                    # already finished and kill the run as a traceback with
-                    # no diagnostic. Record the module as never started
-                    # (exit 1, the same status _spawn's own "could not be
-                    # started" note produces) with one stderr diagnostic
-                    # naming the module and the OS error, and keep
-                    # supervising the rest of the run. _print_results reads
-                    # the same path for the section, so the module's verdict
-                    # is its unreadable-log failure.
-                    print(
-                        "check: error: cannot open the worker log for "
-                        f"{escape_controls(module)}: {escape_controls(str(exc))}",
-                        file=sys.stderr,
-                    )
-                    results[module] = 1
+            _fill_workers(queue, running, results, argv_prefix, cwd,
+                          log_paths, timeout, workers)
             if running:
                 time.sleep(_POLL_SECONDS)
     finally:
@@ -157,6 +135,27 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
             _kill_group(entry.process)
             _reap(entry.process)
     return results
+
+
+def _fill_workers(queue: list[str], running: list[_Worker],
+                  results: dict[str, int | None], argv_prefix: list[str],
+                  cwd: str, log_paths: dict[str, str], timeout: float,
+                  workers: int) -> None:
+    """Start queued workers until the concurrency limit is reached."""
+    while len(running) < workers and queue:
+        module = queue.pop(0)
+        try:
+            running.append(_spawn(module, [*argv_prefix, module], cwd,
+                                  log_paths[module], timeout))
+        except OSError as exc:
+            # _spawn opens the log before the worker starts; an open that
+            # cannot succeed must fail this module without stopping the run.
+            print(
+                "check: error: cannot open the worker log for "
+                f"{escape_controls(module)}: {escape_controls(str(exc))}",
+                file=sys.stderr,
+            )
+            results[module] = 1
 
 
 def _record_duration(entry: _Worker,
