@@ -71,6 +71,25 @@ class TestSampleRuns(CliTestCase):
         self.assertEqual(data["axis"], "horizontal")
         self.assertEqual(data["runs"][0]["length"], 1)
 
+    def test_minimum_run_length_filters_emitted_runs_and_can_empty_report(self):
+        path = self._fixture()
+        filtered = self._run(
+            path, "1", "2", "--width", "5", "--runs",
+            "--min-run-length", "2", "--json",
+        )
+        self._assert_success(filtered)
+        report = json.loads(filtered.stdout)
+        self.assertEqual(report["runs"], [
+            {"x": 1, "y": 2, "length": 2, "rgb": [1, 2, 3], "hex": "#010203"},
+        ])
+
+        above_all = self._run(
+            path, "1", "2", "--width", "5", "--runs",
+            "--min-run-length", "6", "--json",
+        )
+        self._assert_success(above_all)
+        self.assertEqual(json.loads(above_all.stdout)["runs"], [])
+
     def test_rectangular_axes_keep_scanlines_independent(self):
         _, data = rgb_image(4, 3, lambda x, y: (1, 2, 3) if x < 3 else (9, 8, 7))
         path = self._write(self._tmp_dir(), "rectangle.png", data)
