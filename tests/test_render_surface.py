@@ -1140,6 +1140,32 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
             self.assert_pixel(x + width - 2, yy, "#FFFFFF")
             self.assert_pixel(x + width - 1, yy, "#000000")
 
+    def test_draws_the_combo_field_pressed_bevel(self):
+        """Pin the Kvantum field frame around the selected combo contents."""
+        image = self.candidate_image()
+        x, y, width, height = COMBOBOX_FIELD
+        # CC_ComboBox currently selects the pressed frame slices. The upper
+        # and lower bands and the two bevel columns are outside the text and
+        # arrow, so these pixels isolate the engine's frame mapping.
+        expected_top = ["#000000"] * width
+        expected_upper = ["#000000", *(["#AAAAAA"] * (width - 3)), "#FFFFFF", "#000000"]
+        expected_lower = ["#000000", "#AAAAAA", *(["#FFFFFF"] * (width - 3)), "#000000"]
+        expected_bottom = ["#000000"] * width
+        for row, expected in ((0, expected_top), (1, expected_upper),
+                              (height - 2, expected_lower), (height - 1, expected_bottom)):
+            with self.subTest(row=row):
+                self.assertEqual(
+                    expected,
+                    [hex_colour(pixel_at(image, x + dx, y + row)) for dx in range(width)],
+                )
+        for dy in range(2, height - 2):
+            with self.subTest(column="left", row=dy):
+                self.assertEqual("#000000", hex_colour(pixel_at(image, x, y + dy)))
+            with self.subTest(column="right-highlight", row=dy):
+                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x + width - 2, y + dy)))
+            with self.subTest(column="right-edge", row=dy):
+                self.assertEqual("#000000", hex_colour(pixel_at(image, x + width - 1, y + dy)))
+
     def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
         self.assert_button_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
         self.assert_button_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
@@ -1174,6 +1200,7 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         for yy in range(96, 114):
             self.assert_pixel(115, yy, "#000000")
             self.assert_pixel(364, yy, "#000000")
+
 
 
 if __name__ == "__main__":
