@@ -23,6 +23,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 - [Validating the reference set](#validating-the-reference-set)
 - [Sampling reference pixels](#sampling-reference-pixels)
 - [Fidelity checking](#fidelity-checking)
+- [Running checks](#running-checks)
 - [Invariants](#invariants)
 - [Development team](#development-team)
 
@@ -47,6 +48,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 - [Validating the reference set](#validating-the-reference-set)
 - [Sampling reference pixels](#sampling-reference-pixels)
 - [Fidelity checking](#fidelity-checking)
+- [Running checks](#running-checks)
 - [Invariants](#invariants)
 - [Development team](#development-team)
 
@@ -1079,6 +1081,21 @@ chooser and menu list and byte-compare the engine-drawn check box cell with the 
 `checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal`
 slice and the engine-drawn item view frame with the shipped `GenericFrame` art, all three
 derived from the same SVG: engine-drawn widget pixels are gate-covered too.
+
+## Running checks
+
+Run the full project check before submitting changes. Focused runs help with iteration, but do not
+replace the full check.
+
+| Scope | Command |
+| --- | --- |
+| Full project check | `make check` |
+| Matching test modules | `make check CHECK_PATTERN='test_colorscheme*.py'` |
+| One test class | `make check CHECK_TESTS=test_colorscheme.TestAnchors` |
+| Serial discovery | `make check CHECK_PARALLEL=0` |
+
+Reference image validation is separate: see [Validating the reference set](#validating-the-reference-set)
+for `make check-references` and its Git LFS materialization requirement.
 
 ## Invariants
 

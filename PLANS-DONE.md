@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README contributor checks: provide copyable full and focused test recipes (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Give contributors a short, directly linked test workflow instead of requiring them to extract commands from Installing's configuration narrative. This is separate from the waiting standalone-application prerequisites plan and the archived operator check-declaration guidance.
+
+**Approach and files.** Edit README.md only. Add `## Running checks` immediately before `## Invariants`, and link it from both existing Contents and Navigation lists. Provide a compact command table with `make check` for the declared full check, `make check CHECK_PATTERN='test_colorscheme*.py'` for matching modules, `make check CHECK_TESTS=test_colorscheme.TestAnchors` for one class, and `make check CHECK_PARALLEL=0` for serial discovery. Explain that focused runs help iteration but do not replace the full check before submission. Link to Validating the reference set for the separate `make check-references` workflow and its materialized Git LFS requirement. Retain the existing installation and operator instructions; do not add runner code or prose-pinning tests.
+
+**Grounding.** Makefile's `check` recipe chooses named tests when `CHECK_TESTS` is nonempty; otherwise `CHECK_PARALLEL=0` selects serial discovery and the default uses `tools/check_parallel.py`, with `CHECK_PATTERN` passed to discovery. `tests/test_colorscheme.py::TestAnchors` supplies the concrete class example. `tests/test_readme_commands.py::TestReadmeCommands` checks mentioned command targets and script paths. README.md currently describes these overrides inside Installing, but has no dedicated check-recipe section; archive heading searches found navigation and operator declaration plans rather than this contributor recipe.
+
+**Acceptance criteria.** A reader following either navigation list reaches Running checks directly. That section presents copyable commands for the full suite, a module glob, a named class and serial discovery, with each scope identified. It explicitly distinguishes iteration checks from the required full check and directs reference validation to its existing section. Commands match the cited recipe branches and the named class exists. Review the Markdown links and command examples, then run `make check` after the final edit. No runtime or theme behavior changes.
+
 ### README standalone setup: list GTK, cursor and Firefox prerequisites (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Make the standalone application setup paths discoverable from the prerequisites table. Its current rows cover KDE use, package installation, aggregate apply, rendering and references; the GTK, cursor and Firefox requirements appear deeper in Installing. This extends the archived compact setup map with these specific task rows, independently of the queued render recipes.
