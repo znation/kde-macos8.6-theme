@@ -27,7 +27,7 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
     return ("horizontal" if horizontal else "vertical"), segments
 
 
-def report_runs(args, image, width: int, height: int, header: str) -> None:
+def _runs_result(args, image, width: int, height: int) -> dict:
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
     axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
     runs = []
@@ -38,16 +38,22 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
     for x, y, scan_width, scan_height in scans:
         _, line_runs = _color_runs(image, x, y, scan_width, scan_height, args.alpha)
         runs.extend(line_runs)
+    return {"image": args.image, "image_width": width, "image_height": height,
+        "region": region, "axis": axis, "runs": [
+            {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
+        ]}
+
+
+def report_runs(args, image, width: int, height: int, header: str) -> None:
+    result = _runs_result(args, image, width, height)
     if args.json:
-        print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
-            "region": region, "axis": axis, "runs": [
-                {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
-            ]}, ensure_ascii=True))
+        print(json.dumps(result, ensure_ascii=True))
         return
     print(header)
-    print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-    print(f"axis: {axis}")
-    for run in runs:
+    region = result["region"]
+    print(f"region ({region['x']}, {region['y']}) {region['width']}x{region['height']}:")
+    print(f"axis: {result['axis']}")
+    for run in result["runs"]:
         rgb = run["rgb"]
         suffix = f"  alpha={run['alpha']}" if args.alpha else ""
         print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}{suffix}")
