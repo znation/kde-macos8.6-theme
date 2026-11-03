@@ -9,10 +9,40 @@ from unittest import TestCase
 
 from support import repo_root  # noqa: F401
 from tools.sample_arguments import build_parser
-from tools.sample_report_runs import _runs_result
+from tools.sample_report_runs import _runs_result, report_runs
 
 
 class TestSampleRunsResult(TestCase):
+    def test_report_runs_prints_json_result(self):
+        args = build_parser().parse_args([
+            "fixture.png", "0", "0", "--width", "2", "--runs", "--json",
+        ])
+        image = SimpleNamespace(width=2, rgb=bytes((1, 2, 3, 1, 2, 3)), alpha=None)
+        output = StringIO()
+        with redirect_stdout(output):
+            report_runs(args, image, 2, 1, "header")
+        self.assertEqual(output.getvalue(), (
+            '{"image": "fixture.png", "image_width": 2, "image_height": 1, '
+            '"region": {"x": 0, "y": 0, "width": 2, "height": 1}, '
+            '"axis": "horizontal", "runs": [{"x": 0, "y": 0, "length": 2, '
+            '"rgb": [1, 2, 3], "hex": "#010203"}]}\n'
+        ))
+
+    def test_report_runs_prints_text_header_region_and_run(self):
+        args = build_parser().parse_args([
+            "fixture.png", "0", "0", "--width", "2", "--runs",
+        ])
+        image = SimpleNamespace(width=2, rgb=bytes((1, 2, 3, 1, 2, 3)), alpha=None)
+        output = StringIO()
+        with redirect_stdout(output):
+            report_runs(args, image, 2, 1, "sample header")
+        self.assertEqual(output.getvalue(), (
+            "sample header\n"
+            "region (0, 0) 2x1:\n"
+            "axis: horizontal\n"
+            "(0, 0): 1,2,3  #010203  length=2\n"
+        ))
+
     def test_cropped_horizontal_result_keeps_scanlines_separate(self):
         args = build_parser().parse_args([
             "fixture.png", "1", "0", "--width", "3", "--height", "2",
