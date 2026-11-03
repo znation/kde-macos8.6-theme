@@ -8,7 +8,7 @@ per-channel delta and where it occurs, and the fraction of differing pixels.
 This entry point owns orchestration only: parsing via the sibling
 ``tools/fidelity_cli_parser.py``, the reads and comparison, and the exit-status
 selection. The report's data assembly and
-JSON/text rendering live in the sibling ``tools/fidelity_reports.py``, and
+JSON/text rendering live in the sibling ``tools/fidelity_rendering.py``, and
 the metrics themselves in ``tools/fidelity_metrics.py``.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
@@ -49,9 +49,8 @@ if __package__:
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
-        render_json,
-        render_text,
     )
+    from tools.fidelity_rendering import render_json, render_text
     from tools.png import PngError
 else:  # run directly: python3 tools/fidelity.py
     from fidelity_cli_parser import build_parser
@@ -65,9 +64,8 @@ else:  # run directly: python3 tools/fidelity.py
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
-        render_json,
-        render_text,
     )
+    from fidelity_rendering import render_json, render_text
     from png import PngError
 
 

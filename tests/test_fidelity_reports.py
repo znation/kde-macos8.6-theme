@@ -1,4 +1,4 @@
-"""Tests for tools/fidelity_reports.py's report assembly and rendering.
+"""Tests for fidelity report assembly and rendering.
 
 The module holds the comparison report's shape -- the budget-to-verdict
 rule, the source-position translation, the JSON object and the text lines --
@@ -20,10 +20,9 @@ from tools.fidelity_reports import (  # noqa: E402
     budget_verdict,
     locate_worst_pixels,
     report_data,
-    render_json,
-    render_text,
     source_bounds,
 )
+from tools.fidelity_rendering import render_json, render_text  # noqa: E402
 
 
 def _metrics(**overrides) -> Metrics:
@@ -140,8 +139,52 @@ class TestRenderJson(unittest.TestCase):
         self.assertEqual(render_json(data), json.dumps(data, ensure_ascii=True))
         self.assertIn("caf\\u00e9.png", render_json(data))
 
+    def test_exact_default_json_serialization(self):
+        data = {
+            "candidate": "c\x1bafé.png", "reference": "r.png",
+            "candidate_crop": None, "reference_crop": None,
+            "thresholds": {"tolerance": 0, "max_mae": None, "max_frac": None},
+            "metrics": {"width": 1, "height": 1},
+            "candidate_difference_bounds": None,
+            "reference_difference_bounds": None, "passed": True,
+        }
+        self.assertEqual(
+            render_json(data),
+            '{"candidate": "c\\u001baf\\u00e9.png", "reference": "r.png", '
+            '"candidate_crop": null, "reference_crop": null, "thresholds": '
+            '{"tolerance": 0, "max_mae": null, "max_frac": null}, "metrics": '
+            '{"width": 1, "height": 1}, "candidate_difference_bounds": null, '
+            '"reference_difference_bounds": null, "passed": true}',
+        )
+
 
 class TestRenderText(unittest.TestCase):
+    def test_renderer_needs_only_dimensions_and_does_not_mutate_input(self):
+        class Size:
+            width = 1
+            height = 1
+
+        candidate = Size()
+        data = {
+            "candidate": "c\x1bafé", "reference": "r",
+            "candidate_crop": None, "reference_crop": None,
+            "metrics": {"pixels": 1, "mae": 0.0, "mae_r": 0.0,
+                        "mae_g": 0.0, "mae_b": 0.0, "mae_a": None,
+                        "rmse": 0.0, "max_delta": 0, "max_x": 0, "max_y": 0,
+                        "differing": 0, "frac_differing": 0.0,
+                        "difference_bounds": None},
+            "candidate_difference_bounds": None,
+            "reference_difference_bounds": None,
+            "thresholds": {"tolerance": 0, "max_mae": None, "max_frac": None},
+            "passed": True,
+        }
+        original = {key: value.copy() if isinstance(value, dict) else value
+                    for key, value in data.items()}
+        lines = render_text(data, candidate, candidate)
+        self.assertEqual(lines[0], "candidate: c\\u001bafé  1x1")
+        self.assertEqual(lines[-1], "PASS: max-mae=unset max-frac=unset tolerance=0")
+        self.assertEqual(data, original)
+
     def test_identical_images_print_the_full_default_report(self):
         candidate, _ = solid_rgb(2, 2)
         data = report_data("candidate.png", "reference.png", None, None,
