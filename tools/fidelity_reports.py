@@ -112,7 +112,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 rows=None, columns=None, row_bounds=None,
                 column_bounds=None, runs=None, column_runs=None,
                 centroid=None, include_centroid: bool = False,
-                longest_run=None, include_longest_run: bool = False):
+                longest_run=None, include_longest_run: bool = False,
+                longest_column_run=None, include_longest_column_run: bool = False):
     """Assemble the comparison's JSON result object.
 
     Paths, crop rectangles and the three thresholds are echoed as given;
@@ -159,6 +160,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["difference_centroid"] = centroid
     if include_longest_run:
         result["longest_difference_run"] = longest_run
+    if include_longest_column_run:
+        result["longest_difference_column_run"] = longest_column_run
     return result
 
 

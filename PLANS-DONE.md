@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: summarize the longest vertical mismatch run (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal.** Locate an uninterrupted side-border defect without emitting the complete vertical mismatch list. Code and related archive searches found `--difference-column-runs` and the horizontal `--longest-difference-run`, but no vertical summary. This is independent of the waiting sampler histogram filter.
+
+**Approach and files.** Added `--longest-difference-column-run` in `tools/fidelity_cli_parser.py::build_parser`. Added `longest_difference_column_run` in `tools/fidelity_spatial.py`, consuming `_iter_difference_axis_runs(..., vertical=True)` and retaining one best record: greatest length, then earliest `(x, y)`; return None for no mismatches. Reused the iterator's strict maximum raw RGBA delta predicate and column boundaries. Wired both import paths and `main` in `tools/fidelity.py`; when the vertical list is also requested, selected the summary from that column-major list without another scan. Extended `tools/fidelity_reports.py::report_data` with keyword-only `longest_column_run` and `include_longest_column_run` arguments so requested empty summaries emit top-level `longest_difference_column_run: null`, while omitted summaries have no key. Records contain crop-relative `{x, y, length}`. In `tools/fidelity_rendering.py::render_text`, print `longest difference column run: ` followed by the JSON record or `null`, after the horizontal summary when present and before the verdict. Added `tests/test_fidelity_longest_column_run.py`, extended parser expectations, and documented the option in README.md and docs/invariants.md. Coverage focuses on vertical ties, empty results, alpha comparison, crop coordinates, rendering, omission, and list reuse.
+
 ### Reference-pixel sampler: filter histogram colors by minimum count (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Let palette measurements suppress rare color fragments with an explicit frequency cutoff.

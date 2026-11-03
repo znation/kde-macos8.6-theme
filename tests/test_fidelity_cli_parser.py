@@ -88,6 +88,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--difference-column-runs", help_text)
         self.assertIn("--difference-centroid", help_text)
         self.assertIn("--longest-difference-run", help_text)
+        self.assertIn("--longest-difference-column-run", help_text)
 
     def test_defaults_and_explicit_options(self):
         first = build_parser()
@@ -109,6 +110,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_column_runs": False,
             "difference_centroid": False,
             "longest_difference_run": False,
+            "longest_difference_column_run": False,
             "delta_histogram": False,
             "delta_percentiles": False,
             "explain_worst": False,
@@ -127,7 +129,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--channel-counts", "--channel-bias", "--channel-maxima",
             "--difference-rows", "--difference-columns", "--difference-row-bounds",
             "--difference-column-bounds", "--difference-runs",
-            "--difference-column-runs", "--difference-centroid", "--longest-difference-run", "--delta-histogram", "--delta-percentiles",
+            "--difference-column-runs", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
             "--explain-worst", "--tolerance", "9", "--max-mae", "1.5",
             "--max-frac", "0.25", "--max-rmse", "2.5", "--max-delta", "12",
             "--max-differing", "3",
@@ -142,7 +144,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "json", "channel_counts", "channel_bias", "channel_maxima",
             "difference_rows", "difference_columns", "difference_row_bounds",
             "difference_column_bounds", "difference_runs", "difference_column_runs",
-            "difference_centroid", "longest_difference_run", "delta_histogram", "delta_percentiles", "explain_worst",
+            "difference_centroid", "longest_difference_run", "longest_difference_column_run", "delta_histogram", "delta_percentiles", "explain_worst",
         )))
 
     def test_usage_errors_keep_status_two_and_escape_controls_without_reading(self):

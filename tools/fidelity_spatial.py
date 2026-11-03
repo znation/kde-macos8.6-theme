@@ -120,6 +120,15 @@ def longest_difference_run(candidate: Image, reference: Image, tolerance: int) -
     return best
 
 
+def longest_difference_column_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
+    """Return the longest vertical mismatch run; ties use earliest (x, y)."""
+    best = None
+    for run in _iter_difference_axis_runs(candidate, reference, tolerance, vertical=True):
+        if best is None or run["length"] > best["length"]:
+            best = run
+    return best
+
+
 def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
     """Return maximal horizontal runs of over-tolerance pixels, row-major."""
     return _difference_axis_runs(candidate, reference, tolerance, vertical=False)

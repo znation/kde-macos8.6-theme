@@ -77,6 +77,8 @@ def render_text(result: dict, candidate, reference) -> list[str]:
         lines.append("difference centroid: " + json.dumps(result["difference_centroid"], ensure_ascii=True))
     if "longest_difference_run" in result:
         lines.append("longest difference run: " + json.dumps(result["longest_difference_run"], ensure_ascii=True))
+    if "longest_difference_column_run" in result:
+        lines.append("longest difference column run: " + json.dumps(result["longest_difference_column_run"], ensure_ascii=True))
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
     mae = "unset" if thresholds["max_mae"] is None else f"{thresholds['max_mae']:.4f}"

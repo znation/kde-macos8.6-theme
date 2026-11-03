@@ -657,6 +657,10 @@ channel delta exceeds `--tolerance` — and the default no-differing-pixel gate 
 RGBA channel delta exceeds tolerance, with crop-relative `x`, `y` and `length`; ties use the
 earliest row and then column. The JSON field is `longest_difference_run`, and an empty comparison
 reports `null`. When combined with `--difference-runs`, it reuses those intervals.
+`--longest-difference-column-run` reports the longest vertical contiguous interval under the same
+comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
+JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
+combined with `--difference-column-runs`, it reuses those intervals.
 The count includes alpha and RGB beneath transparent pixels, treats missing alpha as 255, and
 counts each pixel once. The aggregate metrics use comparison raw bytes and are independent of
 `--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
