@@ -3221,3 +3221,10 @@ tabthumbnail,
 tabthumbnail .card picture {
   border-radius: 0;
 }
+
+/* GTK sidebar keyboard focus has no collected reference surface; reuse the
+   black focus colour from the landed policy. Resource base.css supplies the
+   stock button.sidebar-button:focus:focus-visible rule, inspected 2026-11-03. */
+button.sidebar-button:focus:focus-visible {
+  outline-color: #000000;
+}
