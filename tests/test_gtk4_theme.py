@@ -27,6 +27,7 @@ from support.gtk_theme_spec import (
     CHECK,
     COMBO_ARROW,
     DISABLED_TEXT,
+    ENTRY_FIELD,
     ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
     INFOBAR,
@@ -1325,6 +1326,30 @@ for radio in (False, True):
     def test_spin_button_field(self):
         self.assert_spin_button_field(
             ("spinbutton:not(.vertical)", "spinbutton.vertical > text")
+        )
+
+    def test_flat_entry_fields(self):
+        # The landed entry recipe governs the stock flat entry family: the
+        # sheet restates the stock grouped transparent-face arm with one
+        # byte-equal six-selector twin declaring ENTRY_FIELD, so a resting,
+        # focused, backdrop or disabled flat entry (and a spin button's flat
+        # field) paints the raised field instead of stock's transparency.
+        selectors = (
+            "spinbutton.vertical > text.flat",
+            "spinbutton.flat:not(.vertical)",
+            "entry.flat:focus-within",
+            "entry.flat:backdrop",
+            "entry.flat:disabled",
+            "entry.flat",
+        )
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], ENTRY_FIELD)
+            self.assertEqual(self.selectors.count(selector), 1)
+        # No other flat entry or spinbutton spelling exists in the sheet:
+        # the family scan kills renamed and stray variants alike.
+        self.assertEqual(
+            {s for s in self.rules if "flat" in s and ("entry" in s or "spinbutton" in s)},
+            set(selectors),
         )
 
     def test_title_buttons(self):

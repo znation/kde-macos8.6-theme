@@ -337,6 +337,32 @@ spinbutton:focus-within {
   outline-color: #000000;
 }
 
+/* No collected reference screenshot shows a GTK flat entry, the standing
+ * GTK-scope adaptation premise: restating the stock transparent flat field
+ * with the landed entry recipe above (the same erased stock
+ * flat-versus-raised distinction the landed flat-button arms follow).
+ * Stock grouped arm probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `spinbutton.vertical > text.flat, spinbutton.flat:not(.vertical),
+ * entry.flat:focus-within, entry.flat:backdrop, entry.flat:disabled,
+ * entry.flat { min-height: 0; padding: 2px;
+ * background-color: transparent; border-color: transparent;
+ * border-radius: 0 }`. Each restated selector is the byte-equal stock twin
+ * and the group sits after the landed base arms, so later source order wins
+ * every state tie and a focused, backdrop or disabled flat entry keeps the
+ * raised field; stock's min-height and padding stay in force because the
+ * cascade is per-property. */
+spinbutton.vertical > text.flat, spinbutton.flat:not(.vertical),
+entry.flat:focus-within, entry.flat:backdrop, entry.flat:disabled,
+entry.flat {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
 check, radio {
   min-height: 14px;
   min-width: 14px;
