@@ -94,6 +94,21 @@ class TestReadConfigText(unittest.TestCase):
         with self.assertRaises(OSError):
             os.fstat(closed[0])
 
+    def test_a_failed_close_is_reported_as_a_config_error(self):
+        path = self.directory / "settings.ini"
+        path.write_text("[Settings]\n", encoding="utf-8")
+        real_close = os.close
+
+        def close_then_fail(descriptor):
+            real_close(descriptor)
+            raise OSError(errno.EIO, "simulated close failure")
+
+        with mock.patch.object(gtk_user_files.os, "close", side_effect=close_then_fail):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.read_config_text(path)
+        self.assertIn(f"cannot close {path}", str(caught.exception))
+        self.assertIn("simulated close failure", str(caught.exception))
+
     def test_an_open_refused_for_another_reason_is_a_config_error(self):
         path = self.directory / "settings.ini"
         path.write_text("[Settings]\n", encoding="utf-8")

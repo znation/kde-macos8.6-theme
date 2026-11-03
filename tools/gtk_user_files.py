@@ -110,7 +110,10 @@ def read_config_text(path: Path) -> str | None:
     except (OSError, UnicodeDecodeError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
     finally:
-        os.close(descriptor)
+        try:
+            os.close(descriptor)
+        except OSError as exc:
+            raise ConfigError(f"cannot close {path}: {exc}") from exc
 
 
 def settings_path(config_home: Path, version: str) -> Path:
