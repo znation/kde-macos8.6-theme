@@ -10,7 +10,15 @@ import re
 from collections import Counter
 
 USER_JS_MARKER = "// org.macos8.desktop Firefox Platinum userChrome"
-PREF_LINE = 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+# The sheets load only when the legacy-stylesheet switch is on, and the window
+# takes the Platinum Aurorae frame -- pinstriped title bar, Mac widget boxes --
+# only when Firefox yields its tab-in-titlebar chrome to the window manager.
+# Both are ours to set and ours to remove again.
+STYLESHEETS_PREF = (
+    'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+)
+TITLEBAR_PREF = 'user_pref("browser.tabs.inTitlebar", 0);'
+PREF_LINES = (STYLESHEETS_PREF, TITLEBAR_PREF)
 
 # Only CR, LF and CRLF end a line here: ``str.splitlines`` also splits on VT,
 # FF, U+0085 and U+2028, which a foreign user.js line may contain as data and
@@ -53,7 +61,13 @@ def _dominant_ending(lines: list[tuple[str, str]]) -> str:
 
 
 def _without_block(lines: list[tuple[str, str]]) -> list[tuple[str, str]]:
-    """Drop each marker line and the exact pref line immediately after it.
+    """Drop each marker line and the run of pref lines immediately after it.
+
+    The run may be shorter than :data:`PREF_LINES`: a profile installed by the
+    version that wrote one preference still holds ``marker`` plus that one
+    line, and a removal must take it with the marker rather than leave it
+    behind. A line after the marker that is not one of ours is foreign and
+    stays, because losing a user preference is worse than a stray comment.
 
     A leading UTF-8 BOM is valid at the start of a JavaScript file and some
     editors add one, so it must not hide a marker no later than the first
@@ -68,7 +82,7 @@ def _without_block(lines: list[tuple[str, str]]) -> list[tuple[str, str]]:
             content = content.removeprefix(_BOM)
         if content == USER_JS_MARKER:
             index += 1
-            if index < len(lines) and lines[index][0] == PREF_LINE:
+            while index < len(lines) and lines[index][0] in PREF_LINES:
                 index += 1
             continue
         kept.append(lines[index])
@@ -83,13 +97,15 @@ def first_line(text: str) -> str:
 
 
 def set_user_js(text: str) -> str:
-    """Return *text* with exactly one marker-plus-pref block at the end.
+    """Return *text* with exactly one marker-plus-prefs block at the end.
 
-    Foreign lines keep their own endings. An earlier block is removed first,
-    so a repeat install does not duplicate it. An unterminated last foreign
-    line is terminated before the block is appended, and the block uses the
-    file's dominant ending (``"\\n"`` for a new file). A foreign setting of
-    the same preference is left alone, so our line follows it.
+    The block is the marker line followed by every line of :data:`PREF_LINES`
+    in order. Foreign lines keep their own endings. An earlier block, whatever
+    the number of pref lines it holds, is removed first, so a repeat install
+    does not duplicate it. An unterminated last foreign line is terminated
+    before the block is appended, and the block uses the file's dominant
+    ending (``"\\n"`` for a new file). A foreign setting of the same
+    preference is left alone, so our lines follow it.
     """
     lines = _without_block(_lines(text))
     ending = _dominant_ending(lines)
@@ -97,10 +113,11 @@ def set_user_js(text: str) -> str:
         content, _ = lines[-1]
         lines[-1] = (content, ending)
     lines.append((USER_JS_MARKER, ending))
-    lines.append((PREF_LINE, ending))
+    for pref in PREF_LINES:
+        lines.append((pref, ending))
     return _join(lines)
 
 
 def remove_user_js(text: str) -> str:
-    """Return *text* without our marker-plus-pref block, foreign lines intact."""
+    """Return *text* without our marker-plus-prefs block, foreign lines intact."""
     return _join(_without_block(_lines(text)))

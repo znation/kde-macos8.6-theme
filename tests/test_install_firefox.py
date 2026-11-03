@@ -102,13 +102,7 @@ class TestInstall(FirefoxProfileTestCase):
                     installed.read_bytes(),
                 )
         user_js = _read(self.user_js_path())
-        self.assertEqual(
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n",
-            user_js,
-        )
+        self.assertEqual(self._owned_user_js_block(), user_js)
         self.assertEqual(1, user_js.count(firefox_user_js.USER_JS_MARKER))
 
     def test_environment_profile_is_used_by_the_target(self):
@@ -797,12 +791,7 @@ class TestRemove(FirefoxProfileTestCase):
         # by the reader; installing must leave it readable so removal can
         # reverse the block and restore the foreign line.
         cap = 1 << 20
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
+        block = self._owned_user_js_block()
         foreign = "x" * (cap - len(block.encode("utf-8")) - 1) + "\n"
         _write(self.user_js_path(), foreign + block)
         self.assertEqual(cap, self.user_js_path().stat().st_size)
@@ -822,12 +811,7 @@ class TestRemove(FirefoxProfileTestCase):
                 profile.mkdir()
                 path = profile / relative
                 _write(path, f"\ufeff{marker}\nbody {{}}\n")
-                block = (
-                    firefox_user_js.USER_JS_MARKER
-                    + "\n"
-                    + firefox_user_js.PREF_LINE
-                    + "\n"
-                )
+                block = self._owned_user_js_block()
                 _write(profile / "user.js", block)
 
                 result = self.run_tool("--remove", "--profile", str(profile))
@@ -837,7 +821,11 @@ class TestRemove(FirefoxProfileTestCase):
 
     def test_remove_keeps_a_foreign_sheet_and_foreign_pref(self):
         foreign_sheet = "/* my own chrome */\n"
-        foreign_js = 'user_pref("tabs", 0);\r\n' + firefox_user_js.PREF_LINE + "\r\n"
+        foreign_js = (
+            'user_pref("tabs", 0);\r\n'
+            + firefox_user_js.STYLESHEETS_PREF
+            + "\r\n"
+        )
         _write(self.sheet_path(), foreign_sheet)
         _write(self.user_js_path(), foreign_js)
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -849,12 +837,7 @@ class TestRemove(FirefoxProfileTestCase):
         foreign_content = "/* my own content */\n"
         _write(self.content_sheet_path(), foreign_content)
         _write(self.sheet_path(), f"{install_firefox.CSS_MARKER}\n/* owned */\n")
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
+        block = self._owned_user_js_block()
         _write(self.user_js_path(), block)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -868,12 +851,7 @@ class TestRemove(FirefoxProfileTestCase):
             self.content_sheet_path(),
             f"{install_firefox.CONTENT_CSS_MARKER}\n/* owned */\n",
         )
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
+        block = self._owned_user_js_block()
         _write(self.user_js_path(), block)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -964,7 +942,7 @@ class TestRemove(FirefoxProfileTestCase):
 
     def test_install_and_remove_preserve_foreign_lines_and_crlf(self):
         foreign = (
-            'user_pref("browser.tabs.inTitlebar", 0);\r\n'
+            'user_pref("browser.tabs.warnOnClose", false);\r\n'
             'user_pref("browser.startup.homepage", "about:blank");'
         )
         _write(self.user_js_path(), foreign)

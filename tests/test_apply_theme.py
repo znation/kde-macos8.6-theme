@@ -29,7 +29,13 @@ from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.recorded_lines import recorded_lines
-from tools import apply_theme, diagnostics, required_command, theme_apply_optional
+from tools import (
+    apply_theme,
+    diagnostics,
+    required_command,
+    theme_apply_optional,
+    theme_defaults,
+)
 
 
 class StubTools(unittest.TestCase):
@@ -117,10 +123,30 @@ class TestCommandOrder(StubTools):
                 "lookandfeeltool -a org.macos8.desktop",
                 "plasma-apply-colorscheme MacOS8",
                 "plasma-apply-desktoptheme org.macos8.desktop",
+                "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
+                "--key ButtonsOnLeft X",
+                "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
+                "--key ButtonsOnRight AL",
                 "kvantummanager --set org.macos8.desktop",
                 "qdbus6 org.kde.KWin /KWin reconfigure",
             ],
             self.recorded(),
+        )
+
+    def test_the_button_layout_is_the_one_the_global_theme_declares(self):
+        # The apply writes the pair the shipped contents/defaults already
+        # names; a drift between the two would silently restore the stock
+        # right-hand button cluster the theme exists to replace.
+        self.assertEqual(
+            {"ButtonsOnLeft": "X", "ButtonsOnRight": "AL"},
+            dict(apply_theme.DECORATION_BUTTONS),
+        )
+        section = theme_defaults.defaults_groups()[
+            (apply_theme.DECORATION_FILE, apply_theme.DECORATION_GROUP)
+        ]
+        self.assertEqual(
+            tuple((key, section[key]) for key, _ in apply_theme.DECORATION_BUTTONS),
+            apply_theme.DECORATION_BUTTONS,
         )
 
     def test_never_passes_reset_layout(self):
@@ -160,6 +186,27 @@ class TestFailurePaths(StubTools):
         self.assertEqual(1, status)
         self.assertIn("plasma-apply-colorscheme exited 4", stderr)
         self.assertIn("colorscheme exploded", stderr)
+
+    def test_a_failing_button_layout_write_exits_1_and_stops_before_the_optional_steps(
+        self,
+    ):
+        # The layout write is required: a kwinrc the apply cannot reach would
+        # otherwise leave the stock button cluster in place with no diagnostic.
+        self.stub(
+            "kwriteconfig6",
+            "echo cannot write kwinrc >&2\nexit 6",
+        )
+        status, stderr = call_main(apply_theme.main)
+        self.assertEqual(1, status)
+        self.assertIn("kwriteconfig6 exited 6", stderr)
+        self.assertIn("cannot write kwinrc", stderr)
+        recorded = self.recorded()
+        self.assertEqual(
+            "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
+            "--key ButtonsOnLeft X",
+            recorded[-1],
+        )
+        self.assertNotIn("kvantummanager --set org.macos8.desktop", recorded)
 
     def test_missing_qdbus_prints_a_note_and_exits_0(self):
         self.unstub("qdbus6")

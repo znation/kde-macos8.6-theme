@@ -18,8 +18,17 @@ from tools import firefox_user_js, install_firefox
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
 
+
+def _block(newline="\n"):
+    """Return the installer-owned block with *newline* endings."""
+    return "".join(
+        line + newline
+        for line in (firefox_user_js.USER_JS_MARKER, *firefox_user_js.PREF_LINES)
+    )
+
+
 class TestUserJs(unittest.TestCase):
-    def test_shipped_marker_and_preference_are_pinned(self):
+    def test_shipped_marker_and_preferences_are_pinned(self):
         self.assertEqual(
             "/* org.macos8.desktop Firefox chrome, standalone userChrome.css",
             install_firefox.CSS_MARKER,
@@ -34,8 +43,11 @@ class TestUserJs(unittest.TestCase):
             firefox_user_js.USER_JS_MARKER,
         )
         self.assertEqual(
-            'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
-            firefox_user_js.PREF_LINE,
+            (
+                'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
+                'user_pref("browser.tabs.inTitlebar", 0);',
+            ),
+            firefox_user_js.PREF_LINES,
         )
         for path, marker in (
             (SHEET_PATH, install_firefox.CSS_MARKER),
@@ -48,63 +60,65 @@ class TestUserJs(unittest.TestCase):
                 ).decode("utf-8").splitlines()[0]
                 self.assertEqual(marker, first_line)
 
-    def test_new_file_gets_one_marker_and_pref_block(self):
-        self.assertEqual(
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n",
-            firefox_user_js.set_user_js(""),
-        )
+    def test_new_file_gets_one_marker_and_prefs_block(self):
+        self.assertEqual(_block(), firefox_user_js.set_user_js(""))
+        for pref in firefox_user_js.PREF_LINES:
+            self.assertEqual(1, _block().count(pref))
 
     def test_repeat_install_leaves_exactly_one_block(self):
         once = firefox_user_js.set_user_js("")
         self.assertEqual(once, firefox_user_js.set_user_js(once))
         self.assertEqual(1, once.count(firefox_user_js.USER_JS_MARKER))
-        self.assertEqual(1, once.count(firefox_user_js.PREF_LINE))
+        for pref in firefox_user_js.PREF_LINES:
+            self.assertEqual(1, once.count(pref))
+
+    def test_a_legacy_single_preference_block_is_replaced_by_both(self):
+        # A profile installed by the version that wrote only the stylesheet
+        # switch is upgraded in place: the old block leaves no line behind.
+        legacy = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.STYLESHEETS_PREF
+            + "\n"
+        )
+        self.assertEqual(_block(), firefox_user_js.set_user_js(legacy))
+        self.assertEqual("", firefox_user_js.remove_user_js(legacy))
 
     def test_foreign_lines_keep_their_crlf_and_terminated_last_line(self):
         foreign = (
-            'user_pref("browser.tabs.inTitlebar", 0);\r\n'
-            'user_pref("browser.startup.homepage", "about:blank");'
+            'user_pref("browser.startup.homepage", "about:blank");\r\n'
+            'user_pref("browser.startup.page", 3);'
         )
         self.assertEqual(
-            foreign
-            + "\r\n"
-            + firefox_user_js.USER_JS_MARKER
-            + "\r\n"
-            + firefox_user_js.PREF_LINE
-            + "\r\n",
+            foreign + "\r\n" + _block("\r\n"),
             firefox_user_js.set_user_js(foreign),
         )
 
-    def test_foreign_setting_of_the_same_pref_survives_before_our_line(self):
-        foreign = firefox_user_js.PREF_LINE + "\n"
+    def test_foreign_setting_of_the_same_pref_survives_before_our_lines(self):
+        foreign = firefox_user_js.STYLESHEETS_PREF + "\n"
         updated = firefox_user_js.set_user_js(foreign)
-        self.assertEqual(2, updated.count(firefox_user_js.PREF_LINE))
+        self.assertEqual(2, updated.count(firefox_user_js.STYLESHEETS_PREF))
         self.assertTrue(updated.startswith(foreign))
-        self.assertTrue(
-            updated.endswith(
-                firefox_user_js.USER_JS_MARKER
-                + "\n"
-                + firefox_user_js.PREF_LINE
-                + "\n"
-            )
-        )
+        self.assertTrue(updated.endswith(_block()))
 
-    def test_remove_deletes_only_the_marker_pair(self):
+    def test_remove_deletes_only_the_marker_and_its_pref_lines(self):
+        foreign = 'user_pref("a", 1);\n'
+        text = foreign + _block()
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
+
+    def test_remove_deletes_a_legacy_block_with_one_pref_line(self):
         foreign = 'user_pref("a", 1);\n'
         text = (
             foreign
             + firefox_user_js.USER_JS_MARKER
             + "\n"
-            + firefox_user_js.PREF_LINE
+            + firefox_user_js.STYLESHEETS_PREF
             + "\n"
         )
         self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
 
     def test_remove_leaves_a_foreign_pref_and_missing_final_newline(self):
-        foreign = firefox_user_js.PREF_LINE + "\nuser_pref(\"last\", 1);"
+        foreign = firefox_user_js.STYLESHEETS_PREF + "\nuser_pref(\"last\", 1);"
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
         self.assertEqual(
             'user_pref("last", 1);',
@@ -114,15 +128,9 @@ class TestUserJs(unittest.TestCase):
     def test_a_bom_before_our_marker_still_matches_the_block(self):
         # A UTF-8 BOM is valid at the start of a JavaScript file and some
         # editors add one. It must not hide our marker block: a repeat install
-        # must not append a second copy, and a removal must delete the pair.
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
-        text = "\ufeff" + block
-        self.assertEqual(block, firefox_user_js.set_user_js(text))
+        # must not append a second copy, and a removal must delete the block.
+        text = "\ufeff" + _block()
+        self.assertEqual(_block(), firefox_user_js.set_user_js(text))
         self.assertEqual("", firefox_user_js.remove_user_js(text))
 
     def test_a_bom_before_a_foreign_first_line_stays(self):
@@ -134,16 +142,14 @@ class TestUserJs(unittest.TestCase):
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
 
     def test_bom_tolerance_is_limited_to_one_bom_on_the_first_line(self):
-        marker = firefox_user_js.USER_JS_MARKER
-        pref = firefox_user_js.PREF_LINE
-        block = marker + "\r\n" + pref + "\r\n"
+        block = _block("\r\n")
         for foreign in (
             '// foreign header\r\n\ufeff' + block,
             '\ufeff\ufeff' + block,
         ):
             with self.subTest(foreign=foreign):
                 # These are foreign marker lookalikes, so neither their
-                # comments nor the preference following them may be deleted.
+                # comments nor the preferences following them may be deleted.
                 self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
                 installed = firefox_user_js.set_user_js(foreign)
                 self.assertEqual(foreign + block, installed)
@@ -160,42 +166,49 @@ class TestUserJs(unittest.TestCase):
         self.assertEqual("a", first_line("a\nb"))
         self.assertEqual("a", first_line("a\r\nb"))
         self.assertEqual("a", first_line("a\rb"))
-        self.assertEqual("a\x0bb c", first_line("a\x0bb c\nd"))
+        self.assertEqual("a\x0bb c", first_line("a\x0bb c\nd"))
         self.assertEqual("\ufeffa", first_line("\ufeffa\nb"))
 
     def test_remove_is_repeatable_and_keeps_crlf(self):
         foreign = 'user_pref("a", 1);\r\n'
-        text = (
-            foreign
-            + firefox_user_js.USER_JS_MARKER
-            + "\r\n"
-            + firefox_user_js.PREF_LINE
-            + "\r\n"
-        )
+        text = foreign + _block("\r\n")
         once = firefox_user_js.remove_user_js(text)
         self.assertEqual(foreign, once)
         self.assertEqual(once, firefox_user_js.remove_user_js(once))
 
     def test_remove_drops_a_marker_with_no_pref_line_after_it(self):
-        # The block is exactly the marker plus the pref line immediately after
-        # it, so a marker whose next line is foreign must not take that line
-        # with it: losing a user preference is worse than leaving a comment.
+        # The block is the marker plus the run of our pref lines after it, so
+        # a marker whose next line is foreign must not take that line with it:
+        # losing a user preference is worse than leaving a comment.
         foreign = 'user_pref("a", 1);\n'
         following = 'user_pref("b", 2);\n'
         text = foreign + firefox_user_js.USER_JS_MARKER + "\n" + following
         self.assertEqual(foreign + following, firefox_user_js.remove_user_js(text))
 
+    def test_remove_keeps_a_foreign_line_inside_a_pref_run(self):
+        # Only our exact lines are dropped: a user line between the marker and
+        # one of our prefs stays, and the marker still goes with its own run.
+        marker = firefox_user_js.USER_JS_MARKER + "\n"
+        foreign = 'user_pref("mid", 1);\n'
+        text = (
+            marker
+            + firefox_user_js.STYLESHEETS_PREF
+            + "\n"
+            + foreign
+            + firefox_user_js.TITLEBAR_PREF
+            + "\n"
+        )
+        self.assertEqual(
+            foreign + firefox_user_js.TITLEBAR_PREF + "\n",
+            firefox_user_js.remove_user_js(text),
+        )
+
     def test_install_removes_every_earlier_block(self):
         # A hand-edited user.js can hold two copies of our block; the docstring
         # promises exactly one at the end, and every foreign line survives
-        # once, whatever the number of earlier pairs.
+        # once, whatever the number of earlier blocks.
         foreign = 'user_pref("a", 1);\n'
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
+        block = _block()
         updated = firefox_user_js.set_user_js(foreign + block + foreign + block)
         self.assertEqual(foreign + foreign + block, updated)
 
@@ -205,11 +218,7 @@ class TestUserJs(unittest.TestCase):
         # foreign lines must keep their own endings either way.
         foreign = 'user_pref("a", 1);\r\nuser_pref("b", 2);\n'
         self.assertEqual(
-            foreign
-            + firefox_user_js.USER_JS_MARKER
-            + "\r\n"
-            + firefox_user_js.PREF_LINE
-            + "\r\n",
+            foreign + _block("\r\n"),
             firefox_user_js.set_user_js(foreign),
         )
 
@@ -219,24 +228,13 @@ class TestUserJs(unittest.TestCase):
         # ending, and the appended block uses CR too.
         foreign = 'user_pref("a", 1);\ruser_pref("b", 2);'
         self.assertEqual(
-            foreign
-            + "\r"
-            + firefox_user_js.USER_JS_MARKER
-            + "\r"
-            + firefox_user_js.PREF_LINE
-            + "\r",
+            foreign + "\r" + _block("\r"),
             firefox_user_js.set_user_js(foreign),
         )
 
     def test_remove_keeps_lone_cr_endings(self):
         foreign = 'user_pref("a", 1);\r'
-        text = (
-            foreign
-            + firefox_user_js.USER_JS_MARKER
-            + "\r"
-            + firefox_user_js.PREF_LINE
-            + "\r"
-        )
+        text = foreign + _block("\r")
         self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
 
@@ -247,12 +245,7 @@ class TestUserJs(unittest.TestCase):
         # leave an extra line break behind.
         foreign = 'user_pref("a", "x\u2028y\u0085z\v\f");'
         self.assertEqual(
-            foreign
-            + "\n"
-            + firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n",
+            foreign + "\n" + _block(),
             firefox_user_js.set_user_js(foreign),
         )
         self.assertEqual(foreign + "\n", firefox_user_js.remove_user_js(foreign + "\n"))

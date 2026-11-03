@@ -2,10 +2,13 @@
 
 ``make apply`` runs ``make install`` and then this script. It re-selects the
 global theme, the color scheme and the desktop theme so Plasma and KDE
-applications reread the freshly installed files without a logout, tells
-Kvantum which of its installed themes to draw, and asks KWin to reconfigure
-so the window decoration reloads. The startup splash is
-read at login, so a splash change appears only on the next login.
+applications reread the freshly installed files without a logout, writes the
+theme's window-button layout into `kwinrc` (the global theme's look-and-feel
+apply drops those two keys, leaving KWin's stock right-hand cluster instead of
+the reference's close box at the leading edge), tells Kvantum which of its
+installed themes to draw, and asks KWin to reconfigure so the window
+decoration reloads. The startup splash is read at login, so a splash change
+appears only on the next login.
 
 The global theme is applied without ``--resetLayout``: Plasma replaces the
 user's panels only when that flag is given, so applying the theme this way
@@ -16,7 +19,7 @@ wholesale; the explicit selections then hold whatever the user had chosen.
 The best-effort selections -- telling Kvantum which of its installed themes
 to draw and asking KWin to reconfigure -- and their missing-tool and failure
 policies live in ``theme_apply_optional``; this module owns the required
-selections, the locks and the exit status.
+selections, the decoration button layout, the locks and the exit status.
 
 Usage::
 
@@ -80,12 +83,35 @@ REQUIRED_TOOLS = (
     "lookandfeeltool",
     "plasma-apply-colorscheme",
     "plasma-apply-desktoptheme",
+    "kwriteconfig6",
 )
+# The window decoration's button layout, written after the global theme so a
+# look-and-feel apply cannot reset it. The values are the global theme's own
+# `contents/defaults` ([kwinrc][org.kde.kdecoration2]); tests/test_apply_theme.py
+# pins the pair to that file. The Mac OS 8.6 reference window puts the close box
+# at the leading edge and the zoom/collapse boxes at the trailing edge, and the
+# theme's defaults name exactly those buttons (X; A, L).
+DECORATION_FILE = "kwinrc"
+DECORATION_GROUP = "org.kde.kdecoration2"
+DECORATION_BUTTONS = (("ButtonsOnLeft", "X"), ("ButtonsOnRight", "AL"))
 # Each required step's argv, in the order it runs; argv[0] names the tool.
 STEPS = (
     ["lookandfeeltool", "-a", LNF_ID],
     ["plasma-apply-colorscheme", COLOR_SCHEME],
     ["plasma-apply-desktoptheme", DTHEME_ID],
+    *(
+        [
+            "kwriteconfig6",
+            "--file",
+            DECORATION_FILE,
+            "--group",
+            DECORATION_GROUP,
+            "--key",
+            key,
+            value,
+        ]
+        for key, value in DECORATION_BUTTONS
+    ),
 )
 COMMAND_TIMEOUT = 60.0
 # The wait for the data-home lock matches make install/uninstall's own

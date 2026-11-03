@@ -57,11 +57,12 @@ class FirefoxProfileTestCase(unittest.TestCase):
     @staticmethod
     def _owned_user_js_block(newline="\n"):
         """Return the installer-owned preference block with *newline* endings."""
-        return (
-            firefox_user_js.USER_JS_MARKER
-            + newline
-            + firefox_user_js.PREF_LINE
-            + newline
+        return "".join(
+            line + newline
+            for line in (
+                firefox_user_js.USER_JS_MARKER,
+                *firefox_user_js.PREF_LINES,
+            )
         )
 
     def create_symlink(self, link, target, *, target_is_directory=False):

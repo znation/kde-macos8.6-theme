@@ -84,9 +84,13 @@ The standalone Firefox Platinum `userChrome.css` and `userContent.css` ship at
 `theme/firefox/org.macos8.desktop/chrome/userContent.css`. `make apply` installs them into the active profile when one exists (a machine without a Firefox profile gets a note and the other surfaces still apply); `make install-firefox` installs them into
 one named profile: it copies them to that profile's
 `chrome/userChrome.css` and `chrome/userContent.css` and adds
-`toolkit.legacyUserProfileCustomizations.stylesheets=true` as a marker-delimited
-block in its `user.js`, and `make remove-firefox` removes only those three changes,
-leaving a foreign sheet or preference untouched. All of these use the profile named by
+`toolkit.legacyUserProfileCustomizations.stylesheets=true` and
+`browser.tabs.inTitlebar=0` as a marker-delimited block in its `user.js`, and
+`make remove-firefox` removes only those three changes,
+leaving a foreign sheet or preference untouched. The title-bar preference hands
+Firefox's tab-in-title-bar chrome to the window manager, so the window takes the
+Platinum Aurorae frame (pinstriped title bar, close and zoom boxes) instead of
+Firefox's own borderless title strip. All of these use the profile named by
 `FIREFOX_PROFILE=path` (an absolute profile directory) or, when it is unset, the active
 profile under `$HOME/.mozilla/firefox` (from `installs.ini`, then `profiles.ini`). The
 profile path reaches the recipe shells pasted into a double-quoted word, so the
@@ -97,8 +101,9 @@ diagnostic), while a space or an apostrophe stays legal.
 The two targets serialize on a lock over the profile directory, so a concurrent
 install and removal cannot leave a preference block without its sheets (or the
 sheets without the block); a run that cannot take that lock within its bounded
-wait exits 2 with a diagnostic. Restart Firefox to pick up the change; setting
-`browser.tabs.inTitlebar=0` makes Firefox use the KWin-drawn Aurorae frame.
+wait exits 2 with a diagnostic. Restart Firefox to pick up the change; the
+installed `browser.tabs.inTitlebar=0` is what makes Firefox use the KWin-drawn
+Aurorae frame.
 
 System Settings displays the color scheme as `Platinum`; its legacy CLI ID remains `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
@@ -249,14 +254,16 @@ lists the same `PYTHON` floor.
 the running Plasma session (`make apply` re-applies the global theme, which
 selects Lato; a bare `make install` only copies the family), so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
-`MacOS8` color scheme and the `org.macos8.desktop` desktop theme, tells Kvantum to draw our theme
+`MacOS8` color scheme and the `org.macos8.desktop` desktop theme, writes the theme's
+window-button layout into `kwinrc` (close box at the leading edge, zoom and collapse at the
+trailing edge — Plasma's look-and-feel apply drops those two keys), tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
 KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
 it notes that and leaves KWin to reload on its next start). It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
-`plasma-apply-colorscheme` and `plasma-apply-desktoptheme`, exiting 2 naming the first one that is
+`plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`, exiting 2 naming the first one that is
 missing or cannot be started, or reporting the scratch directory it cannot create. The three
-Plasma re-selections run under the data-home flock that `make install` and `make uninstall` hold: a run
+Plasma re-selections and the button-layout write run under the data-home flock that `make install` and `make uninstall` hold: a run
 that cannot take that lock within its bounded wait exits 2 naming the data home, so a concurrent
 uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
