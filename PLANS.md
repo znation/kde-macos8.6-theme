@@ -112,29 +112,6 @@ Append one dated row at the end of the `## gtk` table in `docs/invariants.md` na
 
 **Acceptance criteria.** Reading the shipped GTK 4 sheet shows the stocked six-selector twin group appended between the landed `spinbutton:focus-within` block and the landed `check, radio` block, declaring exactly the five `ENTRY_FIELD` declarations and no state spellings beyond the six stock twins; deleting the group, dropping any of the six spellings (including `entry.flat:focus-within`, `entry.flat:backdrop` and `entry.flat:disabled`), renaming any selector off its byte-equal stock twin, or adding a seventh spelling or a sixth declaration fails `test_flat_entry_fields` (per-selector equality, count 1, or the family scan respectively). The landed entry recipe and spin-button field tests stay green, the landed sheet's other rules are untouched, `tests/invariants.py`, via `make check`'s invariants gate, accepts the new gtk row, and `make check` is green after the final edit.
 
-### Platinum GTK 4 searchbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued actionbar focus plan)
-
-**Goal and grounding.** Keep searchbar button keyboard-focus colour black like the landed generic button policy. The shipped sheet has searchbar band paint but no searchbar focus-visible override. Backlog and archive searches found toolbar/headerbar focus work explicitly excluding this surface. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found the nine exact selectors below with `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent)`, more specific than the generic button rule. The GTK resource `/org/gtk/libgtk/theme/Default/Default-light.css` in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no searchbar outline-colour block. No collected reference shows GTK searchbar keyboard focus; black reuses the landed button focus policy as a platform adaptation rather than a new measurement.
-
-**Approach and files.** Append a dated adaptation comment and one grouped rule to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, declaring exactly `outline-color: #000000` with these stock twins (comma-separate in CSS):
-
-```css
-searchbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-searchbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-searchbar > revealer > box .close:focus:focus-visible
-searchbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible
-searchbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-searchbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-searchbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)
-searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible
-searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible
-```
-
-The supported GTK 4 user stylesheet import lets later exact twins override stock. Retain inherited geometry: stock gives the first two arms 2px width and 1px offset, the remaining seven 2px width and -2px offset. Keep the library name outside CSS comments per `TestGtk4Theme::test_stands_alone`. Search entry paint, band paint, splitbutton separators and other containers' focus families are outside this focused change.
-
-Add `TestGtk4Theme::test_searchbar_button_focus_outline_color` in `tests/test_gtk4_theme.py`, following `test_toolbar_button_focus_outline_color`: exact complete dictionaries, single occurrences, equality with generic button focus colour, and an exact family set scanning `self.selectors` for `searchbar` and `:focus:focus-visible`. Extend `docs/invariants.md` under `## gtk` with a dated row naming the new test, missing reference surface, reused colour, resource probe, inherited geometry and user-import scope. These three implementation files fit one run.
-
-**Acceptance criteria.** Parsing the shipped stylesheet yields exactly `{"outline-color": "#000000"}` once for each listed selector, equal to the generic button focus colour; its searchbar focus-visible family is exactly the nine listed spellings. Removing the close arm, renaming another arm, duplicating a selector, substituting accent colour or adding width/offset declarations fails the new test. Existing searchbar band and generic button tests pass, the invariant register resolves the new test reference, and `make check` passes after the final edit. Declaration checks do not establish rendered focus pixels or keyboard traversal.
 
 ### README histogram pagination: consolidate the duplicated color-offset guidance (planned 2026-11-03 by the plan role)
 
