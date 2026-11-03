@@ -537,6 +537,12 @@ stop at each row boundary, and merge adjacent matches even when their RGB
 values differ within tolerance. The report covers the full region independently
 of `--match-pixels`; potentially large output is opt-in.
 
+Add `--min-match-run-length N` with `--match-runs` to omit horizontal match
+segments shorter than `N` pixels. The inclusive cutoff filters only the
+reported list; match counts and other full-region diagnostics, including the
+longest-run summary, still use every matching pixel. A cutoff above the longest
+segment reports an empty `match.runs` array (or `matching runs: []` in text).
+
 Add `--match-column-runs` with `--find-color` to report maximal contiguous
 vertical segments using the same match predicate. JSON adds `match.column_runs`
 with absolute `x`, `y` and `length`; text prints the records on a

@@ -65,6 +65,9 @@ def _search_match(args, image) -> dict:
             min_x, min_y = min(min_x, x), min(min_y, y)
             max_x, max_y = max(max_x, x), max(max_y, y)
     matched_runs, matched_column_runs = intervals.finish()
+    if args.min_match_run_length is not None:
+        matched_runs = [run for run in matched_runs
+                        if run["length"] >= args.min_match_run_length]
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
     return {"rgb": list(target), "hex": _hex(target), "count": count,

@@ -26,6 +26,8 @@ class TestSampleOptionValidation(CliTestCase):
             (("--match-fraction",), "--match-fraction requires --find-color"),
             (("--match-centroid",), "--match-centroid requires --find-color"),
             (("--match-runs",), "--match-runs requires --find-color"),
+            (("--min-match-run-length", "1", "--find-color", "010203"),
+             "--min-match-run-length requires --match-runs"),
             (("--match-column-runs",), "--match-column-runs requires --find-color"),
             (("--runs", "--width", "2", "--height", "2"),
              "--runs requires a single row or column unless --run-axis is given"),
@@ -61,6 +63,8 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--width", "2", "--height", "2", "--runs", "--run-axis", "vertical"),
             ("image.png", "0", "0", "--width", "1", "--height", "1", "--runs"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1"),
+            ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
+             "--min-match-run-length", "1"),
         )
         for argv in cases:
             with self.subTest(argv=argv):
