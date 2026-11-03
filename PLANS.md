@@ -5,7 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Reference-pixel sampler centroid, part 2/2: report the centroid of matching pixels (planned 2026-11-02 by the plan role; requires part 1/2 landed)
+_None yet._
 
 **Goal and grounding.** Measure the placement of irregular or disconnected color features without treating their enclosing rectangle's center as their center of mass. `tools/sample_report_search.py::report_search` already counts matching pixels and reports bounds, optional coordinate prefixes and runs, but does not accumulate coordinate sums. Searches for centroid/center-of-mass support in tools, tests and planned/finished plan headings found no existing capability. This is independent of the fidelity-rendering extraction above.
 

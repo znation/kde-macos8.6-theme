@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler centroid, part 2/2: report the centroid of matching pixels (planned 2026-11-02 by the plan role; requires part 1/2 landed) — done 2026-11-02 by the feature role
+
+**Goal and grounding.** Measure the placement of irregular or disconnected color features without treating their enclosing rectangle's center as their center of mass. The sampler now accumulates matching coordinate sums during its existing traversal and reports the arithmetic mean.
+
+**Approach and files.** Added opt-in `--match-centroid` with `--find-color` validation, JSON and text output, focused tests for crops, filtering, limits, empty and singleton matches, direct-script parity, and documentation in README.md and `docs/invariants.md`. No theme art or visual constants changed.
+
+**Acceptance criteria.** The asymmetric cropped fixture proves absolute fractional means and excludes out-of-crop matches. Tests cover zero, singleton and multiple matches, RGB tolerance, exact alpha including transparent RGB, match limits, companion diagnostics, default omission, invalid use before image reads, and direct-script/package CLI parity. The sampler retains bounded PNG decoding at `max_rows=y+height`.
+
 ### Reference-pixel sampler centroid, part 1/2: separate search result assembly from printing (planned 2026-11-02 by the plan role — done 2026-11-02 by the feature role)
 
 **Goal and grounding.** Resolve the centroid plan's sizing hold by separating its preparation from its new behavior. `tools/sample_report_search.py::report_search` previously performed matching, run accumulation, match-dictionary assembly and printing in one function. This part makes the search result directly testable before sibling part 2/2 adds centroid reporting, and is useful without that feature.
