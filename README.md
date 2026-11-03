@@ -616,6 +616,12 @@ vertical-run summary, still use every matching pixel. A cutoff above the
 longest segment reports an empty `match.column_runs` array (or
 `matching column runs: []` in text).
 
+Add `--max-match-column-run-length N` with `--match-column-runs` to omit
+vertical match segments longer than `N` pixels. The inclusive maximum filters
+only the reported list and combines with the minimum cutoff; contradictory
+cutoffs produce an empty list while match counts and longest-run diagnostics
+still cover the full search.
+
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the
 same array on a `matching rows:` line after interval reports. Index zero is the

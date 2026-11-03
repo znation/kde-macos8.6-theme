@@ -39,6 +39,8 @@ class TestSampleOptionValidation(CliTestCase):
             (("--match-column-runs",), "--match-column-runs requires --find-color"),
             (("--min-match-column-run-length", "1", "--find-color", "010203"),
              "--min-match-column-run-length requires --match-column-runs"),
+            (("--max-match-column-run-length", "1", "--find-color", "010203"),
+             "--max-match-column-run-length requires --match-column-runs"),
             (("--runs", "--width", "2", "--height", "2"),
              "--runs requires a single row or column unless --run-axis is given"),
             (("--run-axis", "vertical"), "--run-axis requires --runs"),

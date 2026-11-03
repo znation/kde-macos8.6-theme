@@ -5,17 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Reference-pixel sampler: cap histogram colors by region fraction (planned 2026-11-03 by the plan role)
-
-Superseded by the implemented `--max-color-fraction` option, recorded in PLANS-DONE.md as “Reference-pixel sampler: suppress dominant colors by region fraction.”
-
-### Reference-pixel sampler: isolate short vertical color-match runs (planned 2026-11-03 by the plan role)
-
-**Goal.** Inspect short reference-color strokes without long matching side-border spans filling the vertical run report. Source and related finished-plan searches found horizontal maximum and vertical minimum filters, but no vertical maximum filter.
-
-**Approach and files.** Add optional `--max-match-column-run-length N`, default None, using `positive_int` in `tools/sample_arguments.py::build_parser`. In `option_error`, require `--match-column-runs` after the existing vertical minimum dependency check; report `--max-match-column-run-length requires --match-column-runs` before image reads. In `tools/sample_report_search.py::_search_match`, filter completed vertical intervals inclusively alongside the minimum filter after collection. Do not trim or split intervals; contradictory cutoffs produce an empty list. Keep full-region statistics and both longest summaries independent of list filtering. Add `tests/test_sample_match_column_runs_max_length.py` using `CliTestCase`, extend `tests/test_sample_option_validation.py::TestSampleOptionValidation`, and document the option in README.md and the vertical filtering row of docs/invariants.md. These six files bound one run; no collector or decoder changes are needed.
-
-**Acceptance criteria.** In a 2x9 crop at origin (2,1), let the first column match at relative rows {0,2,3,5,6,7} and the second at {8}. Maximum 2 emits absolute records (2,1,1), (2,3,2), (3,9,1) in column-major order; maximum 1 keeps the two singletons, minimum 2 plus maximum 2 keeps the length-two interval, and minimum 3 plus maximum 2 emits an empty list. Assert literal records in JSON and text, including bottom-edge flushing, separate columns and unmerged gaps. A maximum at least the crop height matches omitted-option output; no matches produce `match.column_runs: []` and `matching column runs: []`. With coordinate limiting, horizontal filtering, both longest summaries and row/column diagnostics requested, the vertical maximum changes only the vertical list; the longest vertical summary still identifies (2,6,3) when maximum 2 hides it. Include a tolerance-boundary pair of unequal RGB pixels forming one interval and an exact-alpha rejection breaking another interval. Zero, negative, fractional, malformed, non-ASCII and missing values exit 2 with empty stdout; valid use with `--find-color` but without `--match-column-runs` emits the dependency diagnostic before PNG reads. Verify help exposes the flag, absent default is None, and direct-script/package filtered output agrees. Run `make check` after final edits.
+_None yet._
 
 ## Done
 
