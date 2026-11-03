@@ -620,6 +620,10 @@ Use `--height` for a vertical scan:
 python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs
 ```
 
+Pass `--min-run-length N` with `--runs` to omit completed color runs shorter than `N` pixels.
+The inclusive cutoff is applied independently within each scanline; omitted runs do not join
+separated runs of the same color. A cutoff of 1 keeps the unfiltered result.
+
 ## Fidelity checking
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
