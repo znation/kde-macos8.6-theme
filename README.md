@@ -646,6 +646,12 @@ only the reported list and combines with the minimum cutoff; contradictory
 cutoffs produce an empty list while match counts and longest-run diagnostics
 still cover the full search.
 
+Add `--match-column-run-count` with `--find-color` to report the number of
+maximal vertical matching segments as `match.column_run_count` in JSON or a
+`matching column run count:` text line. It counts before column-run length
+filters and covers the full region regardless of coordinate paging. The run
+list remains omitted unless `--match-column-runs` is requested separately.
+
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the
 same array on a `matching rows:` line after interval reports. Index zero is the

@@ -34,7 +34,8 @@ def _search_match(args, image) -> dict:
     intervals = _MatchRuns(
         args.x, args.y, args.width, args.height,
         horizontal=args.match_runs or args.longest_match_run or args.match_run_count,
-        vertical=args.match_column_runs or args.longest_match_column_run or args.match_column_run_count,
+        vertical=(args.match_column_runs or args.match_column_run_count or
+                  args.longest_match_column_run),
         summarize=args.longest_match_run,
         collect_runs=args.match_runs,
         summarize_columns=args.longest_match_column_run,

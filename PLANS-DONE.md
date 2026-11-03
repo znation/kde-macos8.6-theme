@@ -7,6 +7,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ### Reference-pixel sampler: count vertical matching segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
+**Goal.** Measure fragmentation of vertical reference-color strokes without printing their interval list. Sampler source and archive-heading searches found vertical lists and longest-run summaries, plus the finished horizontal count, but no vertical segment count. This is independent of the waiting fidelity diagnostic.
+
+**Approach and files.** Implemented the optional count in the existing positioned sampler traversal. The collector counts closed and bottom-flushed intervals without retaining the list; the report exposes the count independently of list filters. Added focused CLI/collector coverage, README documentation and the invariant row.
+
+**Acceptance criteria.** Implemented as specified; the crop fixture contains six matches (2+1+1+2), correcting the conflicting duplicate plan entry that stated seven.
+- The offset 3x4 crop, filters, crop boundaries, paging, and combined diagnostics are pinned in `tests/test_sample_match_column_run_count.py`.
+- Full columns, one-column and single-pixel regions, empty matches, gap closures, bottom flushes, and count-only collection without list retention are covered.
+- Count-only output omits the interval list; default output omits the new field. Help, direct-script invocation and dependency validation before image reads are covered.
+- `make check` passes after the final edits.
+
+### Reference-pixel sampler: count vertical matching segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
 **Goal.** Quantify fragmentation of a reference side-border color without printing its vertical interval list. Searches of sampler source, tests and plan headings found vertical lists and longest-run summaries, but no vertical segment count. This is independent of the queued fidelity diagnostic and complements the finished horizontal sampler count.
 
 **Approach and files.** Added the count option, streaming counter, report output, validation, focused tests, README documentation and invariant. Vertical counting uses the existing positioned traversal and does not retain interval records unless requested.
