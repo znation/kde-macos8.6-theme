@@ -24,6 +24,17 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 | Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`. |
 | Materialize reference images | Git LFS; run `git lfs install` and `git lfs pull`. See [Validating the reference set](#validating-the-reference-set). |
 
+## Navigation
+
+- [Installing](#installing)
+- [Generating the wallpaper](#generating-the-wallpaper)
+- [Reference screenshots](#reference-screenshots)
+- [Validating the reference set](#validating-the-reference-set)
+- [Sampling reference pixels](#sampling-reference-pixels)
+- [Fidelity checking](#fidelity-checking)
+- [Invariants](#invariants)
+- [Development team](#development-team)
+
 ## Installing
 
 `make install` copies every data-home artifact into an absolute `${XDG_DATA_HOME}` (the XDG default

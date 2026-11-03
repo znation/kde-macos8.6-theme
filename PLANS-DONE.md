@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README navigation: link readers directly to the main workflows (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Let contributors reach installation, reference sampling and fidelity comparison without scrolling through the long installation narrative and sampler option catalog. README.md has named workflow sections but no local section links; searches of Planned and archived README headings found no navigation entry.
+
+**Approach and files.** Edit README.md only, outside the brief and status marker blocks. Insert a compact `## Navigation` section immediately before `## Installing` (after Prerequisites if that waiting plan has merged). Use a flat Markdown list linking to the existing headings: Installing (`#installing`), Generating the wallpaper (`#generating-the-wallpaper`), Reference screenshots (`#reference-screenshots`), Validating the reference set (`#validating-the-reference-set`), Sampling reference pixels (`#sampling-reference-pixels`), Fidelity checking (`#fidelity-checking`), Invariants (`#invariants`) and Development team (`#development-team`). Use those heading names as link labels. Preserve the destination headings and their detailed prose; keep this one navigation addition separate from the queued prerequisites content, so either plan can merge first. No code, behavior or invariant changes and no new prose-pinning tests.
+
+**Grounding.** README.md's existing level-two workflow headings supply these anchors. `tests/test_readme_references.py::reference_table` parses only the Reference screenshots section, and `tests/test_make_help.py::TestHelp` checks public-target mentions, so retain their destination content rather than replacing it with the index. This task needs no helper or function changes.
+
+**Acceptance criteria.** Before reaching Installing, a reader sees the eight named links; each resolves to its corresponding existing heading in GitHub's rendered README. The sampling and fidelity links reach the respective command introductions directly. The brief, status and existing workflow instructions remain intact, and the navigation works whether or not Prerequisites has merged. Review link fragments against the destination headings and run `make check` after the final edit.
+
 ### README prerequisites: give new contributors a compact setup map (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Put the main setup requirements before the long installation description, so a contributor can distinguish copying packages, applying them to Plasma, and rendering them headlessly. README.md currently distributes these requirements across Installing and Validating the reference set; searches of Planned and archived headings found no prerequisites-map plan. This is independent of the queued Make help addition.
