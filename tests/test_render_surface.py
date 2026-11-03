@@ -878,17 +878,17 @@ class TestDialogGateSkipGuards(unittest.TestCase):
 
 
 class _Renders:
-    """The module's three render gates' sessions, started together, finished once.
+    """The module's render gates' sessions, started together, finished once.
 
     Every render sleeps the tool's documented settle default before it
     captures -- that budget is the paint budget the gate promises, and the
-    byte-compare gates below must not render below it -- so three
-    back-to-back renders cost the module three settle budgets. The three
+    byte-compare gates below must not render below it -- so serial
+    back-to-back renders cost one settle budget per gate. The sessions
     sessions are independent -- each has its own ``dbus-run-session``,
     scratch XDG tree (and with it its own ``render-surface`` socket) and
     capture path -- and the settle is a sleep rather than CPU, so starting
-    all three at once and finishing them together costs one budget instead
-    of three. The first gate class to set up records all three results;
+    all at once and finishing them together costs one budget. The first gate
+    class to set up records all results;
     :func:`_remove_directories` removes every scratch directory at
     interpreter exit, so a run that reaches only some of the classes still
     cleans up behind the others.
@@ -906,7 +906,7 @@ class _Renders:
 
     @classmethod
     def ensure(cls, kind):
-        """Finish all three renders once and return *kind*'s result."""
+        """Finish all renders once and return *kind*'s result."""
         if not cls.completed:
             cls.completed = True
             cls._run_all()
@@ -955,7 +955,7 @@ class _DialogGate:
 
     @classmethod
     def setUpClass(cls):
-        # All three renders run concurrently (see _Renders); this class
+        # All renders run concurrently (see _Renders); this class
         # waits for its own and leaves its siblings' to their own classes.
         cls.stdout, cls.stderr, cls.returncode, cls.directory = (
             _Renders.ensure(cls.KIND)
@@ -1201,6 +1201,35 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
             self.assert_pixel(115, yy, "#000000")
             self.assert_pixel(364, yy, "#000000")
 
+    def test_draws_the_item_view_frame_and_white_interior(self):
+        image = self.candidate_image()
+        x0, y0, width, height = MENU_ITEM_VIEW
+        self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y0)))
+        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0 + width - 1, y0)))
+        for x in range(x0, x0 + width - 1):
+            with self.subTest(edge="top", x=x):
+                self.assertEqual("#999999", hex_colour(pixel_at(image, x, y0)))
+        for x in range(x0 + 1, x0 + width - 1):
+            with self.subTest(edge="bottom", x=x):
+                self.assertEqual("#000000", hex_colour(pixel_at(image, x, y0 + height - 2)))
+        self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y0 + height - 2)))
+        self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x0 + width - 1, y0 + height - 2)))
+        for y in range(y0 + 1, y0 + height - 1):
+            with self.subTest(edge="left", y=y):
+                self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y)))
+            with self.subTest(edge="right", y=y):
+                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x0 + width - 1, y)))
+        # The two unpainted upper/lower frame corners are the window face.
+        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0 + width - 1, y0)))
+        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0, y0 + height - 1)))
+        for x in range(x0 + 1, x0 + width):
+            with self.subTest(edge="lower-white", x=x):
+                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x, y0 + height - 1)))
+        # The current item's focus ring is at y=96..113; sample the white
+        # field below it so a frame mapping regression cannot hide in the ring.
+        for point in ((114, 120), (200, 120), (365, 272)):
+            with self.subTest(point=point):
+                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
 
 
 if __name__ == "__main__":
