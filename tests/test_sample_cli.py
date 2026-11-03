@@ -133,6 +133,19 @@ class TestSampleCli(CliTestCase):
         self.assertIn("(0, 0): 12,34,56  #0C2238  alpha=0", text.stdout)
         self.assertIn("(1, 0): 78,90,123  #4E5A7B  alpha=128", text.stdout)
 
+    def test_alpha_report_treats_rgb_png_as_opaque(self):
+        path = self._image()
+
+        result = self._run(path, "2", "1", "--alpha", "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["pixels"], [
+            {"x": 2, "y": 1, "rgb": [2, 1, 3], "hex": "#020103", "alpha": 255},
+        ])
+
+        text = self._run(path, "2", "1", "--alpha")
+        self._assert_success(text)
+        self.assertIn("pixel (2, 1): 2,1,3  #020103  alpha=255", text.stdout)
+
     def test_json_script_and_control_path_round_trip(self):
         with control_named_png() as path:
             result = self._run_script(path, "0", "0", "--json")
