@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README render recipes: show how to capture each existing surface (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Give contributors copyable commands for producing the candidate images used in fidelity work. Installing describes the dialog flags in prose, but has no command examples for invoking those modes. Searches of Planned and archived render/README headings found gate-documentation and workflow-refactoring work, rather than this command guide.
+
+**Approach and files.** Edit README.md only. Insert `### Rendering a candidate` immediately before the existing paragraph beginning `make render` in Installing, keeping that paragraph and its dialog descriptions under the new heading. Add a compact command block showing `make render RENDER_OUTPUT=calculator.png`, `python3 tools/render_surface.py checkbox.png --checkbox-dialog`, `python3 tools/render_surface.py combobox.png --combobox-dialog`, and `python3 tools/render_surface.py menu.png --menu-dialog`. Explain that the Make target captures the default calculator and accepts the output path through `RENDER_OUTPUT`; dialog selection uses the direct Python CLI. State that the calculator defaults to 320x240, each dialog capture is fixed at 480x360, dialog flags are mutually exclusive, and dialog captures reject width/height overrides and a different applet. Link to Prerequisites for external tools and Fidelity checking for comparing the resulting PNG. Keep this one command guide separate from the waiting removal checklist: insert it beside render prose, without editing that checklist or the navigation lists. No runtime, artwork, dependency or invariant change; no new prose-pinning test is needed.
+
+**Grounding.** `Makefile`'s `render` recipe passes only the positional output path to `tools/render_surface.py`. That module's `main` defines the three dialog flags, enforces their combinations and dimensions, supplies calculator dimensions, and adds `kdialog` to dialog requirements. These are inspected evidence anchors, not files to change. Archived README render-gate entries concern which test classes pin captured pixels, not user capture recipes.
+
+**Acceptance criteria.** A reader at Rendering a candidate sees four commands with distinct output filenames and can select the calculator, checkbox, combo-box or menu capture without inventing a Make variable. The guide identifies each capture's dimensions, the rejected dialog combinations, and links reach the existing prerequisites and comparison sections. The examples use the CLI argument forms accepted by `main`; the existing scratch-session and failure guidance remains available beneath the heading. Review the examples against `main` and the `render` recipe, then run `make check` after the final edit.
+
 ### README removal guide: distinguish package deletion from selection cleanup (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Give users one compact removal checklist. Installing currently explains removal in separate GTK, Firefox, cursor and package paragraphs; it has no dedicated removal heading or summary table. Searches of Planned entries and archived README headings found no removal-guide plan.

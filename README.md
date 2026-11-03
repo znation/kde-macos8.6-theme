@@ -320,6 +320,24 @@ other clones and contributors are unaffected, and `make apply` is the manual equ
 fast-forward merge creates no commit, so it does not trigger the hook. `tools/local_hook.py`
 refuses to overwrite or remove a `post-commit` hook it did not write -- this clone's Git LFS hook
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
+### Rendering a candidate
+
+Capture the default calculator or one of the three widget dialogs:
+
+```sh
+make render RENDER_OUTPUT=calculator.png
+python3 tools/render_surface.py checkbox.png --checkbox-dialog
+python3 tools/render_surface.py combobox.png --combobox-dialog
+python3 tools/render_surface.py menu.png --menu-dialog
+```
+
+The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
+the direct Python commands select dialog modes. The calculator capture defaults to 320x240;
+each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
+different applet, or width/height overrides. Dialog captures also require `kdialog`; see
+[Prerequisites](#prerequisites) for the other rendering tools. To compare a candidate PNG with
+the references, see [Fidelity checking](#fidelity-checking).
+
 `make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and
