@@ -8,7 +8,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
-from tools import sample
+from tools import sample, sample_report_search
 
 
 class TestSampleMatchRuns(CliTestCase):
@@ -85,6 +85,43 @@ class TestSampleMatchRuns(CliTestCase):
             invalid = self._run("missing.png", "0", "0", "--match-runs")
         self._assert_usage_error(invalid, "requires --find-color")
         self.assertEqual(invalid.stdout, "")
+
+    def test_combined_intervals_flush_crop_edges_and_use_one_full_traversal(self):
+        target = (10, 20, 30)
+        rows = [
+            [(11, 20, 30), target, target],
+            [target, (0, 0, 0), target],
+            [target, target, (9, 20, 30)],
+        ]
+        encoded = make_png(5, 5, [bytes(
+            channel for x in range(5) for channel in (
+                (*rows[y - 2][x - 1], 255) if 1 <= x <= 3 and 2 <= y <= 4
+                else (0, 0, 0, 255))) for y in range(1, 6)], color_type=6)
+        path = self._write(self._tmp_dir(), "crop.png", encoded)
+        args = (path, "1", "1", "--width", "3", "--height", "3", "--find-color",
+                "0a141e", "--color-tolerance", "1", "--match-alpha", "255",
+                "--match-runs", "--match-column-runs", "--match-pixels", "1")
+        with mock.patch.object(sample_report_search, "_positioned_region_pixels",
+                               wraps=sample_report_search._positioned_region_pixels) as pixels:
+            result = self._run(*args, "--json")
+        self._assert_success(result)
+        match = json.loads(result.stdout)["match"]
+        self.assertEqual(match["count"], 8)
+        self.assertEqual(match["pixels"], [{"x": 1, "y": 1}])
+        self.assertEqual(match["runs"], [
+            {"x": 1, "y": 1, "length": 3}, {"x": 1, "y": 2, "length": 1},
+            {"x": 3, "y": 2, "length": 1}, {"x": 1, "y": 3, "length": 3}])
+        self.assertEqual(match["column_runs"], [
+            {"x": 1, "y": 1, "length": 3}, {"x": 2, "y": 1, "length": 1},
+            {"x": 2, "y": 3, "length": 1}, {"x": 3, "y": 1, "length": 3}])
+        pixels.assert_called_once()
+        text = self._run(*args)
+        self._assert_success(text)
+        self.assertIn('matching runs: ' + json.dumps(match["runs"], separators=(",", ":")), text.stdout)
+        self.assertIn('matching column runs: ' + json.dumps(match["column_runs"], separators=(",", ":")), text.stdout)
+        direct = self._run_script(path, *args[1:], "--json")
+        self._assert_success(direct)
+        self.assertEqual(json.loads(direct.stdout)["match"], match)
 
 
 if __name__ == "__main__":
