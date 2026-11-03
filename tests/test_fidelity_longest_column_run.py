@@ -20,6 +20,13 @@ class TestLongestDifferenceColumnRun(unittest.TestCase):
         self.assertEqual(longest_difference_column_run(candidate, reference, 10),
                          {"x": 1, "y": 0, "length": 4})
 
+    def test_tied_column_runs_keep_first_scanline(self):
+        values = [11, 0, 11, 0, 11, 0, 11, 0]
+        candidate = Image(2, 4, b"".join(bytes((v, 0, 0)) for v in values))
+        reference = Image(2, 4, bytes(2 * 4 * 3))
+        self.assertEqual(longest_difference_column_run(candidate, reference, 10),
+                         {"x": 0, "y": 0, "length": 4})
+
     def test_empty_and_alpha_comparison(self):
         blank = Image(1, 2, bytes(6))
         self.assertIsNone(longest_difference_column_run(blank, blank, 0))
@@ -30,6 +37,22 @@ class TestLongestDifferenceColumnRun(unittest.TestCase):
 
 
 class TestLongestDifferenceColumnRunCli(FidelityCliTestCase):
+    def test_ties_match_between_summary_and_combined_json(self):
+        candidate = make_png(2, 5, [
+            bytes((0, 0, 0, 11, 0, 0)),
+            bytes((11, 0, 0, 11, 0, 0)),
+            bytes((11, 0, 0, 11, 0, 0)),
+            bytes((11, 0, 0, 0, 0, 0)),
+            bytes(6),
+        ])
+        reference = make_png(2, 5, [bytes(6) for _ in range(5)])
+        for extra in ((), ("--difference-column-runs",)):
+            result = self._run_png_pair(candidate, reference,
+                                        "--longest-difference-column-run",
+                                        "--tolerance", "10", "--json", *extra)
+            self.assertEqual(json.loads(result.stdout)["longest_difference_column_run"],
+                             {"x": 0, "y": 1, "length": 3})
+
     def test_crop_null_text_json_and_shared_column_runs(self):
         candidate = make_png(4, 3, [bytes(12), bytes((0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0)), bytes((0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0))])
         reference = make_png(4, 3, [bytes(12), bytes(12), bytes(12)])
@@ -52,6 +75,23 @@ class TestLongestDifferenceColumnRunCli(FidelityCliTestCase):
                                        "--difference-column-runs", "--json", "--tolerance", "10")
         self.assertEqual(json.loads(combined.stdout)["longest_difference_column_run"],
                          {"x": 1, "y": 1, "length": 2})
+        with mock.patch.object(fidelity, "longest_difference_column_run",
+                               side_effect=AssertionError("rescanned image")):
+            combined = self._run_png_pair(candidate, reference,
+                                           "--longest-difference-column-run",
+                                           "--difference-column-runs", "--json", "--tolerance", "10")
+        self.assertEqual(json.loads(combined.stdout)["longest_difference_column_run"],
+                         {"x": 1, "y": 1, "length": 2})
+        empty_combined = self._run_png_pair(reference, reference,
+                                            "--longest-difference-column-run",
+                                            "--difference-column-runs", "--json")
+        self.assertIsNone(json.loads(empty_combined.stdout)["longest_difference_column_run"])
+
+        tmp = self._tmp_dir()
+        a = self._write(tmp, "candidate.png", candidate)
+        b = self._write(tmp, "reference.png", reference)
+        direct = self._run_script(a, b, "--longest-difference-column-run", "--json")
+        self.assertIn("longest_difference_column_run", json.loads(direct.stdout))
 
 
 if __name__ == "__main__":

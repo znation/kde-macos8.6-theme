@@ -9,11 +9,29 @@ from unittest import mock
 from support.fidelity_cli_case import FidelityCliTestCase
 from support.png_fixtures import make_png
 from tools import fidelity
-from tools.fidelity_spatial import _iter_difference_axis_runs, longest_difference_run
+from tools.fidelity_spatial import _iter_difference_axis_runs, longest_difference_run, select_longest_run
 from tools.png import Image
 
 
 class TestLongestDifferenceRun(unittest.TestCase):
+    def test_selector_preserves_first_tie_in_one_pass(self):
+        first = {"x": 9, "y": 8, "length": 3}
+        second = {"x": 0, "y": 0, "length": 3}
+        consumed = []
+
+        def runs():
+            for run in ({"x": 1, "y": 1, "length": 1}, first, second,
+                        {"x": 2, "y": 2, "length": 0}):
+                consumed.append(run)
+                yield run
+
+        self.assertIsNone(select_longest_run(iter(())))
+        self.assertIs(select_longest_run(runs()), first)
+        self.assertEqual(consumed, [
+            {"x": 1, "y": 1, "length": 1}, first, second,
+            {"x": 2, "y": 2, "length": 0},
+        ])
+
     def test_longest_run_respects_row_edges_delta_and_earliest_tie(self):
         width, height = 6, 4
         values = [11, 12, 30, 0, 0, 11, 0, 11, 11, 11, 0, 0, 20, 20, 0, 0, 0, 0,
@@ -58,6 +76,18 @@ class TestLongestDifferenceRun(unittest.TestCase):
 
 
 class TestLongestDifferenceRunCli(FidelityCliTestCase):
+    def test_ties_match_between_summary_and_combined_json(self):
+        candidate = make_png(5, 2, [
+            bytes((11, 0, 0, 11, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0)),
+            bytes((0, 0, 0, 11, 0, 0, 11, 0, 0, 11, 0, 0, 0, 0, 0)),
+        ])
+        reference = make_png(5, 2, [bytes(15), bytes(15)])
+        for extra in ((), ("--difference-runs",)):
+            result = self._run_png_pair(candidate, reference, "--longest-difference-run",
+                                        "--tolerance", "10", "--json", *extra)
+            self.assertEqual(json.loads(result.stdout)["longest_difference_run"],
+                             {"x": 0, "y": 0, "length": 3})
+
     def test_cli_crop_null_text_json_and_composition(self):
         candidate = make_png(4, 2, [bytes((0, 0, 0, 11, 0, 0, 12, 0, 0, 0, 0, 0)), bytes(12)])
         reference = make_png(4, 2, [bytes(12), bytes(12)])
@@ -77,6 +107,15 @@ class TestLongestDifferenceRunCli(FidelityCliTestCase):
                                        "--difference-runs", "--json", "--tolerance", "10")
         self.assertEqual(json.loads(combined.stdout)["longest_difference_run"],
                          {"x": 1, "y": 0, "length": 2})
+        with mock.patch.object(fidelity, "longest_difference_run",
+                               side_effect=AssertionError("rescanned image")):
+            combined = self._run_png_pair(candidate, reference, "--longest-difference-run",
+                                          "--difference-runs", "--json", "--tolerance", "10")
+        self.assertEqual(json.loads(combined.stdout)["longest_difference_run"],
+                         {"x": 1, "y": 0, "length": 2})
+        empty_combined = self._run_png_pair(reference, reference, "--longest-difference-run",
+                                            "--difference-runs", "--json")
+        self.assertIsNone(json.loads(empty_combined.stdout)["longest_difference_run"])
         self.assertEqual(result.returncode,
                          self._run_png_pair(candidate, reference, *args, "--json", "--tolerance", "10").returncode)
         with mock.patch.object(fidelity, "difference_runs", side_effect=AssertionError("materialized")):

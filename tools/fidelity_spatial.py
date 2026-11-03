@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 
 if __package__:
     from tools.fidelity_pixels import _absolute_deltas
@@ -111,22 +111,23 @@ def _iter_difference_axis_runs(
             yield {"x": run_x, "y": run_y, "length": scanline_length - start}
 
 
+def select_longest_run(runs: Iterable[dict[str, int]]) -> dict[str, int] | None:
+    """Return the first longest run without materializing the iterable."""
+    return max(runs, key=lambda run: run["length"], default=None)
+
+
 def longest_difference_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
     """Return the longest horizontal mismatch run; ties use earliest (y, x)."""
-    best = None
-    for run in _iter_difference_axis_runs(candidate, reference, tolerance, vertical=False):
-        if best is None or run["length"] > best["length"]:
-            best = run
-    return best
+    return select_longest_run(
+        _iter_difference_axis_runs(candidate, reference, tolerance, vertical=False)
+    )
 
 
 def longest_difference_column_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
     """Return the longest vertical mismatch run; ties use earliest (x, y)."""
-    best = None
-    for run in _iter_difference_axis_runs(candidate, reference, tolerance, vertical=True):
-        if best is None or run["length"] > best["length"]:
-            best = run
-    return best
+    return select_longest_run(
+        _iter_difference_axis_runs(candidate, reference, tolerance, vertical=True)
+    )
 
 
 def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
