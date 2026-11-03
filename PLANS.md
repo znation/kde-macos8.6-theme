@@ -5,6 +5,18 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Reference-pixel sampler: count horizontal matching segments (planned 2026-11-03 by the plan role)
+
+**Goal.** Measure fragmentation of a reference border color with a compact count instead of printing its full horizontal interval list. Searches of sampler source and related finished plans found lists and longest-run summaries, but no match-run count. This is independent of the waiting ordinary-run color exclusion.
+
+**Approach and files.** Add boolean `--match-run-count` in `tools/sample_arguments.py::build_parser`; in `option_error`, immediately after the match-runs dependency check, require `--find-color` with diagnostic `--match-run-count requires --find-color`. In `tools/sample_match_runs.py::_MatchRuns`, initialize `run_count` to zero and increment it in `_close_run`, including row-edge and final-row closures. In `tools/sample_report_search.py::_search_match`, enable horizontal collection for this flag while retaining lists only when `--match-runs` requests them; expose `match.run_count` only on request, after `finish`. Count the complete unfiltered horizontal interval sequence, regardless of run-length filters or coordinate paging. In `report_search`, print `matching run count: N` immediately before the optional matching-runs line. Add `tests/test_sample_match_run_count.py::TestSampleMatchRunCount` patterned on `TestSampleLongestMatchRun`; document the option in README.md and add a tooling row in docs/invariants.md. These six files fit one implementation run; no vertical-count option belongs in this entry.
+
+**Acceptance criteria.**
+- An offset 4x3 crop at (2,1) with match masks `1101`, `0000`, `1111` reports JSON `match.run_count=3` and text `matching run count: 3`, with pixel count 7. Enabling the full horizontal list yields starts (2,1), (5,1), (2,3) and lengths 2,1,4. Minimum run length 3 leaves one listed run but still reports count 3; maximum length 1 likewise leaves one listed run and count 3. Coordinate limit 1 and an offset beyond the matching-pixel count leave the segment count 3. Existing longest-run and vertical-list reports agree with their uncombined results.
+- A fully matching 3x2 crop reports 2 segments; a fully matching 1x3 crop reports 3, a matching single pixel reports 1, and no matches report 0. Matches on opposite row edges stay separate. Cropping excludes surrounding matches. Adjacent unequal RGB values within tolerance form one segment; a pixel outside tolerance splits it. Exact-alpha filtering can split otherwise adjacent matches, preserves stored RGB under zero alpha, and treats opaque RGB input as alpha 255.
+- Count-only output contains neither horizontal nor vertical run arrays unless separately requested. A focused collector fixture with horizontal enabled and `collect_runs=False` observes separated matches, calls `finish`, and sees the literal expected count with an empty stored run list. Omitting the flag omits its JSON field and text line. Text/JSON and package/direct-script invocations agree; help lists the option.
+- Without `--find-color`, the flag exits 2 with empty stdout and the dependency diagnostic before image access; guard `os.open`, `read_png_size` and `read_png` in this test. Existing earlier validation diagnostics retain precedence. Run `make check` after final edits.
+
 ## Done
 
 ### Reference-pixel sampler: page through ranked histogram colors (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
