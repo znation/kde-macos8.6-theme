@@ -52,6 +52,7 @@ from svg_assertions import (
 # toggled states, so those are the states it ships slices for.
 FRAME_STATES = {
     "button": ("normal", "pressed", "focused", "toggled"),
+    "combofield": ("normal", "focused", "pressed", "disabled"),
     "lineedit": ("normal", "focused"),
     "common": ("normal", "focused"),
     "scrollbarslider": ("normal", "focused", "pressed"),
@@ -624,11 +625,13 @@ class TestMdiButtons(unittest.TestCase):
                 for state in MDI_STATES
             },
         )
-        # The eight groups follow `titlebar-focused`, role-major: the id-set
-        # comparison above cannot see placement, position or duplication.
+        # The eight groups follow `titlebar-focused`, role-major, and the
+        # four `combofield` families appended after them take the tail: the
+        # id-set comparison above cannot see placement, position or
+        # duplication.
         order = [group.get("id") for group in groups_with_id(self.tree)]
         self.assertEqual(
-            order[order.index("titlebar-focused") + 1 :],
+            order[order.index("titlebar-focused") + 1 : -36],
             [
                 "mdi-%s-%s" % (role, state)
                 for role in MDI_ROLES

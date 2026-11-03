@@ -100,7 +100,7 @@ CORE_CONTROL_CONFIG = {
         "interior.element": "lineedit",
     },
     "ComboBox": {
-        "frame.element": "button",
+        "frame.element": "combofield",
         "interior.element": "button",
         "indicator.element": "comboarrow",
     },

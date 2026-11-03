@@ -51,7 +51,7 @@
      Kvantum scales the element by) and paint only the white/#777777 checker
      diamond and its three #AAAAAA lower-left edge pixels, leaving the
      surround transparent. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="25450" viewBox="0 0 200 25450">
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="27620" viewBox="0 0 200 27620">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -2576,5 +2576,181 @@
     <rect x="11" y="10" width="1" height="1" fill="#222222"/>
     <rect x="0" y="11" width="1" height="1" fill="#888888"/>
     <rect x="1" y="11" width="11" height="1" fill="#222222"/>
+  </g>
+  <!-- Adaptation 2026-11-03: the combo box's dedicated field-frame element
+       family. No collected reference screenshot shows a pressed, focused or
+       disabled combo popup, so every state slice keeps the reference's
+       at-rest raised arrangement: these four families clone the landed
+       `button-normal` slices byte-equal (same canvas cells, same palette
+       hexes), the art `tests/test_kvantum_button_reference.py` pins to the
+       reference's own pop-up buttons (opendialog_macrumors86.jpg rows
+       15..33, systeminfo_betawiki.png rows 102..121). Upstream Kvantum
+       selects the frame element's pressed state for the combo field
+       (State_Sunken || State_Selected), so the normal-family art in every
+       state makes the field paint the raised look whatever state the
+       engine settles on. -->
+  <g id="combofield-normal-top" transform="translate(10,25460)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-normal-bottom" transform="translate(10,25520)">
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-normal-left" transform="translate(10,25580)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-normal-right" transform="translate(10,25640)">
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="combofield-normal" transform="translate(10,25700)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="combofield-normal-topleft" transform="translate(10,25760)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="combofield-normal-topright" transform="translate(10,25820)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
+  </g>
+  <g id="combofield-normal-bottomleft" transform="translate(10,25880)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-normal-bottomright" transform="translate(10,25940)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-focused-top" transform="translate(10,26000)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-focused-bottom" transform="translate(10,26060)">
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-focused-left" transform="translate(10,26120)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-focused-right" transform="translate(10,26180)">
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="combofield-focused" transform="translate(10,26240)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="combofield-focused-topleft" transform="translate(10,26300)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="combofield-focused-topright" transform="translate(10,26360)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
+  </g>
+  <g id="combofield-focused-bottomleft" transform="translate(10,26420)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-focused-bottomright" transform="translate(10,26480)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-pressed-top" transform="translate(10,26540)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-pressed-bottom" transform="translate(10,26600)">
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-pressed-left" transform="translate(10,26660)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-pressed-right" transform="translate(10,26720)">
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="combofield-pressed" transform="translate(10,26780)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="combofield-pressed-topleft" transform="translate(10,26840)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="combofield-pressed-topright" transform="translate(10,26900)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
+  </g>
+  <g id="combofield-pressed-bottomleft" transform="translate(10,26960)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-pressed-bottomright" transform="translate(10,27020)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-disabled-top" transform="translate(10,27080)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-disabled-bottom" transform="translate(10,27140)">
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="combofield-disabled-left" transform="translate(10,27200)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-disabled-right" transform="translate(10,27260)">
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="combofield-disabled" transform="translate(10,27320)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="combofield-disabled-topleft" transform="translate(10,27380)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="combofield-disabled-topright" transform="translate(10,27440)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
+  </g>
+  <g id="combofield-disabled-bottomleft" transform="translate(10,27500)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="combofield-disabled-bottomright" transform="translate(10,27560)">
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
 </svg>

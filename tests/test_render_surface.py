@@ -107,6 +107,9 @@ CHECKBOX_NO_BUTTON = (241, 207, 82, 24)
 # combo dialog is the session's only window like the checkbox dialog, so the
 # crop is measured on the same 480x360 capture.
 COMBOBOX_CROP = (316, 178, 12, 12)
+# The rendered combo field: `[ComboBox] frame.element=combofield` draws its
+# frame slices from the dedicated raised family, so the field bands are the
+# reference's raised arrangement in every state the engine may select.
 COMBOBOX_FIELD = (146, 172, 188, 24)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
@@ -1129,27 +1132,29 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
         # up here immediately.
         self.assert_cell_matches("comboarrow-normal", COMBOBOX_CROP)
 
-    def test_combo_field_keeps_its_engine_drawn_pressed_frame(self):
+    def test_combo_field_keeps_its_engine_drawn_raised_frame(self):
         x, y, width, height = COMBOBOX_FIELD
         for xx in range(x, x + width):
             self.assert_pixel(xx, y, "#000000")
             self.assert_pixel(xx, y + height - 1, "#000000")
         for yy in range(y + 1, y + height - 1):
             self.assert_pixel(x, yy, "#000000")
-            self.assert_pixel(x + 1, yy, "#AAAAAA")
-            self.assert_pixel(x + width - 2, yy, "#FFFFFF")
+            self.assert_pixel(x + 1, yy, "#FFFFFF")
+            self.assert_pixel(x + width - 2, yy, "#AAAAAA")
             self.assert_pixel(x + width - 1, yy, "#000000")
 
-    def test_draws_the_combo_field_pressed_bevel(self):
+    def test_draws_the_combo_field_raised_bevel(self):
         """Pin the Kvantum field frame around the selected combo contents."""
         image = self.candidate_image()
         x, y, width, height = COMBOBOX_FIELD
-        # CC_ComboBox currently selects the pressed frame slices. The upper
-        # and lower bands and the two bevel columns are outside the text and
-        # arrow, so these pixels isolate the engine's frame mapping.
+        # `[ComboBox] frame.element=combofield` maps every state to the
+        # reference's raised arrangement, whatever state the engine selects.
+        # The upper and lower bands and the two bevel columns are outside
+        # the text and arrow, so these pixels isolate the engine's frame
+        # mapping.
         expected_top = ["#000000"] * width
-        expected_upper = ["#000000", *(["#AAAAAA"] * (width - 3)), "#FFFFFF", "#000000"]
-        expected_lower = ["#000000", "#AAAAAA", *(["#FFFFFF"] * (width - 3)), "#000000"]
+        expected_upper = ["#000000", *(["#FFFFFF"] * (width - 3)), "#AAAAAA", "#000000"]
+        expected_lower = ["#000000", "#FFFFFF", *(["#AAAAAA"] * (width - 3)), "#000000"]
         expected_bottom = ["#000000"] * width
         for row, expected in ((0, expected_top), (1, expected_upper),
                               (height - 2, expected_lower), (height - 1, expected_bottom)):
@@ -1161,8 +1166,10 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
         for dy in range(2, height - 2):
             with self.subTest(column="left", row=dy):
                 self.assertEqual("#000000", hex_colour(pixel_at(image, x, y + dy)))
-            with self.subTest(column="right-highlight", row=dy):
-                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x + width - 2, y + dy)))
+            with self.subTest(column="left-highlight", row=dy):
+                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x + 1, y + dy)))
+            with self.subTest(column="right-shadow", row=dy):
+                self.assertEqual("#AAAAAA", hex_colour(pixel_at(image, x + width - 2, y + dy)))
             with self.subTest(column="right-edge", row=dy):
                 self.assertEqual("#000000", hex_colour(pixel_at(image, x + width - 1, y + dy)))
 

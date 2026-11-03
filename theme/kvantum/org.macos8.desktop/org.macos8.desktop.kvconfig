@@ -77,6 +77,16 @@ interior.element=lineedit
 # single arrow the other indicator controls inherit.
 [ComboBox]
 inherits=PanelButtonCommand
+# Adaptation 2026-11-03: the combo box's line-edit field frame steers to a
+# dedicated `combofield` element family. Upstream Kvantum selects the frame
+# element's pressed state for State_Sunken || State_Selected, so with the
+# generic `button` family the at-rest field paints the pressed sunken bevel;
+# no collected reference screenshot shows a pressed or disabled combo popup,
+# so every combofield state slice carries the reference's raised arrangement
+# (the landed `button-normal` slices) whatever state the engine settles on.
+# The toolbar combo box keeps the generic button family it inherits today by
+# restating its element keys explicitly in [ToolbarComboBox].
+frame.element=combofield
 indicator.element=comboarrow
 indicator.size=12
 
@@ -325,8 +335,14 @@ indicator.size=5
 [ToolbarButton]
 inherits=PanelButtonCommand
 
+# The toolbar combo field resolves to the generic raised `button` family the
+# [ComboBox] inherits chain gave it before [ComboBox] steered to `combofield`;
+# the keys are restated explicitly so that toolbar surface is unaffected by
+# the dedicated dialog/side field family above (2026-11-03).
 [ToolbarComboBox]
 inherits=ComboBox
+frame.element=button
+interior.element=button
 
 [ToolbarLineEdit]
 inherits=LineEdit
