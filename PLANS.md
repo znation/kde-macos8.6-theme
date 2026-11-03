@@ -5,14 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Fidelity diagnostics: filter short vertical mismatch runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
-
-**Goal.** Isolate sustained side-border mismatches from short vertical fragments in fidelity reports. Source and related archive searches found vertical interval lists and longest summaries but no vertical minimum-length filter. This is independent of the waiting sampler plan and extends the finished horizontal fidelity filter.
-
-**Approach and files.** Added optional `--min-difference-column-run-length N` using the existing `positive_int` factory and `None` default. The CLI requires `--difference-column-runs` before reading sources. It filters collected column intervals inclusively after computing the longest summary. Documentation and invariants describe the behavior.
-
-**Acceptance criteria.** Added tests for crop-relative vertical intervals, inclusive filtering, cutoff one, empty output, retained longest summaries, helper reuse, parser behavior, invalid values and pre-read dependency validation. `make check` verifies the completed change.
-
 ### Reference-pixel sampler: filter histogram colors by region fraction (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Suppress minor palette fragments with a crop-size-independent cutoff. Implemented `--min-color-fraction` alongside minimum-count filtering. The cutoff uses each color's fraction of the requested region and preserves full-region totals and diagnostics.
