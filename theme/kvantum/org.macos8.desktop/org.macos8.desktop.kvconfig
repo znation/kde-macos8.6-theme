@@ -48,6 +48,7 @@ dark.color=#999999
 # top/left highlight, grey bottom/right shadow), black label in every state.
 [PanelButtonCommand]
 frame=true
+focusRectElement=focus-none
 frame.element=button
 frame.top=2
 frame.bottom=2

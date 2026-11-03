@@ -1041,6 +1041,14 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
         # immediately.
         self.assert_cell_matches("checkbox-normal", CHECKBOX_CROP)
 
+    def test_default_button_has_no_interior_focus_or_indicator_art(self):
+        image = self.candidate_image()
+        # These two points are on the focus ring's horizontal bands; the
+        # bottom-right point also lies inside Kvantum's default indicator.
+        for point in ((195, 209), (195, 228), (231, 224)):
+            with self.subTest(point=point):
+                self.assertEqual(FACE, hex_colour(pixel_at(image, *point)))
+
     def test_installs_the_check_box_cell_in_a_flat_face_ring(self):
         # One byte of resampling bleed lands on the 1px ring around the
         # cell, so the region the cell sits in must equal the flat client
