@@ -122,6 +122,16 @@ Ground the map in Makefile's `install`, `apply`, `require_python_version` and `r
 
 **Acceptance criteria.** A reader reaching Installing has already seen the Python floor, the LFS materialization commands, the distinction between install and apply, the required apply commands and the headless-render tools. The map describes Kvantum's fallback without presenting the engine as bundled, and distinguishes the dialog-only `kdialog` requirement. Existing detailed instructions remain available through working local section links. Review the displayed names against the cited code and run `make check` after the final edit.
 
+### README navigation: link directly to contributor workflows (planned 2026-11-03 by the plan role)
+
+**Goal.** Let readers jump from the introduction to installation, reference validation, sampling and fidelity comparison without scrolling through the long installation and option descriptions. README.md has these sections but no local section links or contents list; searches of Planned entries and finished README/navigation headings found no plan covering this index.
+
+**Approach and files.** Edit README.md only. Insert a compact `## Contents` section immediately after the status end marker and before the next section. Use a plain Markdown list linking to the existing headings Installing (`#installing`), Generating the wallpaper (`#generating-the-wallpaper`), Reference screenshots (`#reference-screenshots`), Validating the reference set (`#validating-the-reference-set`), Sampling reference pixels (`#sampling-reference-pixels`), Fidelity checking (`#fidelity-checking`), Invariants (`#invariants`) and Development team (`#development-team`), in document order. If the queued prerequisites map has landed, include Prerequisites (`#prerequisites`) before Installing; otherwise omit that link. This plan can land before or after that map and requires no runtime change. Keep the brief and status marker blocks intact and keep the existing destination headings and detailed instructions. No generated contents tooling or dependency is needed.
+
+**Grounding.** The anchors come from README.md's named level-two headings. `tests/test_readme_references.py::reference_table` bounds its parsing to Reference screenshots; `tests/test_make_help.py::TestHelp::test_readme_names_every_public_target` reads target mentions from README.md. Retaining the destination sections and command prose preserves those readers' inputs. No production function or invariant changes, and no new prose-pinning test is needed for this documentation edit.
+
+**Acceptance criteria.** Before reaching the prerequisites map or Installing, a reader sees links to the eight existing sections listed above, in their document order; when Prerequisites exists it is linked first. Each link's fragment corresponds to its destination heading under GitHub's ordinary heading-anchor rules, and the link label matches that heading. The brief/status blocks and the existing workflow prose remain intact. Review the rendered list and destination fragments, then run `make check` after the final edit.
+
 ## Done
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)
