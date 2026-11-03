@@ -70,6 +70,9 @@ def build_parser() -> EscapingArgumentParser:
                         help="omit horizontal difference runs shorter than N (requires --difference-runs)")
     parser.add_argument("--difference-column-runs", action="store_true",
                         help="locate disjoint vertical runs of pixels differing beyond --tolerance")
+    parser.add_argument("--min-difference-column-run-length", type=positive_int("--min-difference-column-run-length"),
+                        default=None, metavar="N",
+                        help="omit vertical difference runs shorter than N (requires --difference-column-runs)")
     parser.add_argument("--difference-centroid", action="store_true",
                         help="report the centroid of pixels differing beyond --tolerance")
     parser.add_argument("--longest-difference-run", action="store_true",

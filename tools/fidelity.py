@@ -81,6 +81,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.min_difference_run_length is not None and not args.difference_runs:
         parser.error("--min-difference-run-length requires --difference-runs")
+    if args.min_difference_column_run_length is not None and not args.difference_column_runs:
+        parser.error("--min-difference-column-run-length requires --difference-column-runs")
 
     try:
         candidate = _read_source(args.candidate, args.candidate_crop)
@@ -121,6 +123,9 @@ def main(argv: list[str] | None = None) -> int:
                               if args.longest_difference_column_run and column_runs is not None else
                               longest_difference_column_run(candidate, reference, args.tolerance)
                               if args.longest_difference_column_run else None)
+        if column_runs is not None and args.min_difference_column_run_length is not None:
+            column_runs = [run for run in column_runs
+                           if run["length"] >= args.min_difference_column_run_length]
         centroid = (difference_centroid(candidate, reference, args.tolerance)
                     if args.difference_centroid else None)
         histogram = (delta_histogram(candidate, reference)

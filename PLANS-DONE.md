@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: filter short vertical mismatch runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
+
+**Goal.** Isolate sustained side-border mismatches from short vertical fragments in fidelity reports. Source and related archive searches found vertical interval lists and longest summaries but no vertical minimum-length filter. This is independent of the waiting sampler plan and extends the finished horizontal fidelity filter.
+
+**Approach and files.** Added optional `--min-difference-column-run-length N` using the existing `positive_int` factory and `None` default. The CLI requires `--difference-column-runs` before reading sources. It filters collected column intervals inclusively after computing the longest summary. Documentation and invariants describe the behavior.
+
+**Acceptance criteria.** Added tests for crop-relative vertical intervals, inclusive filtering, cutoff one, empty output, retained longest summaries, helper reuse, parser behavior, invalid values and pre-read dependency validation. `make check` verifies the completed change.
+
 ### Reference-pixel sampler: filter short vertical color-match runs (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
 **Goal.** Isolate sustained reference side-border spans while suppressing short matching glyph fragments. Source and related archive searches found vertical match lists and longest summaries, and a horizontal minimum-length filter, but no vertical match-list cutoff. This is independent of the waiting fidelity CLI plan.
