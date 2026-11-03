@@ -2718,6 +2718,40 @@ window.csd.dialog.message:backdrop {
   box-shadow: 0 0 0 1px #555555;
 }
 
+/* Adaptation 2026-11-03: window.solid-csd, the shell arm GTK 4 selects for a
+   decorated top level without an alpha visual (an X11 session without
+   compositing is the usual route), has no collected reference screenshot of
+   its own, so it restates the landed Aurorae outline from the window.csd
+   arms above -- the same 1px #000000 active and #555555 backdrop literals
+   pinned on the Aurorae frame by tests/test_aurorae_frame.py. The parsed
+   groups hold nothing beyond what stock's own window.solid-csd arm already
+   shares with the shipped values: stock's margin: 0 and border-radius: 0
+   equal the shipped square window, so stock keeps supplying them. The ring
+   is inset geometry, not the landed outset ring: a compositor-less window
+   has none of the shadow margin a compositor-allotted window has, so an
+   outset ring cannot paint outside the window's allocation -- the reason
+   stock itself paints this state with inset shadows. Stock's bevel was
+   probed 2026-11-03 with gresource from the "Window Decorations" section of
+   /org/gtk/libgtk/theme/Default/Default-light.css inside
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6): border solid
+   1px #cdc7c2 plus 4px padding and inset #cdc7c2 and white shadows. border:
+   none clears the beige 1px border and padding: 0 plus the cleared box
+   shadow turn the space stock reserved for padding, border and bevel into
+   content. The arms sit after the window.csd arms above -- source order
+   settles a tie when a decorated window carries both classes -- and before
+   the maximized/fullscreen and tiled flats below, so a maximized or tiled
+   solid-csd window keeps stock's ring-less edge state instead of painting
+   the compositor-less ring over it. */
+window.solid-csd {
+  padding: 0;
+  border: none;
+  box-shadow: inset 0 0 0 1px #000000;
+}
+
+window.solid-csd:backdrop {
+  box-shadow: inset 0 0 0 1px #555555;
+}
+
 window.maximized,
 window.fullscreen {
   border-radius: 0;
@@ -2749,18 +2783,6 @@ window.tiled-bottom:backdrop {
 
 window.ssd {
   box-shadow: none;
-}
-
-/* The solid-csd twin sits after window.csd's arms like every restated twin;
-   if a decorated window carries both classes the later arms win the tie. */
-window.solid-csd {
-  padding: 0;
-  border-radius: 0;
-  box-shadow: 0 0 0 1px #000000;
-}
-
-window.solid-csd:backdrop {
-  box-shadow: 0 0 0 1px #555555;
 }
 
 tooltip.csd {

@@ -343,8 +343,8 @@ for radio in (False, True):
         active = {"border-radius": "0", "box-shadow": f"0 0 0 1px {BLACK}"}
         backdrop = {"box-shadow": f"0 0 0 1px {INACTIVE_OUTLINE}"}
         flat = {"border-radius": "0", "box-shadow": "none"}
-        solid = {"padding": "0", "border-radius": "0",
-                 "box-shadow": f"0 0 0 1px {BLACK}"}
+        solid = {"padding": "0", "border": "none",
+                 "box-shadow": f"inset 0 0 0 1px {BLACK}"}
         expected = {
             "window.csd": active,
             "window.csd:backdrop": {**backdrop, "transition": "none"},
@@ -367,7 +367,8 @@ for radio in (False, True):
             "window.tiled-bottom:backdrop": backdrop,
             "window.ssd": {"box-shadow": "none"},
             "window.solid-csd": solid,
-            "window.solid-csd:backdrop": backdrop,
+            "window.solid-csd:backdrop": {
+                "box-shadow": f"inset 0 0 0 1px {INACTIVE_OUTLINE}"},
             "tooltip.csd": flat,
         }
         for selector, expected_rule in expected.items():
@@ -405,6 +406,21 @@ for radio in (False, True):
         self.assertGreater(
             self.selectors.index("window.tiled:backdrop"),
             self.selectors.index("window.csd:backdrop"),
+        )
+        # The compositor-less solid-csd arms rest after the window.csd arms
+        # they out-rank and before the maximized group, so a maximized or
+        # tiled solid-csd window keeps stock's ring-less edge state.
+        self.assertGreater(
+            self.selectors.index("window.solid-csd:backdrop"),
+            self.selectors.index("window.csd:backdrop"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.maximized"),
+            self.selectors.index("window.solid-csd"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.maximized"),
+            self.selectors.index("window.solid-csd:backdrop"),
         )
 
     def test_expander_arrows(self):
