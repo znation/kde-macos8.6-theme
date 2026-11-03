@@ -77,7 +77,10 @@ def main(argv: list[str] | None = None) -> int:
     Following ``argparse`` and the sibling ``tools/check_references.py``,
     ``None`` reads ``sys.argv``.
     """
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.min_difference_run_length is not None and not args.difference_runs:
+        parser.error("--min-difference-run-length requires --difference-runs")
 
     try:
         candidate = _read_source(args.candidate, args.candidate_crop)
@@ -110,6 +113,8 @@ def main(argv: list[str] | None = None) -> int:
                        if args.longest_difference_run and runs is not None else
                        longest_difference_run(candidate, reference, args.tolerance)
                        if args.longest_difference_run else None)
+        if runs is not None and args.min_difference_run_length is not None:
+            runs = [run for run in runs if run["length"] >= args.min_difference_run_length]
         column_runs = (difference_column_runs(candidate, reference, args.tolerance)
                        if args.difference_column_runs else None)
         longest_column_run = (select_longest_run(column_runs)

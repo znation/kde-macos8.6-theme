@@ -720,6 +720,10 @@ with crop-relative `x`, `y` and `length`; text prints the same array after colum
 Runs end at every row boundary, and adjacent pixels stay in one run even when their delta
 magnitudes differ. Crop origins translate these coordinates to source images. Output can grow
 with the number of disjoint runs, so the option is opt-in; omitted runs skip the scan.
+Pass `--min-difference-run-length N` with `--difference-runs` to omit completed runs shorter than
+`N`. The inclusive cutoff filters the reported list after segmentation, so separated runs stay
+separate and comparison metrics and longest-run summaries still use the complete mismatch data.
+An empty requested list is reported as `[]`.
 Add `--difference-column-runs` for maximal vertical runs, ordered left-to-right and then
 top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`, `y` and
 `length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent

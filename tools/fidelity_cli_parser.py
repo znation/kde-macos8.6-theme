@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 if __package__:
-    from tools.argument_parsing import EscapingArgumentParser
+    from tools.argument_parsing import EscapingArgumentParser, positive_int
     from tools.fidelity_arguments import (
         max_delta,
         max_differing,
@@ -15,7 +15,7 @@ if __package__:
         worst_pixel_limit,
     )
 else:  # run directly: python3 tools/fidelity.py
-    from argument_parsing import EscapingArgumentParser
+    from argument_parsing import EscapingArgumentParser, positive_int
     from fidelity_arguments import (
         max_delta,
         max_differing,
@@ -65,6 +65,9 @@ def build_parser() -> EscapingArgumentParser:
                         help="locate each column's vertical interval of pixels differing beyond --tolerance")
     parser.add_argument("--difference-runs", action="store_true",
                         help="locate disjoint horizontal runs of pixels differing beyond --tolerance")
+    parser.add_argument("--min-difference-run-length", type=positive_int("--min-difference-run-length"),
+                        default=None, metavar="N",
+                        help="omit horizontal difference runs shorter than N (requires --difference-runs)")
     parser.add_argument("--difference-column-runs", action="store_true",
                         help="locate disjoint vertical runs of pixels differing beyond --tolerance")
     parser.add_argument("--difference-centroid", action="store_true",
