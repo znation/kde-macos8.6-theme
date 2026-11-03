@@ -337,6 +337,21 @@ class TestGitDiscovery(unittest.TestCase):
             hooks = local_hook_git.hooks_dir()
         self.assertEqual(shared.resolve(), hooks)
 
+    def test_config_environment_cannot_redirect_hook_install(self):
+        repo = make_repo(self)
+        outside = tmp_dir.make_tmp_dir(self) / "attacker-hooks"
+        hostile = {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.hooksPath",
+            "GIT_CONFIG_VALUE_0": str(outside),
+        }
+        with mock.patch.dict(os.environ, hostile):
+            result = run_tool(repo, "install")
+        assert_succeeded(self, result)
+        self.assertEqual(local_hook.HOOK_SCRIPT.encode(),
+                         hook_path(repo).read_bytes())
+        self.assertFalse(outside.exists())
+
     def test_whitespace_in_core_hooks_path_survives_install_and_uninstall(self):
         repo = make_repo(self)
         configured = " team-hooks \t"

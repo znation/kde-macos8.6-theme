@@ -8,6 +8,7 @@ publication stay in ``tools/local_hook.py``.
 from __future__ import annotations
 
 import subprocess
+import os
 from pathlib import Path
 
 COMMAND_TIMEOUT = 30.0
@@ -40,6 +41,11 @@ def _git(*args: str) -> str:
     try:
         result = subprocess.run(
             ["git", *args],
+            # Git's config injection variables can override core.hooksPath.
+            # Since install writes to the path Git reports, accepting those
+            # variables would let the caller redirect the hook publication.
+            env={key: value for key, value in os.environ.items()
+                 if not key.startswith("GIT_CONFIG_")},
             capture_output=True,
             text=True,
             errors="surrogateescape",
