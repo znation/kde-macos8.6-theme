@@ -46,6 +46,9 @@ class TestSampleOptionValidation(CliTestCase):
             (("--run-axis", "vertical"), "--run-axis requires --runs"),
             (("--min-run-length", "2"), "--min-run-length requires --runs"),
             (("--max-run-length", "2"), "--max-run-length requires --runs"),
+            (("--min-run-length", "2", "--max-run-length", "2"), "--min-run-length requires --runs"),
+            (("--histogram", "--max-run-length", "2"), "--max-run-length requires --runs"),
+            (("--find-color", "010203", "--max-run-length", "2"), "--max-run-length requires --runs"),
             (("--min-run-length", "2", "--max-run-length", "1"),
              "--min-run-length requires --runs"),
             (("--find-color", "010203", "--alpha"), "--alpha cannot be combined with --find-color"),
@@ -81,6 +84,7 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--width", "1", "--height", "1", "--runs"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1"),
             ("image.png", "0", "0", "--runs", "--max-run-length", "1"),
+            ("image.png", "0", "0", "--runs", "--min-run-length", "1", "--max-run-length", "2"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
              "--min-match-run-length", "1"),
         )

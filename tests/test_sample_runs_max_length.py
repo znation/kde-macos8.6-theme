@@ -6,8 +6,9 @@ import json
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import rgb_image
+from support.png_fixtures import make_png, rgb_image
 from tools import sample
+from tools.sample_arguments import build_parser
 
 
 class TestSampleRunsMaximumLength(CliTestCase):
@@ -53,6 +54,74 @@ class TestSampleRunsMaximumLength(CliTestCase):
             self.assertEqual((invalid.returncode, invalid.stdout), (2, ""), value)
         missing = self._run("missing.png", "0", "0", "--runs", "--max-run-length")
         self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+
+
+    def test_offset_crop_cutoffs_keep_segment_starts_and_gaps(self):
+        colors = [(1, 2, 3), (1, 2, 3), (9, 8, 7), (9, 8, 7), (9, 8, 7),
+                  (1, 2, 3), (4, 5, 6), (4, 5, 6)]
+        _, data = rgb_image(10, 3, lambda x, y: colors[x - 2] if y == 1 and 2 <= x < 10 else (0, 0, 0))
+        path = self._write(self._tmp_dir(), "offset.png", data)
+        base = (path, "2", "1", "--width", "8", "--runs")
+        result = self._run(*base, "--max-run-length", "2", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["runs"], [
+            {"x": 2, "y": 1, "length": 2, "rgb": [1, 2, 3], "hex": "#010203"},
+            {"x": 7, "y": 1, "length": 1, "rgb": [1, 2, 3], "hex": "#010203"},
+            {"x": 8, "y": 1, "length": 2, "rgb": [4, 5, 6], "hex": "#040506"},
+        ])
+        text = self._run(*base, "--max-run-length", "1")
+        self.assertEqual(text.stdout.splitlines(), [f"image: {path}  10x3", "region (2, 1) 8x1:",
+                         "axis: horizontal", "(7, 1): 1,2,3  #010203  length=1"])
+        exact = self._run(*base, "--min-run-length", "2", "--max-run-length", "2", "--json")
+        self.assertEqual([run["length"] for run in json.loads(exact.stdout)["runs"]], [2, 2])
+        empty = self._run(*base, "--min-run-length", "3", "--max-run-length", "2", "--json")
+        self.assertEqual(json.loads(empty.stdout)["runs"], [])
+        empty_text = self._run(*base, "--min-run-length", "3", "--max-run-length", "2")
+        self.assertEqual(empty_text.stdout.splitlines(), [f"image: {path}  10x3", "region (2, 1) 8x1:", "axis: horizontal"])
+
+    def test_vertical_rectangle_alpha_and_omitted_parity(self):
+        values = [(1, 1, 1), (1, 1, 1), (2, 2, 2), (3, 3, 3), (3, 3, 3)]
+        _, data = rgb_image(5, 6, lambda x, y: values[y - 1] if x == 2 and 1 <= y <= 5 else (0, 0, 0))
+        path = self._write(self._tmp_dir(), "vertical.png", data)
+        args = (path, "2", "1", "--height", "5", "--runs", "--max-run-length", "2", "--json")
+        result = self._run(*args)
+        self.assertEqual(json.loads(result.stdout)["axis"], "vertical")
+        self.assertEqual(json.loads(result.stdout)["runs"], [
+            {"x": 2, "y": 1, "length": 2, "rgb": [1, 1, 1], "hex": "#010101"},
+            {"x": 2, "y": 3, "length": 1, "rgb": [2, 2, 2], "hex": "#020202"},
+            {"x": 2, "y": 4, "length": 2, "rgb": [3, 3, 3], "hex": "#030303"},
+        ])
+        long_max = self._run(path, "2", "1", "--height", "5", "--runs", "--max-run-length", "5", "--json")
+        no_max = self._run(path, "2", "1", "--height", "5", "--runs", "--json")
+        self.assertEqual(json.loads(long_max.stdout)["runs"], json.loads(no_max.stdout)["runs"])
+        rgba = bytes((8, 7, 6, 0, 8, 7, 6, 255, 8, 7, 6, 0))
+        alpha_path = self._write(self._tmp_dir(), "alpha.png", make_png(3, 1, [rgba], color_type=6))
+        rgb = self._run(alpha_path, "0", "0", "--width", "3", "--runs", "--max-run-length", "3", "--json")
+        self.assertEqual(json.loads(rgb.stdout)["runs"], [
+            {"x": 0, "y": 0, "length": 3, "rgb": [8, 7, 6], "hex": "#080706"},
+        ])
+        alpha = self._run(alpha_path, "0", "0", "--width", "3", "--runs", "--alpha", "--max-run-length", "1", "--json")
+        self.assertEqual(json.loads(alpha.stdout)["runs"], [
+            {"x": 0, "y": 0, "length": 1, "rgb": [8, 7, 6], "hex": "#080706", "alpha": 0},
+            {"x": 1, "y": 0, "length": 1, "rgb": [8, 7, 6], "hex": "#080706", "alpha": 255},
+            {"x": 2, "y": 0, "length": 1, "rgb": [8, 7, 6], "hex": "#080706", "alpha": 0},
+        ])
+
+    def test_validation_help_parser_default_and_direct_script(self):
+        parser = build_parser()
+        self.assertIsNone(parser.parse_args(("image.png", "0", "0", "--runs")).max_run_length)
+        self.assertIn("--max-run-length N", parser.format_help())
+        for value in ("0", "-1", "１２", "1.5", "bad"):
+            result = self._run("missing.png", "0", "0", "--runs", "--max-run-length", value)
+            self.assertEqual((result.returncode, result.stdout), (2, ""), value)
+        missing = self._run("missing.png", "0", "0", "--runs", "--max-run-length")
+        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        _, data = rgb_image(3, 1, lambda x, y: (1, 2, 3) if x < 2 else (4, 5, 6))
+        path = self._write(self._tmp_dir(), "direct.png", data)
+        args = (path, "0", "0", "--width", "3", "--runs", "--max-run-length", "2", "--json")
+        package, direct = self._run(*args), self._run_script(*args)
+        self.assertEqual((package.returncode, package.stdout, package.stderr),
+                         (direct.returncode, direct.stdout, direct.stderr))
 
 
 if __name__ == "__main__":

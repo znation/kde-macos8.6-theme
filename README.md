@@ -699,9 +699,10 @@ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 -
 
 Pass `--min-run-length N` with `--runs` to omit completed color runs shorter than `N` pixels.
 The inclusive cutoff is applied independently within each scanline; omitted runs do not join
-separated runs of the same color. A cutoff of 1 keeps the unfiltered result.
+separated runs of the same color. A minimum cutoff of 1 keeps the unfiltered result.
 Pass `--max-run-length N` to omit completed runs longer than `N`; it combines
-inclusively with the minimum cutoff and does not join separated runs.
+inclusively with the minimum cutoff after segmentation and does not join separated runs.
+A maximum at least as large as the scanline keeps the unfiltered result.
 
 ## Fidelity checking
 
