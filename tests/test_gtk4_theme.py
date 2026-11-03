@@ -1936,6 +1936,25 @@ for radio in (False, True):
                         self.rules[reference]["border-radius"],
                     )
 
+    def test_circular_button_corners(self):
+        expected = {
+            "menubutton.circular button",
+            "button.circular",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules if ".circular" in selector},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
+                for reference in ("button", "frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[reference]["border-radius"],
+                    )
+
     def test_scale_popup_buttons(self):
         """Clear the stock rounded scale-popup button overrides."""
         self.assertEqual(

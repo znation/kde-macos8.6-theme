@@ -883,6 +883,21 @@ menubutton.opaque.pill {
   border-radius: 0;
 }
 
+/* No reference screenshot shows a circular icon button. Square corners
+ * adapt the frame > border, .frame and button recipes above, and the
+ * landed pill-button corner treatment reuses the same zero radius. The
+ * platform theme resource ships the stock arm
+ * "menubutton.circular button, button.circular { min-width: 32px;
+ * min-height: 32px; padding: 0; border-radius: 9999px; }" (probed inside
+ * the installed copy, 2026-11-03), so the twins below are byte-equal and
+ * sit late enough to win every equal-specificity order tie; the stock
+ * square sizing and zero padding stay in force. Recorded 2026-11-03 by
+ * the feature role. */
+menubutton.circular button,
+button.circular {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK boxed list. Square container and
  * end-row corners adapt frame > border, .frame border-radius: 0 above.
  * Recorded 2026-10-29 by the feature role. */
