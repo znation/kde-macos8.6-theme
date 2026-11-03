@@ -122,6 +122,16 @@ Append one dated row at the end of the `## gtk` table in `docs/invariants.md` na
 
 **Acceptance criteria.** A reader of Development team sees the check command, how to inspect their configuration, the expected configured-state indicators, and the manual setup command with its primary-checkout context. They are no longer told a particular historical request awaits merge or that verification must wait for that merge. Reference validation remains a separate command. The brief block is preserved. Review the final README diff and run `make check` after final edits, including the plan's completion record.
 
+### Make help: expose the reference sampling and comparison commands (planned 2026-11-03 by the plan role)
+
+**Goal.** Let a contributor discover the two pixel-analysis CLIs from `make help`, without searching the long README. The `help` recipe in Makefile currently lists targets and variables but neither `tools/sample.py` nor `tools/fidelity.py`; archive heading and capability searches found no plan for this help addition. This is independent of the waiting README introduction reorder.
+
+**Approach and files.** In Makefile's `help` recipe, append a blank line and a `Reference tools (run from the repository root):` section after the variables. Print two literal command examples, `python3 tools/sample.py IMAGE X Y` (sample reference PNG pixels) and `python3 tools/fidelity.py CANDIDATE REFERENCE` (compare rendered and reference PNGs), and tell readers to append `--help` for options. These are documentation strings: print them without executing Python or reading images. Keep the existing target and variable sections separated by blank lines so `tests/test_make_help.py::TestHelp::_help_section` continues to delimit them correctly. Ground the command syntax in `tools/sample_arguments.py::build_parser`, `tools/sample.py::main`, `tools/fidelity_cli_parser.py::build_parser` and `tools/fidelity.py::main`; no CLI or new make target is needed.
+
+Extend `tests/test_make_help.py::TestHelp` with a focused test using `_output` / `_help_section` to check that the new section contains both command examples, their purposes and the `--help` hint. Verify each displayed script path exists inside the repository. Add a tooling row in `docs/invariants.md` naming this test and recording the discoverability contract (tooling addition 2026-11-03; no reference-pixel provenance applies). Scope is these three files, a few help lines, one test and one register row.
+
+**Acceptance criteria.** From the repository root, `make help` exits successfully and displays both commands with the stated positional arguments, purpose descriptions and a route to their option help. Existing public-target and tunable-variable tests still accept the output, with neither script listed as a make target or variable. Removing either command example or misspelling its script path causes the new test to fail. The help recipe contains no execution of either tool, and its existing target/variable descriptions remain intact. Run `make check` after the final edit; manually inspect the help output for section boundaries.
+
 ## Done
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)
