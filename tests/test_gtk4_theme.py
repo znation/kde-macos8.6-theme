@@ -754,6 +754,25 @@ for radio in (False, True):
     def test_button_focus_outline_color(self):
         self.assert_scale_focus_outline("button:focus:focus-visible")
 
+    def test_filechooser_breadcrumb_focus_outline_color(self):
+        selectors = {
+            "filechooser #pathbarbox > stack > box > button:focus:focus-visible",
+            "filechooser #pathbarbox > stack > box > box > button:focus:focus-visible",
+            "filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible",
+        }
+        self.assertEqual(
+            {selector for selector in self.selectors if "pathbarbox" in selector},
+            selectors,
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["button:focus:focus-visible"]["outline-color"],
+                )
+
     def test_sidebar_button_focus_outline_color(self):
         selector = "button.sidebar-button:focus:focus-visible"
         self.assert_rule(selector, {"outline-color": "#000000"})

@@ -3234,3 +3234,11 @@ button.sidebar-button:focus:focus-visible {
 button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) {
   outline-color: #000000;
 }
+
+/* GTK file-chooser breadcrumb focus has no collected reference surface;
+   reuse the landed black button focus colour. */
+filechooser #pathbarbox > stack > box > button:focus:focus-visible,
+filechooser #pathbarbox > stack > box > box > button:focus:focus-visible,
+filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
