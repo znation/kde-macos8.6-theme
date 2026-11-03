@@ -69,7 +69,8 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
     min_color_fraction = getattr(args, "min_color_fraction", None)
     max_color_fraction = getattr(args, "max_color_fraction", None)
     excluded = {tuple(color) for color in (getattr(args, "exclude_colors", None) or ())}
-    if (args.top_colors is not None or min_color_count is not None or max_color_count is not None or min_color_fraction is not None or max_color_fraction is not None
+    color_offset = getattr(args, "color_offset", None)
+    if (args.top_colors is not None or color_offset is not None or min_color_count is not None or max_color_count is not None or min_color_fraction is not None or max_color_fraction is not None
             or excluded):
         total_colors = len(counts)
         candidates = counts.items()
@@ -90,7 +91,9 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
             candidates = ((color, count) for color, count in candidates
                           if count / denominator <= max_color_fraction)
         if args.top_colors is not None:
-            colors = nsmallest(args.top_colors, candidates, key=lambda item: (-item[1], item[0]))
+            limit = min(total_colors, (color_offset or 0) + args.top_colors)
+            selected = nsmallest(limit, candidates, key=lambda item: (-item[1], item[0]))
+            colors = selected[color_offset or 0:]
         else:
             colors = sorted(candidates, key=lambda item: (-item[1], item[0]))
         omitted_pixels = args.width * args.height - sum(count for _, count in colors)
@@ -106,10 +109,13 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
              **spatial[color]}
             for color, count in colors
         ]}
+    if color_offset is not None:
+        result["color_offset"] = color_offset
     if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
             or getattr(args, "max_color_count", None) is not None
             or getattr(args, "min_color_fraction", None) is not None
             or getattr(args, "max_color_fraction", None) is not None
+            or color_offset is not None
             or getattr(args, "exclude_colors", None)):
         result["total_colors"] = total_colors
         result["omitted_pixels"] = omitted_pixels
@@ -124,6 +130,8 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
     print(header)
     region = result["region"]
     print(f"region ({region['x']}, {region['y']}) {region['width']}x{region['height']}:")
+    if "color_offset" in result:
+        print(f"color offset: {result['color_offset']}")
     for color in result["colors"]:
         rgb = color["rgb"]
         suffix = f"  alpha={color['alpha']}" if "alpha" in color else ""
@@ -143,6 +151,7 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             or getattr(args, "max_color_count", None) is not None
             or getattr(args, "min_color_fraction", None) is not None
             or getattr(args, "max_color_fraction", None) is not None
+            or getattr(args, "color_offset", None) is not None
             or getattr(args, "exclude_colors", None)):
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")

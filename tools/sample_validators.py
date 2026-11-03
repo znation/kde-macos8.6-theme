@@ -54,6 +54,14 @@ def match_pixel_offset(value: str) -> int:
     return parsed
 
 
+def color_offset(value: str) -> int:
+    """Parse a nonnegative plain ASCII histogram color offset."""
+    parsed = plain_number(value, "--color-offset", "integer", "an", int)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("--color-offset must be nonnegative")
+    return parsed
+
+
 def color_fraction(value: str) -> float:
     """Parse a finite histogram fraction from zero through one."""
     parsed = plain_number(value, "--min-color-fraction", "number", "a", float)

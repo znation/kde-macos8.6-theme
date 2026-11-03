@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: page through ranked histogram colors (planned 2026-11-03 by the plan role — done 2026-11-03 by the feature role)
+
+**Goal.** Inspect later palette entries without printing the complete histogram.
+
+**Approach and files.** Added `--color-offset K` with a nonnegative plain ASCII integer validator. Histogram filters run before ranked selection; selection asks `nsmallest` for at most the original distinct-color count and emits the requested page. Totals and omitted pixels retain the full region semantics, and explicit use adds JSON/text offset metadata. Updated sampler arguments, validators, histogram reports, option-validation and histogram-offset tests, README and invariants. No decoder change or dependency.
+
+**Acceptance criteria.** The eight-pixel sample yields the expected ranked pages and omitted-pixel totals; filter ordering, large offsets, fraction output, parser default/help and offset text metadata are covered. `make check` verifies the finished change.
+
 ### Reference-pixel sampler: suppress dominant colors by region fraction (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Hide dominant background colors with a crop-size-independent upper bound, leaving sparse accent and edge colors for inspection. Sampler code and related finished plans cover minimum fraction, maximum count and named exclusions, but not a maximum fraction. This is independent of the queued fidelity pagination work.

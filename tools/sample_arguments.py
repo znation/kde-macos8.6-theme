@@ -6,17 +6,19 @@ import argparse
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, plain_number, positive_int
     from tools.sample_validators import (color_fraction, max_color_fraction, color_tolerance, match_alpha,
-                                        match_pixel_offset, match_pixels, rgb_argument)
+                                        color_offset, match_pixel_offset, match_pixels, rgb_argument)
 else:
     from argument_parsing import EscapingArgumentParser, plain_number, positive_int
     from sample_validators import (color_fraction, max_color_fraction, color_tolerance, match_alpha,
-                                   match_pixel_offset, match_pixels, rgb_argument)
+                                   color_offset, match_pixel_offset, match_pixels, rgb_argument)
 
 
 def option_error(args: argparse.Namespace) -> str | None:
     """Return the first incompatible option combination, if any."""
     if args.top_colors is not None and not args.histogram:
         return "--top-colors requires --histogram"
+    if getattr(args, "color_offset", None) is not None and args.top_colors is None:
+        return "--color-offset requires --top-colors"
     if args.min_color_count is not None and not args.histogram:
         return "--min-color-count requires --histogram"
     if args.max_color_count is not None and not args.histogram:
@@ -108,6 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-axis", choices=("horizontal", "vertical"), help="scan each row or column of a --runs rectangle")
     parser.add_argument("--min-run-length", type=positive_int("--min-run-length"), metavar="N", help="with --runs, omit color runs shorter than N pixels")
     parser.add_argument("--top-colors", type=positive_int("--top-colors"), metavar="N", help="with --histogram, show only the N most frequent colors")
+    parser.add_argument("--color-offset", type=color_offset, metavar="K", help="with --top-colors, skip the first K ranked colors")
     parser.add_argument("--min-color-count", type=positive_int("--min-color-count"), metavar="N", help="with --histogram, omit colors occurring fewer than N times")
     parser.add_argument("--max-color-count", type=positive_int("--max-color-count"), metavar="N", help="with --histogram, omit colors occurring more than N times")
     parser.add_argument("--min-color-fraction", type=color_fraction, metavar="F", help="with --histogram, omit colors below fraction F of the region")

@@ -449,6 +449,12 @@ Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
 
+Add `--color-offset K` with `--top-colors N` to skip the first K eligible
+ranked colors and emit the next N. Filters run before paging. Explicit use
+adds `color_offset` to JSON and a `color offset: K` text line; totals and
+omitted pixels retain their usual meaning. Selection stores at most the
+original distinct-color count, even for a very large offset.
+
 Add `--min-color-count N` with `--histogram` to omit colors whose count is
 below N. The cutoff is inclusive and runs before `--top-colors`. JSON and text
 include `total_colors` and `omitted_pixels` whenever either option is used;
