@@ -5,17 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Reference-pixel sampler: select a named histogram palette (planned 2026-11-03 by the plan role)
-
-**Goal.** Measure several known reference shades in one histogram without listing unrelated colors or running a separate exact-color search for each. Searches of the sampler, tests and finished-plan archive found named exclusions but no named inclusion filter.
-
-**Approach and files.** Add repeatable `--include-color RRGGBB` in `tools/sample_arguments.py::build_parser`, with destination `include_colors`, default None and the existing `tools/sample_validators.py::rgb_argument` syntax. In `option_error`, require histogram mode adjacent to the exclusion check. In `tools/sample_report_histogram.py::_histogram_result`, retain counted keys whose RGB prefix belongs to the included set, then apply exclusions, count/fraction cutoffs and ranked pagination. Exclusion wins for a color named in both lists. Inclusion names select every opacity variant with `--alpha`; absent names create no zero-count entries. Include explicit inclusion in the selection branch, JSON-total condition and `report_histogram` text-total condition. Preserve original distinct-color totals, full-region fractions, and spatial fields over complete occurrences of emitted keys. Add `tests/test_sample_histogram_inclusions.py` patterned on `TestSampleHistogramExclusions`, extend `tests/test_sample_option_validation.py::TestSampleOptionValidation`, and document the option in README.md and the sampler histogram rows of docs/invariants.md. This is one bounded selection feature across six files, expected to fit a few hundred changed lines including tests; no new image passes or visual assets are needed.
-
-**Acceptance criteria.**
-- Given an eight-pixel crop with RGB counts `090909:3`, `010000:2`, `000100:2`, `020000:1`, including `010000` and `000100` emits the latter first by tuple tie order, with original `total_colors=4` and `omitted_pixels=4`. Adding `--top-colors 1 --color-offset 1` emits only `010000` and omits six pixels, demonstrating inclusion before paging. Excluding `010000` leaves only `000100`; count and fraction cutoffs further restrict the included set.
-- Repeated names, lowercase hex and optional `#` yield the same selection. An absent-only inclusion produces an empty palette and eight omitted pixels; including the entire crop palette reports totals with zero omitted pixels. Fractions remain count/8, and requested positions, bounds and centroids use absolute coordinates and complete occurrences within an offset crop. Text and JSON agree on selection and totals.
-- For RGBA pixels `(1,2,3,0)`, `(1,2,3,128)` and `(4,5,6,255)`, inclusion `010203` with `--alpha` emits the two distinct opacity keys, original total three and one omitted pixel. RGB mode merges those two occurrences; an RGB-only PNG reports alpha 255 when requested. Excluding the same included RGB removes both opacity keys.
-- Missing or malformed inclusion values exit 2 with empty stdout. Inclusion outside histogram mode (ordinary samples, runs and find-color) exits 2 with `--include-color requires --histogram`. These failures occur before image access, guarded by mocks of `os.open`, `read_png_size` and `read_png`. Omitted-option fixtures retain existing output, and direct-script and package invocations agree. Run `make check` after final edits.
+_None yet._
 
 ## Done
 
