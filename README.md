@@ -855,13 +855,8 @@ reports `null`. When combined with `--difference-runs`, it reuses those interval
 comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
 JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
 combined with `--difference-column-runs`, it reuses those intervals.
-`--difference-run-count` reports the number of maximal horizontal mismatch intervals as
-`difference_run_count` in JSON or `difference run count: N` in text. It counts before run-length
-filters; requested run lists supply the count, while count-only mode streams without retaining
-intervals.
-The count includes alpha and RGB beneath transparent pixels, treats missing alpha as 255, and
-counts each pixel once. The aggregate metrics use comparison raw bytes and are independent of
-`--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
+The aggregate metrics use comparison raw bytes and are independent of `--tolerance`; RMSE is not a
+perceptual error measure. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
 includes `candidate_position` and `reference_position`, which add the corresponding crop origin
@@ -915,8 +910,11 @@ magnitudes differ. Crop origins translate these coordinates to source images. Ou
 with the number of disjoint runs, so the option is opt-in; omitted runs skip the scan.
 Add `--difference-run-count` to report the number of maximal horizontal mismatch runs as
 `difference_run_count` in JSON or a `difference run count:` text line. It counts unfiltered
-segments, so length cutoffs affect the optional run list but not the scalar. Combined with
-`--difference-runs`, it reuses that scan; by itself it streams the count without retaining run
+segments whose pixels' maximum raw RGBA channel delta exceeds `--tolerance`; alpha and RGB beneath
+transparent pixels participate, and missing alpha is treated as 255. This is an interval count,
+not a mismatching-pixel count: runs end at row boundaries, and adjacent mismatching pixels in one
+row form one segment. Length cutoffs affect the optional run list but not the scalar. Combined
+with `--difference-runs`, it reuses that scan; by itself it streams the count without retaining run
 records. The diagnostic is omitted unless requested.
 Pass `--min-difference-run-length N` with `--difference-runs` to omit completed runs shorter than
 `N`. The inclusive cutoff filters the reported list after segmentation, so separated runs stay
