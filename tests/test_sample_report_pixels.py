@@ -27,6 +27,20 @@ class TestPositionedRegionPixels(unittest.TestCase):
             ],
         )
 
+    def test_single_column_crop_advances_rows_without_neighbor_pixels(self):
+        class Image:
+            width = 4
+            rgb = bytes((
+                1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0,
+                5, 0, 0, 6, 0, 0, 7, 0, 0, 8, 0, 0,
+                9, 0, 0, 10, 0, 0, 11, 0, 0, 12, 0, 0,
+            ))
+
+        self.assertEqual(
+            list(_positioned_region_pixels(Image(), 2, 0, 1, 3)),
+            [(2, 0, (3, 0, 0)), (2, 1, (7, 0, 0)), (2, 2, (11, 0, 0))],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
