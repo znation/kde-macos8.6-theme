@@ -120,6 +120,13 @@ default-indicator wedge above, so either land that element first or exclude the 
 flush-face comparison. The entry is
 actionable as written; nothing else waits on review.
 
+**Progress (2026-11-03 by bugfix):** rerendered `--checkbox-dialog` and confirmed the interior
+pixels (195,209) and (195,228) are `#000000`, while (195,210) is `#DDDDDD`. Adding
+`normal_default_pushbutton=false` under `[Hacks]` also leaves both black rows unchanged and was
+removed. This reproduces the focus-ring artifact diagnosed above; the next step remains the
+scoped `focusRectElement=focus-none` fix and a theme-owned `button-default-indicator`.
+
+
 ### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30)
 
 The live render gate compares engine-drawn Kvantum widget pixels in
