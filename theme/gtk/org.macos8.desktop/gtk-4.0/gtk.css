@@ -591,6 +591,30 @@ tabbar .box:backdrop > .end-action {
   filter: none;
 }
 
+/* Adaptation 2026-11-03: no collected reference screenshot shows keyboard
+   focus in a GTK tab bar or tab grid. The GTK integration resource's
+   `base.css` focus arms, probed with gresource on 2026-11-03, paint
+   `tabbar tabbox > tabboxchild` and
+   `tabgrid > tabgridchild .card` with 2px accent outlines at offsets -2px
+   and 0; each focus arm uses the accent colour and each base arm transitions
+   outline colour, width and offset over 200ms. Use the landed black focus
+   colour policy and no transition; stock outline geometry remains inherited. */
+tabbar tabbox > tabboxchild {
+  transition: none;
+}
+
+tabgrid > tabgridchild .card {
+  transition: none;
+}
+
+tabbar tabbox > tabboxchild:focus-within:focus-visible {
+  outline-color: #000000;
+}
+
+tabgrid > tabgridchild:focus:focus-visible .card {
+  outline-color: #000000;
+}
+
 /* A stack switcher's page buttons draw as the landed tab recipe, the active
    page's button included; :backdrop stays out of scope. */
 stackswitcher > button {

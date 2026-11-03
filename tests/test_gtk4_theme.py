@@ -1880,12 +1880,17 @@ for radio in (False, True):
         self.assert_matches_frame("shortcut > .keycap", "border-radius")
 
     def test_card_corners(self):
-        expected = {".card", "menubutton.card > button"}
+        expected = {
+            ".card",
+            "menubutton.card > button",
+            "tabgrid > tabgridchild .card",
+            "tabgrid > tabgridchild:focus:focus-visible .card",
+        }
         self.assertEqual(
             {selector for selector in self.rules if ".card" in selector},
             expected,
         )
-        for selector in sorted(expected):
+        for selector in (".card", "menubutton.card > button"):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
@@ -2921,6 +2926,38 @@ for radio in (False, True):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {"filter": "none"})
                 self.assertEqual(self.rules[selector]["filter"], value)
+
+    def test_tabbar_tabboxchild_focus(self):
+        base = "tabbar tabbox > tabboxchild"
+        focus = "tabbar tabbox > tabboxchild:focus-within:focus-visible"
+        self.assert_scale_slider_transition(base)
+        self.assert_scale_focus_outline(focus)
+        for selector in (base, focus):
+            self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            {selector for selector in self.rules if "tabboxchild" in selector},
+            {base, focus},
+        )
+        self.assertGreater(
+            self.selectors.index(focus),
+            self.selectors.index("tabbar .box:backdrop > scrolledwindow"),
+        )
+        self.assertLess(
+            self.selectors.index(focus),
+            self.selectors.index("stackswitcher > button"),
+        )
+
+    def test_tabgrid_card_focus(self):
+        base = "tabgrid > tabgridchild .card"
+        focus = "tabgrid > tabgridchild:focus:focus-visible .card"
+        self.assert_scale_slider_transition(base)
+        self.assert_scale_focus_outline(focus)
+        for selector in (base, focus):
+            self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            {selector for selector in self.rules if "tabgridchild" in selector},
+            {base, focus},
+        )
 
     def test_switch_track_padding(self):
         self.assert_rule("switch", {"padding": "0"})
