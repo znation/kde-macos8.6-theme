@@ -6,7 +6,9 @@ that ``PATH`` found but cannot start is the tool's exit-2 diagnostic, a
 timeout or a non-zero exit is its exit-1 diagnostic with the command's log
 tail, and any of them stops the run. :func:`run_required` supervises the
 command with :func:`tools.process_group.run_logged` and returns the status to
-exit with, so the three outcomes live here once instead of in each caller.
+exit with, so the three outcomes live here once instead of in each caller;
+:func:`run_required_output` is its variant for command outputs that a caller
+reads, where a merged stderr would corrupt the value.
 
 A best-effort command (a missing Kvantum, an optional KWin reconfigure) does
 not use this: its failure is a note and must not change the exit status.
@@ -19,10 +21,19 @@ from pathlib import Path
 
 if __package__:
     from tools.diagnostics import report_error, report_failure
-    from tools.process_group import run_logged
+    from tools.process_group import run_logged, run_logged_split
 else:  # imported from a directly run tool
     from diagnostics import report_error, report_failure
-    from process_group import run_logged
+    from process_group import run_logged, run_logged_split
+
+
+def _signal_name(status: int) -> str:
+    """Return the name of the signal that produced a negative wait status."""
+    number = -status
+    try:
+        return signal.Signals(number).name
+    except ValueError:
+        return str(number)
 
 
 def run_required(
@@ -55,12 +66,90 @@ def run_required(
             tool, f"{command[0]} timed out after {timeout:g}s", log
         )
     if status < 0:
-        number = -status
-        try:
-            name = signal.Signals(number).name
-        except ValueError:
-            name = str(number)
-        return report_failure(tool, f"{command[0]} killed by signal {name}", log)
+        return report_failure(
+            tool,
+            f"{command[0]} killed by signal {_signal_name(status)}",
+            log,
+        )
     if status != 0:
         return report_failure(tool, f"{command[0]} exited {status}", log)
     return None
+
+
+def _failure_log(stdout_log: Path, stderr_log: Path) -> Path:
+    """Return the split log that can explain a failed command.
+
+    A command's diagnostics are its stderr; only a drain that wrote nothing
+    there falls back to its stdout, which is how the shared triage reports a
+    failure whose log the caller reads. Both files always exist once the run
+    has started, so an unreadable one is reported as an unreadable tail by
+    :func:`tools.diagnostics.report_failure` on the fallback.
+    """
+    try:
+        if stderr_log.stat().st_size:
+            return stderr_log
+    except OSError:
+        pass
+    return stdout_log
+
+
+def run_required_output(
+    tool: str,
+    command: list[str],
+    env: dict[str, str],
+    stdout_log: Path,
+    stderr_log: Path,
+    timeout: float,
+    cwd: Path,
+) -> tuple[bytes, int | None]:
+    """Run a required command and return its stdout; a failure returns a status.
+
+    :func:`run_required` logs stdout and stderr merged, which is what every
+    caller that never reads the streams wants. A caller that takes a value
+    from stdout -- ``apply_keymap``'s ``kreadconfig6`` read, whose stderr
+    warnings must never become XKB options -- needs the streams apart, so
+    this variant logs them to *stdout_log* and *stderr_log*, returns the raw
+    stdout bytes, and only reports a failure when the command failed. The
+    failure triage is the shared one: the status plus the same exit-1 and
+    exit-2 diagnostics, and on failure the log whose tail explains it. The
+    caller owns the two log paths, so the logs land in its scratch directory
+    rather than under names derived from ``command[0]``: an absolute
+    executable path would otherwise redirect them out of that directory. A
+    succeeding run removes both logs, so no stream is left on disk for a
+    later step to mistake for the value, and what it returns are the bytes
+    the caller decodes.
+    """
+    if not command or not command[0]:
+        raise ValueError(
+            "run_required_output() requires a non-empty executable name"
+        )
+    try:
+        status = run_logged_split(
+            command, env, stdout_log, stderr_log, timeout, cwd
+        )
+    except OSError as exc:
+        return b"", report_error(tool, f"cannot run {command[0]}: {exc}")
+    log = _failure_log(stdout_log, stderr_log)
+    if status is None:
+        return b"", report_failure(
+            tool, f"{command[0]} timed out after {timeout:g}s", log
+        )
+    if status < 0:
+        return b"", report_failure(
+            tool,
+            f"{command[0]} killed by signal {_signal_name(status)}",
+            log,
+        )
+    if status != 0:
+        return b"", report_failure(
+            tool, f"{command[0]} exited {status}", log
+        )
+    try:
+        value = stdout_log.read_bytes()
+        stdout_log.unlink()
+        stderr_log.unlink()
+    except OSError as exc:
+        return b"", report_error(
+            tool, f"cannot read {stdout_log.name}: {exc}"
+        )
+    return value, None

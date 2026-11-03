@@ -33,8 +33,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import signal
-import subprocess
 import sys
 from pathlib import Path
 
@@ -43,26 +41,24 @@ if __package__:
     from tools.diagnostics import (
         create_scratch_directory,
         report_error,
-        report_failure,
         report_missing_tool,
         report_note,
     )
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
-    from tools.required_command import run_required
+    from tools.required_command import run_required, run_required_output
     from tools.session_bus import session_env
 else:  # run directly: python3 tools/apply_keymap.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
         create_scratch_directory,
         report_error,
-        report_failure,
         report_missing_tool,
         report_note,
     )
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
-    from required_command import run_required
+    from required_command import run_required, run_required_output
     from session_bus import session_env
 
 TOOL = "apply_keymap"
@@ -130,12 +126,12 @@ def _read_options(env: dict[str, str], scratch: Path) -> tuple[str, int | None]:
     KConfig reports a missing key as a successful, empty value, so a zero exit
     and no output both mean "the user has no options yet". Its diagnostics go
     to stderr (an invalid escape in the file produces a warning there), so
-    only stdout is the value; merging the streams would turn the warning into
-    an XKB option. A non-zero exit is a failed required command and its status
-    is returned for the caller to propagate; a value that cannot be decoded is
-    this tool's exit-2 error instead of a traceback.
+    only stdout is the value and the shared read separates the streams;
+    merging them would turn the warning into an XKB option. A non-zero exit
+    is a failed required command and its status is returned for the caller to
+    propagate; a value that cannot be decoded is this tool's exit-2 error
+    instead of a traceback.
     """
-    log = scratch / "kreadconfig6.log"
     argv = [
         "kreadconfig6",
         "--file",
@@ -145,59 +141,23 @@ def _read_options(env: dict[str, str], scratch: Path) -> tuple[str, int | None]:
         "--key",
         OPTIONS_KEY,
     ]
-    try:
-        result = subprocess.run(
-            argv,
-            cwd=ROOT,
-            env=env,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=COMMAND_TIMEOUT,
-            check=False,
-        )
-    except OSError as exc:
-        return "", report_error(TOOL, f"cannot run kreadconfig6: {exc}")
-    except subprocess.TimeoutExpired as exc:
-        status = _report_failure(
-            f"kreadconfig6 timed out after {COMMAND_TIMEOUT:g}s",
-            log,
-            exc.stderr,
-        )
+    value, status = run_required_output(
+        TOOL,
+        argv,
+        env,
+        scratch / "kreadconfig6.log",
+        scratch / "kreadconfig6.stderr.log",
+        COMMAND_TIMEOUT,
+        ROOT,
+    )
+    if status is not None:
         return "", status
-    if result.returncode != 0:
-        if result.returncode < 0:
-            number = -result.returncode
-            try:
-                name = signal.Signals(number).name
-            except ValueError:
-                name = str(number)
-            message = f"kreadconfig6 killed by signal {name}"
-        else:
-            message = f"kreadconfig6 exited {result.returncode}"
-        return "", _report_failure(
-            message, log, result.stderr or result.stdout
-        )
     try:
-        return result.stdout.decode("utf-8").strip(), None
+        return value.decode("utf-8").strip(), None
     except UnicodeDecodeError as exc:
         return "", report_error(
             TOOL, f"cannot read the current {OPTIONS_KEY} value: {exc}"
         )
-
-
-def _report_failure(message: str, log: Path, output: bytes | None) -> int:
-    """Write *output* to *log* and return the shared failed-command status.
-
-    A scratch log that cannot be written is this tool's exit-2 diagnostic
-    rather than a traceback; the command still failed, but its output is
-    unavailable, so the message carries the cause instead.
-    """
-    try:
-        log.write_bytes(output or b"")
-    except OSError as exc:
-        return report_error(TOOL, f"cannot write {log.name}: {exc}")
-    return report_failure(TOOL, message, log)
 
 
 def _write_options(

@@ -1,15 +1,18 @@
 """Tests for tools/required_command.py -- the shared required-command mapping.
 
 ``apply_theme`` and ``apply_cursor`` route every command they cannot run
-without through :func:`tools.required_command.run_required`. Their own tests
-reach each outcome through the CLI, but none pins the helper's contract at its
-own boundary: that it hands the command, environment, log, timeout and working
-directory straight to :func:`tools.process_group.run_logged`, returns ``None``
-only on success, and maps an unstartable command to exit 2 while a timeout or
-non-zero exit becomes exit 1 with the bounded log tail. A regression that
-dropped or reordered one of those arguments (the working directory and timeout
-are not observable through the caller tests) would change what the external
-command sees without failing either CLI suite.
+without through :func:`tools.required_command.run_required`; ``apply_keymap``
+reads its ``kreadconfig6`` value through :func:`tools.required_command.run_required_output`
+instead. Their own tests reach each outcome through the CLI, but none pins
+the helpers' contracts at their boundaries: that the shared helper hands the
+command, environment, log, timeout and working directory straight to
+:func:`tools.process_group.run_logged`, returns ``None`` only on success, and
+maps an unstartable command to exit 2 while a timeout or non-zero exit
+becomes exit 1 with the bounded log tail, and that the read helper keeps the
+streams apart and returns the raw stdout bytes only on success. A regression
+that dropped or reordered one of those arguments (the working directory and
+timeout are not observable through the caller tests) would change what the
+external command sees without failing either CLI suite.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -142,6 +145,142 @@ class TestRunRequired(RequiredCommandCase):
         self.assertEqual(1, status)
         self.assertIn("slowcmd killed by signal 99999", stderr)
         self.assertNotIn("Traceback", stderr)
+
+
+class RunRequiredOutputCase(RequiredCommandCase):
+    """Defaults for :func:`run_required_output` over the case's log paths."""
+
+    def run_output(self, command=COMMAND, timeout=30.0):
+        """Call the read helper and return (value, status, stderr)."""
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            value, status = required_command.run_required_output(
+                TOOL,
+                command,
+                self.env,
+                self.root / "read.log",
+                self.root / "read.stderr.log",
+                timeout,
+                self.cwd,
+            )
+        return value, status, stderr.getvalue()
+
+
+class TestRunRequiredOutput(RunRequiredOutputCase):
+    def test_an_empty_command_is_rejected_before_starting_a_child(self):
+        with mock.patch.object(
+            required_command, "run_logged_split"
+        ) as runner:
+            with self.assertRaisesRegex(
+                ValueError,
+                r"^run_required_output\(\) requires a non-empty executable "
+                r"name$",
+            ):
+                self.run_output([])
+        runner.assert_not_called()
+
+    def test_an_empty_executable_is_rejected_before_starting_a_child(self):
+        with mock.patch.object(
+            required_command, "run_logged_split"
+        ) as runner:
+            with self.assertRaisesRegex(
+                ValueError,
+                r"^run_required_output\(\) requires a non-empty executable "
+                r"name$",
+            ):
+                self.run_output([""])
+        runner.assert_not_called()
+
+    def test_success_returns_the_stdout_bytes_only_and_leaves_no_logs(self):
+        value, status, stderr = self.run_output(
+            ["sh", "-c", 'printf "%s=%s" "$MARK" "$PWD" > /dev/stdout; '
+             'echo warning >&2']
+        )
+        self.assertIsNone(status)
+        self.assertEqual("", stderr)
+        mark, cwd = value.decode("utf-8").split("=")
+        self.assertEqual("m1", mark)
+        self.assertEqual(os.path.realpath(self.cwd), os.path.realpath(cwd))
+        # The streams stay apart on success: no log carries the warning, so
+        # no caller can mistake it for part of the value.
+        self.assertEqual([], list(self.root.glob("*.log")))
+
+    def test_runs_where_asked_with_the_given_environment(self):
+        def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"recorded")
+            stderr_log.write_bytes(b"")
+            return 0
+
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=succeed
+        ) as runner:
+            value, status, stderr = self.run_output(timeout=12.5)
+        self.assertIsNone(status)
+        self.assertEqual(b"recorded", value)
+        self.assertEqual("", stderr)
+        runner.assert_called_once_with(
+            COMMAND, self.env,
+            self.root / "read.log", self.root / "read.stderr.log",
+            12.5, self.cwd,
+        )
+
+    def test_a_nonzero_exit_returns_one_with_the_stderr_tail(self):
+        value, status, stderr = self.run_output(
+            ["sh", "-c", "echo broken >&2; echo value; exit 3"]
+        )
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("a_tool: error: sh exited 3", stderr)
+        self.assertIn("\n  broken\n", stderr)
+        self.assertNotIn("value", stderr.replace("broken", ""))
+
+    def test_a_failed_command_with_no_stderr_falls_back_to_stdout(self):
+        value, status, stderr = self.run_output(
+            ["sh", "-c", "echo partial; exit 3"]
+        )
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("a_tool: error: sh exited 3", stderr)
+        self.assertIn("\n  partial\n", stderr)
+
+    def test_a_timeout_returns_one_with_what_did_reach_the_logs(self):
+        with mock.patch.object(
+            required_command, "run_logged_split", return_value=None
+        ) as runner:
+            value, status, stderr = self.run_output(timeout=0.25)
+        runner.assert_called_once()
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("a_tool: error: slowcmd timed out after 0.25s", stderr)
+
+    def test_an_unstartable_command_returns_two_without_a_traceback(self):
+        error = FileNotFoundError(
+            2, "No such file or directory", "/nonexistent/interpreter"
+        )
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=error
+        ):
+            value, status, stderr = self.run_output()
+        self.assertEqual(b"", value)
+        self.assertEqual(2, status)
+        self.assertIn("a_tool: error: cannot run slowcmd:", stderr)
+        self.assertIn(str(error), stderr)
+        self.assertNotIn("Traceback", stderr)
+
+    def test_signal_death_names_the_signal_and_keeps_the_tail(self):
+        value, status, stderr = self.run_output([
+            sys.executable, "-c",
+            "import os, signal, sys; print('before termination', "
+            "flush=True); print('stopped', file=sys.stderr, flush=True); "
+            "os.kill(os.getpid(), signal.SIGTERM)",
+        ])
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn(
+            f"a_tool: error: {sys.executable} killed by signal SIGTERM",
+            stderr,
+        )
+        self.assertIn("\n  stopped\n", stderr)
 
 
 if __name__ == "__main__":

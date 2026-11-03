@@ -1,6 +1,9 @@
 """Run a child in its own process group and tear the whole group down.
 
 :func:`run_logged` supervises one command with a timeout and a log file;
+:func:`run_logged_split` does the same with the two output streams logged
+separately, for callers that read a value from stdout and must not log the
+streams merged;
 :func:`exit_on_termination` makes SIGTERM and SIGHUP unwind the caller's
 ``finally`` blocks. ``tools/render_surface.py``, ``tools/apply_keymap.py`` and
 ``tools/apply_theme.py`` use both around the external commands they run;
@@ -155,6 +158,45 @@ def run_logged(
             # The child has not been released yet, so there is nothing more
             # to do: SIGKILL is already sent. A reap timeout must not replace
             # the caller's real outcome.
+            _reap(process)
+
+
+def run_logged_split(
+    argv: list[str],
+    env: dict[str, str],
+    stdout_log: Path,
+    stderr_log: Path,
+    timeout: float,
+    cwd: Path,
+) -> int | None:
+    """Run *argv* logging stdout and stderr to separate files; None = timeout.
+
+    The shared :func:`run_logged` merges a command's streams into one log,
+    which is what a caller that never reads the streams wants. A caller that
+    takes a value from stdout -- ``apply_keymap``'s kreadconfig6 read, whose
+    stderr carries warnings that must never become XKB options -- cannot use
+    it, so this variant logs the streams to separate files under the same
+    supervision: stdin is closed, the whole process group is killed on the
+    way out, and the bounded reap cannot stall past the timeout. A command
+    that cannot be started raises the ``OSError`` for the caller to report.
+    """
+    with stdout_log.open("wb") as out, stderr_log.open("wb") as err:
+        process, deferred = _popen_deferred(
+            argv,
+            cwd=cwd,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=out,
+            stderr=err,
+            start_new_session=True,
+        )
+        try:
+            _replay_deferred(deferred)
+            return process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            return None
+        finally:
+            _kill_group(process)
             _reap(process)
 
 

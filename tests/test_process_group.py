@@ -261,6 +261,65 @@ class TestRunLogged(unittest.TestCase):
             self.assertIsNotNone(wait_timeout)
 
 
+class TestRunLoggedSplit(unittest.TestCase):
+    """The split-output variant of the logged supervisor.
+
+    A caller that reads a value from a command's stdout cannot use the merged
+    log, because the command's stderr warnings would become part of the
+    value; :func:`run_logged_split` is the same supervision with the two
+    streams in separate files.
+    """
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.stdout_log = self.root / "out.log"
+        self.stderr_log = self.root / "err.log"
+
+    def run_sh(self, script, timeout=30):
+        """Run *script* with split logs and return its exit status."""
+        return process_group.run_logged_split(
+            ["sh", "-c", script],
+            dict(os.environ),
+            self.stdout_log,
+            self.stderr_log,
+            timeout,
+            self.root,
+        )
+
+    def test_returns_the_exit_status_and_keeps_the_streams_apart(self):
+        status = self.run_sh("echo out; echo err >&2; exit 3")
+        self.assertEqual(3, status)
+        self.assertEqual(["out"],
+                         self.stdout_log.read_text(encoding="utf-8").split())
+        self.assertEqual(["err"],
+                         self.stderr_log.read_text(encoding="utf-8").split())
+
+    def test_runs_in_the_given_directory_with_the_given_environment(self):
+        process_group.run_logged_split(
+            ["sh", "-c", 'echo "$PWD $MARK"'],
+            {"PATH": os.environ["PATH"], "MARK": "m1"},
+            self.stdout_log,
+            self.stderr_log,
+            30,
+            self.root,
+        )
+        cwd, mark = self.stdout_log.read_text(encoding="utf-8").split()
+        self.assertEqual(os.path.realpath(self.root), os.path.realpath(cwd))
+        self.assertEqual("m1", mark)
+
+    def test_a_descendant_outliving_the_child_is_killed_on_normal_exit(self):
+        pidfile = self.root / "pid"
+        status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
+        self.assertEqual(0, status)
+        self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
+
+    def test_stdin_is_closed(self):
+        self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))
+        self.assertEqual("", self.stdout_log.read_text(encoding="utf-8"))
+
+
 class TestExitOnTermination(unittest.TestCase):
     def _kill_self_under_exit_on_termination(self, number):
         """Send *number* to this process and return the shell-convention code."""
