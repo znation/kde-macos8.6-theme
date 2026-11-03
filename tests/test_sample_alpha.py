@@ -36,6 +36,25 @@ class TestSampleAlpha(CliTestCase):
             {"x": 1, "y": 1, "rgb": [70, 80, 90], "hex": "#46505A", "alpha": 255},
         ])
 
+    def test_exact_singleton_and_rectangle_output_and_script_parity(self):
+        path = self._rgba()
+        singleton = self._run(path, "0", "0", "--alpha")
+        self._assert_success(singleton)
+        self.assertEqual(singleton.stdout,
+                         f"image: {path}  2x2\npixel (0, 0): 10,20,30  #0A141E  alpha=0\n")
+        rectangle_args = (path, "1", "0", "--width", "1", "--height", "2", "--alpha")
+        rectangle = self._run(*rectangle_args)
+        self._assert_success(rectangle)
+        self.assertEqual(rectangle.stdout,
+                         f"image: {path}  2x2\nregion (1, 0) 1x2:\n"
+                         "(1, 0): 10,20,30  #0A141E  alpha=128\n"
+                         "(1, 1): 70,80,90  #46505A  alpha=255\n")
+        json_args = (path, "1", "0", "--width", "1", "--height", "2", "--alpha", "--json")
+        package = self._run(*json_args)
+        direct = self._run_script(*json_args)
+        self.assertEqual((direct.stdout, direct.stderr, direct.returncode),
+                         (package.stdout, package.stderr, package.returncode))
+
     def test_text_and_default_output(self):
         path = self._rgba()
         result = self._run(path, "0", "0", "--alpha")

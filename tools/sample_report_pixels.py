@@ -32,33 +32,36 @@ def _region_alpha(image, x: int, y: int, width: int, height: int):
             yield 255 if alpha is None else alpha[index]
 
 
+def _pixel_records(args, image):
+    """Yield ordinary pixel report records lazily, in row-major order."""
+    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in _positioned_region_pixels(
+        image, args.x, args.y, args.width, args.height
+    ):
+        pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)}
+        if alphas is not None:
+            pixel["alpha"] = next(alphas)
+        yield pixel
+
+
 def report_pixels(args, image, width: int, height: int, header: str) -> None:
     """Print the ordinary single-pixel or rectangle report."""
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
     if args.json:
-        pixels = []
-        alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-        for x, y, rgb in _positioned_region_pixels(
-            image, args.x, args.y, args.width, args.height
-        ):
-            pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)}
-            if alphas is not None:
-                pixel["alpha"] = next(alphas)
-            pixels.append(pixel)
+        pixels = list(_pixel_records(args, image))
         print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
             "region": region, "pixels": pixels}, ensure_ascii=True))
         return
     if args.width == 1 and args.height == 1:
-        rgb = tuple(image.rgb[(args.y * image.width + args.x) * 3 + i] for i in range(3))
-        suffix = f"  alpha={next(_region_alpha(image, args.x, args.y, 1, 1))}" if args.alpha else ""
+        pixel = next(_pixel_records(args, image))
+        r, g, b = pixel["rgb"]
+        suffix = f"  alpha={pixel['alpha']}" if args.alpha else ""
         print(header)
-        print(f"pixel ({args.x}, {args.y}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}{suffix}")
+        print(f"pixel ({args.x}, {args.y}): {r},{g},{b}  {pixel['hex']}{suffix}")
         return
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
-    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    for x, y, (r, g, b) in _positioned_region_pixels(
-        image, args.x, args.y, args.width, args.height
-    ):
-        suffix = f"  alpha={next(alphas)}" if alphas is not None else ""
-        print(f"({x}, {y}): {r},{g},{b}  {_hex((r, g, b))}{suffix}")
+    for pixel in _pixel_records(args, image):
+        r, g, b = pixel["rgb"]
+        suffix = f"  alpha={pixel['alpha']}" if args.alpha else ""
+        print(f"({pixel['x']}, {pixel['y']}): {r},{g},{b}  {pixel['hex']}{suffix}")
