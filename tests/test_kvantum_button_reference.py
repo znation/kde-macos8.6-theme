@@ -28,6 +28,7 @@ from support.svg_case import parse_svg
 from svg_assertions import (
     bevel_corner_maps,
     bevel_edge_maps,
+    groups_with_id,
     pixel_map,
     render_slices,
 )
@@ -104,10 +105,18 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
                     )
 
     def test_default_button_indicator_keeps_the_face_flat(self):
-        slices = render_slices(parse_svg(SVG))
+        tree = parse_svg(SVG)
         self.assertEqual(
-            {"#DDDDDD"},
-            {colour for colour in slices["button-default-indicator"].values()},
+            1,
+            sum(
+                group.get("id") == "button-default-indicator"
+                for group in groups_with_id(tree)
+            ),
+        )
+        slices = render_slices(tree)
+        self.assertEqual(
+            pixel_map(("#DDDDDD",) * 49, 7, 7),
+            slices["button-default-indicator"],
         )
 
 
