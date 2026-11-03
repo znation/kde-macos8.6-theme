@@ -7,6 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
+from support.png_fixtures import solid_rgb
 from tools import sample
 from tools.sample_arguments import build_parser, option_error, region_error
 
@@ -106,6 +107,7 @@ class TestSampleOptionValidation(CliTestCase):
                 self.assertEqual(vars(args), before)
 
     def test_cli_reports_header_bounds_before_decoding(self):
+        image = self._write(self._tmp_dir(), "header-only.png", solid_rgb(4, 3)[1])
         cases = (
             (("4", "0"), "pixel (4, 0) is outside the 4x3 image"),
             (("-1", "0", "--width", "2"),
@@ -117,7 +119,7 @@ class TestSampleOptionValidation(CliTestCase):
             with self.subTest(argv=argv), \
                     mock.patch.object(sample, "read_png_size", return_value=(4, 3)), \
                     mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded invalid region")):
-                result = self._run("header-only.png", *argv)
+                    result = self._run(image, *argv)
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.stderr, f"sample: error: {diagnostic}\n")

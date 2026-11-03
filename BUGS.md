@@ -20,27 +20,6 @@ user 2026-11-01; recorded by the director role.)
 
 _None yet._
 
-### The reference sampler reopens an image path after its symlink containment check (found by the security role 2026-11-03)
-
-`tools/sample.py::main` checks `resolves_within(ROOT, image_path)` for a path lexically
-inside the checkout, then calls `read_png_size(args.image)` and later
-`read_png(args.image)`. Both calls in `tools/png/loader.py` open the pathname
-again. A local process able to modify a checkout entry can replace a checked
-in-repository image or parent symlink with one pointing outside the checkout
-after the containment check and before either open. The sampler then reads the
-outside PNG and prints its selected pixels, bypassing the guard intended to
-prevent disclosure of private image data.
-
-Reproduce deterministically by invoking `sample.main` with an in-repository
-symlink to a valid PNG outside the checkout, and wrapping `resolves_within` so
-it first performs the real containment check, then replaces that symlink with
-one to the outside PNG before returning `True`. The existing guard passes on
-the original target, while the subsequent size and image reads follow the
-replacement and the report contains pixels from the outside image. Fix by
-validating and decoding through the same opened file descriptor (including
-the size read), so a pathname replacement cannot change the file after the
-containment decision.
-
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)

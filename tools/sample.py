@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import stat
 import sys
 
 if __package__:
@@ -31,33 +32,40 @@ def main(argv: list[str] | None = None) -> int:
     if message is not None:
         return report_error("sample", message)
 
-    # A checked-in link that escapes the repository could expose a private
-    # image through its pixels, so refuse it before either read.
+    # Open once, then check the opened object itself. Checking a pathname and
+    # reopening it later would let a concurrent symlink swap bypass containment.
     image_path = Path(os.path.join(os.getcwd(), args.image))
+    in_repo = False
     for ancestor in (image_path, *image_path.parents):
         try:
             in_repo = os.path.samefile(ancestor, ROOT)
         except OSError:
             continue
         if in_repo:
-            if not resolves_within(ROOT, image_path):
+            break
+    try:
+        fd = os.open(args.image, os.O_RDONLY | os.O_NONBLOCK)
+        try:
+            # Linux procfs exposes the resolved target of this stable handle.
+            # The PNG loader reopens that handle path, which cannot follow a
+            # replacement of the original directory entry.
+            opened_path = f"/proc/self/fd/{fd}" if in_repo else args.image
+            if in_repo and not resolves_within(ROOT, opened_path):
                 return report_error(
                     "sample", f"{args.image} resolves outside {ROOT} (a symlink escape); refusing to read it"
                 )
-            break
-
-    try:
-        width, height = read_png_size(args.image)
-    except PngError as exc:
-        return report_error("sample", str(exc))
-
-    message = region_error(args, width, height)
-    if message is not None:
-        return report_error("sample", message)
-
-    try:
-        image = read_png(args.image, max_rows=args.y + args.height,
-                         **({"alpha": True} if args.alpha or args.match_alpha is not None else {}))
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                return report_error("sample", f"cannot read {args.image}: not a regular file")
+            width, height = read_png_size(opened_path)
+            message = region_error(args, width, height)
+            if message is not None:
+                return report_error("sample", message)
+            image = read_png(opened_path, max_rows=args.y + args.height,
+                             **({"alpha": True} if args.alpha or args.match_alpha is not None else {}))
+        finally:
+            os.close(fd)
+    except OSError:
+        return report_error("sample", f"cannot read {args.image}")
     except PngError as exc:
         return report_error("sample", str(exc))
     header = f"image: {escape_controls(args.image)}  {width}x{height}"

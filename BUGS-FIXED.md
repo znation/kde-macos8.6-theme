@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The reference sampler reopens an image path after its symlink containment check (found by the security role 2026-11-03) — fixed 2026-11-03 by the bugfix role
+
+`tools/sample.py::main` now opens the requested image once, checks the opened
+target through its stable `/proc/self/fd` handle, and uses that handle path for
+both size validation and pixel decoding. Replacing the original symlink after
+the open cannot redirect either PNG read.
+
+**Validation gap:** none — the regression test swaps the symlink after the sampler opens the original target and confirms the original pixels are reported.
+
+SUMMARY: Keep sampler reads bound to the checked image descriptor
+WHY: The review found a header-bounds test that depended on a nonexistent file, plus regressions in missing-file diagnostics. The test now uses a real PNG, and open failures retain the sampler's `cannot read` diagnostic.
+RISK: Changes to sampler open-error handling could affect diagnostics for unreadable paths; check `tests/test_sample_cli.py` and `tests/test_sample_option_validation.py`.
+VERIFIED: `make check` passed; the header-bounds test now reports the bounds error using a real PNG, and missing-path/control-character tests pass.
+Objection 1: done
+Objection 2: unchanged-by-design because the relative config-home fallback test passed
+Objection 3: unchanged-by-design because the absolute data-home test passed
+Objection 4: unchanged-by-design because the missing absolute data-home test passed
+Objection 5: unchanged-by-design because the empty data-home fallback test passed
+Objection 6: unchanged-by-design because the relative data-home fallback test passed
+Objection 7: unchanged-by-design because it only separates the test-run summary
+Objection 8: unchanged-by-design because it reports successful tests
+Objection 9: unchanged-by-design because it reports a successful suite
+Objection 10: done
+
 ### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30) — fixed 2026-11-03 by the bugfix role
 
 **Validation gap:** none — The closest tag is no-observability: the old gate stayed green after the button face was recoloured, and the new render assertions pin the missing regions.

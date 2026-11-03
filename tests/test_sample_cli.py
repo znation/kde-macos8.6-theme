@@ -435,6 +435,33 @@ class TestSampleCli(CliTestCase):
         self._assert_success(result)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 
+    def test_symlink_swap_after_open_cannot_redirect_sample(self):
+        _, inside_data = solid_rgb(1, 1, (12, 34, 56))
+        _, outside_data = solid_rgb(1, 1, (200, 1, 2))
+        root = self._tmp_dir() / "repo"
+        root.mkdir()
+        inside = root / "inside.png"
+        inside.write_bytes(inside_data)
+        outside = root.parent / "outside.png"
+        outside.write_bytes(outside_data)
+        link = root / "reference.png"
+        link.symlink_to(inside)
+        real_guard = sample.resolves_within
+
+        def swap_after_open(directory, path):
+            if str(path).startswith("/proc/self/fd/"):
+                link.unlink()
+                link.symlink_to(outside)
+            return real_guard(directory, path)
+
+        with mock.patch.object(sample, "ROOT", str(root)), mock.patch.object(
+            sample, "resolves_within", side_effect=swap_after_open
+        ):
+            result = self._run(str(link), "0", "0")
+        self._assert_success(result)
+        self.assertIn("pixel (0, 0): 12,34,56  #0C2238", result.stdout)
+        self.assertNotIn("200,1,2", result.stdout)
+
     def test_non_integer_coordinate_is_usage_error(self):
         path = self._image()
         result = self._run(path, "a", "0")
