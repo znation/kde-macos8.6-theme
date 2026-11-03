@@ -472,6 +472,14 @@ the requested region is below F (0 through 1 inclusive). Filtering runs before
 The share uses the full region area, and explicit filtering reports the original
 `total_colors` and `omitted_pixels`. At F=0 the palette is unchanged.
 
+Add `--max-color-fraction F` with `--histogram` to omit colors whose share of
+the requested region is above F (0 through 1 inclusive). This inclusive cutoff
+combines with minimum fraction, count filters and named-color exclusions before
+`--top-colors`; contradictory fraction cutoffs return an empty palette. The
+share uses the full region area, including pixels later omitted by other
+filters. Explicit use reports the original `total_colors` and `omitted_pixels`,
+and spatial diagnostics describe only emitted colors.
+
 Add repeatable `--exclude-color RRGGBB` with `--histogram` to omit named RGB
 colors before minimum-count, minimum-fraction and top-color selection. Values
 accept six hexadecimal digits with optional `#` and are case-insensitive.

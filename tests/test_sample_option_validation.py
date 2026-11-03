@@ -22,6 +22,7 @@ class TestSampleOptionValidation(CliTestCase):
             (("--color-bounds",), "--color-bounds requires --histogram"),
             (("--color-fractions",), "--color-fractions requires --histogram"),
             (("--min-color-fraction", "0.5"), "--min-color-fraction requires --histogram"),
+            (("--max-color-fraction", "0.5"), "--max-color-fraction requires --histogram"),
             (("--max-color-count", "2"), "--max-color-count requires --histogram"),
             (("--color-tolerance", "0"), "--color-tolerance requires --find-color"),
             (("--match-alpha", "0"), "--match-alpha requires --find-color"),
