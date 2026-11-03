@@ -1404,6 +1404,43 @@ for radio in (False, True):
             "popover.menu modelbutton:selected",
         ):
             self.assert_rule(selector, {"background-color": SELECTION})
+        # Stock's popover-menu modelbutton arms declare a 5px corner
+        # (Default-light.css in libgtk-4 4.18.6, probed 2026-11-03); the
+        # restated byte-twin arms square the row like the square popover
+        # contents shell above.
+        for selector in ("popover.menu modelbutton", "modelbutton.flat"):
+            self.assert_rule(selector, {"border-radius": "0"})
+            self.assertEqual(
+                self.rules[selector]["border-radius"],
+                self.rules["popover > contents"]["border-radius"],
+            )
+        # The landed sheet carries no other modelbutton arm: any stray,
+        # renamed or removed kind fails the family bound.
+        self.assertEqual(
+            {selector for selector in self.rules if "modelbutton" in selector},
+            {
+                "popover.menu modelbutton:hover",
+                "popover.menu modelbutton:selected",
+                "popover modelbutton check",
+                "popover modelbutton radio",
+                "popover.background modelbutton check",
+                "popover.background modelbutton radio",
+                "popover.menu modelbutton > arrow.right",
+                "popover.menu modelbutton",
+                "modelbutton.flat",
+            },
+        )
+        # Both squaring arms sit after the landed hover/select block, the
+        # source position that beats any same-theme arm on the corner.
+        for selector in ("popover.menu modelbutton", "modelbutton.flat"):
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("popover.menu modelbutton:hover"),
+            )
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("popover.menu modelbutton:selected"),
+            )
 
     def test_toast_surface(self):
         selectors = {"toast", "toast:backdrop"}
