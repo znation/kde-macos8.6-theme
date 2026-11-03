@@ -71,6 +71,9 @@
   <g id="button-normal" transform="translate(10,250)">
     <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
   </g>
+  <g id="button-default-indicator" transform="translate(70,25300)">
+    <rect x="0" y="0" width="8" height="8" fill="#DDDDDD"/>
+  </g>
   <g id="button-normal-topleft" transform="translate(10,310)">
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>

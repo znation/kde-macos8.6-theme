@@ -103,6 +103,13 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
                         slices[f"{prefix}-{name}"], expected, name
                     )
 
+    def test_default_button_indicator_keeps_the_face_flat(self):
+        slices = render_slices(parse_svg(SVG))
+        self.assertEqual(
+            {"#DDDDDD"},
+            {colour for colour in slices["button-default-indicator"].values()},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

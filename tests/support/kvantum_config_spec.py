@@ -324,6 +324,7 @@ VALUE_KEYS = {
         "check_size": "14",
     },
     "PanelButtonCommand": {
+        "focusRectElement": "focus-none",
         "frame": "true",
         "interior": "true",
         "indicator.size": "9",

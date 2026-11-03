@@ -1061,6 +1061,15 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
                         expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
                     )
 
+    def test_default_button_focus_ring_does_not_cross_its_face(self):
+        image = self.candidate_image()
+        # These are label-free interior pixels on the focused Yes button.
+        # The reference's default mark sits outside the bevel, so the button
+        # face remains the shipped flat Platinum grey here.
+        for x, y in ((195, 209), (195, 228)):
+            with self.subTest(x=x, y=y):
+                self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x, y)))
+
 
 @_dialog_gate_guard()
 class TestComboboxDialogRender(_DialogGate, unittest.TestCase):

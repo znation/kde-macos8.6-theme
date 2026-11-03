@@ -5,6 +5,21 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30) — fixed 2026-11-03 by the bugfix role
+
+The `--checkbox-dialog` render's focused Yes button painted black rows at (195,209) and
+(195,228), where the reference-grounded face is `#DDDDDD`. Kvantum draws these as the push
+button's focus rectangle inside its bevel. The reference places the default mark outside the
+bevel. Set `[PanelButtonCommand] focusRectElement=focus-none` to suppress that button focus
+rectangle while leaving `[Focus]` available for item views. The default button also used
+compiled-in corner art; the theme now supplies `button-default-indicator` as an 8x8 `#DDDDDD`
+face patch.
+
+The rendered dialog now reads `#DDDDDD` at both former black-row pixels. The SVG slice test
+confirms the default indicator is flat face art.
+
+**Validation gap:** none — the dialog render test reproduced the black rows before the config fix and confirmed the face pixels afterward.
+
 ### A stray `.scratchpath` scratch bookkeeping file is tracked at the repository root (found by the readme role 2026-10-31) — fixed 2026-10-31 by the bugfix role
 
 `git ls-files` lists `.scratchpath` at the repo root; its content is the single line
