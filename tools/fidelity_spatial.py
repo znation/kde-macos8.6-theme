@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 if __package__:
     from tools.fidelity_pixels import _absolute_deltas
     from tools.png import Image
@@ -79,11 +81,17 @@ def _difference_axis_runs(
     candidate: Image, reference: Image, tolerance: int, *, vertical: bool
 ) -> list[dict[str, int]]:
     """Collect maximal over-tolerance intervals along each scanline."""
+    return list(_iter_difference_axis_runs(candidate, reference, tolerance, vertical=vertical))
+
+
+def _iter_difference_axis_runs(
+    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+) -> Iterator[dict[str, int]]:
+    """Yield maximal over-tolerance intervals along each scanline."""
     width, height = candidate.width, candidate.height
     scanline_count, scanline_length = (width, height) if vertical else (height, width)
     candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
-    records = []
     for scanline in range(scanline_count):
         start = None
         for offset in range(scanline_length):
@@ -96,12 +104,20 @@ def _difference_axis_runs(
                 start = offset
             elif not differing and start is not None:
                 run_x, run_y = (scanline, start) if vertical else (start, scanline)
-                records.append({"x": run_x, "y": run_y, "length": offset - start})
+                yield {"x": run_x, "y": run_y, "length": offset - start}
                 start = None
         if start is not None:
             run_x, run_y = (scanline, start) if vertical else (start, scanline)
-            records.append({"x": run_x, "y": run_y, "length": scanline_length - start})
-    return records
+            yield {"x": run_x, "y": run_y, "length": scanline_length - start}
+
+
+def longest_difference_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
+    """Return the longest horizontal mismatch run; ties use earliest (y, x)."""
+    best = None
+    for run in _iter_difference_axis_runs(candidate, reference, tolerance, vertical=False):
+        if best is None or run["length"] > best["length"]:
+            best = run
+    return best
 
 
 def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:

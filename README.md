@@ -644,6 +644,10 @@ aggregate budgets instead: when one is given, a run passes when each given budge
 `--max-rmse` bounds root mean square error, and `--max-delta` caps the largest absolute RGBA
 channel difference; `--max-differing` caps the absolute number of pixels whose maximum RGBA
 channel delta exceeds `--tolerance` — and the default no-differing-pixel gate no longer applies.
+`--longest-difference-run` reports the longest horizontal contiguous interval whose maximum raw
+RGBA channel delta exceeds tolerance, with crop-relative `x`, `y` and `length`; ties use the
+earliest row and then column. The JSON field is `longest_difference_run`, and an empty comparison
+reports `null`. When combined with `--difference-runs`, it reuses those intervals.
 The count includes alpha and RGB beneath transparent pixels, treats missing alpha as 255, and
 counts each pixel once. The aggregate metrics use comparison raw bytes and are independent of
 `--tolerance`; RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list

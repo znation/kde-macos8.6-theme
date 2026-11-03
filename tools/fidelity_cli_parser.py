@@ -69,6 +69,8 @@ def build_parser() -> EscapingArgumentParser:
                         help="locate disjoint vertical runs of pixels differing beyond --tolerance")
     parser.add_argument("--difference-centroid", action="store_true",
                         help="report the centroid of pixels differing beyond --tolerance")
+    parser.add_argument("--longest-difference-run", action="store_true",
+                        help="report the longest horizontal run differing beyond --tolerance")
     parser.add_argument("--delta-histogram", action="store_true",
                         help="count compared pixels by maximum RGBA channel delta")
     parser.add_argument("--delta-percentiles", action="store_true",
