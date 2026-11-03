@@ -305,9 +305,10 @@ byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` choo
 whose combo box the engine draws with the theme's `comboarrow` art; the render captures
 it the same way, for the combo arrow gate
 (`tests/test_render_surface.py::TestComboboxDialogRender`). `--menu-dialog` opens a
-`kdialog` menu list whose item view the engine frames with the theme's `GenericFrame`
-art, captured at the same 480x360 size; no gate compares its rendered border runs yet
-(BUGS.md tracks adding that pin alongside the dialog-gate coverage work). The three
+`kdialog` menu list whose item view the engine frames with the theme's `GenericFrame` art,
+captured at the same 480x360 size; the item-view gate
+(`tests/test_render_surface.py::TestMenuDialogRender`) byte-compares the item view's
+rendered border runs, its white interior and the current-item focus ring there. The three
 dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
@@ -983,11 +984,12 @@ window and byte-compares the title-bar strip (candidate `30,0,80,22` against ref
 `30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
 region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
-suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender` and
-`::TestComboboxDialogRender`) open a `kdialog` warning box and chooser and byte-compare
-the engine-drawn check box cell with the shipped `checkbox-*` canvas and the engine-drawn
-combo arrow with the shipped `comboarrow-normal` slice, both derived from the same SVG:
-engine-drawn widget pixels are gate-covered too.
+suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
+`::TestComboboxDialogRender` and `::TestMenuDialogRender`) open a `kdialog` warning box,
+chooser and menu list and byte-compare the engine-drawn check box cell with the shipped
+`checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal`
+slice and the engine-drawn item view frame with the shipped `GenericFrame` art, all three
+derived from the same SVG: engine-drawn widget pixels are gate-covered too.
 
 ## Invariants
 

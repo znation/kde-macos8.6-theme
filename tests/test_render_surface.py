@@ -844,11 +844,11 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """Both dialog gates skip wherever their render CLI would refuse on a tool.
+    """The three dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the kdialog client it opens is
-    absent, and the two dialog gates' shared skip guard encodes exactly
+    absent, and the three dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1019,11 +1019,11 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard both dialog render gates share.
+    """Return the skip guard the three dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the kdialog client it opens (it exits 2 with a
-    missing-tool diagnostic when one is absent), so the two dialog gates
+    missing-tool diagnostic when one is absent), so the three dialog gates
     skip under the condition the applet gate above's ``skipUnless`` guard
     uses, extended with kdialog. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine

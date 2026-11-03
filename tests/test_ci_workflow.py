@@ -39,10 +39,10 @@ class TestCiWorkflow(unittest.TestCase):
     def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
         workflow = self.read_workflow()
         # The render gate (tests/test_render_surface.py::TestRender) silently
-        # skips wherever its five Plasma tools are absent, and the two dialog
-        # dialog gates (TestCheckboxDialogRender and TestComboboxDialogRender)
-        # skip wherever the kdialog client their dialog renders open is
-        # absent. The workflow must install and, by name, verify all six,
+        # skips wherever its five Plasma tools are absent, and the three dialog
+        # gates (TestCheckboxDialogRender, TestComboboxDialogRender and
+        # TestMenuDialogRender) skip wherever the kdialog client their dialog
+        # renders open is absent. The workflow must install and, by name, verify all six,
         # so no gate quietly misses the render it byte-compares.
         for tool in (
             "dbus-run-session",
