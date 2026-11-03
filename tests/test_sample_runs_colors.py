@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
@@ -52,13 +53,69 @@ class TestSampleRunsColors(CliTestCase):
         self.assertEqual([(r["x"], r["y"], r["length"]) for r in json.loads(vertical.stdout)["runs"]],
                          [(2, 1, 2), (2, 4, 1)])
 
+    def test_rectangular_scanlines_keep_coordinates_order_and_boundaries(self):
+        a, b, c = (1, 2, 3), (9, 8, 7), (4, 5, 6)
+        pixels = {
+            (1, 1): a, (2, 1): b, (3, 1): c,
+            (1, 2): a, (2, 2): a, (3, 2): c,
+        }
+        _, data = rgb_image(5, 4, lambda x, y: pixels.get((x, y), (0, 0, 0)))
+        path = self._write(self._tmp_dir(), "rectangle.png", data)
+        base = (path, "1", "1", "--width", "3", "--height", "2", "--runs")
+        horizontal = self._run(*base, "--run-axis", "horizontal", "--run-color", "010203",
+                               "--run-color", "040506", "--json")
+        records = json.loads(horizontal.stdout)["runs"]
+        self.assertEqual([(r["x"], r["y"], r["length"], r["rgb"]) for r in records], [
+            (1, 1, 1, [1, 2, 3]), (3, 1, 1, [4, 5, 6]),
+            (1, 2, 2, [1, 2, 3]), (3, 2, 1, [4, 5, 6]),
+        ])
+        vertical = self._run(*base, "--run-axis", "vertical", "--run-color", "010203",
+                             "--run-color", "040506", "--json")
+        records = json.loads(vertical.stdout)["runs"]
+        self.assertEqual([(r["x"], r["y"], r["length"], r["rgb"]) for r in records], [
+            (1, 1, 2, [1, 2, 3]), (2, 2, 1, [1, 2, 3]), (3, 1, 2, [4, 5, 6]),
+        ])
+        inferred = self._run(path, "1", "1", "--height", "2", "--runs", "--run-color", "010203", "--json")
+        self.assertEqual([(r["x"], r["y"], r["length"]) for r in json.loads(inferred.stdout)["runs"]],
+                         [(1, 1, 2)])
+        singleton = self._run(path, "3", "2", "--runs", "--run-axis", "vertical",
+                              "--run-color", "040506", "--json")
+        self.assertEqual([(r["x"], r["y"], r["length"]) for r in json.loads(singleton.stdout)["runs"]],
+                         [(3, 2, 1)])
+
+    def test_duplicate_names_absence_and_alpha_minimum(self):
+        _, data = rgb_image(3, 1, lambda x, y: [(10, 2, 3), (4, 5, 6), (10, 2, 3)][x])
+        path = self._write(self._tmp_dir(), "selection.png", data)
+        base = (path, "0", "0", "--width", "3", "--runs")
+        selected = self._run(*base, "--run-color", "0A0203", "--run-color", "#0a0203",
+                             "--run-color", "040506", "--json")
+        plain = self._run(*base, "--json")
+        self.assertEqual(json.loads(selected.stdout)["runs"], json.loads(plain.stdout)["runs"])
+        absent = self._run(*base, "--run-color", "abcdef")
+        self.assertEqual(absent.stdout.splitlines(), [
+            f"image: {path}  3x1", "region (0, 0) 3x1:", "axis: horizontal",
+        ])
+
+        rgba = bytes((1, 2, 3, 0, 1, 2, 3, 128, 4, 5, 6, 255))
+        alpha_path = self._write(self._tmp_dir(), "alpha-cutoff.png",
+                                 make_png(3, 1, [rgba], color_type=6))
+        filtered = self._run(alpha_path, "0", "0", "--width", "3", "--runs", "--alpha",
+                             "--run-color", "010203", "--min-run-length", "2", "--json")
+        self.assertEqual(json.loads(filtered.stdout)["runs"], [])
+        opaque = self._run(*base, "--alpha", "--json")
+        self.assertEqual([r["alpha"] for r in json.loads(opaque.stdout)["runs"]], [255, 255, 255])
+
     def test_validation_default_text_and_direct_script(self):
         parser = build_parser()
         self.assertIsNone(parser.parse_args(("image.png", "0", "0", "--runs")).run_colors)
         self.assertIn("--run-color RRGGBB", parser.format_help())
-        for value in ("12345", "gggggg", "#1234567"):
+        for value in ("12345", "gggggg", "#1234567", " 010203"):
             result = self._run("missing.png", "0", "0", "--runs", "--run-color", value)
             self.assertEqual((result.returncode, result.stdout), (2, ""), value)
+        with mock.patch.object(sample.os, "open") as open_image:
+            missing = self._run("missing.png", "0", "0", "--runs", "--run-color")
+        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        open_image.assert_not_called()
         _, data = rgb_image(2, 1, lambda x, y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "parity.png", data)
         args = (path, "0", "0", "--width", "2", "--runs", "--run-color", "010203")

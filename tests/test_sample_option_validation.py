@@ -49,6 +49,7 @@ class TestSampleOptionValidation(CliTestCase):
             (("--max-run-length", "2"), "--max-run-length requires --runs"),
             (("--run-color", "010203"), "--run-color requires --runs"),
             (("--histogram", "--run-color", "010203"), "--run-color requires --runs"),
+            (("--find-color", "010203", "--run-color", "010203"), "--run-color requires --runs"),
             (("--min-run-length", "2", "--max-run-length", "2"), "--min-run-length requires --runs"),
             (("--histogram", "--max-run-length", "2"), "--max-run-length requires --runs"),
             (("--find-color", "010203", "--max-run-length", "2"), "--max-run-length requires --runs"),
@@ -59,13 +60,15 @@ class TestSampleOptionValidation(CliTestCase):
         for options, diagnostic in cases:
             with self.subTest(options=options), \
                     mock.patch.object(sample, "read_png_size") as size, \
-                    mock.patch.object(sample, "read_png") as read:
+                    mock.patch.object(sample, "read_png") as read, \
+                    mock.patch.object(sample.os, "open") as open_image:
                 result = self._run("unread.png", "0", "0", *options)
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.stderr, f"sample: error: {diagnostic}\n")
             size.assert_not_called()
             read.assert_not_called()
+            open_image.assert_not_called()
 
     def test_first_compatibility_error_keeps_existing_order(self):
         result = self._run("unread.png", "0", "0", "--match-runs", "--find-color", "010203", "--alpha")
