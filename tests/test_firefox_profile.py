@@ -303,6 +303,18 @@ class TestProfileResolution(FirefoxProfileTestCase):
         self.assertIn("escapes its root", str(caught.exception))
         self.assertIn("../../outside", str(caught.exception))
 
+    def test_profile_path_with_nul_is_reported_as_invalid(self):
+        self.firefox_root.mkdir(parents=True)
+        profiles = self.firefox_root / "profiles.ini"
+        _write(
+            profiles,
+            "[Profile0]\nPath=bad" + chr(0) + "profile\nIsRelative=1\n",
+        )
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+        self.assertIn("invalid NUL byte", str(caught.exception))
+        self.assertIn(r"bad\x00profile", str(caught.exception))
+
     def test_invalid_is_relative_value_is_reported_with_its_profile_path(self):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"

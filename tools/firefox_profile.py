@@ -69,6 +69,10 @@ def _candidate(
     value = section.get(key, fallback="").strip()
     if not value:
         return None
+    if "\0" in value:
+        raise ConfigError(
+            f"invalid NUL byte in Firefox profile path {value!r}"
+        )
     path = Path(value)
     is_relative = section.get("IsRelative", fallback="1").strip()
     if is_relative not in {"0", "1"}:
