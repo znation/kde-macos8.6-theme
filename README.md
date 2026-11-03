@@ -346,6 +346,22 @@ dialog modes cannot be combined. In each mode the scratch session links its own 
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
+### Removing the theme
+
+Choose another global theme in System Settings, then clear the individual selections before
+deleting the installed packages. These commands remove this theme's selections or files; they do
+not restore earlier settings or backups.
+
+| Command | Effect and remaining action |
+| --- | --- |
+| `make remove-gtk` | Clears this theme's GTK selection and marker CSS. Existing GTK backups remain; restart GTK applications. |
+| `make remove-firefox` | Removes this theme's sheets and preference block from the active profile. To target another profile, use `FIREFOX_PROFILE=/absolute/profile make remove-firefox`. Restart Firefox. |
+| `make remove-cursor` | Removes this theme's cursor link but leaves the cursor selection. If it still names `org.macos8.desktop`, reset it with `plasma-apply-cursortheme breeze_cursors`. |
+| `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or reverse the keyboard modifier setting. |
+
+The left Alt/Control swap also persists after removal. To reverse it, remove
+`ctrl:swap_lalt_lctl` from Options in System Settings → Keyboard → Key Bindings.
+
 ## Generating the wallpaper
 
 `python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
