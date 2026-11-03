@@ -36,6 +36,14 @@ from tools.render_clients import (
 )  # noqa: E402
 
 
+class TestCapturePaintCheck(unittest.TestCase):
+    def test_empty_rgb_plane_is_unpainted(self):
+        self.assertTrue(render_workflow._capture_is_unpainted(b""))
+
+    def test_any_nonblack_rgb_byte_marks_capture_as_painted(self):
+        self.assertFalse(render_workflow._capture_is_unpainted(b"\x00\x00\x01"))
+
+
 class TestArguments(unittest.TestCase):
     def test_cli_delegates_validated_options_to_render_workflow(self):
         with (
