@@ -407,8 +407,9 @@ region (5, 5) 1x2:
 (5, 6): 99,99,156  #63639C
 ```
 
-Pass `--json` to emit one structured JSON object instead. Its `region` records the requested
-rectangle and `pixels` lists absolute coordinates in row-major order; a single pixel has the
+Pass `--json` to emit one structured JSON object instead. `image` retains the original image
+argument, `image_width` and `image_height` describe the full image, `region` records the requested
+rectangle, and `pixels` lists absolute coordinates in row-major order; a single pixel has the
 same schema:
 
 ```sh
@@ -433,13 +434,6 @@ with a diagnostic naming the coordinate, region, image size or path. A repositor
 path that resolves outside the repository (a checked-in symlink) is refused by name
 before it is read, so a private image's pixels cannot be sampled; a path outside the
 repository is read as before.
-
-Pass `--json` to emit the original image argument, full image dimensions,
-requested region and row-major pixel records:
-
-```json
-{"image":"macos8.6-screenshots/boot2_betawiki.png","image_width":240,"image_height":180,"region":{"x":5,"y":5,"width":1,"height":1},"pixels":[{"x":5,"y":5,"rgb":[99,99,156],"hex":"#63639C"}]}
-```
 
 Pass `--histogram` to count the RGB colors in the requested rectangle instead
 of listing its pixels. Counts sort from largest to smallest, with RGB tuple
