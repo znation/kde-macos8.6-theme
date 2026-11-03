@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README prerequisites: give new contributors a compact setup map (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Put the main setup requirements before the long installation description, so a contributor can distinguish copying packages, applying them to Plasma, and rendering them headlessly. README.md currently distributes these requirements across Installing and Validating the reference set; searches of Planned and archived headings found no prerequisites-map plan. This is independent of the queued Make help addition.
+
+**Approach and files.** Edit README.md only, outside the brief block. Insert a short `## Prerequisites` section between Status and Installing with a compact task/requirements table. Name a Plasma 6 session for using the KDE theme; GNU make and the existing Linux install utilities (including `flock`) for installation; Python 3.10+ for Python-backed targets; Git LFS with `git lfs install` and `git lfs pull` for materializing reference images. State that `make install` copies files and `make apply` changes the running user's settings. For apply, list `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6` and `kreadconfig6`; identify Kvantum as the separately installed widget engine and `kvantummanager` as its selection tool, with the existing fallback when absent. For headless rendering, list `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`, plus `kdialog` for dialog modes. Link to the existing Installing and Validating the reference set sections for details; avoid distribution-specific package names or an exhaustive optional-tool inventory.
+
+Ground the map in Makefile's `install`, `apply`, `require_python_version` and `run_locked` recipes/macros, `tools/apply_theme.py::REQUIRED_TOOLS`, `tools/apply_keymap.py::REQUIRED_TOOLS`, and `tools/render_surface.py::REQUIRED_TOOLS` / `main`. The apply recipe runs both required-tool inventories sequentially; neither inventory alone describes aggregate apply. This is documentation only, with no behavior or invariant change and no new prose-pinning tests.
+
+**Acceptance criteria.** A reader reaching Installing has already seen the Python floor, the LFS materialization commands, the distinction between install and apply, the required apply commands and the headless-render tools. The map describes Kvantum's fallback without presenting the engine as bundled, and distinguishes the dialog-only `kdialog` requirement. Existing detailed instructions remain available through working local section links. Review the displayed names against the cited code and run `make check` after the final edit.
+
 ### Make help: expose the reference sampling and comparison commands (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Let contributors discover the pixel-analysis CLIs from `make help`.
