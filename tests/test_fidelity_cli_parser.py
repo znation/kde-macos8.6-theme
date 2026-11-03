@@ -101,6 +101,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--longest-difference-column-run", help_text)
         self.assertIn("--min-difference-run-length N", help_text)
         self.assertIn("--min-difference-column-run-length N", help_text)
+        self.assertIn("--max-difference-column-run-length N", help_text)
 
     def test_defaults_and_explicit_options(self):
         first = build_parser()
@@ -123,6 +124,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "min_difference_run_length": None,
             "max_difference_run_length": None,
             "min_difference_column_run_length": None,
+            "max_difference_column_run_length": None,
             "difference_column_runs": False,
             "difference_centroid": False,
             "longest_difference_run": False,
@@ -149,6 +151,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--min-difference-run-length", "2",
             "--max-difference-run-length", "4",
             "--min-difference-column-run-length", "3",
+            "--max-difference-column-run-length", "5",
             "--difference-column-runs", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
             "--explain-worst", "--tolerance", "9", "--max-mae", "1.5",
             "--max-frac", "0.25", "--max-rmse", "2.5", "--max-delta", "12",
@@ -164,6 +167,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertEqual(explicit.min_difference_run_length, 2)
         self.assertEqual(explicit.max_difference_run_length, 4)
         self.assertEqual(explicit.min_difference_column_run_length, 3)
+        self.assertEqual(explicit.max_difference_column_run_length, 5)
         self.assertTrue(all(getattr(explicit, name) for name in (
             "json", "channel_counts", "channel_bias", "channel_maxima",
             "difference_rows", "difference_columns", "difference_row_bounds",

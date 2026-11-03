@@ -815,6 +815,9 @@ to either source image. Output can grow with disjoint runs, so this scan is opt-
 `--min-difference-column-run-length N` with `--difference-column-runs` to omit completed runs
 shorter than `N`. The inclusive cutoff filters after segmentation, preserving separated intervals,
 comparison metrics and longest-column summaries. An empty requested list is reported as `[]`.
+Pass `--max-difference-column-run-length N` with `--difference-column-runs` to omit completed runs
+longer than `N`. The inclusive maximum combines with the minimum cutoff; conflicting cutoffs yield
+an empty list. Segmentation, metrics and longest-column summaries use the complete mismatch data.
 Add `--difference-centroid` to report the equal-weight mean `(x, y)` of pixels whose maximum raw
 RGBA channel delta exceeds tolerance. Coordinates are crop-relative integer pixel indices; delta
 magnitude does not affect weight. JSON includes `difference_centroid` and text prints it immediately
