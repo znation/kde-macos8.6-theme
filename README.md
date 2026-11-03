@@ -512,6 +512,18 @@ records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions
 use ordinary Python float formatting and are not rounded. With `--top-colors`,
 the denominator still includes pixels omitted from the displayed palette.
 
+Add `--color-cumulative-fractions` with `--histogram` to report how much of
+the complete requested region the displayed palette explains as colors
+accumulate. Each emitted color gains its running pixel count divided by the
+full region area, accumulated in report order with integer counts so the last
+color on a complete page reaches exactly `1.0`. Coverage is page-local:
+excluded, filtered, skipped and trailing colors never enter the numerator.
+JSON color records gain a numeric `cumulative_fraction`; text appends
+`cumulative_fraction=VALUE` after the optional `fraction` and before
+position and centroid fields. The option works independently of
+`--color-fractions`; with `--top-colors`, the denominator still includes
+pixels omitted from the displayed page.
+
 Add `--color-bounds` with `--histogram` to report each emitted color's
 smallest enclosing rectangle, using absolute image coordinates. The bounds
 include disconnected occurrences and do not imply a solid rectangle. With

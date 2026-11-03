@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: cumulative displayed palette coverage (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Show how much of a sampled surface the displayed palette explains as colors accumulate, without making users sum individual fractions. Source and finished-plan searches found individual color fractions but no cumulative histogram diagnostic. This is independent of the waiting fidelity diagnostic.
+
+**Approach and files.** Added the boolean `--color-cumulative-fractions` option with histogram-mode validation next to the existing color-fractions check, integer-first running accumulation over emitted colors in report order in `tools/sample_report_histogram.py::_histogram_result`, the `cumulative_fraction=VALUE` text suffix between the individual fraction and position fields, focused CLI tests in `tests/test_sample_histogram_cumulative_fractions.py`, `TestSampleOptionValidation` extension, README documentation and a dated invariant row. Coverage is page-local: excluded, filtered, skipped and trailing colors never enter the numerator.
+
+**Acceptance criteria.** Implemented page-local cumulative coverage per the plan.
+- An offset 4x2 crop with ordered color counts 3, 2, 2, 1 reports cumulative fractions `0.375, 0.625, 0.875, 1.0`; tied count-2 colors retain ascending tuple order. Surrounding pixels do not affect these values. `--top-colors 2` reports `0.375, 0.625`, and adding `--color-offset 1` reports `0.25, 0.5`, with the existing original palette totals and omitted-pixel values retained. This catches accidental inclusion of skipped colors or normalization by displayed pixels.
+- Excluding the count-3 color reports `0.25, 0.5, 0.625`; count/fraction filtering likewise contributes only emitted counts. An empty filtered result or a page beyond the palette emits an empty colors array. A single-color crop ends at `1.0`; a three-pixel crop with three distinct colors ends at exactly `1.0`, demonstrating integer-prefix division rather than summed rounded fractions.
+- RGB mode merges opacity variants; RGBA mode keeps them separate in existing count/tuple order, including stored RGB beneath zero alpha, and opaque input uses alpha 255. Combined individual fractions and spatial diagnostics retain their independently expected values. Without the flag, no cumulative field or text suffix appears. With it alone, individual fraction fields remain absent and the existing summary-field conditions remain intact.
+- Text and JSON agree on cumulative values and order; package and direct-script invocations and help expose the option. Use without histogram mode, including ordinary pixels, runs and find-color mode, exits 2 with empty stdout and `--color-cumulative-fractions requires --histogram` before image reads. Run `make check` after final edits.
+
 ### Fidelity diagnostics: count vertical mismatch segments (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Measure fragmentation of vertical border defects without emitting a potentially large interval list. Implemented as specified.

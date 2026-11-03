@@ -104,11 +104,19 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         colors = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     spatial = _histogram_spatial_fields(args, image, colors)
     denominator = args.width * args.height
+    cumulative_fractions = {}
+    if getattr(args, "color_cumulative_fractions", False):
+        running = 0
+        for color, count in colors:
+            running += count
+            cumulative_fractions[color] = running / denominator
     result = {"image": args.image, "image_width": width, "image_height": height,
         "region": region, "colors": [
             {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
              **({"alpha": color[3]} if args.alpha else {}),
              **({"fraction": count / denominator} if args.color_fractions else {}),
+             **({"cumulative_fraction": cumulative_fractions[color]}
+                if cumulative_fractions else {}),
              **spatial[color]}
             for color, count in colors
         ]}
@@ -144,6 +152,8 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             suffix += f"  bounds={bounds['x']},{bounds['y']},{bounds['width']},{bounds['height']}"
         if "fraction" in color:
             suffix += f"  fraction={color['fraction']}"
+        if "cumulative_fraction" in color:
+            suffix += f"  cumulative_fraction={color['cumulative_fraction']}"
         if "position" in color:
             position = color["position"]
             suffix += f"  position={position['x']},{position['y']}"

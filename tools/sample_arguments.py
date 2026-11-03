@@ -43,6 +43,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--color-bounds requires --histogram"
     if args.color_fractions and not args.histogram:
         return "--color-fractions requires --histogram"
+    if args.color_cumulative_fractions and not args.histogram:
+        return "--color-cumulative-fractions requires --histogram"
     if args.color_positions and not args.histogram:
         return "--color-positions requires --histogram"
     if args.color_centroids and not args.histogram:
@@ -138,6 +140,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-color", dest="include_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --histogram, include this RGB color (repeatable)")
     parser.add_argument("--color-bounds", action="store_true", help="with --histogram, report bounds for each emitted color")
     parser.add_argument("--color-fractions", action="store_true", help="with --histogram, report each color's fraction of the region")
+    parser.add_argument("--color-cumulative-fractions", action="store_true", help="with --histogram, report each color's cumulative share of the region across the displayed page")
     parser.add_argument("--color-positions", action="store_true", help="with --histogram, report each color's first row-major position")
     parser.add_argument("--color-centroids", action="store_true", help="with --histogram, report each color's mean pixel coordinate")
     parser.add_argument("--color-tolerance", type=color_tolerance, metavar="N", help="with --find-color, allow up to N difference in each RGB channel")
