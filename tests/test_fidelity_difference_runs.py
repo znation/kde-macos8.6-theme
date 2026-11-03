@@ -11,10 +11,66 @@ from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
 from tools import fidelity  # noqa: E402
 from tools.fidelity_spatial import difference_runs  # noqa: E402
+from tools.fidelity_spatial import difference_column_runs  # noqa: E402
+from tools.fidelity_metrics import compare  # noqa: E402
 from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRuns(unittest.TestCase):
+    def test_both_axes_match_literal_intervals_on_nonsquare_image(self):
+        width, height = 5, 4
+        rgb = bytearray(width * height * 3)
+        for x, y, value in ((0, 0, 11), (1, 0, 12), (4, 0, 30),
+                            (0, 2, 20), (4, 2, 11), (4, 3, 11)):
+            rgb[(y * width + x) * 3] = value
+        candidate = Image(width, height, bytes(rgb))
+        reference = Image(width, height, bytes(width * height * 3))
+        horizontal = [
+            {"x": 0, "y": 0, "length": 2}, {"x": 4, "y": 0, "length": 1},
+            {"x": 0, "y": 2, "length": 1}, {"x": 4, "y": 2, "length": 1},
+            {"x": 4, "y": 3, "length": 1},
+        ]
+        vertical = [
+            {"x": 0, "y": 0, "length": 1}, {"x": 0, "y": 2, "length": 1},
+            {"x": 1, "y": 0, "length": 1},
+            {"x": 4, "y": 0, "length": 1}, {"x": 4, "y": 2, "length": 2},
+        ]
+        self.assertEqual(difference_runs(candidate, reference, 10), horizontal)
+        self.assertEqual(difference_column_runs(candidate, reference, 10), vertical)
+        differing = compare(candidate, reference, tolerance=10).differing
+        self.assertEqual(sum(run["length"] for run in horizontal), differing)
+        self.assertEqual(sum(run["length"] for run in vertical), differing)
+
+    def test_degenerate_dimensions_and_tolerance_boundaries(self):
+        for width, height, rgb, alpha, expected_h, expected_v in (
+            (1, 1, bytes([11, 0, 0]), None,
+             [{"x": 0, "y": 0, "length": 1}], [{"x": 0, "y": 0, "length": 1}]),
+            (1, 3, bytes([11, 0, 0, 10, 0, 0, 0, 0, 0]), None,
+             [{"x": 0, "y": 0, "length": 1}], [{"x": 0, "y": 0, "length": 1}]),
+            (3, 1, bytes([0, 0, 0, 11, 0, 0, 10, 0, 0]), None,
+             [{"x": 1, "y": 0, "length": 1}], [{"x": 1, "y": 0, "length": 1}]),
+        ):
+            candidate = Image(width, height, rgb, alpha)
+            reference = Image(width, height, bytes(width * height * 3))
+            self.assertEqual(difference_runs(candidate, reference, 10), expected_h)
+            self.assertEqual(difference_column_runs(candidate, reference, 10), expected_v)
+            self.assertEqual(difference_runs(candidate, reference, 255), [])
+            self.assertEqual(difference_column_runs(candidate, reference, 255), [])
+
+    def test_alpha_missing_alpha_and_hidden_rgb(self):
+        candidate = Image(2, 2, bytes([0, 0, 0] * 4), bytes([255, 0, 255, 255]))
+        opaque = Image(2, 2, bytes([0, 0, 0] * 4))
+        expected_h = [{"x": 1, "y": 0, "length": 1}]
+        expected_v = [{"x": 1, "y": 0, "length": 1}]
+        self.assertEqual(difference_runs(candidate, opaque, 254), expected_h)
+        self.assertEqual(difference_column_runs(candidate, opaque, 254), expected_v)
+        hidden = Image(1, 1, bytes([11, 0, 0]), bytes([0]))
+        hidden_reference = Image(1, 1, bytes(3), bytes([0]))
+        self.assertEqual(difference_runs(hidden, hidden_reference, 10),
+                         [{"x": 0, "y": 0, "length": 1}])
+        self.assertEqual(difference_column_runs(hidden, hidden_reference, 10),
+                         [{"x": 0, "y": 0, "length": 1}])
+
     def test_runs_split_at_gaps_and_row_boundaries(self):
         width, height = 5, 2
         rgb = bytearray(width * height * 3)

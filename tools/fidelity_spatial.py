@@ -75,41 +75,40 @@ def difference_column_bounds(candidate: Image, reference: Image, tolerance: int)
     return bounds
 
 
-def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
-    """Return maximal horizontal runs of over-tolerance pixels, row-major."""
+def _difference_axis_runs(
+    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+) -> list[dict[str, int]]:
+    """Collect maximal over-tolerance intervals along each scanline."""
     width, height = candidate.width, candidate.height
+    scanline_count, scanline_length = (width, height) if vertical else (height, width)
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
     records = []
-    for y in range(height):
+    for scanline in range(scanline_count):
         start = None
-        for x in range(width):
+        for offset in range(scanline_length):
+            x, y = (scanline, offset) if vertical else (offset, scanline)
             index = y * width + x
-            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                              candidate.alpha, reference.alpha, index)) > tolerance
+            differing = max(_absolute_deltas(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+            )) > tolerance
             if differing and start is None:
-                start = x
+                start = offset
             elif not differing and start is not None:
-                records.append({"x": start, "y": y, "length": x - start})
+                run_x, run_y = (scanline, start) if vertical else (start, scanline)
+                records.append({"x": run_x, "y": run_y, "length": offset - start})
                 start = None
         if start is not None:
-            records.append({"x": start, "y": y, "length": width - start})
+            run_x, run_y = (scanline, start) if vertical else (start, scanline)
+            records.append({"x": run_x, "y": run_y, "length": scanline_length - start})
     return records
+
+
+def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
+    """Return maximal horizontal runs of over-tolerance pixels, row-major."""
+    return _difference_axis_runs(candidate, reference, tolerance, vertical=False)
 
 
 def difference_column_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
     """Return maximal vertical runs of over-tolerance pixels, column-major."""
-    width, height = candidate.width, candidate.height
-    records = []
-    for x in range(width):
-        start = None
-        for y in range(height):
-            index = y * width + x
-            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                              candidate.alpha, reference.alpha, index)) > tolerance
-            if differing and start is None:
-                start = y
-            elif not differing and start is not None:
-                records.append({"x": x, "y": start, "length": y - start})
-                start = None
-        if start is not None:
-            records.append({"x": x, "y": start, "length": height - start})
-    return records
+    return _difference_axis_runs(candidate, reference, tolerance, vertical=True)
