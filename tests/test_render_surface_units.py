@@ -91,6 +91,23 @@ class TestArguments(unittest.TestCase):
         self.assertEqual((480, 360), (args.width, args.height))
         self.assertEqual("org.kde.plasma.calculator", args.applet)
 
+    def test_a_single_custom_dimension_keeps_the_other_default(self):
+        for option, value, expected in (
+            ("--width", "640", (640, 240)),
+            ("--height", "480", (320, 480)),
+        ):
+            with self.subTest(option=option):
+                with (
+                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+                    mock.patch.object(render_surface, "output_problem", return_value=None),
+                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
+                    mock.patch.object(render_surface, "exit_on_termination"),
+                ):
+                    render_surface.main(("out.png", option, value))
+
+                args = workflow.call_args.args[0]
+                self.assertEqual(expected, (args.width, args.height))
+
     def assert_usage_error(self, *argv):
         """Assert a usage error (exit 2) and return its stderr."""
         status, stderr = call_main(render_surface.main, *argv)
