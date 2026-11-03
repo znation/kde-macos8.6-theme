@@ -16,6 +16,7 @@ class _MatchRuns:
         self.summarize_columns = summarize_columns
         self.collect_column_runs = collect_column_runs
         self.runs = []
+        self.run_count = 0
         self.longest_run = None
         self.longest_column_run = None
         self.column_runs = []
@@ -41,6 +42,7 @@ class _MatchRuns:
         self._close_run(self.right - self.run_start)
 
     def _close_run(self, length: int) -> None:
+        self.run_count += 1
         run = {"x": self.run_start, "y": self.run_y, "length": length}
         if not self.summarize or self.longest_run is None or length > self.longest_run["length"]:
             if self.summarize:

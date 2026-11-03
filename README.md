@@ -601,6 +601,12 @@ stop at each row boundary, and merge adjacent matches even when their RGB
 values differ within tolerance. The report covers the full region independently
 of `--match-pixels`; potentially large output is opt-in.
 
+Add `--match-run-count` with `--find-color` to report the number of maximal
+horizontal matching segments as `match.run_count` in JSON or a
+`matching run count:` text line. It counts the full region using the same RGB
+tolerance and exact-alpha predicate, independent of coordinate paging and run
+length filters. The run list remains omitted unless `--match-runs` is requested.
+
 Add `--min-match-run-length N` with `--match-runs` to omit horizontal match
 segments shorter than `N` pixels. The inclusive cutoff filters only the
 reported list; match counts and other full-region diagnostics, including the

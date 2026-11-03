@@ -33,7 +33,7 @@ def _search_match(args, image) -> dict:
     matching_column_bounds = [None] * args.width if args.match_column_bounds else None
     intervals = _MatchRuns(
         args.x, args.y, args.width, args.height,
-        horizontal=args.match_runs or args.longest_match_run,
+        horizontal=args.match_runs or args.longest_match_run or args.match_run_count,
         vertical=args.match_column_runs or args.longest_match_column_run,
         summarize=args.longest_match_run,
         collect_runs=args.match_runs,
@@ -91,6 +91,7 @@ def _search_match(args, image) -> dict:
             **({"pixel_offset": args.match_pixel_offset}
                if args.match_pixel_offset is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
+            **({"run_count": intervals.run_count} if args.match_run_count else {}),
             **({"longest_run": intervals.longest_run} if args.longest_match_run else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
             **({"longest_column_run": intervals.longest_column_run}
@@ -136,7 +137,11 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             print(f"pixel ({pixel['x']}, {pixel['y']})")
         print(f"omitted pixels: {match['omitted_pixels']}")
     if args.match_runs:
+        if args.match_run_count:
+            print(f"matching run count: {match['run_count']}")
         print(f"matching runs: {json.dumps(match['runs'], separators=(',', ':'))}")
+    elif args.match_run_count:
+        print(f"matching run count: {match['run_count']}")
     if args.match_column_runs:
         print(f"matching column runs: {json.dumps(match['column_runs'], separators=(',', ':'))}")
     if args.match_rows:

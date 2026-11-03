@@ -61,6 +61,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--match-centroid requires --find-color"
     if args.match_runs and args.find_color is None:
         return "--match-runs requires --find-color"
+    if getattr(args, "match_run_count", False) and args.find_color is None:
+        return "--match-run-count requires --find-color"
     if args.min_match_run_length is not None and not args.match_runs:
         return "--min-match-run-length requires --match-runs"
     if args.max_match_run_length is not None and not args.match_runs:
@@ -143,6 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--match-fraction", action="store_true", help="with --find-color, report the matching fraction of the region")
     parser.add_argument("--match-centroid", action="store_true", help="with --find-color, report the centroid of matching pixel coordinates")
     parser.add_argument("--match-runs", action="store_true", help="with --find-color, report contiguous horizontal matching segments")
+    parser.add_argument("--match-run-count", action="store_true", help="with --find-color, report the number of horizontal matching segments")
     parser.add_argument("--min-match-run-length", type=positive_int("--min-match-run-length"), metavar="N", help="with --match-runs, omit matching segments shorter than N pixels")
     parser.add_argument("--max-match-run-length", type=positive_int("--max-match-run-length"), metavar="N", help="with --match-runs, omit matching segments longer than N pixels")
     parser.add_argument("--longest-match-run", action="store_true", help="with --find-color, report the longest horizontal matching segment")
