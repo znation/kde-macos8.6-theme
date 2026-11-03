@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: restrict histograms to a named palette (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Inspect counts and spatial diagnostics for several known Platinum colors in one report. Searches of sampler sources, tests and plan headings found named exclusions and single-color search, but no named histogram inclusion filter. This is independent of the queued fidelity vertical-run filter.
+
+**Approach and files.** Added repeatable `--include-color RRGGBB` in `tools/sample_arguments.py::build_parser`, using `rgb_argument`; `option_error` rejects use without histogram before file access with `--include-color requires --histogram`. In `tools/sample_report_histogram.py::_histogram_result`, restrict candidates to named RGB tuples before exclusions, count/fraction filters and pagination; exclusion wins on overlap. With alpha enabled, inclusion admits each opacity variant of the RGB tuple independently, including stored RGB beneath zero alpha. Original distinct-color totals and full-region denominators remain in force. Explicit inclusion enables totals even when it matches nothing or retains the full palette, and spatial diagnostics remain scoped to emitted colors. Added focused tests in `tests/test_sample_histogram_inclusions.py`, extended `tests/test_sample_option_validation.py`, and documented the option in README.md and docs/invariants.md. No artwork or dependency changed.
+
+**Acceptance criteria.** Verified inclusion counts, fractions, exclusion precedence, pagination after filtering, count/fraction intersections, empty and full selections, duplicate insensitive RGB names, alpha variants including zero alpha, nonzero-origin crop spatial diagnostics, text totals, and pre-read rejection. The existing test suite covers histogram output without inclusion. `make check` passed after the final edits.
+
 ### Fidelity diagnostics: isolate short vertical mismatch runs (planned 2026-11-03 by the plan role — done 2026-11-03 by the feature role)
 
 **Goal.** Inspect short side-border defects without long vertical mismatches filling the report. Source and related archive searches found a vertical minimum filter and a horizontal maximum filter, but no vertical maximum. This is independent of the waiting ordinary sampler scanline plan.

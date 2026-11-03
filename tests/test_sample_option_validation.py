@@ -19,6 +19,7 @@ class TestSampleOptionValidation(CliTestCase):
     def test_incompatible_options_are_rejected_before_png_reads(self):
         cases = (
             (("--top-colors", "1"), "--top-colors requires --histogram"),
+            (("--include-color", "010203"), "--include-color requires --histogram"),
             (("--color-offset", "0"), "--color-offset requires --top-colors"),
             (("--histogram", "--color-offset", "0"), "--color-offset requires --top-colors"),
             (("--color-bounds",), "--color-bounds requires --histogram"),
@@ -77,6 +78,7 @@ class TestSampleOptionValidation(CliTestCase):
         cases = (
             ("image.png", "0", "0"),
             ("image.png", "0", "0", "--histogram", "--top-colors", "2"),
+            ("image.png", "0", "0", "--histogram", "--include-color", "010203"),
             ("image.png", "0", "0", "--histogram", "--top-colors", "2", "--color-offset", "0"),
             ("image.png", "0", "0", "--histogram", "--min-color-fraction", "0.5"),
             ("image.png", "0", "0", "--find-color", "010203", "--color-tolerance", "0", "--match-alpha", "0"),

@@ -495,6 +495,17 @@ preserved; explicit exclusions report totals even when a named color is absent.
 Omitted pixels include exclusions and other filters without double counting.
 Spatial diagnostics apply only to emitted colors.
 
+Add repeatable `--include-color RRGGBB` with `--histogram` to retain only named
+RGB colors. Values accept six hexadecimal digits with optional `#` and are
+case-insensitive. Inclusion is applied before exclusions, count/fraction
+filters and top-color pagination; exclusions win when a color appears in both
+lists. With `--alpha`, each opacity variant of an included RGB value is
+retained independently, including stored RGB beneath zero alpha. The original
+distinct-color total and full-region denominator are preserved, and explicit
+inclusion reports totals even when it matches no colors or the full palette.
+Omitted pixels include every filtered color, and spatial diagnostics apply
+only to emitted colors.
+
 Add `--color-fractions` with `--histogram` to add each emitted color's share
 of the complete requested region (`count / width / height`). JSON color
 records gain a numeric `fraction`; text appends `fraction=VALUE`. Fractions
