@@ -10,11 +10,46 @@ from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
 from tools import fidelity  # noqa: E402
-from tools.fidelity_spatial import difference_row_bounds  # noqa: E402
+from tools.fidelity_spatial import difference_column_bounds, difference_row_bounds  # noqa: E402
 from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRowBounds(unittest.TestCase):
+    def test_axis_bounds_degenerate_full_and_transpose_cases(self):
+        empty = Image(3, 2, bytes(18))
+        self.assertEqual(difference_row_bounds(empty, empty, 0), [None, None])
+        full = Image(3, 2, bytes([1, 0, 0] * 6))
+        self.assertEqual(difference_row_bounds(full, empty, 0),
+                         [{"x": 0, "width": 3}, {"x": 0, "width": 3}])
+
+        single_row = Image(3, 1, bytes([0, 0, 0, 1, 0, 0, 0, 0, 0]))
+        self.assertEqual(difference_row_bounds(single_row, Image(3, 1, bytes(9)), 0),
+                         [{"x": 1, "width": 1}])
+        single_column = Image(1, 3, bytes([0, 0, 0, 1, 0, 0, 0, 0, 0]))
+        self.assertEqual(difference_column_bounds(single_column, Image(1, 3, bytes(9)), 0),
+                         [{"y": 1, "height": 1}])
+
+        # Transposing a 3x2 mismatch map swaps scanline orientation and keys.
+        rgb = bytearray(3 * 2 * 3)
+        for x, y in ((0, 0), (2, 0), (1, 1)):
+            rgb[(y * 3 + x) * 3] = 1
+        image = Image(3, 2, bytes(rgb))
+        transposed_rgb = bytearray(2 * 3 * 3)
+        for x, y in ((0, 0), (2, 0), (1, 1)):
+            transposed_rgb[(x * 2 + y) * 3] = 1
+        transposed = Image(2, 3, bytes(transposed_rgb))
+        expected_rows = [{"x": 0, "width": 3}, {"x": 1, "width": 1}]
+        expected_columns = [{"y": 0, "height": 1}, {"y": 1, "height": 1},
+                            {"y": 0, "height": 1}]
+        self.assertEqual(difference_row_bounds(image, Image(3, 2, bytes(18)), 0), expected_rows)
+        self.assertEqual(difference_column_bounds(transposed, Image(2, 3, bytes(18)), 0),
+                         [{"y": 0, "height": 3}, {"y": 1, "height": 1}])
+        self.assertEqual(difference_column_bounds(image, Image(3, 2, bytes(18)), 0),
+                         expected_columns)
+        self.assertEqual(difference_row_bounds(transposed, Image(2, 3, bytes(18)), 0),
+                         [{"x": 0, "width": 1}, {"x": 1, "width": 1},
+                          {"x": 0, "width": 1}])
+
     def test_intervals_gaps_threshold_and_far_edge(self):
         width, height = 8, 4
         rgb = bytearray(width * height * 3)

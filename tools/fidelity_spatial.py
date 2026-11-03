@@ -39,40 +39,39 @@ def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[
     return rows
 
 
+def _difference_axis_bounds(
+    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+) -> list[dict[str, int] | None]:
+    """Collect each scanline's smallest interval containing a differing pixel."""
+    width, height = candidate.width, candidate.height
+    scanline_count, scanline_length = (width, height) if vertical else (height, width)
+    start_key, length_key = ("y", "height") if vertical else ("x", "width")
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
+    bounds = []
+    for scanline in range(scanline_count):
+        first = last = None
+        for offset in range(scanline_length):
+            index = offset * width + scanline if vertical else scanline * width + offset
+            differing = max(_absolute_deltas(candidate_rgb, reference_rgb,
+                                              candidate_alpha, reference_alpha, index)) > tolerance
+            if differing and first is None:
+                first = offset
+            if differing:
+                last = offset
+        bounds.append(None if first is None else
+                      {start_key: first, length_key: last - first + 1})
+    return bounds
+
+
 def difference_row_bounds(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int] | None]:
     """Return each differing row's smallest crop-relative horizontal interval."""
-    width, height = candidate.width, candidate.height
-    bounds = []
-    for y in range(height):
-        first = last = None
-        for x in range(width):
-            index = y * width + x
-            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                              candidate.alpha, reference.alpha, index)) > tolerance
-            if differing and first is None:
-                first = x
-            if differing:
-                last = x
-        bounds.append(None if first is None else {"x": first, "width": last - first + 1})
-    return bounds
+    return _difference_axis_bounds(candidate, reference, tolerance, vertical=False)
 
 
 def difference_column_bounds(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int] | None]:
     """Return each differing column's smallest crop-relative vertical interval."""
-    width, height = candidate.width, candidate.height
-    bounds = []
-    for x in range(width):
-        first = last = None
-        for y in range(height):
-            index = y * width + x
-            differing = max(_absolute_deltas(candidate.rgb, reference.rgb,
-                                              candidate.alpha, reference.alpha, index)) > tolerance
-            if differing and first is None:
-                first = y
-            if differing:
-                last = y
-        bounds.append(None if first is None else {"y": first, "height": last - first + 1})
-    return bounds
+    return _difference_axis_bounds(candidate, reference, tolerance, vertical=True)
 
 
 def _difference_axis_runs(
