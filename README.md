@@ -810,6 +810,15 @@ the comparison. The flag requires `--runs`.
 
 ## Fidelity checking
 
+`python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
+reference screenshot and reports mean absolute error, per-channel mean absolute error
+(R, G, B, A), RMSE, worst per-channel delta and where it occurs, and the fraction of
+differing pixels.
+Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
+surface region of the reference.
+
+The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
+
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
 The `metrics` object uses the field names from `tools/fidelity_metrics.py::Metrics`; crop-relative
@@ -820,14 +829,6 @@ The top-level `candidate_difference_bounds` and `reference_difference_bounds` tr
 rectangle into each source image's coordinates, using the corresponding crop origin (or zero).
 Text output prints the same two source rectangles after the local bounds line.
 
-`python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
-reference screenshot and reports mean absolute error, per-channel mean absolute error
-(R, G, B, A), RMSE, worst per-channel delta and where it occurs, and the fraction of
-differing pixels.
-Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
-surface region of the reference.
-
-The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 A candidate or reference path inside the repository that resolves outside it (a checked-in
 symlink) is refused by name before it is read, so a comparison cannot probe a private image;
 a path outside the repository is read as before. Guarded PNG reads and crop-bounded row decoding

@@ -122,14 +122,6 @@ Append one dated row at the end of the `## gtk` table in `docs/invariants.md` na
 
 **Acceptance criteria.** A reader of Development team sees the check command, how to inspect their configuration, the expected configured-state indicators, and the manual setup command with its primary-checkout context. They are no longer told a particular historical request awaits merge or that verification must wait for that merge. Reference validation remains a separate command. The brief block is preserved. Review the final README diff and run `make check` after final edits, including the plan's completion record.
 
-### README fidelity introduction: present the comparison command before JSON output (planned 2026-11-03 by the plan role)
-
-**Goal.** Make `## Fidelity checking` introduce its basic comparison command before its optional JSON format. Today the section opens with `Add --json` and schema details before explaining what the CLI compares.
-
-**Approach and files.** Edit only README.md outside the brief block. Move the existing command-and-crop paragraph to the start of `## Fidelity checking`, followed by the existing exit-status sentence, then the existing JSON/schema paragraph. Keep the remaining path-containment and budget guidance following that introduction. Preserve the examples, metric descriptions, crop coordinate semantics, source-bound translations and flag spellings; this is a paragraph reorder, not a CLI change. Ground the prose against `tools/fidelity_cli_parser.py::build_parser`, `tools/fidelity.py::main`, and `tools/fidelity_reports.py::report_data` / `source_bounds`, which define the command, status and report shape. No new prose-order test is needed for this documentation-only change; use the existing check and manual comparison of the moved text.
-
-**Acceptance criteria.** A reader entering `## Fidelity checking` encounters `python3 tools/fidelity.py CANDIDATE REFERENCE`, the compared metrics and the two crop options before the exit-status explanation and optional `--json` schema. The introduction still explains statuses 0/1/2, retains the JSON example and distinguishes crop-relative bounds from candidate/reference source bounds. A diff shows the existing introductory text relocated without changing the later diagnostic option descriptions or the brief. Run `make check` after the final edit.
-
 ## Done
 
 ### Platinum GTK 4 toolbar buttons: preserve black keyboard focus (planned 2026-11-03 by the plan role)

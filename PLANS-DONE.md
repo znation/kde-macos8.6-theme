@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README fidelity introduction: present the comparison command before JSON output (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Make `## Fidelity checking` introduce its basic comparison command before its optional JSON format. Today the section opens with `Add --json` and schema details before explaining what the CLI compares.
+
+**Approach and files.** Edited only README.md outside the brief block. Moved the existing command-and-crop paragraph to the start of `## Fidelity checking`, followed by the existing exit-status sentence, then the existing JSON/schema paragraph. Kept the remaining path-containment and budget guidance following that introduction. Preserved the examples, metric descriptions, crop coordinate semantics, source-bound translations and flag spellings; this is a paragraph reorder, not a CLI change. Grounded the prose against `tools/fidelity_cli_parser.py::build_parser`, `tools/fidelity.py::main`, and `tools/fidelity_reports.py::report_data` / `source_bounds`, which define the command, status and report shape. No new prose-order test was needed for this documentation-only change; verification uses the existing check and manual comparison of the moved text.
+
+**Acceptance criteria.** A reader entering `## Fidelity checking` encounters `python3 tools/fidelity.py CANDIDATE REFERENCE`, the compared metrics and the two crop options before the exit-status explanation and optional `--json` schema. The introduction still explains statuses 0/1/2, retains the JSON example and distinguishes crop-relative bounds from candidate/reference source bounds. The diff shows the existing introductory text relocated without changing the later diagnostic option descriptions or the brief. `make check` passed after the final edit.
+
 ### README ordinary pixel JSON: consolidate the repeated introduction (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal and grounding.** Give readers one introduction to ordinary pixel JSON under README.md's Sampling reference pixels section. The passage beginning “Pass `--json` to emit one structured JSON object instead” and the later passage beginning “Pass `--json` to emit the original image argument” describe the same schema with the same sample pixel. Checked `tools/sample_report_pixels.py::report_pixels` and `_pixel_records`, plus `tests/test_sample_cli.py::TestSampleCli::test_json_single_pixel_has_complete_schema` and `test_json_rectangle_is_row_major_and_keeps_header_dimensions`: the capability already exists. Planned and archived heading searches found JSON implementation and histogram-pagination consolidation, but no consolidation of this ordinary-pixel introduction. This is a separate prose repair from the waiting Fidelity checking channel-maxima entry.
