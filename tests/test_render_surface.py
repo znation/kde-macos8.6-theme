@@ -1366,7 +1366,7 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     the 480x360 size the other dialog gates byte-compare at and a plane
     that actually painted, ``test_draws_the_entry_field_cell_1_to_1``
     byte-compares the content-area entry's cell with the arrangement the
-    landed entry recipe re-derives, and the two push-button pins
+    landed entry recipe re-derives, the two push-button pins
     (``test_draws_the_action_button_row_cell_1_to_1`` and
     ``test_draws_the_cancel_button_cell_1_to_1``) byte-compare the OK and
     Cancel buttons' cells with the arrangement the landed push-button
