@@ -225,6 +225,33 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         self.assertEqual(b"recorded", value)
         self.assertEqual("", stderr)
 
+    def test_a_stdout_log_that_cannot_be_removed_still_cleans_stderr(self):
+        """Failure removing the first log does not skip the second one."""
+        def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"recorded")
+            stderr_log.write_bytes(b"warning")
+            return 0
+
+        stdout_log = self.root / "read.log"
+        stderr_log = self.root / "read.stderr.log"
+        unlink = type(stdout_log).unlink
+
+        def unlink_with_stdout_failure(path, *args, **kwargs):
+            if path == stdout_log:
+                raise PermissionError("cannot remove stdout log")
+            return unlink(path, *args, **kwargs)
+
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=succeed
+        ), mock.patch.object(type(stdout_log), "unlink", unlink_with_stdout_failure):
+            value, status, stderr = self.run_output()
+
+        self.assertIsNone(status)
+        self.assertEqual(b"recorded", value)
+        self.assertEqual("", stderr)
+        self.assertTrue(stdout_log.exists())
+        self.assertFalse(stderr_log.exists())
+
     def test_a_stdout_log_that_cannot_be_read_reports_exit_2_by_its_name(self):
         """A failed value read is the tool's exit-2 error, not a traceback."""
 
