@@ -40,3 +40,8 @@ and will tune it to this project.
   draws and record the resized cell's deviation from the reference. Never leave shipped art
   somewhere the engine resamples it. (Directed by the user 2026-10-30; recorded by the director
   role.)
+- Draw unfocused windows exactly as the reference set's unfocused windows appear: one active
+  window (the frontmost one), every other window inactive with a flat bar and no title-bar
+  boxes, and no separate focus look. Platinum's model is active=frontmost; KWin already
+  realizes it, so emulating it needs no focus machinery — only the inactive decoration art.
+  (Directed by the user 2026-11-04; recorded by the director role.)
