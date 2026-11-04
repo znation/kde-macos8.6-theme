@@ -276,6 +276,44 @@ class TestKvantumDataHomeNote(StubTools):
             ["kvantummanager --set org.macos8.desktop"], self.recorded()
         )
 
+    def theme_directory_at_default(self):
+        """Create the theme directory the engine's default home resolves."""
+        directory = (
+            self.home / ".local" / "share" / "themes" / "org.macos8.desktop" / "Kvantum"
+        )
+        directory.mkdir(parents=True)
+        return directory
+
+    def test_a_theme_already_at_the_default_data_home_stays_silent(self):
+        # The note exists for the selection the engine's literal search path
+        # cannot reach; when the default home already holds the theme
+        # directory (an earlier install under the default data home) the
+        # engine can reach the selection and the warning would be false.
+        self.theme_directory_at_default()
+        status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+        self.assertEqual(
+            ["kvantummanager --set org.macos8.desktop"], self.recorded()
+        )
+
+    def test_a_wrongly_named_directory_at_the_default_home_still_warns(self):
+        # Only the exact themes/org.macos8.desktop/Kvantum path silences the
+        # note; a sibling-named theme cannot be what the engine resolves, so
+        # the check must not stop at the themes directory or the theme name.
+        for layout in (
+            "themes/org.macos8.desktop/not-Kvantum",
+            "themes/other.theme/Kvantum",
+            "Kvantum/org.macos8.desktop",
+        ):
+            with self.subTest(layout=layout):
+                (self.home / ".local" / "share" / layout).mkdir(parents=True)
+                status, stderr = self.select()
+                self.assertEqual(0, status, stderr)
+                self.assertEqual(
+                    [self.note(self.home, self.data)], stderr.splitlines()
+                )
+
     def test_the_default_data_home_below_home_stays_silent(self):
         with mock.patch.dict(
             os.environ, {"XDG_DATA_HOME": str(self.home / ".local" / "share")}

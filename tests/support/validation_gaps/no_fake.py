@@ -14,9 +14,17 @@ from .records import Reproduction
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 33
+NO_FAKE_BASELINE = 34
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "apply-kvantum-note-theme-already-at-default-home",
+        (
+            "off-default data-home note fires when the theme already exists at the default data home",
+        ),
+        "tests/test_apply_theme.py::TestKvantumDataHomeNote"
+        "::test_a_theme_already_at_the_default_data_home_stays_silent",
+    ),
     Reproduction(
         "check-parallel-forged-empty-summary",
         ("accepts a forged empty-run summary from a started test",),

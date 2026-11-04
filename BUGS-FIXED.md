@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The apply's off-default data-home note fires when the theme already exists at the default data home (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
+
+`tools/theme_apply_optional.py::_warn_off_default_data_home` printed its
+`apply_theme: note:` warning purely from `resolved != default`, without
+checking whether `themes/org.macos8.desktop/Kvantum` already exists under
+the default data home. An operator who had installed the theme under the
+default data home and later ran `make apply` with a non-default
+`${XDG_DATA_HOME}` still saw "widgets draw Kvantum's built-in default theme
+until themes/org.macos8.desktop/Kvantum exists there" — the condition the
+message itself names was already satisfied, so the note told the operator
+to do something they had already done. Reproduced by a scratch call to
+`_warn_off_default_data_home` with `HOME` on a temp directory holding
+`$HOME/.local/share/themes/org.macos8.desktop/Kvantum` and
+`XDG_DATA_HOME` elsewhere: the note printed with the theme present and
+absent alike. Fix: the note now also stays silent when the exact theme
+directory exists under the default data home (`_theme_directory_at`), and
+a wrongly named sibling (a different theme name, a different leaf name, or
+the directory under `Kvantum/` instead of `themes/`) does not silence it.
+
+**Validation gap:** no-fake — the existing env-shape tests never populated the
+default data home with the theme directory, so the false-positive shape needed
+a new fixture (the default-home theme directory) that did not exist; it is now
+pinned by `test_a_theme_already_at_the_default_data_home_stays_silent`.
+
 ### remove-kvantum calls a directory or a fouled `Kvantum` path at the kvconfig path absent (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
 
 

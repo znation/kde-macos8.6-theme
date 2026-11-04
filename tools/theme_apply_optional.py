@@ -115,7 +115,9 @@ def select_kvantum_theme(
     cannot install: without ``kvantummanager`` the widgets fall back to another
     style and the apply still succeeds. When the data home Kvantum's literal
     search path cannot reach would swallow the selection, the run also prints
-    the off-default data-home note before the selection runs.
+    the off-default data-home note before the selection runs. A default home
+    that already holds the theme directory can reach the selection, so it
+    prints no note (see :func:`_warn_off_default_data_home`).
     """
     manager = shutil.which("kvantummanager")
     if manager is None:
@@ -144,12 +146,16 @@ def _warn_off_default_data_home(env: dict[str, str]) -> None:
     search path from ``$HOME``, ignoring ``$XDG_DATA_HOME``; with the data
     home elsewhere the selection still succeeds but the engine keeps drawing
     its built-in default theme. Like every note here this is best-effort: a
-    home the comparison cannot name (an unusable ``HOME``) or one already at
-    the default stays silent.
+    home the comparison cannot name (an unusable ``HOME``), one already at
+    the default, or one whose default home already holds the theme directory
+    (an earlier install under the default data home, which the engine's
+    search path reaches) stays silent.
     """
     resolved = xdg_homes.data_home(env)
     default = xdg_homes.default_data_home(env)
     if resolved is None or default is None or resolved == default:
+        return
+    if _theme_directory_at(default) is not None:
         return
     _note(
         f"the Kvantum engine reads its theme directory only under the "
@@ -157,6 +163,19 @@ def _warn_off_default_data_home(env: dict[str, str]) -> None:
         f"draw Kvantum's built-in default theme until "
         f"themes/{KVANTUM_THEME}/Kvantum exists there"
     )
+
+
+def _theme_directory_at(data_home: Path) -> Path | None:
+    """Return the theme directory under *data_home*, or ``None`` when absent.
+
+    The path the note names -- ``themes/<KVANTUM_THEME>/Kvantum`` below the
+    default data home -- is what the engine's literal search path resolves;
+    when it already exists the warning's condition ("the engine keeps
+    drawing its built-in default theme until it exists there") no longer
+    holds and the note would be a false warning.
+    """
+    directory = data_home / "themes" / KVANTUM_THEME / "Kvantum"
+    return directory if directory.is_dir() else None
 
 
 def run_optional_selections(
