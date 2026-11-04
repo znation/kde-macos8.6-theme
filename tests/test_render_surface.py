@@ -32,7 +32,7 @@ from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F
 from support.kvantum_fixtures import SVG
 from support.svg_case import parse_svg
 from svg_assertions import render_slices
-from support.platinum_palette import FACE, hex_colour
+from support.platinum_palette import BLACK, FACE, WHITE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from tools import render_session, render_setup, render_surface, render_workflow  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
@@ -111,6 +111,16 @@ COMBOBOX_CROP = (316, 178, 12, 12)
 # frame slices from the dedicated raised family, so the field bands are the
 # reference's raised arrangement in every state the engine may select.
 COMBOBOX_FIELD = (146, 172, 188, 24)
+# The rendered GTK 4 entry field's right-hand cell: the entry's own painted
+# edge rows and the right edge columns, plus the flat face interior, measured
+# 2026-11-03 on a consecutive pair of full `tools/render_surface.py --gtk-dialog`
+# runs on this host (zenity 4.1.90, GTK 4.18.6) whose two 480x360 captures
+# agreed bit for bit under cmp. The empty entry's caret sits at x=136, so the
+# cell stays right of it and carries no caret byte; the crop's right edge
+# columns are the focused entry's 2px black edge (the stock focus halo over
+# the 1px black ENTRY_FIELD border), so any off-by-one slips the flat face in
+# under the pinned columns and fails.
+ENTRY_FIELD_CROP = (300, 171, 54, 36)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1298,13 +1308,50 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     switch) wears this theme through the selection
     ``tools/gtk_selection.py::apply`` publishes into the scratch config
     home: the ``gtk-4.0/settings.ini`` theme-name keys and the user CSS
-    ``@import`` of the installed sheet. In this part the gate asserts only
-    capture-level invariants -- the 480x360 size the other dialog gates
-    byte-compare at and a plane that actually painted -- because pinning
-    the rendered entry-field cell is part 2/2's own entry (the crop and its
-    re-derived arrangement are separate work); this class only guarantees
-    that the capture exists, is readable and is a painted GTK window.
+    ``@import`` of the installed sheet. The capture-level assertions pin
+    the 480x360 size the other dialog gates byte-compare at and a plane
+    that actually painted, and ``test_draws_the_entry_field_cell_1_to_1``
+    byte-compares the content-area entry's cell with the arrangement the
+    landed entry recipe re-derives (the crop is measured on this host's
+    480x360 capture; see the ``## tooling`` row of ``docs/invariants.md``).
     """
+
+    KIND = "gtk"
+
+    def test_draws_the_entry_field_cell_1_to_1(self):
+        # Byte-compare the entry's painted cell with the arrangement the
+        # landed recipe's own constants re-derive, never with the capture's
+        # own pixels. The entry is focused in zenity's dialog, so the
+        # focused field carries stock's focus halo geometry (2px wide with
+        # an inset -2px offset) recoloured black by the sheet's own
+        # ``entry:focus-within`` outline-color pin: the halo paints black
+        # over the border box's outer two pixels, namely the 1px black
+        # ENTRY_FIELD border row/column plus one row/column of the padding
+        # box, so the cell's edge rows and right edge columns are the 2px
+        # black edge the capture shows. Proven 2026-11-03 with a throwaway
+        # GTK 4 client in the project's own session machinery: clearing that
+        # outline colour lays the sheet's ``box-shadow: inset 1px 1px
+        # #999999`` strip bare (1px black border, grey strip, white face),
+        # so the strip renders but sits under the black halo in the
+        # published chain, and the pinned cell is exactly this edge plus the
+        # flat #FFFFFF ENTRY_FIELD face.
+        image = self.candidate_image()
+        x0, y0, width, height = ENTRY_FIELD_CROP
+        expected = {
+            (x, y): (
+                BLACK
+                if y < 2 or y >= height - 2 or x >= width - 2
+                else WHITE
+            )
+            for x in range(width)
+            for y in range(height)
+        }
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
 
     KIND = "gtk"
 
