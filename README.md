@@ -38,7 +38,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 | Select the GTK theme alone | Python 3.10 or newer, the package-install utilities above, and writable data and config homes. Run `make apply-gtk`; restart GTK applications. See [Installing](#installing) for selection and backup details. |
 | Select the cursor theme alone | Python 3.10 or newer, the package-install utilities above, and `plasma-apply-cursortheme` on `PATH`. Run `make apply-cursor`; aggregate `make apply` skips cursor selection with a note when that tool is missing. See [Installing](#installing) for details. |
 | Install Firefox sheets alone | Python 3.10 or newer and an existing writable Firefox profile, found automatically or specified as `FIREFOX_PROFILE=/absolute/profile`. Run `make install-firefox`; aggregate `make apply` skips this step with a note when it finds no profile. See [Installing](#installing) for profile selection and restart details. |
-| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`. |
+| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead. |
 | Materialize reference images | Git LFS; run `git lfs install` and `git lfs pull`. See [Validating the reference set](#validating-the-reference-set). |
 
 ## Navigation
@@ -329,19 +329,21 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the three widget dialogs:
+Capture the default calculator or one of the four widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
 python3 tools/render_surface.py checkbox.png --checkbox-dialog
 python3 tools/render_surface.py combobox.png --combobox-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
+python3 tools/render_surface.py gtk.png --gtk-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 the direct Python commands select dialog modes. The calculator capture defaults to 320x240;
 each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
-different applet, or width/height overrides. Dialog captures also require `kdialog`; see
+different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
+modes and `zenity` in the GTK mode; see
 [Prerequisites](#prerequisites) for the other rendering tools. To compare a candidate PNG with
 the references, see [Fidelity checking](#fidelity-checking).
 
@@ -357,7 +359,7 @@ naming the settle wait rather than published as a render. A failed install, rend
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
-(`kdialog` must be on `PATH` in any dialog mode) and captures it as a 480x360 PNG
+(`kdialog` must be on `PATH` in the kdialog dialog modes) and captures it as a 480x360 PNG
 whose crop the checkbox gate (`tests/test_render_surface.py::TestCheckboxDialogRender`)
 byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` chooser
 whose combo box the engine draws with the theme's `comboarrow` art; the render captures
@@ -366,8 +368,14 @@ it the same way, for the combo arrow gate
 `kdialog` menu list whose item view the engine frames with the theme's `GenericFrame` art,
 captured at the same 480x360 size; the item-view gate
 (`tests/test_render_surface.py::TestMenuDialogRender`) byte-compares the item view's
-rendered border runs, its white interior and the current-item focus ring there. The three
-dialog modes cannot be combined. In each mode the scratch session links its own home's
+rendered border runs, its white interior and the current-item focus ring there.
+`--gtk-dialog` opens a zenity text-entry dialog: zenity is a GTK 4 client, so with no
+theme-name CSS switch it wears the theme through the selection the render publishes into the
+scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
+installed sheet), and the render captures it at the same 480x360 size. In this render mode the
+GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins only capture-level
+invariants (the size and a painted, non-uniform plane); byte-comparing the rendered entry-field
+cell is separate queued work. The four dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -506,8 +514,9 @@ pushes and pull requests, on Python 3.13 with a checkout with Git LFS images
 materialized; the Makefile's targets still require Python 3.10 or newer at run
 time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
-`plasma-apply-colorscheme`) and the `kdialog` client the gate's checkbox and
-combobox dialog renders open, so `make check` runs the rendered-pixel gate,
+`plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox and
+combobox dialog renders open, and the `zenity` client its GTK dialog render opens, so
+`make check` runs the rendered-pixel gate,
 both dialog renders included, there too. Run those same commands locally for
 parity with the workflow's check steps.
 
@@ -992,8 +1001,10 @@ non-default `--applet`:
 | Checkbox dialog | `python3 tools/render_surface.py --checkbox-dialog checkbox.png` | 480x360 |
 | Combo box dialog | `python3 tools/render_surface.py --combobox-dialog combobox.png` | 480x360 |
 | Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
+| GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
 
-The calculator capture defaults to 320x240. Dialog captures also need `kdialog` on `PATH`;
+The calculator capture defaults to 320x240. Dialog captures need `kdialog` on `PATH` in the
+kdialog modes and `zenity` in the GTK mode;
 see [Prerequisites](#prerequisites) for the render tools. To allow a slower calculator paint,
 increase the settle wait and set a longer timeout (which must exceed settle):
 
@@ -1190,11 +1201,12 @@ window and byte-compares the title-bar strip (candidate `30,0,80,22` against ref
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
 region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
-`::TestComboboxDialogRender` and `::TestMenuDialogRender`) open a `kdialog` warning box,
-chooser and menu list and byte-compare the engine-drawn check box cell with the shipped
-`checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal`
-slice and the engine-drawn item view frame with the shipped `GenericFrame` art, all three
-derived from the same SVG: engine-drawn widget pixels are gate-covered too.
+`::TestComboboxDialogRender`, `::TestMenuDialogRender` and `::TestGtkDialogRender`) open a
+`kdialog` warning box, chooser and menu list and a `zenity` GTK 4 entry dialog and
+byte-compare the engine-drawn check box cell with the shipped `checkbox-*` canvas, the
+engine-drawn combo arrow with the shipped `comboarrow-normal` slice and the engine-drawn item
+view frame with the shipped `GenericFrame` art, the GTK entry capture pinned capture-level only:
+engine-drawn widget pixels are gate-covered too.
 
 ## Running checks
 

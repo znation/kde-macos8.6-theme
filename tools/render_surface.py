@@ -15,7 +15,8 @@ Usage::
 
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
-        [--checkbox-dialog | --combobox-dialog | --menu-dialog]
+        [--checkbox-dialog | --combobox-dialog | --menu-dialog
+        | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -140,6 +141,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--gtk-dialog",
+        action="store_true",
+        help=(
+            "open a zenity text-entry dialog whose content-area GtkEntry the "
+            "GTK 4 toolkit draws with the published theme selection, and "
+            "capture it at the 480x360 size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--width",
         type=positive_int("--width"),
         default=None,
@@ -173,19 +183,20 @@ def main(argv: list[str] | None = None) -> int:
             ("--checkbox-dialog", args.checkbox_dialog),
             ("--combobox-dialog", args.combobox_dialog),
             ("--menu-dialog", args.menu_dialog),
+            ("--gtk-dialog", args.gtk_dialog),
         )
         if given
     ]
     if len(dialog_flags) > 1:
         parser.error(
-            "the dialog modes open one kdialog client each: give one of "
+            "the dialog modes open one dialog client each: give one of "
             f"{', '.join(dialog_flags)}, not both"
         )
     if dialog_flags:
         flag = dialog_flags[0]
         if args.applet != _DEFAULT_APPLET:
             parser.error(
-                f"{flag} opens its own kdialog client: do not combine it "
+                f"{flag} opens its own dialog client: do not combine it "
                 "with --applet"
             )
         if args.width is not None or args.height is not None:
@@ -210,9 +221,17 @@ def main(argv: list[str] | None = None) -> int:
             "it can capture"
         )
 
-    requirements = REQUIRED_TOOLS + (
-        ("kdialog",) if args.checkbox_dialog or args.combobox_dialog or args.menu_dialog else ()
+    # Each dialog flag requires its own client by name, so the first missing
+    # tool the diagnostic names is the client the requested mode opens.
+    kdialog_flags = (
+        args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
     )
+    dialog_clients: tuple[str, ...] = ()
+    if kdialog_flags:
+        dialog_clients += ("kdialog",)
+    if args.gtk_dialog:
+        dialog_clients += ("zenity",)
+    requirements = REQUIRED_TOOLS + dialog_clients
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:
         return missing

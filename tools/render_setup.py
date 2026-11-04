@@ -6,12 +6,17 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_bytes_atomically
+    from tools.gtk_selection import ConfigError as _ConfigError  # noqa: F401 (re-exported)
+    from tools.gtk_selection import apply as _gtk_apply
+    from tools.gtk_selection import installed_sheets as _gtk_installed_sheets
     from tools.process_group import run_logged
     from tools.render_session import Session
     from tools.repo_root import ROOT
     from tools.theme_defaults import write_configs
 else:  # run directly from render_surface.py
     from atomic_write import write_bytes_atomically
+    from gtk_selection import ConfigError as _ConfigError
+    from gtk_selection import apply as _gtk_apply, installed_sheets as _gtk_installed_sheets
     from process_group import run_logged
     from render_session import Session
     from repo_root import ROOT
@@ -60,3 +65,24 @@ def write_kvantum_selection(session: Session) -> None:
         directory / "kvantum.kvconfig",
         f"[General]\ntheme={KVANTUM_THEME}\n".encode("utf-8"),
     )
+
+
+def install_gtk_selection(session: Session) -> None:
+    """Select the GTK themes in the scratch config home for GTK clients.
+
+    This is the landed ``apply-gtk`` selection transaction pointed at the
+    scratch homes: both installed sheets must exist below the scratch data
+    home, and ``apply`` publishes the settings theme-name keys and the user
+    CSS into the scratch config home. The scratch config home is fresh, so
+    the selection never finds a foreign user CSS to back up and the note
+    callback never fires; it is routed to a discard for that reason alone.
+    Raises :class:`ConfigError` where ``apply`` raises one, and when the
+    scratch install left a sheet missing.
+    """
+    sheets = _gtk_installed_sheets(session.data)
+    if sheets is None:
+        raise _ConfigError(
+            "the scratch install left a GTK sheet missing; the zenity "
+            "client would start unthemed"
+        )
+    _gtk_apply(sheets, session.config, lambda _note: None)

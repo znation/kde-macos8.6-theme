@@ -39,10 +39,12 @@ class TestCiWorkflow(unittest.TestCase):
     def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
         workflow = self.read_workflow()
         # The render gate (tests/test_render_surface.py::TestRender) silently
-        # skips wherever its five Plasma tools are absent, and the three dialog
-        # gates (TestCheckboxDialogRender, TestComboboxDialogRender and
-        # TestMenuDialogRender) skip wherever the kdialog client their dialog
-        # renders open is absent. The workflow must install and, by name, verify all six,
+        # skips wherever its five Plasma tools are absent, and the four dialog
+        # gates (TestCheckboxDialogRender, TestComboboxDialogRender,
+        # TestMenuDialogRender and TestGtkDialogRender) skip wherever the dialog
+        # client their dialog render opens is absent (kdialog for the three
+        # kdialog modes, zenity for the GTK 4 mode). The workflow must install
+        # and, by name, verify all seven tools,
         # so no gate quietly misses the render it byte-compares.
         for tool in (
             "dbus-run-session",
@@ -51,6 +53,7 @@ class TestCiWorkflow(unittest.TestCase):
             "plasma-apply-colorscheme",
             "spectacle",
             "kdialog",
+            "zenity",
         ):
             self.assertIn(tool, workflow)
         # (?s) lets the pattern cross the shell line continuations.
@@ -58,6 +61,7 @@ class TestCiWorkflow(unittest.TestCase):
         self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
         self.assertRegex(workflow, r"(?s)apt-get install.*kdialog")
+        self.assertRegex(workflow, r"(?s)apt-get install.*zenity")
         self.assertRegex(
             workflow,
             r"render tool missing after install: \$tool",
@@ -73,7 +77,8 @@ class TestCiWorkflow(unittest.TestCase):
             r"command -v plasmawindowed >/dev/null && \\\s*"
             r"command -v plasma-apply-colorscheme >/dev/null && \\\s*"
             r"command -v spectacle >/dev/null && \\\s*"
-            r"command -v kdialog >/dev/null; then",
+            r"command -v kdialog >/dev/null && \\\s*"
+            r"command -v zenity >/dev/null; then",
         )
 
     def test_every_use_pins_a_full_commit_sha(self):

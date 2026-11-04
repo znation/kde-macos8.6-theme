@@ -42,7 +42,8 @@ jobs:
              command -v plasmawindowed >/dev/null && \
              command -v plasma-apply-colorscheme >/dev/null && \
              command -v spectacle >/dev/null && \
-             command -v kdialog >/dev/null; then
+             command -v kdialog >/dev/null && \
+             command -v zenity >/dev/null; then
             : # The render tools are already available in this runner.
           else
             sudo apt-get update
@@ -51,16 +52,17 @@ jobs:
             # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
             # `plasma-workspace` both plasmawindowed and
             # plasma-apply-colorscheme, and `spectacle` is the screenshot
-            # tool; `kdialog` provides the dialog render's kdialog client.
+            # tool; `kdialog` provides the dialog render's three kdialog
+            # clients and `zenity` the GTK 4 dialog render's client.
             sudo apt-get install -y --no-install-recommends \
-              dbus kwin-wayland plasma-workspace spectacle kdialog
+              dbus kwin-wayland plasma-workspace spectacle kdialog zenity
             # Newer Debian-family releases split dbus-run-session out of the
             # 'dbus' package; cover that layout too.
             command -v dbus-run-session >/dev/null || \
               sudo apt-get install -y --no-install-recommends dbus-daemon
           fi
           for tool in dbus-run-session kwin_wayland plasmawindowed \
-                      plasma-apply-colorscheme spectacle kdialog; do
+                      plasma-apply-colorscheme spectacle kdialog zenity; do
             command -v "$tool" >/dev/null \
               || { echo "render tool missing after install: $tool" >&2; exit 1; }
           done

@@ -243,6 +243,46 @@ class TestFailurePaths(StubTools):
         )
         self.assert_scratch_removed()
 
+    def test_gtk_dialog_installs_the_gtk_selection_beside_the_kvatum_one(self):
+        # The GTK mode's zenity client wears the theme through the selection
+        # the workflow publishes into the scratch config home, so the GTK
+        # selection install must run beside the Kvantum one, not be
+        # forgotten the way a fourth copy of the fan-out could omit it.
+        self.stub("zenity", "exit 0")
+        with mock.patch.object(
+            render_workflow, "install_gtk_selection"
+        ) as install, mock.patch.object(
+            render_workflow, "write_kvantum_selection"
+        ) as kvantum, mock.patch.object(
+            render_workflow, "run_logged", return_value=1
+        ):
+            status, _, output = self.run_main("--gtk-dialog")
+
+        self.assertEqual(1, status)
+        install.assert_called_once()
+        kvantum.assert_called_once()
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
+    def test_a_failed_gtk_selection_install_exits_1_and_removes_scratch(self):
+        self.stub("zenity", "exit 0")
+        with mock.patch.object(
+            render_workflow,
+            "install_gtk_selection",
+            side_effect=render_setup._ConfigError("sheet is missing"),
+        ) as install, mock.patch.object(
+            render_workflow, "run_logged", return_value=0
+        ):
+            status, stderr, output = self.run_main("--gtk-dialog")
+
+        self.assertEqual(1, status)
+        self.assertIn("cannot install the GTK selection", stderr)
+        self.assertIn("sheet is missing", stderr)
+        self.assertNotIn("Traceback", stderr)
+        install.assert_called_once()
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         # The scratch session is created before the install starts. Creating it
         # can fail (a full or unwritable TMPDIR) before there is anything to
@@ -740,11 +780,14 @@ class TestFailurePaths(StubTools):
 
 REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
               "plasma-apply-colorscheme")
-# The kdialog client the dialog modes open, beside the applet render tools.
+# The dialog clients the dialog modes open, beside the applet render tools.
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
-# skip condition away from the condition the render CLI refuses on.
-DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog",)
+# skip condition away from the condition the render CLI refuses on: each
+# dialog flag requires its own client by name (kdialog for the three kdialog
+# modes, zenity for the GTK mode), and the gates skip when either client
+# or any Plasma tool is absent.
+DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
 
 
 @unittest.skipUnless(
@@ -844,11 +887,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The three dialog gates skip wherever their render CLI would refuse on a tool.
+    """The four dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
-    of the five applet-render tools or the kdialog client it opens is
-    absent, and the three dialog gates' shared skip guard encodes exactly
+    of the five applet-render tools or the dialog client its requested mode
+    opens is absent (kdialog for the three kdialog modes, zenity for the
+    GTK mode), and the four dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -868,14 +912,19 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             set(render_surface.REQUIRED_TOOLS) - set(REAL_TOOLS),
         )
         self.assertEqual(
-            {"kdialog"},
+            {"kdialog", "zenity"},
             set(DIALOG_REAL_TOOLS) - set(render_surface.REQUIRED_TOOLS),
         )
 
     def test_all_dialog_gates_skip_only_when_a_tool_is_absent(self):
         tools = DIALOG_REAL_TOOLS
         expected = not all(shutil.which(tool) for tool in tools)
-        for gate in (TestCheckboxDialogRender, TestComboboxDialogRender, TestMenuDialogRender):
+        for gate in (
+            TestCheckboxDialogRender,
+            TestComboboxDialogRender,
+            TestMenuDialogRender,
+            TestGtkDialogRender,
+        ):
             with self.subTest(gate=gate.__name__):
                 self.assertEqual(expected, gate.__unittest_skip__)
 
@@ -902,6 +951,7 @@ class _Renders:
         ("checkbox", ("--checkbox-dialog",), "dialog.png"),
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
+        ("gtk", ("--gtk-dialog",), "dialog.png"),
     )
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
@@ -945,7 +995,7 @@ class _Renders:
 
 
 class _DialogGate:
-    """Test scaffolding the three dialog render gates share.
+    """Test scaffolding the four dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1019,20 +1069,21 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the three dialog render gates share.
+    """Return the skip guard the four dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
-    render plus the kdialog client it opens (it exits 2 with a
-    missing-tool diagnostic when one is absent), so the three dialog gates
-    skip under the condition the applet gate above's ``skipUnless`` guard
-    uses, extended with kdialog. A gate that failed rather than skipped
+    render plus the client its requested mode opens (it exits 2 with a
+    missing-tool diagnostic when one is absent: kdialog for the three
+    kdialog modes, zenity for the GTK mode), so the four dialog gates skip
+    under the condition the applet gate above's ``skipUnless`` guard uses,
+    extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
     that merely lacks Plasma, where the sibling applet gate already skips.
     """
     tools = DIALOG_REAL_TOOLS
     reason = (
         "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
-        "plasma-apply-colorscheme and kdialog on PATH"
+        "plasma-apply-colorscheme, kdialog and zenity on PATH"
     )
     missing = [tool for tool in tools if shutil.which(tool) is None]
 
@@ -1237,6 +1288,39 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         for point in ((114, 120), (200, 120), (365, 272)):
             with self.subTest(point=point):
                 self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
+
+
+@_dialog_gate_guard()
+class TestGtkDialogRender(_DialogGate, unittest.TestCase):
+    """The GTK dialog render captures a themed GTK 4 window at the gate size.
+
+    A real GTK 4 client (zenity, a GTK 4 build with no theme-name CSS
+    switch) wears this theme through the selection
+    ``tools/gtk_selection.py::apply`` publishes into the scratch config
+    home: the ``gtk-4.0/settings.ini`` theme-name keys and the user CSS
+    ``@import`` of the installed sheet. In this part the gate asserts only
+    capture-level invariants -- the 480x360 size the other dialog gates
+    byte-compare at and a plane that actually painted -- because pinning
+    the rendered entry-field cell is part 2/2's own entry (the crop and its
+    re-derived arrangement are separate work); this class only guarantees
+    that the capture exists, is readable and is a painted GTK window.
+    """
+
+    KIND = "gtk"
+
+    def test_capture_paints_a_non_uniform_plane(self):
+        # The CLI already refuses an all-black capture, so the plane is
+        # painted; this asserts it is also not one flat colour, so a later
+        # byte-compare of the entry cell is possible at all. A sampled grid
+        # is enough: a themed zenity window over the virtual session's
+        # background carries several distinct colours within it.
+        image = self.candidate_image()
+        colours = {
+            hex_colour(pixel_at(image, x, y))
+            for x in range(0, image.width, 8)
+            for y in range(0, image.height, 8)
+        }
+        self.assertGreater(len(colours), 1)
 
 
 if __name__ == "__main__":

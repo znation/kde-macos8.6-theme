@@ -10,14 +10,17 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render_output import publish
+    from tools.gtk_user_files import ConfigError
     from tools.render_clients import (
         checkbox_dialog_client,
         combobox_dialog_client,
+        gtk_dialog_client,
         menu_dialog_client,
     )
     from tools.render_session import Session, session_command
     from tools.render_setup import (
         CONFIG_FILES,
+        install_gtk_selection,
         install_theme,
         link_kvantum_themes,
         write_kvantum_selection,
@@ -29,10 +32,17 @@ else:  # run directly from render_surface.py
     from png import PngError, read_png
     from process_group import run_logged
     from render_output import publish
-    from render_clients import checkbox_dialog_client, combobox_dialog_client, menu_dialog_client
+    from gtk_user_files import ConfigError
+    from render_clients import (
+        checkbox_dialog_client,
+        combobox_dialog_client,
+        gtk_dialog_client,
+        menu_dialog_client,
+    )
     from render_session import Session, session_command
     from render_setup import (
         CONFIG_FILES,
+        install_gtk_selection,
         install_theme,
         link_kvantum_themes,
         write_kvantum_selection,
@@ -73,7 +83,10 @@ def render(args: argparse.Namespace) -> int:
         if problem is not None:
             return report_error(TOOL, f"cannot link {path}: {problem}")
 
-        dialog = args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
+        dialog = (
+            args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
+            or args.gtk_dialog
+        )
         try:
             write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
         except (OSError, UnicodeDecodeError, ValueError) as exc:
@@ -85,6 +98,8 @@ def render(args: argparse.Namespace) -> int:
             client = list(combobox_dialog_client(session))
         elif args.menu_dialog:
             client = list(menu_dialog_client(session))
+        elif args.gtk_dialog:
+            client = list(gtk_dialog_client(session))
         else:
             client = ["plasmawindowed", args.applet]
         if dialog:
@@ -92,6 +107,13 @@ def render(args: argparse.Namespace) -> int:
                 write_kvantum_selection(session)
             except OSError as exc:
                 return report_failure(TOOL, f"cannot write the Kvantum selection: {exc}")
+            if args.gtk_dialog:
+                try:
+                    install_gtk_selection(session)
+                except (OSError, ConfigError) as exc:
+                    return report_failure(
+                        TOOL, f"cannot install the GTK selection: {exc}"
+                    )
 
         command = session_command(session, client, args.settle, args.width, args.height, args.timeout)
         try:

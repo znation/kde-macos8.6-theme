@@ -47,6 +47,22 @@ def combobox_dialog_client(_session: Session) -> tuple[str, ...]:
     )
 
 
+def gtk_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the GTK 4 client argv the GTK dialog gate renders.
+
+    A ``zenity`` text-entry dialog with a content-area ``GtkEntry``: zenity
+    is a GTK 4 client (no theme-name CSS switch exists) and wears this theme
+    exactly through the selection ``tools/gtk_selection.py::apply`` publishes
+    into the scratch config home -- the settings theme-name keys and the
+    user CSS ``@import`` of the installed gtk-4.0 sheet, whose relative
+    ``../assets/*`` icon URLs resolve beneath the scratch data home. The
+    entry field is the cell the gtk dialog gate byte-compares; the fresh
+    scratch config home means the selection never finds foreign user CSS to
+    back up, and nothing writes to the caller's real config.
+    """
+    return ("zenity", "--title", "Test", "--entry", "--text", "Choose a name:")
+
+
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
