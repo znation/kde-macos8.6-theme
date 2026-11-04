@@ -2511,9 +2511,12 @@ for radio in (False, True):
             {s for s in self.rules if "cursor-handle" in s},
             {selector},
         )
-        # The group closes the sheet after the residual focus group and the
-        # landed card focus colour group, so the later source order wins
-        # the equal-specificity cascade tie.
+        # The group closes the sheet's landed cursor-handle comment block
+        # after the residual focus group and the landed card focus colour
+        # group, so the later source order wins the equal-specificity
+        # cascade tie against the stock resource: the 2026-11-04 alert-dialog
+        # comment and corner groups follow it without speaking to any
+        # cursor-handle node, so the tie keeps its winner.
         self.assertGreater(
             self.selectors.index("cursor-handle > contents"),
             self.selectors.index("label:focus:focus-visible"),
@@ -2522,7 +2525,10 @@ for radio in (False, True):
             self.selectors.index("cursor-handle > contents"),
             self.selectors.index(".card:focus:focus-visible"),
         )
-        self.assertEqual(self.selectors[-1], selector)
+        self.assertLess(
+            self.selectors.index("cursor-handle > contents"),
+            self.selectors.index("window.dialog.message.csd:not(.solid-csd)"),
+        )
 
     def test_generic_view_selected_arms(self):
         """Pin the generic view class fallback selection declarations."""
@@ -3717,6 +3723,94 @@ for radio in (False, True):
             self.assertLess(
                 self.selectors.index(selector),
                 self.selectors.index(".toolbar"),
+            )
+
+    def test_alert_dialog_corners(self):
+        # The 2026-11-04 alert-dialog comment block appends six
+        # stock-comma groups after the landed cursor-handle tail group;
+        # the sheet parser splits each comma group into per-selector keys,
+        # nine in all (the legacy .dialog-action-area keys from the landed
+        # message-dialog records join the action-area prefix scan below).
+        members = {
+            "window.dialog.message.csd:not(.solid-csd)": {"border-radius": "0"},
+            "window.dialog.message.csd .dialog-action-area > button": {
+                "border-radius": "0"
+            },
+            "window.messagedialog .response-area > button": {"border-radius": "0"},
+            "dialog.alert .response-area > button": {"border-radius": "0"},
+            "dialog-host > dialog.alert sheet": {"border-radius": "0"},
+            "window.messagedialog.csd:not(.solid-csd)": {"border-radius": "0"},
+            "window.dialog-window.alert.csd:not(.solid-csd)": {"border-radius": "0"},
+            "dialog-host > dialog.alert sheet .body-scrolled-window > viewport": {
+                "border-top-left-radius": "0",
+                "border-top-right-radius": "0",
+            },
+            "window.dialog-window.alert .body-scrolled-window > viewport": {
+                "border-top-left-radius": "0",
+                "border-top-right-radius": "0",
+            },
+        }
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("window.messagedialog")},
+            {
+                "window.messagedialog .response-area > button",
+                "window.messagedialog.csd:not(.solid-csd)",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if "dialog.alert" in s},
+            {
+                "dialog.alert .response-area > button",
+                "dialog-host > dialog.alert sheet",
+                "dialog-host > dialog.alert sheet .body-scrolled-window > viewport",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if "dialog-window" in s},
+            {
+                "window.dialog-window.alert.csd:not(.solid-csd)",
+                "window.dialog-window.alert .body-scrolled-window > viewport",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if "dialog-host" in s},
+            {
+                "dialog-host > dialog.alert sheet",
+                "dialog-host > dialog.alert sheet .body-scrolled-window > viewport",
+            },
+        )
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if s.startswith("window.dialog.message.csd .dialog-action-area")
+            },
+            {
+                "window.dialog.message.csd .dialog-action-area button",
+                "window.dialog.message.csd .dialog-action-area button:first-child",
+                "window.dialog.message.csd .dialog-action-area button:last-child",
+                "window.dialog.message.csd .dialog-action-area > button",
+            },
+        )
+        # The frame rule states the corner through the radius shorthand, so
+        # the viewport longhand members match the frame's border-radius
+        # value per corner against that shared zero instead of against a
+        # longhand the frame rule never declares.
+        for selector, rule in members.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], rule)
+                self.assertEqual(self.selectors.count(selector), 1)
+                if "border-radius" in rule:
+                    self.assert_matches_frame(selector, "border-radius")
+                for prop in rule:
+                    self.assertEqual(
+                        self.rules[selector][prop],
+                        self.rules["frame > border"]["border-radius"],
+                    )
+        for selector in members:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("cursor-handle > contents"),
             )
 
     def test_scale(self):

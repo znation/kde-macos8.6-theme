@@ -3890,3 +3890,69 @@ button.card:focus:focus-visible,
 cursor-handle > contents {
   border-radius: 0;
 }
+
+/* GTK alert and message dialogs have no collected reference surface: no
+   screenshot in macos8.6-screenshots/ shows a GTK message or alert dialog,
+   so the corners follow this theme's landed square-corner policy (the
+   frame border, frame class, card, button, tab-family, menu-selection and
+   cursor-handle restatements all declare border-radius: 0). The integration
+   library's base.css resource (probe path recorded in docs/invariants.md,
+   extracted 2026-11-04) declares six radius-bearing alert arms, quoted
+   verbatim:
+   window.dialog.message.csd:not(.solid-csd) { border-radius: 18px; },
+   window.dialog.message.csd .dialog-action-area > button { min-height:
+   24px; padding: 10px 20px; border-radius: 12px; }, dialog-host >
+   dialog.alert sheet { border-radius: 18px; outline: none; },
+   window.messagedialog.csd:not(.solid-csd),
+   window.dialog-window.alert.csd:not(.solid-csd) { border-radius:
+   18px; }, dialog-host > dialog.alert sheet .body-scrolled-window >
+   viewport, window.dialog-window.alert .body-scrolled-window > viewport
+   { border-top-left-radius: 18px; border-top-right-radius: 18px; } and
+   window.messagedialog .response-area > button, dialog.alert
+   .response-area > button { min-height: 24px; min-width: 60px; padding:
+   10px 20px; border-radius: 12px; }. Two of these actively beat landed
+   squarings: the :not(.solid-csd) shell arm carries one class more than
+   the landed window.csd.dialog.message shell group, so the legacy
+   message-dialog shell re-rounds through it, and this > button arm
+   re-rounds every action button, since the landed
+   window.dialog.message.csd .dialog-action-area
+   button:first-child/last-child group squares only the end buttons, and
+   the plain button record sits at the dialog-row node, not the > button
+   child. The surface-colour arm window.messagedialog, dialog-host >
+   dialog.alert sheet, window.dialog-window.alert { background-color:
+   var(--dialog-bg-color); color: var(--dialog-fg-color); } declares no
+   radius and stays stock: the landed palette supplies the fill through
+   the dialog_bg_color and dialog_fg_color redefinitions, like the landed
+   checked-toggle accents, and the titlebar, short-variant,
+   message-area, scrollbar-padding and outline arms declare no radius.
+   The restatements below are byte-equal to stock's spellings, and this
+   sheet loads after the stock resource, so later source order wins each
+   equal-specificity tie per-property; stock's min-heights, min-width,
+   paddings, outline: none and margins stay inherited. (2026-11-04) */
+window.dialog.message.csd:not(.solid-csd) {
+  border-radius: 0;
+}
+
+window.dialog.message.csd .dialog-action-area > button {
+  border-radius: 0;
+}
+
+window.messagedialog .response-area > button,
+dialog.alert .response-area > button {
+  border-radius: 0;
+}
+
+dialog-host > dialog.alert sheet {
+  border-radius: 0;
+}
+
+window.messagedialog.csd:not(.solid-csd),
+window.dialog-window.alert.csd:not(.solid-csd) {
+  border-radius: 0;
+}
+
+dialog-host > dialog.alert sheet .body-scrolled-window > viewport,
+window.dialog-window.alert .body-scrolled-window > viewport {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
