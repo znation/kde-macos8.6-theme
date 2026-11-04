@@ -347,7 +347,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk remove-gtk apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk remove-gtk remove-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -494,6 +494,7 @@ help:
 	@echo "  install-gtk       install only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
+	@echo "  remove-keymap     remove the left Control/Alt swap, preserving other XKB options"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
@@ -572,6 +573,12 @@ apply-gtk:
 	@$(call require_python_ready,apply-gtk)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
 	$(PYTHON) tools/apply_gtk.py
+
+# Remove only this theme's XKB swap option; preserve other keyboard options.
+remove-keymap:
+	@$(call refuse_destdir,remove-keymap)
+	@$(call require_python_ready,remove-keymap)
+	$(PYTHON) tools/apply_keymap.py --remove
 
 # Clear only the GTK selection this theme wrote; a foreign gtk-theme-name and
 # a foreign gtk-4.0/gtk.css are left untouched.

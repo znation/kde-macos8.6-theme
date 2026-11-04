@@ -314,8 +314,8 @@ right and needs no second apply. Right Alt
 (AltGr) and other users' sessions are unchanged, and a repeat apply keeps one copy. The reload is
 best effort: when neither `dbus-send` nor `busctl` is on `PATH`, or the emitted signal fails, it
 notes that the swap takes effect at the next login. The setting persists after `make uninstall`;
-remove `ctrl:swap_lalt_lctl` from `Options` in System Settings → Keyboard → Key Bindings to revert
-it. It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
+run `make remove-keymap` to remove `ctrl:swap_lalt_lctl` while preserving other XKB options. This
+cannot restore earlier keyboard settings. It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6` and `kreadconfig6`,
 exiting 2 naming the first one that is
@@ -424,11 +424,11 @@ not restore earlier settings or backups.
 | `make remove-gtk` | Clears this theme's GTK selection and marker CSS. Existing GTK backups remain; restart GTK applications. |
 | `make remove-firefox` | Removes this theme's sheets and preference block from the active profile. To target another profile, use `FIREFOX_PROFILE=/absolute/profile make remove-firefox`. Restart Firefox. |
 | `make remove-cursor` | Removes this theme's cursor link but leaves the cursor selection. If it still names `org.macos8.desktop`, reset it with `plasma-apply-cursortheme breeze_cursors`. |
-| `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or reverse the keyboard modifier setting. |
+| `make remove-keymap` | Removes `ctrl:swap_lalt_lctl` from the current user's XKB options, preserving other options. It cannot restore earlier keyboard settings. |
+| `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or keyboard settings. |
 
-The left Alt/Control swap also persists after removal. To reverse it, remove
-`ctrl:swap_lalt_lctl` from Options in System Settings → Keyboard → Key Bindings.
-As when applying, the swap assumes the keyboard is in its PC/Windows mode.
+The left Alt/Control swap also persists after theme removal; `make remove-keymap` removes only
+that XKB option. As when applying, the swap assumes the keyboard is in its PC/Windows mode.
 
 #### Restoring personal GTK 4 CSS
 

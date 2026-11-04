@@ -122,6 +122,14 @@ def merge_option(existing: str, option: str = OPTION) -> str:
     return ",".join(options)
 
 
+def remove_option(existing: str, option: str = OPTION) -> str:
+    """Return the nonempty, trimmed options except exact *option* tokens."""
+    return ",".join(
+        part for raw in existing.split(",")
+        if (part := raw.strip()) and part != option
+    )
+
+
 def _note(message: str) -> None:
     """Print ``apply_keymap: note: <message>`` to stderr."""
     report_note(TOOL, message, err=True)
@@ -230,7 +238,7 @@ def _reload(env: dict[str, str], scratch: Path) -> None:
     ]
     if not available:
         _note(
-            "neither dbus-send nor busctl is on PATH; the key swap takes "
+            "neither dbus-send nor busctl is on PATH; keyboard-option changes take "
             "effect at the next login"
         )
         return
@@ -251,12 +259,12 @@ def _reload(env: dict[str, str], scratch: Path) -> None:
     _note(
         "could not ask KWin to reload the keymap ("
         + "; ".join(failures)
-        + "); the key swap takes effect at the next login"
+        + "); keyboard-option changes take effect at the next login"
     )
 
 
-def _apply(environ: dict[str, str]) -> int:
-    """Read the user's options, add the swap, enable them and reload KWin."""
+def _apply(environ: dict[str, str], remove: bool = False) -> int:
+    """Read, update and enable the user's XKB options, then reload KWin."""
     scratch = create_scratch_directory(TOOL, "apply-keymap-")
     if scratch is None:
         return 2
@@ -265,7 +273,10 @@ def _apply(environ: dict[str, str]) -> int:
         existing, status = _read_options(env, scratch)
         if status is not None:
             return status
-        status = _write_options(env, scratch, merge_option(existing))
+        if remove and OPTION not in [part.strip() for part in existing.split(",")]:
+            return 0
+        options = remove_option(existing) if remove else merge_option(existing)
+        status = _write_options(env, scratch, options)
         if status is not None:
             return status
         _reload(env, scratch)
@@ -290,13 +301,14 @@ def main(argv: list[str] | None = None) -> int:
             "plus the signal number when a SIGTERM or SIGHUP ends the run"
         ),
     )
-    parser.parse_args(argv)
+    parser.add_argument("--remove", action="store_true", help="remove the left Control/Alt swap")
+    args = parser.parse_args(argv)
 
     missing = report_missing_tool(TOOL, REQUIRED_TOOLS)
     if missing is not None:
         return missing
     with exit_on_termination():
-        return _apply(dict(os.environ))
+        return _apply(dict(os.environ), remove=args.remove)
 
 
 if __name__ == "__main__":

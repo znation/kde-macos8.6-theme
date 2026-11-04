@@ -17,7 +17,9 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
+from support.process_assertions import assert_failed, assert_succeeded
 from support.recorded_lines import recorded_lines
 from tools import apply_keymap, diagnostics
 
@@ -99,6 +101,15 @@ class TestMergeOption(unittest.TestCase):
         self.assertEqual(
             f"caps:escape,{apply_keymap.OPTION}",
             apply_keymap.merge_option("caps:escape"),
+        )
+
+    def test_removal_drops_only_exact_swap_tokens(self):
+        self.assertEqual(
+            "caps:escape,compose:ralt,ctrl:swap_lalt_lctl_extra",
+            apply_keymap.remove_option(
+                "caps:escape, ctrl:swap_lalt_lctl, compose:ralt,,"
+                "ctrl:swap_lalt_lctl,ctrl:swap_lalt_lctl_extra"
+            ),
         )
 
     def test_an_existing_swap_is_not_duplicated(self):
@@ -183,6 +194,51 @@ class TestCommandOrder(StubTools):
         self.assertEqual(1, len(options_writes))
         self.assertEqual(1, options_writes[0].count(apply_keymap.OPTION))
         self.assertTrue(options_writes[0].endswith("caps:escape," + apply_keymap.OPTION))
+
+
+class TestRemove(StubTools):
+    def test_removes_swap_preserving_other_options_and_reloads(self):
+        self.stub("kreadconfig6", f"printf 'caps:escape,{apply_keymap.OPTION},compose:ralt,{apply_keymap.OPTION}\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertEqual([
+            "kreadconfig6 --file kxkbrc --group Layout --key Options",
+            "kwriteconfig6 --file kxkbrc --group Layout --key Options caps:escape,compose:ralt",
+            "kwriteconfig6 --file kxkbrc --group Layout --key ResetOldOptions --type bool true",
+            "dbus-send --session --type=signal /Layouts org.kde.keyboard.reloadConfig",
+        ], self.recorded())
+
+    def test_removing_only_swap_writes_empty_options(self):
+        self.stub("kreadconfig6", f"printf '{apply_keymap.OPTION}\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertTrue(self.recorded()[1].endswith("--key Options "))
+        self.assertIn("ResetOldOptions --type bool true", self.recorded()[2])
+
+    def test_absent_swap_is_noop(self):
+        self.stub("kreadconfig6", "printf 'caps:escape\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertEqual(1, len(self.recorded()))
+
+    def test_make_target_is_guarded_and_invokes_removal_flag(self):
+        env = theme_install.make_env()
+        env["PATH"] = os.defpath
+        result = theme_install.run_make(["-n", "remove-keymap"], env=env)
+        assert_succeeded(self, result)
+        self.assertIn("tools/apply_keymap.py --remove", result.stdout)
+        self.assertNotIn(" install", result.stdout)
+
+    def test_make_refuses_destdir(self):
+        env = theme_install.make_env()
+        env["PATH"] = os.defpath
+        result = theme_install.run_make(
+            ["remove-keymap", "DESTDIR=/tmp/keymap-stage"],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn("DESTDIR", result.stderr)
+        self.assertNotIn("apply_keymap.py", result.stdout + result.stderr)
 
 
 class TestReload(StubTools):
