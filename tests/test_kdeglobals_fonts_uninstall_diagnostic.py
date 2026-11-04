@@ -1,0 +1,410 @@
+"""Makefile tests for the `_uninstall` kdeglobals Lato-font diagnostics.
+
+`make apply` applies the shipped look-and-feel, whose defaults publish the
+five Lato font selections `[General] font=Lato,10`, `menuFont=Lato,10`,
+`toolBarFont=Lato,10` and `smallestReadableFont=Lato,8`, and
+`[WM] activeFont=Lato,10`, into the user's `kdeglobals`; `make uninstall`
+then deletes the installed font package (`$(FONT_INSTALL_DIR)/$(FONT_ID)`,
+the theme's only shipped copies of the Lato faces), and KDE and Qt keep
+naming the removed family. `_uninstall` prints one diagnostic per key
+naming the matching `kwriteconfig6 --delete` reset when that key's last
+value in its own section still trims to exactly the published one, without
+editing the file. The five conditions are independent: one key's match
+never gates another's line. The scanner it runs on mirrors the shared
+`_uninstall` read the landed kdeglobals widget-style/icon-theme diagnostic
+pins, so that suite keeps its exact wording and this module must not touch
+it or its other files.
+"""
+
+import os
+import unittest
+
+from support import theme_install
+from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+FONT_VALUE = "Lato,10"
+SMALL_VALUE = "Lato,8"
+FONT_RESET = "kwriteconfig6 --file kdeglobals"
+RESET_TAIL = (
+    " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall "
+    "back to a default where no other copy of the family remains installed. "
+    "Reset it with: " + FONT_RESET
+)
+# (section, key, published value) in the order the diagnostics print.
+KEYS = [
+    ("General", "font", FONT_VALUE),
+    ("General", "menuFont", FONT_VALUE),
+    ("General", "toolBarFont", FONT_VALUE),
+    ("General", "smallestReadableFont", SMALL_VALUE),
+    ("WM", "activeFont", FONT_VALUE),
+]
+COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
+ICON_THEME_ID = "org.macos8.desktop"
+
+
+def read_bytes(path):
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def write_selection(config, body):
+    """Write *body* as `<config>/kdeglobals`; return its path."""
+    path = os.path.join(config, "kdeglobals")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
+    return path
+
+
+def rule_for(path, section, key, value):
+    """The expected diagnostic line for one key (the wording is the contract)."""
+    return (
+        "uninstall: the font selection [" + section + "] " + key + "=" + value
+        + " the look-and-feel apply wrote is still in " + path
+        + RESET_TAIL
+        + " --group " + section + " --key " + key + " --delete"
+    )
+
+
+def reset_for(section, key):
+    """The reset tail one diagnostic names, for silence assertions."""
+    return "kdeglobals --group " + section + " --key " + key + " --delete"
+
+
+class TestKdeglobalsFontsUninstallDiagnostic(unittest.TestCase):
+    """`make _uninstall` names the five Lato resets when the selections are ours."""
+
+    def uninstall_with_config(self, tmp, config, env=None):
+        return theme_install.uninstall_recipe(
+            tmp,
+            extra=(),
+            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
+        )
+
+    def assert_warns(self, result, path, *indexed):
+        """Every staged key warns with its own line, no other key's line."""
+        rules = [rule_for(path, section, key, value) for section, key, value in KEYS]
+        for sub, rule in enumerate(rules):
+            if sub in indexed:
+                self.assertIn(rule, result.stderr)
+            else:
+                self.assertNotIn(rule, result.stderr)
+
+    def test_warns_and_names_the_reset_for_each_kept_key(self):
+        for section, key, value in KEYS:
+            with self.subTest(key=key):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                path = write_selection(
+                    config, "[" + section + "]\n" + key + "=" + value + "\n"
+                )
+                original = read_bytes(path)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                # Independence: a single staged key warns only its own line.
+                self.assert_warns(
+                    result, path, [k for _, k, _ in KEYS].index(key)
+                )
+                # A diagnostic must not edit the user's kdeglobals.
+                self.assertEqual(original, read_bytes(path))
+
+    def test_all_five_keys_warn_in_the_published_order(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[General]\nfont=Lato,10\nmenuFont=Lato,10\ntoolBarFont=Lato,10\n"
+            "smallestReadableFont=Lato,8\n[WM]\nactiveFont=Lato,10\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        rules = [rule_for(path, *triple) for triple in KEYS]
+        for rule in rules:
+            self.assertIn(rule, result.stderr)
+        for earlier, later in zip(rules, rules[1:]):
+            self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_the_value_only_trims_to_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[General]\n  menuFont = Lato,10  \n")
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "General", "menuFont", FONT_VALUE), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_for_a_bom_prefixed_file_with_comments_crlf_and_indents(self):
+        # The apply would never write this shape, but an editor BOM-save plus
+        # CRLF endings must not hide the selections from the scanner: it
+        # strips the first line's BOM and trims every line.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "\ufeff[General]\r\n# a comment\r\n; another\r\n  font = Lato,10  \r\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "General", "font", FONT_VALUE), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config, "[General]\ntoolBarFont=Salsa\ntoolBarFont=Lato,10\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(
+            rule_for(path, "General", "toolBarFont", FONT_VALUE), result.stderr
+        )
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warned_when_a_later_duplicate_names_ours(self):
+        # The scanner takes the last duplicate's value, as the other
+        # uninstall diagnostics already do.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config, "[WM]\nactiveFont=Salsa\nactiveFont=Lato,10\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "WM", "activeFont", FONT_VALUE), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_an_unterminated_header_leaves_the_section(self):
+        # A header that never closes is skipped without changing the
+        # section, so the keys stay in the group they opened.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config, "[General]\nfont=Lato,10\n[KDE\nmenuFont=Lato,10\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "General", "font", FONT_VALUE), result.stderr)
+        self.assertIn(
+            rule_for(path, "General", "menuFont", FONT_VALUE), result.stderr
+        )
+        self.assertEqual(original, read_bytes(path))
+
+    def test_not_warned_for_a_later_foreign_value_overriding_ours(self):
+        for section, key, value in KEYS:
+            with self.subTest(key=key):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_selection(
+                    config,
+                    "["
+                    + section
+                    + "]\n"
+                    + key
+                    + "="
+                    + value
+                    + "\n"
+                    + key
+                    + "=Salsa\n",
+                )
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(reset_for(section, key), result.stderr)
+
+    def test_not_warned_for_a_foreign_or_empty_last_value(self):
+        for section, key, value, last in [
+            ("General", "font", FONT_VALUE, "Salsa"),
+            ("General", "menuFont", FONT_VALUE, ""),
+            ("WM", "activeFont", FONT_VALUE, "Salsa"),
+        ]:
+            with self.subTest(key=key, last=last):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_selection(
+                    config,
+                    "[" + section + "]\n" + key + "=" + value + "\n" + key + "=" + last + "\n",
+                )
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(reset_for(section, key), result.stderr)
+
+    def test_not_warned_for_a_case_mismatch(self):
+        # Keys are case-sensitive, as the landed kdeglobals diagnostics are.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[General]\nFont=Lato,10\n[WM]\nActiveFont=Lato,10\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(reset_for("General", "font"), result.stderr)
+        self.assertNotIn(reset_for("WM", "activeFont"), result.stderr)
+
+    def test_independence_each_key_silent_outside_its_own_group(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[WM]\nfont=Lato,10\nmenuFont=Lato,10\ntoolBarFont=Lato,10\n"
+            "smallestReadableFont=Lato,8\n[General]\nactiveFont=Lato,10\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assert_warns(result, path)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_there_is_no_kdeglobals(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assert_warns(result, os.path.join(config, "kdeglobals"))
+
+    def test_silent_when_the_path_is_a_directory(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(os.path.join(config, "kdeglobals"), exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assert_warns(result, os.path.join(config, "kdeglobals"))
+
+    def test_silent_for_a_file_without_the_two_groups_or_without_the_key(self):
+        for body in (
+            "[Other]\nname=whatever\n",
+            "[General]\nSingleClick=true\n",
+            "[WM]\nfoo=bar\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_selection(config, body)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                for section, key, _ in KEYS:
+                    self.assertNotIn(reset_for(section, key), result.stderr)
+
+    def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
+        # Like the existing diagnostics, the guard ignores an unset
+        # XDG_CONFIG_HOME and reads `$HOME/.config`.
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_selection(config, "[WM]\nactiveFont=Lato,10\n")
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+
+        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "WM", "activeFont", FONT_VALUE), result.stderr)
+        self.assertEqual(read_bytes(path), read_bytes(path))
+
+    def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_selection(config, "[General]\nsmallestReadableFont=Lato,8\n")
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+        env["XDG_CONFIG_HOME"] = "relative/config"
+
+        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertIn(
+            rule_for(path, "General", "smallestReadableFont", SMALL_VALUE),
+            result.stderr,
+        )
+        self.assertEqual(read_bytes(path), read_bytes(path))
+
+    def test_without_a_config_home_nothing_is_checked(self):
+        # With neither an absolute XDG_CONFIG_HOME nor an absolute HOME there
+        # is no config home to read, so the diagnostics must be skipped.
+        tmp = str(make_tmp_dir(self))
+        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
+
+        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
+
+        assert_succeeded(self, result)
+        for section, key, _ in KEYS:
+            self.assertNotIn(reset_for(section, key), result.stderr)
+
+    def test_all_kdeglobals_diagnostics_share_one_run_in_recipe_order(self):
+        # The staged color-scheme and look-and-feel selections and the five
+        # font keys warn in one run; each keeps its landed wording and the
+        # lines appear in recipe order (color scheme, widget style, icon
+        # theme, then the five font lines).
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[General]\nColorScheme=MacOS8\nfont=Lato,10\nmenuFont=Lato,10\n"
+            "toolBarFont=Lato,10\nsmallestReadableFont=Lato,8\n"
+            "[KDE]\nwidgetStyle=kvantum\n"
+            "[Icons]\nTheme=" + ICON_THEME_ID + "\n"
+            "[WM]\nactiveFont=Lato,10\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        order = [
+            "uninstall: color scheme MacOS8 is still selected in " + path,
+            "uninstall: the widget-style selection the look-and-feel apply wrote",
+            "uninstall: the icon-theme selection the look-and-feel apply wrote",
+        ] + [rule_for(path, *triple) for triple in KEYS]
+        for fragment in order:
+            self.assertIn(fragment, result.stderr)
+        for earlier, later in zip(order, order[1:]):
+            self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
+        self.assertEqual(original, read_bytes(path))
+
+    def test_make_n_uninstall_still_parses(self):
+        # The internal recipe is pinned by drying it directly, as the other
+        # uninstall diagnostic suites do.
+        result = theme_install.run_make(
+            ["-n", "_uninstall"], env=theme_install.make_env()
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("kdeglobals", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

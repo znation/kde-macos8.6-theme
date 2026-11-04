@@ -1006,6 +1006,46 @@ _uninstall:
 # `theme/look-and-feel/$(LNF_ID)/contents/defaults` and
 # `tests/test_lookandfeel.py::TestDefaults`. As before, this is a diagnostic
 # only -- it must not edit the file.
+#
+# The same look-and-feel apply publishes five font selections through the
+# same defaults file: `[kdeglobals][General] font=Lato,10`,
+# `menuFont=Lato,10`, `toolBarFont=Lato,10` and
+# `smallestReadableFont=Lato,8`, and `[kdeglobals][WM] activeFont=Lato,10`
+# -- the Lato Regular and Bold faces `make uninstall` deletes with
+# `$(FONT_INSTALL_DIR)/$(FONT_ID)`. After the removal every KDE and Qt
+# application keeps naming the family whose only shipped copies the
+# uninstall deleted. As prose grounded against the fontconfig font matching
+# those applications use for text rendering (never test-asserted, and no
+# reference screenshot shows an uninstall warning to sample it from): when
+# the requested family name stops resolving inside the installation, the
+# match falls back to the best-scoring installed family, so applications
+# keep drawing text with a default face wherever no other copy of the
+# family remains installed. Each reset deletes exactly the one key whose
+# published value still stands (`kwriteconfig6 --file kdeglobals --group
+# General --key font --delete` and the analogous `menuFont`, `toolBarFont`
+# and `smallestReadableFont` resets, plus `kwriteconfig6 --file kdeglobals
+# --group WM --key activeFont --delete`), reverting that key to its absence
+# rather than editing any foreign value, the same `--delete` ground the
+# kwinrc diagnostics record: one key's match never gates another's line, so
+# the reset a line names deletes exactly the key whose own value still
+# names the removed family. The file is read the same way the
+# widget-style/icon-theme diagnostic reads `$XDG_CONFIG_HOME/kdeglobals`
+# above: the first line's UTF-8 BOM is stripped, each line is trimmed
+# before parsing, a trimmed `[`...`]` line switches the section (a header
+# that never closes is skipped without changing it), `#`/`;` lines are
+# comments and never keys, the key/value pair splits at the first `=` with
+# both sides trimmed, keys are case-sensitive, and a later duplicate's
+# value wins. One awk tracks the last value of each of the five keys
+# inside its own section independently and prints at most five lines, each
+# only when that key's own last value trims to exactly the expected one;
+# each condition stands alone, so staging a single key warns only that
+# key's line. The `Lato` family literal and the two point sizes (`10` and
+# `8`) below are not Make variables -- keep them in step with
+# `theme/look-and-feel/$(LNF_ID)/contents/defaults`,
+# `tests/test_lookandfeel.py::TestDefaults`,
+# `theme/fonts/$(FONT_ID)/PROVENANCE.md` ("The internal font family name
+# is `Lato`.") and `tests/test_fonts.py`. As before, this is a diagnostic
+# only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -1042,6 +1082,10 @@ fi; \
 kcminputrc="$$config_home/kcminputrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kcminputrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Mouse" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "cursorTheme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(ICON_THEME_ID)" ? 0 : 1 }' "$$kcminputrc" 2>/dev/null; then \
 	  echo "uninstall: the pointer selection still names $(ICON_THEME_ID) after removal in $$kcminputrc; Xcursor applications cannot load the removed cursor theme and keep the default pointer. Reset it with: plasma-apply-cursortheme breeze_cursors" >&2; \
+fi; \
+if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
+  font_selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (section == "General" && key == "font") font=value; if (section == "General" && key == "menuFont") menu=value; if (section == "General" && key == "toolBarFont") toolbar=value; if (section == "General" && key == "smallestReadableFont") smallest=value; if (section == "WM" && key == "activeFont") active=value } } END { if (font == "Lato,10") print "uninstall: the font selection [General] font=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key font --delete"; if (menu == "Lato,10") print "uninstall: the font selection [General] menuFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key menuFont --delete"; if (toolbar == "Lato,10") print "uninstall: the font selection [General] toolBarFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key toolBarFont --delete"; if (smallest == "Lato,8") print "uninstall: the font selection [General] smallestReadableFont=Lato,8 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key smallestReadableFont --delete"; if (active == "Lato,10") print "uninstall: the font selection [WM] activeFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group WM --key activeFont --delete" }' "$$kdeglobals" 2>/dev/null); \
+  if [ -n "$$font_selected" ]; then printf '%s\n' "$$font_selected" >&2; fi; \
 fi; \
 kwinrc="$$config_home/kwinrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "ButtonsOnLeft") left=value; if (key == "ButtonsOnRight") right=value } } END { exit left == "X" && right == "AL" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \

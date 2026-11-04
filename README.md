@@ -297,7 +297,23 @@ of these warnings from); and if the pointer selection
 (`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
 prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 — that command must be run by hand, because `make remove-cursor` owns only the
-`$HOME/.icons` link and never touches `kcminputrc`; if the desktop theme
+`$HOME/.icons` link and never touches `kcminputrc`; and if the font
+selections the look-and-feel apply wrote (`[kdeglobals][General]
+font=Lato,10`, `menuFont=Lato,10`, `toolBarFont=Lato,10` and
+`smallestReadableFont=Lato,8`, and `[kdeglobals][WM] activeFont=Lato,10` —
+the Lato family `make uninstall` deletes with the fonts) still name their
+published values after the uninstall, it prints one warning per
+still-selected key, each naming that key's reset
+`kwriteconfig6 --file kdeglobals --group General --key font --delete` (and
+the analogous `menuFont`, `toolBarFont`, `smallestReadableFont` and
+`--group WM --key activeFont` resets), which deletes exactly the one key the
+apply wrote and reverts it to its absence (as prose grounded against the
+fontconfig font matching KDE and Qt applications use for text rendering,
+never test-asserted: when the requested family name stops resolving inside
+the installation, the match falls back to the best-scoring installed
+family, so applications keep drawing text with a default face wherever no
+other copy of the family remains installed; the reference screenshots show
+no uninstall warning to sample it from); if the desktop theme
 selection `plasma-apply-desktoptheme` wrote (`[Theme] name=` in `plasmarc`)
 still names `org.macos8.desktop` after the uninstall, it prints a warning
 naming `plasma-apply-desktoptheme breeze` as the reset (`breeze` is Plasma's
