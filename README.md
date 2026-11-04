@@ -840,11 +840,14 @@ maximum cutoffs combine, and contradictory cutoffs report an empty run list.
 
 Add `--max-match-runs N` with `--match-runs` to report only the first `N`
 eligible horizontal intervals in row-major order after both length filters.
-JSON adds `match.omitted_runs`, and text prints `omitted matching runs: N`
-immediately after the interval list, including zero. Match counts and longest
-run summaries still use the full search. This caps output only: interval
-segmentation still retains the complete list. Omitting the option adds neither
-the JSON member nor the text line.
+Pass `--match-run-offset K` with `--max-match-runs` to skip K eligible intervals
+after both length filters and report the next page. JSON adds `match.run_offset`
+and text prints `matching run offset: K` immediately before the list. The omitted
+count in `match.omitted_runs` includes skipped and trailing eligible intervals;
+text prints `omitted matching runs: N` immediately after the interval list,
+including zero. Match counts and longest-run summaries still use the full search.
+The cap and offset limit output; segmentation still retains the complete list.
+Omitting the offset adds no `match.run_offset` field or text line.
 
 Add `--match-column-runs` with `--find-color` to report maximal contiguous
 vertical segments using the same match predicate. JSON adds `match.column_runs`

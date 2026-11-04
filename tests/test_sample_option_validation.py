@@ -46,6 +46,9 @@ class TestSampleOptionValidation(CliTestCase):
              "--max-match-run-length requires --match-runs"),
             (("--max-match-runs", "1", "--find-color", "010203"),
              "--max-match-runs requires --match-runs"),
+            (("--match-run-offset", "0"), "--match-run-offset requires --max-match-runs"),
+            (("--max-match-runs", "1", "--match-run-offset", "0"),
+             "--max-match-runs requires --match-runs"),
             (("--match-column-runs",), "--match-column-runs requires --find-color"),
             (("--min-match-column-run-length", "1", "--find-color", "010203"),
              "--min-match-column-run-length requires --match-column-runs"),
@@ -122,6 +125,8 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--runs", "--min-run-length", "1", "--max-run-length", "2"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
              "--min-match-run-length", "1"),
+            ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
+             "--max-match-runs", "1", "--match-run-offset", "0"),
         )
         for argv in cases:
             with self.subTest(argv=argv):

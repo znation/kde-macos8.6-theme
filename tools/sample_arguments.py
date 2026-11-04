@@ -85,6 +85,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--max-match-run-length requires --match-runs"
     if getattr(args, "max_match_runs", None) is not None and not args.match_runs:
         return "--max-match-runs requires --match-runs"
+    if getattr(args, "match_run_offset", None) is not None and args.max_match_runs is None:
+        return "--match-run-offset requires --max-match-runs"
     if args.longest_match_run and args.find_color is None:
         return "--longest-match-run requires --find-color"
     if args.longest_match_column_run and args.find_color is None:
@@ -179,6 +181,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-match-run-length", type=positive_int("--min-match-run-length"), metavar="N", help="with --match-runs, omit matching segments shorter than N pixels")
     parser.add_argument("--max-match-run-length", type=positive_int("--max-match-run-length"), metavar="N", help="with --match-runs, omit matching segments longer than N pixels")
     parser.add_argument("--max-match-runs", type=positive_int("--max-match-runs"), metavar="N", help="with --match-runs, report at most N matching segments")
+    parser.add_argument("--match-run-offset", type=lambda value: plain_number(value, "--match-run-offset", "integer", "a nonnegative", int), metavar="K", help="with --match-runs and --max-match-runs, skip K eligible segments after length filters")
     parser.add_argument("--longest-match-run", action="store_true", help="with --find-color, report the longest horizontal matching segment")
     parser.add_argument("--longest-match-column-run", action="store_true", help="with --find-color, report the longest vertical matching segment")
     parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")

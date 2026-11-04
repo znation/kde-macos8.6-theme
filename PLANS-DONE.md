@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: page through horizontal color-match intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal and grounding.** Let reference measurements inspect later matching border segments without printing an increasing prefix. The horizontal match-run cap lacked an interval offset.
+
+**Approach and files.** Added `--match-run-offset K`, requiring `--max-match-runs`; it skips eligible row-major intervals after both length filters. JSON includes `match.run_offset` when explicitly requested, text prints the offset before the list, and the omitted count includes skipped and trailing intervals. Full-region summaries remain intact; paging does not bound segmentation memory. Added paging tests, validation coverage, README usage and the horizontal match-filter invariant.
+
+**Acceptance criteria.** Tests cover cross-row paging, filters-before-offset, omitted counts, full-region count and longest-run summaries, text/JSON and direct-script output, default output, invalid offsets, and pre-read dependency errors. `make check` passes after the final edits.
+
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal.** Bound noisy `--find-color --match-column-runs` output while retaining full-region measurements. Source and archive-heading searches found vertical length filters and counts, and horizontal output caps, but no vertical color-match interval cap.

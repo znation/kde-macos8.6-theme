@@ -5,20 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Reference-pixel sampler: page through horizontal color-match intervals (planned 2026-11-04 by the plan role)
-
-**Goal and grounding.** Let reference measurements inspect later matching border segments without printing an increasing prefix. `tools/sample_report_search.py::_search_match` caps horizontal intervals after length filtering but has no interval offset. Searches for `match-run-offset` and `match_run_offset` in tools, tests, the queue and archive found no implementation or plan; the archived scanline-run paging entries concern a different report. This addition uses the landed horizontal cap and is independent of the waiting vertical-cap entry.
-
-**Approach and files.** Add optional `--match-run-offset K` in `tools/sample_arguments.py::build_parser`, using `plain_number` for a nonnegative ASCII integer like `--run-offset`. In `option_error`, require `--max-match-runs` for an explicit offset, including zero; existing dependencies require `--match-runs` and `--find-color`. In `_search_match`, skip K eligible horizontal intervals globally in row-major order after both length filters, then emit at most the cap. Existing `match.omitted_runs` remains eligible count minus emitted count, including skipped and trailing intervals. Explicit offset adds integer `match.run_offset`; `report_search` prints `matching run offset: K` immediately before the horizontal list. Absent offsets preserve current output. Collection and full-region summaries retain their existing behavior; this pages output, without bounding segmentation memory. Add `tests/test_sample_match_runs_offset.py` using `CliTestCase` and `TestSampleMatchRunsLimit`'s generated fixture, extend `tests/test_sample_option_validation.py::TestSampleOptionValidation`, document the option beside the horizontal cap in README.md and extend the horizontal match-filter row in docs/invariants.md. Scope is these six files, a small report change and focused tests; vertical paging is separate work.
-
-**Acceptance criteria.**
-
-- In a 9x2 crop at (2,1), target matches at relative x positions `{0,2,3,5,6,7}` on row zero and `{0,1,2,3,8}` on row one produce five horizontal intervals. Cap 2 with offset 2 emits exactly `(7,1,3)` then `(2,2,4)` as `{x,y,length}` records, with 3 omitted and `run_offset=2`. This catches offset resets at row boundaries. Offset zero emits the original capped prefix with explicit offset metadata; offset 5 or greater emits an empty list with 5 omitted.
-- On that fixture, minimum length 2, cap 1 and offset 1 emit `(7,1,3)` with 2 omitted; maximum length 2, cap 1 and offset 1 emit `(4,1,2)` with 2 omitted. Contradictory cutoffs and an absent target produce empty lists with zero omitted. Full-region match count remains 11, run count 5 and longest run `(2,2,4)` despite paging; requested bounds, fraction, centroid, coordinate page and vertical diagnostics agree with the search without interval paging. A tolerance fixture merges adjacent unequal accepted RGB values before applying the offset; an exact-alpha fixture splits at rejected opacity before applying it, including stored RGB under zero alpha.
-- Text and JSON describe the same page and offset; omitting the option preserves the existing fields and text. Negative, fractional, malformed, non-ASCII and missing offsets exit 2 with empty stdout. An offset without the cap fails before opening a nonexistent image and names both flags; cap plus offset without the required search/list mode also fails before image reads. Help and README explain filter-before-offset ordering, skipped-plus-trailing omitted counts and the memory limitation. Direct-script and package invocations agree, the invariant register names the tests, and `make check` passes after final edits.
-
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
