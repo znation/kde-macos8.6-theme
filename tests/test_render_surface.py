@@ -32,7 +32,13 @@ from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F
 from support.kvantum_fixtures import SVG
 from support.svg_case import parse_svg
 from svg_assertions import render_slices
-from support.platinum_palette import BLACK, FACE, WHITE, hex_colour
+from support.platinum_palette import (
+    BLACK,
+    BUTTON_SHADOW,
+    FACE,
+    WHITE,
+    hex_colour,
+)
 from support.reference_image import read_reference, skip_unless_materialized
 from tools import render_session, render_setup, render_surface, render_workflow  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
@@ -121,6 +127,20 @@ COMBOBOX_FIELD = (146, 172, 188, 24)
 # the 1px black ENTRY_FIELD border), so any off-by-one slips the flat face in
 # under the pinned columns and fails.
 ENTRY_FIELD_CROP = (300, 171, 54, 36)
+# The rendered GTK 4 dialog's action-button row, left of the OK push button's
+# label glyphs: the button band below the white entry box, whose face spans
+# rows 240..285 (x=114..233) on the same 480x360 capture, measured
+# 2026-11-03 on a consecutive pair of full `tools/render_surface.py
+# --gtk-dialog` runs on this host (zenity 4.1.90, GTK 4.18.6) whose two
+# captures agreed bit for bit under cmp, and reproduced bit for bit by a
+# third consecutive run. The rendered button is the landed push-button
+# recipe: 1px #000000 border rows (0 and 45) and border column, a 1px white
+# BUTTON_BEVEL top arm (interior row 1) and left arm (column 1), the flat
+# #DDDDDD face, and a 1px #AAAAAA (BUTTON_SHADOW) BUTTON_BEVEL bottom arm
+# (row 44). The OK label's glyphs occupy x=149..196, so columns 114..145
+# sit left of them and of the caret-free zone the entry pin already ruled:
+# ghost-free by construction.
+OK_BUTTON_CROP = (114, 240, 32, 46)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1317,6 +1337,42 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     """
 
     KIND = "gtk"
+
+    def test_draws_the_action_button_row_cell_1_to_1(self):
+        # Byte-compare the OK push button's left-hand cell with the
+        # arrangement the landed push-button recipe's own constants
+        # re-derive, never with the capture's own pixels. The cell spans the
+        # button's full height at a label-free horizontal span: row 0 and
+        # row 45 are the 1px black border rows, column 0 the black border
+        # column; row 1 is the BUTTON_BEVEL white arm's top row (the inset
+        # 1px 1px #FFFFFF shadow spans the interior's top width up to the
+        # #AAAAAA bottom arm); rows 2..43 carry the white bevel's left arm
+        # beside the flat face; row 44 is the BUTTON_BEVEL inset -1px -1px
+        # #AAAAAA arm's bottom row. A one-pixel crop slip, an inverted or
+        # recoloured bevel arm, a foreign face colour or a glyph row (text
+        # antialiasing, the one painter outside the recipe's constants)
+        # fails this byte-compare.
+        image = self.candidate_image()
+        x0, y0, width, height = OK_BUTTON_CROP
+        expected = {
+            (x, y): (
+                BLACK
+                if y == 0 or y == height - 1 or x == 0
+                else WHITE
+                if y == 1 or (2 <= y < height - 2 and x == 1)
+                else BUTTON_SHADOW
+                if y == height - 2
+                else FACE
+            )
+            for x in range(width)
+            for y in range(height)
+        }
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
 
     def test_draws_the_entry_field_cell_1_to_1(self):
         # Byte-compare the entry's painted cell with the arrangement the
