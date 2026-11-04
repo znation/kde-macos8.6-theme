@@ -94,8 +94,13 @@ class TestRejectLineSeparators(unittest.TestCase):
     def test_theme_name_rejects_line_separators(self):
         for separator in ("\n", "\r", "\v", "\f", "\x1c", "\x85", "\u2028"):
             with self.subTest(separator=repr(separator)):
-                with self.assertRaisesRegex(ValueError, "single line"):
-                    set_theme_name("[Settings]\n", f"safe{separator}gtk-font-name=Injected")
+                value = f"safe{separator}gtk-font-name=Injected"
+                with self.assertRaises(ValueError) as raised:
+                    set_theme_name("[Settings]\n", value)
+                self.assertEqual(
+                    f"GTK theme name must be a single line: {value!r}",
+                    str(raised.exception),
+                )
 
 
 class TestRemoveThemeName(unittest.TestCase):
