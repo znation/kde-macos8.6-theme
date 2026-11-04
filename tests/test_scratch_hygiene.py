@@ -68,7 +68,10 @@ def tracked_check_output_files(root):
             continue
         with open(path, "rb") as fh:
             first_line = fh.readline().rstrip(b"\r\n")
-        if first_line.startswith(b"python3 tools/check_parallel.py"):
+        invocation = b"python3 tools/check_parallel.py"
+        if first_line == invocation or first_line.startswith(
+            (invocation + b" ", invocation + b"\t")
+        ):
             offenders.append((name, first_line))
     return offenders
 
@@ -175,9 +178,11 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
                 fh.write(b"python3 tools/check_parallel.py\n")
             with open(os.path.join(directory, "ordinary"), "wb") as fh:
                 fh.write(b"python3 tools/apply_cursor.py\n")
+            with open(os.path.join(directory, "similarly_named"), "wb") as fh:
+                fh.write(b"python3 tools/check_parallel.py-wrapper\n")
             subprocess.run(
                 ["git", "-C", directory, "add", "check.log", "nested/check.log",
-                 "ordinary"],
+                 "ordinary", "similarly_named"],
                 check=True,
             )
 
