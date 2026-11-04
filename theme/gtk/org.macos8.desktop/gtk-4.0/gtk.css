@@ -634,6 +634,7 @@ check, radio {
 /* No reference shows GTK check-button focus motion; reuse immediate scale focus. (2026-10-29) */
 checkbutton {
   transition: none;
+  border-radius: 0;
 }
 
 /* No reference screenshot shows GTK check-button keyboard focus; reuse the
@@ -641,6 +642,36 @@ checkbutton {
  * Recorded 2026-10-29 by the feature role. */
 checkbutton:focus:focus-visible {
   outline-color: #000000;
+}
+
+/* The platform library rounds the check-button wrapper. No collected
+ * reference screenshot shows a GTK check-button wrapper, so this
+ * theme's square-corner policy applies: the landed `check` face
+ * restatement squares the check-mark itself and `radio` keeps its
+ * 50% circle as the reference-grounded exception, so only the wrapper
+ * arms are squared. The stock rounded wrapper arms come from the
+ * integration library's `base.css` resource (probe path recorded in
+ * docs/invariants.md), probed 2026-11-04 with `gresource extract`; it
+ * declares three radius-bearing wrapper arms:
+ * `checkbutton { border-spacing: 4px; border-radius: 9px; padding: 3px; }`,
+ * `checkbutton.grouped { border-radius: 999px; }` and
+ * `checkbutton.selection-mode { border-radius: 100px; }`. Each group
+ * below is byte-equal to its stock spelling, wins the equal-specificity
+ * tie by later user-sheet source order, and states nothing else: stock's
+ * `border-spacing`, paddings, outline focus geometry and the
+ * label-margin twins stay inherited per-property. Stock's fourth arm,
+ * `checkbutton.selection-mode check, checkbutton.selection-mode radio
+ * { padding: 7px; border-radius: 100px; }`, stays stock: no collected
+ * reference set shows a selection-mode check button, squaring that twin
+ * would square its radio member against the circle `radio` record, and
+ * a radius-0 restatement on its check member alone would abandon the
+ * byte-equal twin spelling. (2026-11-04) */
+checkbutton.grouped {
+  border-radius: 0;
+}
+
+checkbutton.selection-mode {
+  border-radius: 0;
 }
 
 check {
