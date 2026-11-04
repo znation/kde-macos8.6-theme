@@ -9,6 +9,11 @@ from __future__ import annotations
 import re
 from collections import Counter
 
+if __package__:
+    from tools.text_lines import first_line
+else:  # imported from a directly run tool
+    from text_lines import first_line
+
 USER_JS_MARKER = "// org.macos8.desktop Firefox Platinum userChrome"
 # The sheets load only when the legacy-stylesheet switch is on, and the window
 # takes the Platinum Aurorae frame -- pinstriped title bar, Mac widget boxes --
@@ -88,12 +93,6 @@ def _without_block(lines: list[tuple[str, str]]) -> list[tuple[str, str]]:
         kept.append(lines[index])
         index += 1
     return kept
-
-
-def first_line(text: str) -> str:
-    """Return *text*'s first line without its ending."""
-    lines = _lines(text)
-    return lines[0][0] if lines else ""
 
 
 def set_user_js(text: str) -> str:

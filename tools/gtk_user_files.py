@@ -26,9 +26,9 @@ import stat
 from pathlib import Path
 
 if __package__:
-    from tools.text_lines import split_lines
+    from tools.text_lines import first_line
 else:  # imported from a directly run tool
-    from text_lines import split_lines
+    from text_lines import first_line
 
 
 class ConfigError(Exception):
@@ -67,8 +67,7 @@ def _is_our_user_css(text: str) -> bool:
     file. ``split_lines`` never returns an empty list, so an empty text is
     an empty first line, not the marker.
     """
-    first = split_lines(text)
-    return first[0].removeprefix(_BOM) == GTK4_CSS_MARKER
+    return first_line(text).removeprefix(_BOM) == GTK4_CSS_MARKER
 
 
 def read_config_text(path: Path) -> str | None:
