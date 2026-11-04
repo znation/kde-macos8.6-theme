@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Expose the existing keyboard-swap helper as a standalone Make target (planned 2026-11-04 by the plan role; done 2026-11-04 by the feature role)
+
+**Goal.** Offer `make apply-keymap` to enable the reference-position shortcut modifier without installing packages or reapplying other theme surfaces.
+
+**Completed.** Added the guarded standalone Make target and help entry, documented its requirements and keyboard-mode caveat, extended the keyboard invariant, and added dry-run, invocation, DESTDIR and helper-failure coverage to `tests/test_apply_keymap.py`. The implementation uses the existing helper's default mode and preserves aggregate apply behavior.
+
 ### Remove the Platinum keyboard modifier swap independently (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal.** Provide `make remove-keymap` and `python3 tools/apply_keymap.py --remove` so a user can clear the left Alt/Control swap while preserving other XKB options.

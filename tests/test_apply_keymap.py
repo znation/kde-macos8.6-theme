@@ -291,6 +291,81 @@ class TestRemove(StubTools):
         self.assertNotIn("apply_keymap.py", result.stdout + result.stderr)
 
 
+class TestMakeApplyKeymap(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="make-apply-keymap-"))
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.calls = self.root / "calls"
+        self.python = self.root / "python"
+        self.python.write_text(
+            "#!/bin/sh\n"
+            "if [ \"$1\" = -c ]; then exit 0; fi\n"
+            f"printf '%s\\n' \"$*\" >> '{self.calls}'\n"
+            "exit \"${FAKE_PYTHON_STATUS:-0}\"\n",
+            encoding="utf-8",
+        )
+        self.python.chmod(0o755)
+
+    def test_dry_run_is_standalone(self):
+        result = theme_install.run_make(
+            ["-n", "apply-keymap"], env=theme_install.make_env("PYTHON")
+        )
+        assert_succeeded(self, result)
+        self.assertIn("tools/apply_keymap.py", result.stdout)
+        self.assertNotIn("--remove", result.stdout)
+        self.assertNotIn("install", result.stdout)
+
+    def test_invokes_helper_once_without_mode_flag(self):
+        env = theme_install.make_env("PYTHON")
+        env["PYTHON"] = str(self.python)
+        result = theme_install.run_make(["apply-keymap"], env=env)
+        assert_succeeded(self, result)
+        self.assertEqual(["tools/apply_keymap.py"], self.calls.read_text().splitlines())
+
+    def test_refuses_destdir_before_helper(self):
+        env = theme_install.make_env("PYTHON")
+        env["PYTHON"] = str(self.python)
+        result = theme_install.run_make(
+            ["apply-keymap", "DESTDIR=/tmp/keymap-stage"], env=env
+        )
+        assert_failed(self, result)
+        self.assertIn("DESTDIR", result.stderr)
+        self.assertFalse(self.calls.exists())
+
+    def test_helper_failure_fails_target(self):
+        env = theme_install.make_env("PYTHON")
+        env["PYTHON"] = str(self.python)
+        env["FAKE_PYTHON_STATUS"] = "7"
+        result = theme_install.run_make(["apply-keymap"], env=env)
+        assert_failed(self, result)
+        self.assertEqual(["tools/apply_keymap.py"], self.calls.read_text().splitlines())
+
+    def test_missing_interpreter_fails_before_helper(self):
+        env = theme_install.make_env("PYTHON")
+        env["PATH"] = os.defpath
+        result = theme_install.run_make(
+            ["apply-keymap", "PYTHON=missing-python-for-apply-keymap"], env=env
+        )
+        assert_failed(self, result)
+        self.assertIn("PYTHON", result.stderr)
+        self.assertFalse(self.calls.exists())
+
+    def test_old_interpreter_fails_before_helper(self):
+        self.python.write_text(
+            "#!/bin/sh\n"
+            "if [ \"$1\" = -c ]; then exit 3; fi\n"
+            f"printf '%s\\n' \"$*\" >> '{self.calls}'\n",
+            encoding="utf-8",
+        )
+        self.python.chmod(0o755)
+        env = theme_install.make_env("PYTHON")
+        env["PYTHON"] = str(self.python)
+        result = theme_install.run_make(["apply-keymap"], env=env)
+        assert_failed(self, result)
+        self.assertIn("Python 3.10 or newer", result.stderr)
+        self.assertFalse(self.calls.exists())
+
+
 class TestReload(StubTools):
     def test_defaults_the_bus_address_from_the_runtime_directory(self):
         runtime = self.root / "rt"

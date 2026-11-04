@@ -431,6 +431,11 @@ not restore earlier settings or backups.
 The left Alt/Control swap also persists after theme removal; `make remove-keymap` removes only
 that XKB option. As when applying, the swap assumes the keyboard is in its PC/Windows mode.
 
+To apply the keyboard option without installing packages or applying the other theme surfaces,
+run `make apply-keymap`. It requires Python 3.10+, `kreadconfig6` and `kwriteconfig6`; it preserves
+other XKB options and uses the same best-effort reload behavior as `make apply`. The keyboard
+must be in PC/Windows mode for the Command-position key to become Control.
+
 #### Restoring personal GTK 4 CSS
 
 When `make apply` replaced a nonempty foreign `gtk-4.0/gtk.css`, it first copied that stylesheet

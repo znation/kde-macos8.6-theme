@@ -347,7 +347,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk remove-gtk remove-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk remove-gtk remove-keymap apply-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -495,6 +495,7 @@ help:
 	@echo "  apply-gtk         install and select only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
 	@echo "  remove-keymap     remove the left Control/Alt swap, preserving other XKB options"
+	@echo "  apply-keymap      apply the left Control/Alt swap without applying other theme surfaces"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
@@ -564,6 +565,12 @@ apply:
 	$(PYTHON) tools/apply_gtk.py
 	$(PYTHON) tools/apply_cursor.py --optional
 	$(PYTHON) tools/install_firefox.py --optional$(if $(FIREFOX_PROFILE), --profile "$(FIREFOX_PROFILE)")
+
+# Apply only the keyboard modifier option, without installing or selecting other surfaces.
+apply-keymap:
+	@$(call refuse_destdir,apply-keymap)
+	@$(call require_python_ready,apply-keymap)
+	$(PYTHON) tools/apply_keymap.py
 
 # Install and select only the GTK themes, for repairing that surface without
 # touching the Plasma packages. A non-empty DESTDIR is refused for the same
