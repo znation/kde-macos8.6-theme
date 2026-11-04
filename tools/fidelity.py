@@ -33,6 +33,20 @@ from __future__ import annotations
 
 import sys
 
+
+def _filter_run_report(runs, minimum, maximum, limit):
+    """Apply inclusive length filters and an optional cap to a run report."""
+    if minimum is not None:
+        runs = [run for run in runs if run["length"] >= minimum]
+    if maximum is not None:
+        runs = [run for run in runs if run["length"] <= maximum]
+    omitted = None
+    if limit is not None:
+        eligible_count = len(runs)
+        runs = runs[:limit]
+        omitted = eligible_count - len(runs)
+    return runs, omitted
+
 if __package__:
     from tools.fidelity_cli_parser import build_parser
     from tools.fidelity_sources import read_source as _read_source
@@ -129,15 +143,11 @@ def main(argv: list[str] | None = None) -> int:
                        if args.longest_difference_run and runs is not None else
                        longest_difference_run(candidate, reference, args.tolerance)
                        if args.longest_difference_run else None)
-        if runs is not None and args.min_difference_run_length is not None:
-            runs = [run for run in runs if run["length"] >= args.min_difference_run_length]
-        if runs is not None and args.max_difference_run_length is not None:
-            runs = [run for run in runs if run["length"] <= args.max_difference_run_length]
         omitted_runs = None
-        if runs is not None and args.max_difference_runs is not None:
-            eligible_run_count = len(runs)
-            runs = runs[:args.max_difference_runs]
-            omitted_runs = eligible_run_count - len(runs)
+        if runs is not None:
+            runs, omitted_runs = _filter_run_report(
+                runs, args.min_difference_run_length,
+                args.max_difference_run_length, args.max_difference_runs)
         column_runs = (difference_column_runs(candidate, reference, args.tolerance)
                        if args.difference_column_runs else None)
         column_run_count = (len(column_runs) if column_runs is not None else
@@ -149,17 +159,11 @@ def main(argv: list[str] | None = None) -> int:
                               if args.longest_difference_column_run and column_runs is not None else
                               longest_difference_column_run(candidate, reference, args.tolerance)
                               if args.longest_difference_column_run else None)
-        if column_runs is not None and args.min_difference_column_run_length is not None:
-            column_runs = [run for run in column_runs
-                           if run["length"] >= args.min_difference_column_run_length]
-        if column_runs is not None and args.max_difference_column_run_length is not None:
-            column_runs = [run for run in column_runs
-                           if run["length"] <= args.max_difference_column_run_length]
         omitted_column_runs = None
-        if column_runs is not None and args.max_difference_column_runs is not None:
-            eligible_column_run_count = len(column_runs)
-            column_runs = column_runs[:args.max_difference_column_runs]
-            omitted_column_runs = eligible_column_run_count - len(column_runs)
+        if column_runs is not None:
+            column_runs, omitted_column_runs = _filter_run_report(
+                column_runs, args.min_difference_column_run_length,
+                args.max_difference_column_run_length, args.max_difference_column_runs)
         centroid = (difference_centroid(candidate, reference, args.tolerance)
                     if args.difference_centroid else None)
         histogram = (delta_histogram(candidate, reference)
