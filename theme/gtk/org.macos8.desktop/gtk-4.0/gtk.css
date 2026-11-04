@@ -3302,3 +3302,19 @@ searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.
 searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK label, link, expander-title, color-swatch, plane and shortcut
+   keyboard focus has no collected reference surface; reuse the landed
+   black focus colour and keep stock's inherited outline geometry. The
+   toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 was inspected 2026-11-03; the
+   second focus resource's per-widget offsets are recorded in
+   docs/invariants.md, so only this colour is restated. */
+label:focus:focus-visible,
+link:focus:focus-visible,
+expander-widget:focus:focus-visible > box > title,
+colorswatch:focus:focus-visible,
+plane:focus:focus-visible,
+shortcut:focus:focus-visible {
+  outline-color: #000000;
+}

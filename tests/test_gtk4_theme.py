@@ -2289,6 +2289,42 @@ for radio in (False, True):
             self.selectors.index("row:disabled:selected"),
         )
 
+    def test_residual_focus_outline_color(self):
+        selectors = (
+            "label:focus:focus-visible",
+            "link:focus:focus-visible",
+            "expander-widget:focus:focus-visible > box > title",
+            "colorswatch:focus:focus-visible",
+            "plane:focus:focus-visible",
+            "shortcut:focus:focus-visible",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["scale:focus:focus-visible > trough > slider"][
+                        "outline-color"
+                    ],
+                )
+                self.assertEqual(self.selectors.count(selector), 1)
+        # The landed calendar label arm sits under ``calendar``, the link
+        # state arms carry no focus twin, and the label selection arm is a
+        # ``:focus-within`` selection rule, so matching ``:focus-visible``
+        # pins exactly the six stock twins and rejects renames or strays.
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith(
+                    ("label", "link", "colorswatch", "plane", "shortcut",
+                     "expander-widget")
+                )
+                and ":focus-visible" in selector
+            },
+            set(selectors),
+        )
+
     def test_generic_view_selected_arms(self):
         """Pin the generic view class fallback selection declarations."""
         for selector in (".view:selected", ".view:selected:focus"):
@@ -2529,7 +2565,16 @@ for radio in (False, True):
                 self.assertEqual(self.rules[selector], {"outline-color": BLACK})
 
     def test_color_swatch_corners(self):
-        self.assert_color_swatch_corners(" > overlay")
+        # The landed residual focus entry (2026-11-03) adds the focus twin
+        # under the same root; it states the focus outline colour, not a
+        # corner radius, and test_residual_focus_outline_color pins its
+        # spelling.
+        self.assert_color_swatch_corners(
+            " > overlay",
+            extra_declarations={
+                "colorswatch:focus:focus-visible": {"outline-color": BLACK},
+            },
+        )
 
     def test_columnview_and_listview_rows(self):
         self.assert_rule("listview > row.activatable:hover", ROW_HOVER)
