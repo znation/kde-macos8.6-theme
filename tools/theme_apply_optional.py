@@ -6,7 +6,8 @@ the KWin reconfigure are best-effort integrations with separate engines and
 distinct missing-tool remedies, so their command policy lives here: every
 failure -- a missing tool, one that cannot start, a timeout or a non-zero
 exit -- is a note and never changes the apply's exit status. A successful run
-prints nothing. ``tools/apply_theme.py`` imports
+prints nothing except the Kvantum selection's off-default data-home warning
+(below, when the engine would keep missing our theme). ``tools/apply_theme.py`` imports
 :func:`run_optional_selections` and calls it, after all required selections,
 while it still holds the data-home lock and inside its scratch directory.
 
@@ -21,10 +22,12 @@ import shutil
 from pathlib import Path
 
 if __package__:
+    from tools import xdg_homes
     from tools.diagnostics import report_note
     from tools.process_group import run_logged
     from tools.repo_root import ROOT
 else:  # imported from a directly run tool
+    import xdg_homes
     from diagnostics import report_note
     from process_group import run_logged
     from repo_root import ROOT
@@ -110,7 +113,9 @@ def select_kvantum_theme(
     of its installed themes was selected last; this points it at ours. The
     selection is best-effort because Kvantum is a separate package the theme
     cannot install: without ``kvantummanager`` the widgets fall back to another
-    style and the apply still succeeds.
+    style and the apply still succeeds. When the data home Kvantum's literal
+    search path cannot reach would swallow the selection, the run also prints
+    the off-default data-home note before the selection runs.
     """
     manager = shutil.which("kvantummanager")
     if manager is None:
@@ -119,6 +124,7 @@ def select_kvantum_theme(
             f"{KVANTUM_THEME} theme in System Settings -> Application Style"
         )
         return 0
+    _warn_off_default_data_home(env)
     run_best_effort(
         scratch,
         env,
@@ -129,6 +135,28 @@ def select_kvantum_theme(
         consequence="the widgets fall back to another style",
     )
     return 0
+
+
+def _warn_off_default_data_home(env: dict[str, str]) -> None:
+    """Note when the engine cannot read our theme from the resolved data home.
+
+    Kvantum joins its literal ``$HOME/.local/share/themes/<name>/Kvantum/
+    search path from ``$HOME``, ignoring ``$XDG_DATA_HOME``; with the data
+    home elsewhere the selection still succeeds but the engine keeps drawing
+    its built-in default theme. Like every note here this is best-effort: a
+    home the comparison cannot name (an unusable ``HOME``) or one already at
+    the default stays silent.
+    """
+    resolved = xdg_homes.data_home(env)
+    default = xdg_homes.default_data_home(env)
+    if resolved is None or default is None or resolved == default:
+        return
+    _note(
+        f"the Kvantum engine reads its theme directory only under the "
+        f"default data home {default}, not the resolved {resolved}; widgets "
+        f"draw Kvantum's built-in default theme until "
+        f"themes/{KVANTUM_THEME}/Kvantum exists there"
+    )
 
 
 def run_optional_selections(

@@ -93,7 +93,10 @@ dock header band, the MDI subwindow title band and its window buttons map to the
 Platinum button, line-edit and arrow art; a window's bottom-right size grip draws the reference
 grow box's white and `#777777` checker diamond. Kvantum searches
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
-when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
+when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`. Running `make apply` with a
+non-default `${XDG_DATA_HOME}` prints a note naming both paths, because the selection would
+succeed yet the engine would keep drawing Kvantum's built-in default theme until the theme
+directory also exists under the literal default data home.
 
 `make remove-kvantum` clears that selection: it removes only our
 `[General] theme=org.macos8.desktop` line from
@@ -336,7 +339,7 @@ that cannot take that lock within its bounded wait exits 2 naming the data home,
 uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
 splash is read at login, so a splash change appears only on the next login; restart GTK applications and Firefox for their selections. `make apply-gtk` and `make apply-cursor` remain available to repair one surface alone.
-After `make install`, run `make apply-plasma` to reselect the installed global theme, color scheme and desktop theme, write the window-button placement, and request Kvantum selection and a KWin reload without applying other surfaces. It requires Python 3.10+ and `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`. The global-theme application preserves panels; Kvantum selection works with its existing default-data-home limitation, and the splash change appears at the next login.
+After `make install`, run `make apply-plasma` to reselect the installed global theme, color scheme and desktop theme, write the window-button placement, and request Kvantum selection and a KWin reload without applying other surfaces. It requires Python 3.10+ and `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`. The global-theme application preserves panels; Kvantum selection names its off-default data home in a note when it runs under one, and the splash change appears at the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so
@@ -444,8 +447,9 @@ not restore earlier settings or backups.
 To reselect the installed Plasma settings without installing packages or applying the other
 theme surfaces, run `make apply-plasma`. Install first with `make install`; it requires Python
 3.10+, `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and
-`kwriteconfig6`. It preserves panels, attempts Kvantum selection when available (with the
-existing default-data-home limitation), and the splash change appears at the next login.
+`kwriteconfig6`. It preserves panels, attempts Kvantum selection when available (a non-default
+`${XDG_DATA_HOME}` prints a note naming the limitation, as the Installing section describes),
+and the splash change appears at the next login.
 
 #### Restoring personal GTK 4 CSS
 

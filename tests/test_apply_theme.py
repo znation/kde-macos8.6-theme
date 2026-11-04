@@ -238,6 +238,118 @@ class TestFailurePaths(StubTools):
         self.assertIn("fall back", stderr)
 
 
+class TestKvantumDataHomeNote(StubTools):
+    """The apply-time note when Kvantum can only resolve our theme from the
+    default data home.
+
+    Kvantum joins its literal ``$HOME/.local/share/themes`` search path from
+    ``$HOME``, so a selection written under another data home still succeeds
+    while the engine silently keeps drawing its built-in default theme. These
+    drive ``theme_apply_optional.select_kvantum_theme`` directly through the
+    stubbed ``kvantummanager`` machinery above, one env shape per test, and
+    assert the selection argv and status never change with the note.
+    """
+
+    def note(self, home, resolved):
+        """Return the one-note full stderr line for *home* and *resolved*."""
+        return (
+            "apply_theme: note: the Kvantum engine reads its theme directory "
+            f"only under the default data home {home}/.local/share, not the "
+            f"resolved {resolved}; widgets draw Kvantum's built-in default "
+            "theme until themes/org.macos8.desktop/Kvantum exists there"
+        )
+
+    def select(self):
+        """Run the selection against the stubbed PATH, returning (status, stderr)."""
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            status = theme_apply_optional.select_kvantum_theme(
+                self.root, dict(os.environ), apply_theme.COMMAND_TIMEOUT
+            )
+        return status, stderr.getvalue()
+
+    def test_a_non_default_absolute_data_home_prints_the_note(self):
+        status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual([self.note(self.home, self.data)], stderr.splitlines())
+        self.assertEqual(
+            ["kvantummanager --set org.macos8.desktop"], self.recorded()
+        )
+
+    def test_the_default_data_home_below_home_stays_silent(self):
+        with mock.patch.dict(
+            os.environ, {"XDG_DATA_HOME": str(self.home / ".local" / "share")}
+        ):
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_an_unset_data_home_falls_back_and_stays_silent(self):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("XDG_DATA_HOME", None)
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_an_empty_data_home_falls_back_and_stays_silent(self):
+        with mock.patch.dict(os.environ, {"XDG_DATA_HOME": ""}):
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_a_relative_data_home_falls_back_and_stays_silent(self):
+        with mock.patch.dict(os.environ, {"XDG_DATA_HOME": "relative/data"}):
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_an_unset_home_leaves_no_default_to_name_and_stays_silent(self):
+        # The resolved home comes from the absolute XDG_DATA_HOME alone, but
+        # without a usable HOME there is no default to name, so the check
+        # must skip instead of printing a half-substituted note.
+        with mock.patch.dict(os.environ):
+            os.environ.pop("HOME", None)
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_a_relative_home_leaves_no_default_to_name_and_stays_silent(self):
+        with mock.patch.dict(os.environ, {"HOME": "relative/home"}):
+            status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual("", stderr)
+
+    def test_a_falling_back_home_with_no_data_home_stays_silent(self):
+        # An empty/relative XDG_DATA_HOME with an unusable HOME resolves
+        # neither side of the comparison.
+        for data_home in ("", "relative/data"):
+            with self.subTest(data_home=data_home), mock.patch.dict(
+                os.environ, {"HOME": "relative/home", "XDG_DATA_HOME": data_home}
+            ):
+                status, stderr = self.select()
+            self.assertEqual(0, status, stderr)
+            self.assertEqual("", stderr)
+
+    def test_a_missing_kvantummanager_prints_no_data_home_note(self):
+        # The missing-engine remedy already names everything the operator has
+        # to do; the data-home warning must not add a second note about a
+        # selection that never ran.
+        self.unstub("kvantummanager")
+        status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual(1, len(stderr.splitlines()), stderr)
+        self.assertIn("kvantummanager is not on PATH", stderr)
+        self.assertNotIn("default data home", stderr)
+
+    def test_a_failing_selection_still_prints_the_data_home_note(self):
+        self.stub("kvantummanager", "echo set failed >&2\nexit 5")
+        status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertIn(self.note(self.home, self.data), stderr.splitlines())
+        self.assertIn("kvantummanager --set exited 5", stderr)
+        self.assertIn("fall back", stderr)
+
+
 class TestTimeoutPaths(StubTools):
     """The ``run_logged`` timeout result (``None``) at the three call sites.
 

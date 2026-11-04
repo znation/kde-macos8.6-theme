@@ -14,6 +14,35 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from tools import xdg_homes
 
 
+class TestDefaultDataHome(unittest.TestCase):
+    def test_absolute_home_names_the_fallback_child(self):
+        # Unlike data_home, no XDG_DATA_HOME value is consulted: the default
+        # is defined only by HOME, whatever the resolved data home is.
+        for env in (
+            {"HOME": "/home/u"},
+            {"HOME": "/home/u", "XDG_DATA_HOME": "/data"},
+            {"HOME": "/home/u", "XDG_DATA_HOME": "relative"},
+            {"HOME": "/home/u", "XDG_DATA_HOME": ""},
+        ):
+            with self.subTest(env=env):
+                self.assertEqual(
+                    Path("/home/u/.local/share"),
+                    xdg_homes.default_data_home(env),
+                )
+
+    def test_without_an_absolute_home_is_none(self):
+        # No usable HOME means no default to name, even with an absolute
+        # XDG_DATA_HOME that data_home would resolve from.
+        for env in (
+            {},
+            {"HOME": "relative/home"},
+            {"HOME": ""},
+            {"XDG_DATA_HOME": "/data"},
+        ):
+            with self.subTest(env=env):
+                self.assertIsNone(xdg_homes.default_data_home(env))
+
+
 class TestDataHome(unittest.TestCase):
     def test_absolute_data_home_is_used_even_without_home(self):
         self.assertEqual(

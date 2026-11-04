@@ -38,6 +38,18 @@ def data_home(env: dict[str, str]) -> Path | None:
     return _absolute(env, "XDG_DATA_HOME") or _home_child(env, ".local", "share")
 
 
+def default_data_home(env: dict[str, str]) -> Path | None:
+    """Return the XDG default data home, ``$HOME/.local/share``.
+
+    Unlike :func:`data_home` no ``$XDG_DATA_HOME`` value is consulted: this
+    is the fallback path the spec defines below an absolute ``$HOME``, so a
+    usable ``HOME`` is the only way to name it. Callers compare it with
+    :func:`data_home`'s result to detect a data home Kvantum's literal
+    ``$HOME/.local/share/themes`` search cannot reach.
+    """
+    return _home_child(env, ".local", "share")
+
+
 def config_home(env: dict[str, str]) -> Path | None:
     """Resolve the config home: absolute XDG, else ``$HOME/.config``.
 
