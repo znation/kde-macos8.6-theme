@@ -1073,6 +1073,28 @@ _uninstall:
 # but the kdeglobals key name `lookandfeeltool` writes -- keep it in step
 # with the scratch-apply observation recorded above. As before, this is a
 # diagnostic only -- it must not edit the file.
+#
+# The same look-and-feel apply also leaves two selections in the defaults
+# layer of the KDE config search path: a scratch-home run of
+# `lookandfeeltool -a $(LNF_ID)` on this host wrote `kdedefaults/ksplashrc`
+# holding `[KSplash] Engine=KSplashQML` and `Theme=$(LNF_ID)`, and a flat
+# `kdedefaults/package` file holding exactly `$(LNF_ID)` (18 bytes, no
+# newline). After `make uninstall` removes the installed packages and the
+# resets above `--delete` the live keys, a start still resolves those
+# defaults from this untouched defaults layer, naming removed ids silently;
+# the splash selection appears nowhere else in any read config, so nothing
+# else can name this residue. Two checks run at the recipe tail. The
+# ksplashrc check prints once, only when inside `[KSplash]` the last value
+# of `Theme` trims to exactly `$(LNF_ID)`; the file is read the way the
+# plasmarc diagnostic reads its file: the first line's UTF-8 BOM is
+# stripped, each line is trimmed before parsing, a trimmed `[`...`]` line
+# switches the section, `#`/`;` lines are comments and never keys, the
+# key/value pair splits at the first `=` with both sides trimmed, and a
+# later duplicate's value wins. The package check reads the flat file only
+# when it is a regular file, trimming and concatenating its lines, and
+# prints only when the result equals `$(LNF_ID)` exactly -- a padded or
+# newline-terminated copy still warns, a foreign or empty file stays
+# silent. Both diagnostics edit nothing.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -1127,6 +1149,14 @@ if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\27
 fi; \
 if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "theme") dectheme=value } } END { exit dectheme == "__aurorae__svg__$(AURORAE_ID)" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
 	  echo "uninstall: the window-decoration selection still names __aurorae__svg__$(AURORAE_ID) after removal in $$kwinrc; KWin cannot load the removed window decoration and keeps the default style. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library --delete" >&2; \
+fi; \
+ksplash="$$config_home/kdedefaults/ksplashrc"; \
+if [ -n "$$config_home" ] && [ -f "$$ksplash" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "KSplash" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "Theme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(LNF_ID)" ? 0 : 1 }' "$$ksplash" 2>/dev/null; then \
+	  echo "uninstall: the splash selection the look-and-feel apply left in defaults still names $(LNF_ID) after removal in $$ksplash; the start splash cannot load the removed SplashQML and keeps the platform default splash. Reset it with: kwriteconfig6 --file $$ksplash --group KSplash --key Theme --delete" >&2; \
+fi; \
+kdepackage="$$config_home/kdedefaults/package"; \
+if [ -n "$$config_home" ] && [ -f "$$kdepackage" ] && [ "$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); flat=flat line } END { printf "%s", flat }' "$$kdepackage" 2>/dev/null)" = "$(LNF_ID)" ]; then \
+	  echo "uninstall: the look-and-feel package default the look-and-feel apply left in defaults still names $(LNF_ID) after removal in $$kdepackage; the defaults file the apply wrote names the removed look-and-feel package. Reset it with: rm \"$$kdepackage\"" >&2; \
 fi
 
 install-gtk:

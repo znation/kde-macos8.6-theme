@@ -373,7 +373,20 @@ built-in default window decoration and that a start with `library` set but
 no resolvable `theme` falls back the same way -- are recorded as prose,
 never test-asserted, grounded against the upstream KWin window-decoration
 sources the project reads for its aurorae engine; the reference screenshots
-show no uninstall warning to sample it from). No such warning edits the
+show no uninstall warning to sample it from); and if the defaults layer of
+the KDE config search path that the look-and-feel apply wrote still names
+the removed ids -- a `kdedefaults/ksplashrc` file whose `[KSplash]` group's
+last `Theme` value is `org.macos8.desktop`, the splash selection that
+appears nowhere else in any read config, and a flat `kdedefaults/package`
+file whose whole trimmed content is `org.macos8.desktop` -- it prints the
+two warnings naming the resets `kwriteconfig6 --file <path> --group
+KSplash --key Theme --delete` for the splash selection and `rm "<path>"`
+for the package default (`kwriteconfig6`'s accepting a literal
+`kdedefaults/` path for `--delete` is a platform-required value verified in
+a scratch-home apply on this host, and the flat file's writer/removal story
+is a prose ground against the upstream Plasma sources the project reads for
+its Plasma-tool adaptations; the reference screenshots show no uninstall
+warning to sample them from). No such warning edits the
 user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
