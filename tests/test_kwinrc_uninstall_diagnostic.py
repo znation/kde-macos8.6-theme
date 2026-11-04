@@ -1,0 +1,387 @@
+"""Makefile tests for the `_uninstall` kwinrc layout diagnostic.
+
+`make apply` writes the theme's window-button layout with `kwriteconfig6`:
+`[org.kde.kdecoration2] ButtonsOnLeft=X` and `ButtonsOnRight=AL` in `kwinrc`
+(the pair `tools/apply_theme.py::DECORATION_BUTTONS` writes). `make
+uninstall` removes the aurorae and look-and-feel packages but leaves those
+keys, and KWin keeps honoring the Platinum box layout under its built-in
+default decoration; `_uninstall` prints a diagnostic naming the
+`kwriteconfig6 --delete` reset when the last values of both keys still trim
+to exactly that pair, without editing the file. The scanner it runs on
+mirrors the shared `_uninstall` reads the color scheme, GTK, kvconfig and
+kcminputrc diagnostics already pin, so those suites keep their own exact
+wordings and this module must not touch them or their files (the both-files
+staged case only asserts the landed pointer wording stays intact).
+"""
+
+import os
+import unittest
+
+from support import theme_install
+from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+REMOVAL_GROUP = "org.kde.kdecoration2"
+LEFT_KEY = "ButtonsOnLeft"
+RIGHT_KEY = "ButtonsOnRight"
+
+
+def rule_for(path):
+    """The expected diagnostic line naming *path* (the wording is the contract)."""
+    return (
+        "uninstall: the window-button layout "
+        f"[{LEFT_KEY}=X, {RIGHT_KEY}=AL] that make apply wrote is still in "
+        f"{path}; KWin keeps that layout under the default decoration after "
+        "removal. Reset it with: kwriteconfig6 --file kwinrc --group "
+        f"{REMOVAL_GROUP} --key {LEFT_KEY} --delete && kwriteconfig6 --file "
+        f"kwinrc --group {REMOVAL_GROUP} --key {RIGHT_KEY} --delete"
+    )
+
+
+def POINTER_RULE(path):
+    """The landed pointer diagnostic's line (wording owned by that suite)."""
+    return (
+        "uninstall: the pointer selection still names org.macos8.desktop "
+        f"after removal in {path}; Xcursor applications cannot load the "
+        "removed cursor theme and keep the default pointer. Reset it with: "
+        "plasma-apply-cursortheme breeze_cursors"
+    )
+
+
+def read_bytes(path):
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def write_kwinrc(config, body):
+    """Write *body* as `<config>/kwinrc`; return its path."""
+    path = os.path.join(config, "kwinrc")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
+    return path
+
+
+def write_kcminputrc(config):
+    """Stage the landed pointer selection in `<config>/kcminputrc`."""
+    path = os.path.join(config, "kcminputrc")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write("[Mouse]\ncursorTheme=org.macos8.desktop\n")
+    return path
+
+
+class TestKwinrcUninstallDiagnostic(unittest.TestCase):
+    """`make _uninstall` names the layout reset when both keys are ours."""
+
+    def uninstall_with_config(self, tmp, config, env=None):
+        return theme_install.uninstall_recipe(
+            tmp,
+            extra=(),
+            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
+        )
+
+    def test_warns_and_names_the_reset_for_a_kept_layout(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        # A diagnostic must not edit the user's kwinrc.
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_values_only_trim_to_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "  [" + REMOVAL_GROUP + "]  \n "
+            + LEFT_KEY
+            + " = X  \n "
+            + RIGHT_KEY
+            + " =  AL\t\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
+        # Editors add BOMs and CRLF endings; the scanner strips the first
+        # line's BOM and trims every line, so the selection stays visible.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "\ufeff[" + REMOVAL_GROUP + "]\r\n; a comment\r\n# another\r\n"
+            + LEFT_KEY
+            + "=X\r\n"
+            + RIGHT_KEY
+            + "=AL\r\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warned_when_an_earlier_foreign_pair_precedes_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + LEFT_KEY
+            + "=B\n"
+            + RIGHT_KEY
+            + "=M\n"
+            + LEFT_KEY
+            + "=X\n"
+            + RIGHT_KEY
+            + "=AL\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warned_when_a_later_duplicate_pair_names_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + LEFT_KEY
+            + "=X\n"
+            + RIGHT_KEY
+            + "=AL\n"
+            + LEFT_KEY
+            + "=B\n"
+            + RIGHT_KEY
+            + "=M\n"
+            + LEFT_KEY
+            + "=X\n"
+            + RIGHT_KEY
+            + "=AL\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_silent_when_there_is_no_kwinrc(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_silent_when_the_path_is_a_directory(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(os.path.join(config, "kwinrc"))
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_silent_without_a_decoration_group(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(config, "[Other]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n")
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_silent_with_only_one_of_the_two_keys(self):
+        for body in (
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n",
+            "[" + REMOVAL_GROUP + "]\n" + RIGHT_KEY + "=AL\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_kwinrc(config, body)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(LEFT_KEY + "=X", result.stderr)
+
+    def test_silent_when_one_key_holds_a_foreign_value(self):
+        for body in (
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=M\n",
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=B\n" + RIGHT_KEY + "=AL\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_kwinrc(config, body)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_silent_when_either_value_is_empty(self):
+        for body in (
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=\n" + RIGHT_KEY + "=AL\n",
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                write_kwinrc(config, body)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_silent_when_a_later_foreign_duplicate_overrides_ours(self):
+        # The scanner takes the last duplicate's value, as the other four
+        # diagnostics already do.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + LEFT_KEY
+            + "=X\n"
+            + RIGHT_KEY
+            + "=AL\n"
+            + LEFT_KEY
+            + "=B\n"
+            + RIGHT_KEY
+            + "=M\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_silent_when_our_keys_are_split_across_groups(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_kwinrc(
+            config,
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LEFT_KEY
+            + "=X\n[Other]\n"
+            + RIGHT_KEY
+            + "=AL\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
+        # Like the four existing diagnostics, the guard ignores an unset or
+        # relative XDG_CONFIG_HOME and reads `$HOME/.config`.
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n",
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+
+        result = theme_install.uninstall_recipe(
+            str(make_tmp_dir(self)), extra=(), env=env
+        )
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n",
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+        env["XDG_CONFIG_HOME"] = "relative/config"
+
+        result = theme_install.uninstall_recipe(
+            str(make_tmp_dir(self)), extra=(), env=env
+        )
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_without_a_config_home_nothing_is_checked(self):
+        tmp = str(make_tmp_dir(self))
+        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
+
+        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(LEFT_KEY, result.stderr)
+
+    def test_both_diagnostics_share_one_run_with_their_landed_wordings(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        pointer_path = write_kcminputrc(config)
+        kwin_path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n",
+        )
+        original_pointer = read_bytes(pointer_path)
+        original_kwin = read_bytes(kwin_path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(POINTER_RULE(pointer_path), result.stderr)
+        self.assertIn(rule_for(kwin_path), result.stderr)
+        self.assertEqual(original_pointer, read_bytes(pointer_path))
+        self.assertEqual(original_kwin, read_bytes(kwin_path))
+
+    def test_make_n_uninstall_still_parses(self):
+        # The public `uninstall` target only prints the guards and its nested
+        # locked `make _uninstall` under -n, so the scanner's recipe is pinned
+        # by drying the internal recipe directly.
+        result = theme_install.run_make(
+            ["-n", "_uninstall"], env=theme_install.make_env()
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn(LEFT_KEY, result.stdout)
+        self.assertIn(RIGHT_KEY, result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

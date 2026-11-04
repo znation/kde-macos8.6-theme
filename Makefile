@@ -869,6 +869,28 @@ _uninstall:
 # splits at the first `=` with both sides trimmed, and a later duplicate's
 # value wins. As before, this is a diagnostic only -- it must not edit the
 # file.
+#
+# `make apply` also writes the window-decoration button layout into
+# `$XDG_CONFIG_HOME/kwinrc`: `tools/apply_theme.py::DECORATION_BUTTONS`
+# stores `[org.kde.kdecoration2] ButtonsOnLeft=X` and
+# `ButtonsOnRight=AL` there through `kwriteconfig6`. After `make uninstall`
+# removes the aurorae and look-and-feel packages, those two keys remain and
+# KWin keeps honoring the Platinum box layout under its built-in default
+# decoration. The reset deletes exactly the two keys the apply wrote:
+# `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key
+# ButtonsOnLeft --delete && kwriteconfig6 --file kwinrc --group
+# org.kde.kdecoration2 --key ButtonsOnRight --delete` reverts the layout to
+# the keys' absence rather than editing any foreign value. The file is read
+# the same way as the other four: the first line's UTF-8 BOM is stripped,
+# each line is trimmed before parsing, a trimmed `[`...`]` line switches the
+# section, `#`/`;` lines are comments and never keys, the key/value pair
+# splits at the first `=` with both sides trimmed, and a later duplicate's
+# value wins. The diagnostic prints once, only when inside
+# `[org.kde.kdecoration2]` the last value of `ButtonsOnLeft` trims to
+# exactly `X` and the last value of `ButtonsOnRight` trims to exactly `AL`
+# -- the `X`/`AL` literals below must be kept in step with
+# `tools/apply_theme.py::DECORATION_BUTTONS`. As before, this is a
+# diagnostic only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -897,6 +919,10 @@ fi; \
 kcminputrc="$$config_home/kcminputrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kcminputrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Mouse" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "cursorTheme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(ICON_THEME_ID)" ? 0 : 1 }' "$$kcminputrc" 2>/dev/null; then \
 	  echo "uninstall: the pointer selection still names $(ICON_THEME_ID) after removal in $$kcminputrc; Xcursor applications cannot load the removed cursor theme and keep the default pointer. Reset it with: plasma-apply-cursortheme breeze_cursors" >&2; \
+fi; \
+kwinrc="$$config_home/kwinrc"; \
+if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "ButtonsOnLeft") left=value; if (key == "ButtonsOnRight") right=value } } END { exit left == "X" && right == "AL" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
+	  echo "uninstall: the window-button layout [ButtonsOnLeft=X, ButtonsOnRight=AL] that make apply wrote is still in $$kwinrc; KWin keeps that layout under the default decoration after removal. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight --delete" >&2; \
 fi
 
 install-gtk:

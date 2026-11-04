@@ -277,8 +277,18 @@ selection; and if the pointer selection `plasma-apply-cursortheme` wrote
 (`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
 prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 — that command must be run by hand, because `make remove-cursor` owns only the
-`$HOME/.icons` link and never touches `kcminputrc`. No such warning edits the
-user's configuration.
+`$HOME/.icons` link and never touches `kcminputrc`; and if the
+window-button layout the apply's `kwriteconfig6` runs wrote
+(`[org.kde.kdecoration2] ButtonsOnLeft=X` and `ButtonsOnRight=AL` in
+`kwinrc`) is still there after the uninstall, it prints a warning naming the
+reset `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key
+ButtonsOnLeft --delete && kwriteconfig6 --file kwinrc --group
+org.kde.kdecoration2 --key ButtonsOnRight --delete`, which deletes exactly
+the two keys the apply wrote and reverts the layout to the keys' absence,
+where KWin draws its built-in default decoration (`kwriteconfig6`'s
+documented `--delete` option is the grounded platform-required value; the
+reference screenshots show no uninstall warning to sample it from). No such
+warning edits the user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
 excepted) is refused at parse time, before any recipe runs and unechoed;
