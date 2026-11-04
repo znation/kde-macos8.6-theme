@@ -87,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
     if args.max_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--max-difference-column-run-length requires --difference-column-runs")
+    if args.max_difference_column_runs is not None and not args.difference_column_runs:
+        parser.error("--max-difference-column-runs requires --difference-column-runs")
     if args.worst_pixel_offset is not None and args.worst_pixels is None:
         parser.error("--worst-pixel-offset requires --worst-pixels")
 
@@ -153,6 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         if column_runs is not None and args.max_difference_column_run_length is not None:
             column_runs = [run for run in column_runs
                            if run["length"] <= args.max_difference_column_run_length]
+        omitted_column_runs = None
+        if column_runs is not None and args.max_difference_column_runs is not None:
+            eligible_column_run_count = len(column_runs)
+            column_runs = column_runs[:args.max_difference_column_runs]
+            omitted_column_runs = eligible_column_run_count - len(column_runs)
         centroid = (difference_centroid(candidate, reference, args.tolerance)
                     if args.difference_centroid else None)
         histogram = (delta_histogram(candidate, reference)
@@ -180,6 +187,7 @@ def main(argv: list[str] | None = None) -> int:
                          run_count=run_count,
                          column_run_count=column_run_count,
                          column_runs=column_runs,
+                         omitted_difference_column_runs=omitted_column_runs,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
                          percentiles=(delta_percentiles(histogram)

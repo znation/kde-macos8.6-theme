@@ -77,6 +77,8 @@ def render_text(result: dict, candidate, reference) -> list[str]:
         lines.append(f"difference column run count: {result['difference_column_run_count']}")
     if result.get("difference_column_runs") is not None:
         lines.append("difference column runs: " + json.dumps(result["difference_column_runs"], ensure_ascii=True))
+    if "omitted_difference_column_runs" in result:
+        lines.append(f"omitted difference column runs: {result['omitted_difference_column_runs']}")
     if result.get("difference_runs") is not None:
         lines.append("difference runs: " + json.dumps(result["difference_runs"], ensure_ascii=True))
     if "omitted_difference_runs" in result:

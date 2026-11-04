@@ -103,6 +103,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--min-difference-run-length N", help_text)
         self.assertIn("--min-difference-column-run-length N", help_text)
         self.assertIn("--max-difference-column-run-length N", help_text)
+        self.assertIn("--max-difference-column-runs N", help_text)
         self.assertIn("--max-difference-runs N", help_text)
 
     def test_defaults_and_explicit_options(self):
@@ -130,6 +131,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "max_difference_runs": None,
             "min_difference_column_run_length": None,
             "max_difference_column_run_length": None,
+            "max_difference_column_runs": None,
             "difference_column_runs": False,
             "difference_centroid": False,
             "longest_difference_run": False,

@@ -90,6 +90,9 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--max-difference-column-run-length", type=positive_int("--max-difference-column-run-length"),
                         default=None, metavar="N",
                         help="omit vertical difference runs longer than N (requires --difference-column-runs)")
+    parser.add_argument("--max-difference-column-runs", type=positive_int("--max-difference-column-runs"),
+                        default=None, metavar="N",
+                        help="report at most N vertical difference runs (requires --difference-column-runs)")
     parser.add_argument("--difference-centroid", action="store_true",
                         help="report the centroid of pixels differing beyond --tolerance")
     parser.add_argument("--longest-difference-run", action="store_true",

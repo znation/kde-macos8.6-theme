@@ -1210,6 +1210,12 @@ comparison metrics and longest-column summaries. An empty requested list is repo
 Pass `--max-difference-column-run-length N` with `--difference-column-runs` to omit completed runs
 longer than `N`. The inclusive maximum combines with the minimum cutoff; conflicting cutoffs yield
 an empty list. Segmentation, metrics and longest-column summaries use the complete mismatch data.
+Pass `--max-difference-column-runs N` to report only the first N eligible vertical intervals in
+column-major order after both length filters. JSON adds `omitted_difference_column_runs`, and text
+prints `omitted difference column runs: N` immediately after the vertical list, including zero.
+Run counts, longest-column summaries, metrics and verdict still use the full mismatch data. The
+cap limits output only: segmentation still builds the full run list. Omitting the option adds no
+report field or line.
 Add `--difference-column-run-count` to report the number of maximal vertical mismatch runs as
 `difference_column_run_count` in JSON or `difference column run count: N` in text. It counts
 unfiltered segments, so length cutoffs affect the optional run list but not the scalar. Combined
