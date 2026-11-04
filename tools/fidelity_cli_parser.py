@@ -79,6 +79,9 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--max-difference-run-length", type=positive_int("--max-difference-run-length"),
                         default=None, metavar="N",
                         help="omit horizontal difference runs longer than N (requires --difference-runs)")
+    parser.add_argument("--max-difference-runs", type=positive_int("--max-difference-runs"),
+                        default=None, metavar="N",
+                        help="report at most N horizontal difference runs (requires --difference-runs)")
     parser.add_argument("--difference-column-runs", action="store_true",
                         help="locate disjoint vertical runs of pixels differing beyond --tolerance")
     parser.add_argument("--min-difference-column-run-length", type=positive_int("--min-difference-column-run-length"),

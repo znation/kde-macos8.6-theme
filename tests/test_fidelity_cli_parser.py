@@ -103,6 +103,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertIn("--min-difference-run-length N", help_text)
         self.assertIn("--min-difference-column-run-length N", help_text)
         self.assertIn("--max-difference-column-run-length N", help_text)
+        self.assertIn("--max-difference-runs N", help_text)
 
     def test_defaults_and_explicit_options(self):
         first = build_parser()
@@ -126,6 +127,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "difference_column_run_count": False,
             "min_difference_run_length": None,
             "max_difference_run_length": None,
+            "max_difference_runs": None,
             "min_difference_column_run_length": None,
             "max_difference_column_run_length": None,
             "difference_column_runs": False,
@@ -153,6 +155,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "--difference-column-bounds", "--difference-runs", "--difference-run-count",
             "--min-difference-run-length", "2",
             "--max-difference-run-length", "4",
+            "--max-difference-runs", "6",
             "--min-difference-column-run-length", "3",
             "--max-difference-column-run-length", "5",
             "--difference-column-runs", "--difference-column-run-count", "--difference-centroid", "--longest-difference-run", "--longest-difference-column-run", "--delta-histogram", "--delta-percentiles",
@@ -170,6 +173,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertEqual((explicit.max_delta, explicit.max_differing), (12, 3))
         self.assertEqual(explicit.min_difference_run_length, 2)
         self.assertEqual(explicit.max_difference_run_length, 4)
+        self.assertEqual(explicit.max_difference_runs, 6)
         self.assertEqual(explicit.min_difference_column_run_length, 3)
         self.assertEqual(explicit.max_difference_column_run_length, 5)
         self.assertTrue(all(getattr(explicit, name) for name in (

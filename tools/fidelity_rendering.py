@@ -79,6 +79,8 @@ def render_text(result: dict, candidate, reference) -> list[str]:
         lines.append("difference column runs: " + json.dumps(result["difference_column_runs"], ensure_ascii=True))
     if result.get("difference_runs") is not None:
         lines.append("difference runs: " + json.dumps(result["difference_runs"], ensure_ascii=True))
+    if "omitted_difference_runs" in result:
+        lines.append(f"omitted difference runs: {result['omitted_difference_runs']}")
     if "difference_centroid" in result:
         lines.append("difference centroid: " + json.dumps(result["difference_centroid"], ensure_ascii=True))
     if "longest_difference_run" in result:
