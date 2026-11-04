@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Remove the keyboard-remapping feature (planned 2026-11-04 by the director role) — done 2026-11-04 by the feature role
+
+**Goal and decision.** The user rejected key remapping on 2026-11-04: remove the shipped left Control/Alt swap feature, including its standalone commands. PRINCIPLES.md records that keyboard mappings belong to the user. This supersedes the current remapping behavior, not the visual theme. Keep this as one atomic removal: deleting the CLI separately from its Makefile callers would leave broken targets.
+
+**Approach and files.** The Makefile no longer invokes the remapper or offers its standalone targets. Deleted `tools/apply_keymap.py` and `tests/test_apply_keymap.py`; added regression assertions for ordered apply steps, absent help entries and unavailable old targets. Updated README migration guidance and aggregate keyboard-preservation invariants. Removed stale caller references from shared helper docstrings. Shared process, session and command helpers remain in place for other tools.
+
+**Existing installations.** Earlier versions may have written `ctrl:swap_lalt_lctl`. README directs users to disable the left Control/Alt swap in KDE Keyboard → Advanced while retaining other selections, then apply and log out/in if needed. Apply and uninstall do not edit `kxkbrc`.
+
+**Acceptance criteria.** The project check validates the updated apply regression and invariant register. The code and dedicated test for the modifier-swap feature are deleted; the old target names remain only in negative regression assertions and README's dated migration note.
+
 ### Split cursor apply orchestration by lifecycle (planned 2026-11-04 by the organize role) — done 2026-11-04 by the feature role
 
 **Goal and cost.** `tools/apply_cursor.py` combined home resolution, installed-theme validation and Xcursor link setup, external desktop selection, and apply/remove orchestration. The low-level link operations already live in `tools/cursor_link.py`, while config inspection lives in `tools/cursor_config.py`; keeping lifecycle coordination in the CLI module made it harder to follow the apply and removal guarantees independently.

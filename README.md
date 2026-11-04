@@ -299,23 +299,13 @@ window-button layout into `kwinrc` (close box at the leading edge, zoom and coll
 trailing edge — Plasma's look-and-feel apply drops those two keys), tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
 KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
-it notes that and leaves KWin to reload on its next start). It then opts the current user into the
-reference's modifier layout: `tools/apply_keymap.py` appends `ctrl:swap_lalt_lctl` to
-`[Layout] Options` in `kxkbrc` (keeping every other XKB option), sets `ResetOldOptions` so KWin
-applies those options on Wayland, and emits `org.kde.keyboard /Layouts reloadConfig` so the swap
-takes effect without a logout. After the swap the physical left Alt produces Control and the
-physical left Control produces Alt for every application in this user's session, putting Cut, Copy,
-Paste and the rest of the reference's shortcut modifier at the Command-key position, provided
-the keyboard reports PC keycodes. A keyboard switched to its Mac (Apple) mode already swaps those
-positions in firmware: its Command-position key sends Super, so the option then lands on the
-left Ctrl and Super keys instead — the Command-position key opens the launcher and the Windows
-key produces Control. Switch such a keyboard back to its PC/Windows mode; the keymap is already
-right and needs no second apply. Right Alt
-(AltGr) and other users' sessions are unchanged, and a repeat apply keeps one copy. The reload is
-best effort: when neither `dbus-send` nor `busctl` is on `PATH`, or the emitted signal fails, it
-notes that the swap takes effect at the next login. The setting persists after `make uninstall`;
-run `make remove-keymap` to remove `ctrl:swap_lalt_lctl` while preserving other XKB options; this does not
-restore earlier keyboard settings.
+it preserves the user's keyboard mappings. Applying or removing Platinum does not change
+`kxkbrc`.
+
+**Existing installations (2026-11-04):** Earlier versions added `ctrl:swap_lalt_lctl` to the
+keyboard's XKB options. To undo that change, open KDE System Settings → Keyboard → Advanced,
+disable the left Control/Alt swap, and retain any other selected options. Apply the change and
+log out and back in if needed.
 The apply process then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6` and `kreadconfig6`,
@@ -428,16 +418,7 @@ not restore earlier settings or backups.
 | `make remove-gtk` | Clears this theme's GTK selection and marker CSS. Existing GTK backups remain; restart GTK applications. |
 | `make remove-firefox` | Removes this theme's sheets and preference block from the active profile. To target another profile, use `FIREFOX_PROFILE=/absolute/profile make remove-firefox`. Restart Firefox. |
 | `make remove-cursor` | Removes this theme's cursor link but leaves the cursor selection. If it still names `org.macos8.desktop`, reset it with `plasma-apply-cursortheme breeze_cursors`. |
-| `make remove-keymap` | Removes `ctrl:swap_lalt_lctl` from the current user's XKB options, preserving other options. It cannot restore earlier keyboard settings. |
-| `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or keyboard settings. |
-
-The left Alt/Control swap also persists after theme removal; `make remove-keymap` removes only
-that XKB option. As when applying, the swap assumes the keyboard is in its PC/Windows mode.
-
-To apply the keyboard option without installing packages or applying the other theme surfaces,
-run `make apply-keymap`. It requires Python 3.10+, `kreadconfig6` and `kwriteconfig6`; it preserves
-other XKB options and uses the same best-effort reload behavior as `make apply`. The keyboard
-must be in PC/Windows mode for the Command-position key to become Control.
+| `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or change keyboard mappings. |
 
 To reselect the installed Plasma settings without installing packages or applying the other
 theme surfaces, run `make apply-plasma`. Install first with `make install`; it requires Python

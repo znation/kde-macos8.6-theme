@@ -347,7 +347,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk remove-keymap apply-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -495,8 +495,6 @@ help:
 	@echo "  install-gtk       install only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
-	@echo "  remove-keymap     remove the left Control/Alt swap, preserving other XKB options"
-	@echo "  apply-keymap      apply the left Control/Alt swap without applying other theme surfaces"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
@@ -560,10 +558,7 @@ render:
 # cluster), selects the Kvantum widget theme when kvantummanager is available,
 # then asks KWin to reconfigure; the two best-effort selections and their
 # command policy live in tools/theme_apply_optional.py.
-# tools/apply_keymap.py swaps the left Control and Alt keys for this user at
-# the XKB level (the reference's Command-key position holds Alt on PC
-# hardware), preserving the user's other keyboard options and asking KWin to
-# reload the keymap. tools/apply_gtk.py selects the installed GTK 3 and GTK 4
+# tools/apply_gtk.py selects the installed GTK 3 and GTK 4
 # schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
 # (skipping the selection when plasma-apply-cursortheme is absent), and
 # tools/install_firefox.py installs the standalone sheets into the active
@@ -574,16 +569,9 @@ apply:
 	@$(call require_python_ready,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
-	$(PYTHON) tools/apply_keymap.py
 	$(PYTHON) tools/apply_gtk.py
 	$(PYTHON) tools/apply_cursor.py --optional
 	$(PYTHON) tools/install_firefox.py --optional$(if $(FIREFOX_PROFILE), --profile "$(FIREFOX_PROFILE)")
-
-# Apply only the keyboard modifier option, without installing or selecting other surfaces.
-apply-keymap:
-	@$(call refuse_destdir,apply-keymap)
-	@$(call require_python_ready,apply-keymap)
-	$(PYTHON) tools/apply_keymap.py
 
 # Reselect the installed Plasma theme settings without installing packages or
 # applying the other theme surfaces.
@@ -600,12 +588,6 @@ apply-gtk:
 	@$(call require_python_ready,apply-gtk)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
 	$(PYTHON) tools/apply_gtk.py
-
-# Remove only this theme's XKB swap option; preserve other keyboard options.
-remove-keymap:
-	@$(call refuse_destdir,remove-keymap)
-	@$(call require_python_ready,remove-keymap)
-	$(PYTHON) tools/apply_keymap.py --remove
 
 # Clear only the GTK selection this theme wrote; a foreign gtk-theme-name and
 # a foreign gtk-4.0/gtk.css are left untouched.

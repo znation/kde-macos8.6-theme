@@ -580,7 +580,6 @@ class TestMakeApply(unittest.TestCase):
         steps = [
             "--no-print-directory install",
             "tools/apply_theme.py",
-            "tools/apply_keymap.py",
             "tools/apply_gtk.py",
             "tools/apply_cursor.py --optional",
             "tools/install_firefox.py --optional",
@@ -591,6 +590,18 @@ class TestMakeApply(unittest.TestCase):
                 self.assertIn(step, result.stdout)
                 positions.append(result.stdout.index(step))
         self.assertEqual(sorted(positions), positions, result.stdout)
+        self.assertNotIn("apply_keymap.py", result.stdout)
+
+    def test_keymap_targets_are_removed(self):
+        help_result = theme_install.run_make(["help"], env=theme_install.make_env())
+        assert_succeeded(self, help_result)
+        self.assertNotIn("apply-keymap", help_result.stdout)
+        self.assertNotIn("remove-keymap", help_result.stdout)
+        for target in ("apply-keymap", "remove-keymap"):
+            with self.subTest(target=target):
+                result = theme_install.run_make([target], env=theme_install.make_env())
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn("No rule to make target", result.stderr)
 
     def test_help_lists_apply(self):
         result = theme_install.run_make(["help"], env=theme_install.make_env())

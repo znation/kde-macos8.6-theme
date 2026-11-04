@@ -1,9 +1,8 @@
 """Tests for tools/required_command.py -- the shared required-command mapping.
 
 ``apply_theme`` and ``apply_cursor`` route every command they cannot run
-without through :func:`tools.required_command.run_required`; ``apply_keymap``
-reads its ``kreadconfig6`` value through :func:`tools.required_command.run_required_output`
-instead. Their own tests reach each outcome through the CLI, but none pins
+without through :func:`tools.required_command.run_required`. Their own tests
+reach each outcome through the CLI, but none pins
 the helpers' contracts at their boundaries: that the shared helper hands the
 command, environment, log, timeout and working directory straight to
 :func:`tools.process_group.run_logged`, returns ``None`` only on success, and

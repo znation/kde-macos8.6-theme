@@ -1,6 +1,6 @@
 """Direct tests for tools/session_bus.py.
 
-The `apply_theme` and `apply_keymap` suites exercise the defaulted address
+The `apply_theme` suite exercises the defaulted address
 through their command stubs; these pin the helper's own contract. The branch
 no caller test reaches is an absolute `XDG_RUNTIME_DIR` whose `bus` socket
 does not exist: the environment must be returned unchanged instead of pointing

@@ -5,12 +5,11 @@
 separately, for callers that read a value from stdout and must not log the
 streams merged;
 :func:`exit_on_termination` makes SIGTERM and SIGHUP unwind the caller's
-``finally`` blocks. ``tools/render_surface.py``, ``tools/apply_keymap.py`` and
-``tools/apply_theme.py`` use both around the external commands they run;
+``finally`` blocks. ``tools/render_surface.py`` and ``tools/apply_theme.py``
+use both around the external commands they run;
 ``tools/required_command.py`` wraps :func:`run_logged` with the shared
 required-command diagnostic for ``tools/apply_theme.py``,
-``tools/apply_keymap.py`` and ``tools/cursor_selection.py`` (the selector
-used by ``tools/apply_cursor.py``).
+``tools/cursor_selection.py`` (the selector used by ``tools/apply_cursor.py``).
 
 A Ctrl-C (SIGINT) is not one of ``exit_on_termination``'s signals, but its
 default handler raises ``KeyboardInterrupt`` at the next bytecode just the
@@ -174,9 +173,8 @@ def run_logged_split(
 
     The shared :func:`run_logged` merges a command's streams into one log,
     which is what a caller that never reads the streams wants. A caller that
-    takes a value from stdout -- ``apply_keymap``'s kreadconfig6 read, whose
-    stderr carries warnings that must never become XKB options -- cannot use
-    it, so this variant logs the streams to separate files under the same
+    takes a value from stdout and must keep stderr warnings separate cannot
+    use it, so this variant logs the streams to separate files under the same
     supervision: stdin is closed, the whole process group is killed on the
     way out, and the bounded reap cannot stall past the timeout. A command
     that cannot be started raises the ``OSError`` for the caller to report.

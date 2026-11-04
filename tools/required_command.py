@@ -106,8 +106,8 @@ def run_required_output(
 
     :func:`run_required` logs stdout and stderr merged, which is what every
     caller that never reads the streams wants. A caller that takes a value
-    from stdout -- ``apply_keymap``'s ``kreadconfig6`` read, whose stderr
-    warnings must never become XKB options -- needs the streams apart, so
+    from stdout whose stderr warnings must not become part of the value needs
+    the streams apart, so
     this variant logs them to *stdout_log* and *stderr_log*, returns the raw
     stdout bytes, and only reports a failure when the command failed. The
     failure triage is the shared one: the status plus the same exit-1 and

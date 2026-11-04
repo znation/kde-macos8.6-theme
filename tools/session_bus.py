@@ -2,10 +2,10 @@
 
 ``make apply`` may run from a non-login shell (the local ``post-commit`` hook,
 for example) that carries neither ``DBUS_SESSION_BUS_ADDRESS`` nor a login
-environment. The Plasma selection tools and the keyboard reload need the
+environment. The Plasma selection tools need the
 running session's bus, so the address is defaulted from the runtime directory
-when it is unset or empty. Keeping the rule here means ``apply_theme`` and
-``apply_keymap`` cannot disagree about which socket they address.
+when it is unset or empty. Keeping the rule here gives the selection tools a
+consistent socket address.
 """
 
 from __future__ import annotations
