@@ -3813,6 +3813,32 @@ for radio in (False, True):
                 self.selectors.index("cursor-handle > contents"),
             )
 
+    def test_expander_widget_title_corners(self):
+        # The 2026-11-04 expander-title comment block appends one group
+        # after the landed alert-dialog groups at the sheet tail; stock's
+        # two radius arms (integration 6px, toolkit 5px) share one selector
+        # string, so one byte-equal restatement squares both.
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("expander-widget > box > title")},
+            {"expander-widget > box > title"},
+        )
+        self.assertEqual(
+            {s for s in self.rules if "expander-widget" in s},
+            {
+                "expander-widget > box > title",
+                "expander-widget:focus:focus-visible > box > title",
+            },
+        )
+        self.assertEqual(self.selectors.count("expander-widget > box > title"), 1)
+        self.assertEqual(
+            self.rules["expander-widget > box > title"], {"border-radius": "0"}
+        )
+        self.assert_matches_frame("expander-widget > box > title", "border-radius")
+        self.assertGreater(
+            self.selectors.index("expander-widget > box > title"),
+            self.selectors.index("cursor-handle > contents"),
+        )
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",
