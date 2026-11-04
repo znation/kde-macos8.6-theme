@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README package staging: show a selected-family install into a scratch root (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
+
+**Goal.** Give contributors a copyable way to inspect installed package paths without selecting the theme in their session. README mentions `DESTDIR` guards and cursor-specific `INSTALL_PACKAGES`, but has no worked staged-install recipe.
+
+**Approach and files.** Edit README.md only, outside the brief. Add `### Staging packages` immediately before `### Removing the theme`. Show a shell block with `stage_dir=$(mktemp -d)`, followed by `make install DESTDIR="$stage_dir" XDG_DATA_HOME=/usr/share INSTALL_PACKAGES='color-scheme gtk'`. Explain that the resulting scheme is at `$stage_dir/usr/share/color-schemes/MacOS8.colors` and the GTK files are under `$stage_dir/usr/share/themes/org.macos8.desktop/`; `/usr/share` is the data-home suffix inside the scratch root, not a request to install into the live system. List the accepted family names from `INSTALL_FAMILIES`, explain the default when the selector is omitted, and state that selecting a subset does not delete packages from earlier installs. Explain that `make install` copies files without applying selections and that `make apply` refuses a nonempty `DESTDIR`. Keep cleanup a reader action after inspection; do not suggest applying the staged tree. This is independent of the queued fidelity workflow and changes a different subsection.
+
+**Grounding.** Makefile's `DATA_HOME`, per-family install directories, `INSTALL_FAMILIES`, `require_install_packages`, `_install` recipe and `refuse_destdir` establish these paths and restrictions. `install_gtk` publishes the GTK subtree alongside the scheme selected by `_install`. `tests/test_readme_commands.py::TestReadmeCommands` checks documented targets and source package paths. Searches of Planned and archived staging/packaging headings found no existing staging guide plan; README's current staging mentions describe guards rather than a recipe. No runtime or invariant change is proposed.
+
+**Acceptance criteria.** In a fresh scratch root, executing the documented install produces the scheme and GTK sheets at the two stated destinations, and does not create the unselected `plasma/`, `aurorae/`, `icons/`, `fonts/` or `wallpapers/` package directories there. A reader can identify the valid family names, the default selection, the additive nature of subset installs, and why session application is a separate operation. Validate the recipe using a scratch config home as well, inspect its output paths, and run `make check` after the final README edit. No new tests are required for this documentation-only workflow; existing behavior remains the contract.
+
 ### README fidelity workflow: compare aligned crops and locate mismatches (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
 **Goal.** Give contributors a concrete path from an existing candidate PNG to an actionable mismatch report, before the long fidelity option reference.

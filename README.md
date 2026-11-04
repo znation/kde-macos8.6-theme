@@ -371,6 +371,35 @@ dialog modes cannot be combined. In each mode the scratch session links its own 
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
+### Staging packages
+
+To inspect installed package paths without selecting the theme in your session, stage an install
+into a scratch root:
+
+```sh
+stage_dir=$(mktemp -d)
+make install DESTDIR="$stage_dir" XDG_DATA_HOME=/usr/share INSTALL_PACKAGES='color-scheme gtk'
+```
+
+The scheme lands at `$stage_dir/usr/share/color-schemes/MacOS8.colors` and the GTK 3 and GTK 4
+sheets and assets land under `$stage_dir/usr/share/themes/org.macos8.desktop/` (`index.theme`,
+`gtk-3.0/gtk.css`, `gtk-4.0/gtk.css` and `assets/`). `/usr/share` here is the data-home suffix
+inside the scratch root — `DATA_HOME` is `DESTDIR` followed by `XDG_DATA_HOME` — not a request to
+install into the live system.
+
+`INSTALL_PACKAGES` takes a space-separated list of the package families the Makefile knows:
+`color-scheme`, `look-and-feel`, `desktop-theme`, `aurorae`, `wallpaper`, `icon-theme`,
+`kvantum`, `fonts` and `gtk`. Omit the selector and the install copies every family; name a
+subset and the install copies only that subset into the scratch root. A subset install is
+additive: staging another family into the same scratch root later copies its files beside what
+is already there and deletes nothing from earlier installs.
+
+`make install` copies files into the destination and changes no selection or setting anywhere;
+applying a selection is `make apply`'s job, which refuses to run with a non-empty `DESTDIR`
+because a staged tree is for inspection, not for pointing the running session at. When you are
+done inspecting, remove the scratch root yourself (`rm -rf -- "$stage_dir"`); nothing else
+tracks it.
+
 ### Removing the theme
 
 Choose another global theme in System Settings, then clear the individual selections before
