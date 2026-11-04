@@ -225,6 +225,30 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         self.assertEqual(b"recorded", value)
         self.assertEqual("", stderr)
 
+    def test_a_stdout_log_that_cannot_be_read_reports_exit_2_by_its_name(self):
+        """A failed value read is the tool's exit-2 error, not a traceback."""
+
+        def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"recorded")
+            stderr_log.write_bytes(b"")
+            os.chmod(stdout_log, 0)  # the owner cannot open the file either
+            return 0
+
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=succeed
+        ):
+            value, status, stderr = self.run_output()
+        self.assertEqual(2, status)
+        self.assertEqual(b"", value)
+        # The diagnostic names the log the value was to come from, never the
+        # stderr tail: the command itself succeeded.
+        self.assertIn("cannot read read.log:", stderr)
+        self.assertNotIn("Traceback", stderr)
+        # A run that never read its value is not a success, so neither log is
+        # removed: the failed helper leaves both for the failure report.
+        self.assertTrue((self.root / "read.log").exists())
+        self.assertTrue((self.root / "read.stderr.log").exists())
+
     def test_runs_where_asked_with_the_given_environment(self):
         def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
             stdout_log.write_bytes(b"recorded")
