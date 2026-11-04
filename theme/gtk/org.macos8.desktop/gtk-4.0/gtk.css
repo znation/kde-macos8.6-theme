@@ -985,6 +985,40 @@ modelbutton.flat:disabled {
   color: #888888;
 }
 
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   menubar item highlight or a popover-menu list row (no Mac OS 8.6 surface
+   has one), so the corners are a platform value the reference set does not
+   show and the chosen value is this theme's square-corner policy — the
+   landed `popover > contents`, `button`, card, tab-family, toggle-group and
+   cursor-handle restatements all carry `border-radius: 0`. The stock
+   rounded arms come from the platform style library's `base.css` resource
+   inside the integration library (probe path recorded in
+   docs/invariants.md), extracted with `gresource extract`; it declares
+   three radius-bearing menu arms:
+   `menubar > item { min-height: 16px; padding: 4px 8px; border-radius: 9px; }`,
+   `popover.menu list > row, popover.menu listview > row { border-radius: 9px; padding: 0 12px; min-height: 32px; min-width: 40px; }` and
+   `menubar > item popover.menu popover.menu > contents { margin: 0; border-radius: 15px; }` —
+   the stock hover, active and has-open-popup row arms beside the base arm
+   carry no radius of their own, so squaring the base arms reaches them.
+   The landed `menubar > item` group above squares its own radius beside
+   the reference-derived padding. Each group below is byte-equal to its
+   stock spelling, wins by later user-sheet source order at stock's own
+   specificity, and states nothing else: stock's paddings, min-heights,
+   min-width, nested margins and every other stock declaration stay
+   inherited per-property. The radius-free container twins (`popover.menu
+   list`, the `popover.menu popover.menu` padding twin, `popover.menu list
+   separator`) need no restatement, and the emoji-picker and
+   emoji-completion rows are a separate picker surface that stays stock;
+   later entries own it. */
+
+popover.menu list > row, popover.menu listview > row {
+  border-radius: 0;
+}
+
+menubar > item popover.menu popover.menu > contents {
+  border-radius: 0;
+}
+
 tooltip {
   background-color: #FFFFCC;
   color: #000000;
@@ -1933,6 +1967,7 @@ toggle-group.round toggle {
 }
 menubar > item {
   padding: 3px 7px;
+  border-radius: 0;
 }
 menubar > item:selected {
   background-color: #CCCCFF;
