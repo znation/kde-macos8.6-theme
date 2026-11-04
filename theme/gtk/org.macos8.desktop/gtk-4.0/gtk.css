@@ -332,7 +332,14 @@ entry:focus-within {
 }
 
 /* No GTK spin-button focus reference; reuse the scale-focus black. The stock
- * outline geometry remains inherited. Recorded 2026-10-29. */
+ * outline geometry remains inherited. Recorded 2026-10-29; extended
+ * 2026-11-03 with the stock state-spelled twins the toolkit resource groups
+ * in one arm — `spinbutton.vertical > text:focus-within` and
+ * `spinbutton:focus-within:not(.vertical)` (each above the landed spelling
+ * through the extra compound or `:not()`), so each byte-equal twin restates
+ * the stock arm below in the same shape the landed error/warning class
+ * twins already follow. */
+spinbutton.vertical > text:focus-within, spinbutton:focus-within:not(.vertical),
 spinbutton:focus-within {
   outline-color: #000000;
 }

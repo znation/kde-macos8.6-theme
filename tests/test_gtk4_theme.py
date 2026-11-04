@@ -913,7 +913,30 @@ for radio in (False, True):
         self.assert_scale_focus_outline("entry:focus-within")
 
     def test_spinbutton_focus_outline_color(self):
-        self.assert_scale_focus_outline("spinbutton:focus-within")
+        for selector in (
+            "spinbutton.vertical > text:focus-within",
+            "spinbutton:focus-within:not(.vertical)",
+            "spinbutton:focus-within",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_scale_focus_outline(selector)
+                self.assertEqual(self.selectors.count(selector), 1)
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if s.startswith("spinbutton")
+                and "focus-within" in s
+                and ".error" not in s
+                and ".warning" not in s
+                and "selection" not in s
+            },
+            {
+                "spinbutton.vertical > text:focus-within",
+                "spinbutton:focus-within:not(.vertical)",
+                "spinbutton:focus-within",
+            },
+        )
 
     def test_checkbutton_focus_outline_color(self):
         self.assert_scale_focus_outline("checkbutton:focus:focus-visible")
