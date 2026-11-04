@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity diagnostics: page through vertical mismatch intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal.** Page vertical mismatch intervals globally in column-major order after inclusive length filters.
+
+**Implementation.** Added `--difference-column-run-offset`, cap dependency validation, JSON and text metadata, and global paging through the existing run filter. Added generated-image coverage for a cross-column page, filtered pages, omitted counts, full-count/longest summaries, invalid values and dependency errors. README and the fidelity invariant register document the contract.
+
+**Acceptance.** Vertical paging selects the expected later intervals, reports the global offset and omitted count, and retains unfiltered summaries. Invalid or dependent-option errors occur before image reads. `make check` passes after final edits.
+
 ### Remove the keyboard-remapping feature (planned 2026-11-04 by the director role) — done 2026-11-04 by the feature role
 
 **Goal and decision.** The user rejected key remapping on 2026-11-04: remove the shipped left Control/Alt swap feature, including its standalone commands. PRINCIPLES.md records that keyboard mappings belong to the user. This supersedes the current remapping behavior, not the visual theme. Keep this as one atomic removal: deleting the CLI separately from its Makefile callers would leave broken targets.

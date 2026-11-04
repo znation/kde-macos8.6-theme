@@ -117,6 +117,7 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
                 omitted_difference_runs: int | None = None,
                 difference_run_offset: int | None = None,
                 omitted_difference_column_runs: int | None = None,
+                difference_column_run_offset: int | None = None,
                 longest_column_run=None, include_longest_column_run: bool = False,
                 column_run_count: int | None = None):
     """Assemble the comparison's JSON result object.
@@ -175,6 +176,8 @@ def report_data(candidate_path, reference_path, candidate_crop, reference_crop,
         result["difference_run_offset"] = difference_run_offset
     if omitted_difference_column_runs is not None:
         result["omitted_difference_column_runs"] = omitted_difference_column_runs
+    if difference_column_run_offset is not None:
+        result["difference_column_run_offset"] = difference_column_run_offset
     if include_longest_column_run:
         result["longest_difference_column_run"] = longest_column_run
     return result

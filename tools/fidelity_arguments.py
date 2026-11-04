@@ -165,3 +165,12 @@ def difference_run_offset(value: str) -> int:
             "--difference-run-offset must be a nonnegative ASCII integer"
         )
     return int(value)
+
+
+def difference_column_run_offset(value: str) -> int:
+    """Return a nonnegative ASCII decimal ``--difference-column-run-offset``."""
+    if not value or not value.isascii() or not value.isdecimal():
+        raise argparse.ArgumentTypeError(
+            "--difference-column-run-offset must be a nonnegative ASCII integer"
+        )
+    return int(value)

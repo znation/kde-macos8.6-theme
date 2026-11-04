@@ -1228,6 +1228,11 @@ prints `omitted difference column runs: N` immediately after the vertical list, 
 Run counts, longest-column summaries, metrics and verdict still use the full mismatch data. The
 cap limits output only: segmentation still builds the full run list. Omitting the option adds no
 report field or line.
+Pass `--difference-column-run-offset K` with that cap to skip K eligible vertical intervals after
+both length filters, in global column-major order. JSON adds `difference_column_run_offset`, and
+text prints `difference column run offset: K` immediately before the vertical list. The omitted
+count includes skipped intervals and eligible intervals beyond the page. Paging limits output;
+segmentation still builds the full vertical run list.
 Add `--difference-column-run-count` to report the number of maximal vertical mismatch runs as
 `difference_column_run_count` in JSON or `difference column run count: N` in text. It counts
 unfiltered segments, so length cutoffs affect the optional run list but not the scalar. Combined

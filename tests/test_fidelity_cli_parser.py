@@ -130,6 +130,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "max_difference_run_length": None,
             "max_difference_runs": None,
             "difference_run_offset": None,
+            "difference_column_run_offset": None,
             "min_difference_column_run_length": None,
             "max_difference_column_run_length": None,
             "max_difference_column_runs": None,
@@ -179,6 +180,7 @@ class TestFidelityCliParser(unittest.TestCase):
         self.assertEqual(explicit.max_difference_run_length, 4)
         self.assertEqual(explicit.max_difference_runs, 6)
         self.assertEqual(explicit.difference_run_offset, 2)
+        self.assertEqual(explicit.difference_column_run_offset, None)
         self.assertEqual(explicit.min_difference_column_run_length, 3)
         self.assertEqual(explicit.max_difference_column_run_length, 5)
         self.assertTrue(all(getattr(explicit, name) for name in (
