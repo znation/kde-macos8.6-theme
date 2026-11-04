@@ -7,10 +7,12 @@ import stat
 import sys
 
 if __package__:
+    from tools.containment import open_regular_binary
     from tools.diagnostics import plural
     from tools.terminal import escape_controls
     from tools.text_lines import split_lines
 else:
+    from containment import open_regular_binary
     from diagnostics import plural
     from terminal import escape_controls
     from text_lines import split_lines
@@ -79,10 +81,16 @@ def _bounded_log_text(path: str) -> str:
 
 
 def _log_has_started_test(path: str) -> bool:
-    """Find unittest's verbose test-start marker without loading the log."""
+    """Find unittest's verbose test-start marker without loading the log.
+
+    The log is opened through the shared regular-file reader: the bounded
+    tail read above can see a log as a regular file, and a replacement that
+    turns it into a FIFO before this scan would block plain ``open()`` on a
+    pipe with no writer, stalling the whole run's result report.
+    """
     state = 0
     dots = 0
-    with open(path, "rb") as log:
+    with open_regular_binary(path) as log:
         while chunk := log.read(8192):
             for byte in chunk:
                 if state == 0:
@@ -129,7 +137,7 @@ def _module_verdict(module: str, statuses: dict[str, int | None],
     if module in log_paths:
         try:
             started_test = _log_has_started_test(log_paths[module])
-        except OSError:
+        except (OSError, ValueError):
             return "worker log could not be read", "failed", ""
     else:
         started_test = False

@@ -118,6 +118,26 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("test_ok: worker log could not be read", output.getvalue())
         self.assertIn("1 module failed", output.getvalue())
 
+    def test_a_fifo_started_test_scan_fails_without_blocking(self):
+        fifo = make_tmp_dir(self) / "worker.log"
+        os.mkfifo(fifo)
+        # An exit-5 log with a complete NO TESTS RAN summary reaches the
+        # started-test scan, so the bounded tail read must see a regular file
+        # and a FIFO substituted before that scan still fails the module: the
+        # scan's plain open() used to block on the pipe with no writer.
+        with mock.patch(
+            "tools.check_parallel_results._bounded_log_text",
+            return_value="Ran 0 tests\nNO TESTS RAN\n",
+        ):
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                status = check_parallel._print_results(
+                    ["test_ok"], {"test_ok": 5}, {"test_ok": str(fifo)}, 10
+                )
+        self.assertEqual(1, status)
+        self.assertIn("test_ok: worker log could not be read", output.getvalue())
+        self.assertIn("1 module failed", output.getvalue())
+
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         with mock.patch("tools.diagnostics.tempfile.mkdtemp", side_effect=OSError("denied")):
