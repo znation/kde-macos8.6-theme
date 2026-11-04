@@ -838,6 +838,14 @@ segments longer than `N` pixels. The inclusive cutoff filters completed
 segments; match counts and summaries still use the full search. Minimum and
 maximum cutoffs combine, and contradictory cutoffs report an empty run list.
 
+Add `--max-match-runs N` with `--match-runs` to report only the first `N`
+eligible horizontal intervals in row-major order after both length filters.
+JSON adds `match.omitted_runs`, and text prints `omitted matching runs: N`
+immediately after the interval list, including zero. Match counts and longest
+run summaries still use the full search. This caps output only: interval
+segmentation still retains the complete list. Omitting the option adds neither
+the JSON member nor the text line.
+
 Add `--match-column-runs` with `--find-color` to report maximal contiguous
 vertical segments using the same match predicate. JSON adds `match.column_runs`
 with absolute `x`, `y` and `length`; text prints the records on a

@@ -74,6 +74,11 @@ def _search_match(args, image) -> dict:
     if args.max_match_run_length is not None:
         matched_runs = [run for run in matched_runs
                         if run["length"] <= args.max_match_run_length]
+    omitted_runs = None
+    if getattr(args, "max_match_runs", None) is not None:
+        eligible_count = len(matched_runs)
+        matched_runs = matched_runs[:args.max_match_runs]
+        omitted_runs = eligible_count - len(matched_runs)
     if args.min_match_column_run_length is not None:
         matched_column_runs = [run for run in matched_column_runs
                                if run["length"] >= args.min_match_column_run_length]
@@ -92,6 +97,7 @@ def _search_match(args, image) -> dict:
             **({"pixel_offset": args.match_pixel_offset}
                if args.match_pixel_offset is not None else {}),
             **({"runs": matched_runs} if args.match_runs else {}),
+            **({"omitted_runs": omitted_runs} if omitted_runs is not None else {}),
             **({"run_count": intervals.run_count} if args.match_run_count else {}),
             **({"longest_run": intervals.longest_run} if args.longest_match_run else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
@@ -143,6 +149,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         if args.match_run_count:
             print(f"matching run count: {match['run_count']}")
         print(f"matching runs: {json.dumps(match['runs'], separators=(',', ':'))}")
+        if "omitted_runs" in match:
+            print(f"omitted matching runs: {match['omitted_runs']}")
     elif args.match_run_count:
         print(f"matching run count: {match['run_count']}")
     if args.match_column_run_count:
