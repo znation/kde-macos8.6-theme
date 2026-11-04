@@ -2138,9 +2138,14 @@ for radio in (False, True):
         expected = {
             ".card",
             "menubutton.card > button",
+            # The card focus arms (2026-11-04) restate the stock focus
+            # colour, not radius, and test_card_focus_outline_color pins
+            # them; they join this scan because they carry ``.card``.
             "tabthumbnail .card picture",
             "tabgrid > tabgridchild .card",
             "tabgrid > tabgridchild:focus:focus-visible .card",
+            "button.card:focus:focus-visible",
+            ".card:focus:focus-visible",
         }
         self.assertEqual(
             {selector for selector in self.rules if ".card" in selector},
@@ -2400,6 +2405,41 @@ for radio in (False, True):
                 and ":focus-visible" in selector
             },
             set(selectors),
+        )
+
+    def test_card_focus_outline_color(self):
+        """Pin the card focus arms to the landed black focus colour."""
+        selectors = (
+            "button.card:focus:focus-visible",
+            ".card:focus:focus-visible",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["scale:focus:focus-visible > trough > slider"][
+                        "outline-color"
+                    ],
+                )
+                self.assertEqual(self.selectors.count(selector), 1)
+        # The landed tabgrid card arm ends with ``.card``, not
+        # ``:focus-visible``, so the two ``:focus-visible``-ending card
+        # spellings pin exactly the two stock twins and reject renames,
+        # strays or a dropped arm.
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if "card" in selector and selector.endswith(":focus-visible")
+            },
+            set(selectors),
+        )
+        # The group closes the sheet after the residual focus group, so the
+        # later source order wins every equal-specificity cascade tie.
+        self.assertGreater(
+            self.selectors.index("button.card:focus:focus-visible"),
+            self.selectors.index("shortcut:focus:focus-visible"),
         )
 
     def test_generic_view_selected_arms(self):

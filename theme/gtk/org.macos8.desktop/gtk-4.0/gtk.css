@@ -3722,3 +3722,26 @@ plane:focus:focus-visible,
 shortcut:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK card keyboard focus has no collected reference surface: no
+   screenshot in macos8.6-screenshots/ shows a GTK card's keyboard focus,
+   so the colour follows this theme's landed black focus policy and the
+   stock arms' outline geometry (the 2px width plus -1px offset and the
+   card's outline transitions) stays inherited per-property. The platform
+   style library's base.css resource inside the integration library
+   declares exactly two focus arms carrying it, quoted verbatim:
+   button.card:focus:focus-visible { outline-color: color-mix(in srgb,
+   var(--accent-color) 50%, transparent); outline-width: 2px;
+   outline-offset: -1px; } and .card:focus:focus-visible { outline-color:
+   color-mix(in srgb, var(--accent-color) 50%, transparent);
+   outline-width: 2px; outline-offset: -1px; } — and nothing else in that
+   resource restates them; the toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no .card arm of any
+   kind. Each restated spelling is byte-equal to its stock twin, so later
+   user-sheet source order wins every equal-specificity tie and only the
+   colour changes ownership. */
+button.card:focus:focus-visible,
+.card:focus:focus-visible {
+  outline-color: #000000;
+}
