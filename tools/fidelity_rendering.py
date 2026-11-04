@@ -80,6 +80,8 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     if "omitted_difference_column_runs" in result:
         lines.append(f"omitted difference column runs: {result['omitted_difference_column_runs']}")
     if result.get("difference_runs") is not None:
+        if "difference_run_offset" in result:
+            lines.append(f"difference run offset: {result['difference_run_offset']}")
         lines.append("difference runs: " + json.dumps(result["difference_runs"], ensure_ascii=True))
     if "omitted_difference_runs" in result:
         lines.append(f"omitted difference runs: {result['omitted_difference_runs']}")

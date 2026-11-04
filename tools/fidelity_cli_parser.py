@@ -14,6 +14,7 @@ if __package__:
         tolerance,
         worst_pixel_offset,
         worst_pixel_limit,
+        difference_run_offset,
     )
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import EscapingArgumentParser, positive_int
@@ -27,6 +28,7 @@ else:  # run directly: python3 tools/fidelity.py
         tolerance,
         worst_pixel_offset,
         worst_pixel_limit,
+        difference_run_offset,
     )
 
 
@@ -82,6 +84,9 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--max-difference-runs", type=positive_int("--max-difference-runs"),
                         default=None, metavar="N",
                         help="report at most N horizontal difference runs (requires --difference-runs)")
+    parser.add_argument("--difference-run-offset", type=difference_run_offset,
+                        default=None, metavar="K",
+                        help="skip the first K eligible horizontal difference runs (requires --max-difference-runs)")
     parser.add_argument("--difference-column-runs", action="store_true",
                         help="locate disjoint vertical runs of pixels differing beyond --tolerance")
     parser.add_argument("--min-difference-column-run-length", type=positive_int("--min-difference-column-run-length"),

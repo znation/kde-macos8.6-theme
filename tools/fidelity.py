@@ -34,8 +34,8 @@ from __future__ import annotations
 import sys
 
 
-def _filter_run_report(runs, minimum, maximum, limit):
-    """Apply inclusive length filters and an optional cap to a run report."""
+def _filter_run_report(runs, minimum, maximum, limit, offset=0):
+    """Filter a run report, then page through its eligible records."""
     if minimum is not None:
         runs = [run for run in runs if run["length"] >= minimum]
     if maximum is not None:
@@ -43,7 +43,7 @@ def _filter_run_report(runs, minimum, maximum, limit):
     omitted = None
     if limit is not None:
         eligible_count = len(runs)
-        runs = runs[:limit]
+        runs = runs[offset:offset + limit]
         omitted = eligible_count - len(runs)
     return runs, omitted
 
@@ -97,6 +97,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--max-difference-run-length requires --difference-runs")
     if args.max_difference_runs is not None and not args.difference_runs:
         parser.error("--max-difference-runs requires --difference-runs")
+    if args.difference_run_offset is not None and args.max_difference_runs is None:
+        parser.error("--difference-run-offset requires --max-difference-runs")
     if args.min_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
     if args.max_difference_column_run_length is not None and not args.difference_column_runs:
@@ -147,7 +149,8 @@ def main(argv: list[str] | None = None) -> int:
         if runs is not None:
             runs, omitted_runs = _filter_run_report(
                 runs, args.min_difference_run_length,
-                args.max_difference_run_length, args.max_difference_runs)
+                args.max_difference_run_length, args.max_difference_runs,
+                args.difference_run_offset or 0)
         column_runs = (difference_column_runs(candidate, reference, args.tolerance)
                        if args.difference_column_runs else None)
         column_run_count = (len(column_runs) if column_runs is not None else
@@ -188,6 +191,7 @@ def main(argv: list[str] | None = None) -> int:
                          column_bounds=column_bounds,
                          runs=runs,
                          omitted_difference_runs=omitted_runs,
+                         difference_run_offset=args.difference_run_offset,
                          run_count=run_count,
                          column_run_count=column_run_count,
                          column_runs=column_runs,

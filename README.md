@@ -1225,6 +1225,11 @@ and maximum run-length filters; JSON adds `omitted_difference_runs`, and text pr
 `omitted difference runs: N` immediately after the list, including zero. Run counts, longest-run
 summaries, metrics and the verdict still use the full mismatch data. The cap limits output only:
 segmentation still builds the full run list. Omitting the option adds no report field or line.
+Pass `--difference-run-offset K` with that cap to skip K eligible intervals after both length
+filters, in global row-major order. The offset must be a nonnegative ASCII integer; even zero
+requires the cap. JSON adds `difference_run_offset`, and text prints `difference run offset: K`
+immediately before the interval list. The omitted count includes skipped intervals and eligible
+intervals beyond the page. Paging bounds output only; segmentation still builds the full run list.
 Add `--difference-column-runs` for maximal vertical runs, ordered left-to-right and then
 top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`, `y` and
 `length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent

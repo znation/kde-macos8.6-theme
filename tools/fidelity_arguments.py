@@ -156,3 +156,12 @@ def worst_pixel_offset(value: str) -> int:
             "--worst-pixel-offset must be a nonnegative ASCII integer"
         )
     return int(value)
+
+
+def difference_run_offset(value: str) -> int:
+    """Return a nonnegative ASCII decimal ``--difference-run-offset``."""
+    if not value or not value.isascii() or not value.isdecimal():
+        raise argparse.ArgumentTypeError(
+            "--difference-run-offset must be a nonnegative ASCII integer"
+        )
+    return int(value)
