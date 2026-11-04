@@ -1,7 +1,8 @@
 """Apply or remove the GTK theme selection in the user's config files.
 
-Home resolution, lock ordering and CLI diagnostics belong to
-``tools/apply_gtk.py``. This module owns the config-file workflow once those
+Home resolution and its refusal live in ``tools/xdg_homes.py``; lock
+ordering and CLI diagnostics belong to ``tools/apply_gtk.py``. This module
+owns the config-file workflow once those
 paths and locks are established: checking installed sheets, backing up
 foreign user content, and publishing or removing the selection.
 """

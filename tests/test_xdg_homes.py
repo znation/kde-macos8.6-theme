@@ -99,5 +99,72 @@ class TestConfigHome(unittest.TestCase):
                 self.assertIsNone(xdg_homes.config_home(env))
 
 
+class TestRequireHome(unittest.TestCase):
+    class _Refusal(Exception):
+        pass
+
+    def test_resolved_path_is_returned_unchanged(self):
+        self.assertEqual(
+            Path("/config"),
+            xdg_homes.require_home(
+                Path("/config"), {}, "XDG_CONFIG_HOME", "$HOME/.config", self._Refusal
+            ),
+        )
+
+    def test_unresolvable_refusal_names_both_received_values(self):
+        # The exact wording is the contract the apply-gtk and remove-kvantum
+        # refusals share: each variable's state (unset, empty, or the
+        # received value in shell quoting) and the fallback that could not
+        # be used.
+        cases = [
+            (
+                {},
+                "XDG_CONFIG_HOME is unset and HOME is unset, so the "
+                "$HOME/.config fallback cannot be used; set XDG_CONFIG_HOME "
+                "to an absolute path or export an absolute HOME",
+            ),
+            (
+                {"XDG_CONFIG_HOME": "", "HOME": ""},
+                "XDG_CONFIG_HOME is empty and HOME is empty, so the "
+                "$HOME/.config fallback cannot be used; set XDG_CONFIG_HOME "
+                "to an absolute path or export an absolute HOME",
+            ),
+            (
+                {"XDG_CONFIG_HOME": "relative", "HOME": "home/relative"},
+                "XDG_CONFIG_HOME is not an absolute path ('relative') and "
+                "HOME is not an absolute path ('home/relative'), so the "
+                "$HOME/.config fallback cannot be used; set XDG_CONFIG_HOME "
+                "to an absolute path or export an absolute HOME",
+            ),
+        ]
+        for env, message in cases:
+            with self.subTest(env=env):
+                with self.assertRaises(self._Refusal) as caught:
+                    xdg_homes.require_home(
+                        None,
+                        env,
+                        "XDG_CONFIG_HOME",
+                        "$HOME/.config",
+                        self._Refusal,
+                    )
+                self.assertEqual(message, str(caught.exception))
+
+    def test_unresolvable_data_home_refusal_names_the_data_home_fallback(self):
+        with self.assertRaises(self._Refusal) as caught:
+            xdg_homes.require_home(
+                None,
+                {},
+                "XDG_DATA_HOME",
+                "$HOME/.local/share",
+                self._Refusal,
+            )
+        self.assertEqual(
+            "XDG_DATA_HOME is unset and HOME is unset, so the "
+            "$HOME/.local/share fallback cannot be used; set XDG_DATA_HOME "
+            "to an absolute path or export an absolute HOME",
+            str(caught.exception),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

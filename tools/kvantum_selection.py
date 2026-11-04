@@ -157,34 +157,6 @@ def _config_lock(config_home: Path) -> Iterator[None]:
         yield
 
 
-def _state(env: dict[str, str], variable: str) -> str:
-    """Describe the *variable* value *env* carries, for a refusal message."""
-    if variable not in env:
-        return "unset"
-    if not env[variable]:
-        return "empty"
-    return f"not an absolute path ('{env[variable]}')"
-
-
-def _require_home(
-    path: Path | None, env: dict[str, str], variable: str, fallback: str
-) -> Path:
-    """Return *path*, or refuse naming the values that could not resolve.
-
-    Same diagnostic as :func:`tools.apply_gtk._require_home`, restated here
-    so the Kvantum tool keeps naming ``XDG_CONFIG_HOME`` and ``HOME``
-    identically without importing the whole GTK selection chain.
-    """
-    if path is None:
-        raise ConfigError(
-            f"{variable} is {_state(env, variable)} and HOME is "
-            f"{_state(env, 'HOME')}, so the {fallback} fallback cannot "
-            f"be used; set {variable} to an absolute path or export an "
-            "absolute HOME"
-        )
-    return path
-
-
 def _clear_selection(config_home: Path) -> int:
     """Clear our selection from *config_home*'s Kvantum kvconfig.
 
@@ -243,11 +215,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
 
     try:
-        config_home = _require_home(
+        config_home = xdg_homes.require_home(
             xdg_homes.config_home(os.environ),
             os.environ,
             "XDG_CONFIG_HOME",
             "$HOME/.config",
+            error=ConfigError,
         )
         with _config_lock(config_home):
             status = _clear_selection(config_home)
