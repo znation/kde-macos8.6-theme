@@ -70,9 +70,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             rgb = load_scheme().get("Colors:Selection", "ForegroundNormal")
             color = "#" + "".join(f"{int(part):02X}" for part in rgb.split(","))
             self.assertEqual(color, "#000000")
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], {"color": color})
-            self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_rule_group(dict.fromkeys(selectors, {"color": color}))
         css = gtk_css.strip_comments(self.css)
         selected_rule = css.index(selectors[0] + ",")
         for rule in earlier:
@@ -281,9 +279,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         selectors = (".titlebar:not(headerbar) .subtitle", "headerbar .subtitle")
         self.assert_disabled_text(selectors)
         expected = {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], expected)
-            self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_rule_group(dict.fromkeys(selectors, expected))
 
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))

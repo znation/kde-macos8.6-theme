@@ -7,7 +7,8 @@ assertion all three use and the control rules the two GTK suites both
 satisfy. The Platinum spec values they assert live in the sibling
 ``tests/support/gtk_theme_spec.py``.
 
-:class:`SheetRuleAssertions` holds the rule assertion all three suites use.
+:class:`SheetRuleAssertions` holds the rule assertions all three suites
+use (the single-rule check and the grouped whole-rule check).
 :class:`GtkSheetRuleCases` holds the control assertions the two GTK suites
 share, and :class:`GtkSharedControlCases` holds the control test cases each
 suite runs once against its own parsed sheet (suite-level test classes
@@ -99,7 +100,20 @@ from svg_assertions import rect_geometry
 
 
 class SheetRuleAssertions:
-    """Rule assertion for suites that store the parsed sheet in ``self.rules``."""
+    """Rule assertions for suites that store the parsed sheet in ``self.rules``."""
+
+    def assert_rule_group(self, expected):
+        """Assert every selector in *expected* carries exactly its mapped rule, once.
+
+        For each selector key: the parsed sheet counts it exactly once in
+        ``self.selectors`` (as the mixing suites' ``setUpClass`` parses the
+        selector list) and its whole declaration dictionary equals the mapped
+        value byte-for-byte — the spelling and no extra declarations.
+        """
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assertEqual(self.rules[selector], declarations, selector)
 
     def assert_rule(self, selector, expected):
         """Assert *selector* exists and carries each declaration in *expected*."""

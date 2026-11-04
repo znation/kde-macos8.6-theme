@@ -147,9 +147,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd spinbutton:disabled:not(.vertical)": disabled,
             ".osd entry:disabled": disabled,
         }
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
+        self.assert_rule_group(expected)
         for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
             self.assertEqual(
                 self.rules[".osd entry:focus"][property_name],
@@ -204,9 +202,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd spinbutton.vertical button:first-child:backdrop": vertical(base),
         }
         self.assertEqual(len(expected), 12)
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
+        self.assert_rule_group(expected)
         self.assertEqual(
             {selector for selector in self.rules
              if "spinbutton" in selector and " button" in selector

@@ -128,9 +128,7 @@ class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
         selectors = ("headerbar .subtitle", "windowtitle .subtitle")
         self.assert_disabled_text(selectors)
         expected = {**DISABLED_TEXT, "opacity": "1"}
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], expected)
-            self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_rule_group(dict.fromkeys(selectors, expected))
 
     def test_separator_label_foreground(self):
         selector = "label.separator"
@@ -374,11 +372,7 @@ for radio in (False, True):
             "window.solid-csd:backdrop": solid_backdrop,
             "tooltip.csd": flat,
         }
-        for selector, expected_rule in expected.items():
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, expected_rule)
-                self.assertEqual(self.rules[selector], expected_rule)
-                self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_rule_group(expected)
 
         # The appended tail block is a family bound: every shell top-level
         # selector (a window.-prefixed node selector without descendant
@@ -3071,10 +3065,7 @@ for radio in (False, True):
                 vertical(recipe)
             )
         self.assertEqual(len(expected), 16)
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
-                self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_rule_group(expected)
         # No other `spinbutton … button` spelling exists inside the overlay
         # scope: the scan kills renamed and stray variants alike (the landed
         # entry-field spellings carry no ` button` token).
@@ -3117,9 +3108,7 @@ for radio in (False, True):
             ".osd scale > trough > highlight:disabled": fill,
             ".osd progressbar > trough > progress:disabled": disabled_progress,
         }
-        for selector, recipe in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], recipe)
+        self.assert_rule_group(expected)
         self.assertEqual(
             self.rules[".osd scale > trough > fill"],
             self.rules[".osd scale > trough > highlight"],
@@ -3162,9 +3151,7 @@ for radio in (False, True):
             ".osd scale > trough > slider:active": enabled,
             ".osd scale > trough > slider:disabled": disabled,
         }
-        for selector, recipe in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], recipe)
+        self.assert_rule_group(expected)
         plain_disabled = self.rules["scale > trough > slider:disabled"]
         self.assertEqual(disabled["border"], plain_disabled["border"])
         self.assertEqual(disabled["box-shadow"], plain_disabled["box-shadow"])
@@ -3183,9 +3170,7 @@ for radio in (False, True):
         }
         self.assertEqual(expected[horizontal]["min-height"], PROGRESSBAR_TROUGH["min-height"])
         self.assertEqual(expected[vertical]["min-width"], PROGRESSBAR_TROUGH["min-width"])
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
+        self.assert_rule_group(expected)
 
     def test_progressbar_oriented_trough_thickness(self):
         horizontal = "progressbar.horizontal > trough"
@@ -3196,9 +3181,7 @@ for radio in (False, True):
         }
         self.assertEqual(expected[horizontal]["min-height"], PROGRESSBAR_TROUGH["min-height"])
         self.assertEqual(expected[vertical]["min-width"], PROGRESSBAR_TROUGH["min-width"])
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
+        self.assert_rule_group(expected)
 
     def test_progressbar_directional_corners(self):
         self.assert_rule("progressbar > trough > progress", {"border-radius": "0"})
