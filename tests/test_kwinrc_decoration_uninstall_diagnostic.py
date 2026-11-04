@@ -1,0 +1,515 @@
+"""Makefile tests for the `_uninstall` kwinrc window-decoration theme key.
+
+`make apply` applies the shipped look-and-feel, whose defaults publish
+`[kwinrc][org.kde.kdecoration2]` with `theme=__aurorae__svg__org.macos8.desktop`
+beside `library=org.kde.kwin.aurorae` -- along with the button pair the landed
+kwinrc suites cover. After `make uninstall` removes the aurorae package, that
+theme id names a decoration package that no longer exists, and KWin silently
+falls back on the next start; `_uninstall` prints a diagnostic naming the
+`kwriteconfig6 --delete` reset for the two keys when the last value of `theme`
+trims to exactly that id, without editing the file. The landed pair diagnostic
+stays silent when `library` is missing or foreign, and it remains owned by its
+own module, whose wordings and files this one must not touch (the staged
+case below asserts only the landed wordings, their relative order on stderr
+and the byte identity of the file).
+"""
+
+import os
+import unittest
+
+from support import theme_install
+from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+REMOVAL_GROUP = "org.kde.kdecoration2"
+LIBRARY_KEY = "library"
+THEME_KEY = "theme"
+AURORAE_LIBRARY = "org.kde.kwin.aurorae"
+AURORAE_THEME = "__aurorae__svg__org.macos8.desktop"
+
+
+def rule_for(path):
+    """The expected diagnostic line naming *path* (the wording is the contract)."""
+    return (
+        "uninstall: the window-decoration selection still names "
+        f"{AURORAE_THEME} after removal in {path}; KWin cannot load the "
+        "removed window decoration and keeps the default style. Reset it "
+        "with: kwriteconfig6 --file kwinrc --group "
+        f"{REMOVAL_GROUP} --key {THEME_KEY} --delete && kwriteconfig6 "
+        f"--file kwinrc --group {REMOVAL_GROUP} --key {LIBRARY_KEY} --delete"
+    )
+
+
+def BUTTON_RULE(path):
+    """The landed button-layout diagnostic's line (wording owned by that suite)."""
+    return (
+        "uninstall: the window-button layout [ButtonsOnLeft=X, "
+        f"ButtonsOnRight=AL] that make apply wrote is still in {path}; KWin "
+        "keeps that layout under the default decoration after removal. Reset "
+        "it with: kwriteconfig6 --file kwinrc --group "
+        f"{REMOVAL_GROUP} --key ButtonsOnLeft --delete && kwriteconfig6 --file "
+        f"kwinrc --group {REMOVAL_GROUP} --key ButtonsOnRight --delete"
+    )
+
+
+def AURORAE_PAIR_RULE(path):
+    """The landed pair diagnostic's line (wording owned by that suite)."""
+    return (
+        "uninstall: the window-decoration selection "
+        f"[{LIBRARY_KEY}={AURORAE_LIBRARY}, {THEME_KEY}={AURORAE_THEME}] "
+        f"that the look-and-feel apply wrote is still in {path}; KWin cannot "
+        "load the removed aurorae package and keeps a default window "
+        "decoration. Reset it with: kwriteconfig6 --file kwinrc --group "
+        f"{REMOVAL_GROUP} --key {LIBRARY_KEY} --delete && kwriteconfig6 "
+        f"--file kwinrc --group {REMOVAL_GROUP} --key {THEME_KEY} --delete"
+    )
+
+
+def read_bytes(path):
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def write_kwinrc(config, body):
+    """Write *body* as `<config>/kwinrc`; return its path."""
+    path = os.path.join(config, "kwinrc")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
+    return path
+
+
+class TestKwinrcDecorationUninstallDiagnostic(unittest.TestCase):
+    """`make _uninstall` names the two-key reset while the theme id is ours."""
+
+    def uninstall_with_config(self, tmp, config, env=None):
+        return theme_install.uninstall_recipe(
+            tmp,
+            extra=(),
+            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
+        )
+
+    def test_warns_and_names_the_reset_for_the_theme_key(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertNotIn(BUTTON_RULE(path), result.stderr)
+        self.assertNotIn(AURORAE_PAIR_RULE(path), result.stderr)
+        # A diagnostic must not edit the user's kwinrc.
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_with_the_landed_keys_staged_beside(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_the_value_only_trims_to_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "  [" + REMOVAL_GROUP + "]  \n "
+            + THEME_KEY
+            + " =  "
+            + AURORAE_THEME
+            + "\t\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
+        # Editors add BOMs and CRLF endings; the scanner strips the first
+        # line's BOM and trims every line, so the selection stays visible.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "\ufeff[" + REMOVAL_GROUP + "]\r\n; a comment\r\n# another\r\n"
+            + "  "
+            + THEME_KEY
+            + " = "
+            + AURORAE_THEME
+            + "  \r\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_an_earlier_foreign_theme_precedes_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + THEME_KEY
+            + "=KvArc\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warned_when_a_later_duplicate_theme_renames_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n"
+            + THEME_KEY
+            + "=KvArc\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_warns_when_the_library_key_is_missing_or_foreign(self):
+        # The landed pair diagnostic names both keys, so these shapes belong
+        # to this read: the decoration id survives through `theme` alone.
+        for body in (
+            "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n",
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "=org.kde.kwin.oxygen\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n",
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "=foo\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                path = write_kwinrc(config, body)
+                original = read_bytes(path)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertIn(rule_for(path), result.stderr)
+                self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_there_is_no_kwinrc(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn("window-decoration", result.stderr)
+
+    def test_silent_when_the_path_is_a_directory(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(os.path.join(config, "kwinrc"))
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn("window-decoration", result.stderr)
+
+    def test_silent_without_a_decoration_group(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config, "[Other]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn("window-decoration", result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_the_group_holds_no_theme_key(self):
+        for body in (
+            "[" + REMOVAL_GROUP + "]\n",
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n",
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
+            "[" + REMOVAL_GROUP + "]\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
+        ):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                path = write_kwinrc(config, body)
+                original = read_bytes(path)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn("window-decoration", result.stderr)
+                self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_the_theme_value_is_foreign(self):
+        for value in ("__aurorae__svg__somethingelse", "Breeze"):
+            with self.subTest(value=value):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                path = write_kwinrc(
+                    config,
+                    "["
+                    + REMOVAL_GROUP
+                    + "]\n"
+                    + LIBRARY_KEY
+                    + "="
+                    + AURORAE_LIBRARY
+                    + "\n"
+                    + THEME_KEY
+                    + "="
+                    + value
+                    + "\n",
+                )
+                original = read_bytes(path)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                # The landed pair diagnostic still fires on its own pair; this
+                # suite only forbids its own line.
+                self.assertNotIn(rule_for(path), result.stderr)
+                self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_the_theme_value_is_empty(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n"
+            + THEME_KEY
+            + "=\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_a_later_foreign_duplicate_overrides_ours(self):
+        # The scanner takes the last duplicate's value, as the other
+        # diagnostics already do.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n"
+            + THEME_KEY
+            + "=KvArc\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_silent_when_the_key_sits_in_another_group(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "["
+            + REMOVAL_GROUP
+            + "]\n"
+            + LIBRARY_KEY
+            + "="
+            + AURORAE_LIBRARY
+            + "\n[Other]\n"
+            + THEME_KEY
+            + "="
+            + AURORAE_THEME
+            + "\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn("window-decoration", result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
+        # Like the other diagnostics, the guard ignores an unset or
+        # relative XDG_CONFIG_HOME and reads `$HOME/.config`.
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_kwinrc(
+            config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+
+        result = theme_install.uninstall_recipe(
+            str(make_tmp_dir(self)), extra=(), env=env
+        )
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_kwinrc(
+            config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+        env["XDG_CONFIG_HOME"] = "relative/config"
+
+        result = theme_install.uninstall_recipe(
+            str(make_tmp_dir(self)), extra=(), env=env
+        )
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path), result.stderr)
+
+    def test_without_a_config_home_nothing_is_checked(self):
+        tmp = str(make_tmp_dir(self))
+        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
+
+        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertNotIn("window-decoration", result.stderr)
+
+    def test_all_kwinrc_diagnostics_share_one_run_in_recipe_order(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_kwinrc(
+            config,
+            "[" + REMOVAL_GROUP + "]\n"
+            "library=org.kde.kwin.aurorae\n"
+            "theme=__aurorae__svg__org.macos8.desktop\n"
+            "ButtonsOnLeft=X\n"
+            "ButtonsOnRight=AL\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        button_at = result.stderr.find(BUTTON_RULE(path))
+        pair_at = result.stderr.find(AURORAE_PAIR_RULE(path))
+        theme_at = result.stderr.find(rule_for(path))
+        self.assertGreaterEqual(button_at, 0)
+        self.assertGreaterEqual(pair_at, 0)
+        self.assertGreaterEqual(theme_at, 0)
+        self.assertLess(button_at, pair_at)
+        self.assertLess(pair_at, theme_at)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_make_n_uninstall_still_parses(self):
+        # The scanner's recipe is pinned by drying the internal recipe
+        # directly; the added block must leave the recipe parseable with
+        # the two-key reset present in the dried output.
+        result = theme_install.run_make(
+            ["-n", "_uninstall"], env=theme_install.make_env()
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn(AURORAE_THEME, result.stdout)
+        self.assertIn("--key theme --delete", result.stdout)
+        self.assertIn("--key library --delete", result.stdout)
+        self.assertIn("window-decoration", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

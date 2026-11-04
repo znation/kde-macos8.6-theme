@@ -939,6 +939,37 @@ _uninstall:
 # `__aurorae__svg__$(AURORAE_ID)` -- together the pair the shipped defaults
 # publish; the pair must be kept in step with that defaults file. As
 # before, this is a diagnostic only -- it must not edit the file.
+#
+# `make apply` leaves the window decoration's theme id alone in
+# `$XDG_CONFIG_HOME/kwinrc`, too: the same look-and-feel defaults publish
+# `theme=__aurorae__svg__$(AURORAE_ID)` beside the `library` key above, and
+# a kwinrc whose `library` value is missing or foreign -- a shape the pair
+# diagnostic above stays silent on, because it prints only when both keys
+# name ours -- can still name the removed decoration package through
+# `theme` alone. After `make uninstall` removes the aurorae package, that
+# id resolves to nothing and KWin silently falls back on the next start.
+# The reset deletes exactly the two keys the look-and-feel apply wrote:
+# `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
+# --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2
+# --key library --delete` reverts KWin to the keys' absence, where it
+# draws its built-in default window decoration, rather than editing any
+# foreign value, the same `--delete` ground the pair diagnostic records.
+# As prose grounded against the upstream KWin window-decoration sources
+# the project reads for its aurorae engine (never test-asserted, and no
+# reference screenshot shows an uninstall warning to sample it from): a
+# start whose group holds neither key draws the built-in default window
+# decoration, and a start with `library=org.kde.kwin.aurorae` standing but
+# no resolvable `theme` falls back the same way. The file is read the same
+# way as the pair diagnostic above reads it: the first line's UTF-8 BOM is
+# stripped, each line is trimmed before parsing, a trimmed `[`...`]` line
+# switches the section, `#`/`;` lines are comments and never keys, the
+# key/value pair splits at the first `=` with both sides trimmed, and a
+# later duplicate's value wins. The diagnostic prints once, only when
+# inside `[org.kde.kdecoration2]` the last value of `theme` trims to
+# exactly `__aurorae__svg__$(AURORAE_ID)`; it stays silent for a foreign
+# id, an empty value, and a group holding only `library` or the button
+# keys above. As before, this is a diagnostic only -- it must not edit
+# the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -978,6 +1009,9 @@ if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\27
 fi; \
 if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "library") declib=value; if (key == "theme") dectheme=value } } END { exit declib == "org.kde.kwin.aurorae" && dectheme == "__aurorae__svg__$(AURORAE_ID)" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
 	  echo "uninstall: the window-decoration selection [library=org.kde.kwin.aurorae, theme=__aurorae__svg__$(AURORAE_ID)] that the look-and-feel apply wrote is still in $$kwinrc; KWin cannot load the removed aurorae package and keeps a default window decoration. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme --delete" >&2; \
+fi; \
+if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "theme") dectheme=value } } END { exit dectheme == "__aurorae__svg__$(AURORAE_ID)" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
+	  echo "uninstall: the window-decoration selection still names __aurorae__svg__$(AURORAE_ID) after removal in $$kwinrc; KWin cannot load the removed window decoration and keeps the default style. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library --delete" >&2; \
 fi
 
 install-gtk:

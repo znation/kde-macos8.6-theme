@@ -13,6 +13,10 @@ kwinrc button-layout diagnostic sits beside, so that suite keeps its own
 exact wordings and this module must not touch them or their files (the
 both-diagnostics staged case only asserts the landed wording and its
 position before this one on stderr).
+The window-decoration theme key also carries its own later diagnostic,
+whose line fires even when this pair stays silent; the silent shapes below
+pin *this pair's* line rather than the whole `window-decoration` family,
+so the floor it tested still holds unchanged.
 """
 
 import os
@@ -261,12 +265,14 @@ class TestKwinrcAuroraeUninstallDiagnostic(unittest.TestCase):
             with self.subTest(body=body):
                 tmp = str(make_tmp_dir(self))
                 config = os.path.join(tmp, "config")
-                write_kwinrc(config, body)
+                path = write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
 
                 assert_succeeded(self, result)
-                self.assertNotIn("window-decoration", result.stderr)
+                # The theme key alone warns from the later theme-key
+                # diagnostic's own line; this suite pins its pair's silence.
+                self.assertNotIn(rule_for(path), result.stderr)
 
     def test_silent_when_one_key_holds_a_foreign_value(self):
         for body in (
@@ -292,12 +298,14 @@ class TestKwinrcAuroraeUninstallDiagnostic(unittest.TestCase):
             with self.subTest(body=body):
                 tmp = str(make_tmp_dir(self))
                 config = os.path.join(tmp, "config")
-                write_kwinrc(config, body)
+                path = write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
 
                 assert_succeeded(self, result)
-                self.assertNotIn("window-decoration", result.stderr)
+                # A foreign library leaves the pair silent but lets the
+                # theme-key diagnostic warn on its own line (the pair rule).
+                self.assertNotIn(rule_for(path), result.stderr)
 
     def test_silent_when_either_value_is_empty(self):
         for body in (
@@ -307,12 +315,15 @@ class TestKwinrcAuroraeUninstallDiagnostic(unittest.TestCase):
             with self.subTest(body=body):
                 tmp = str(make_tmp_dir(self))
                 config = os.path.join(tmp, "config")
-                write_kwinrc(config, body)
+                path = write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
 
                 assert_succeeded(self, result)
-                self.assertNotIn("window-decoration", result.stderr)
+                # An empty value leaves the pair silent; with the empty
+                # library under a named theme, the theme-key diagnostic
+                # warns on its own line (the pair rule).
+                self.assertNotIn(rule_for(path), result.stderr)
 
     def test_silent_when_a_later_foreign_duplicate_overrides_ours(self):
         # The scanner takes the last duplicate's value, as the other

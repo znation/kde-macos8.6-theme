@@ -309,7 +309,24 @@ fallback claim -- what KWin draws when the `__aurorae__svg__` package name
 cannot resolve inside the Aurorae engine -- is grounded against the
 upstream KWin window-decoration sources the project reads for its aurorae
 engine; the reference screenshots show no uninstall warning to sample it
-from). No such warning edits the user's configuration.
+from); and if the window-decoration theme key alone -- the
+`theme=__aurorae__svg__org.macos8.desktop` value in
+`[kwinrc][org.kde.kdecoration2]`, even when `library` is missing or foreign,
+a shape the pair diagnostic above stays silent on -- still names the removed
+decoration package after the uninstall, it prints a warning naming the
+reset `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
+--delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key
+library --delete`, which deletes exactly the two keys the look-and-feel
+apply wrote and reverts KWin to the keys' absence, where it draws its
+built-in default window decoration (the `--delete` reset is the same
+grounded `kwriteconfig6` platform-required value as the pair's, and the
+fallback claims -- that a start whose group holds neither key draws the
+built-in default window decoration and that a start with `library` set but
+no resolvable `theme` falls back the same way -- are recorded as prose,
+never test-asserted, grounded against the upstream KWin window-decoration
+sources the project reads for its aurorae engine; the reference screenshots
+show no uninstall warning to sample it from). No such warning edits the
+user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
 excepted) is refused at parse time, before any recipe runs and unechoed;
