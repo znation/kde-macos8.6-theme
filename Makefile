@@ -913,6 +913,32 @@ _uninstall:
 # -- the `X`/`AL` literals below must be kept in step with
 # `tools/apply_theme.py::DECORATION_BUTTONS`. As before, this is a
 # diagnostic only -- it must not edit the file.
+#
+# `make apply` also installs the window decoration through the global
+# theme: `lookandfeeltool -a` applies the shipped look-and-feel, whose
+# defaults (`theme/look-and-feel/$(LNF_ID)/contents/defaults`) publish the
+# `[kwinrc][org.kde.kdecoration2]` group `library=org.kde.kwin.aurorae` and
+# `theme=__aurorae__svg__$(AURORAE_ID)` beside the button layout above -- the
+# Aurorae plugin library and the Aurorae package id KWin resolves the window
+# decoration through. After `make uninstall` removes the aurorae package,
+# those two keys remain and KWin cannot resolve the `__aurorae__svg__`
+# package name inside that library, so KWin keeps drawing its built-in
+# default window decoration. The reset deletes exactly the two keys the
+# look-and-feel apply wrote: `kwriteconfig6 --file kwinrc --group
+# org.kde.kdecoration2 --key library --delete && kwriteconfig6 --file
+# kwinrc --group org.kde.kdecoration2 --key theme --delete` reverts KWin to
+# the keys' absence rather than editing any foreign value, the same
+# `--delete` ground the button-layout diagnostic records. The file is read
+# the same way as the other five: the first line's UTF-8 BOM is stripped,
+# each line is trimmed before parsing, a trimmed `[`...`]` line switches the
+# section, `#`/`;` lines are comments and never keys, the key/value pair
+# splits at the first `=` with both sides trimmed, and a later duplicate's
+# value wins. The diagnostic prints once, only when inside
+# `[org.kde.kdecoration2]` the last value of `library` trims to exactly
+# `org.kde.kwin.aurorae` AND the last value of `theme` trims to exactly
+# `__aurorae__svg__$(AURORAE_ID)` -- together the pair the shipped defaults
+# publish; the pair must be kept in step with that defaults file. As
+# before, this is a diagnostic only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -949,6 +975,9 @@ fi; \
 kwinrc="$$config_home/kwinrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "ButtonsOnLeft") left=value; if (key == "ButtonsOnRight") right=value } } END { exit left == "X" && right == "AL" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
 	  echo "uninstall: the window-button layout [ButtonsOnLeft=X, ButtonsOnRight=AL] that make apply wrote is still in $$kwinrc; KWin keeps that layout under the default decoration after removal. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight --delete" >&2; \
+fi; \
+if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "library") declib=value; if (key == "theme") dectheme=value } } END { exit declib == "org.kde.kwin.aurorae" && dectheme == "__aurorae__svg__$(AURORAE_ID)" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
+	  echo "uninstall: the window-decoration selection [library=org.kde.kwin.aurorae, theme=__aurorae__svg__$(AURORAE_ID)] that the look-and-feel apply wrote is still in $$kwinrc; KWin cannot load the removed aurorae package and keeps a default window decoration. Reset it with: kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme --delete" >&2; \
 fi
 
 install-gtk:

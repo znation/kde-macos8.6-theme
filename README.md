@@ -293,8 +293,23 @@ org.kde.kdecoration2 --key ButtonsOnRight --delete`, which deletes exactly
 the two keys the apply wrote and reverts the layout to the keys' absence,
 where KWin draws its built-in default decoration (`kwriteconfig6`'s
 documented `--delete` option is the grounded platform-required value; the
-reference screenshots show no uninstall warning to sample it from). No such
-warning edits the user's configuration.
+reference screenshots show no uninstall warning to sample it from); and if
+the window-decoration selection the look-and-feel apply wrote
+(`[kwinrc][org.kde.kdecoration2] library=org.kde.kwin.aurorae` and
+`theme=__aurorae__svg__org.macos8.desktop`, the Aurorae package id KWin
+resolves the window decoration through under that plugin library) is still
+there after the uninstall, it prints a warning naming the reset
+`kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
+--delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key
+theme --delete`, which deletes exactly the two keys the apply wrote and
+reverts KWin to the keys' absence, where it draws its built-in default
+window decoration (the `--delete` reset is the same grounded
+`kwriteconfig6` platform-required value as the button layout's, and the
+fallback claim -- what KWin draws when the `__aurorae__svg__` package name
+cannot resolve inside the Aurorae engine -- is grounded against the
+upstream KWin window-decoration sources the project reads for its aurorae
+engine; the reference screenshots show no uninstall warning to sample it
+from). No such warning edits the user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
 excepted) is refused at parse time, before any recipe runs and unechoed;
