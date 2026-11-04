@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A stale `_None yet._` placeholder in PLANS.md's `## Planned` claims the section is empty above two live plans (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
+
+**Symptom.** `PLANS.md ## Planned` opened with `_None yet._` even while it held two live
+plans (the inactive-window decoration plan and the remove-kvantum plan). The files are prose,
+so the full check stayed green while triage read a section that contradicted itself: an empty
+`## Planned` and two entries below it.
+
+**How to reproduce.**
+`python3 -m unittest discover -s tests -p "test_backlog_placeholders.py"` — without the
+PLANS.md edit its
+`test_plans_sections_placeholders_match_their_entries` fails with
+`AssertionError: [(10, '## Planned')] != []`; with it the module exits 0.
+
+**Fix.** Removed the stale placeholder from PLANS.md and added
+tests/test_backlog_placeholders.py, which scans PLANS.md and BUGS.md so a `_None yet._`
+placeholder under a `##` heading holding at least one `###` entry fails; synthetic fixtures
+pin the scanner's branches (placeholder in an empty section, entries without a placeholder,
+report naming the placeholder's own section, placeholders before any section).
+
+**Validation gap:** no-observability — the stale placeholder left no trace in any test, so
+confirming the regression required a new backlog-scanner test rather than an existing run.
+
 ### PLANS.md claims `## Planned` is empty while it holds a planned entry (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
 
 **Symptom.** PLANS.md's `## Planned` section carried the `_None yet._` empty-section
