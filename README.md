@@ -875,6 +875,14 @@ only the reported list and combines with the minimum cutoff; contradictory
 cutoffs produce an empty list while match counts and longest-run diagnostics
 still cover the full search.
 
+Add `--max-match-column-runs N` with `--match-column-runs` to report only the
+first `N` eligible vertical intervals in column-major order, after both
+inclusive length filters. JSON adds `match.omitted_column_runs`; text prints
+`omitted matching column runs: N` immediately after the list, including zero.
+Counts, longest-run summaries and other search measurements still cover the
+full region. The cap bounds reported output; interval collection still retains
+the full list.
+
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the
 same array on a `matching rows:` line after interval reports. Index zero is the

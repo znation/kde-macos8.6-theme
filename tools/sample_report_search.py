@@ -85,6 +85,11 @@ def _search_match(args, image) -> dict:
     if args.max_match_column_run_length is not None:
         matched_column_runs = [run for run in matched_column_runs
                                if run["length"] <= args.max_match_column_run_length]
+    omitted_column_runs = None
+    if getattr(args, "max_match_column_runs", None) is not None:
+        eligible_column_count = len(matched_column_runs)
+        matched_column_runs = matched_column_runs[:args.max_match_column_runs]
+        omitted_column_runs = eligible_column_count - len(matched_column_runs)
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
     return {"rgb": list(target), "hex": _hex(target), "count": count,
@@ -101,6 +106,8 @@ def _search_match(args, image) -> dict:
             **({"run_count": intervals.run_count} if args.match_run_count else {}),
             **({"longest_run": intervals.longest_run} if args.longest_match_run else {}),
             **({"column_runs": matched_column_runs} if args.match_column_runs else {}),
+            **({"omitted_column_runs": omitted_column_runs}
+               if omitted_column_runs is not None else {}),
             **({"column_run_count": intervals.column_run_count}
                if args.match_column_run_count else {}),
             **({"longest_column_run": intervals.longest_column_run}
@@ -157,6 +164,8 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
         print(f"matching column run count: {match['column_run_count']}")
     if args.match_column_runs:
         print(f"matching column runs: {json.dumps(match['column_runs'], separators=(',', ':'))}")
+        if "omitted_column_runs" in match:
+            print(f"omitted matching column runs: {match['omitted_column_runs']}")
     if args.match_rows:
         print(f"matching rows: {json.dumps(match['rows'], separators=(',', ':'))}")
     if args.match_columns:

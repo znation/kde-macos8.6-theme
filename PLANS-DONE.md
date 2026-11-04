@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal.** Bound noisy `--find-color --match-column-runs` output while retaining full-region measurements. Source and archive-heading searches found vertical length filters and counts, and horizontal output caps, but no vertical color-match interval cap. This complements the preceding horizontal-cap entry and can merge independently: the vertical filter and report blocks already exist.
+
+**Approach and files.** In `tools/sample_arguments.py::build_parser`, add optional `--max-match-column-runs N`, default None, using `positive_int`; `option_error` requires `--match-column-runs`. In `tools/sample_report_search.py::_search_match`, slice the completed column-major list after both inclusive vertical length filters and add `match.omitted_column_runs` (eligible count minus emitted count) when the cap is explicit, including zero. In `report_search`, print `omitted matching column runs: N` immediately after the vertical list. Keep `tools/sample_match_runs.py::_MatchRuns` unchanged: its count and longest summary precede report filtering, and `finish` sorts by `(x,y)`. This bounds output, not segmentation memory. Add `tests/test_sample_match_column_runs_limit.py` using `CliTestCase` and the generated PNG pattern in `TestSampleMatchColumnRunsMaxLength`; document the flag beside vertical filters in README.md and extend the vertical-filter tooling row in docs/invariants.md. These five changed files constitute one run; pagination and collector optimization are outside this plan.
+
+**Acceptance criteria.** Implemented with full-count/list separation, post-filter cap, text and JSON omitted counts, invalid-option handling, direct-script parity, usage documentation, and invariant coverage. The project check is run after this move.
+
 ### Reference-pixel sampler: cap the horizontal color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal and grounding.** Keep noisy `--find-color --match-runs` searches readable by bounding the displayed interval list. Searches of source, Planned entries and finished-plan headings found length filters, coordinate pagination and scanline color-run caps, but no horizontal color-match interval count cap. This is independent of the waiting fidelity vertical-cap plan: it changes the sampler's parser and report, not the fidelity tool.
