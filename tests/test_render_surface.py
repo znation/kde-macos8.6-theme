@@ -1075,7 +1075,7 @@ class TestRenderBudgets(unittest.TestCase):
         flags = dict((kind, flags) for kind, flags, _ in _Renders.KINDS)["gtk"]
         self.assertIn("--settle", flags)
         settle = flags[flags.index("--settle") + 1]
-        self.assertEqual("20", settle)
+        self.assertEqual(settle, "20")
 
 
 class _DialogGate:
