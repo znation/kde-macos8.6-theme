@@ -16,6 +16,23 @@ else:  # run directly: python3 tools/sample.py
     )
 
 
+def _palette_filters_requested(args) -> bool:
+    """Return whether any optional palette filter limits the emitted colors.
+
+    The histogram MQA is shared by callers whose namespace carries only the
+    attributes their report asked for, so every attribute beyond the parser's
+    own ``top_colors`` is read tolerantly.
+    """
+    return (args.top_colors is not None
+            or getattr(args, "color_offset", None) is not None
+            or getattr(args, "min_color_count", None) is not None
+            or getattr(args, "max_color_count", None) is not None
+            or getattr(args, "min_color_fraction", None) is not None
+            or getattr(args, "max_color_fraction", None) is not None
+            or getattr(args, "exclude_colors", None)
+            or getattr(args, "include_colors", None))
+
+
 def _histogram_spatial_fields(args, image, colors):
     """Collect requested absolute positions, centroids and bounds for emitted colors."""
     fields = {color: {} for color, _ in colors}
@@ -92,8 +109,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
     excluded = {tuple(color) for color in (getattr(args, "exclude_colors", None) or ())}
     included = {tuple(color) for color in (getattr(args, "include_colors", None) or ())}
     color_offset = getattr(args, "color_offset", None)
-    if (args.top_colors is not None or color_offset is not None or min_color_count is not None or max_color_count is not None or min_color_fraction is not None or max_color_fraction is not None
-            or excluded or included):
+    if _palette_filters_requested(args):
         total_colors = len(counts)
         candidates = counts.items()
         if included:
@@ -150,13 +166,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         result["column_color_counts"] = column_counts
     if color_offset is not None:
         result["color_offset"] = color_offset
-    if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
-            or getattr(args, "max_color_count", None) is not None
-            or getattr(args, "min_color_fraction", None) is not None
-            or getattr(args, "max_color_fraction", None) is not None
-            or color_offset is not None
-            or getattr(args, "exclude_colors", None)
-            or getattr(args, "include_colors", None)):
+    if _palette_filters_requested(args):
         result["total_colors"] = total_colors
         result["omitted_pixels"] = omitted_pixels
     return result
@@ -193,12 +203,6 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
         print(f"row color counts: {json.dumps(result['row_color_counts'], separators=(',', ':'))}")
     if "column_color_counts" in result:
         print(f"column color counts: {json.dumps(result['column_color_counts'], separators=(',', ':'))}")
-    if (args.top_colors is not None or getattr(args, "min_color_count", None) is not None
-            or getattr(args, "max_color_count", None) is not None
-            or getattr(args, "min_color_fraction", None) is not None
-            or getattr(args, "max_color_fraction", None) is not None
-            or getattr(args, "color_offset", None) is not None
-            or getattr(args, "exclude_colors", None)
-            or getattr(args, "include_colors", None)):
+    if _palette_filters_requested(args):
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")
