@@ -509,6 +509,7 @@ help:
 	@echo "  CHECK_PARALLEL=n    parallel worker count for check (default: one per core); 0 runs the modules serially"
 	@echo "  PYTHON=path         Python 3.10+ interpreter for every target that runs Python (default python3)"
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
+	@echo "  RENDER_MODE=name   render surface: calculator, checkbox-dialog, combobox-dialog, menu-dialog or gtk-dialog (default calculator)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
@@ -533,10 +534,21 @@ check-references:
 # validates and dispatches the render to tools/render_workflow.py, and exits 2
 # when a required tool is missing.
 RENDER_OUTPUT ?= render.png
+RENDER_MODE ?= calculator
 
 render:
 	@$(call require_python_ready,render)
-	$(PYTHON) tools/render_surface.py -- "$(RENDER_OUTPUT)"
+	@set -f; set -- $${RENDER_MODE-calculator}; \
+	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, menu-dialog or gtk-dialog" >&2; exit 2 ;; esac; \
+	case "$$1" in \
+	  calculator) set -- ;; \
+	  checkbox-dialog) set -- --checkbox-dialog ;; \
+	  combobox-dialog) set -- --combobox-dialog ;; \
+	  menu-dialog) set -- --menu-dialog ;; \
+	  gtk-dialog) set -- --gtk-dialog ;; \
+	  *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, menu-dialog or gtk-dialog" >&2; exit 2 ;; \
+	esac; \
+	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"
 
 # Apply the just-built theme everywhere it reaches. `install` runs as a
 # sub-make so this reuses its guards and lock. A non-empty DESTDIR is refused

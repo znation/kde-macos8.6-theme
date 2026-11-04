@@ -715,7 +715,7 @@ class TestFailurePaths(StubTools):
             text=True,
             timeout=60,
         )
-        self.assertIn('render_surface.py -- "-x.png"', result.stdout)
+        self.assertIn('render_surface.py "$@" -- "-x.png"', result.stdout)
 
     def test_session_receives_the_geometry_and_the_themed_configs(self):
         record = self.root / "args"

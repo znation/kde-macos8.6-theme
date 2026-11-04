@@ -340,6 +340,7 @@ Capture the default calculator or one of the four widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
+make render RENDER_MODE=gtk-dialog RENDER_OUTPUT=gtk.png
 python3 tools/render_surface.py checkbox.png --checkbox-dialog
 python3 tools/render_surface.py combobox.png --combobox-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
@@ -347,8 +348,9 @@ python3 tools/render_surface.py gtk.png --gtk-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
-the direct Python commands select dialog modes. The calculator capture defaults to 320x240;
-each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
+set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `menu-dialog` or
+`gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
+capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
 [Prerequisites](#prerequisites) for the other rendering tools. To compare a candidate PNG with
@@ -1020,10 +1022,13 @@ Capture the default Plasma calculator with `make render`, setting its output pat
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
+make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
-The Make target passes only the output path. Use the Python CLI directly for dialog captures;
-each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
+The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
+the four dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+require `kdialog` for checkbox, combo box and menu or `zenity` for GTK. Direct Python commands
+remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
 non-default `--applet`:
 
 | Surface | Command | Image size |
