@@ -1622,6 +1622,38 @@ for radio in (False, True):
                 "notebook > header > tabs > tab button.flat:disabled"),
         )
 
+    def test_needs_attention_badges(self):
+        """Needs-attention labels and images keep no stock accent pulse."""
+        spellings = (
+            "stacksidebar row.needs-attention > label",
+            "stackswitcher > button.needs-attention > label",
+            "stackswitcher > button.needs-attention > image",
+        )
+        for selector in spellings:
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    self.rules[selector],
+                    {"animation": "none", "background-image": "none"},
+                )
+                self.assertEqual(self.selectors.count(selector), 1)
+        # Source order: the restated group sits after the landed row-focus
+        # outline rule and before the landed tab-close block.
+        self.assertGreater(
+            self.selectors.index("stacksidebar row.needs-attention > label"),
+            self.selectors.index("row:focus:focus-visible"),
+        )
+        self.assertLess(
+            self.selectors.index("stacksidebar row.needs-attention > label"),
+            self.selectors.index("notebook > header > tabs > tab button.flat"),
+        )
+        # The restated spellings are the only needs-attention arms the sheet
+        # declares: the scan kills renamed and stray variants.
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "needs-attention" in selector},
+            set(spellings),
+        )
+
     def test_header_drop_indicator(self):
         expected = {
             "background-color": SELECTION,
