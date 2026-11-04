@@ -249,6 +249,49 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         self.assertTrue((self.root / "read.log").exists())
         self.assertTrue((self.root / "read.stderr.log").exists())
 
+    def test_a_nonempty_unreadable_stderr_log_reports_the_unreadable_tail(self):
+        """A failure's stderr content that cannot be opened stays visible as lost."""
+
+        def fail(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"recorded")
+            stderr_log.write_bytes(b"secret diagnostics\n")
+            os.chmod(stderr_log, 0)  # the owner cannot read the stderr back
+            return 3
+
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=fail
+        ):
+            value, status, stderr = self.run_output()
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("a_tool: error: slowcmd exited 3", stderr)
+        # The chosen log is the unreadable one, and its lost tail is said so:
+        # no traceback, and never the stdout value in its place.
+        self.assertIn("log could not be read:", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertNotIn("recorded", stderr)
+
+    def test_a_stderr_log_gone_from_disk_falls_back_to_the_stdout_tail(self):
+        """A log swept away mid-run cannot abort failure triage with a traceback."""
+
+        def fail(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"partial\n")
+            stderr_log.write_bytes(b"")
+            stderr_log.unlink()  # removed while the command still ran
+            return 3
+
+        with mock.patch.object(
+            required_command, "run_logged_split", side_effect=fail
+        ):
+            value, status, stderr = self.run_output()
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("a_tool: error: slowcmd exited 3", stderr)
+        # The fallback names the surviving stdout log's tail; without the
+        # OSError guard the vanished stderr log would traceback instead.
+        self.assertIn("\n  partial\n", stderr)
+        self.assertNotIn("Traceback", stderr)
+
     def test_runs_where_asked_with_the_given_environment(self):
         def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
             stdout_log.write_bytes(b"recorded")
