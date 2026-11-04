@@ -347,7 +347,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk apply-cursor remove-cursor install-firefox remove-firefox remove-kvantum check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -495,6 +495,7 @@ help:
 	@echo "  install-gtk       install only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select only the GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
+	@echo "  remove-kvantum    clear the Kvantum widget-theme selection make apply published"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
@@ -627,6 +628,15 @@ install-firefox:
 remove-firefox:
 	@$(call require_python_ready,remove-firefox)
 	$(PYTHON) tools/install_firefox.py --remove $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
+
+# Clear only the Kvantum selection `make apply` published
+# (`kvantummanager --set org.macos8.desktop`, stored as `[General] theme=` in
+# $XDG_CONFIG_HOME/Kvantum/kvantum.kvconfig); a foreign theme name and the
+# rest of the file are left untouched, and nothing is created when the
+# selection is not ours.
+remove-kvantum:
+	@$(call require_python_ready,remove-kvantum)
+	$(PYTHON) tools/kvantum_selection.py
 
 # Write a local-only post-commit hook (this clone's git hooks directory, never
 # committed) so every commit re-runs `make apply`. tools/local_hook.py refuses
@@ -828,6 +838,19 @@ _uninstall:
 # theme. The marked gtk.css is recognized by its literal marker comment
 # anywhere in the file. As with kdeglobals, this is a diagnostic only -- it
 # must not edit the user's config files.
+#
+# `make apply` also points the Kvantum engine at this theme (`kvantummanager
+# --set` when it reaches the running user's config home), stored as a
+# `[General] theme=$(KVANTUM_ID)` line in `$XDG_CONFIG_HOME/Kvantum/kvantum.kvconfig`;
+# the reset is `make remove-kvantum`, which clears only that `[General]`
+# `theme` line. The kvconfig is read the same way (through
+# `tools/kvantum_selection.py`, over the same `tools/gtk_settings.py`
+# scanner): the first line's UTF-8 BOM is stripped, each line is trimmed
+# before parsing, a header switches the section to its bracketed name, a
+# comment lines carries `#` or `;` first and is never a key, and a `theme`
+# in `[General]` whose value trims to exactly the theme id still names our
+# theme, with a later duplicate winning as above. As before, this is a
+# diagnostic only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -848,6 +871,10 @@ _uninstall:
 	  if [ -n "$$chosen" ]; then \
 	    echo "uninstall: a GTK selection still names $(GTK_ID) after removal in$$chosen; GTK applications cannot load the removed theme and keep their default style. Clear it with: make remove-gtk" >&2; \
 	  fi; \
+fi; \
+kvconfig="$$config_home/Kvantum/kvantum.kvconfig"; \
+if [ -n "$$config_home" ] && [ -f "$$kvconfig" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "General" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "theme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(KVANTUM_ID)" ? 0 : 1 }' "$$kvconfig" 2>/dev/null; then \
+	  echo "uninstall: the Kvantum selection still names $(KVANTUM_ID) after removal in $$kvconfig; Kvantum applications cannot load the removed theme and keep their default style. Clear it with: make remove-kvantum" >&2; \
 fi
 
 install-gtk:

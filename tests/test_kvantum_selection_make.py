@@ -1,0 +1,162 @@
+"""Makefile tests for the ``remove-kvantum`` target and uninstall reset.
+
+The recipes run under the real ``make`` with a throwaway ``DESTDIR`` and
+config home: the tool target clears a temp selection, and `_uninstall`'s
+Kvantum diagnostic prints the ``make remove-kvantum`` reset when the kept
+selection still names our id, without editing the file. The tool's own
+behaviour is pinned in ``tests/test_remove_kvantum.py``; the color scheme's
+and GTK's warning behaviour keeps its own suites' pins, which this module
+must not change.
+"""
+
+from __future__ import annotations
+
+import os
+import tempfile
+import unittest
+
+from support import theme_install
+from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+KVANTUM_ID = "org.macos8.desktop"
+DIAGNOSTIC = (
+    f"uninstall: the Kvantum selection still names {KVANTUM_ID} after removal in"
+)
+RESET = "Clear it with: make remove-kvantum"
+
+
+def write_selection(config, body):
+    """Write *body* as `<config>/Kvantum/kvantum.kvconfig`; return its path."""
+    path = os.path.join(config, "Kvantum", "kvantum.kvconfig")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(body)
+    return path
+
+
+def read_bytes(path):
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+class TestMakeTarget(unittest.TestCase):
+    """`make remove-kvantum` runs the tool against the caller's config home."""
+
+    def test_dry_run_prints_the_script(self):
+        result = theme_install.run_make(
+            ["-n", "remove-kvantum"], env=theme_install.make_env()
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("tools/kvantum_selection.py", result.stdout)
+
+    def test_help_lists_the_target(self):
+        result = theme_install.run_make(["help"], env=theme_install.make_env())
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertRegex(result.stdout, r"  remove-kvantum .*Kvantum")
+
+    def test_the_target_clears_a_selection_in_the_temp_config_home(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[General]\nBuilder=kvantummanager\ntheme=org.macos8.desktop\n")
+
+        result = theme_install.run_make(
+            ["remove-kvantum"], env=dict(os.environ, XDG_CONFIG_HOME=config)
+        )
+
+        assert_succeeded(self, result)
+        self.assertEqual(
+            b"[General]\nBuilder=kvantummanager\n", read_bytes(path)
+        )
+
+
+class TestUninstallDiagnostic(unittest.TestCase):
+    """`make _uninstall` names the reset when the selection still names ours."""
+
+    def uninstall_with_config(self, tmp, config):
+        return theme_install.uninstall_recipe(
+            tmp, extra=(), env=dict(os.environ, XDG_CONFIG_HOME=config)
+        )
+
+    def test_warns_and_names_the_reset_for_a_kept_selection(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config, "[General]\ntheme=" + KVANTUM_ID + "\n"
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(DIAGNOSTIC, result.stderr)
+        self.assertIn(RESET, result.stderr)
+        # A diagnostic must not edit the user's kvconfig.
+        self.assertEqual(original, read_bytes(path))
+
+    def test_not_warned_for_a_foreign_selection(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[General]\ntheme=KvBreezeDark\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(DIAGNOSTIC, result.stderr)
+
+    def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(
+            config,
+            "[General]\ntheme=org.macos8.desktop\ntheme=KvBreezeDark\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(DIAGNOSTIC, result.stderr)
+
+    def test_warned_when_a_later_duplicate_names_ours(self):
+        # KDE's config reader takes a later key's value, so the diagnostic
+        # must read the same way the color-scheme one does.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(
+            config,
+            "[General]\ntheme=KvBreezeDark\ntheme=org.macos8.desktop\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(DIAGNOSTIC, result.stderr)
+        self.assertIn(RESET, result.stderr)
+
+    def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
+        with tempfile.TemporaryDirectory() as home:
+            config = os.path.join(home, ".config")
+            write_selection(config, "[General]\ntheme=" + KVANTUM_ID + "\n")
+            env = theme_install.make_env("XDG_CONFIG_HOME")
+            env["HOME"] = home
+
+            result = theme_install.uninstall_recipe(
+                str(make_tmp_dir(self)), extra=(), env=env
+            )
+
+            assert_succeeded(self, result)
+            self.assertIn(RESET, result.stderr)
+
+    def test_silent_when_there_is_no_kvconfig(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(DIAGNOSTIC, result.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

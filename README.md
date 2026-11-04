@@ -95,6 +95,14 @@ grow box's white and `#777777` checker diamond. Kvantum searches
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
 when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
+`make remove-kvantum` clears that selection: it removes only our
+`[General] theme=org.macos8.desktop` line from
+`$XDG_CONFIG_HOME/Kvantum/kvantum.kvconfig`, leaving a foreign theme name and the rest of the
+file byte-identical, and creates nothing when the directory, the file or the selection is
+absent. Restart running Qt applications afterwards so they reload the widgets. `make uninstall`
+leaves the selection in place — a theme chosen through System Settings survives an uninstall —
+and names this reset when the kept selection still points at the removed theme.
+
 GTK applications use the same install: `make install` (and therefore `make apply`) copies the GTK 3 and GTK 4
 Platinum stylesheets, their `index.theme` theme descriptor and the ten shared check, radio, mixed-state dash,
 combo box, menu arrow, disclosure arrow, submenu arrow and title-button box assets into
@@ -259,7 +267,10 @@ it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
 as the reset; if the GTK selection `make apply` published still names
 `org.macos8.desktop` after the uninstall, it likewise prints a warning naming
-`make remove-gtk` as the reset. Neither warning edits the user's configuration.
+`make remove-gtk` as the reset; if the Kvantum selection `kvantummanager` wrote
+(`[General] theme=` in `kvantum.kvconfig`) still names `org.macos8.desktop`, it
+prints a warning naming `make remove-kvantum` as the reset that clears only that
+selection. No such warning edits the user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
 excepted) is refused at parse time, before any recipe runs and unechoed;
@@ -422,6 +433,7 @@ not restore earlier settings or backups.
 | `make remove-gtk` | Clears this theme's GTK selection and marker CSS. Existing GTK backups remain; restart GTK applications. |
 | `make remove-firefox` | Removes this theme's sheets and preference block from the active profile. To target another profile, use `FIREFOX_PROFILE=/absolute/profile make remove-firefox`. Restart Firefox. |
 | `make remove-cursor` | Removes this theme's cursor link but leaves the cursor selection. If it still names `org.macos8.desktop`, reset it with `plasma-apply-cursortheme breeze_cursors`. |
+| `make remove-kvantum` | Clears only this theme's Kvantum engine selection (`[General] theme` in `kvantum.kvconfig`). A foreign theme name and the rest of the file remain; restart Qt applications. |
 | `make uninstall` | Deletes installed theme packages and leaves user configuration in place. Run after clearing selections; it does not remove the cursor link or change keyboard mappings. |
 
 To reselect the installed Plasma settings without installing packages or applying the other
