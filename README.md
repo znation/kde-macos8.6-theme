@@ -245,9 +245,9 @@ side and bottom borders, and 13x13 close and collapse widgets, each a 12x12 box 
 active and inactive frames) with its gzipped `decoration.svgz` (the form
 `kpackagetool6` requires), and `close.svg`, `maximize.svg`, `restore.svg`, `shade.svg` (the
 active and inactive widgets); select it in System Settings → Window
-Decorations. An unfocused window wears the flat grey inactive frame and
-boxes. `make
-uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
+Decorations. An unfocused window wears the flat grey inactive frame around
+a buttonless bar: no close, zoom or collapse boxes draw on it, and the grey
+title text is the reference's centred `#777777`. `make uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their

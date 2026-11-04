@@ -17,13 +17,11 @@
      whole canvas as the button.
      Inside the box, the reference's 1px #FFFFFF highlight is a column at
      canvas x=17 (y=1..12) and a row at y=12 (x=6..16), with #CCCCCC at (17,0)
-     and (5,12). The `inactive-center` group draws the gap, spacing and
-     highlight pixels #CCCCCC, the flat inactive title-bar field.
-
-     The `inactive-center` group flattens the gradient face to #CCCCCC
-     (KDE-required provenance: the reference's inactive windows draw no
-     zoom box in their title bars) and keeps the outlines and the zoom
-     glyph. -->
+     and (5,12). The `inactive-center` group draws nothing: the reference's
+     unfocused windows (macos8.6-screenshots/desktop_fandom.png) draw no
+     zoom box in their title bars, so the inactive state paints an empty
+     group (see the comment inside it: no KDE-required grey, nothing for
+     hover or press to erase. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="13" viewBox="0 0 21 13">
   <g id="active-center" transform="translate(0,0)">
     <rect x="0" y="0" width="1" height="1" fill="#CCCCCC"/>
@@ -127,70 +125,15 @@
     <rect x="6" y="12" width="11" height="1" fill="#FFFFFF"/>
   </g>
   <g id="inactive-center" transform="translate(0,0)">
-    <rect x="0" y="0" width="5" height="13" fill="#CCCCCC"/>
-    <rect x="18" y="0" width="3" height="13" fill="#CCCCCC"/>
-    <rect x="5" y="0" width="12" height="1" fill="#888888"/>
-    <rect x="5" y="1" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="1" width="11" height="1" fill="#222222"/>
-    <rect x="5" y="2" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="2" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="2" width="5" height="1" fill="#CCCCCC"/>
-    <rect x="12" y="2" width="1" height="1" fill="#222222"/>
-    <rect x="13" y="2" width="3" height="1" fill="#CCCCCC"/>
-    <rect x="16" y="2" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="3" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="3" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="3" width="5" height="1" fill="#CCCCCC"/>
-    <rect x="12" y="3" width="1" height="1" fill="#222222"/>
-    <rect x="13" y="3" width="2" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="3" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="3" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="4" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="4" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="4" width="5" height="1" fill="#CCCCCC"/>
-    <rect x="12" y="4" width="1" height="1" fill="#222222"/>
-    <rect x="13" y="4" width="2" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="4" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="4" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="5" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="5" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="5" width="5" height="1" fill="#CCCCCC"/>
-    <rect x="12" y="5" width="1" height="1" fill="#222222"/>
-    <rect x="13" y="5" width="2" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="5" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="5" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="6" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="6" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="6" width="5" height="1" fill="#CCCCCC"/>
-    <rect x="12" y="6" width="1" height="1" fill="#222222"/>
-    <rect x="13" y="6" width="2" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="6" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="6" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="7" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="7" width="7" height="1" fill="#222222"/>
-    <rect x="13" y="7" width="2" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="7" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="7" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="8" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="8" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="8" width="8" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="8" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="8" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="9" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="9" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="9" width="8" height="1" fill="#CCCCCC"/>
-    <rect x="15" y="9" width="1" height="1" fill="#888888"/>
-    <rect x="16" y="9" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="10" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="10" width="1" height="1" fill="#222222"/>
-    <rect x="7" y="10" width="1" height="1" fill="#CCCCCC"/>
-    <rect x="8" y="10" width="8" height="1" fill="#888888"/>
-    <rect x="16" y="10" width="1" height="1" fill="#222222"/>
-    <rect x="5" y="11" width="1" height="1" fill="#888888"/>
-    <rect x="6" y="11" width="11" height="1" fill="#222222"/>
-    <rect x="17" y="0" width="1" height="1" fill="#CCCCCC"/>
-    <rect x="17" y="1" width="1" height="12" fill="#CCCCCC"/>
-    <rect x="5" y="12" width="1" height="1" fill="#CCCCCC"/>
-    <rect x="6" y="12" width="11" height="1" fill="#CCCCCC"/>
+    <!-- Empty on purpose: the reference's unfocused windows
+         (macos8.6-screenshots/desktop_fandom.png) draw no title-bar box at
+         all, so the inactive state ships no art and hovering or pressing
+         cannot erase or change it. The empty group itself stays because
+         /usr/share/kwin/aurorae/AuroraeButton.qml (KWin 6.3.6) shows that a
+         false supportsInactive draws the boxActive overlay's active art on
+         unfocused windows, which a deleted element would cause; the one
+         element with an inactive prefix is platform-required by that
+         fallback and draws nothing. Pinned by tests/test_aurorae_buttons.py
+         as a fully transparent slice. -->
   </g>
 </svg>

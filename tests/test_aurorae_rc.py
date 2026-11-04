@@ -268,5 +268,35 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         self.assertEqual(self.parser.get("General", "ActiveTextColor"), _kde_colour(glyph))
 
 
+class TestInactiveCaption(ReferenceImageCase, unittest.TestCase):
+    """The unfocused title text and bar field the rc's InactiveTextColor paints."""
+
+    # The four unfocused windows in desktop_fandom.png draw buttonless bars:
+    # a flat #DDDDDD field with centered #777777 title text, no boxes. KWin
+    # paints the text colour from org.macos8.desktoprc's [General]
+    # InactiveTextColor, so those pixels are the key's provenance. The
+    # screenshot is 2 image px per logical px; the coordinates are image
+    # pixels sampled 2026-11-04 through tools/png (the fandom decode bound
+    # covers them). The "Utilities" window's bar top rows and left columns
+    # still show the desktop background, so the field pixels sit inside the
+    # flat #DDDDDD interior.
+    needs_inactive = True
+
+    # #DDDDDD interior pixels of the "Utilities" window's title bar.
+    BAR_PIXELS = ((900, 114), (1500, 114), (1745, 114))
+    # #777777 glyph-core pixels of the centered "Utilities" caption.
+    TEXT_PIXELS = ((1305, 122), (1323, 123))
+
+    def test_inactive_text_colour_matches_reference(self):
+        parser = read_kde_config(RC)
+        self.assertEqual(
+            parser.get("General", "InactiveTextColor"), "119,119,119"
+        )
+        for x, y in self.BAR_PIXELS:
+            self.assertEqual(self.inactive_pixel(x, y), (221, 221, 221), (x, y))
+        for x, y in self.TEXT_PIXELS:
+            self.assertEqual(self.inactive_pixel(x, y), (119, 119, 119), (x, y))
+
+
 if __name__ == "__main__":
     unittest.main()

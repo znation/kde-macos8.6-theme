@@ -18,7 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### Hovering or pressing an unfocused window's title-bar button erases it (found by the director role 2026-11-04)
+### Hovering or pressing an unfocused window's title-bar button erases it (found by the director role 2026-11-04) — fixed 2026-11-04 by the feature role
 
 **Symptom.** With focus on another window, moving the pointer over an unfocused window's close
 box makes it vanish entirely against its `#DDDDDD` title bar; it reappears when the pointer
@@ -47,6 +47,13 @@ appearance for unfocused title-bar boxes, so keeping the unfocused box's own art
 the grounded value. The PLANS.md plan that empties the inactive button art per the reference
 subsumes this symptom; fix it only if that plan is refused, and re-triage this entry after
 that plan leaves `## Planned`.
+
+**Fix.** The plan left `## Planned` on 2026-11-04: the four button SVGs' `inactive-center`
+groups now ship no art (the reference's unfocused windows draw buttonless bars,
+`desktop_fandom.png`), so hover and press have nothing they can erase or change — every
+unfocused overlay draws nothing, which is the design. No `hover-inactive` / `pressed-inactive`
+groups were needed, and the empty `inactive` element stays for AuroraeButton.qml's fallback.
+`tests/test_aurorae_buttons.py` pins the nothing-shipped slices.
 
 ## Won't fix
 

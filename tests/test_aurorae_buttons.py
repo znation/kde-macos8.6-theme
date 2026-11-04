@@ -1,11 +1,14 @@
 """Tests for the org.macos8.desktop Aurorae title-bar boxes.
 
-The close, maximize, restore and collapse (windowshade) widget SVGs with
-their active and inactive states, re-derived from
-`macos8.6-screenshots/aboutsystem_betawiki.png` and
-`systemprofiler_betawiki.png` through `tools/png/loader.py`. The inactive greys are
-KDE-required provenance (the reference's inactive windows draw no close,
-zoom or collapse boxes in their title bars). The
+The close, maximize, restore and collapse (windowshade) widget SVGs, their
+active state re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png`
+and `systemprofiler_betawiki.png` through `tools/png/loader.py`. The
+reference's unfocused windows (`desktop_fandom.png`) draw no close, zoom or
+collapse boxes in their title bars, so the inactive states ship no art: an
+empty `inactive-center` group renders nothing. The elements stay present
+because `/usr/share/kwin/aurorae/AuroraeButton.qml`'s `buttonActive` overlay
+draws the active art on unfocused windows when `supportsInactive` is false,
+so deleting the element would undo the reference drawing. The
 references are stored with Git LFS, so a clone without them skips these
 tests rather than failing `make check`.
 """
@@ -19,13 +22,13 @@ from support.aurorae_fixtures import (
     AURORAE_DIR,
     ReferenceImageCase,
     ZOOM_BOX_X,
-    inactive_fill,
 )
 from support.platinum_palette import hex_colour
 from support.svg_case import parse_svg
 from svg_assertions import (
     assert_no_script_elements,
     assert_unique_ids,
+    groups_with_id,
     render_slices,
 )
 
@@ -137,33 +140,37 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
             SHADE_SVG, self.COLLAPSE_GLYPH, self.reference_pixel, 343, 29
         )
 
-    def test_inactive_center_is_flat(self):
-        # The inactive box keeps the active box's #888888/#222222 outlines and
-        # flattens its gradient face to #CCCCCC (KDE-required provenance: the
-        # reference's inactive windows draw no close, zoom or collapse boxes
-        # in their title bars). The glyphs are #222222, so
-        # they survive over the flat face.
+    def test_inactive_center_ships_nothing(self):
+        # The reference's unfocused windows draw no close, zoom or collapse
+        # box at all (desktop_fandom.png), so every inactive state renders
+        # nothing: the inactive-center slice holds no painted pixel, which is
+        # fully transparent at every pixel of the widget's canvas. With no
+        # inactive art shipped, hovering or pressing an unfocused window's
+        # button cannot erase or change anything (BUGS.md's erasure symptom
+        # has nothing it can act on).
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
                 slices = render_slices(tree)
-                active = slices["active-center"]
-                inactive = slices["inactive-center"]
-                self.assertEqual(set(inactive), set(active))
-                for point, fill in active.items():
-                    self.assertEqual(
-                        inactive[point], inactive_fill(fill), point
-                    )
+                self.assertEqual(slices["inactive-center"], {})
+                # The active art stays: focused windows keep the reference
+                # boxes, so the canvas is not emptied wholesale.
+                self.assertTrue(slices["active-center"])
 
-    def test_inactive_glyphs_survive(self):
-        for glyph, svgs, offset in (
-            (self.ZOOM_GLYPH, ZOOM_SVGS, ZOOM_BOX_X),
-            (self.COLLAPSE_GLYPH, (SHADE_SVG,), 0),
-        ):
-            for path in svgs:
-                with self.subTest(svg=os.path.basename(path)):
-                    _, differing = self._glyph(path, "inactive-center", offset)
-                    self.assertEqual(differing, glyph)
+    def test_one_inactive_element_is_platform_required(self):
+        # Each button SVG keeps exactly one element whose id carries the
+        # `inactive` prefix. `/usr/share/kwin/aurorae/AuroraeButton.qml`
+        # (KWin 6.3.6) shows a false `supportsInactive` draws the
+        # `buttonActive` overlay's active art on unfocused windows, which a
+        # deleted `inactive-center` element would cause; the emptiness ships
+        # as an empty group, not a removed one.
+        for name, tree in _parsed_svgs(BUTTON_SVGS):
+            with self.subTest(svg=name):
+                ids = [group.get("id") for group in groups_with_id(tree)]
+                self.assertEqual(
+                    [gid for gid in ids if "inactive" in gid],
+                    ["inactive-center"],
+                )
 
     def test_button_svgs_are_self_contained(self):
         for name, tree in _parsed_svgs(BUTTON_SVGS):

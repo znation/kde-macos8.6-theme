@@ -82,15 +82,16 @@ REFERENCE_BOUNDS = {
 
 
 def inactive_fill(active_fill):
-    """Map one active box fill onto the inactive/disabled box's fill.
+    """Map one active box fill onto the Kvantum disabled box's fill.
 
-    The flattening rule both consumers pin: the box keeps its #888888
+    The flattening rule the Kvantum `mdi` window buttons' disabled state
+    pins (tests/test_kvantum_svg.py): the box keeps its #888888
     (``ETCH_DARK``) and #222222 (``BOX_INNER_OUTLINE``) outline fills and
     every other fill — the gradient face and its mid band, the white
-    highlight — flattens to ``INACTIVE_GREY``. The Aurorae decoration's
-    own inactive groups (tests/test_aurorae_buttons.py) and the Kvantum
-    `mdi` window buttons' disabled state, which copies that art
-    (tests/test_kvantum_svg.py), are the only appliers.
+    highlight — flattens to ``INACTIVE_GREY``. The Aurorae buttons ship no
+    inactive art (the reference's unfocused windows draw buttonless bars,
+    tests/test_aurorae_buttons.py), so the Kvantum disabled button is the
+    only applier left.
     """
     if active_fill in (ETCH_DARK, BOX_INNER_OUTLINE):
         return active_fill
