@@ -270,7 +270,12 @@ as the reset; if the GTK selection `make apply` published still names
 `make remove-gtk` as the reset; if the Kvantum selection `kvantummanager` wrote
 (`[General] theme=` in `kvantum.kvconfig`) still names `org.macos8.desktop`, it
 prints a warning naming `make remove-kvantum` as the reset that clears only that
-selection. No such warning edits the user's configuration.
+selection; and if the pointer selection `plasma-apply-cursortheme` wrote
+(`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
+prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
+— that command must be run by hand, because `make remove-cursor` owns only the
+`$HOME/.icons` link and never touches `kcminputrc`. No such warning edits the
+user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
 excepted) is refused at parse time, before any recipe runs and unechoed;

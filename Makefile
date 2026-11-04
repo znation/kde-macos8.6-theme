@@ -851,6 +851,24 @@ _uninstall:
 # in `[General]` whose value trims to exactly the theme id still names our
 # theme, with a later duplicate winning as above. As before, this is a
 # diagnostic only -- it must not edit the file.
+#
+# `make apply-cursor` selects the pointer with `plasma-apply-cursortheme
+# $(ICON_THEME_ID)`, which stores a `[Mouse] cursorTheme=$(ICON_THEME_ID)`
+# line in `$XDG_CONFIG_HOME/kcminputrc`. `make uninstall` removes the
+# installed icon theme afterwards, and Xcursor applications then cannot load
+# it and silently keep the default pointer, exactly like the other three
+# unresolved selections. kcminputrc is not ours to edit: `make remove-cursor`
+# owns only the `$HOME/.icons` link and never touches it, so this diagnostic
+# names the external reset that `tools/cursor_workflow.py::remove` names too:
+# `plasma-apply-cursortheme breeze_cursors` (KDE's default pointer theme,
+# a platform-required value inherited from that removal note). The file is
+# read the same way (`tools/cursor_config.py` documents the reader, and the
+# shared awk scanner implements it): the first line's UTF-8 BOM is stripped,
+# each line is trimmed before parsing, a trimmed `[`...`]` line switches the
+# section, `#`/`;` lines are comments and never keys, the key/value pair
+# splits at the first `=` with both sides trimmed, and a later duplicate's
+# value wins. As before, this is a diagnostic only -- it must not edit the
+# file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -875,6 +893,10 @@ fi; \
 kvconfig="$$config_home/Kvantum/kvantum.kvconfig"; \
 if [ -n "$$config_home" ] && [ -f "$$kvconfig" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "General" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "theme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(KVANTUM_ID)" ? 0 : 1 }' "$$kvconfig" 2>/dev/null; then \
 	  echo "uninstall: the Kvantum selection still names $(KVANTUM_ID) after removal in $$kvconfig; Kvantum applications cannot load the removed theme and keep their default style. Clear it with: make remove-kvantum" >&2; \
+fi; \
+kcminputrc="$$config_home/kcminputrc"; \
+if [ -n "$$config_home" ] && [ -f "$$kcminputrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Mouse" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "cursorTheme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(ICON_THEME_ID)" ? 0 : 1 }' "$$kcminputrc" 2>/dev/null; then \
+	  echo "uninstall: the pointer selection still names $(ICON_THEME_ID) after removal in $$kcminputrc; Xcursor applications cannot load the removed cursor theme and keep the default pointer. Reset it with: plasma-apply-cursortheme breeze_cursors" >&2; \
 fi
 
 install-gtk:
