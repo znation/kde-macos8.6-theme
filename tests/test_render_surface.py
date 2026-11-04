@@ -1124,8 +1124,8 @@ class _DialogGate:
     def assert_pixel(self, x, y, colour):
         self.assertEqual(colour, hex_colour(pixel_at(self.candidate_image(), x, y)))
 
-    def assert_button_frame(self, rect, *, flat_rows=()):
-        """Pin a button's outline/bevel and label-free face rows."""
+    def assert_raised_frame(self, rect, *, flat_rows=()):
+        """Pin a raised frame's outline/bevel and optional label-free rows."""
         x, y, width, height = rect
         for xx in range(x, x + width):
             self.assert_pixel(xx, y, "#000000")
@@ -1230,8 +1230,8 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
                 self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x, y)))
 
     def test_yes_and_no_buttons_keep_their_engine_drawn_frames(self):
-        self.assert_button_frame(CHECKBOX_YES_BUTTON, flat_rows=(209, 210, 211, 212))
-        self.assert_button_frame(CHECKBOX_NO_BUTTON, flat_rows=(209, 210, 211, 212))
+        self.assert_raised_frame(CHECKBOX_YES_BUTTON, flat_rows=(209, 210, 211, 212))
+        self.assert_raised_frame(CHECKBOX_NO_BUTTON, flat_rows=(209, 210, 211, 212))
 
 
 @_dialog_gate_guard()
@@ -1256,15 +1256,7 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
         self.assert_cell_matches("comboarrow-normal", COMBOBOX_CROP)
 
     def test_combo_field_keeps_its_engine_drawn_raised_frame(self):
-        x, y, width, height = COMBOBOX_FIELD
-        for xx in range(x, x + width):
-            self.assert_pixel(xx, y, "#000000")
-            self.assert_pixel(xx, y + height - 1, "#000000")
-        for yy in range(y + 1, y + height - 1):
-            self.assert_pixel(x, yy, "#000000")
-            self.assert_pixel(x + 1, yy, "#FFFFFF")
-            self.assert_pixel(x + width - 2, yy, "#AAAAAA")
-            self.assert_pixel(x + width - 1, yy, "#000000")
+        self.assert_raised_frame(COMBOBOX_FIELD)
 
     def test_draws_the_combo_field_raised_bevel(self):
         """Pin the Kvantum field frame around the selected combo contents."""
@@ -1297,8 +1289,8 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
                 self.assertEqual("#000000", hex_colour(pixel_at(image, x + width - 1, y + dy)))
 
     def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
-        self.assert_button_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
-        self.assert_button_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
+        self.assert_raised_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
+        self.assert_raised_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
 
 
 @_dialog_gate_guard()
