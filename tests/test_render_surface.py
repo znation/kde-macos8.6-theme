@@ -996,8 +996,8 @@ class TestDialogGateSkipGuards(unittest.TestCase):
 class _Renders:
     """The module's render gates' sessions, started together, finished once.
 
-    Every render sleeps the tool's documented settle default before it
-    captures -- that budget is the paint budget the gate promises, and the
+    Every render sleeps its configured settle budget before it captures --
+    that budget is the paint budget the gate promises, and the
     byte-compare gates below must not render below it -- so serial
     back-to-back renders cost one settle budget per gate. The sessions
     sessions are independent -- each has its own ``dbus-run-session``,
@@ -1015,7 +1015,7 @@ class _Renders:
         ("checkbox", ("--checkbox-dialog",), "dialog.png"),
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
-        ("gtk", ("--gtk-dialog",), "dialog.png"),
+        ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
     )
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
@@ -1056,6 +1056,14 @@ class _Renders:
     def _remove_directories(cls):
         for directory in cls.directories.values():
             shutil.rmtree(directory, ignore_errors=True)
+
+
+class TestRenderBudgets(unittest.TestCase):
+    def test_gtk_dialog_gets_a_longer_settle_budget(self):
+        flags = dict((kind, flags) for kind, flags, _ in _Renders.KINDS)["gtk"]
+        self.assertIn("--settle", flags)
+        settle = flags[flags.index("--settle") + 1]
+        self.assertGreater(float(settle), 8.0)
 
 
 class _DialogGate:

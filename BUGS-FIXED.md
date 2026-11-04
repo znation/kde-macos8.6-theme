@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Under a loaded host the live GTK dialog gate flakes: an all-black capture, or a mid-transition compose that misses four pinned cells (found by the plan role 2026-11-04) — fixed 2026-11-04 by the bugfix role
+
+**Symptom.** Two consecutive full `make check` runs (2026-11-04 00:36 and 00:41) failed their `test_render_surface` module on the GTK dialog gate alone. One capture was mid-transition and missed all four pinned cells; the other was entirely black because zenity had not painted by the 8-second settle. Focused runs stayed green.
+
+**How to reproduce.** Run the full check on a loaded host; the parallel test coordinator starts the GTK dialog render alongside four other renders, and the GTK capture can be unpainted or mid-transition at the fixed 8-second settle.
+
+**Fix.** The GTK dialog gate now passes `--settle 20`, allowing additional time for zenity to paint and finish its placement transition. The renderer's 60-second timeout remains longer than this budget, and the existing four cell comparisons reject captures that remain misaligned.
+
+**Validation gap:** slow-check — the failure depended on concurrent render load, so confirming timing behavior requires the full check rather than the focused budget assertion.
+
 ### A successful required-command read is discarded when its stderr log cannot be removed (found by the bugfix role 2026-11-03) — fixed 2026-11-03 by the bugfix role
 
 **Validation gap:** no-fake — the suite had no way to make a log removal fail, so the
