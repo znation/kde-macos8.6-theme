@@ -3813,6 +3813,54 @@ searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.
   outline-color: #000000;
 }
 
+/* GTK toolbar-band and flat split buttons have no collected reference
+   surface: no screenshot in macos8.6-screenshots/ shows a GTK split
+   button, so their faces square to the landed square-corner policy
+   (frame > border, .frame, the landed button, card, tab-family,
+   toggle-group, menu-selection, cursor-handle and alert-dialog
+   restatements; all border-radius: 0). The platform style library's
+   base.css resource declares exactly one radius-bearing band arm, quoted
+   verbatim: actionbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, searchbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, .toolbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, headerbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, actionbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, searchbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, .toolbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, headerbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, splitbutton.flat > button,
+   splitbutton.flat > menubutton > button { border-radius: 9px; }
+   The toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no splitbutton radius
+   of any kind (inspected 2026-11-04). The landed splitbutton container
+   record already squares the splitbutton node, the .raised,
+   .suggested-action, .destructive-action and .opaque variants stay stock
+   by stock's own :not() exclusions, and the :dir() corner arms keep their
+   zero per-corner longhands and shared-edge margins inherited. Each
+   spelling below is byte-equal to its stock twin and wins the
+   equal-specificity tie by later user-sheet source order.
+   Recorded 2026-11-04 by the feature role. */
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+splitbutton.flat > button,
+splitbutton.flat > menubutton > button {
+  border-radius: 0;
+}
+
 /* GTK label, link, expander-title, color-swatch, plane and shortcut
    keyboard focus has no collected reference surface; reuse the landed
    black focus colour and keep stock's inherited outline geometry. The
