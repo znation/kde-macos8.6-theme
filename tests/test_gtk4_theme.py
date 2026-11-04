@@ -1679,9 +1679,18 @@ for radio in (False, True):
             self.assertEqual(self.selectors.count(selector), 1)
         # No other flat entry or spinbutton spelling exists beyond the
         # treeview-embedded flat twins the treeview entry restatement adds:
-        # the family scan kills renamed and stray variants alike.
+        # the family scan kills renamed and stray variants alike. The stock
+        # `.osd` stepper spellings carry `:not(.flat)` (a not-flat
+        # exclusion, not a flat field); the landed OSD stepper record adds
+        # them byte-equal to stock, so the scan holds them out.
         self.assertEqual(
-            {s for s in self.rules if "flat" in s and ("entry" in s or "spinbutton" in s)},
+            {
+                s
+                for s in self.rules
+                if "flat" in s
+                and ("entry" in s or "spinbutton" in s)
+                and ":not(.flat)" not in s
+            },
             set(selectors) | {"treeview entry.flat", "treeview entry.flat:focus-within"},
         )
 
@@ -2983,6 +2992,112 @@ for radio in (False, True):
              if ".osd check" in selector or ".osd radio" in selector},
             set(expected),
         )
+
+    def test_osd_spinbutton_steppers(self):
+        """Pin the restated stock OSD spinbutton stepper arms.
+
+        No collected reference screenshot shows a spinbutton stepper
+        inside a GTK OSD overlay, so the sheet restates the toolkit
+        resource's ten ``.osd spinbutton ... button`` stepper arms with
+        the landed raised push-button face (the dictionary the landed
+        GTK 3 sibling record
+        ``tests/test_gtk_theme_osd.py``
+        ::test_osd_spinbutton_buttons pins from the same specs), like the
+        landed .osd check/radio and scale-thumb restatements: the raised
+        #DDDDDD face with a 1px black border, zero radius, the
+        BUTTON_BEVEL etch and black labels; the disabled arms take the
+        landed grey Etch colour (ETCH_DARK) and keep no outline colour,
+        as the landed disabled arms also claim none; the vertical pressed
+        arm swaps to the INVERTED_BUTTON_BEVEL; and the vertical arms
+        carry the background-clip: border-box clearance stock's
+        padding-box claim needs behind the opaque black border. Stock
+        declares no horizontal :active arm and no :backdrop arm in either
+        family. The arm selectors and states come from
+        /org/gtk/libgtk/theme/Default/Default-dark.css and
+        Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+        (libgtk-4 4.18.6); each horizontal comma-group splits into two
+        selector keys, so the ten groups hold the sixteen spellings the
+        family scan pins.
+        """
+        base = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}",
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        active = {
+            **base,
+            "box-shadow": f"inset 1px 1px {GREY}, inset -1px -1px {WHITE}",
+        }
+        disabled = {
+            name: value for name, value in base.items()
+            if name != "outline-color"
+        }
+        disabled["color"] = ETCH_DARK
+        horizontal = lambda declarations: declarations
+        vertical = lambda declarations: {
+            **declarations, "background-clip": "border-box"
+        }
+        up = ".osd spinbutton:not(.vertical) > button.image-button.up:not(.flat)"
+        down = (
+            ".osd spinbutton:not(.vertical)"
+            " > button.image-button.down:not(.flat)"
+        )
+        expected = {}
+        horizontal_arms = (
+            ("", base),
+            (":dir(rtl)", base),
+            (":hover", base),
+            (":disabled", disabled),
+            (":dir(ltr):last-child", base),
+            (":dir(rtl):first-child", base),
+        )
+        for suffix, recipe in horizontal_arms:
+            for prefix in (up, down):
+                expected[prefix + suffix] = horizontal(recipe)
+        vertical_arms = (
+            ("", base),
+            (":hover", base),
+            (":active", active),
+            (":disabled", disabled),
+        )
+        for suffix, recipe in vertical_arms:
+            expected[f".osd spinbutton.vertical > button:first-child{suffix}"] = (
+                vertical(recipe)
+            )
+        self.assertEqual(len(expected), 16)
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
+                self.assertEqual(self.selectors.count(selector), 1)
+        # No other `spinbutton … button` spelling exists inside the overlay
+        # scope: the scan kills renamed and stray variants alike (the landed
+        # entry-field spellings carry no ` button` token).
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if "spinbutton" in s
+                and " button" in s
+                and ".osd" in s
+            },
+            set(expected),
+        )
+        # The ten groups sit between the landed OSD scale-thumb tail and the
+        # landed scale-popup block.
+        first = self.selectors.index(up)
+        last = self.selectors.index(
+            ".osd spinbutton.vertical > button:first-child:disabled"
+        )
+        self.assertLess(
+            self.selectors.index(".osd scale > trough > slider:disabled"), first
+        )
+        self.assertLess(last, self.selectors.index(".osd .scale-popup button.flat"))
 
     def test_osd_progress_scale(self):
         progress_trough = PROGRESSBAR_TROUGH

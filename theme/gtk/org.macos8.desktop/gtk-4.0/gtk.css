@@ -2303,6 +2303,149 @@ popover.magnifier > contents {
   background-clip: border-box;
 }
 
+/* 2026-11-03: no collected reference screenshot shows a spinbutton
+   stepper inside a GTK OSD overlay, so the overlay band restates the
+   toolkit resource's `.osd spinbutton ... button` stepper arms with the
+   landed raised push-button face, like the landed .osd check/radio and
+   scale thumb restatements. The stock translucent dark bubbles, the
+   horizontal arms' left-edge rgba(0, 0, 0, 0.4) separator and its
+   :dir flip, the corner arms' 5px outer radii, the 0 1px black icon
+   shadows, the vertical family's rgba(53, 132, 228, 0.5) accent
+   outline and background-clip: padding-box and the vertical pressed
+   bubble's translucent image are all cleared; the resource's button.osd
+   geometry minimums stay in force. Stock declares no horizontal :active
+   stepper arm and no :backdrop arm in either family, so pressed
+   horizontal steppers rest on the hover arm. Stock selectors probed
+   from Default-light.css and Default-dark.css in libgtk-4 4.18.6 with
+   gresource on 2026-11-03. */
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat),
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl),
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):hover,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):disabled,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(ltr):last-child,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl):first-child,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
 /* 2026-10-31: no collected reference screenshot shows a GTK scale popup,
    so the scale popup is a platform adaptation like the restated GTK 3
    counterpart. The toolkit resource's rounded scale-popup button arms —
