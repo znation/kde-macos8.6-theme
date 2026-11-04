@@ -21,7 +21,7 @@ from support.cli_fixtures import run_main
 from support.flock_fixtures import hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
-from tools import apply_cursor
+from tools import apply_cursor, cursor_link, cursor_workflow
 
 
 class CursorLockCase(unittest.TestCase):
@@ -35,8 +35,8 @@ class CursorLockCase(unittest.TestCase):
         self.config = self.root / "config"
         self.bin = self.root / "bin"
         self.bin.mkdir()
-        self.installed = self.data / "icons" / apply_cursor.CURSOR_THEME
-        self.link = self.home / ".icons" / apply_cursor.CURSOR_THEME
+        self.installed = self.data / "icons" / cursor_link.CURSOR_THEME
+        self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
         self.env = {
             "HOME": str(self.home),
             "XDG_DATA_HOME": str(self.data),
@@ -55,7 +55,7 @@ class CursorLockCase(unittest.TestCase):
 
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""
-        path = self.bin / apply_cursor.SELECT_TOOL
+        path = self.bin / cursor_workflow.SELECT_TOOL
         path.write_text(
             "#!/bin/sh\n"
             f"{body}\n",
@@ -76,7 +76,7 @@ class TestDataHomeLock(CursorLockCase):
         os.symlink(str(self.installed), str(self.link))
         self.hold_data_lock()
 
-        with mock.patch.object(apply_cursor, "LOCK_TIMEOUT", 0.05):
+        with mock.patch.object(cursor_workflow, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool("--remove")
 
         assert_failed(self, result)
@@ -87,7 +87,7 @@ class TestDataHomeLock(CursorLockCase):
     def test_apply_times_out_without_linking_while_an_install_or_uninstall_holds_the_data_home_lock(self):
         self.hold_data_lock()
 
-        with mock.patch.object(apply_cursor, "LOCK_TIMEOUT", 0.05):
+        with mock.patch.object(cursor_workflow, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool()
 
         assert_failed(self, result)
@@ -117,7 +117,7 @@ class TestDataHomeLock(CursorLockCase):
         re-check under the lock refuses with the missing-theme diagnostic
         before the link is created.
         """
-        real = apply_cursor._require_installed
+        real = cursor_link.require_installed
         calls = []
 
         def theme_vanishes_before_the_next_check(data_home):
@@ -129,8 +129,8 @@ class TestDataHomeLock(CursorLockCase):
             return real(data_home)
 
         with mock.patch.object(
-            apply_cursor,
-            "_require_installed",
+            cursor_link,
+            "require_installed",
             side_effect=theme_vanishes_before_the_next_check,
         ):
             result = self.run_tool()

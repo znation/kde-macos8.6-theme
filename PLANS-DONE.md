@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split cursor apply orchestration by lifecycle (planned 2026-11-04 by the organize role) — done 2026-11-04 by the feature role
+
+**Goal and cost.** `tools/apply_cursor.py` combined home resolution, installed-theme validation and Xcursor link setup, external desktop selection, and apply/remove orchestration. The low-level link operations already live in `tools/cursor_link.py`, while config inspection lives in `tools/cursor_config.py`; keeping lifecycle coordination in the CLI module made it harder to follow the apply and removal guarantees independently.
+
+**Target structure and files.** `tools/cursor_selection.py` owns selector availability, scratch-log execution, and optional-selector behavior. `tools/cursor_workflow.py` owns apply/remove orchestration and state transitions, including the installed-data lock across revalidation, link installation, and selection, plus removal's lock-free path when the data home is absent. `tools/apply_cursor.py` retains `resolve_homes`, CLI parsing, diagnostics, and `main`; filesystem link mechanics remain in `tools/cursor_link.py` and config reading in `tools/cursor_config.py`. Tests call the new module paths and cover optional selector handling, lock-protected revalidation, and removal with a missing data home. Files changed: `tools/apply_cursor.py`, `tools/cursor_selection.py`, `tools/cursor_workflow.py`, `tests/test_apply_cursor.py`, and `tests/test_apply_cursor_locks.py`.
+
+**Acceptance criteria.** Direct-script and package entry points retain current behavior and diagnostics. The selection module owns selector invocation; the workflow module owns apply/remove state transitions and lock scope; the CLI module owns argument handling and home resolution. Tests exercise the selector through the CLI and patch the workflow's lock/revalidation paths at their new module locations. Source, tests, and Markdown contain no stale references to moved function paths. `make check` passes.
+
 ### Fidelity diagnostics: page through horizontal mismatch intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal and grounding.** Inspect later mismatch segments without printing earlier intervals. `tools/fidelity.py::_filter_run_report` currently filters interval lengths and takes a capped prefix; `main` computes count and longest summaries before that selection. Searches for `--difference-run-offset`, `difference_run_offset` and finished mismatch-paging headings in tools, tests, PLANS.md and PLANS-DONE.md found no horizontal interval paging capability or plan. The completed horizontal-cap entry explicitly excludes pagination. This work is independent of the queued vertical reference-sampler plan.

@@ -13,6 +13,7 @@ cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/local_hook.py``, ``tools/make_wallpaper.py``,
 ``tools/render_surface.py``,
 ``tools/make_cursors.py``, ``tools/install_firefox.py``,
+``tools/cursor_selection.py``, ``tools/cursor_workflow.py``,
 ``tools/apply_cursor.py``, ``tools/apply_keymap.py`` and
 ``tools/check_references.py``.
 

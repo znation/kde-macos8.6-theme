@@ -26,58 +26,30 @@ SIGTERM or SIGHUP ends the run.
 from __future__ import annotations
 
 import os
-import shutil
-import stat
 import sys
 from pathlib import Path
 
 if __package__:
     from tools import cursor_link
-    from tools import cursor_config
+    from tools import cursor_selection
+    from tools import cursor_workflow
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.diagnostics import (
-        create_scratch_directory,
-        report_error,
-        report_missing_tool,
-        report_note,
-    )
-    from tools.file_lock import installed_data_lock
+    from tools.diagnostics import report_error
     from tools.process_group import exit_on_termination
-    from tools.repo_root import ROOT
-    from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_cursor.py
     import cursor_link
-    import cursor_config
+    import cursor_selection
+    import cursor_workflow
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import (
-        create_scratch_directory,
-        report_error,
-        report_missing_tool,
-        report_note,
-    )
-    from file_lock import installed_data_lock
+    from diagnostics import report_error
     from process_group import exit_on_termination
-    from repo_root import ROOT
-    from required_command import run_required
 
 TOOL = "apply_cursor"
 CURSOR_THEME = cursor_link.CURSOR_THEME
-SELECT_TOOL = "plasma-apply-cursortheme"
-COMMAND_TIMEOUT = 60.0
-# The wait for the data-home lock matches make install/uninstall's own
-# FLOCK_TIMEOUT default, so a holder stopped with SIGSTOP cannot block this
-# run forever either.
-LOCK_TIMEOUT = 60.0
-
-
+SELECT_TOOL = cursor_selection.SELECT_TOOL
 CursorError = cursor_link.CursorError
-
-
-def _note(message: str) -> None:
-    """Print ``apply_cursor: note: <message>`` on stdout."""
-    report_note(TOOL, message)
 
 
 def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
@@ -101,124 +73,6 @@ def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
     home_path = Path(home)
     # ``HOME`` is absolute, so both XDG fallbacks resolve to a path.
     return home_path, xdg_homes.data_home(env), xdg_homes.config_home(env)
-
-
-def installed_theme(data_home: Path) -> Path:
-    """Return the installed icon-theme directory that carries the cursor."""
-    return cursor_link.installed_theme(data_home)
-
-
-def _require_installed(data_home: Path) -> Path:
-    """Return the installed theme, refusing a missing ``index.theme``/cursor.
-
-    The icon theme's own ``index.theme`` makes the symlinked directory a valid
-    cursor theme too, so both it and ``cursors/left_ptr`` must be regular files
-    before the link claims to expose a theme.
-    """
-    return cursor_link.require_installed(data_home)
-
-
-def _install_link(home: Path, theme: Path) -> None:
-    """Create ``$HOME/.icons/org.macos8.desktop`` as a link to *theme*.
-
-    A missing ``~/.icons`` is created. An existing link to the installed theme
-    is already ours, so a repeat install changes nothing; any other symlink,
-    directory or file is refused without being touched.
-    """
-    cursor_link.install_link(home, theme)
-
-
-def _select(env: dict[str, str], optional: bool) -> int:
-    """Select our cursor theme with ``plasma-apply-cursortheme``.
-
-    A missing selector is a usage error, unless *optional* is set: then the
-    aggregate ``make apply`` notes that the desktop cannot be told about the
-    pointer set and leaves the operator to select it, rather than failing an
-    apply that did install the theme. A timeout or non-zero exit is a failed
-    command whose bounded log tail is reported either way. A selector that
-    ``shutil.which`` found can still fail to start (a corrupt binary, or a
-    script whose interpreter is missing): ``run_logged`` reports that as an
-    ``OSError``, which is as unusable as a missing selector, so it becomes
-    this tool's own exit-2 diagnostic instead of an escaping traceback.
-    """
-    if optional and shutil.which(SELECT_TOOL) is None:
-        _note(
-            f"{SELECT_TOOL} is not on PATH; the pointer set is installed and "
-            "linked, but select it in your desktop's cursor settings"
-        )
-        return 0
-    missing = report_missing_tool(TOOL, [SELECT_TOOL])
-    if missing is not None:
-        return missing
-    scratch = create_scratch_directory(TOOL, "apply-cursor-")
-    if scratch is None:
-        return 2
-    try:
-        status = run_required(
-            TOOL,
-            [SELECT_TOOL, CURSOR_THEME],
-            env,
-            scratch / "plasma-apply-cursortheme.log",
-            COMMAND_TIMEOUT,
-            ROOT,
-        )
-        return 0 if status is None else status
-    finally:
-        shutil.rmtree(scratch, ignore_errors=True)
-
-
-def _apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> int:
-    """Link the installed theme into the Xcursor path, then select it."""
-    theme = _require_installed(data_home)
-    # Hold the data-home lock make install/uninstall hold across the link and
-    # the selection, and re-check the theme under it: a concurrent uninstall
-    # can otherwise remove the theme after the pre-lock check but before the
-    # symlink it dangles.
-    with installed_data_lock(
-        data_home,
-        "for the cursor selection",
-        LOCK_TIMEOUT,
-        error=CursorError,
-    ):
-        theme = _require_installed(data_home)
-        _install_link(home, theme)
-        status = _select(env, optional)
-    if status == 0:
-        _note(
-            "restart running applications for the new pointer to display "
-            "correctly"
-        )
-    return status
-
-
-def _remove(home: Path, data_home: Path, config_home: Path) -> int:
-    """Unlink only our Xcursor-path symlink; leave every foreign path alone."""
-    try:
-        data_home_mode = data_home.stat().st_mode
-    except FileNotFoundError:
-        data_home_mode = None
-    except OSError as exc:
-        raise CursorError(f"cannot inspect data home {data_home}: {exc}") from exc
-    if data_home_mode is not None and stat.S_ISDIR(data_home_mode):
-        with installed_data_lock(
-            data_home,
-            "for the cursor removal",
-            LOCK_TIMEOUT,
-            error=CursorError,
-        ):
-            target, foreign = cursor_link.remove_link(home, data_home)
-    else:
-        # Removal remains useful after the data home has already been removed;
-        # an apply cannot pass its installed-theme check in that state.
-        target, foreign = cursor_link.remove_link(home, data_home)
-    if foreign:
-        _note(f"{target} is not our symlink; leaving it untouched")
-    if cursor_config.cursor_theme_setting(config_home) == CURSOR_THEME:
-        _note(
-            f"[Mouse] cursorTheme in {config_home / 'kcminputrc'} still names "
-            f"{CURSOR_THEME}; run {SELECT_TOOL} breeze_cursors to reset"
-        )
-    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -253,9 +107,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         home, data_home, config_home = resolve_homes(dict(os.environ))
         if args.remove:
-            return _remove(home, data_home, config_home)
+            return cursor_workflow.remove(home, data_home, config_home)
         with exit_on_termination():
-            return _apply(home, data_home, dict(os.environ), args.optional)
+            return cursor_workflow.apply(home, data_home, dict(os.environ), args.optional)
     except CursorError as exc:
         return report_error(TOOL, str(exc))
 

@@ -1,4 +1,4 @@
-"""Tests for tools/apply_cursor.py, cursor helpers and cursor targets.
+"""Tests for the cursor CLI, selection/workflow helpers and cursor targets.
 
 The tool runs in-process with ``HOME``, ``XDG_DATA_HOME`` and
 ``XDG_CONFIG_HOME`` pointed at a temp root, and the selector is a shell stub on
@@ -32,7 +32,7 @@ from support.process_assertions import (
 from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
-from tools import apply_cursor, cursor_config, diagnostics, required_command
+from tools import apply_cursor, cursor_config, cursor_link, cursor_selection, diagnostics, required_command
 
 
 class CursorCase(unittest.TestCase):
@@ -48,9 +48,9 @@ class CursorCase(unittest.TestCase):
         self.bin.mkdir()
         self.calls = self.root / "calls"
         self.installed = (
-            self.data / "icons" / apply_cursor.CURSOR_THEME
+            self.data / "icons" / cursor_link.CURSOR_THEME
         )
-        self.link = self.home / ".icons" / apply_cursor.CURSOR_THEME
+        self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
         self.env = {
             "HOME": str(self.home),
             "XDG_DATA_HOME": str(self.data),
@@ -68,7 +68,7 @@ class CursorCase(unittest.TestCase):
 
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""
-        path = self.bin / apply_cursor.SELECT_TOOL
+        path = self.bin / cursor_selection.SELECT_TOOL
         path.write_text(
             "#!/bin/sh\n"
             f'printf \'%s\\n\' "$*" >> "{self.calls}"\n'
@@ -145,7 +145,7 @@ class TestInstall(CursorCase):
         assert_succeeded(self, result)
         self.assertTrue(self.link.is_symlink())
         self.assertEqual(str(self.installed), os.readlink(self.link))
-        self.assertEqual([apply_cursor.CURSOR_THEME], self.recorded())
+        self.assertEqual([cursor_selection.CURSOR_THEME], self.recorded())
         self.assertIn("restart", result.stdout)
 
     def test_repeat_install_keeps_the_link_and_succeeds(self):
@@ -155,7 +155,7 @@ class TestInstall(CursorCase):
         assert_succeeded(self, self.run_tool())
         self.assertEqual(str(self.installed), os.readlink(self.link))
         self.assertEqual(
-            [apply_cursor.CURSOR_THEME, apply_cursor.CURSOR_THEME],
+            [cursor_link.CURSOR_THEME, cursor_link.CURSOR_THEME],
             self.recorded(),
         )
 
@@ -259,7 +259,7 @@ class TestInstall(CursorCase):
 
         assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.home / ".icons"), result.stderr)
-        self.assertFalse(os.path.lexists(outside / apply_cursor.CURSOR_THEME))
+        self.assertFalse(os.path.lexists(outside / cursor_link.CURSOR_THEME))
         self.assertEqual([], self.recorded())
 
     def test_a_failed_link_creation_is_reported_by_path(self):
@@ -324,13 +324,13 @@ class TestSelection(CursorCase):
         self.install_theme()
         self.stub_selector()
         assert_succeeded(self, self.run_tool())
-        self.assertEqual([apply_cursor.CURSOR_THEME], self.recorded())
+        self.assertEqual([cursor_selection.CURSOR_THEME], self.recorded())
 
     def test_missing_selector_exits_2_naming_it(self):
         self.install_theme()
         result = self.run_tool()
         assert_exit_2_without_traceback(self, result)
-        self.assertIn(apply_cursor.SELECT_TOOL, result.stderr)
+        self.assertIn(cursor_selection.SELECT_TOOL, result.stderr)
 
     def test_failed_selector_exits_1_with_the_log_tail(self):
         self.install_theme()
@@ -338,7 +338,7 @@ class TestSelection(CursorCase):
         result = self.run_tool()
         assert_failed(self, result)
         self.assertEqual(1, result.returncode)
-        self.assertIn(f"{apply_cursor.SELECT_TOOL} exited 3", result.stderr)
+        self.assertIn(f"{cursor_selection.SELECT_TOOL} exited 3", result.stderr)
         self.assertIn("selector exploded", result.stderr)
 
     def test_selector_timeout_exits_1_with_the_log_tail(self):
@@ -400,7 +400,7 @@ class TestSelection(CursorCase):
         # contract. PATH holds only the stub bin, so execvp cannot fall
         # through to a real selector later on PATH.
         self.install_theme()
-        selector = self.bin / apply_cursor.SELECT_TOOL
+        selector = self.bin / cursor_selection.SELECT_TOOL
         selector.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
         selector.chmod(0o755)
 
@@ -408,7 +408,7 @@ class TestSelection(CursorCase):
 
         assert_exit_2_without_traceback(self, result)
         self.assertIn(
-            f"cannot run {apply_cursor.SELECT_TOOL}", result.stderr
+            f"cannot run {cursor_selection.SELECT_TOOL}", result.stderr
         )
         self.assertNotIn("Traceback", result.stderr)
         self.assertTrue(self.link.is_symlink())
@@ -551,7 +551,7 @@ class TestCursorThemeSetting(unittest.TestCase):
             b"\xef\xbb\xbf[Mouse]\ncursorTheme=org.macos8.desktop\n"
         )
         self.assertEqual(
-            apply_cursor.CURSOR_THEME,
+            cursor_link.CURSOR_THEME,
             cursor_config.cursor_theme_setting(self.config),
         )
 
@@ -574,7 +574,7 @@ class TestCursorThemeSetting(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertEqual(
-            apply_cursor.CURSOR_THEME,
+            cursor_link.CURSOR_THEME,
             cursor_config.cursor_theme_setting(self.config),
         )
 
@@ -589,7 +589,7 @@ class TestCursorThemeSetting(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertEqual(
-            apply_cursor.CURSOR_THEME,
+            cursor_link.CURSOR_THEME,
             cursor_config.cursor_theme_setting(self.config),
         )
 

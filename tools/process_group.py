@@ -9,7 +9,8 @@ streams merged;
 ``tools/apply_theme.py`` use both around the external commands they run;
 ``tools/required_command.py`` wraps :func:`run_logged` with the shared
 required-command diagnostic for ``tools/apply_theme.py``,
-``tools/apply_keymap.py`` and ``tools/apply_cursor.py``.
+``tools/apply_keymap.py`` and ``tools/cursor_selection.py`` (the selector
+used by ``tools/apply_cursor.py``).
 
 A Ctrl-C (SIGINT) is not one of ``exit_on_termination``'s signals, but its
 default handler raises ``KeyboardInterrupt`` at the next bytecode just the
