@@ -298,9 +298,13 @@ the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels a
 window-button layout into `kwinrc` (close box at the leading edge, zoom and collapse at the
 trailing edge — Plasma's look-and-feel apply drops those two keys), tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
-KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
-it preserves the user's keyboard mappings. Applying or removing Platinum does not change
-`kxkbrc`.
+KWin to reconfigure so the window decoration reloads. That reload request needs a D-Bus
+command-line tool: it prefers `qdbus6` and falls back to `qdbus` when `qdbus6` is not installed.
+When neither tool is installed, when the chosen command cannot be started or times out, or when it
+exits nonzero, the apply prints a note naming the failure and the consequence, and the optional
+reload step does not fail the apply; in every such case KWin reloads the window decoration on its
+next start. Applying or removing Platinum preserves the user's keyboard mappings and does not
+change `kxkbrc`.
 
 **Existing installations (2026-11-04):** Earlier versions added `ctrl:swap_lalt_lctl` to the
 keyboard's XKB options. To undo that change, open KDE System Settings → Keyboard → Advanced,

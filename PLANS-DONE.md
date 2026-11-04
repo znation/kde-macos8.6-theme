@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README apply guidance: complete the optional KWin reload explanation (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal and grounding.** Make the Installing section explain what happens when the optional KWin reload tool is absent. Its aggregate `make apply` paragraph currently ends the reload clause with an open parenthesis and immediately continues into keyboard-preservation prose. `tools/theme_apply_optional.py::reconfigure_kwin` prefers `qdbus6`, falls back to `qdbus`, and, when neither exists, prints a note, returns success and explains that KWin reloads the decoration on its next start. `run_best_effort` also treats command start errors, timeouts and nonzero exits as notes. Searches of Planned entries and related finished-plan headings found no focused repair for this sentence; the finished keyboard removal and standalone Plasma selection plans cover different work.
+
+**Approach and files.** Edit only README.md's Installing prose outside the brief markers. Replace the incomplete reload clause with complete sentences describing the optional command preference, note-only failure policy and next-KWin-start fallback. Start keyboard preservation as its own sentence or paragraph. Keep the dated existing-installation migration guidance beside it. This documentation repair is independent of the waiting fidelity paging plan and needs no runtime, asset or test changes; existing README command/path coverage in `tests/test_readme_commands.py::TestReadmeCommands` remains the check for referenced commands.
+
+**Acceptance criteria.** A reader following aggregate apply guidance can tell that `qdbus6` is preferred over `qdbus`, that missing or failing reload commands produce a note without making that optional step fail the apply, and that the decoration reloads on KWin's next start when the immediate request cannot run. The reload explanation ends before a separate statement that applying or removing Platinum preserves keyboard mappings and does not change `kxkbrc`. The 2026-11-04 manual migration instructions remain available. Read the edited paragraph against `reconfigure_kwin` and `run_best_effort`, inspect the diff for complete sentences and paired parentheses, and run `make check` after the final edit.
+
 ### Fidelity diagnostics: page through vertical mismatch intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal.** Page vertical mismatch intervals globally in column-major order after inclusive length filters.
