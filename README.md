@@ -886,6 +886,13 @@ Counts, longest-run summaries and other search measurements still cover the
 full region. The cap bounds reported output; interval collection still retains
 the full list.
 
+Pass `--match-column-run-offset K` with `--match-column-runs` and
+`--max-match-column-runs` to skip K eligible vertical intervals in column-major
+order after both length filters. JSON adds `match.column_run_offset`; text prints
+`matching column run offset: K` before the list. The omitted count includes
+skipped and trailing eligible intervals. Paging limits output; segmentation
+still retains the full interval list.
+
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the
 same array on a `matching rows:` line after interval reports. Index zero is the

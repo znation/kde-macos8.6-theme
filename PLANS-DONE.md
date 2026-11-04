@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: page through vertical color-match intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal and grounding.** Inspect later vertical border segments without printing the preceding intervals. `tools/sample_report_search.py::_search_match` slices the filtered vertical list; `tools/sample_match_runs.py::_MatchRuns.finish` orders that list by column then row. This adds paging alongside existing interval caps.
+
+**Approach and files.** Added `--match-column-run-offset K` to `tools/sample_arguments.py::build_parser` using `plain_number`; `option_error` requires `--max-match-column-runs`. `_search_match` skips eligible vertical intervals globally after both inclusive length filters and emits at most the cap. `omitted_column_runs` counts skipped and trailing eligible intervals. Explicit offsets add `match.column_run_offset`; text prints the offset before the vertical list. Segmentation and full-region summaries remain unchanged, so paging limits output rather than interval collection memory. Added `tests/test_sample_match_column_runs_offset.py`, extended option validation, README.md and the vertical match-filter invariant row.
+
+**Acceptance criteria.** For the planned 2x9 crop, offset 2 with cap 2 emits `(2,6,3)` then `(3,1,4)`, with three omitted; offset zero is explicit, and offset 5 emits an empty list with five omitted. Length filters run before paging; match count, interval count and longest interval remain full-region values. Text and JSON agree, absent offsets preserve the prior report, malformed offsets fail without stdout, and direct-script invocation matches package invocation.
+
 ### Reference-pixel sampler: page through horizontal color-match intervals (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal and grounding.** Let reference measurements inspect later matching border segments without printing an increasing prefix. The horizontal match-run cap lacked an interval offset.
