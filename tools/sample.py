@@ -67,7 +67,15 @@ def main(argv: list[str] | None = None) -> int:
     except OSError as exc:
         return report_error("sample", f"cannot read {args.image}: {exc}")
     except PngError as exc:
-        return report_error("sample", str(exc))
+        message = str(exc)
+        if opened_path != args.image:
+            # The reads go through the stable /proc/self/fd handle so a
+            # concurrent symlink swap cannot redirect them; a decode failure
+            # carrying that handle name would still tell the operator nowhere
+            # they typed, so the message names the path they gave instead,
+            # like the read and containment refusals above.
+            message = message.replace(opened_path, args.image)
+        return report_error("sample", message)
     header = f"image: {escape_controls(args.image)}  {width}x{height}"
     report(args, image, width, height, header)
     return 0

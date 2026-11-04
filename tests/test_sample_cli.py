@@ -365,6 +365,22 @@ class TestSampleCli(CliTestCase):
         self._assert_usage_error(result, "cannot read", missing)
         self.assertIn("No such file or directory", result.stderr)
 
+    def test_in_repo_decode_error_names_the_typed_path(self):
+        # An in-repo read goes through a stable ``/proc/self/fd`` handle so a
+        # concurrent symlink swap cannot redirect it, but the decode failure
+        # must still name the path the operator gave, like every other
+        # refusal above -- the handle number shifts between runs and names
+        # nowhere the operator typed.
+        root = self._tmp_dir() / "repo"
+        root.mkdir()
+        plain = root / "note.txt"
+        plain.write_text("pixel history", encoding="utf-8")
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(str(plain), "0", "0")
+        self._assert_usage_error(result)
+        self.assertIn(f"cannot decode {plain}", result.stderr)
+        self.assertNotIn("/proc/self/fd", result.stderr)
+
     def test_rejects_an_image_that_symlinks_outside_the_repository(self):
         # A checked-in symlink at a reference image can point at a private
         # image; sampling it would print that image's pixels. The path is
