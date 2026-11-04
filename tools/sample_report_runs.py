@@ -33,6 +33,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     selected_colors = set(args.run_colors) if args.run_colors else None
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
     runs = []
+    omitted_runs = 0
     run_count = 0 if args.run_count else None
     scanline_run_counts = [] if getattr(args, "scanline_run_counts", False) else None
     track_longest = args.longest_run
@@ -51,17 +52,27 @@ def _runs_result(args, image, width: int, height: int) -> dict:
             for run in line_runs:
                 if longest_run is None or run["length"] > longest_run["length"]:
                     longest_run = run
-        runs.extend(run for run in line_runs
-                    if (selected_colors is None or run["rgb"] in selected_colors)
-                    if run["rgb"] not in excluded_colors
-                    if (args.min_run_length is None or run["length"] >= args.min_run_length)
-                    and (args.max_run_length is None or run["length"] <= args.max_run_length))
+        for run in line_runs:
+            if not (selected_colors is None or run["rgb"] in selected_colors):
+                continue
+            if run["rgb"] in excluded_colors:
+                continue
+            if args.min_run_length is not None and run["length"] < args.min_run_length:
+                continue
+            if args.max_run_length is not None and run["length"] > args.max_run_length:
+                continue
+            if args.max_runs is not None and len(runs) >= args.max_runs:
+                omitted_runs += 1
+            else:
+                runs.append(run)
     result = {"image": args.image, "image_width": width, "image_height": height,
         "region": region, "axis": axis, "runs": [
             {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
         ]}
     if run_count is not None:
         result["run_count"] = run_count
+    if args.max_runs is not None:
+        result["omitted_runs"] = omitted_runs
     if scanline_run_counts is not None:
         result["scanline_run_counts"] = scanline_run_counts
     if track_longest:
@@ -93,3 +104,5 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
         rgb = run["rgb"]
         suffix = f"  alpha={run['alpha']}" if args.alpha else ""
         print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}{suffix}")
+    if "omitted_runs" in result:
+        print(f"omitted runs: {result['omitted_runs']}")

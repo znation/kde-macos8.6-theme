@@ -35,6 +35,8 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--min-run-length requires --runs"
     if args.max_run_length is not None and not args.runs:
         return "--max-run-length requires --runs"
+    if getattr(args, "max_runs", None) is not None and not args.runs:
+        return "--max-runs requires --runs"
     if getattr(args, "run_colors", None) and not args.runs:
         return "--run-color requires --runs"
     if getattr(args, "excluded_run_colors", None) and not args.runs:
@@ -138,6 +140,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-axis", choices=("horizontal", "vertical"), help="scan each row or column of a --runs rectangle")
     parser.add_argument("--min-run-length", type=positive_int("--min-run-length"), metavar="N", help="with --runs, omit color runs shorter than N pixels")
     parser.add_argument("--max-run-length", type=positive_int("--max-run-length"), metavar="N", help="with --runs, omit color runs longer than N pixels")
+    parser.add_argument("--max-runs", type=positive_int("--max-runs"), metavar="N", help="with --runs, display at most N eligible color runs")
     parser.add_argument("--run-color", dest="run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, retain this RGB color (repeatable)")
     parser.add_argument("--exclude-run-color", dest="excluded_run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, omit this RGB color (repeatable)")
     parser.add_argument("--run-count", action="store_true", help="with --runs, report the total number of scanline color runs before filters")

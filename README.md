@@ -993,6 +993,17 @@ the comparison. The flag requires `--runs`.
 
 
 
+Pass `--max-runs N` with `--runs` to display only the first N eligible runs
+across the complete scan in its existing row or column order. Named color
+selection and exclusion plus inclusive run-length filters apply before this
+prefix limit. JSON adds `omitted_runs`, and text prints `omitted runs: N`
+after the displayed runs, including zero when the limit covers every eligible
+run. This caps the retained report list; the scan continues so
+`--run-count`, `--scanline-run-counts` and `--longest-run` retain their
+unfiltered full-region meanings. Without the option, output is unchanged.
+The option requires `--runs` and is distinct from `--max-run-length`, which
+filters runs by their individual pixel lengths.
+
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
