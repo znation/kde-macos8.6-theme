@@ -41,6 +41,31 @@ class TestSampleValidators(unittest.TestCase):
                 with self.assertRaises(argparse.ArgumentTypeError):
                     parser(value)
 
+    def test_range_errors_include_the_rejected_value(self):
+        cases = (
+            (validators.color_tolerance, "256",
+             "--color-tolerance must be between 0 and 255: '256'"),
+            (validators.color_tolerance, "-1",
+             "--color-tolerance must be between 0 and 255: '-1'"),
+            (validators.match_alpha, "256",
+             "--match-alpha must be between 0 and 255: '256'"),
+            (validators.match_alpha, "-1",
+             "--match-alpha must be between 0 and 255: '-1'"),
+            (validators.match_pixels, "0",
+             "--match-pixels must be between 1 and 1000: '0'"),
+            (validators.match_pixels, "1001",
+             "--match-pixels must be between 1 and 1000: '1001'"),
+            (validators.match_pixel_offset, "-1",
+             "--match-pixel-offset must be nonnegative: '-1'"),
+            (validators.color_offset, "-1",
+             "--color-offset must be nonnegative: '-1'"),
+        )
+        for parser, value, message in cases:
+            with self.subTest(value=value), self.assertRaisesRegex(
+                argparse.ArgumentTypeError, f"^{message}$"
+            ):
+                parser(value)
+
     def test_fraction_range_errors_include_the_rejected_value(self):
         cases = (
             (validators.color_fraction, "1.1",

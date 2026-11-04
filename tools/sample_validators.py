@@ -26,7 +26,9 @@ def color_tolerance(value: str) -> int:
     """Parse a plain ASCII RGB channel tolerance from 0 through 255."""
     parsed = plain_number(value, "--color-tolerance", "integer", "an", int)
     if not 0 <= parsed <= 255:
-        raise argparse.ArgumentTypeError("--color-tolerance must be between 0 and 255")
+        raise argparse.ArgumentTypeError(
+            f"--color-tolerance must be between 0 and 255: {value!r}"
+        )
     return parsed
 
 
@@ -34,7 +36,9 @@ def match_alpha(value: str) -> int:
     """Parse an exact PNG alpha byte from 0 through 255."""
     parsed = plain_number(value, "--match-alpha", "integer", "an", int)
     if not 0 <= parsed <= 255:
-        raise argparse.ArgumentTypeError("--match-alpha must be between 0 and 255")
+        raise argparse.ArgumentTypeError(
+            f"--match-alpha must be between 0 and 255: {value!r}"
+        )
     return parsed
 
 
@@ -42,7 +46,9 @@ def match_pixels(value: str) -> int:
     """Parse a bounded count of matching positions to report."""
     parsed = plain_number(value, "--match-pixels", "integer", "an", int)
     if not 1 <= parsed <= 1000:
-        raise argparse.ArgumentTypeError("--match-pixels must be between 1 and 1000")
+        raise argparse.ArgumentTypeError(
+            f"--match-pixels must be between 1 and 1000: {value!r}"
+        )
     return parsed
 
 
@@ -50,7 +56,9 @@ def match_pixel_offset(value: str) -> int:
     """Parse a nonnegative plain ASCII match-coordinate offset."""
     parsed = plain_number(value, "--match-pixel-offset", "integer", "a", int)
     if parsed < 0:
-        raise argparse.ArgumentTypeError("--match-pixel-offset must be nonnegative")
+        raise argparse.ArgumentTypeError(
+            f"--match-pixel-offset must be nonnegative: {value!r}"
+        )
     return parsed
 
 
@@ -58,7 +66,9 @@ def color_offset(value: str) -> int:
     """Parse a nonnegative plain ASCII histogram color offset."""
     parsed = plain_number(value, "--color-offset", "integer", "an", int)
     if parsed < 0:
-        raise argparse.ArgumentTypeError("--color-offset must be nonnegative")
+        raise argparse.ArgumentTypeError(
+            f"--color-offset must be nonnegative: {value!r}"
+        )
     return parsed
 
 
