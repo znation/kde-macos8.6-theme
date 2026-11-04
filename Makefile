@@ -231,6 +231,9 @@ LNF_ID := org.macos8.desktop
 LNF_PACKAGE := theme/look-and-feel/$(LNF_ID)
 LNF_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/look-and-feel
 
+# Keep DTHEME_ID in step with tools/apply_theme.py::DTHEME_ID, the desktop
+# theme id `make apply` selects with `plasma-apply-desktoptheme`; see the
+# uninstall diagnostics below.
 DTHEME_ID := org.macos8.desktop
 DTHEME_PACKAGE := theme/desktoptheme/$(DTHEME_ID)
 DTHEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/desktoptheme
@@ -870,6 +873,25 @@ _uninstall:
 # value wins. As before, this is a diagnostic only -- it must not edit the
 # file.
 #
+# `make apply` selects the Plasma desktop theme as a required step:
+# `tools/apply_theme.py::STEPS` runs `plasma-apply-desktoptheme
+# $(DTHEME_ID)`, which stores a `[Theme] name=$(DTHEME_ID)` line in
+# `$XDG_CONFIG_HOME/plasmarc`; the shipped look-and-feel's own defaults
+# (`theme/look-and-feel/$(LNF_ID)/contents/defaults`) carry the same
+# `[plasmarc][Theme]` group, so `lookandfeeltool -a` writes it first. After
+# `make uninstall` removes the installed desktoptheme package, Plasma cannot
+# load the removed desktop theme and keeps the default style, exactly like
+# the other unresolved selections; nothing under make edits plasmarc, so the
+# diagnostic names the writer tool's own reset, `plasma-apply-desktoptheme
+# breeze` (Plasma's stock default desktop theme id, a platform-required
+# value grounded like the pointer's `breeze_cursors`). The file is read the
+# same way as the other four: the first line's UTF-8 BOM is stripped, each
+# line is trimmed before parsing, a trimmed `[`...`]` line switches the
+# section, `#`/`;` lines are comments and never keys, the key/value pair
+# splits at the first `=` with both sides trimmed, and a later duplicate's
+# value wins. As before, this is a diagnostic only -- it must not edit the
+# file.
+#
 # `make apply` also writes the window-decoration button layout into
 # `$XDG_CONFIG_HOME/kwinrc`: `tools/apply_theme.py::DECORATION_BUTTONS`
 # stores `[org.kde.kdecoration2] ButtonsOnLeft=X` and
@@ -915,6 +937,10 @@ fi; \
 kvconfig="$$config_home/Kvantum/kvantum.kvconfig"; \
 if [ -n "$$config_home" ] && [ -f "$$kvconfig" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "General" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "theme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(KVANTUM_ID)" ? 0 : 1 }' "$$kvconfig" 2>/dev/null; then \
 	  echo "uninstall: the Kvantum selection still names $(KVANTUM_ID) after removal in $$kvconfig; Kvantum applications cannot load the removed theme and keep their default style. Clear it with: make remove-kvantum" >&2; \
+fi; \
+plasmarc="$$config_home/plasmarc"; \
+if [ -n "$$config_home" ] && [ -f "$$plasmarc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Theme" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "name") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(DTHEME_ID)" ? 0 : 1 }' "$$plasmarc" 2>/dev/null; then \
+	  echo "uninstall: the desktop theme selection still names $(DTHEME_ID) after removal in $$plasmarc; Plasma cannot load the removed desktop theme and keeps the default style. Reset it with: plasma-apply-desktoptheme breeze" >&2; \
 fi; \
 kcminputrc="$$config_home/kcminputrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kcminputrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Mouse" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "cursorTheme") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(ICON_THEME_ID)" ? 0 : 1 }' "$$kcminputrc" 2>/dev/null; then \

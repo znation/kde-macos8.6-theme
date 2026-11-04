@@ -277,7 +277,13 @@ selection; and if the pointer selection `plasma-apply-cursortheme` wrote
 (`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
 prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 — that command must be run by hand, because `make remove-cursor` owns only the
-`$HOME/.icons` link and never touches `kcminputrc`; and if the
+`$HOME/.icons` link and never touches `kcminputrc`; if the desktop theme
+selection `plasma-apply-desktoptheme` wrote (`[Theme] name=` in `plasmarc`)
+still names `org.macos8.desktop` after the uninstall, it prints a warning
+naming `plasma-apply-desktoptheme breeze` as the reset (`breeze` is Plasma's
+stock default desktop theme, a platform-required value grounded against the
+tool the apply itself runs — like the pointer's `breeze_cursors`, the
+reference screenshots show no uninstall warning to sample it from); and if the
 window-button layout the apply's `kwriteconfig6` runs wrote
 (`[org.kde.kdecoration2] ButtonsOnLeft=X` and `ButtonsOnRight=AL` in
 `kwinrc`) is still there after the uninstall, it prints a warning naming the
