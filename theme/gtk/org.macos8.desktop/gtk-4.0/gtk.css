@@ -1886,6 +1886,46 @@ switch > image {
   color: transparent;
 }
 
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   toggle group (no Mac OS 8.6 surface has one), so the corners are a
+   platform value the reference set does not show and the chosen value is
+   this theme's square-corner policy — `frame > border`, `.frame` and the
+   landed `button`, card, tab-family and cursor-handle restatements all
+   carry `border-radius: 0`. The stock rounded arms come from the platform
+   style library's `base.css` resource inside the integration library (probe
+   path recorded in docs/invariants.md), extracted 2026-11-04 with
+   `gresource extract`; it declares four radius-bearing toggle-group arms:
+   `toggle-group { ---group-padding: 3px; background: color-mix(in srgb, currentColor 10%, transparent); border-radius: 9px; padding: var(---group-padding); }`,
+   `toggle-group > toggle { border-radius: calc(9px - var(---group-padding)); font-weight: bold; min-width: 34px; min-height: calc(34px - var(---group-padding) * 2); }`,
+   `toggle-group.round { border-radius: 17px; }` and
+   `toggle-group.round toggle { border-radius: calc(17px - var(---group-padding)); }`
+   (stock spells that last selector without `>`). The `.flat` variant
+   declares no radius of its own. Each group below is byte-equal to its
+   stock spelling, wins by later user-sheet source order at stock's own
+   specificity, and states nothing else: the translucent group face, the
+   checked toggle's accent fill, the geometry and every other stock
+   declaration stay inherited per-property. The restated groups declare no
+   `calc()` that reads `---group-padding`, so that variable keeps resolving
+   unchanged for stock's own surviving calc arms. The two toggle focus arms
+   and the `.osd` variable arm stay stock; later entries own those
+   surfaces. */
+
+toggle-group {
+  border-radius: 0;
+}
+
+toggle-group > toggle {
+  border-radius: 0;
+}
+
+toggle-group.round {
+  border-radius: 0;
+}
+
+toggle-group.round toggle {
+  border-radius: 0;
+}
+
 .toolbar, menubar {
   background-color: #DDDDDD;
   border-bottom: 1px solid #888888;

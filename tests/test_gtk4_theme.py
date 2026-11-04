@@ -3640,6 +3640,35 @@ for radio in (False, True):
     def test_switch_track_padding(self):
         self.assert_rule("switch", {"padding": "0"})
 
+    def test_toggle_group_corners(self):
+        # The 2026-11-04 toggle-family corner row adds four stock-spelling
+        # members at the sheet's switch seam.
+        expected = {
+            "toggle-group",
+            "toggle-group > toggle",
+            "toggle-group.round",
+            "toggle-group.round toggle",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules if "toggle-group" in selector},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
+        for selector in sorted(expected):
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("switch > image"),
+            )
+            self.assertLess(
+                self.selectors.index(selector),
+                self.selectors.index(".toolbar"),
+            )
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",
