@@ -305,7 +305,12 @@ reference's modifier layout: `tools/apply_keymap.py` appends `ctrl:swap_lalt_lct
 applies those options on Wayland, and emits `org.kde.keyboard /Layouts reloadConfig` so the swap
 takes effect without a logout. After the swap the physical left Alt produces Control and the
 physical left Control produces Alt for every application in this user's session, putting Cut, Copy,
-Paste and the rest of the reference's shortcut modifier at the Command-key position; right Alt
+Paste and the rest of the reference's shortcut modifier at the Command-key position, provided
+the keyboard reports PC keycodes. A keyboard switched to its Mac (Apple) mode already swaps those
+positions in firmware: its Command-position key sends Super, so the option then lands on the
+left Ctrl and Super keys instead — the Command-position key opens the launcher and the Windows
+key produces Control. Switch such a keyboard back to its PC/Windows mode; the keymap is already
+right and needs no second apply. Right Alt
 (AltGr) and other users' sessions are unchanged, and a repeat apply keeps one copy. The reload is
 best effort: when neither `dbus-send` nor `busctl` is on `PATH`, or the emitted signal fails, it
 notes that the swap takes effect at the next login. The setting persists after `make uninstall`;
@@ -423,6 +428,7 @@ not restore earlier settings or backups.
 
 The left Alt/Control swap also persists after removal. To reverse it, remove
 `ctrl:swap_lalt_lctl` from Options in System Settings → Keyboard → Key Bindings.
+As when applying, the swap assumes the keyboard is in its PC/Windows mode.
 
 #### Restoring personal GTK 4 CSS
 

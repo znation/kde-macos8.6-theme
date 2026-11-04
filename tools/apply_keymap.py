@@ -9,6 +9,13 @@ reference's shortcuts use the key in the Command position without rebinding
 each application. Only the left pair is swapped; right Alt (AltGr) keeps
 producing the characters it always did.
 
+The option assumes the keyboard reports PC keycodes. A keyboard in a Mac
+(Apple) mode already swaps the key positions in firmware, so its key in the
+Command position sends the Super keycode and the option lands on the left Ctrl
+and Super keys instead: the Command-position key opens the launcher while the
+Windows key produces Control. Such a keyboard has to be in its PC/Windows mode
+first; the keymap needs no second apply, since the option set is the same.
+
 The setting is per user: it is written to ``kxkbrc`` under the same key and
 group the Keyboard KCM writes, so other logged-in users, virtual terminals and
 the display manager keep their own keymaps. The write preserves every other
