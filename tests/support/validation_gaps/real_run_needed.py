@@ -26,8 +26,12 @@ from .records import Reproduction
 # that the theme-selection plumbing predates, so only a fresh real
 # ``kwin_wayland`` render could say what the engine now draws, and the dialog
 # render that suite now runs in ``make check`` pins the rendered combo arrow
-# cell against the shipped art. A new record must name an offline test instead
-# of raising this.
+# cell against the shipped art. Plus the Aurorae hover/press button erasure
+# fixed 2026-11-04: showing the erasure needed a live KWin hover on an
+# unfocused window, diagnosed against the installed AuroraeButton.qml state
+# logic; the nothing-shipped ``inactive-center`` slices the fix ships are
+# pinned offline by the button fixture's test. A new record must name an
+# offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
@@ -84,9 +88,15 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_render_surface.py::TestComboboxDialogRender"
         "::test_draws_the_combo_arrow_cell_1_to_1",
     ),
+    Reproduction(
+        "aurorae-hover-press-erasure",
+        ("Hovering or pressing an unfocused window",),
+        "tests/test_aurorae_buttons.py::TestButtons"
+        "::test_inactive_center_ships_nothing",
+    ),
 )
 
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 9
+REAL_RUN_NEEDED_BASELINE = 10

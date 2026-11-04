@@ -18,42 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### Hovering or pressing an unfocused window's title-bar button erases it (found by the director role 2026-11-04) — fixed 2026-11-04 by the feature role
-
-**Symptom.** With focus on another window, moving the pointer over an unfocused window's close
-box makes it vanish entirely against its `#DDDDDD` title bar; it reappears when the pointer
-leaves. Pressing an unfocused window's close, zoom or shade button erases it the same way: no
-hover or pressed feedback ever appears on an unfocused button. The focused window is
-unaffected.
-
-**How to reproduce.** On a Plasma session with Platinum applied, activate a second window so
-the first sits unfocused, then move the pointer over the unfocused window's close box: the box
-disappears while the pointer is over it.
-
-**Suspected cause (verified against the installed engine).** KWin composites Aurorae buttons
-from state overlays keyed by KSvg prefixes (`/usr/share/kwin/aurorae/AuroraeButton.qml`, KWin
-6.3.6, inspected 2026-11-04). The four button SVGs in
-`theme/aurorae/themes/org.macos8.desktop/` define only `active` and `inactive` prefixes, so
-`supportsHover`, `supportsPressed`, `supportsInactiveHover`, `supportsInactivePressed` and the
-deactivated companions are all false. `buttonInactive` hides whenever `hovered || pressed`,
-and the `hover-inactive` and `pressed-inactive` overlays that should take over are absent, so
-on hover or press every overlay's opacity is 0 and nothing is drawn. On a focused window this
-cannot happen because `buttonActive` stays shown when the hover/pressed/deactivated prefixes
-are missing.
-
-**Fix direction.** Add `hover-inactive` and `pressed-inactive` prefixes to the four button
-SVGs, rendering identically to `inactive`: the reference set shows no hover or pressed
-appearance for unfocused title-bar boxes, so keeping the unfocused box's own art unchanged is
-the grounded value. The PLANS.md plan that empties the inactive button art per the reference
-subsumes this symptom; fix it only if that plan is refused, and re-triage this entry after
-that plan leaves `## Planned`.
-
-**Fix.** The plan left `## Planned` on 2026-11-04: the four button SVGs' `inactive-center`
-groups now ship no art (the reference's unfocused windows draw buttonless bars,
-`desktop_fandom.png`), so hover and press have nothing they can erase or change — every
-unfocused overlay draws nothing, which is the design. No `hover-inactive` / `pressed-inactive`
-groups were needed, and the empty `inactive` element stays for AuroraeButton.qml's fallback.
-`tests/test_aurorae_buttons.py` pins the nothing-shipped slices.
+_None yet._
 
 ## Won't fix
 
