@@ -373,9 +373,9 @@ rendered border runs, its white interior and the current-item focus ring there.
 theme-name CSS switch it wears the theme through the selection the render publishes into the
 scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
-GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins only capture-level
-invariants (the size and a painted, non-uniform plane); byte-comparing the rendered entry-field
-cell is separate queued work. The four dialog modes cannot be combined. In each mode the scratch session links its own home's
+GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
+cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
+edge; it also checks capture-level invariants. The four dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -1205,8 +1205,9 @@ suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
 `kdialog` warning box, chooser and menu list and a `zenity` GTK 4 entry dialog and
 byte-compare the engine-drawn check box cell with the shipped `checkbox-*` canvas, the
 engine-drawn combo arrow with the shipped `comboarrow-normal` slice and the engine-drawn item
-view frame with the shipped `GenericFrame` art, the GTK entry capture pinned capture-level only:
-engine-drawn widget pixels are gate-covered too.
+view frame with the shipped `GenericFrame` art. The GTK 4 dialog gate byte-compares the rendered
+entry-field cell with its shipped art and pins the rendered action-button row, Cancel button and
+CSD shell edge; it also checks capture-level invariants.
 
 ## Running checks
 
