@@ -725,14 +725,19 @@ class TestFailurePaths(StubTools):
         self.assertIn("--exit-with-session", text)
         last = text.splitlines()[-1].split()
         self.assertTrue(Path(last[0]).parent.name.startswith("render-surface-"))
-        self.assertEqual(1, len(last), "WAYLAND_DISPLAY and DISPLAY leaked")
+        self.assertEqual(
+            ["render-surface"],
+            last[1:],
+            "the session did not get its own socket, or DISPLAY leaked",
+        )
 
     def test_session_ignores_a_config_search_path_from_the_environment(self):
         # `plasma-apply-colorscheme` and the session resolve config through
         # XDG_CONFIG_DIRS as well as XDG_CONFIG_HOME, so a caller-set search
         # path would let the host session's kdeglobals/kwinrc leak into a
         # render that is supposed to run against the throwaway config home
-        # only. The render must drop it like it drops WAYLAND_DISPLAY/DISPLAY.
+        # only. The render must drop it like it drops the caller's
+        # WAYLAND_DISPLAY/DISPLAY.
         record = self.root / "config-dirs"
         self.stub(
             "dbus-run-session",

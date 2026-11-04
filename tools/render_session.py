@@ -77,6 +77,14 @@ class Session:
             }
             environment.update(
                 XDG_RUNTIME_DIR=str(runtime),
+                # The host's display must not leak, but the nested session
+                # still needs a display of its own: the private bus
+                # `dbus-run-session` starts hands this environment to every
+                # service it activates, and a GUI service started without a
+                # display (KWin asks for the settings portal during startup)
+                # aborts in QGuiApplication and D-Bus retries it in a
+                # core-dump loop.
+                WAYLAND_DISPLAY=SOCKET,
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
                 HOME=str(home),

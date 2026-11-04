@@ -314,7 +314,13 @@ class TestSessionSetup(unittest.TestCase):
         with mock.patch.dict(os.environ, ambient):
             with render_session.Session.create() as session:
                 environment = session.environment
+        # The host display is replaced, not inherited: the nested session
+        # must point at its own compositor socket.
+        self.assertEqual(render_session.SOCKET, environment["WAYLAND_DISPLAY"])
+        self.assertNotEqual("wl", environment["WAYLAND_DISPLAY"])
         for key in ambient:
+            if key == "WAYLAND_DISPLAY":
+                continue
             with self.subTest(key=key):
                 self.assertNotIn(key, environment)
 
