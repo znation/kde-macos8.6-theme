@@ -420,6 +420,114 @@ spinbutton.warning:focus-within:not(.vertical), entry.warning:focus-within {
   outline-color: #000000;
 }
 
+/* 2026-11-03: no collected reference screenshot shows a GTK spinbutton
+   stepper in any state, the standing GTK-scope adaptation premise: the
+   plain horizontal stepper arms outside the landed .osd overlay restate
+   the toolkit resource's seven plain `spinbutton ... button` stepper
+   arms with the landed raised push-button face, mirroring the landed .osd
+   stepper restate further down this sheet (pinned by the same suite). The
+   stock transparent faces, the left-edge rgba(205, 199, 194, 0.3)
+   separator and its :dir flip, the hover #ebe8e6 recolour, the
+   translucent grey insensitive ink and pressed face and the corner arms'
+   0 5px 5px 0 / 5px 0 0 5px outer radii are all cleared. Stock's
+   min-height: 16px, its zero margins and its zero vertical paddings stay
+   undeclared so stock keeps governing the steppers' geometry. Stock
+   declares the :active arm only in this plain horizontal family, and the
+   plain vertical spinbutton.vertical > button geometry arms stay stock:
+   their face flows from the landed generic button restate and their
+   shared-edge mechanics are the landed linked-group policy. Stock
+   selectors probed from Default-light.css and Default-dark.css in
+   libgtk-4 4.18.6 with gresource on 2026-11-03. */
+spinbutton:not(.vertical) > button.image-button.up:not(.flat),
+spinbutton:not(.vertical) > button.image-button.down:not(.flat) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl),
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):hover,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):disabled,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):active,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(ltr):last-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl):first-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
 /* No collected reference screenshot shows a GTK treeview-embedded entry,
  * the standing GTK-scope adaptation premise: restating the stock
  * treeview-embedded entry arms with the landed entry recipe above. Stock

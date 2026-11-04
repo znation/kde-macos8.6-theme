@@ -3090,6 +3090,102 @@ for radio in (False, True):
         )
         self.assertLess(last, self.selectors.index(".osd .scale-popup button.flat"))
 
+    def test_spinbutton_steppers(self):
+        """Pin the restated stock plain spinbutton stepper arms.
+
+        No collected reference screenshot shows a GTK spinbutton stepper
+        in any state, so the sheet restates the toolkit resource's seven
+        plain (non-``.osd``) horizontal ``spinbutton ... button`` stepper
+        arms with the landed raised push-button face — the same dictionary
+        the landed OSD stepper record pins — so a horizontal stepper
+        outside the OSD overlay paints the raised #DDDDDD face with a 1px
+        black border, zero radius, the BUTTON_BEVEL etch, black labels and
+        no icon shadow. This plain family is the only family stock gives
+        an ``:active`` arm, and the pressed arm swaps to the inverted
+        bevel; the disabled arms take the landed grey Etch colour
+        (ETCH_DARK) and keep no outline colour. Stock's min-height and
+        padding geometry are not restated, and stock's plain vertical
+        ``spinbutton.vertical > button`` geometry arms stay stock: the
+        landed generic button restate paints them and their shared-edge
+        mechanics are the landed linked-group policy. The arm selectors
+        and states come from
+        /org/gtk/libgtk/theme/Default/Default-dark.css and
+        Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+        (libgtk-4 4.18.6); each horizontal comma-group splits into two
+        selector keys, so the seven groups hold the fourteen spellings
+        the family scan pins.
+        """
+        base = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}",
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        active = {
+            **base,
+            "box-shadow": f"inset 1px 1px {GREY}, inset -1px -1px {WHITE}",
+        }
+        disabled = {
+            name: value for name, value in base.items()
+            if name != "outline-color"
+        }
+        disabled["color"] = ETCH_DARK
+        up = "spinbutton:not(.vertical) > button.image-button.up:not(.flat)"
+        down = (
+            "spinbutton:not(.vertical)"
+            " > button.image-button.down:not(.flat)"
+        )
+        expected = {}
+        arms = (
+            ("", base),
+            (":dir(rtl)", base),
+            (":hover", base),
+            (":disabled", disabled),
+            (":active", active),
+            (":dir(ltr):last-child", base),
+            (":dir(rtl):first-child", base),
+        )
+        for suffix, recipe in arms:
+            for prefix in (up, down):
+                expected[prefix + suffix] = recipe
+        self.assertEqual(len(expected), 14)
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
+                self.assertEqual(self.selectors.count(selector), 1)
+        # No other non-.osd ``spinbutton … button`` spelling exists in the
+        # sheet: the landed .linked group members pair the two names but
+        # carry no `` button`` token, and the landed OSD steppers are
+        # excluded here, so the scan kills renamed and stray variants.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if "spinbutton" in s
+                and " button" in s
+                and ".osd" not in s
+            },
+            set(expected),
+        )
+        # The seven groups sit between the landed entry.warning focus arm
+        # and the landed OSD entry-field block.
+        first = self.selectors.index(up)
+        last = self.selectors.index(
+            "spinbutton:not(.vertical)"
+            " > button.image-button.down:not(.flat):dir(rtl):first-child"
+        )
+        self.assertLess(
+            self.selectors.index("entry.warning:focus-within"), first
+        )
+        self.assertLess(
+            last, self.selectors.index(".osd spinbutton.vertical > text")
+        )
+
     def test_osd_progress_scale(self):
         progress_trough = PROGRESSBAR_TROUGH
         scale_trough = SCALE_TROUGH
