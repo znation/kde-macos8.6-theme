@@ -416,6 +416,41 @@ not restore earlier settings or backups.
 The left Alt/Control swap also persists after removal. To reverse it, remove
 `ctrl:swap_lalt_lctl` from Options in System Settings → Keyboard → Key Bindings.
 
+#### Restoring personal GTK 4 CSS
+
+When `make apply` replaced a nonempty foreign `gtk-4.0/gtk.css`, it first copied that stylesheet
+beside itself and printed a note naming both paths:
+
+```
+apply_gtk: note: backed up <your gtk-4.0/gtk.css> to <the new backup> before replacing it
+```
+
+`make remove-gtk` keeps them: it deletes only the marker-led sheet this theme wrote and leaves
+a foreign `gtk.css` alone, so finish that removal successfully before restoring anything.
+
+Backup candidates are `gtk-4.0/gtk.css.bak` and, when several replacements happened, the
+unused-name siblings `gtk.css.bak.1` and up, all under your config home (`$XDG_CONFIG_HOME` when
+it is an absolute path, otherwise `$HOME/.config`). A numbered suffix only means the plain name
+was already taken when another apply made a backup — it is the next unused filename, not a
+chronology, and the largest number is not the newest edition. Read the candidates and choose by
+contents.
+
+Copy the chosen backup back at the console; `cp -i --` preserves the backup and prompts before
+replacing an existing destination. Quote every path so spaces survive:
+
+```sh
+cp -i -- "/absolute/path/to/gtk-4.0/gtk.css.bak" "/absolute/path/to/gtk-4.0/gtk.css"
+```
+
+If a foreign `gtk.css` survived the removal, it may hold edits newer than any backup, so read it
+before replacing it. Restart running GTK applications afterward so they reload the restored
+stylesheet.
+
+This restores the user CSS alone: it does not restore the theme name your `gtk-3.0/settings.ini`
+or `gtk-4.0/settings.ini` carried before applying (`make remove-gtk` clears its selection and
+leaves the rest of the file alone), so choose a preferred GTK theme separately when you want
+one.
+
 ## Generating the wallpaper
 
 `python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
