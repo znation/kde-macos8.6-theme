@@ -273,7 +273,27 @@ as the reset; if the GTK selection `make apply` published still names
 `make remove-gtk` as the reset; if the Kvantum selection `kvantummanager` wrote
 (`[General] theme=` in `kvantum.kvconfig`) still names `org.macos8.desktop`, it
 prints a warning naming `make remove-kvantum` as the reset that clears only that
-selection; and if the pointer selection `plasma-apply-cursortheme` wrote
+selection; if the widget-style selection the look-and-feel apply wrote
+(`[kdeglobals][KDE] widgetStyle=kvantum`, which selects the Kvantum style
+plugin as Qt's widget style) still names `kvantum` after the uninstall, it
+prints a warning naming the reset
+`kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete`,
+which deletes exactly the key the apply wrote and reverts it to its absence
+(as prose grounded against the upstream KDE/Kvantum sources the project
+reads for its Kvantum adaptations, never test-asserted: every Qt start
+keeps selecting the style that key names whether or not it still resolves,
+drawing the Kvantum engine's built-in default theme while the plugin -- a
+system package outside this theme's artifacts -- exists, or the platform
+default style when it does not); and if the icon-theme selection the
+look-and-feel apply wrote (`[kdeglobals][Icons] Theme=org.macos8.desktop`)
+still names the removed icon theme after the uninstall, it prints a warning
+naming the reset `kwriteconfig6 --file kdeglobals --group Icons --key Theme
+--delete`, which deletes exactly the key the apply wrote and reverts it to
+its absence (likewise never-test-asserted prose ground: KDE and Qt
+applications cannot load the removed icon theme and keep the default
+icons; the reference screenshots show no uninstall warning to sample either
+of these warnings from); and if the pointer selection
+`plasma-apply-cursortheme` wrote
 (`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
 prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 — that command must be run by hand, because `make remove-cursor` owns only the

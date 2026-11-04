@@ -970,6 +970,42 @@ _uninstall:
 # id, an empty value, and a group holding only `library` or the button
 # keys above. As before, this is a diagnostic only -- it must not edit
 # the file.
+#
+# The same look-and-feel apply publishes two more selections as kdeglobals
+# keys through `theme/look-and-feel/$(LNF_ID)/contents/defaults`:
+# `[kdeglobals][KDE] widgetStyle=kvantum`, which selects the Kvantum style
+# plugin as Qt's widget style, and `[kdeglobals][Icons] Theme=
+# $(ICON_THEME_ID)`, which selects the installed icon theme. After `make
+# uninstall` removes the icon theme package and the theme's Kvantum
+# artifacts, both keys remain. As prose grounded against the upstream
+# KDE/Kvantum sources the project reads for its Kvantum adaptations (never
+# test-asserted, and no reference screenshot shows an uninstall warning to
+# sample it from): every Qt start keeps selecting the style the `widgetStyle`
+# key names whether or not it still resolves -- drawing the Kvantum engine's
+# built-in default theme while the plugin (a system package outside this
+# theme's artifacts) exists, or the platform default style when it does not
+# -- and KDE and Qt applications cannot load the removed icon theme and keep
+# the default icons. The reset deletes exactly the ones of the two keys the
+# look-and-feel apply wrote whose published values still stand:
+# `kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete`
+# and `kwriteconfig6 --file kdeglobals --group Icons --key Theme --delete`
+# revert each key to its absence rather than editing any foreign value, the
+# same `--delete` ground the kwinrc diagnostics record. The file is read the
+# same way the color-scheme diagnostic reads `$XDG_CONFIG_HOME/kdeglobals`
+# above: the first line's UTF-8 BOM is stripped, each line is trimmed before
+# parsing, a trimmed `[`...`]` line switches the section (a header that never
+# closes is skipped without changing it), `#`/`;` lines are comments and
+# never keys, the key/value pair splits at the first `=` with both sides
+# trimmed, keys are case-sensitive, and a later duplicate's value wins. One
+# awk tracks the last `widgetStyle` value inside `[KDE]` and the last `Theme`
+# value inside `[Icons]` independently and prints at most two lines, each
+# only when its last value trims to exactly the expected one; either
+# condition alone prints only its own line, so one key's match never gates
+# the other's warning. The `kvantum` literal is not a Make variable but the
+# engine name the defaults publish -- keep it in step with
+# `theme/look-and-feel/$(LNF_ID)/contents/defaults` and
+# `tests/test_lookandfeel.py::TestDefaults`. As before, this is a diagnostic
+# only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -979,6 +1015,10 @@ _uninstall:
 	  if [ "$$selected" = "[$(COLOR_SCHEME_ID)]" ]; then \
 	    echo "uninstall: color scheme $(COLOR_SCHEME_ID) is still selected in $$kdeglobals after removal; if KDE cannot resolve it, it falls back to BreezeLight on the next start. Reset it with: plasma-apply-colorscheme BreezeLight" >&2; \
 	  fi; \
+	fi; \
+	if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
+	  kde_selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (section == "KDE" && key == "widgetStyle") style=value; if (section == "Icons" && key == "Theme") icons=value } } END { if (style == "kvantum") print "uninstall: the widget-style selection the look-and-feel apply wrote ([KDE] widgetStyle=kvantum) is still in " FILENAME " after removal; every Qt start keeps selecting the style that key names whether or not it still resolves. Reset it with: kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete"; if (icons == "$(ICON_THEME_ID)") print "uninstall: the icon-theme selection the look-and-feel apply wrote ([Icons] Theme=$(ICON_THEME_ID)) is still in " FILENAME " after removal; KDE and Qt applications cannot load the removed icon theme and keep the default icons. Reset it with: kwriteconfig6 --file kdeglobals --group Icons --key Theme --delete" }' "$$kdeglobals" 2>/dev/null); \
+	  if [ -n "$$kde_selected" ]; then printf '%s\n' "$$kde_selected" >&2; fi; \
 	fi; \
 	if [ -n "$$config_home" ]; then \
 	  chosen=""; \

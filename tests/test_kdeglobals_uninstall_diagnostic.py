@@ -1,0 +1,366 @@
+"""Makefile tests for the `_uninstall` kdeglobals widget-style/icon-theme diagnostics.
+
+`make apply` applies the shipped look-and-feel, whose defaults publish
+`[KDE] widgetStyle=kvantum` (the Kvantum style plugin as Qt's widget style)
+and `[Icons] Theme=org.macos8.desktop` (the installed icon theme) into the
+user's `kdeglobals`; `make uninstall` removes the icon theme package and the
+theme's Kvantum artifacts, and KDE silently keeps both selections.
+`_uninstall` prints one diagnostic per key naming the matching
+`kwriteconfig6 --delete` reset when that key's last value in its own section
+still trims to exactly the published one, without editing the file. The two
+conditions are independent: either key alone warns only its own line. The
+scanner it runs on mirrors the shared `_uninstall` reads the color-scheme
+diagnostic pins for kdeglobals, so that suite keeps its exact wording and
+this module must not touch it or its other files.
+"""
+
+import os
+import unittest
+
+from support import theme_install
+from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+ICON_THEME_ID = "org.macos8.desktop"
+RESET = "kwriteconfig6 --file kdeglobals"
+STYLE_RESET = RESET + " --group KDE --key widgetStyle --delete"
+ICONS_RESET = RESET + " --group Icons --key Theme --delete"
+COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
+
+
+def read_bytes(path):
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def write_selection(config, body):
+    """Write *body* as `<config>/kdeglobals`; return its path."""
+    path = os.path.join(config, "kdeglobals")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
+    return path
+
+
+def style_rule_for(path):
+    """The expected widget-style diagnostic line naming *path* (wording is the contract)."""
+    return (
+        "uninstall: the widget-style selection the look-and-feel apply wrote "
+        "([KDE] widgetStyle=kvantum) is still in " + path + " after removal; "
+        "every Qt start keeps selecting the style that key names whether or "
+        "not it still resolves. Reset it with: " + STYLE_RESET
+    )
+
+
+def icons_rule_for(path):
+    """The expected icon-theme diagnostic line naming *path* (wording is the contract)."""
+    return (
+        "uninstall: the icon-theme selection the look-and-feel apply wrote "
+        "([Icons] Theme=" + ICON_THEME_ID + ") is still in " + path
+        + " after removal; KDE and Qt applications cannot load the removed "
+        "icon theme and keep the default icons. Reset it with: " + ICONS_RESET
+    )
+
+
+class TestKdeglobalsUninstallDiagnostic(unittest.TestCase):
+    """`make _uninstall` names the two kdeglobals resets when the selections are ours."""
+
+    def uninstall_with_config(self, tmp, config, env=None):
+        return theme_install.uninstall_recipe(
+            tmp,
+            extra=(),
+            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
+        )
+
+    def test_warns_and_names_the_reset_for_a_kept_widget_style(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[KDE]\nwidgetStyle=kvantum\n")
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(path), result.stderr)
+        self.assertNotIn(icons_rule_for(path), result.stderr)
+        # A diagnostic must not edit the user's kdeglobals.
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_and_names_the_reset_for_a_kept_icon_theme(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[Icons]\nTheme=" + ICON_THEME_ID + "\n")
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(icons_rule_for(path), result.stderr)
+        self.assertNotIn(style_rule_for(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_both_selections_warn_in_the_published_order(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[KDE]\nwidgetStyle=kvantum\n[Icons]\nTheme=" + ICON_THEME_ID + "\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        style_line = style_rule_for(path)
+        icons_line = icons_rule_for(path)
+        self.assertIn(style_line, result.stderr)
+        self.assertIn(icons_line, result.stderr)
+        # One key's match never gates the other's line; the widget-style
+        # warning precedes the icon-theme warning as printed.
+        self.assertLess(result.stderr.index(style_line), result.stderr.index(icons_line))
+        self.assertEqual(original, read_bytes(path))
+
+    def test_warns_when_the_value_only_trims_to_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[KDE]\n  widgetStyle = kvantum  \n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(path), result.stderr)
+
+    def test_warns_for_a_bom_prefixed_file_with_comments_and_indents(self):
+        # The look-and-feel apply would never write this shape, but an editor
+        # BOM-save must not hide the selections from the scanner: it strips
+        # the first line's BOM and trims every line.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "\ufeff[KDE]\n# a comment\n; another\n  widgetStyle = kvantum\n",
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(path), result.stderr)
+
+    def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[Icons]\nTheme=breeze_dark\nTheme=" + ICON_THEME_ID + "\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(icons_rule_for(path), result.stderr)
+
+    def test_warned_when_a_later_duplicate_names_ours(self):
+        # The scanner takes the last duplicate's value, as the other
+        # uninstall diagnostics already do.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config, "[KDE]\nwidgetStyle=kvantum\nSingleClick=true\nwidgetStyle=kvantum\n"
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(path), result.stderr)
+
+    def test_warns_when_an_unterminated_header_precedes_the_group(self):
+        # A header that never closes is skipped and cannot switch the
+        # section, so the following key stays in the group it opened.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[Stale\n[KDE]\nwidgetStyle=kvantum\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(path), result.stderr)
+
+    def test_not_warned_for_a_foreign_value(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[KDE]\nwidgetStyle=kvantum-dark\n[Icons]\nTheme=breeze_dark\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_not_warned_for_a_case_mismatch(self):
+        # Keys and values are case-sensitive in kdeglobals.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[KDE]\nwidgetStyle=Kvantum\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+
+    def test_not_warned_for_an_empty_value(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[Icons]\nTheme=\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_not_warned_when_either_group_or_key_is_absent(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[General]\nColorScheme=BreezeLight\n[Icons]\nSingleClick=true\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_independence_each_key_silent_outside_its_own_group(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[KDE]\nTheme=" + ICON_THEME_ID + "\n[Icons]\nwidgetStyle=kvantum\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        write_selection(config, "[KDE]\nwidgetStyle=kvantum\nwidgetStyle=kvantum-dark\n")
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+
+    def test_silent_when_there_is_no_kdeglobals(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_silent_when_the_path_is_a_directory(self):
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        os.makedirs(os.path.join(config, "kdeglobals"), exist_ok=True)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
+        # Like the existing diagnostics, the guard ignores an unset
+        # XDG_CONFIG_HOME and reads `$HOME/.config`.
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_selection(config, "[KDE]\nwidgetStyle=kvantum\n")
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+
+        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertIn(style_rule_for(os.path.join(config, "kdeglobals")), result.stderr)
+        self.assertEqual(read_bytes(path), read_bytes(path))
+
+    def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
+        tmp = str(make_tmp_dir(self))
+        home = os.path.join(tmp, "home")
+        config = os.path.join(home, ".config")
+        path = write_selection(
+            config, "[Icons]\nTheme=" + ICON_THEME_ID + "\n"
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME")
+        env["HOME"] = home
+        env["XDG_CONFIG_HOME"] = "relative/config"
+
+        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertIn(icons_rule_for(os.path.join(config, "kdeglobals")), result.stderr)
+        self.assertEqual(read_bytes(path), read_bytes(path))
+
+    def test_without_a_config_home_nothing_is_checked(self):
+        # With neither an absolute XDG_CONFIG_HOME nor an absolute HOME there
+        # is no config home to read, so the diagnostics must be skipped.
+        tmp = str(make_tmp_dir(self))
+        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
+
+        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn(ICONS_RESET, result.stderr)
+
+    def test_all_three_kdeglobals_diagnostics_share_one_run_in_recipe_order(self):
+        # The staged color-scheme selection and the two look-and-feel keys
+        # warn in one run; each keeps its landed wording and the lines appear
+        # in recipe order (color scheme, widget style, icon theme).
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(
+            config,
+            "[General]\nColorScheme=MacOS8\n"
+            "[KDE]\nwidgetStyle=kvantum\n"
+            "[Icons]\nTheme=" + ICON_THEME_ID + "\n",
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        scheme_line = (
+            "uninstall: color scheme MacOS8 is still selected in "
+            + path + " after removal"
+        )
+        style_line = style_rule_for(path)
+        icons_line = icons_rule_for(path)
+        self.assertIn(scheme_line, result.stderr)
+        self.assertIn(style_line, result.stderr)
+        self.assertIn(icons_line, result.stderr)
+        self.assertLess(
+            result.stderr.index(scheme_line), result.stderr.index(style_line)
+        )
+        self.assertLess(
+            result.stderr.index(style_line), result.stderr.index(icons_line)
+        )
+        self.assertEqual(original, read_bytes(path))
+
+    def test_make_n_uninstall_still_parses(self):
+        # The internal recipe is pinned by drying it directly, as the other
+        # uninstall diagnostic suites do.
+        result = theme_install.run_make(
+            ["-n", "_uninstall"], env=theme_install.make_env()
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("kdeglobals", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
