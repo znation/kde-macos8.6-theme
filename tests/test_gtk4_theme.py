@@ -716,6 +716,23 @@ for radio in (False, True):
             self.rules[SCALE_FOCUS]["outline-color"],
         )
 
+    def assert_black_focus_outline(self, selectors):
+        """Assert each of *selectors* appears once and states only the black
+        focus outline, mirroring the base button focus outline's colour.
+
+        The headerbar, toolbar, actionbar, searchbar, file-chooser breadcrumb,
+        sidebar and emoji-section focus tests share this per-selector cell;
+        each keeps its own family scan because each scans a different token.
+        """
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules["button:focus:focus-visible"]["outline-color"],
+                )
+
     def assert_scale_slider_transition(self, selector):
         """Assert *selector* keeps the no-transition the scale slider keeps."""
         self.assert_rule(selector, {"transition": "none"})
@@ -769,14 +786,7 @@ for radio in (False, True):
             },
             selectors,
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.selectors.count(selector), 1)
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["button:focus:focus-visible"]["outline-color"],
-                )
+        self.assert_black_focus_outline(selectors)
 
     def test_toolbar_button_focus_outline_color(self):
         selectors = {
@@ -797,14 +807,7 @@ for radio in (False, True):
             },
             selectors,
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.selectors.count(selector), 1)
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["button:focus:focus-visible"]["outline-color"],
-                )
+        self.assert_black_focus_outline(selectors)
 
     def test_actionbar_button_focus_outline_color(self):
         selectors = {
@@ -825,14 +828,7 @@ for radio in (False, True):
             },
             selectors,
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.selectors.count(selector), 1)
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["button:focus:focus-visible"]["outline-color"],
-                )
+        self.assert_black_focus_outline(selectors)
 
     def test_searchbar_button_focus_outline_color(self):
         selectors = {
@@ -854,14 +850,7 @@ for radio in (False, True):
             },
             selectors,
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.selectors.count(selector), 1)
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["button:focus:focus-visible"]["outline-color"],
-                )
+        self.assert_black_focus_outline(selectors)
 
     def test_filechooser_breadcrumb_focus_outline_color(self):
         selectors = {
@@ -873,32 +862,14 @@ for radio in (False, True):
             {selector for selector in self.selectors if "pathbarbox" in selector},
             selectors,
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.selectors.count(selector), 1)
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["button:focus:focus-visible"]["outline-color"],
-                )
+        self.assert_black_focus_outline(selectors)
 
     def test_sidebar_button_focus_outline_color(self):
-        selector = "button.sidebar-button:focus:focus-visible"
-        self.assert_rule(selector, {"outline-color": "#000000"})
-        self.assertEqual(self.selectors.count(selector), 1)
-        self.assertEqual(
-            self.rules[selector]["outline-color"],
-            self.rules["button:focus:focus-visible"]["outline-color"],
-        )
+        self.assert_black_focus_outline(("button.sidebar-button:focus:focus-visible",))
 
     def test_emoji_section_button_focus_outline_color(self):
         selector = "button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)"
-        self.assert_rule(selector, {"outline-color": BLACK})
-        self.assertEqual(self.selectors.count(selector), 1)
-        self.assertEqual(
-            self.rules[selector]["outline-color"],
-            self.rules["button:focus:focus-visible"]["outline-color"],
-        )
+        self.assert_black_focus_outline((selector,))
         self.assertEqual(
             {item for item in self.selectors if "emoji-section" in item},
             {selector},
