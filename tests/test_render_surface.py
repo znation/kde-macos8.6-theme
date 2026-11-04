@@ -141,6 +141,22 @@ ENTRY_FIELD_CROP = (300, 171, 54, 36)
 # sit left of them and of the caret-free zone the entry pin already ruled:
 # ghost-free by construction.
 OK_BUTTON_CROP = (114, 240, 32, 46)
+# The rendered GTK 4 dialog's Cancel push button's left-hand cell, in the
+# same action-button row as the OK pin: the button spans rows 240..285 at
+# x=246..365 on the same 480x360 capture, measured 2026-11-03 on a
+# consecutive pair of full `tools/render_surface.py --gtk-dialog` runs on
+# this host (zenity 4.1.90, GTK 4.18.6) whose two captures agreed bit for
+# bit under cmp, and reproduced bit for bit by a third consecutive run.
+# The rendered button is the same landed push-button recipe as the OK pin:
+# 1px #000000 border rows (0 and 45) and border column, a 1px white
+# BUTTON_BEVEL top arm (interior row 1) and left arm (column 1), the flat
+# #DDDDDD face, and a 1px #AAAAAA (BUTTON_SHADOW) BUTTON_BEVEL bottom arm
+# (row 44). The Cancel label's glyphs occupy x=295..313, so columns
+# 246..277 sit right of the OK button's border column (x=233) and left of
+# them; zenity's default button is the OK one, so the non-default Cancel
+# carries no focus ring (the rows above and below the button stay the
+# action-row background) and the span is ghost-free by construction.
+CANCEL_BUTTON_CROP = (246, 240, 32, 46)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1330,10 +1346,14 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     home: the ``gtk-4.0/settings.ini`` theme-name keys and the user CSS
     ``@import`` of the installed sheet. The capture-level assertions pin
     the 480x360 size the other dialog gates byte-compare at and a plane
-    that actually painted, and ``test_draws_the_entry_field_cell_1_to_1``
+    that actually painted, ``test_draws_the_entry_field_cell_1_to_1``
     byte-compares the content-area entry's cell with the arrangement the
-    landed entry recipe re-derives (the crop is measured on this host's
-    480x360 capture; see the ``## tooling`` row of ``docs/invariants.md``).
+    landed entry recipe re-derives, and the two push-button pins
+    (``test_draws_the_action_button_row_cell_1_to_1`` and
+    ``test_draws_the_cancel_button_cell_1_to_1``) byte-compare the OK and
+    Cancel buttons' cells with the arrangement the landed push-button
+    recipe re-derives (each crop is measured on this host's 480x360
+    capture; see the ``## tooling`` row of ``docs/invariants.md``).
     """
 
     KIND = "gtk"
@@ -1354,6 +1374,44 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
         # fails this byte-compare.
         image = self.candidate_image()
         x0, y0, width, height = OK_BUTTON_CROP
+        expected = {
+            (x, y): (
+                BLACK
+                if y == 0 or y == height - 1 or x == 0
+                else WHITE
+                if y == 1 or (2 <= y < height - 2 and x == 1)
+                else BUTTON_SHADOW
+                if y == height - 2
+                else FACE
+            )
+            for x in range(width)
+            for y in range(height)
+        }
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
+
+    def test_draws_the_cancel_button_cell_1_to_1(self):
+        # Byte-compare the Cancel push button's left-hand cell with the
+        # arrangement the landed push-button recipe's own constants
+        # re-derive, never with the capture's own pixels. The cell spans
+        # the button's full height at a label-free horizontal span, the
+        # same shape the OK pin pins: row 0 and row 45 are the 1px black
+        # border rows, column 0 the black border column; row 1 is the
+        # BUTTON_BEVEL white arm's top row (the inset 1px 1px #FFFFFF
+        # shadow spans the interior's top width up to the #AAAAAA bottom
+        # arm); rows 2..43 carry the white bevel's left arm beside the
+        # flat face; row 44 is the BUTTON_BEVEL inset -1px -1px #AAAAAA
+        # arm's bottom row. Zenity's default button is the OK one, so the
+        # non-default Cancel shows no focus ring. A one-pixel crop slip,
+        # an inverted or recoloured bevel arm, a foreign face colour or a
+        # glyph row (text antialiasing, the one painter outside the
+        # recipe's constants) fails this byte-compare.
+        image = self.candidate_image()
+        x0, y0, width, height = CANCEL_BUTTON_CROP
         expected = {
             (x, y): (
                 BLACK
