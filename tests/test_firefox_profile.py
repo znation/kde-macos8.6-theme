@@ -74,6 +74,17 @@ class TestProfileResolution(FirefoxProfileTestCase):
             self.resolve(str(missing))
         self.assertIn(str(missing), str(caught.exception))
 
+    def test_profile_inspection_error_names_the_path_and_os_error(self):
+        with mock.patch.object(
+            firefox_profile.Path, "stat", side_effect=PermissionError("denied")
+        ):
+            with self.assertRaises(firefox_user_files.ConfigError) as caught:
+                self.resolve(str(self.profile))
+        self.assertEqual(
+            f"cannot inspect Firefox profile directory {self.profile}: denied",
+            str(caught.exception),
+        )
+
     def test_a_relative_home_is_refused_with_its_value(self):
         with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve(None, {"HOME": "relative/home"})

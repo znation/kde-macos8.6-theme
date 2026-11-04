@@ -14,6 +14,7 @@ from __future__ import annotations
 import configparser
 import io
 import os
+import stat
 from pathlib import Path
 
 if __package__:
@@ -140,6 +141,16 @@ def _candidates(root: Path) -> list[Path]:
     return candidates
 
 
+def _is_directory(path: Path) -> bool:
+    """Check a candidate directory while preserving inspection failures."""
+    try:
+        return stat.S_ISDIR(path.stat().st_mode)
+    except FileNotFoundError:
+        return False
+    except OSError as exc:
+        raise ConfigError(f"cannot inspect Firefox profile directory {path}: {exc}") from exc
+
+
 def resolve_profile(
     explicit: str | None, env: dict[str, str], *, optional: bool = False
 ) -> Path | None:
@@ -162,7 +173,7 @@ def resolve_profile(
         path = Path(named)
         if not path.is_absolute():
             raise ConfigError(f"Firefox profile must be an absolute path: {path}")
-        if not path.is_dir():
+        if not _is_directory(path):
             raise ConfigError(f"Firefox profile is not a directory: {path}")
         return path
 
@@ -179,7 +190,7 @@ def resolve_profile(
     root = Path(home) / ".mozilla" / "firefox"
     candidates = _candidates(root)
     for candidate in candidates:
-        if candidate.is_dir():
+        if _is_directory(candidate):
             return candidate
     if optional:
         return None
