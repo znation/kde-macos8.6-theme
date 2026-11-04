@@ -27,7 +27,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.aurorae_fixtures import REFERENCE_BOUNDS
+from support.aurorae_fixtures import AURORAE_DIR, REFERENCE_BOUNDS
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F401
 from support.kvantum_fixtures import SVG
 from support.svg_case import parse_svg
@@ -103,6 +103,13 @@ DIALOG_HEIGHT = 360
 # The rendered check box cell: the shipped 14x14 canvas at 1:1, measured
 # against `tests/test_kvantum_checkbox_reference.py`'s shipped-art slice.
 CHECKBOX_CROP = (156, 187, 14, 14)
+# The active Aurorae close box at the top-left of kdialog's decorated window,
+# measured on two consecutive 480x360 `--checkbox-dialog` captures on this
+# host (2026-11-04); `cmp` confirmed the captures were byte-identical. The
+# window begins at (144, 117), and the rc's 4px left/top edge places the
+# native 13x13 close art at (148, 121), matching frame-local (4, 4); those
+# 169 capture pixels match `close.svg`'s active-center slice exactly.
+CHECKBOX_CLOSE_BOX_CROP = (148, 121, 13, 13)
 # A 1px face ring around the cell catches resampling bleed: at the engine's
 # native size the cells around the art stay the flat client face.
 CHECKBOX_FACE_RING_CROP = (155, 186, 16, 16)
@@ -1190,6 +1197,24 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
     """
 
     KIND = "checkbox"
+
+    def test_draws_the_close_box_cell_1_to_1(self):
+        # Re-derive the expected art from Aurorae's active SVG slice. This
+        # catches a shifted crop, inactive state, resampling, or foreign paint.
+        expected = dict(
+            render_slices(parse_svg(os.path.join(AURORAE_DIR, "close.svg")))[
+                "active-center"
+            ]
+        )
+        x0, y0, width, height = CHECKBOX_CLOSE_BOX_CROP
+        actual = {
+            (x, y): hex_colour(
+                pixel_at(self.candidate_image(), x0 + x, y0 + y)
+            )
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
 
     def test_draws_the_check_box_cell_1_to_1(self):
         # The candidate cell bytes come straight from the render (see
