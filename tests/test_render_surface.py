@@ -165,7 +165,7 @@ OK_BUTTON_CROP = (114, 240, 32, 46)
 # action-row background) and the span is ghost-free by construction.
 CANCEL_BUTTON_CROP = (246, 240, 32, 46)
 # The rendered GTK 4 dialog window's top shell edge strip, where the CSD
-# window meets the session: the window's #DDDDDD face spans x=90..389 with
+# window meets the session: the window's #DDDDDD surface spans x=90..389 with
 # its top face row at y=49 on the same 480x360 capture, measured 2026-11-03
 # on a consecutive pair of full `tools/render_surface.py --gtk-dialog` runs
 # on this host (zenity 4.1.90, GTK 4.18.6) whose two captures agreed bit for
@@ -174,13 +174,14 @@ CANCEL_BUTTON_CROP = (246, 240, 32, 46)
 # (box-shadow: 0 0 0 1px #000000, pinned in the sheet by
 # TestGtk4Theme::test_csd_window_shell) is continuous with it: the pinned
 # top row is the shell-edge row the ring paints where the surface margin
-# admits it, and the rows beneath are the flat #DDDDDD headerbar face, with
-# no headerbar top border between them (the landed headerbar recipe declares
-# border-width: 0 0 1px 0). The span x=91..93 sits inside the headerbar's
-# 4px left padding (padding: 0 4px), past the square border-radius: 0
-# corner's edge column and left of the title's first glyph and the close
-# button; rows 48..59 at that span sample pure shell edge and face, so the
-# strip is ghost-free by construction.
+# admits it, and the rows beneath are the flat #DDDDDD surface from the
+# window, .background rule. The span x=91..93 is past the square
+# border-radius: 0 corner's edge column and clear of title glyphs. A
+# 2026-11-03 probe (zenity 4.1.90, GTK 4.18.6) found no headerbar,
+# .titlebar, windowcontrols, windowtitle or .title node; selector probes
+# painted zero pixels while window, dialog and label probes painted. Thus
+# the headerbar windowcontrols button.close recipe renders no pixels in
+# this capture; its live pixels remain covered by declaration checks.
 WINDOW_SHELL_EDGE_CROP = (91, 48, 3, 12)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
@@ -1402,7 +1403,7 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     Cancel buttons' cells with the arrangement the landed push-button
     recipe re-derives, and ``test_draws_the_window_shell_edge_cell_1_to_1``
     byte-compares the window's top shell edge strip with the arrangement
-    the landed ``window.csd`` outline and ``headerbar`` face recipes
+    the landed ``window.csd`` outline and ``window, .background`` surface rule
     re-derive (each crop is measured on this host's 480x360
     capture; see the ``## tooling`` row of ``docs/invariants.md``).
     """
@@ -1487,15 +1488,16 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
         # Byte-compare the window's top shell edge strip with the
         # arrangement the landed recipes' own constants re-derive, never
         # with the capture's own pixels. The strip crosses the window's top
-        # edge inside the headerbar's 4px left padding region, past the
-        # square border-radius: 0 corner's edge column and left of the
-        # title's first glyph and the close button: row 0 is the shell-edge
+        # edge past the square border-radius: 0 corner's edge column and
+        # clear of title glyphs: row 0 is the shell-edge
         # row -- the landed window.csd active outline's 1px #000000 ring
         # (box-shadow: 0 0 0 1px #000000), which the black session
         # background makes continuous with -- and rows 1..11 are the flat
-        # #DDDDDD headerbar face beneath it, the landed headerbar recipe
-        # declaring no top border between the ring and the face
-        # (border-width: 0 0 1px 0). A one-pixel vertical slip (the strip
+        # #DDDDDD window surface beneath it, painted by the landed
+        # window, .background rule. A 2026-11-03 zenity 4.1.90 / GTK
+        # 4.18.6 probe found no headerbar, .titlebar or windowcontrols
+        # node, so the headerbar title-button recipe does not render in
+        # this capture. A one-pixel vertical slip (the strip
         # starting on the face row), a recoloured or transplanted ring
         # (stock's translucent ring, the #555555 window.csd:backdrop tone)
         # or a foreign face colour fails this byte-compare.
