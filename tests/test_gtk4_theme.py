@@ -1357,6 +1357,36 @@ for radio in (False, True):
                 if "infobar" in selector:
                     self.assertNotIn(message_type, selector, message_type)
 
+    def test_close_button_corners(self):
+        # Stock circles the infobar and search-bar close buttons; the
+        # square-corner policy squares both faces. The landed window-
+        # controls close pair is the sibling this test's radius sweep
+        # expects beside them.
+        selectors = ("infobar .close", "searchbar > revealer > box .close")
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_matches_frame(selector, "border-radius")
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("floating-sheet > sheet"),
+                )
+        self.assertEqual(
+            {
+                selector
+                for selector, declarations in self.rules.items()
+                if "close" in selector and "border-radius" in declarations
+            },
+            {
+                "infobar .close",
+                "searchbar > revealer > box .close",
+                "headerbar windowcontrols button.close",
+                ".titlebar windowcontrols button.close",
+            },
+        )
+
     def test_banner_surface(self):
         selectors = {
             "banner > revealer > widget",

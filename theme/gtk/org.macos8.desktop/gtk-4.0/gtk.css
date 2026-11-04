@@ -4092,3 +4092,36 @@ bottom-sheet > sheet > stack > button > widget {
 floating-sheet > sheet {
   border-radius: 0;
 }
+
+/* GTK message-item (infobar) and search-bar close buttons have no collected
+   reference surface: no screenshot in macos8.6-screenshots/ shows either
+   close button, so the corners follow this theme's landed square-corner
+   policy (the frame border, frame class, button, card, tab-family and
+   cursor-handle restatements all declare border-radius: 0, with the landed
+   radio button's 50% circle as the reference-grounded exception). The
+   integration library's base.css resource (probe path recorded in
+   docs/invariants.md, extracted 2026-11-04: a 2622-line resource) declares
+   exactly two radius-bearing close-button arms, quoted verbatim:
+   infobar .close { min-width: 18px; min-height: 18px; padding: 4px;
+   border-radius: 50%; } and searchbar > revealer > box .close {
+   min-width: 18px; min-height: 18px; padding: 4px; border-radius: 50%; }.
+   The landed restatements cannot reach these faces: the generic button
+   group's radius arm loses both stock arms' higher specificity (a type and
+   a close class against button alone), the landed circular and pill button
+   records name menubutton.circular button, button.circular and the pill
+   spellings, the landed tab-family records name the tab-page image
+   buttons, and the landed window-controls record squares only
+   headerbar windowcontrols button.close and
+   .titlebar windowcontrols button.close. Each twin below is byte-equal to
+   its stock spelling and wins the equal-specificity tie by later
+   user-sheet source order, so only the radius changes ownership; stock's
+   min-width, min-height and padding, and the hover, pressed and disabled
+   flat-band arms naming the close class, declare no radius and stay
+   inherited per-property. The shipped GTK 3 sheet names no message-item or
+   search-bar close button outside the landed title-button pair, so it
+   needs nothing. (2026-11-04) */
+
+infobar .close,
+searchbar > revealer > box .close {
+  border-radius: 0;
+}
