@@ -98,6 +98,29 @@ def apply_profile(profile: Path) -> int:
     return 0
 
 
+def _restore_removed_files(
+    owned: list[tuple[Path, str]],
+    js_path: Path,
+    existing_js: str | None,
+    rewrite_js: bool,
+) -> list[str]:
+    """Restore the preference and any owned sheets already removed."""
+    rollback_errors = []
+    if rewrite_js:
+        try:
+            write_profile_text(js_path, existing_js)
+        except ConfigError as rollback:
+            rollback_errors.append(str(rollback))
+    for sheet_path, previous in owned:
+        if sheet_path.exists():
+            continue
+        try:
+            write_profile_text(sheet_path, previous)
+        except ConfigError as rollback:
+            rollback_errors.append(str(rollback))
+    return rollback_errors
+
+
 def remove_profile(profile: Path) -> int:
     """Remove our sheets and preference block from *profile*."""
     refuse_symlink(profile / "chrome", "remove", ConfigError)
@@ -132,19 +155,9 @@ def remove_profile(profile: Path) -> int:
         # one) keeps the completed rewrite instead.
         any_sheet_left = any(path.exists() for path, _previous in owned)
         if any_sheet_left:
-            rollback_errors = []
-            if rewrite_js:
-                try:
-                    write_profile_text(js_path, existing_js)
-                except ConfigError as rollback:
-                    rollback_errors.append(str(rollback))
-            for sheet_path, previous in owned:
-                if sheet_path.exists():
-                    continue
-                try:
-                    write_profile_text(sheet_path, previous)
-                except ConfigError as rollback:
-                    rollback_errors.append(str(rollback))
+            rollback_errors = _restore_removed_files(
+                owned, js_path, existing_js, rewrite_js
+            )
             if rollback_errors:
                 raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
         raise
