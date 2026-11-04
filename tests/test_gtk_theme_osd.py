@@ -854,6 +854,48 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             },
         )
 
+    def test_queued_claims_track_the_sheet(self):
+        """Provenance prose names landed rules, never queued future plans.
+
+        The sheet comments and the register rows may say an arm is
+        restated (naming the landed groups that restate it) or absent
+        (naming the residual) — never that one awaits a queued plan.
+        """
+        banned = (
+            "queued surface plan",
+            "queued surface plans",
+            "queued plan",
+            "queued plans",
+        )
+        sheet = CSS.read_text(encoding="utf-8")
+        register = (Path(ROOT) / "docs" / "invariants.md").read_text(
+            encoding="utf-8"
+        )
+        for text, source in ((sheet, CSS), (register, "docs/invariants.md")):
+            for phrase in banned:
+                self.assertNotIn(phrase, text, f"{source}: {phrase!r}")
+        # The residual arm stays recorded, not silently landed: no rule
+        # in the parsed sheet carries an .osd-qualified colorswatch
+        # selector.
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if "colorswatch" in selector and ".osd" in selector
+            },
+            set(),
+        )
+        # The landed groups the rewritten prose cross-references really
+        # exist in the parsed sheet.
+        for selector in (
+            ".osd spinbutton:not(.vertical) button",
+            "colorchooser .popover.osd",
+            ".osd .scale-popup button.flat",
+            "progressbar.osd trough",
+            "progressbar.osd progress",
+        ):
+            self.assertIn(selector, self.rules)
+
 
 if __name__ == "__main__":
     unittest.main()

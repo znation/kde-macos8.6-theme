@@ -1911,9 +1911,15 @@ progressbar.osd progress {
    specificity and pre-empts exactly the stock arms they restate;
    the grouped `.app-notification button.flat, …, .osd button.flat` arms
    are restated by the flat-button block appended after this one; the
-   `.osd button.color colorswatch`,
-   `.osd spinbutton … button` and `colorchooser .popover.osd` button
-   arms stay undeclared for their queued surface plans, while the
+   `.osd spinbutton … button` stepper arms are restated by the
+   `.osd spinbutton:not(.vertical) button` groups onward (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_osd_spinbutton_buttons),
+   the `colorchooser .popover.osd` button arms are restated by the
+   `colorchooser .popover.osd` corner group (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_colorchooser_osd_popover_corners),
+   and the `.osd button.color colorswatch` arm carries no restatement
+   in this sheet — its stock claims stay in force and nothing is
+   queued against it, while the
    `.osd button.suggested-action` arms are restated by the
    suggested-action block after the flat-button block and the
    `.osd button.destructive-action` arms by the destructive-action
@@ -2238,9 +2244,15 @@ popover.background.magnifier button.flat:checked,
    members since too — the generic arms by the landed plain flat
    restatement and the colour-class `…-action.flat` members by the
    landed colour-class restatement at the sheet tail), and the
-   `.osd button.color colorswatch`,
-   `.osd spinbutton … button` and `colorchooser .popover.osd` button
-   arms stay undeclared for their queued surface plans. The arm
+   `.osd spinbutton … button` stepper arms are restated by the
+   `.osd spinbutton:not(.vertical) button` groups onward (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_osd_spinbutton_buttons),
+   the `colorchooser .popover.osd` button arms are restated by the
+   `colorchooser .popover.osd` corner group (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_colorchooser_osd_popover_corners),
+   while the `.osd button.color colorswatch` arm carries no
+   restatement in this sheet: its stock claims stay in force and
+   nothing is queued against it. The arm
    selectors, states and stock claims come from gtk-contained.css in
    /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
    2026-10-30. Declaration checks do not establish rendered pixels. */
@@ -2363,9 +2375,16 @@ button.suggested-action:checked {
    landed plain flat restatement and the colour-class `…-action.flat`
    members by the landed colour-class restatement at the sheet tail),
    and
-   the `.osd button.color colorswatch`, `.osd spinbutton … button` and
-   `colorchooser .popover.osd` button arms stay undeclared for their
-   queued surface plans. The arm selectors, states and stock claims come
+   the `.osd spinbutton … button` stepper arms are restated by the
+   `.osd spinbutton:not(.vertical) button` groups onward (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_osd_spinbutton_buttons),
+   the `colorchooser .popover.osd` button arms are restated by the
+   `colorchooser .popover.osd` corner group (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_colorchooser_osd_popover_corners),
+   while the `.osd button.color colorswatch` arm carries no
+   restatement in this sheet: its stock claims stay in force and
+   nothing is queued against it. The arm selectors, states and stock
+   claims come
    from gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
    (libgtk-3 3.24.49), probed 2026-10-30. Declaration checks do not
    establish rendered pixels. */
