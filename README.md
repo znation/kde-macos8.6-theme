@@ -1006,6 +1006,14 @@ unfiltered full-region meanings. Without the option, output is unchanged.
 The option requires `--runs` and is distinct from `--max-run-length`, which
 filters runs by their individual pixel lengths.
 
+Pass `--run-offset K` with `--runs` and `--max-runs N` to page through eligible
+runs without printing earlier pages. Color selection, exclusion and inclusive
+length filters apply before the offset. The offset counts skipped eligible runs;
+`omitted_runs` counts both skipped runs and eligible runs after the displayed
+page. JSON adds `run_offset`, and text prints `run offset: K` before the run
+list. An offset beyond the end returns an empty page. The option requires
+`--max-runs` and is nonnegative.
+
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a

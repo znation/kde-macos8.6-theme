@@ -34,6 +34,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
     runs = []
     omitted_runs = 0
+    skipped_runs = 0
     run_count = 0 if args.run_count else None
     scanline_run_counts = [] if getattr(args, "scanline_run_counts", False) else None
     track_longest = args.longest_run
@@ -61,7 +62,10 @@ def _runs_result(args, image, width: int, height: int) -> dict:
                 continue
             if args.max_run_length is not None and run["length"] > args.max_run_length:
                 continue
-            if args.max_runs is not None and len(runs) >= args.max_runs:
+            if args.run_offset is not None and skipped_runs < args.run_offset:
+                skipped_runs += 1
+                omitted_runs += 1
+            elif args.max_runs is not None and len(runs) >= args.max_runs:
                 omitted_runs += 1
             else:
                 runs.append(run)
@@ -73,6 +77,8 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         result["run_count"] = run_count
     if args.max_runs is not None:
         result["omitted_runs"] = omitted_runs
+    if args.run_offset is not None:
+        result["run_offset"] = args.run_offset
     if scanline_run_counts is not None:
         result["scanline_run_counts"] = scanline_run_counts
     if track_longest:
@@ -100,6 +106,8 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
         print(f"run count: {result['run_count']}")
     if "scanline_run_counts" in result:
         print("scanline run counts: " + ", ".join(str(count) for count in result["scanline_run_counts"]))
+    if "run_offset" in result:
+        print(f"run offset: {result['run_offset']}")
     for run in result["runs"]:
         rgb = run["rgb"]
         suffix = f"  alpha={run['alpha']}" if args.alpha else ""
