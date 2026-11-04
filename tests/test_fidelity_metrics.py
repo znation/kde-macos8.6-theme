@@ -1,5 +1,4 @@
-"""Tests for tools/fidelity_metrics.py's comparison metrics -- compare and
-crop, and the image accounting behind them.
+"""Tests for fidelity comparison metrics and crop geometry.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -17,6 +16,17 @@ from support.error_assertions import (  # noqa: E402
 )
 from support.png_fixtures import rgb_image, solid_rgb  # noqa: E402
 from tools import fidelity_metrics
+from tools import fidelity_geometry
+
+
+class TestGeometryExports(unittest.TestCase):
+    def test_metrics_module_reexports_crop_geometry(self):
+        self.assertIs(fidelity_metrics.FidelityError, fidelity_geometry.FidelityError)
+        self.assertIs(
+            fidelity_metrics.crop_rect_problem,
+            fidelity_geometry.crop_rect_problem,
+        )
+        self.assertIs(fidelity_metrics.crop, fidelity_geometry.crop)
 
 
 class TestCompare(unittest.TestCase):

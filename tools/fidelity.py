@@ -37,11 +37,8 @@ if __package__:
     from tools.fidelity_cli_parser import build_parser
     from tools.fidelity_sources import read_source as _read_source
     from tools.diagnostics import report_error
-    from tools.fidelity_metrics import (
-        FidelityError,
-        compare,
-        crop,
-    )
+    from tools.fidelity_geometry import FidelityError, crop
+    from tools.fidelity_metrics import compare
     from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
     from tools.fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from tools.fidelity_reports import (
@@ -57,7 +54,8 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_cli_parser import build_parser
     from fidelity_sources import read_source as _read_source
     from diagnostics import report_error
-    from fidelity_metrics import FidelityError, compare, crop
+    from fidelity_geometry import FidelityError, crop
+    from fidelity_metrics import compare
     from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
     from fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from fidelity_reports import (

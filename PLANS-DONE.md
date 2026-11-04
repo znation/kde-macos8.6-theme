@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity comparison metrics: separate crop geometry from comparison state (planned 2026-11-04 by the organize role) — done 2026-11-04 by the feature role
+
+**Goal.** `tools/fidelity_metrics.py` is the largest production Python module (265 lines). Its `compare()` function is a single large pipeline that validates images, builds channel deltas, accumulates metrics, locates the maximum, counts threshold mismatches and derives their bounds. Keeping this pipeline together with the independently reusable crop geometry makes the module harder to navigate and couples crop-only callers to comparison implementation.
+
+**Target structure.** Move `FidelityError`, `crop_rect_problem` and `crop` into `tools/fidelity_geometry.py`, which owns crop validation and slicing. Keep `Metrics` and `compare()` in `tools/fidelity_metrics.py`, which owns comparison results and calculations; import and re-export the geometry names there to preserve existing imports such as `tools.fidelity_metrics.crop`. Keep the comparison state local to `compare()`; do not introduce a second abstraction for its intermediate channel data.
+
+**Files.** `tools/fidelity_metrics.py`, new `tools/fidelity_geometry.py`, `tools/fidelity.py`, `tests/test_fidelity_metrics.py`, and `docs/invariants.md` if the existing fidelity tooling invariant needs its module ownership updated. Update README or other markdown references only where they describe the moved ownership.
+
+**Acceptance criteria.** The two production modules have the stated responsibilities; existing imports continue to resolve; grep across source, tests and markdown finds no stale ownership or moved-name references; `make check` passes. The refactor changes module boundaries only and preserves comparison results, crop validation wording and crop pixels.
+
 ### Platinum checkbox dialog render surface: pin the rendered Aurorae close box 1:1 (planned 2026-11-03 by the plan role; done 2026-11-04 by the feature role)
 
 **Completed.** The two consecutive 480x360 `--checkbox-dialog` captures agreed under `cmp`. A scan found the exact 13x13 active SVG slice at (148,121), corresponding to frame-local (4,4) with the measured window origin (144,117); all 169 pixels re-derived from `close.svg`. `tests/test_render_surface.py` now pins that cell, and `docs/invariants.md` records its capture-specific provenance.

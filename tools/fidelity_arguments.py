@@ -13,10 +13,10 @@ from typing import TypeVar
 
 if __package__:
     from tools.argument_parsing import is_plain_ascii_number, plain_number
-    from tools.fidelity_metrics import crop_rect_problem
+    from tools.fidelity_geometry import crop_rect_problem
 else:  # imported from a directly run tool
     from argument_parsing import is_plain_ascii_number, plain_number
-    from fidelity_metrics import crop_rect_problem
+    from fidelity_geometry import crop_rect_problem
 
 
 def parse_crop(value: str) -> tuple[int, int, int, int]:

@@ -1,7 +1,8 @@
 """Tests for tools/ints.py -- the shared genuine-integer predicate.
 
 The validators in ``tools/png/header.py``, ``tools/png/image.py``,
-``tools/png/write.py``, ``tools/fidelity_metrics.py``,
+``tools/png/write.py``, ``tools/fidelity_geometry.py`` and
+``tools/fidelity_metrics.py``,
 ``tools/make_wallpaper.py`` and ``tools/xcursor.py``, and the test helpers
 ``tests/support/png_fixtures.py`` and ``tests/svg_assertions/render.py``, all
 call ``is_plain_int`` before using a caller-supplied number as a dimension,

@@ -3,7 +3,8 @@
 ``bool`` is a subclass of ``int``, so ``isinstance(True, int)`` is true and a
 boolean silently passes as 1/0 through any check that only asks for an
 integer. The validators in ``tools/png/header.py``, ``tools/png/image.py``,
-``tools/png/write.py``, ``tools/fidelity_metrics.py``,
+``tools/png/write.py``, ``tools/fidelity_geometry.py`` and
+``tools/fidelity_metrics.py``,
 ``tools/make_wallpaper.py`` and ``tools/xcursor.py`` -- and the test helpers
 that mirror them, ``tests/support/png_fixtures.py`` and
 ``tests/svg_assertions/render.py`` -- all need the genuine-integer test, so it
