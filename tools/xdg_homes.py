@@ -86,10 +86,26 @@ def require_home(
     return path
 
 
+def unresolved_home_state(value: str) -> str:
+    """Describe an unusable absolute-path *value*, for a refusal message.
+
+    An absent or empty value counts as ``"unset"``; every other non-absolute
+    value is named in shell quoting that marks the value's bounds, and
+    ``report_error``'s escaping keeps every byte from reaching a terminal
+    raw. Two refusals for a direct ``HOME`` read speak this wording, in
+    ``tools/apply_cursor.py``'s ``resolve_homes`` and ``tools/firefox_profile``'s
+    profile discovery; :func:`require_home` names each XDG variable through
+    :func:`_home_state`, which additionally distinguishes an empty one.
+    """
+    if not value:
+        return "unset"
+    return f"not an absolute path ('{value}')"
+
+
 def _home_state(env: dict[str, str], variable: str) -> str:
     """Describe the *variable* value *env* carries, for a refusal message."""
     if variable not in env:
         return "unset"
     if not env[variable]:
         return "empty"
-    return f"not an absolute path ('{env[variable]}')"
+    return unresolved_home_state(env[variable])

@@ -20,9 +20,11 @@ from pathlib import Path
 if __package__:
     from tools.containment import resolves_within
     from tools.firefox_user_files import ConfigError, read_firefox_bytes
+    from tools import xdg_homes
 else:  # imported from a directly run tool
     from containment import resolves_within
     from firefox_user_files import ConfigError, read_firefox_bytes
+    import xdg_homes
 
 
 # Firefox's INI files are a few kilobytes at most. The path is the user's and
@@ -179,10 +181,7 @@ def resolve_profile(
 
     home = env.get("HOME", "")
     if not os.path.isabs(home):
-        # Name the received value, so the diagnosis distinguishes an unset
-        # HOME from a relative one, alongside the two fixes; report_error's
-        # escaping keeps every byte from reaching a terminal raw.
-        state = "unset" if not home else f"not an absolute path ('{home}')"
+        state = xdg_homes.unresolved_home_state(home)
         raise ConfigError(
             f"HOME is {state} and no Firefox profile was named; set HOME to "
             "an absolute path or pass --profile"

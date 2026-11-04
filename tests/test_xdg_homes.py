@@ -166,5 +166,18 @@ class TestRequireHome(unittest.TestCase):
         )
 
 
+class TestUnresolvedHomeState(unittest.TestCase):
+    def test_an_empty_value_counts_as_unset(self):
+        for value in ("",):
+            with self.subTest(value=repr(value)):
+                self.assertEqual("unset", xdg_homes.unresolved_home_state(value))
+
+    def test_a_relative_value_is_named_in_shell_quoting(self):
+        self.assertEqual(
+            "not an absolute path ('relative/home')",
+            xdg_homes.unresolved_home_state("relative/home"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
