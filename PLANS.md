@@ -5,8 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
 ### Inactive windows: draw the reference's buttonless bar and `#777777` title text (planned 2026-11-04 by the director role)
 
 **Goal and grounding.** The user reports that unfocused windows look wrong overall and that the close box becomes invisible when hovered. The reference set settles both: in `macos8.6-screenshots/desktop_fandom.png` (2560x1442, 2 image px per logical px) the four unfocused windows ("Mac OS 8.6", "Utilities", "Apple System Profiler", "Applications") draw a flat `#DDDDDD` (221,221,221) title bar and frame and **no close, zoom or collapse boxes at all**, with centered title text whose glyph cores sample `#777777` (119,119,119; read 2026-11-04 from a lossless decode with `tools/png/loader.py`: `Utilities` bar at x=880..1745 y=110..116, title cores x=1295..1540 y=112..146; `Applications` bar x=30..815 y=872..878, cores x=350..560 y=880..915). The shipped theme instead keeps the reference's box art on unfocused windows flattened to `#CCCCCC` (`tests/test_aurorae_buttons.py::TestButtons.test_inactive_center_is_flat`) and greys titles with `InactiveTextColor=153,153,153` in `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`. Focus model: Mac OS 8.6 has exactly one active window — the frontmost one — and Plasma/KWin already realizes that model (a single active client at a time; the theme only draws the inactive look), so no focus emulation is planned; matching the inactive reference drawing is the whole task.

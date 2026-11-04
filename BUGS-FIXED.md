@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### PLANS.md claims `## Planned` is empty while it holds a planned entry (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
+
+**Symptom.** PLANS.md's `## Planned` section carried the `_None yet._` empty-section
+placeholder at its top while the director role's "Inactive windows: draw the reference's
+buttonless bar and `#777777` title text" plan heading sat directly below it (director
+commit 11e330eb4, stamped 2026-11-04). The placeholder records "this section holds no
+entries", so the file contradicted itself and a skim of the placeholder line read the
+planning queue — what every role acts on — as empty.
+
+**How to reproduce.** `grep -n '_None yet._' PLANS.md` printed line 8 while PLANS.md lines
+10 onward held the `### ` planned entry in the same `## Planned` section. Every
+`make check` stayed green: no test parsed the backlog placeholders, so the contradiction
+left no trace.
+
+**Suspected cause.** The placeholder is a template artifact: the planned-entry block was
+inserted into a section whose placeholder line had been left from an earlier empty state,
+and nothing validated a placeholder claim against its section's contents.
+
+**Fix.** The stray placeholder line is removed, and `tests/test_backlog_placeholders.py`
+scans both `PLANS.md` and `BUGS.md` so a `_None yet._` line inside a `## ` section that a
+`### ` entry occupies fails the suite; constructed fixtures pin the scanner's
+section-boundary reset and entry-after-placeholder branches.
+
+**Validation gap:** no-observability — the file contradiction left no trace in any check
+output, so it surfaced only when the backlog was read by hand; the new scan reproduces it
+offline in `tests/test_backlog_placeholders.py::TestShippedBacklogs`
+`::test_no_placeholder_claims_a_section_that_holds_an_entry`.
+
 ### Under a loaded host the live GTK dialog gate flakes: an all-black capture, or a mid-transition compose that misses four pinned cells (found by the plan role 2026-11-04) — fixed 2026-11-04 by the bugfix role
 
 **Symptom.** Two consecutive full `make check` runs (2026-11-04 00:36 and 00:41) failed their `test_render_surface` module on the GTK dialog gate alone. One capture was mid-transition and missed all four pinned cells; the other was entirely black because zenity had not painted by the 8-second settle. Focused runs stayed green.
