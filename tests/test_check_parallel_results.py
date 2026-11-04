@@ -85,6 +85,16 @@ class TestPrintResults(unittest.TestCase):
         self.assertIn("===== ok: exit 0 =====", output.getvalue())
         self.assertIn("check: 2 modules, 1 module failed", output.getvalue())
 
+    def test_module_name_control_characters_are_escaped_in_the_header(self):
+        module = "pkg\x1b[31m\nforged"
+        output = StringIO()
+        with redirect_stdout(output):
+            _print_results([module], {module: 0}, {}, 30)
+
+        text = output.getvalue()
+        self.assertNotIn("\x1b", text)
+        self.assertIn("pkg\\u001b[31m\\u000aforged: exit 0", text)
+
     def test_exit_five_with_test_line_and_empty_run_markers_is_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "worker.log"

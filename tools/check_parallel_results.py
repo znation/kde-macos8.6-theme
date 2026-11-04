@@ -155,7 +155,13 @@ def _print_results(modules: list[str], statuses: dict[str, int | None],
         timed_out += category == "timed_out"
         not_finished += category == "not_finished"
         no_tests += category == "no_tests"
-        print(f"===== {module}: {verdict} =====")
+        # The module name is contributor-supplied text: discovery's filename
+        # validator covers only a module's final file name, not the directory
+        # names of the package path, so a checked-in test directory may carry
+        # an ESC byte or a newline into the module name. Escaped here, it
+        # cannot drive the operator's terminal or forge a verdict line the
+        # way the raw name would.
+        print(f"===== {escape_controls(module)}: {verdict} =====")
         sys.stdout.write(log_text)
         if log_text and not log_text.endswith("\n"):
             sys.stdout.write("\n")
