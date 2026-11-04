@@ -5,6 +5,19 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reselect installed Plasma settings independently (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal and grounding.** Add `make apply-plasma` for users who have installed Platinum and want to refresh its KDE/Qt selection without running the aggregate setup. `tools/apply_theme.py::main` already performs the required selections through `_apply` and `STEPS`, with optional Kvantum selection and KWin reconfiguration; despite its introductory install wording, its body does not install packages. `Makefile::apply` installs packages and then invokes that helper followed by keyboard, GTK, cursor and Firefox helpers. Searches for `apply-plasma`, `apply-kde`, and related standalone selection headings in Makefile, README, PLANS.md and PLANS-DONE.md found no target or plan covering this wrapper. The archived optional-integrations extraction concerns helper ownership, rather than a standalone Make interface.
+
+**Approach and files.** Added public `.PHONY` target `apply-plasma` to Makefile with `refuse_destdir`, `require_python_ready`, and the existing default invocation of `tools/apply_theme.py`, with no install prerequisite. Added its help entry. Documented it beside aggregate apply in README.md: install packages first with `make install`; this command reselects the global theme, color scheme and desktop theme, writes decoration-button placement, and attempts Kvantum selection and KWin reload. Stated Python 3.10+ and the helper's four required tools (`lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6`), its existing default-data-home limitation for Kvantum, and next-login splash activation. Added a dedicated tooling invariant in docs/invariants.md. Added boundary tests in `tests/test_make_apply_plasma.py`, using `support.theme_install.run_make` and isolated homes. Existing helper tests cover selection details; no helper changes were needed.
+
+**Scope.** One wrapper, its documentation and boundary tests. Aggregate `apply` retains its existing recipe.
+
+**Acceptance criteria.**
+- A dry run shows the desktop helper invocation with no package-install command or keyboard, GTK, cursor or Firefox helper. With an isolated recording interpreter, a successful real Make invocation records one desktop-helper execution after readiness probing; no installed package files are created. The coverage fails if the target is wired to aggregate `apply`.
+- A nonempty `DESTDIR` fails with a diagnostic naming `DESTDIR` before helper execution. Missing Python or a version below 3.10 also fails before helper execution. A failing helper produces a failing Make result.
+- `make help` and README expose the selection-only command, required tools and prior-install requirement. Documentation describes the existing panel-preserving application without `--resetLayout`. The invariant links the new coverage.
+
 ### Expose the existing keyboard-swap helper as a standalone Make target (planned 2026-11-04 by the plan role; done 2026-11-04 by the feature role)
 
 **Goal.** Offer `make apply-keymap` to enable the reference-position shortcut modifier without installing packages or reapplying other theme surfaces.

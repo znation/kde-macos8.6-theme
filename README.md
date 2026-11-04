@@ -326,6 +326,7 @@ that cannot take that lock within its bounded wait exits 2 naming the data home,
 uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
 splash is read at login, so a splash change appears only on the next login; restart GTK applications and Firefox for their selections. `make apply-gtk` and `make apply-cursor` remain available to repair one surface alone.
+After `make install`, run `make apply-plasma` to reselect the installed global theme, color scheme and desktop theme, write the window-button placement, and request Kvantum selection and a KWin reload without applying other surfaces. It requires Python 3.10+ and `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`. The global-theme application preserves panels; Kvantum selection works with its existing default-data-home limitation, and the splash change appears at the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so
@@ -435,6 +436,12 @@ To apply the keyboard option without installing packages or applying the other t
 run `make apply-keymap`. It requires Python 3.10+, `kreadconfig6` and `kwriteconfig6`; it preserves
 other XKB options and uses the same best-effort reload behavior as `make apply`. The keyboard
 must be in PC/Windows mode for the Command-position key to become Control.
+
+To reselect the installed Plasma settings without installing packages or applying the other
+theme surfaces, run `make apply-plasma`. Install first with `make install`; it requires Python
+3.10+, `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and
+`kwriteconfig6`. It preserves panels, attempts Kvantum selection when available (with the
+existing default-data-home limitation), and the splash change appears at the next login.
 
 #### Restoring personal GTK 4 CSS
 

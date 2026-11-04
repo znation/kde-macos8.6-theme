@@ -347,7 +347,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk remove-gtk remove-keymap apply-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk remove-keymap apply-keymap apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -488,6 +488,7 @@ help:
 	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
 	@echo "  render            render a themed Plasma surface headlessly to RENDER_OUTPUT"
 	@echo "  apply             install and apply the theme to the running session"
+	@echo "  apply-plasma      reselect only the installed Platinum Plasma settings"
 	@echo "  install-local-hook  install a post-commit hook that runs 'make apply' (this clone only)"
 	@echo "  uninstall-local-hook  remove that post-commit hook"
 	@echo "  install           install every artifact family, GTK included"
@@ -571,6 +572,13 @@ apply-keymap:
 	@$(call refuse_destdir,apply-keymap)
 	@$(call require_python_ready,apply-keymap)
 	$(PYTHON) tools/apply_keymap.py
+
+# Reselect the installed Plasma theme settings without installing packages or
+# applying the other theme surfaces.
+apply-plasma:
+	@$(call refuse_destdir,apply-plasma)
+	@$(call require_python_ready,apply-plasma)
+	$(PYTHON) tools/apply_theme.py
 
 # Install and select only the GTK themes, for repairing that surface without
 # touching the Plasma packages. A non-empty DESTDIR is refused for the same
