@@ -1619,11 +1619,22 @@ for radio in (False, True):
         )
         # The restated spellings are the only needs-attention arms the sheet
         # declares: the scan kills renamed and stray variants.
+        # The restated spellings are the only needs-attention arms the sheet
+        # declares beside the 2026-11-04 tab-thumbnail badge cap: the scan
+        # kills renamed and stray variants.
         self.assertEqual(
             {selector for selector in self.rules
              if "needs-attention" in selector},
-            set(spellings),
+            set(spellings) | {"tabthumbnail .needs-attention > widget"},
         )
+        # The badge cap states only the corner radius; the label spellings'
+        # animation and dot-image clears do not apply to it.
+        self.assert_rule("tabthumbnail .needs-attention > widget",
+                         {"border-radius": "0"})
+        self.assertEqual(
+            self.selectors.count("tabthumbnail .needs-attention > widget"), 1)
+        self.assert_matches_frame("tabthumbnail .needs-attention > widget",
+                                  "border-radius")
 
     def test_header_drop_indicator(self):
         expected = {
@@ -2513,7 +2524,15 @@ for radio in (False, True):
                 )
 
     def test_tab_thumbnail_corners(self):
-        expected = {"tabthumbnail", "tabthumbnail .card picture"}
+        # The 2026-11-04 tab-family corner row adds three stock-spelling
+        # tab-overview members beside the landed tab-preview shell spellings.
+        expected = {
+            "tabthumbnail",
+            "tabthumbnail .card picture",
+            "tabthumbnail button",
+            "tabthumbnail button > image",
+            "tabthumbnail .needs-attention > widget",
+        }
         self.assertEqual(
             {selector for selector in self.rules if "tabthumbnail" in selector},
             expected,
@@ -3432,10 +3451,92 @@ for radio in (False, True):
                 self.assert_rule(selector, {"filter": "none"})
                 self.assertEqual(self.rules[selector]["filter"], value)
 
+    def test_tabbar_tab_and_indicator_corners(self):
+        """The stock tab-family radii answer the square-corner policy.
+
+        The 2026-11-04 adaptation restates ten byte-equal stock spellings plus
+        the extended tab-box base: eleven border-radius-zero selectors, each
+        counted once, each matching both frame arms' radius, with the two
+        family scans and the source-order span killing renamed and stray
+        variants.
+        """
+        selectors = (
+            "tabbar tab",
+            "dnd tab",
+            "tabbar tab button.image-button",
+            "dnd tab button.image-button",
+            "tabbar tab indicator",
+            "dnd tab indicator",
+            "tabbar tabbox > revealer > indicator",
+            "tabthumbnail button",
+            "tabthumbnail button > image",
+            "tabthumbnail .needs-attention > widget",
+            # The extended base group also keeps its landed no-transition.
+            "tabbar tabbox > tabboxchild",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
+        self.assertEqual(
+            self.rules["tabbar tabbox > tabboxchild"],
+            {"border-radius": "0", "transition": "none"},
+        )
+        # Family scans kill renamed and stray variants. The parsed sheet
+        # splits every comma group into per-member selector keys, so the
+        # "dnd tab" substring scan reaches only the three dnd members and the
+        # exact "tabbar tab" token scans reach the three tabbar members;
+        # together the two scans cover all six pair members.
+        self.assertEqual(
+            {selector for selector in self.rules if "dnd tab" in selector},
+            {
+                "dnd tab",
+                "dnd tab button.image-button",
+                "dnd tab indicator",
+            },
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector == "tabbar tab"
+             or selector.startswith("tabbar tab ")},
+            {
+                "tabbar tab",
+                "tabbar tab button.image-button",
+                "tabbar tab indicator",
+            },
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "tabthumbnail button" in selector},
+            {"tabthumbnail button", "tabthumbnail button > image"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "revealer > indicator" in selector},
+            {"tabbar tabbox > revealer > indicator"},
+        )
+        # Source order: the tab seam restatements sit after the landed tabgrid
+        # focus arm and before the stack switcher face.
+        self.assertGreater(
+            self.selectors.index("dnd tab"),
+            self.selectors.index(
+                "tabgrid > tabgridchild:focus:focus-visible .card"),
+        )
+        self.assertLess(
+            self.selectors.index("dnd tab"),
+            self.selectors.index("stackswitcher > button"),
+        )
+
     def test_tabbar_tabboxchild_focus(self):
         base = "tabbar tabbox > tabboxchild"
         focus = "tabbar tabbox > tabboxchild:focus-within:focus-visible"
-        self.assert_scale_slider_transition(base)
+        self.assertEqual(
+            self.rules[base], {"border-radius": "0", "transition": "none"})
+        self.assertEqual(
+            self.rules[base]["transition"],
+            self.rules[SCALE_SLIDER]["transition"],
+        )
         self.assert_scale_focus_outline(focus)
         for selector in (base, focus):
             self.assertEqual(self.selectors.count(selector), 1)

@@ -775,6 +775,7 @@ tabbar .box:backdrop > .end-action {
    outline colour, width and offset over 200ms. Use the landed black focus
    colour policy and no transition; stock outline geometry remains inherited. */
 tabbar tabbox > tabboxchild {
+  border-radius: 0;
   transition: none;
 }
 
@@ -788,6 +789,48 @@ tabbar tabbox > tabboxchild:focus-within:focus-visible {
 
 tabgrid > tabgridchild:focus:focus-visible .card {
   outline-color: #000000;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK tab
+   bar, a dragged tab, a tab-overview thumbnail button or a page indicator,
+   so the corners are a platform value the reference set does not show and
+   the chosen value is this theme's square-corner policy — `frame > border`,
+   `.frame` and the landed `button` and card restatements all carry
+   `border-radius: 0`. The stock rounded arms come from the platform style
+   library's `base.css` resource (probe path recorded in docs/invariants.md),
+   extracted 2026-11-04 with `gresource extract`; it declares seven
+   radius-bearing tab-family arms:
+   `tabbar tabbox > tabboxchild { border-radius: 9px; }`,
+   `tabbar tab, dnd tab { ... border-radius: 9px; }` alongside its
+   `min-height: 26px; padding: 4px` claims,
+   `tabbar tab button.image-button, dnd tab button.image-button { ... border-radius: 99px; }`,
+   `tabbar tabbox > revealer > indicator { min-width: 2px; border-radius: 2px; ... }`,
+   `tabbar tab indicator, dnd tab indicator { min-height: 2px; border-radius: 2px; ... }`,
+   `tabthumbnail button { border-radius: 99px; }` and
+   `tabthumbnail button > image { ... border-radius: 9999px; }`, with the
+   attention badge cap `tabthumbnail .needs-attention > widget { ... border-radius: 8px; ... }`.
+   The plain toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css
+   inside /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no tabbar, dnd tab,
+   tab-thumbnail or tab-indicator arm at all (grep matches none), so only the
+   integration resource's twins are restated. Each group below is byte-equal
+   to its stock spelling, wins by later user-sheet source order at stock's own
+   specificity, and states nothing else: the rounded indicator's fill paint,
+   the dragged tab's shadow paint, the tab geometry and every other stock
+   declaration stay inherited per-property. */
+tabbar tab, dnd tab {
+  border-radius: 0;
+}
+
+tabbar tab button.image-button, dnd tab button.image-button {
+  border-radius: 0;
+}
+
+tabbar tab indicator, dnd tab indicator {
+  border-radius: 0;
+}
+
+tabbar tabbox > revealer > indicator {
+  border-radius: 0;
 }
 
 /* A stack switcher's page buttons draw as the landed tab recipe, the active
@@ -3572,6 +3615,21 @@ tooltip.csd {
    corner policy. The stock selectors were probed in base.css. */
 tabthumbnail,
 tabthumbnail .card picture {
+  border-radius: 0;
+}
+
+/* The tab-overview button and badge-cap spellings answer the same extracted
+   arms; the grounding comment sits at the tab seam, 2026-11-04. The badge's
+   stock pulse paint stays inherited per-property. */
+tabthumbnail button {
+  border-radius: 0;
+}
+
+tabthumbnail button > image {
+  border-radius: 0;
+}
+
+tabthumbnail .needs-attention > widget {
   border-radius: 0;
 }
 
