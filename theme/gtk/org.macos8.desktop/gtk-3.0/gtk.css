@@ -448,6 +448,44 @@ stackswitcher > button:checked:hover {
   box-shadow: none;
 }
 
+/* 2026-11-03: needs-attention badges. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a stack switcher or a stack sidebar
+ * needs-attention badge (the standing GTK-scope adaptation premise), so the
+ * pulse is cleared to this sheet's inherited paint and landed motion policy
+ * instead of stock's translucent accent dot; the class tokens and their
+ * cascade place stay as stock put them, following the landed colour-class
+ * precedent, and the labels keep the inherited text and box. Stock arms
+ * probed 2026-11-03 with gresource from the installed theme resource (full
+ * library path in docs/invariants.md):
+ *   stacksidebar row.needs-attention > label,
+ *   .stack-switcher > button.needs-attention > label,
+ *   .stack-switcher > button.needs-attention > image
+ *     { animation: needs_attention 150ms ease-in; background-image:
+ *       two full-stop radial gradients, an accent dot over a light halo;
+ *       background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+ *       background-position: right 3px, right 4px; }
+ * plus the resource's own `needs_attention` keyframes and three residual
+ * arms that declare only size or position — the `:backdrop` twin
+ * (`background-size: 6px 6px, 0 0`), the `:dir(rtl)` twin
+ * (`background-position: left 3px, left 4px`) and a later bare
+ * `stacksidebar row.needs-attention > label` arm
+ * (`background-size: 6px 6px, 0 0`). Stock already clears the active and
+ * checked switcher button's label and image with its own counter-arm;
+ * that counter-arm stays undeclared so stock holds that state. One grouped
+ * rule restates the three byte-equal stock twin selectors directly after
+ * the landed stack-switcher face group: equal specificity plus later
+ * source order wins every property, so the dot image and the pulse
+ * animation fall away and the three residual arms govern no image
+ * anywhere. The keyframes lose their last user without gaining a new
+ * animation name. Declaration checks do not establish rendered pixels or
+ * animation runs. */
+stacksidebar row.needs-attention > label,
+.stack-switcher > button.needs-attention > label,
+.stack-switcher > button.needs-attention > image {
+  animation: none;
+  background-image: none;
+}
+
 tab:backdrop, tab.reorderable-page:backdrop,
 notebook > header > tabs > tab:backdrop,
 notebook > header > tabs > tab.reorderable-page:backdrop {
