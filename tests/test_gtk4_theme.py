@@ -3942,6 +3942,71 @@ for radio in (False, True):
             self.selectors.index("cursor-handle > contents"),
         )
 
+    def test_sheet_widget_corners(self):
+        # The 2026-11-04 sheet-widget comment block appends three groups
+        # after the landed expander-title tail group; stock's three radius
+        # arms share these six selector strings across the two sheet
+        # widget families, so byte-equal restatements square them all while
+        # stock's transitions, shadows, outline, fill, min sizes and
+        # margins stay inherited per-property.
+        bottom_sheet = {
+            "bottom-sheet > sheet",
+            "bottom-sheet > sheet > outline",
+            "bottom-sheet > sheet > stack > widget",
+            "bottom-sheet > sheet > stack > button",
+            "bottom-sheet > sheet > stack > button > widget",
+            "bottom-sheet > sheet > stack > widget > drag-handle",
+        }
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("bottom-sheet")},
+            bottom_sheet,
+        )
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("floating-sheet")},
+            {"floating-sheet > sheet"},
+        )
+        for selector in bottom_sheet | {"floating-sheet > sheet"}:
+            self.assertEqual(self.selectors.count(selector), 1)
+        for selector in (
+            "bottom-sheet > sheet",
+            "bottom-sheet > sheet > outline",
+            "bottom-sheet > sheet > stack > widget",
+            "bottom-sheet > sheet > stack > button",
+            "bottom-sheet > sheet > stack > button > widget",
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    self.rules[selector],
+                    {
+                        "border-top-left-radius": "0",
+                        "border-top-right-radius": "0",
+                    },
+                )
+                # The frame rule states the corner through the radius
+                # shorthand, so each longhand member matches the frame's
+                # shared zero instead of a longhand the frame rule never
+                # declares.
+                for corner in (
+                    "border-top-left-radius",
+                    "border-top-right-radius",
+                ):
+                    self.assertEqual(
+                        self.rules[selector][corner],
+                        self.rules["frame > border"]["border-radius"],
+                    )
+        for selector in (
+            "bottom-sheet > sheet > stack > widget > drag-handle",
+            "floating-sheet > sheet",
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
+        for selector in sorted(bottom_sheet | {"floating-sheet > sheet"}):
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("expander-widget > box > title"),
+            )
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",

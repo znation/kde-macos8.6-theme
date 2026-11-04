@@ -4029,3 +4029,66 @@ window.dialog-window.alert .body-scrolled-window > viewport {
 expander-widget > box > title {
   border-radius: 0;
 }
+
+/* GTK bottom sheets, floating sheets and their drag handles have no
+   collected reference surface: no screenshot in macos8.6-screenshots/
+   shows a GTK bottom sheet, floating sheet or drag handle, so the
+   corners follow this theme's landed square-corner policy (the frame
+   border, frame class, card, button, tab-family, menu-selection,
+   cursor-handle, alert-dialog, expander-title and container-corner
+   restatements all declare border-radius: 0). The integration library's
+   base.css resource (probe path recorded in docs/invariants.md, extracted
+   2026-11-04) declares exactly three radius-bearing arms across the two
+   sheet families, quoted verbatim:
+   bottom-sheet > sheet > stack > widget > drag-handle { background-color:
+   color-mix(in srgb, currentColor 25%, transparent); min-width: 54px;
+   min-height: 6px; margin: 15px; border-radius: 99px; },
+   bottom-sheet > sheet, bottom-sheet > sheet > outline,
+   bottom-sheet > sheet > stack > widget, bottom-sheet > sheet > stack >
+   button, bottom-sheet > sheet > stack > button > widget {
+   border-top-left-radius: 15px; border-top-right-radius: 15px; } — the
+   two top-corner longhands alone, no shorthand — and
+   floating-sheet > sheet { border-radius: 15px; box-shadow: 0 2px 8px
+   2px RGB(0 0 6/7%), 0 3px 20px 10px RGB(0 0 6/5%), 0 6px 32px 16px
+   RGB(0 0 6/2%), 0 0 0 1px RGB(0 0 6 / 5%); outline: 1px solid
+   RGB(255 255 255/7%); outline-offset: -1px; }. The plain toolkit
+   resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares none of the three
+   tokens bottom-sheet, floating-sheet or drag-handle (extracted and
+   token-grepped 2026-11-04: zero matches), and the shipped GTK 3 sheet
+   carries none of the three tokens either — the two sheet widget
+   families have no GTK 3 twin — so the GTK 3 sheet needs nothing. The
+   missing reference surface makes this a platform adaptation: each
+   radius lands at zero because the square corners of the frame and
+   button families are the policy the reference set grounds. Stock's
+   arms inside these families that declare zero themselves or no radius
+   stay out and inherited per-property: the stack button's own
+   border-radius: 0 arm also clearing its padding, sizing and faces; the
+   two .bottom-bar.flush-left and .flush-right five-member comma groups
+   declaring border-top-left-radius: 0 and border-top-right-radius: 0
+   already; the bottom-sheet > sheet and > outline transition arms (100ms
+   border-radius, 250ms box-shadow, 100ms radius transition) and the
+   dialog.bottom-sheet:not(.narrow) sheet margin arm declaring no radius
+   — the dialog-mode sheet's corners are the landed alert-family
+   territory. The restated shells keep the shadows, outline and offset
+   and the drag handle keeps its translucent fill, min sizes and margins
+   inherited per-property; each restated spelling is byte-equal to its
+   stock twin, so later user-sheet source order wins every
+   equal-specificity tie and only the radius changes ownership.
+   (2026-11-04) */
+bottom-sheet > sheet > stack > widget > drag-handle {
+  border-radius: 0;
+}
+
+bottom-sheet > sheet,
+bottom-sheet > sheet > outline,
+bottom-sheet > sheet > stack > widget,
+bottom-sheet > sheet > stack > button,
+bottom-sheet > sheet > stack > button > widget {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+floating-sheet > sheet {
+  border-radius: 0;
+}
