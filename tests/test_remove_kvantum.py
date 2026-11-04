@@ -201,6 +201,36 @@ class TestSelectionRemoval(RemoveKvantumCase):
             b"[General]\ntheme=org.macos8.desktop\n", victim.read_bytes()
         )
 
+    def test_a_directory_at_the_kvconfig_path_is_refused_not_called_absent(
+        self,
+    ):
+        self.kvconfig.mkdir(parents=True)
+
+        result = self.run_tool()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(str(self.kvconfig), result.stderr)
+        self.assertIn("is a directory", result.stderr)
+        self.assertNotIn("absent", result.stdout + result.stderr)
+        # The directory occupying the path is left exactly as it was.
+        self.assertTrue(self.kvconfig.is_dir())
+
+    def test_a_regular_file_at_the_kvantum_directory_path_is_refused(self):
+        directory = self.config / "Kvantum"
+        self.config.mkdir(parents=True, exist_ok=True)
+        directory.write_text("theme=KvBreezeDark\n", encoding="utf-8")
+
+        result = self.run_tool()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(str(directory), result.stderr)
+        self.assertIn("not a directory", result.stderr)
+        self.assertNotIn("absent", result.stdout + result.stderr)
+        self.assertEqual(
+            b"theme=KvBreezeDark\n",
+            directory.read_bytes(),
+        )
+
     def test_a_symlinked_kvantum_directory_is_refused(self):
         victim = self.root / "victim-dir"
         victim.mkdir()

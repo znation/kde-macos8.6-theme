@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### remove-kvantum calls a directory or a fouled `Kvantum` path at the kvconfig path absent (found by the bugfix role 2026-11-04) — fixed 2026-11-04 by the bugfix role
+
+
+`tools/kvantum_selection.py::_clear_selection` treats every `None` from
+`tools/gtk_user_files.read_config_text` as ``{path} is absent`` and exits 0. But
+`read_config_text` also returns `None` when a directory occupies
+`kvantum.kvconfig` (or when `Kvantum` itself is a regular file, giving
+`NotADirectoryError`), so the tool tells the operator the selection's file is
+absent while something non-regular sits exactly where `kvantummanager` writes
+the selection. The GTK staging code reports such a target as an error, not a
+note.
+
+Reproduce: create `$XDG_CONFIG_HOME/Kvantum/kvantum.kvconfig` as a directory,
+run `python3 tools/kvantum_selection.py` — it prints
+`remove_kvantum: note: nothing to clear: …/kvantum.kvconfig is absent` and
+exits 0, though the path is occupied and unreadable.
+
+Fixed: `_clear_selection` now separates the occupied-and-unreadable cases from
+true absence. A `$XDG_CONFIG_HOME/Kvantum/kvantum.kvconfig` that is a directory
+exits 2 with ``cannot read {path}: it is a directory, not a regular file``, a
+fouled `Kvantum` path (a regular file where the directory belongs) exits 2 naming
+that path, and only a genuinely absent path keeps the absent note and exit 0;
+`tests/test_remove_kvantum.py` pins both refusals and `docs/invariants.md` records
+the changed guarantee.
+
+**Validation gap:** none — a scratch run reproduced it deterministically and
+the existing suite needed only a new test; nothing was missing beyond the
+uncovered branch.
+
 ### Hovering or pressing an unfocused window's title-bar button erases it (found by the director role 2026-11-04) — fixed 2026-11-04 by the feature role
 
 **Symptom.** With focus on another window, moving the pointer over an unfocused window's close

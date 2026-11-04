@@ -202,6 +202,21 @@ def _clear_selection(config_home: Path) -> int:
     refuse_symlink(path, "write", ConfigError)
     text = read_config_text(path)
     if text is None:
+        # ``None`` covers true absence and occupied-but-unreadable alike, so
+        # the occupied cases are separated out: reporting a directory or a
+        # fouled ``Kvantum`` path as absent would tell the operator the
+        # selection is gone when nothing could be read where
+        # ``kvantummanager`` writes it (the GTK staging code refuses such a
+        # target as an error, not a note).
+        if path.is_dir():
+            raise ConfigError(
+                f"cannot read {path}: it is a directory, not a regular file"
+            )
+        if directory.exists():
+            raise ConfigError(
+                f"cannot read {path}: {directory} is not a directory, so "
+                "nothing occupies the path below it"
+            )
         _note(f"nothing to clear: {path} is absent")
         return 0
     updated, removed = remove_theme(text)
