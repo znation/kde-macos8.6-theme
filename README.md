@@ -386,7 +386,27 @@ for the package default (`kwriteconfig6`'s accepting a literal
 a scratch-home apply on this host, and the flat file's writer/removal story
 is a prose ground against the upstream Plasma sources the project reads for
 its Plasma-tool adaptations; the reference screenshots show no uninstall
-warning to sample them from). No such warning edits the
+warning to sample them from); and if the defaults layer also mirrors the
+live selections the landed diagnostics cover -- a `kdedefaults/kdeglobals`
+file whose `[KDE]` group's last `widgetStyle` value is `kvantum` and whose
+`[Icons]` group's last `Theme` value is `org.macos8.desktop` (the two
+conditions independent), a `kdedefaults/kwinrc` file whose
+`[org.kde.kdecoration2]` group holds the `library=org.kde.kwin.aurorae` and
+`theme=__aurorae__svg__org.macos8.desktop` pair (the `NoPlugin=false` key
+the apply also wrote is not a match condition), and a
+`kdedefaults/plasmarc` file whose `[Theme]` group's last `name` value is
+`org.macos8.desktop` -- it prints four warnings naming the resets
+`kwriteconfig6 --file <path> --group KDE --key widgetStyle --delete`,
+`kwriteconfig6 --file <path> --group Icons --key Theme --delete`, the
+`kwriteconfig6 --file <path> --group org.kde.kdecoration2` two-key
+`library`/`theme` `--delete` pair and `kwriteconfig6 --file <path>
+--group Theme --key name --delete` (the same scratch-home apply recorded
+above left all three mirrors on this host, and the fallback claim -- that a
+start whose live key is absent or reset away re-resolves the selection
+from the defaults layer -- is recorded as prose grounded against the KDE
+config-cascade sources the landed live-config diagnostics already ground;
+the reference screenshots show no uninstall warning to sample it from).
+No such warning edits the
 user's configuration.
 Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
 variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline

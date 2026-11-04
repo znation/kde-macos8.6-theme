@@ -1095,6 +1095,29 @@ _uninstall:
 # prints only when the result equals `$(LNF_ID)` exactly -- a padded or
 # newline-terminated copy still warns, a foreign or empty file stays
 # silent. Both diagnostics edit nothing.
+#
+# The same apply also left defaults-layer mirrors of the live selections in
+# that scratch-home run: `kdedefaults/kdeglobals` holding
+# `[Icons] Theme=$(ICON_THEME_ID)` and `[KDE] widgetStyle=kvantum`,
+# `kdedefaults/kwinrc` holding `[org.kde.kdecoration2]` `NoPlugin=false`
+# beside the `library=org.kde.kwin.aurorae` /
+# `theme=__aurorae__svg__$(AURORAE_ID)` pair, and `kdedefaults/plasmarc`
+# holding `[Theme] name=$(DTHEME_ID)`. Three checks run after the splash
+# and package checks, one awk per mirror file carrying the landed live
+# counterpart's ini scanner, in the file order `kdeglobals`, `kwinrc`,
+# `plasmarc`: the kdeglobals awk prints at most two lines -- the
+# widget-style line only when `[KDE]`'s last `widgetStyle` value trims to
+# `kvantum`, the icon-theme line only when `[Icons]`'s last `Theme` value
+# trims to `$(ICON_THEME_ID)` -- the two conditions independent. The kwinrc
+# awk prints one line only when that group's last
+# `library=org.kde.kwin.aurorae` and `theme=__aurorae__svg__$(AURORAE_ID)`
+# values both stand; `NoPlugin=false` is never a match condition and stays
+# silent. The plasmarc awk prints one line only when `[Theme]`'s last
+# `name` value trims to `$(DTHEME_ID)`. Each reset deletes the live
+# counterpart's keys from the mirror itself, so a start whose live key is
+# absent or reset away no longer re-resolves the removed id from the
+# defaults layer. As before, these are diagnostics only -- they must not
+# edit any file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -1157,6 +1180,19 @@ fi; \
 kdepackage="$$config_home/kdedefaults/package"; \
 if [ -n "$$config_home" ] && [ -f "$$kdepackage" ] && [ "$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); flat=flat line } END { printf "%s", flat }' "$$kdepackage" 2>/dev/null)" = "$(LNF_ID)" ]; then \
 	  echo "uninstall: the look-and-feel package default the look-and-feel apply left in defaults still names $(LNF_ID) after removal in $$kdepackage; the defaults file the apply wrote names the removed look-and-feel package. Reset it with: rm \"$$kdepackage\"" >&2; \
+fi; \
+dfkdeglobals="$$config_home/kdedefaults/kdeglobals"; \
+if [ -n "$$config_home" ] && [ -f "$$dfkdeglobals" ]; then \
+  df_selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (section == "KDE" && key == "widgetStyle") style=value; if (section == "Icons" && key == "Theme") icons=value } } END { if (style == "kvantum") print "uninstall: the widget-style selection the look-and-feel apply left in defaults ([KDE] widgetStyle=kvantum) is still in " FILENAME " after removal; when the live key is absent or reset away, the defaults layer re-selects the style that key names. Reset it with: kwriteconfig6 --file " FILENAME " --group KDE --key widgetStyle --delete"; if (icons == "$(ICON_THEME_ID)") print "uninstall: the icon-theme selection the look-and-feel apply left in defaults ([Icons] Theme=$(ICON_THEME_ID)) is still in " FILENAME " after removal; when the live key is absent or reset away, the defaults layer re-selects the removed icon theme and KDE and Qt applications keep the default icons. Reset it with: kwriteconfig6 --file " FILENAME " --group Icons --key Theme --delete" }' "$$dfkdeglobals" 2>/dev/null); \
+  if [ -n "$$df_selected" ]; then printf '%s\n' "$$df_selected" >&2; fi; \
+fi; \
+dfkwinrc="$$config_home/kdedefaults/kwinrc"; \
+if [ -n "$$config_home" ] && [ -f "$$dfkwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "library") declib=value; if (key == "theme") dectheme=value } } END { exit declib == "org.kde.kwin.aurorae" && dectheme == "__aurorae__svg__$(AURORAE_ID)" ? 0 : 1 }' "$$dfkwinrc" 2>/dev/null; then \
+	  echo "uninstall: the window-decoration selection [library=org.kde.kwin.aurorae, theme=__aurorae__svg__$(AURORAE_ID)] that the look-and-feel apply left in defaults is still in $$dfkwinrc; when the live keys are absent or reset away, the defaults layer re-selects the removed aurorae package and KWin keeps a default window decoration. Reset it with: kwriteconfig6 --file $$dfkwinrc --group org.kde.kdecoration2 --key library --delete && kwriteconfig6 --file $$dfkwinrc --group org.kde.kdecoration2 --key theme --delete" >&2; \
+fi; \
+dfplasmarc="$$config_home/kdedefaults/plasmarc"; \
+if [ -n "$$config_home" ] && [ -f "$$dfplasmarc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Theme" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "name") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); found=1 } } } END { exit found && value == "$(DTHEME_ID)" ? 0 : 1 }' "$$dfplasmarc" 2>/dev/null; then \
+	  echo "uninstall: the desktop theme selection the look-and-feel apply left in defaults still names $(DTHEME_ID) after removal in $$dfplasmarc; when the live key is absent or reset away, the defaults layer re-selects the removed desktop theme. Reset it with: kwriteconfig6 --file $$dfplasmarc --group Theme --key name --delete" >&2; \
 fi
 
 install-gtk:
