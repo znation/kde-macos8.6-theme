@@ -1,4 +1,4 @@
-"""Swap the left Control and Alt keys at the XKB level for this user.
+"""Apply or remove the left Control and Alt XKB swap for this user.
 
 ``make apply`` runs this after the theme is applied. The reference places its
 shortcut modifier -- the Command key -- where a PC keyboard puts Alt, while
@@ -28,6 +28,7 @@ only prints a note saying the swap takes effect at the next login.
 Usage::
 
     python3 tools/apply_keymap.py
+    python3 tools/apply_keymap.py --remove
 
 Exit status: 0 when the option was written (even if the session could not be
 asked to reload it), 1 when a required command failed, 2 for a usage error, a
@@ -290,8 +291,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = EscapingArgumentParser(
         prog="apply_keymap",
         description=(
-            "Swap the left Control and Alt keys for this user's Plasma "
-            "session so the reference's Command-key shortcuts work."
+            "Apply or remove the left Control/Alt swap in this user's XKB options."
         ),
         epilog=(
             "exit status: 0 when the option was written, 1 when a required "
@@ -301,7 +301,11 @@ def main(argv: list[str] | None = None) -> int:
             "plus the signal number when a SIGTERM or SIGHUP ends the run"
         ),
     )
-    parser.add_argument("--remove", action="store_true", help="remove the left Control/Alt swap")
+    parser.add_argument(
+        "--remove",
+        action="store_true",
+        help="remove the swap while preserving other options",
+    )
     args = parser.parse_args(argv)
 
     missing = report_missing_tool(TOOL, REQUIRED_TOOLS)

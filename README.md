@@ -314,8 +314,9 @@ right and needs no second apply. Right Alt
 (AltGr) and other users' sessions are unchanged, and a repeat apply keeps one copy. The reload is
 best effort: when neither `dbus-send` nor `busctl` is on `PATH`, or the emitted signal fails, it
 notes that the swap takes effect at the next login. The setting persists after `make uninstall`;
-run `make remove-keymap` to remove `ctrl:swap_lalt_lctl` while preserving other XKB options. This
-cannot restore earlier keyboard settings. It then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
+run `make remove-keymap` to remove `ctrl:swap_lalt_lctl` while preserving other XKB options; this does not
+restore earlier keyboard settings.
+The apply process then selects the installed GTK 3 and GTK 4 schemes, exposes and selects the Xcursor pointer set, and installs the Firefox sheets into the active profile when one exists. The cursor selection is skipped with a note when `plasma-apply-cursortheme` is absent, and the Firefox step is skipped with a note when no profile is found, so an apply still completes on a machine that has neither. It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme`, `plasma-apply-desktoptheme`, `kwriteconfig6` and `kreadconfig6`,
 exiting 2 naming the first one that is

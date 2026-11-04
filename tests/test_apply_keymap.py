@@ -18,10 +18,13 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import theme_install
+from support import process_runner
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.recorded_lines import recorded_lines
 from tools import apply_keymap, diagnostics
+
+MAKE = shutil.which("make")
 
 
 class StubTools(unittest.TestCase):
@@ -112,6 +115,15 @@ class TestMergeOption(unittest.TestCase):
             ),
         )
 
+    def test_remove_discards_exact_swap_tokens_and_preserves_order(self):
+        self.assertEqual(
+            "caps:escape,compose:ralt,ctrl:swap_lalt_lctl_extra,caps:escape",
+            apply_keymap.remove_option(
+                " caps:escape, ,ctrl:swap_lalt_lctl,compose:ralt,"
+                "ctrl:swap_lalt_lctl_extra,ctrl:swap_lalt_lctl,caps:escape "
+            ),
+        )
+
     def test_an_existing_swap_is_not_duplicated(self):
         existing = f"caps:escape,{apply_keymap.OPTION}"
         self.assertEqual(existing, apply_keymap.merge_option(existing))
@@ -194,6 +206,44 @@ class TestCommandOrder(StubTools):
         self.assertEqual(1, len(options_writes))
         self.assertEqual(1, options_writes[0].count(apply_keymap.OPTION))
         self.assertTrue(options_writes[0].endswith("caps:escape," + apply_keymap.OPTION))
+
+    def test_remove_keeps_other_options_and_requests_reload(self):
+        self.stub("kreadconfig6", "printf 'caps:escape,,ctrl:swap_lalt_lctl,compose:ralt,ctrl:swap_lalt_lctl\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertEqual(
+            "kwriteconfig6 --file kxkbrc --group Layout --key Options caps:escape,compose:ralt",
+            self.recorded()[1],
+        )
+        self.assertTrue(self.recorded()[2].endswith("ResetOldOptions --type bool true"))
+        self.assertTrue(self.recorded()[-1].startswith("dbus-send"))
+
+    def test_remove_sole_swap_writes_empty_value(self):
+        self.stub("kreadconfig6", f"printf '{apply_keymap.OPTION}\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertEqual(
+            "kwriteconfig6 --file kxkbrc --group Layout --key Options ",
+            self.recorded()[1],
+        )
+
+    def test_remove_missing_swap_is_a_noop(self):
+        self.stub("kreadconfig6", "printf 'caps:escape,,compose:ralt\\n'")
+        status, stderr = call_main(apply_keymap.main, "--remove")
+        self.assertEqual(0, status, stderr)
+        self.assertEqual(1, len(self.recorded()))
+
+    def test_remove_keymap_make_target_runs_only_removal(self):
+        result = process_runner.run(
+            [MAKE, "-n", "remove-keymap"],
+            cwd=theme_install.repo_root.ROOT,
+            env=theme_install.make_env(),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("tools/apply_keymap.py --remove", result.stdout)
+        self.assertNotIn("install", result.stdout)
 
 
 class TestRemove(StubTools):

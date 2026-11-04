@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Remove the Platinum keyboard modifier swap independently (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
+
+**Goal.** Provide `make remove-keymap` and `python3 tools/apply_keymap.py --remove` so a user can clear the left Alt/Control swap while preserving other XKB options.
+
+**Approach and files.** Add exact-token removal with an absent-token no-op, publish the remaining options with `ResetOldOptions=true`, and retain best-effort reload behavior. Wire the standalone Make target and document that removal does not restore prior settings. Update the keymap invariant and tests.
+
+**Acceptance criteria.** Removal preserves remaining options in order, removes duplicates of the target, writes an empty value when the swap is the sole option, does not write when absent, and reloads only after successful writes. Make help and dry-run expose the standalone command. `make check` passes.
+
 ### Offer an explicit keyboard-swap removal command (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
 
 **Goal.** Let a user reverse the modifier swap selected by `make apply` with `make remove-keymap`, preserving their other XKB options. README currently offers only manual reversal in System Settings. Searches of the current helper, Makefile, Planned entries and finished-plan archive found no keyboard-swap removal command; the finished removal-guide entry documents the manual route.
