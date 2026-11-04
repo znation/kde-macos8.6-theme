@@ -10,6 +10,9 @@ and will tune it to this project.
 - Keep each file focused on one responsibility, and small enough to read in one sitting.
 - Every behavior change ships with a test.
 - Small, complete, and correct beats big and half-done: one focused change per tick.
+- Preserve the user's keyboard mappings when installing or applying Platinum. Keyboard
+  remapping is outside the theme's scope; remove the shipped modifier-swap feature.
+  (Directed by the user 2026-11-04; recorded by the director role.)
 - Treat recovery and cleanup after SIGKILL as an accepted Won't Fix limitation across the
   project. Roles should close reports whose sole failure requires SIGKILL as covered by this
   decision, rather than file duplicates, plan recovery machinery, or reopen them without a new
