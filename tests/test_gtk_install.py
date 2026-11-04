@@ -224,11 +224,49 @@ class TestUninstall(unittest.TestCase):
             self.assertFalse(os.path.isdir(os.path.join(installed, "gtk-4.0")))
             with open(planted, "rb") as handle:
                 self.assertEqual(handle.read(), b"keep me")
+            # The sentinel keeps the emptied `Kvantum/` directory and the
+            # shared theme directory above it alive: only fully emptied
+            # directories go.
+            self.assertTrue(os.path.isdir(os.path.dirname(planted)))
             with open(os.path.join(sibling, "marker"), "rb") as handle:
                 self.assertEqual(handle.read(), b"sibling")
             self.assertTrue(os.path.isdir(installed))
             again = uninstall(tmp)
             assert_succeeded(self, again)
+
+    def test_make_uninstall_removes_the_emptied_theme_id_directories(self):
+        with installed_destdir(self) as tmp:
+            installed = _installed_dir(tmp)
+            self.assertTrue(os.path.isdir(installed), installed)
+            self.assertTrue(
+                os.path.isdir(os.path.join(installed, "Kvantum")), installed
+            )
+            themes_root = os.path.dirname(installed)
+            self.assertEqual(os.path.basename(installed), "org.macos8.desktop")
+            foreign_dir = os.path.join(themes_root, "second-theme")
+            os.makedirs(foreign_dir, exist_ok=True)
+            foreign = os.path.join(foreign_dir, "marker")
+            with open(foreign, "wb") as handle:
+                handle.write(b"sibling")
+            assert_succeeded(self, uninstall(tmp))
+            # Nothing of ours is left under `themes/`: the GTK directories
+            # were removed, then the emptied `Kvantum/` parent, then the
+            # emptied shared theme directory itself. The `themes/` root and
+            # the foreign sibling survive.
+            self.assertFalse(os.path.exists(installed), installed)
+            self.assertFalse(os.path.exists(os.path.join(installed, "Kvantum")))
+            self.assertEqual(
+                os.listdir(themes_root), ["second-theme"], themes_root
+            )
+            self.assertTrue(os.path.isdir(themes_root))
+            with open(foreign, "rb") as handle:
+                self.assertEqual(handle.read(), b"sibling")
+            # Remove the foreign sibling: a rerun on an empty `themes/` root
+            # still succeeds, and the root itself stays.
+            shutil.rmtree(foreign_dir)
+            again = uninstall(tmp)
+            assert_succeeded(self, again)
+            self.assertTrue(os.path.isdir(themes_root), themes_root)
 
     def test_make_uninstall_leaves_foreign_files_in_the_gtk_directories(self):
         with installed_destdir(self, packages="gtk") as tmp:

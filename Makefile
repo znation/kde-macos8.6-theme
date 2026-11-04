@@ -803,8 +803,12 @@ _uninstall:
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"; \
 	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"; \
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"; \
+	# `rmdir` hungrily removes only the emptied sub-directories and then the
+	# shared `Kvantum/` parent and the shared theme directory itself; a
+	# directory still holding a file the theme did not install survives, and
+	# an absent or symlinked path just fails behind `|| true`.
 	{ $(call gtk_remove_loop); }; \
-	rmdir "$(GTK_INSTALL_DIR)/assets" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" 2>/dev/null || true
+	rmdir "$(GTK_INSTALL_DIR)/assets" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" 2>/dev/null || true
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the
 # id and falls back to BreezeLight on every start without rewriting the stale

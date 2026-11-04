@@ -110,6 +110,23 @@ class TestInstall(unittest.TestCase):
             for name in SHIPPED_FILES:
                 path = os.path.join(installed, name)
                 self.assertFalse(os.path.exists(path), path)
+            # The emptied `Kvantum/` directory and the shared theme directory
+            # above it go with the files; a rerun with nothing of ours left
+            # still succeeds, and the `themes/` root survives.
+            self.assertFalse(
+                os.path.isdir(installed),
+                "the emptied Kvantum directory must be removed",
+            )
+            self.assertFalse(
+                os.path.isdir(os.path.dirname(installed)),
+                "the emptied shared theme directory must be removed",
+            )
+            self.assertTrue(
+                os.path.isdir(
+                    os.path.join(tmp, XDG_DATA_HOME.lstrip("/"), "themes")
+                ),
+                "the themes root itself must survive",
+            )
             again = uninstall(tmp)
             assert_succeeded(self, again)
 
