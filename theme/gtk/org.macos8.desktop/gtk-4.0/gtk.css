@@ -453,6 +453,66 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
   transition: none;
 }
 
+/* No collected reference screenshot shows a text field inside a GTK OSD
+ * overlay, the standing GTK-scope adaptation premise: restating the stock
+ * translucent dark `.osd` field bubbles with the landed entry recipe above,
+ * mirroring the shipped GTK 3 sheet's landed OSD entry restate. Stock
+ * grouped arms probed 2026-11-03 with gresource from both
+ * /org/gtk/libgtk/theme/Default/Default-light.css and
+ * /org/gtk/libgtk/theme/Default/Default-dark.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `.osd spinbutton.vertical > text, .osd spinbutton:not(.vertical),
+ * .osd entry { color: white; border-color: rgba(0, 0, 0, 0.7);
+ * background-color: rgba(0, 0, 0, 0.5); background-clip: padding-box;
+ * box-shadow: none; -gtk-icon-shadow: 0 1px black; }`, its `:focus-within`
+ * twin (border-color #3584e4 in the light resource, #15539e in the dark),
+ * and its `:disabled` twin (color #919190 on rgba(71, 71, 71, 0.5) in the
+ * light, #8a8a89 on rgba(58, 58, 57, 0.5) in the dark). Neither resource
+ * declares another `.osd`-scoped entry or spin-button field spelling, and
+ * the toolkit's companion library stylesheet declares no `.osd` field arm
+ * at all. Each
+ * restated selector is the byte-equal stock twin and the groups sit after
+ * the landed base arms, so later source order wins every stock tie: every
+ * state redraws the same raised field, because stock's own state twins set
+ * no geometry stock could keep. Stock's leftover
+ * `background-clip: padding-box` stays in force, harmless behind the
+ * opaque 1px black border, exactly as the landed `.osd` check/radio
+ * restate argues. Stock claims no `.osd` focus outline, so the landed
+ * `entry:focus-within` outline colour and motion policy cascade
+ * unchanged. */
+.osd spinbutton.vertical > text, .osd spinbutton:not(.vertical), .osd entry {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > text:focus-within, .osd spinbutton:focus-within:not(.vertical), .osd entry:focus-within {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > text:disabled, .osd spinbutton:disabled:not(.vertical), .osd entry:disabled {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
 check, radio {
   min-height: 14px;
   min-width: 14px;

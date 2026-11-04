@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from itertools import chain
 from pathlib import Path
 from unittest import mock
 
@@ -1684,6 +1685,65 @@ for radio in (False, True):
             set(selectors) | {"treeview entry.flat", "treeview entry.flat:focus-within"},
         )
 
+    def test_osd_entry_fields(self):
+        # The landed entry recipe governs the stock OSD overlay field family
+        # too: the sheet restates the toolkit resource's three grouped
+        # translucent dark field arms with byte-equal twins carrying the
+        # landed ENTRY_FIELD recipe plus the stock-cleared shadings, so a
+        # resting, focused or disabled entry or spin-button field inside the
+        # landed overlay band paints the raised field instead of dropping
+        # back to stock's translucent bubble or the toolkit accent focus
+        # border. No collected reference screenshot shows a field inside a
+        # GTK OSD overlay, so this is the standing GTK-scope adaptation,
+        # mirroring the landed GTK 3 OSD record and the landed GTK 4 OSD
+        # check/radio restate; the arms come from
+        # /org/gtk/libgtk/theme/Default/Default-light.css and Default-dark.css
+        # in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6).
+        field = {
+            **ENTRY_FIELD,
+            "background-image": "none",
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        states = (
+            (
+                ".osd spinbutton.vertical > text",
+                ".osd spinbutton:not(.vertical)",
+                ".osd entry",
+            ),
+            (
+                ".osd spinbutton.vertical > text:focus-within",
+                ".osd spinbutton:focus-within:not(.vertical)",
+                ".osd entry:focus-within",
+            ),
+            (
+                ".osd spinbutton.vertical > text:disabled",
+                ".osd spinbutton:disabled:not(.vertical)",
+                ".osd entry:disabled",
+            ),
+        )
+        selectors = tuple(chain.from_iterable(states))
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], field)
+            self.assertEqual(self.selectors.count(selector), 1)
+        # No other `.osd`-prefixed entry or spinbutton spelling exists
+        # beyond the restated field arms: the scan excludes the stock
+        # stepper families (`> button`) and the stock inner-text arms
+        # (`.osd spinbutton:not(.vertical) > text` and its backdrop-disabled
+        # twin, which carry `:not(.vertical) > text`), so it kills renamed
+        # and stray variants alike.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if s.startswith(".osd")
+                and ("entry" in s or "spinbutton" in s)
+                and "> button" not in s
+                and ":not(.vertical) > text" not in s
+            },
+            set(selectors),
+        )
+
     def test_entry_colour_classes(self):
         # The landed entry policy takes no colour class: the sheet restates
         # the four stock error/warning colour-class arms with byte-equal
@@ -2856,6 +2916,14 @@ for radio in (False, True):
             ".osd scale > trough > slider:hover",
             ".osd scale > trough > slider:active",
             ".osd scale > trough > slider:disabled",
+            # The landed OSD entry-field restate (2026-11-03): the stock
+            # `.osd` field-arm spellings lack the substring `button`, so the
+            # whole-sheet sweep below must hold them too; the six spin-button
+            # spellings are already excluded by it, as `spinbutton` contains
+            # `button`.
+            ".osd entry",
+            ".osd entry:focus-within",
+            ".osd entry:disabled",
         } | arms
         tokens = (
             "osd",
