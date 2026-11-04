@@ -1,6 +1,6 @@
 # Plans
 
-Planned features, written by the plan loop and implemented by the feature loop.
+Planned features, written by the plan role and implemented by the feature role.
 Each plan: goal, approach, files touched, acceptance criteria. Move finished plans to Done.
 
 ## Planned

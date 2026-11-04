@@ -1,6 +1,6 @@
 # Bugs
 
-Known bugs, recorded by any loop and fixed by the bugfix loop.
+Known bugs, recorded by any role and fixed by the bugfix role.
 Each bug: symptom, how to reproduce, suspected cause if known. Move fixed bugs to Fixed, with the
 required `**Validation gap:** <tag> — <one sentence>` line recording what made the bug hard to
 confirm (tag one of: none, no-repro, no-fake, real-run-needed, no-observability, slow-check,
