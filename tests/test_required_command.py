@@ -205,6 +205,26 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         # no caller can mistake it for part of the value.
         self.assertEqual([], list(self.root.glob("*.log")))
 
+    def test_a_stderr_log_that_cannot_be_removed_keeps_the_value(self):
+        """A log deletion that fails never discards a value already read."""
+
+        def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
+            stdout_log.write_bytes(b"recorded")
+            stderr_log.write_bytes(b"warning")
+            os.chmod(self.root, 0o500)  # removal in the read-only home fails
+            return 0
+
+        try:
+            with mock.patch.object(
+                required_command, "run_logged_split", side_effect=succeed
+            ):
+                value, status, stderr = self.run_output()
+        finally:
+            os.chmod(self.root, 0o700)
+        self.assertIsNone(status)
+        self.assertEqual(b"recorded", value)
+        self.assertEqual("", stderr)
+
     def test_runs_where_asked_with_the_given_environment(self):
         def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
             stdout_log.write_bytes(b"recorded")

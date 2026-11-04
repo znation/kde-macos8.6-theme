@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A successful required-command read is discarded when its stderr log cannot be removed (found by the bugfix role 2026-11-03) — fixed 2026-11-03 by the bugfix role
+
+**Validation gap:** no-fake — the suite had no way to make a log removal fail, so the
+regression test forces one by hand (chmod a read-only home directory around the read).
+
+Symptom: `run_required_output` read the stdout bytes successfully, then removed both split
+logs inside the same `try`; an `OSError` from the `stderr_log.unlink()` (for example a
+read-only scratch directory) reached the existing handler and reported
+`cannot read <stdout log name>` at exit 2, discarding the value already read. A
+`kreadconfig6` read `apply_keymap` takes as a required command would then fail its whole
+run on a cleanup that cannot succeed.
+
+Reproduce with
+`cd tests && python3 -m unittest test_required_command.TestRunRequiredOutput.`
+`test_a_stderr_log_that_cannot_be_removed_keeps_the_value` — without the fix it fails with
+`AssertionError: 2 is not None`; with the fix the read returns `b"recorded"` and no error.
+
+Suspected cause and fix: the deletion was cleanup, not the read, so it must never be
+reported as a failed read. The fix removes both logs best-effort after a successful
+`read_bytes`, ignores a removal that fails, and the function docstring records that a log
+whose removal cannot succeed stays on disk.
+
 ### A stray `check.log` full-check output is tracked at the repository root (found by the plan role 2026-11-03) — fixed 2026-11-03 by the bugfix role
 
 **Symptom.** `git ls-files` names `check.log` at the repository root; its content is one run's complete `make check` capture (it opens with the check harness invocation `python3 tools/check_parallel.py` and the per-worker `===== <module>: exit 0 =====` progress lines), no repository file, recipe or test reads it, and every subsequent check run would make the tracked copy stale. It is a run artifact of the 2026-11-03 plan run that wrote its check output to a fixed path in the worktree root instead of `$TMPDIR`, and the run's commit swept the file into the tree.

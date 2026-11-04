@@ -116,8 +116,9 @@ def run_required_output(
     rather than under names derived from ``command[0]``: an absolute
     executable path would otherwise redirect them out of that directory. A
     succeeding run removes both logs, so no stream is left on disk for a
-    later step to mistake for the value, and what it returns are the bytes
-    the caller decodes.
+    later step to mistake for the value; a removal that cannot succeed is
+    ignored, because the value is already read and failing the run would
+    discard it, and what the helper returns are the bytes the caller decodes.
     """
     if not command or not command[0]:
         raise ValueError(
@@ -146,10 +147,13 @@ def run_required_output(
         )
     try:
         value = stdout_log.read_bytes()
-        stdout_log.unlink()
-        stderr_log.unlink()
     except OSError as exc:
         return b"", report_error(
             tool, f"cannot read {stdout_log.name}: {exc}"
         )
+    for log in (stdout_log, stderr_log):
+        try:
+            log.unlink()
+        except OSError:
+            pass
     return value, None
