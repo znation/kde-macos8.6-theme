@@ -181,6 +181,15 @@ class TestUserCssDecisions(unittest.TestCase):
         self.assertNotIn("old", result[1])
         self.assertIsNone(result[2])
 
+    def test_a_first_line_that_only_starts_with_the_marker_is_foreign(self):
+        # Lines end at LF, CR and CRLF only (tools/text_lines.py): a Unicode
+        # line separator (U+2028) inside the first line is part of it, so a
+        # file whose first line merely starts with our marker text is not
+        # the marker-led file -- it is backed up, not rewritten in place.
+        path = self.css(f"{gtk_user_files.GTK4_CSS_MARKER}\u2028/* edits */\n")
+        result = self.write()
+        self.assertEqual(path, result[2])
+
     def test_a_foreign_file_is_rewritten_and_named_as_the_backup_source(self):
         path = self.css(f"a {{}}\n{gtk_user_files.GTK4_CSS_MARKER}\n")
         result = self.write()

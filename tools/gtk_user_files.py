@@ -25,6 +25,11 @@ import os
 import stat
 from pathlib import Path
 
+if __package__:
+    from tools.text_lines import split_lines
+else:  # imported from a directly run tool
+    from text_lines import split_lines
+
 
 class ConfigError(Exception):
     """A GTK settings or user-CSS file could not be read or written.
@@ -55,10 +60,15 @@ def _is_our_user_css(text: str) -> bool:
     """Return whether *text*'s first line is our marker.
 
     A UTF-8 BOM is valid in CSS and some editors add one, so it must not hide
-    the marker and make our own generated stylesheet look foreign.
+    the marker and make our own generated stylesheet look foreign. Lines end
+    at LF, CR and CRLF only (``tools/text_lines.py``): an exotic Unicode
+    separator inside the first line is part of that line, so text whose
+    first line merely starts with our marker text is not the marker-led
+    file. ``split_lines`` never returns an empty list, so an empty text is
+    an empty first line, not the marker.
     """
-    first = text.splitlines()
-    return bool(first) and first[0].removeprefix(_BOM) == GTK4_CSS_MARKER
+    first = split_lines(text)
+    return first[0].removeprefix(_BOM) == GTK4_CSS_MARKER
 
 
 def read_config_text(path: Path) -> str | None:

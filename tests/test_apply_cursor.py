@@ -578,6 +578,30 @@ class TestCursorThemeSetting(unittest.TestCase):
             cursor_config.cursor_theme_setting(self.config),
         )
 
+    def test_an_exotic_separator_in_a_comment_does_not_end_the_line(self):
+        # A line ends at LF, CR and CRLF only (tools/text_lines.py): a
+        # Unicode line separator (U+2028) inside a comment line does not end
+        # it, so its remainder must never read as a cursorTheme setting.
+        self.path.write_text(
+            "[Mouse]\n"
+            "cursorTheme=org.macos8.desktop\n"
+            "# a note\u2028cursorTheme=other.theme\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            apply_cursor.CURSOR_THEME,
+            cursor_config.cursor_theme_setting(self.config),
+        )
+
+    def test_a_value_line_keeps_a_builtin_exotic_separator_whole(self):
+        # A vertical tab inside a value is part of that value, not a break:
+        # splitting on it would truncate the theme name mid-word.
+        self.path.write_text("[Mouse]\ncursorTheme=widget\x0bengine\n")
+        self.assertEqual(
+            "widget\x0bengine",
+            cursor_config.cursor_theme_setting(self.config),
+        )
+
     def test_a_non_utf8_file_reads_as_no_setting(self):
         self.path.write_bytes(b"[Mouse]\ncursorTheme=\xff\n")
         self.assertIsNone(cursor_config.cursor_theme_setting(self.config))

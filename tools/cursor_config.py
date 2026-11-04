@@ -7,9 +7,11 @@ from pathlib import Path
 if __package__:
     from tools.containment import read_text
     from tools.repo_root import ROOT
+    from tools.text_lines import split_lines
 else:  # imported from a directly run tool
     from containment import read_text
     from repo_root import ROOT
+    from text_lines import split_lines
 
 
 def cursor_theme_setting(config_home: Path) -> str | None:
@@ -18,6 +20,8 @@ def cursor_theme_setting(config_home: Path) -> str | None:
     A missing, unreadable, non-regular or non-UTF-8 file reads as no setting.
     The shared regular-file reader opens with ``O_NONBLOCK`` and checks the
     opened descriptor, so a FIFO or device at the path is refused at once.
+    Only LF, CR and CRLF end a line (``tools/text_lines.py``): an exotic
+    Unicode separator inside a comment or a value is part of that line.
     """
     path = config_home / "kcminputrc"
     try:
@@ -26,7 +30,7 @@ def cursor_theme_setting(config_home: Path) -> str | None:
         return None
     section = None
     value = None
-    for line in text.splitlines():
+    for line in split_lines(text):
         stripped = line.strip()
         if not stripped or stripped.startswith(("#", ";")):
             continue
