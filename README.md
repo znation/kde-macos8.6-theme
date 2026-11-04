@@ -292,7 +292,19 @@ naming the reset `kwriteconfig6 --file kdeglobals --group Icons --key Theme
 its absence (likewise never-test-asserted prose ground: KDE and Qt
 applications cannot load the removed icon theme and keep the default
 icons; the reference screenshots show no uninstall warning to sample either
-of these warnings from); and if the pointer selection
+of these warnings from); and if the global theme the look-and-feel
+apply step selected (`[kdeglobals][KDE]
+LookAndFeelPackage=org.macos8.desktop`, the published selection of the
+apply's `lookandfeeltool -a` step) still names the removed global theme
+after the uninstall, it prints a warning naming the reset
+`kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage
+--delete`, which deletes exactly the key the apply wrote and reverts it
+to its absence (as prose grounded against the upstream `lookandfeeltool`
+sources the project reads for its apply adaptations, never
+test-asserted: a Plasma shell start whose global-theme id no longer
+resolves keeps the stock look-and-feel on the next start; the reference
+screenshots show no uninstall warning to sample it from); and if the
+pointer selection
 `plasma-apply-cursortheme` wrote
 (`[Mouse] cursorTheme=` in `kcminputrc`) still names `org.macos8.desktop`, it
 prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset

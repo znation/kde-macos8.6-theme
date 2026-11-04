@@ -1046,6 +1046,33 @@ _uninstall:
 # `theme/fonts/$(FONT_ID)/PROVENANCE.md` ("The internal font family name
 # is `Lato`.") and `tests/test_fonts.py`. As before, this is a diagnostic
 # only -- it must not edit the file.
+#
+# The apply's first required step, `lookandfeeltool -a $(LNF_ID)`, also
+# publishes the global theme itself as a kdeglobals key: a scratch-home
+# run of the tool on this host wrote `[kdeglobals][KDE]
+# LookAndFeelPackage=$(LNF_ID)` as the only kdeglobals key. After `make
+# uninstall` removes the installed look-and-feel package
+# (`$(LNF_INSTALL_DIR)/$(LNF_ID)`, the package the selection names), the
+# key remains and a Plasma shell start whose global theme id no longer
+# resolves keeps the stock look-and-feel (prose ground, never
+# test-asserted, with its recorded source in README.md). The reset deletes
+# exactly the key the look-and-feel apply wrote:
+# `kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage
+# --delete` reverts the key to its absence rather than editing any
+# foreign value, the same `--delete` ground the kwinrc diagnostics
+# record. The file is read the same way the widget-style/icon-theme
+# diagnostic reads `$XDG_CONFIG_HOME/kdeglobals` above: the first line's
+# UTF-8 BOM is stripped, each line is trimmed before parsing, a trimmed
+# `[`...`]` line switches the section (a header that never closes is
+# skipped without changing it), `#`/`;` lines are comments and never
+# keys, the key/value pair splits at the first `=` with both sides
+# trimmed, keys are case-sensitive, and a later duplicate's value wins.
+# One awk tracks the last `LookAndFeelPackage` value inside `[KDE]` and
+# prints at most one line, only when that last value trims to exactly
+# `$(LNF_ID)`. The `LookAndFeelPackage` literal is not a Make variable
+# but the kdeglobals key name `lookandfeeltool` writes -- keep it in step
+# with the scratch-apply observation recorded above. As before, this is a
+# diagnostic only -- it must not edit the file.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -1086,6 +1113,10 @@ fi; \
 if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
   font_selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (section == "General" && key == "font") font=value; if (section == "General" && key == "menuFont") menu=value; if (section == "General" && key == "toolBarFont") toolbar=value; if (section == "General" && key == "smallestReadableFont") smallest=value; if (section == "WM" && key == "activeFont") active=value } } END { if (font == "Lato,10") print "uninstall: the font selection [General] font=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key font --delete"; if (menu == "Lato,10") print "uninstall: the font selection [General] menuFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key menuFont --delete"; if (toolbar == "Lato,10") print "uninstall: the font selection [General] toolBarFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key toolBarFont --delete"; if (smallest == "Lato,8") print "uninstall: the font selection [General] smallestReadableFont=Lato,8 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group General --key smallestReadableFont --delete"; if (active == "Lato,10") print "uninstall: the font selection [WM] activeFont=Lato,10 the look-and-feel apply wrote is still in " FILENAME " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall back to a default where no other copy of the family remains installed. Reset it with: kwriteconfig6 --file kdeglobals --group WM --key activeFont --delete" }' "$$kdeglobals" 2>/dev/null); \
   if [ -n "$$font_selected" ]; then printf '%s\n' "$$font_selected" >&2; fi; \
+fi; \
+if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
+  lnf_selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (section == "KDE" && key == "LookAndFeelPackage") lnf=value } } END { if (lnf == "$(LNF_ID)") print "uninstall: the global theme the look-and-feel apply step selected ([KDE] LookAndFeelPackage=$(LNF_ID)) is still in " FILENAME " after removal; Plasma keeps naming the removed global theme and draws the stock look-and-feel on the next start. Reset it with: kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage --delete" }' "$$kdeglobals" 2>/dev/null); \
+  if [ -n "$$lnf_selected" ]; then printf '%s\n' "$$lnf_selected" >&2; fi; \
 fi; \
 kwinrc="$$config_home/kwinrc"; \
 if [ -n "$$config_home" ] && [ -f "$$kwinrc" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "org.kde.kdecoration2" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (key == "ButtonsOnLeft") left=value; if (key == "ButtonsOnRight") right=value } } END { exit left == "X" && right == "AL" ? 0 : 1 }' "$$kwinrc" 2>/dev/null; then \
