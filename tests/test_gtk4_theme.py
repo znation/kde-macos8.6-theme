@@ -2442,6 +2442,38 @@ for radio in (False, True):
             self.selectors.index("shortcut:focus:focus-visible"),
         )
 
+    def test_cursor_handle_corners(self):
+        """Pin the cursor-handle contents arm to the square-corner policy."""
+        selector = "cursor-handle > contents"
+        self.assert_rule(selector, {"border-radius": "0"})
+        # The exact whole-rule dictionary catches stray restated geometry,
+        # for example a mis-sized replay carrying stock's padding or
+        # min-width/min-height into the user group.
+        self.assertEqual(self.rules[selector], {"border-radius": "0"})
+        self.assert_matches_frame(selector, "border-radius")
+        self.assertEqual(self.selectors.count(selector), 1)
+        # Stock's base arm and its three orientation twins stay
+        # un-replayed: the squared whole-radius declaration makes their
+        # per-corner radius cuts no-ops and later user-sheet source order
+        # wins the equal-specificity tie, so exactly one cursor-handle
+        # group exists and a renamed or orientated replay fails the scan.
+        self.assertEqual(
+            {s for s in self.rules if "cursor-handle" in s},
+            {selector},
+        )
+        # The group closes the sheet after the residual focus group and the
+        # landed card focus colour group, so the later source order wins
+        # the equal-specificity cascade tie.
+        self.assertGreater(
+            self.selectors.index("cursor-handle > contents"),
+            self.selectors.index("label:focus:focus-visible"),
+        )
+        self.assertGreater(
+            self.selectors.index("cursor-handle > contents"),
+            self.selectors.index(".card:focus:focus-visible"),
+        )
+        self.assertEqual(self.selectors[-1], selector)
+
     def test_generic_view_selected_arms(self):
         """Pin the generic view class fallback selection declarations."""
         for selector in (".view:selected", ".view:selected:focus"):

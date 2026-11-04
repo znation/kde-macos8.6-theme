@@ -3745,3 +3745,42 @@ button.card:focus:focus-visible,
 .card:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* GTK text-selection and insertion cursor handles have no collected
+   reference surface: no screenshot in macos8.6-screenshots/ shows a GTK
+   touch text cursor handle, so the corner follows this theme's landed
+   square-corner policy (the frame border, frame class and card
+   restatements all declare border-radius: 0). The platform style
+   library's base.css resource inside the integration library declares
+   the radius-bearing groups, quoted verbatim:
+   cursor-handle { all: unset; padding: 24px 20px; },
+   cursor-handle > contents { min-width: 20px; min-height: 20px;
+   border-radius: 50%; background-color: var(--accent-bg-color); },
+   cursor-handle.top > contents { border-top-right-radius: 0; },
+   cursor-handle.bottom > contents { border-top-left-radius: 0;
+   transform: translateX(1px); } and
+   cursor-handle.insertion-cursor > contents { border-top-left-radius: 0;
+   transform: translateX(1px) translateY(4px) rotate(45deg); } — a
+   radius-bearing circle cut to a teardrop per orientation, with only the
+   > contents groups carrying radius. The plain toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no radius-bearing
+   cursor-handle arm — its cursor-handle groups carry bitmap
+   -gtk-icon-source drag art and no border-radius anywhere — and the
+   shipped GTK 3 theme resource inside
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 likewise paints cursor
+   handles with bitmap icon sources only (grep matched ten groups, none
+   radius-bearing), so no GTK 3 sheet change follows. This squared whole-radius
+   restatement makes the orientation arms' per-corner radius
+   cuts no-ops and leaves their transforms and stock's all: unset reset,
+   24px-by-20px hit-area padding and the base arm's min-width and
+   min-height governing size untouched per-property; the accent
+   background stays inherited per-property too — stock's :root maps
+   --accent-bg-color and the landed accent_bg_color redefinition in this
+   sheet's palette supplies the Platinum selection fill, so the squared
+   handle paints without any background restatement, like the landed
+   tab-indicator accent restatements that resolve through the same
+   redefinition. (2026-11-04) */
+cursor-handle > contents {
+  border-radius: 0;
+}
