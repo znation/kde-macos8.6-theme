@@ -267,6 +267,16 @@ one class body.**
 
 **Acceptance criteria.** Grepping `tests/test_render_surface.py` for "headerbar" shows no hit in the shell-edge constant's comment, the shell-edge test's comment or the class docstring, while the crops and expected maps of all four landed pins and every executable line are unchanged; reading `docs/invariants.md` shows the `--gtk-dialog` tooling row attributing the face rows to the `window, .background` surface rule and both amended rows carrying the dated 2026-11-03 no-headerbar finding, and `tests/test_invariants.py` accepts both amended rows; `make check` is green after the final edit, with the shell-edge pin still byte-comparing row 0 as `BLACK` and rows 1..11 as `FACE`.
 
+### Fidelity comparison metrics: separate crop geometry from comparison state (planned 2026-11-04 by the organize role)
+
+**Goal.** `tools/fidelity_metrics.py` is the largest production Python module (265 lines). Its `compare()` function is a single large pipeline that validates images, builds channel deltas, accumulates metrics, locates the maximum, counts threshold mismatches and derives their bounds. Keeping this pipeline together with the independently reusable crop geometry makes the module harder to navigate and couples crop-only callers to comparison implementation.
+
+**Target structure.** Move `FidelityError`, `crop_rect_problem` and `crop` into `tools/fidelity_geometry.py`, which owns crop validation and slicing. Keep `Metrics` and `compare()` in `tools/fidelity_metrics.py`, which owns comparison results and calculations; import and re-export the geometry names there to preserve existing imports such as `tools.fidelity_metrics.crop`. Keep the comparison state local to `compare()`; do not introduce a second abstraction for its intermediate channel data.
+
+**Files.** `tools/fidelity_metrics.py`, new `tools/fidelity_geometry.py`, `tools/fidelity.py`, `tests/test_fidelity_metrics.py`, and `docs/invariants.md` if the existing fidelity tooling invariant needs its module ownership updated. Update README or other markdown references only where they describe the moved ownership.
+
+**Acceptance criteria.** The two production modules have the stated responsibilities; existing imports continue to resolve; grep across source, tests and markdown finds no stale ownership or moved-name references; `make check` passes. The refactor changes module boundaries only and preserves comparison results, crop validation wording and crop pixels.
+
 ## Done
 
 ### Platinum GTK 4 dialog render surface: pin the rendered Cancel push button 1:1 (planned 2026-11-03 by the plan role; independent of the waiting OSD-prose entry above — this entry touches only `tests/test_render_surface.py` and the `## tooling` row of `docs/invariants.md` that already names the OK pin, while that entry rewrites `## gtk` provenance cells and three GTK 3 sheet comment blocks, so either merge order leaves both registers right; it is a pin of the landed capture, not a CSS restatement — the refused CSD-shell and window-shell entries refuse *restates* that would undo the landed Aurorae outline, and no `## Planned` entry, PLANS-DONE.md record or `docs/invariants.md` row claims the GTK capture's Cancel cell — the kdialog gates' Cancel-button cell is a different client, engine and crop)
