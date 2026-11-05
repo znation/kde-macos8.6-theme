@@ -92,6 +92,25 @@ def installed_aurorae_theme(destdir, theme_id):
     return os.path.join(installed_aurorae_dir(destdir), theme_id)
 
 
+def installed_kwin_decoration_dir(destdir):
+    """Directory `make install` writes the KWin decoration package into.
+
+    The Makefile installs the package under
+    `$(DESTDIR)$(XDG_DATA_HOME)/kwin/decorations`, the data-home directory
+    KWin's `Helper::loadComponent()` reads `KWin/Decoration` KPackages from;
+    `installed_kwin_decoration` joins a package's own directory onto the
+    result.
+    """
+    return os.path.join(
+        destdir, XDG_DATA_HOME.lstrip("/"), "kwin", "decorations"
+    )
+
+
+def installed_kwin_decoration(destdir, package_id):
+    """Directory `make install` writes one kwin decoration package into."""
+    return os.path.join(installed_kwin_decoration_dir(destdir), package_id)
+
+
 def installed_wallpaper_dir(destdir):
     """Directory `make install` writes the wallpaper package into.
 

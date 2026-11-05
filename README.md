@@ -71,7 +71,8 @@ shell-syntax diagnostic can echo it): the
 color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
-`plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, the
+`plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, the `org.macos8.desktop`
+window decoration's QML package into `kwin/decorations/` (installed but not selected by any defaults; the `theme=` key keeps the `__aurorae__svg__` value), the
 `org.macos8.desktop` wallpaper into `wallpapers/`, the `org.macos8.desktop` icon theme into
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
@@ -258,7 +259,7 @@ Decorations. An unfocused window wears the flat grey inactive frame around
 a buttonless bar: no close, zoom or collapse boxes draw on it, and the grey
 title text is the reference's centred `#777777`. `make uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
-`aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
+`aurorae/themes/`, `kwin/decorations/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their
 hidden `.staging`/`.old` leftovers and the emptied GTK directories; it refuses to run if a fixed
 install destination parent is a symlink. It never edits the user's configuration: if the removed

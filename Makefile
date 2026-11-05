@@ -242,6 +242,15 @@ AURORAE_ID := org.macos8.desktop
 AURORAE_PACKAGE := theme/aurorae/themes/$(AURORAE_ID)
 AURORAE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/aurorae/themes
 
+# The KWin decoration QML package is the same window decoration selected
+# through a KPackage under `kwin/decorations/` instead of the SVG-Aurorae
+# `__aurorae__svg__` route; it installs beside the aurorae family in the
+# same data home so the package's own QML can walk to the aurorae art.
+# Family `kwin-decoration`.
+KWINDEC_ID := org.macos8.desktop
+KWINDEC_PACKAGE := theme/kwin-decoration/$(KWINDEC_ID)
+KWINDEC_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/kwin/decorations
+
 WALLPAPER_ID := org.macos8.desktop
 WALLPAPER_PACKAGE := theme/wallpapers/$(WALLPAPER_ID)
 WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers
@@ -301,8 +310,8 @@ GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
 # though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the default
 # below must name the same families, and the guard rejects a default that names
 # one it does not know.
-INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk
-INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
@@ -515,7 +524,7 @@ help:
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
-	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk)"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 	@echo ""
 	@echo "Reference tools (run from the repository root):"
@@ -763,6 +772,7 @@ _install:
 	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),$(call install_package,$(LNF_ID),$(LNF_PACKAGE),$(LNF_INSTALL_DIR)))
 	$(if $(filter desktop-theme,$(INSTALL_PACKAGES)),$(call install_package,$(DTHEME_ID),$(DTHEME_PACKAGE),$(DTHEME_INSTALL_DIR)))
 	$(if $(filter aurorae,$(INSTALL_PACKAGES)),$(call install_package,$(AURORAE_ID),$(AURORAE_PACKAGE),$(AURORAE_INSTALL_DIR)))
+	$(if $(filter kwin-decoration,$(INSTALL_PACKAGES)),$(call install_package,$(KWINDEC_ID),$(KWINDEC_PACKAGE),$(KWINDEC_INSTALL_DIR)))
 	$(if $(filter wallpaper,$(INSTALL_PACKAGES)),$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR)))
 	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR)))
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
@@ -788,7 +798,7 @@ uninstall:
 # the fixed destination parents before the removal recipe can reach outside
 # DATA_HOME; links at the final package directory are removed as links by
 # rm -rf and do not redirect traversal.
-require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
+require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
 
 # The removals share one shell (and one `set -e`) so a run spawns one child
 # process instead of ten; each command keeps its own quoting and a failure
@@ -799,6 +809,7 @@ _uninstall:
 	rm -rf "$(LNF_INSTALL_DIR)/$(LNF_ID)" "$(LNF_INSTALL_DIR)/.$(LNF_ID).staging" "$(LNF_INSTALL_DIR)/.$(LNF_ID).old"; \
 	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"; \
 	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"; \
+	rm -rf "$(KWINDEC_INSTALL_DIR)/$(KWINDEC_ID)" "$(KWINDEC_INSTALL_DIR)/.$(KWINDEC_ID).staging" "$(KWINDEC_INSTALL_DIR)/.$(KWINDEC_ID).old"; \
 	rm -rf "$(WALLPAPER_INSTALL_DIR)/$(WALLPAPER_ID)" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).staging" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).old"; \
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"; \
 	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"; \
