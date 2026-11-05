@@ -16,6 +16,37 @@ from support.tmp_dir import make_tmp_dir
 from tools import theme_config_writer, theme_defaults  # noqa: E402
 
 
+def _recording_writer(recorded):
+    """Return a ``write_atomically`` stand-in recording ``(config name, bytes)``.
+
+    :func:`theme_config_writer.write_configs` takes the writer as an argument,
+    so a recording stand-in pins which names the per-name loop writes and in
+    which call order, without touching a real file.
+    """
+
+    def write(path, content):
+        recorded.append((path.name, content))
+
+    return write
+
+
+def _failing_writer(failures):
+    """Return a ``write_atomically`` stand-in raising before its failing writes.
+
+    A name in *failures* raises instead of writing anything; every other
+    write goes through the real
+    :func:`theme_config_writer.write_config_atomically`, so the promoted
+    file is a genuine temp-sibling-and-rename write.
+    """
+
+    def write(path, content):
+        if path.name in failures:
+            raise OSError(f"simulated failure writing {path.name}")
+        theme_config_writer.write_config_atomically(path, content)
+
+    return write
+
+
 def _run_defaults_groups_in_child(path):
     """Run ``defaults_groups`` on *path* in a child; return its result.
 
@@ -454,6 +485,165 @@ class TestWriteConfigs(unittest.TestCase):
         finally:
             os.umask(old)
         self.assertEqual(0o644, target.stat().st_mode & 0o777)
+
+    # The writer's parameterization is only direct-call code: in the tree it
+    # runs exclusively through theme_defaults.write_configs, whose tests alone
+    # can only pin the DEFAULTS-pinned success shape and wrapper-level
+    # rejection shapes. The tests below pin the injected-write shapes against
+    # the module's own doc comments: the writer receives one call per wanted
+    # name, each carrying \n-joined [group]/key=value/trailing-blank lines;
+    # every name and the config home are validated before the first write
+    # fires; a mid-loop failure leaves the earlier configs written and no
+    # temp, staging or backup sibling behind for any name.
+
+    def test_rejects_a_non_pathlib_config_home_through_the_injected_writer(self):
+        # The direct entry's config-home guard must refuse a plain string
+        # name before any write, not after the loop has started with a
+        # config home whose write only a MagicMock standing in for the
+        # config home (where a mkdir call would be a no-op and the paths
+        # would be recorded on a fake object) observes.
+        recorded = []
+        with self.assertRaises(ValueError) as caught:
+            theme_config_writer.write_configs(
+                "somewhere/config",
+                ("kwinrc",),
+                defaults_path=make_tmp_dir(self) / "defaults",
+                read_groups=lambda _path: {},
+                write_atomically=_recording_writer(recorded),
+            )
+        self.assertIn("config_home must be a pathlib.Path", str(caught.exception))
+        self.assertEqual([], recorded)
+
+    def test_rejects_a_single_string_as_names_through_the_injected_writer(self):
+        # A string as *names* iterates its characters; without this guard the
+        # loop would write one config per letter, and with a recording writer
+        # the surprise letters would survive only inside the records.
+        recorded = []
+        for names in ("kwinrc", b"kwinrc"):
+            with self.subTest(names=names):
+                with self.assertRaises(ValueError) as caught:
+                    theme_config_writer.write_configs(
+                        make_tmp_dir(self),
+                        names,
+                        defaults_path=make_tmp_dir(self) / "defaults",
+                        read_groups=lambda _path: {},
+                        write_atomically=_recording_writer(recorded),
+                    )
+                self.assertIn("not a single", str(caught.exception))
+                self.assertEqual([], recorded)
+
+    def test_rejects_names_that_are_not_iterable_through_the_injected_writer(self):
+        # A non-iterable names value must surface as the iterable-expected
+        # ValueError, naming its type, before the writer fires.
+        recorded = []
+        with self.assertRaises(ValueError) as caught:
+            theme_config_writer.write_configs(
+                make_tmp_dir(self),
+                37,
+                defaults_path=make_tmp_dir(self) / "defaults",
+                read_groups=lambda _path: {},
+                write_atomically=_recording_writer(recorded),
+            )
+        self.assertIn("must be an iterable", str(caught.exception))
+        self.assertIn("int", str(caught.exception))
+        self.assertEqual([], recorded)
+
+    def test_rejects_a_name_that_is_not_a_plain_config_filename(self):
+        # config_home / name must stay a join onto the config home, so the
+        # guard must refuse a name that is empty, one of the reserved dot
+        # names, or carries a directory part; and a NUL byte must be refused
+        # by name outright rather than failing midway through a write.
+        recorded = []
+        for name in (".", "..", "sub/kwinrc", "kwinrc\0", ""):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError) as caught:
+                    theme_config_writer.write_configs(
+                        make_tmp_dir(self),
+                        (name,),
+                        defaults_path=make_tmp_dir(self) / "defaults",
+                        read_groups=lambda _path: {},
+                        write_atomically=_recording_writer(recorded),
+                    )
+                self.assertIn("plain config filenames", str(caught.exception))
+                self.assertEqual([], recorded)
+
+    def test_refuses_a_name_the_defaults_do_not_define_before_the_first_write(self):
+        # The module's contract: every name is checked against the defaults
+        # sections before the first file is written, so a defaults file
+        # truncated mid-run cannot leave a config partially published —
+        # visible here as a zero-element record even though the first name
+        # is fully defined.
+        recorded = []
+        defaults = make_tmp_dir(self) / "defaults"
+        with self.assertRaises(ValueError) as caught:
+            theme_config_writer.write_configs(
+                make_tmp_dir(self),
+                ("kwinrc", "plasmarc"),
+                defaults_path=defaults,
+                read_groups=lambda _path: {
+                    ("kwinrc", "Theme"): {"name": "demo"},
+                },
+                write_atomically=_recording_writer(recorded),
+            )
+        self.assertIn("plasmarc", str(caught.exception))
+        self.assertIn(str(defaults), str(caught.exception))
+        self.assertEqual([], recorded)
+
+    def test_writes_one_recorded_config_per_wanted_name(self):
+        # The writer parameterization the wrapper hides: with the write stub
+        # installed, exactly one call fires per wanted name, in wanted order,
+        # each carrying its groups' whole joined content — the same
+        # [group]/key=value/trailing-blank byte shape the wrapper's own
+        # written-config pin asserts, under an injected read_groups that
+        # names no shipped defaults file.
+        recorded = []
+        theme_config_writer.write_configs(
+            make_tmp_dir(self),
+            ("kwinrc", "plasmarc"),
+            defaults_path=make_tmp_dir(self) / "defaults",
+            read_groups=lambda _path: {
+                ("plasmarc", "Theme"): {"name": "example"},
+                ("kwinrc", "General"): {"key": "value"},
+            },
+            write_atomically=_recording_writer(recorded),
+        )
+        self.assertEqual(
+            [
+                ("kwinrc", "[General]\nkey=value\n"),
+                ("plasmarc", "[Theme]\nname=example\n"),
+            ],
+            recorded,
+        )
+
+    def test_a_failing_second_write_keeps_the_first_config_and_leaves_no_scratch(self):
+        # Only the failing write is prevented: the first config was already
+        # written through the real temp-sibling-and-rename path, and the
+        # config home holds both names and nothing else — no .tmp temp
+        # sibling, no staging or backup copy for either name. The wrapper's
+        # own tests cannot reach this: their failure hooks are
+        # write_config_atomically-level (patched os.replace/os.fchmod), so no
+        # test fires a failure between the loop's first and second write.
+        directory = make_tmp_dir(self)
+        plasmarc = directory / "plasmarc"
+        plasmarc.write_text("ORIGINAL\n", encoding="utf-8")
+        with self.assertRaises(OSError) as caught:
+            theme_config_writer.write_configs(
+                directory,
+                ("kwinrc", "plasmarc"),
+                defaults_path=directory / "defaults",
+                read_groups=lambda _path: {
+                    ("kwinrc", "Theme"): {"name": "one"},
+                    ("plasmarc", "Theme"): {"name": "two"},
+                },
+                write_atomically=_failing_writer(("plasmarc",)),
+            )
+        self.assertIn("plasmarc", str(caught.exception))
+        self.assertEqual(
+            "[Theme]\nname=one\n",
+            (directory / "kwinrc").read_text(encoding="utf-8"),
+        )
+        self.assertEqual("ORIGINAL\n", plasmarc.read_text(encoding="utf-8"))
+        self.assertEqual({"kwinrc", "plasmarc"}, set(os.listdir(directory)))
 
 if __name__ == "__main__":
     unittest.main()
