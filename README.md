@@ -257,7 +257,10 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame around
 a buttonless bar: no close, zoom or collapse boxes draw on it, and the grey
-title text is the reference's centred `#777777`. `make uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
+title text is the reference's centred `#777777`, and clicking where one of those boxes would sit
+presses nothing: the installed `kwin/decorations/` package copies — the selection the look-and-feel
+defaults make — gate their title-bar buttons' hit areas on window activity, so the click meant to
+refocus the window cannot act a close, zoom or collapse box. `make uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `kwin/decorations/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their
