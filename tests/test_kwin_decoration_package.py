@@ -43,16 +43,14 @@ RC_PATH = f"{AURORAE_DIR}/org.macos8.desktoprc"
 
 # The engine files the package copies byte-equal (no `auroraeTheme` source
 # token), and the rename each engine file needs. `aurorae.qml` ships as
-# `main.qml`, the component Helper::loadComponent() reads. Part 3/3 moved its
-# three gated copies out of these tuples into the expectations that follow:
-# equal-plus-gate, not plain equal.
+# `main.qml`, the component Helper::loadComponent() reads. Part 3/3 and the
+# 2026-11-05 shadow fix moved the gated copies out of these tuples into the
+# expectations that follow: equal-plus-gate, not plain equal.
 BYTE_EQUAL_COPIES = ("Decoration.qml",)
 RENAMED_COPIES = (
     ("aurorae.qml", "main.qml"),
-    ("AuroraeButton.qml", "AuroraeButton.qml"),
     ("AuroraeButtonGroup.qml", "AuroraeButtonGroup.qml"),
     ("AuroraeMaximizeButton.qml", "AuroraeMaximizeButton.qml"),
-    ("AppMenuButton.qml", "AppMenuButton.qml"),
 )
 
 INSTALLED_FILES = (
@@ -118,6 +116,69 @@ INACTIVE_GUARD = """\
 """
 INACTIVE_MOUSEAREA_GATE = "        enabled: decoration.client.active\n"
 
+# The 2026-11-05 shadowing fix: the imported module's DecorationButton wins
+# over the package's same-named base file, so the effective gate moved onto
+# the AuroraeButton subclass item and the AppMenuButton fallback.
+AURORAE_BUTTON_GATE = """\
+    // 2026-11-05: the imported `org.kde.kwin.decoration` module also provides
+    // a `DecorationButton`, and the explicit import wins over this package's
+    // same-named local file -- so the base copy's `enabled` gate never ran and
+    // an unfocused window's close, maximize and shade cells stayed live.
+    // Gate this subclass item itself, reproducing the base's capability
+    // switch; a disabled item drops its inherited MouseArea, so the click
+    // falls through to the title bar's activation.
+    enabled: {
+        if (!decoration.client.active) {
+            return false;
+        }
+        switch (buttonType) {
+        case DecorationOptions.DecorationButtonClose:
+            return decoration.client.closeable;
+        case DecorationOptions.DecorationButtonMaximizeRestore:
+            return decoration.client.maximizeable;
+        case DecorationOptions.DecorationButtonMinimize:
+            return decoration.client.minimizeable;
+        case DecorationOptions.DecorationButtonExplicitSpacer:
+            return false;
+        default:
+            return true;
+        }
+    }
+"""
+APP_MENU_VISIBLE_HEAD = "        visible: !AuroraeTheme.appMenuButtonPath\n"
+APP_MENU_FALLBACK_GATE = """\
+        // 2026-11-05: the imported module's DecorationButton shadows the
+        // package copy, so gate the fallback's hit area here too.
+        enabled: decoration.client.active
+"""
+
+
+def expected_gated_aurorae_button(engine):
+    """The package AuroraeButton.qml copy: rename, then the subclass gate.
+
+    2026-11-05: the imported org.kde.kwin.decoration module exports its own
+    DecorationButton, so the package base copy is shadowed and the effective
+    hit-area gate lives on this subclass item.
+    """
+    renamed = engine.replace("auroraeTheme.", "AuroraeTheme.")
+    assert renamed.count("DecorationButton {\n") == 1, ENGINE_DIR
+    return renamed.replace(
+        "DecorationButton {\n",
+        "DecorationButton {\n" + AURORAE_BUTTON_GATE,
+        1,
+    )
+
+
+def expected_gated_app_menu_button(engine):
+    """The package AppMenuButton.qml copy: rename and the fallback gate."""
+    renamed = engine.replace("auroraeTheme.", "AuroraeTheme.")
+    assert renamed.count(APP_MENU_VISIBLE_HEAD) == 1, ENGINE_DIR
+    return renamed.replace(
+        APP_MENU_VISIBLE_HEAD,
+        APP_MENU_VISIBLE_HEAD + APP_MENU_FALLBACK_GATE,
+        1,
+    )
+
 
 def expected_gated_decoration_button(engine):
     """The package DecorationButton.qml copy: comment, then the guarded switch."""
@@ -153,6 +214,8 @@ GATED_COPIES = (
     ("DecorationButton.qml", expected_gated_decoration_button),
     ("MenuButton.qml", expected_gated_menu_button),
     ("AuroraeMaximizeButton.qml", expected_gated_aurorae_maximize_button),
+    ("AuroraeButton.qml", expected_gated_aurorae_button),
+    ("AppMenuButton.qml", expected_gated_app_menu_button),
 )
 
 
@@ -259,7 +322,10 @@ class TestSingleton(unittest.TestCase):
 
     def test_property_set_equals_the_references_the_copies_spell(self):
         referenced = set()
-        for _, copy_name in RENAMED_COPIES:
+        copy_names = [copy for _, copy in RENAMED_COPIES] + [
+            name for name, _ in GATED_COPIES
+        ]
+        for copy_name in copy_names:
             copy_text = read_text(f"{PACKAGE_DIR}/contents/ui/{copy_name}")
             for match in re.finditer(r"\bAuroraeTheme\.(\w+)", copy_text):
                 referenced.add(match.group(1))

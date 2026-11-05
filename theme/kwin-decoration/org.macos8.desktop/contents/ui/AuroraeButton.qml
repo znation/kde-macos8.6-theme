@@ -8,6 +8,30 @@ import org.kde.ksvg 1.0 as KSvg
 import org.kde.kwin.decoration
 
 DecorationButton {
+    // 2026-11-05: the imported `org.kde.kwin.decoration` module also provides
+    // a `DecorationButton`, and the explicit import wins over this package's
+    // same-named local file -- so the base copy's `enabled` gate never ran and
+    // an unfocused window's close, maximize and shade cells stayed live.
+    // Gate this subclass item itself, reproducing the base's capability
+    // switch; a disabled item drops its inherited MouseArea, so the click
+    // falls through to the title bar's activation.
+    enabled: {
+        if (!decoration.client.active) {
+            return false;
+        }
+        switch (buttonType) {
+        case DecorationOptions.DecorationButtonClose:
+            return decoration.client.closeable;
+        case DecorationOptions.DecorationButtonMaximizeRestore:
+            return decoration.client.maximizeable;
+        case DecorationOptions.DecorationButtonMinimize:
+            return decoration.client.minimizeable;
+        case DecorationOptions.DecorationButtonExplicitSpacer:
+            return false;
+        default:
+            return true;
+        }
+    }
     function widthForButton() {
         switch (buttonType) {
         case DecorationOptions.DecorationButtonMenu:

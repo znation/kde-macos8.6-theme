@@ -97,8 +97,8 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "aurorae-inactive-button-art-bounds",
         ("Clicking where an unfocused window",),
-        "tests/test_aurorae_buttons.py::TestButtons"
-        "::test_inactive_center_keeps_paintless_geometry",
+        "tests/test_aurorae_ui_qml.py::TestHitSurfaces"
+        "::test_aurorae_button_gates_the_subclass_item",
     ),
 )
 

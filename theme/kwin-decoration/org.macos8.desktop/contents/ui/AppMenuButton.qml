@@ -21,6 +21,9 @@ Item {
         anchors.fill: parent
         buttonType: DecorationOptions.DecorationButtonApplicationMenu
         visible: !AuroraeTheme.appMenuButtonPath
+        // 2026-11-05: the imported module's DecorationButton shadows the
+        // package copy, so gate the fallback's hit area here too.
+        enabled: decoration.client.active
         Kirigami.Icon {
             anchors.fill: parent
             source: decoration.client.icon
