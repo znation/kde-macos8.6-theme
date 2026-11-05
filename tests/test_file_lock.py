@@ -27,7 +27,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from tools.file_lock import POLL_SECONDS, exclusive_flock
+from tools.file_lock import (
+    POLL_SECONDS,
+    exclusive_flock,
+    parent_dir_lock,
+)
 
 
 class LockRefused(Exception):
@@ -147,6 +151,72 @@ class TestExclusiveFlock(unittest.TestCase):
                 raise RuntimeError("the body failed")
 
         self.assertTrue(self.acquire(), "the lock was not released after the raise")
+
+
+class TestParentDirLock(unittest.TestCase):
+    def setUp(self):
+        self.child = tmp_dir.make_tmp_dir(self) / "missing" / "cfg-home"
+
+    def acquire(self) -> bool:
+        """Purchase and release the parent lock; return whether the body ran."""
+        with exclusive_flock(
+            self.child.parent,
+            "for the test selection",
+            "another test run",
+            10.0,
+            error=LockRefused,
+        ):
+            return True
+
+    def test_the_parent_is_created_locked_and_left_for_the_child(self):
+        """The parent is created and held while the child stays untouched."""
+        with parent_dir_lock(
+            self.child,
+            "for the test selection",
+            "another test run",
+            10.0,
+            error=LockRefused,
+        ):
+            lock_dir = self.child.parent
+            self.assertTrue(lock_dir.is_dir())
+            # The helper already holds the parent: opening is not exclusive,
+            # so contention is the observable difference.
+            holder = open_directory(lock_dir)
+            try:
+                with self.assertRaises(LockRefused):
+                    with exclusive_flock(
+                        lock_dir,
+                        "for the second selection",
+                        "the body above",
+                        0.0,
+                        error=LockRefused,
+                    ):
+                        pass
+            finally:
+                os.close(holder)
+            self.assertFalse(
+                self.child.exists(), "the helper created the child itself"
+            )
+
+        self.assertTrue(self.acquire(), "the lock was not released after the body")
+
+    def test_an_uncreatable_parent_is_refused_with_the_helper_error(self):
+        """A parent that cannot be created raises *error* naming the directory."""
+        blocked = self.child.parent  # an absent-but-named lock directory
+        blocked.write_text(
+            "refuse\n"
+        )  # a file, so a directory cannot be created in its place
+        self.addCleanup(blocked.unlink)
+        with self.assertRaises(LockRefused) as caught:
+            with parent_dir_lock(
+                self.child,
+                "for the test selection",
+                "another test run",
+                10.0,
+                error=LockRefused,
+            ):
+                pass
+        self.assertIn(f"cannot create {blocked}", str(caught.exception))
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_note
-    from tools.file_lock import exclusive_flock, installed_data_lock
+    from tools.file_lock import installed_data_lock, parent_dir_lock
     from tools.gtk_settings import GTK_ID
     from tools.gtk_selection import (
         apply as _apply,
@@ -56,7 +56,7 @@ else:  # run directly: python3 tools/apply_gtk.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_note
-    from file_lock import exclusive_flock, installed_data_lock
+    from file_lock import installed_data_lock, parent_dir_lock
     from gtk_settings import GTK_ID
     from gtk_selection import (
         apply as _apply,
@@ -98,13 +98,8 @@ def _config_lock(config_home: Path) -> Iterator[None]:
     The containing directory is created if needed, so both runs have an inode
     to lock; the config home itself is left for an apply to create.
     """
-    lock_dir = config_home.parent
-    try:
-        lock_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
-    with exclusive_flock(
-        lock_dir,
+    with parent_dir_lock(
+        config_home,
         "for the GTK selection",
         f"another apply-gtk/remove-gtk to finish with {config_home}",
         timeout=LOCK_TIMEOUT,

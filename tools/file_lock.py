@@ -105,6 +105,36 @@ def exclusive_flock(
 
 
 @contextlib.contextmanager
+def parent_dir_lock(
+    child: Path,
+    artifact: str,
+    holder: str,
+    timeout: float,
+    *,
+    error: type[Exception],
+) -> Iterator[None]:
+    """Hold an exclusive lock on *child*'s parent directory.
+
+    Apply and removal runs over a config home that may not exist yet lock
+    this way: the containing directory is created if needed so both a run
+    about to create *child* and a run not creating it contend on one inode,
+    while *child* itself is left for its own run to create. Otherwise the
+    semantics, diagnostic wording and bounded wait are those of
+    :func:`exclusive_flock`. Exactly two call sites use this helper:
+    ``apply-gtk``'s and ``remove-kvantum``'s ``_config_lock`` wrappers.
+    """
+    lock_dir = child.parent
+    try:
+        lock_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise error(f"cannot create {lock_dir}: {exc}") from exc
+    with exclusive_flock(
+        lock_dir, artifact, holder, timeout=timeout, error=error
+    ):
+        yield
+
+
+@contextlib.contextmanager
 def installed_data_lock(
     data_home: Path,
     artifact: str,

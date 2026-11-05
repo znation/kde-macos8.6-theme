@@ -46,7 +46,7 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
     from tools.diagnostics import report_error, report_note
-    from tools.file_lock import exclusive_flock
+    from tools.file_lock import parent_dir_lock
     from tools.gtk_settings import (
         _ENDINGS,
         _join_lines,
@@ -63,7 +63,7 @@ else:  # run directly: python3 tools/kvantum_selection.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
     from diagnostics import report_error, report_note
-    from file_lock import exclusive_flock
+    from file_lock import parent_dir_lock
     from gtk_settings import (
         _ENDINGS,
         _join_lines,
@@ -142,13 +142,8 @@ def _config_lock(config_home: Path) -> Iterator[None]:
     configuration and is released by the kernel when the process dies,
     SIGKILL included.
     """
-    lock_dir = config_home.parent
-    try:
-        lock_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
-    with exclusive_flock(
-        lock_dir,
+    with parent_dir_lock(
+        config_home,
         "for the Kvantum selection",
         f"another remove-kvantum to finish with {config_home}",
         timeout=LOCK_TIMEOUT,
