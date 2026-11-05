@@ -20,6 +20,16 @@ user 2026-11-01; recorded by the director role.)
 
 ### Clicking where an unfocused window's title-bar buttons would be presses those invisible buttons (found by the director role 2026-11-04)
 
+**Refused 2026-11-04 by the bugfix role: the only reachable fixes are a parallel KWin/Decoration QML-package decoration — duplicating the whole built-in Aurorae engine's geometry in the theme because the loader never supplies `auroraeTheme` outside SVG themes — or shadowing KWin's own built-in `kwin/aurorae/aurorae.qml` from the data home, which hijacks the engine for every Aurorae SVG theme and races `kwin-data` updates; neither is a repair, so the fix direction is queued for the user in PLANS.md ("Platinum KWin 6.3.6 QML decoration package").**
+
+**Refusal evidence (verified 2026-11-04 by the bugfix role).** The entry's own fix direction told this role to verify the package-`main.qml` override before building on it, and it fails: a copy of the built-in component set (with each button item's `enabled` gated on `decoration.client.active`, matching art to hit area) was shipped at
+`theme/aurorae/themes/org.macos8.desktop/contents/ui/`, installed into a
+scratch data home, and rendered in a headless `kwin_wayland` session — the capture stayed byte-identical (sha256
+`7ec2ccb5f04cc27aef53cfbbad16a8231eb7b2b3625b1c99476642be6e6443ed`) whether `main.qml` was intact, whether every button was gated, or whether `main.qml` carried a deliberately invalid root type that must
+abort a QML file had the engine read it — so KWin 6.3.6 never loads an SVG theme package's `contents/ui/main.qml`. Upstream source read this run
+(kwin v6.3.6 `src/plugins/kdecorations/aurorae/src/aurorae.cpp`) confirms it, matching the installed plugin's strings:
+`Helper::component()` returns the fixed `svgComponent` — once built from the system file `kwin/aurorae/aurorae.qml` — for every `__aurorae__svg__` theme name, and only `Helper::loadComponent()` reads `<package>/contents/ui/main.qml`, exactly for `KWin/Decoration` QML packages under `kwin/decorations/`. A QML-package rewrite also gets only the `decoration` and `decorationSettings` context properties (`Decoration::init` sets `auroraeTheme` solely when the component is the SVG one), so it cannot re-derive Platinum's metrics without duplicating every `org.macos8.desktoprc` value in QML — a second engine whose every metric can silently drift from the rc, the SVGs and KWin's own engine at each update. The trade-off this refusal leaves: an unfocused window's title bar keeps live 13×13 px hit cells where its close box and its maximize/restore box would sit (the on-all-desktops cell is already inert — the theme ships no `alldesktops.svg`, and `AuroraeButton` only creates an interactive item when the SVG file exists; shade is not in the shipped button layout), so a click meant only to refocus can close the window; until the user funds an approach, these cells are the price of the reference-mandated buttonless inactive bar.
+
 **Symptom.** As designed since 2026-11-04, an unfocused window's title bar is a flat buttonless
 strip. But the button actions are still live there: clicking in the unfocused title bar at the
 spot where the close box would sit closes the window, and similar clicks trigger maximize/shade.
