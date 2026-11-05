@@ -15,7 +15,7 @@ from collections import namedtuple
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 35
+UNCLEAR_INVARIANT_BASELINE = 36
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -46,6 +46,13 @@ URL_CHECK_GUARANTEE = (
     "scheme, authority, path, query and fragment each hold to the RFC's "
     "grammar, including case-insensitive IPvFuture, no IPv6 zone "
     "identifier, and a valid userinfo, bracketed host and port."
+)
+
+GTK_SETTINGS_LATCH_GUARANTEE = (
+    "that hold latches on any `[Settings]` line, as the recipe's original "
+    "awk's never-unset `found=1` did: only a line in `[Settings]` marks the "
+    "file, and a later duplicate key naming a foreign theme or a later "
+    "section switch never unmarks an earlier one of ours"
 )
 
 CURSOR_HOTSPOT_GUARANTEE = (
@@ -375,5 +382,12 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "`@define-color` scanners too, so a comment marker, a brace or a "
         "colour definition inside one is text rather than a delimiter or a "
         "definition",
+    ),
+    UnclearInvariant(
+        "gtk-uninstall-settings-latch",
+        ("later duplicate `gtk-theme-name` key names a foreign theme",),
+        "tests/test_gtk_uninstall_diagnostic.py::TestGtkSettingsLatch"
+        "::test_latches_when_a_later_duplicate_names_a_foreign_theme",
+        GTK_SETTINGS_LATCH_GUARANTEE,
     ),
 )

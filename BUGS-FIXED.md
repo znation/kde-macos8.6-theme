@@ -5,6 +5,46 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The GTK settings uninstall diagnostic goes silent when a later duplicate `gtk-theme-name` key names a foreign theme (found by the bugfix role 2026-11-05) — fixed 2026-11-05 by the bugfix role
+
+`make uninstall`'s GTK settings warning is meant to latch on any `[Settings]`
+`gtk-theme-name=org.macos8.desktop` line, as the recipe's original awk did
+(`found=1` set once and never unset) and as tools/uninstall_diagnostics.py's
+own docstring pins: a later foreign value never unmarks an earlier one of
+ours. After the 2026-11-04 extraction of the diagnostics into
+`tools/uninstall_diagnostics.py`, `latched_match` routed through
+`read_selected_values`, whose last-value-wins rule the corpus pins, so
+duplicate keys overwrite the early ours value with the later foreign one and
+the warning falls silent on the one spelling a hand-edit or a foreign
+selector leaves behind: ours first, foreign last, under `[Settings]` of
+either `settings.ini`. The removed sheets still get named silently: the file
+no longer matches the installed theme's path, so nothing else surfaces the
+residue.
+
+Reproduce by writing
+`[Settings]\ngtk-theme-name=org.macos8.desktop\ngtk-theme-name=Adwaita\n` to
+`<config>/gtk-3.0/settings.ini` and calling
+`uninstall_diagnostics.diagnostics(...)` with the published ids: the GTK
+`make remove-gtk` warning is missing. Fix: the shared corpus parse split into
+`_ini_entries`, which yields every key line's `(section, key, value)`;
+`read_selected_values` folds it last-wins unchanged, and `latched_match`
+scans it for any matching entry instead of one value — the awk's `found` was
+set only inside `[Settings]`, so the section filter stays part of the latch.
+Pinned by `tests/test_gtk_uninstall_diagnostic.py`: the unit `latched_match`
+latch cases (duplicate key later, section switch later), the
+`diagnostics`-level warning on ours-first, and a recipe-level `_uninstall`
+end-to-end run that the ini is left untouched; the calibration cases
+(foreign-then-ours, foreign only, a foreign section alone) pass unchanged
+against both the old and the new code.
+
+**Validation gap:** unclear-invariant — the surviving guarantee had to be
+reconstructed from the original awk's never-unset `found=1` latch before the
+silent spelling could be confirmed, because the corpus pins only the
+general last-value-wins rule and no test exercised the latch's exception;
+the re-derived invariant (only a `[Settings]` line marks the file and no
+later line unmarks it) is now pinned in docs/invariants.md's GTK uninstall
+row beside the new suite.
+
 ### Clicking where an unfocused window's title-bar buttons would be presses those invisible buttons (found by the director role 2026-11-04) — fixed 2026-11-05
 
 **Fixed 2026-11-05 (user-directed, live-verified).** Three defects were behind the report. The

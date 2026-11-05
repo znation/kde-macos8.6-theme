@@ -35,6 +35,7 @@ a message here must not change without changing its test.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Iterator
 import os
 import sys
 
@@ -94,15 +95,13 @@ def read_text(path: str) -> str | None:
     return data.decode("utf-8", errors="surrogateescape")
 
 
-def read_selected_values(
-    text: str, wanted: dict[str, tuple[str, ...]]
-) -> dict[tuple[str, str], str]:
-    """Return the ``wanted`` sections' last ``(section, key)`` values.
+def _ini_entries(text: str) -> Iterator[tuple[str | None, str, str]]:
+    """Yield each key line's ``(section, key, value)`` after trimming.
 
-    *wanted* maps a section name to the keys to keep; a key outside its
-    section's tuple is dropped. See the module docstring for the parse rules.
+    One parse of the shared corpus rules (see the module docstring), so every
+    consumer filters the same key lines: a key line before any section yields
+    a ``None`` section the per-section consumers drop.
     """
-    values: dict[tuple[str, str], str] = {}
     section: str | None = None
     first = True
     for raw in text.split("\n"):
@@ -119,12 +118,22 @@ def read_selected_values(
         separator = line.find("=")
         if separator <= 0:
             continue
-        if section is None or section not in wanted:
-            continue
         key = line[:separator].rstrip(_WHITESPACE)
-        if key not in wanted[section]:
-            continue
-        values[(section, key)] = line[separator + 1 :].strip(_WHITESPACE)
+        yield (section, key, line[separator + 1 :].strip(_WHITESPACE))
+
+
+def read_selected_values(
+    text: str, wanted: dict[str, tuple[str, ...]]
+) -> dict[tuple[str, str], str]:
+    """Return the ``wanted`` sections' last ``(section, key)`` values.
+
+    *wanted* maps a section name to the keys to keep; a key outside its
+    section's tuple is dropped. See the module docstring for the parse rules.
+    """
+    values: dict[tuple[str, str], str] = {}
+    for section, key, value in _ini_entries(text):
+        if section in wanted and key in wanted[section]:
+            values[(section, key)] = value
     return values
 
 
@@ -133,11 +142,15 @@ def latched_match(text: str, section: str, key: str, expected: str) -> bool:
 
     The GTK settings diagnostic latched its match on each line: an early
     ``gtk-theme-name`` of ours marks the file even when a later line renames
-    the selection again.
+    the selection again -- only ``[section]`` lines set it, and a section
+    switch or a later duplicate never unmarks it. The last-wins lookup rule
+    the :func:`read_selected_values` diagnostics share does not hold here, so
+    this scans the shared parse for any matching entry instead of keeping one
+    value.
     """
-    return (
-        read_selected_values(text, {section: (key,)}).get((section, key))
-        == expected
+    return any(
+        entry_section == section and entry_key == key and value == expected
+        for entry_section, entry_key, value in _ini_entries(text)
     )
 
 
