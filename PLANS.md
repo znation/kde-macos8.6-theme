@@ -45,6 +45,29 @@ selectors and fail `test_splitbutton_band_corners`'s count-1 assertions.
 
 ### Platinum GTK 4 indicator-bin badges: square the indicator and mask circles stock's lone indicatorbin arm cuts to 100px (planned 2026-11-04 by the plan role; independent of every queued or landed sibling — the close-button entry waiting above also appends at the sheet tail after the landed `floating-sheet > sheet` group, but the two entries' selector sets and test sets are byte-disjoint: this entry adds two `indicatorbin` selectors and one new test beside `test_toggle_group_corners` while the close-button entry adds two `.close` selectors and one beside `test_infobar`, neither extends any landed assertion the other changes, and this entry's tail anchor is written as "after whatever the tail then ends with" so either merge order leaves both anchors intact; freshness greps this run found no planned or landed indicator-bin entry under either the queued or the archived headings, and the landed tab-family, toggle-group, window-controls, circular, pill and close-button records all name no `indicatorbin` selector)
 
+**Needs review 2026-11-04 by feature: duplicate — the exact work this entry
+promises is already landed and pinned.** The sheet
+`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` already carries, at the sheet
+tail after the landed close-button group, one dated (2026-11-04) comment
+quoting the stock two-selector arm verbatim (`indicatorbin > indicator,
+indicatorbin > mask { min-width: 6px; min-height: 6px; border-radius:
+100px; }`) and exactly one comma group of the two byte-equal stock
+spellings declaring only `border-radius: 0;` (sheet lines ~4133–4162, read
+this run). `tests/test_gtk4_theme.py::TestGtk4Theme::test_indicator_bin_corners`
+(line ~3861) already pins count-1 for both spellings, each rule dict equal
+to exactly `{"border-radius": "0"}`, the `indicatorbin` sweep set equal to
+the two spellings and the source-order placement after the landed
+`floating-sheet > sheet`. `docs/invariants.md`'s `## gtk` table already
+holds a dated row (line ~481) naming `test_indicator_bin_corners`, quoting
+the stock arm, recording both resource probes and the excluded per-property
+state, sizing, background and transform arms. The entry's premise greps
+missed the archived record: PLANS-DONE.md's `## Done` newest few lists
+"Platinum GTK 4 indicator-bin badges: square the badge dot and reveal mask
+stock cuts to a 100px circle … — done 2026-11-04 by the feature role",
+whose selector set, test name and tail anchor are this entry's own.
+Nothing to implement; re-landing would duplicate spellings and fail
+`test_indicator_bin_corners`'s count-1 and sweep assertions.
+
 **Refused 2026-11-04 by the plan role: stale twin of the landed 2026-11-04 indicator-bin record archived in PLANS-DONE.md — the shipped sheet already carries, at the tail after the landed close-button group, the byte-equal two-selector comma group `indicatorbin > indicator, indicatorbin > mask { border-radius: 0; }` with its dated comment (read this run), `tests/test_gtk4_theme.py::TestGtk4Theme::test_indicator_bin_corners` already pins both spellings with exact-rule, count-1, frame-match, sweep and source-order assertions, and `docs/invariants.md`'s `## gtk` table already holds the dated row naming that test — so re-executing would duplicate selectors a landed count-1 assertion fails.**
 
 **Goal and grounding.** Stock cuts the platform-style indicator bins — the page-indicator dots and the numbered badge pills the inline view switchers and tab buttons draw — into circles and pill caps through one arm. Today's `gresource extract /usr/lib/x86_64-linux-gnu/libadwaita-1.so.0 /org/gnome/Adwaita/styles/base.css` probe (verified on this host, 2622-line resource) declares exactly one radius-bearing `indicatorbin` arm: `indicatorbin > indicator, indicatorbin > mask { min-width: 6px; min-height: 6px; border-radius: 100px; }` (line 2568). Every other `indicatorbin` arm in the resource is radius-free — `tabbutton indicatorbin > indicator:dir(ltr)` and its rtl twin declare `transform` only (lines 424, 426), `inline-view-switcher > toggle-group.labels > toggle > widget > indicatorbin` arms declare padding and `transform` only (lines 2397–2401), and the `indicatorbin > indicator`, `indicatorbin > mask`, `indicatorbin.needs-attention > indicator`, `indicatorbin.badge > …` and `indicatorbin.badge.needs-attention > …` arms declare margin, padding, background and label colors only (lines 2570–2582) — so all of it stays inherited per-property. The shipped sheet answers none of it: greps found zero `indicatorbin` tokens in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, and the landed generic `button` radius restate names no `indicatorbin` node while the landed `stacksidebar` needs-attention record covers only the label/image radial-gradient families and the landed tab-family record squares `tabthumbnail .needs-attention > widget` and `tabbar tabbox > revealer > indicator`, neither of which carries an `indicatorbin` token. The plain toolkit resource `/org/gtk/libgtk/theme/Default/Default-light.css` inside `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, probed today, declares zero `indicatorbin` tokens, and GTK 3's `gtk-contained.css` inside `libgtk-3.so.0` likewise zero, so only the integration resource's twin needs a restatement. Zero radius follows the landed square-corner policy (`frame > border`, `.frame`, the landed `button`, `card`, `tab-family`, `toggle-group` and split-button restatements carry `border-radius: 0`), with the landed `radio { border-radius: 50% }` circle standing as the reference-grounded exception. The collected reference set shows the theme's own page-indicator dots as square-cornered geometric shapes (the landed needs-attention record's 2026-11-03 grounding treats badge geometry as a GTK-scope adaptation); no screenshot shows a GTK indicator bin, so this is a platform adaptation carried on that standing premise.
