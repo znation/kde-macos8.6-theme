@@ -134,7 +134,10 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
             alpha_checked = True
     # The compared alpha channel keeps its aggregate slot either way, so the
     # mean and RMSE still divide by four channels when alpha is compared.
-    channel_count = len(deltas) if alpha_checked else (4 if compare_alpha else 3)
+    if alpha_checked:
+        channel_count = len(deltas)
+    else:
+        channel_count = 4 if compare_alpha else 3
     totals = [sum(delta) for delta in deltas]
     total_abs_r, total_abs_g, total_abs_b = totals[:3]
     total_sq = sum(sum_squares(delta) for delta in deltas)
