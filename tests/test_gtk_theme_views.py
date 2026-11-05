@@ -78,6 +78,23 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 )
         # The family keeps the landed dotted focus outline as its only other
         # icon-view rule: a renamed restated arm leaves exactly its successor.
+        # The family keeps the landed dotted focus outline as its only other
+        # icon-view rule: a renamed restated arm leaves exactly its successor.
+        # 2026-11-04: the vertical-stepper and content-view-check corner
+        # record restates eight more iconview arms — the selection-check
+        # state faces `iconview.content-view.check…:not(list)` — all pinned
+        # with the other content-view check spellings by
+        # test_vertical_stepper_and_content_view_check_corners.
+        check_states = (
+            "",
+            ":hover",
+            ":active",
+            ":backdrop",
+            ":checked",
+            ":checked:hover",
+            ":checked:active",
+            ":backdrop:checked",
+        )
         self.assertEqual(
             {selector for selector in self.rules if "iconview" in selector},
             {
@@ -86,6 +103,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 "iconview.view:selected:focus",
                 "iconview.view:backdrop:selected",
                 "iconview.view:backdrop:selected:focus",
+                *(
+                    f"iconview.content-view.check{state}:not(list)"
+                    for state in check_states
+                ),
             },
         )
 
@@ -446,6 +467,82 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 self.assertGreater(
                     self.selectors.index(selector),
                     self.selectors.index("modelbutton.flat"),
+                )
+
+    def test_vertical_stepper_and_content_view_check_corners(self):
+        """Pin the vertical steppers and content-view check faces square.
+
+        The two appended stepper groups and the eight appended
+        content-view check state groups rest stock's vertical stepper
+        end halves and the eight selection-check state faces at zero;
+        nothing else in the sheet names any of the three tokens.
+        """
+        stepper_up = "spinbutton.vertical button.up"
+        stepper_down = "spinbutton.vertical button.down"
+        states = (
+            "",
+            ":hover",
+            ":active",
+            ":backdrop",
+            ":checked",
+            ":checked:hover",
+            ":checked:active",
+            ":backdrop:checked",
+        )
+        check_spellings = (
+            *[f".view.content-view.check{state}:not(list)" for state in states],
+            *[f"iconview.content-view.check{state}:not(list)" for state in states],
+            *[f".content-view:not(list) check{state}" for state in states],
+        )
+        spellings = (stepper_up, stepper_down) + check_spellings
+        self.assert_rule_group(
+            {selector: {"border-radius": "0"} for selector in spellings}
+        )
+        # The three tokens have no landed or unrelated neighbours: the
+        # landed `.content-view` rules name no check node or `:not(list)`
+        # guard and the landed `.osd spinbutton.vertical button:first-child`
+        # groups name the stacked OSD twins only, so the scan kills renamed
+        # variants, a folded or dropped `:not(list)` guard and stray
+        # neighbours. The class-armed members take the `content-view.check`
+        # token; the bare compound takes the `.content-view:not(list)`
+        # token, which no other rule carries.
+        view_and_iconview = {
+            s
+            for s in self.rules
+            if "content-view.check" in s
+        }
+        self.assertEqual(
+            view_and_iconview,
+            set(check_spellings[:16]),
+        )
+        bare_compound = {
+            s for s in self.rules if ".content-view:not(list)" in s
+        }
+        self.assertEqual(bare_compound, set(check_spellings[16:]))
+        self.assertEqual(view_and_iconview | bare_compound, set(check_spellings))
+        self.assertEqual(
+            {s for s in self.rules if "spinbutton.vertical button.up" in s},
+            {stepper_up},
+        )
+        self.assertEqual(
+            {s for s in self.rules if "spinbutton.vertical button.down" in s},
+            {stepper_down},
+        )
+        # Source order: every appended spelling sits after the landed bare
+        # `check` recipe and the landed `popover.emoji-picker .emoji
+        # :hover` tail group, so the byte-equal stock twins win the
+        # equal-specificity ties under the lower-sheet reading of how the
+        # toolkit resource competes.
+        for selector in spellings:
+            with self.subTest(selector=selector, after="check"):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("check"),
+                )
+            with self.subTest(selector=selector, after="emoji"):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("popover.emoji-picker .emoji :hover"),
                 )
 
     def test_menu_scroll_arrows(self):

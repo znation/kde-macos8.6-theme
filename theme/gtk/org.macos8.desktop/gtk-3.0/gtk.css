@@ -4087,3 +4087,105 @@ toolbar.inline-toolbar toolbutton:only-child > button.flat {
   border-radius: 0;
   -gtk-outline-radius: 0;
 }
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   vertical spin button's steppers or a content view's selection check
+   face (the GTK scope's standing adaptation premise), so the two
+   radius-bearing stock families this sheet never restates are squared
+   against the landed square-corner policy — the landed `check` and
+   `button` restatements this same sheet carries `border-radius: 0`,
+   with the landed `radio` circle as the reference-grounded exception.
+   The toolkit resource (gtk-contained.css inside libgtk-3, probed with
+   gresource on 2026-11-04; its full resource path is recorded in
+   docs/invariants.md) rounds the faces stock this sheet answers at
+   nothing (stock arms quoted, hex paint values elided, resource lines
+   named): line 530 declares `spinbutton.vertical button {
+   min-height: 32px; min-width: 32px; padding: 0; }` — the steppers'
+   radius-free geometry arm; line 532 declares `spinbutton.vertical
+   button.up { border-radius: 5px 5px 0 0; border-style: solid solid
+   none solid; }`, rounding the column's upper stepper's two head
+   corners 5px; line 534 declares `spinbutton.vertical button.down {
+   border-radius: 0 0 5px 5px; border-style: none solid solid solid; }`,
+   rounding the lower stepper's two tail corners 5px; and each of
+   resource lines 1089 through 1103 declares one state arm of the
+   eight-state comma group triple `.view.content-view.check:not(list),
+   iconview.content-view.check:not(list), .content-view:not(list)
+   check` — base, hover, active, backdrop, checked, checked:hover,
+   checked:active and backdrop:checked — each carrying
+   `border-radius: 5px` among margins, minimum sizes, colours, paints,
+   transition, border-width, icon source and icon shadow. No landed
+   group reaches these spellings: the landed bare `check, radio` recipe
+   names the element node and loses to the class-armed triple, the
+   landed `.osd spinbutton.vertical button:first-child` groups name the
+   on-screen-display overlay's stacked twins only, the landed
+   `.content-view` groups name no `check` node, and the landed
+   unclassed `button` restate names neither spelling. On the fresh
+   extract no other arm of either family carries a radius. Stock's
+   non-radius companions stay inherited per-property: the steppers' own
+   32px geometry arm, the `border-style` halves stock pairs onto the
+   radius shorthands, the check faces' margins, minimum sizes, colours,
+   paints, transition, border-width, icon source and icon shadow, and
+   `.content-view .tile`'s own already-zero radius arm (line 40, left
+   stock). Loading path: one landed record reads a GTK 3 theme
+   selection as replacing the stock stylesheet entirely, while the
+   landed per-property records read the toolkit resource as the lower
+   sheet; every restatement below is byte-equal to its stock twin and
+   sits later in source order, so under either reading only the radius
+   changes hands — the restatement wins each equal-specificity tie
+   per-property, or is the sheet's own pin for a surface it did not
+   cover. Declaration checks do not establish rendered pixels. */
+spinbutton.vertical button.up {
+  border-radius: 0;
+}
+
+spinbutton.vertical button.down {
+  border-radius: 0;
+}
+
+.view.content-view.check:not(list),
+iconview.content-view.check:not(list),
+.content-view:not(list) check {
+  border-radius: 0;
+}
+
+.view.content-view.check:hover:not(list),
+iconview.content-view.check:hover:not(list),
+.content-view:not(list) check:hover {
+  border-radius: 0;
+}
+
+.view.content-view.check:active:not(list),
+iconview.content-view.check:active:not(list),
+.content-view:not(list) check:active {
+  border-radius: 0;
+}
+
+.view.content-view.check:backdrop:not(list),
+iconview.content-view.check:backdrop:not(list),
+.content-view:not(list) check:backdrop {
+  border-radius: 0;
+}
+
+.view.content-view.check:checked:not(list),
+iconview.content-view.check:checked:not(list),
+.content-view:not(list) check:checked {
+  border-radius: 0;
+}
+
+.view.content-view.check:checked:hover:not(list),
+iconview.content-view.check:checked:hover:not(list),
+.content-view:not(list) check:checked:hover {
+  border-radius: 0;
+}
+
+.view.content-view.check:checked:active:not(list),
+iconview.content-view.check:checked:active:not(list),
+.content-view:not(list) check:checked:active {
+  border-radius: 0;
+}
+
+.view.content-view.check:backdrop:checked:not(list),
+iconview.content-view.check:backdrop:checked:not(list),
+.content-view:not(list) check:backdrop:checked {
+  border-radius: 0;
+}
