@@ -38,7 +38,7 @@ class TestDefaultsGroups(unittest.TestCase):
     def test_reads_the_decoration_and_desktop_theme_from_the_global_theme(self):
         groups = theme_defaults.defaults_groups()
         decoration = groups[("kwinrc", "org.kde.kdecoration2")]
-        self.assertEqual("__aurorae__svg__org.macos8.desktop", decoration["theme"])
+        self.assertEqual("org.macos8.desktop", decoration["theme"])
         self.assertEqual("org.macos8.desktop", groups[("plasmarc", "Theme")]["name"])
 
     def test_skips_sections_that_name_no_config_file(self):
@@ -368,7 +368,7 @@ class TestWriteConfigs(unittest.TestCase):
         plasmarc = (directory / "plasmarc").read_text(encoding="utf-8")
         self.assertEqual({"kwinrc", "plasmarc"}, set(os.listdir(directory)))
         self.assertIn("[org.kde.kdecoration2]\n", kwinrc)
-        self.assertIn("theme=__aurorae__svg__org.macos8.desktop\n", kwinrc)
+        self.assertIn("theme=org.macos8.desktop\n", kwinrc)
         self.assertIn("[Theme]\nname=org.macos8.desktop\n", plasmarc)
         self.assertNotIn("ColorScheme", kwinrc + plasmarc)
 

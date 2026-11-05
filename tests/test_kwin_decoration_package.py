@@ -4,9 +4,12 @@ The `KWin/Decoration` KPackage under theme/kwin-decoration/: the metadata
 KPackage discovers, the engine QML component copies (byte-equal where the
 engine file references no auroraeTheme, rename-only where it does), the
 `AuroraeTheme` singleton that answers the context name KWin withholds from
-QML packages, and the install/uninstall lifecycle. Nothing selects the
-package: selection is a later plan's work, so no installed file or running
-session changes here.
+QML packages, and the install/uninstall lifecycle. The shipped look-and-feel
+defaults select the package: `[kwinrc][org.kde.kdecoration2]` publishes
+`library=org.kde.kwin.aurorae` beside `theme=org.macos8.desktop`, the
+`KPlugin.Id` KWin matches under `kwin/decorations/` (the selection pins live
+in `tests/test_theme_defaults.py`, the default-value render publishes it and
+README documents the headless A/B equality evidence).
 
 The copy pins compare against the engine files (`/usr/share/kwin/aurorae/`,
 upstream KWin 6.3.6) and skip when that directory is absent, like
@@ -309,6 +312,42 @@ class TestSingleton(unittest.TestCase):
         self.assertEqual(
             lines, ["singleton AuroraeTheme 1.0 AuroraeTheme.qml"]
         )
+
+    def test_singleton_loads_in_the_package_import_context(self):
+        """The 2026-11-04 selection-route session probe, pinned statically.
+
+        A KWin/Decoration QML package loads the singleton through the package
+        qmldir's implicit import, which provides no types: without
+        `pragma Singleton` the qmldir singleton declaration refuses the file
+        (qml: qmldir defines type as singleton, but no pragma Singleton), and
+        without an explicit import `QtObject` and the `color` valuetype stay
+        unresolvable (qml: QtObject is not a type / color is not a type).
+        The engine copies get both through their own QtQuick import, which is
+        why only the singleton needs the spelling below.
+        """
+        text = read_text(self.path)
+        pragma = text.find("pragma Singleton")
+        imp = text.find("import QtQuick")
+        self.assertNotEqual(pragma, -1, "the singleton needs pragma Singleton")
+        self.assertGreater(
+            imp, pragma, "pragma Singleton must come before the import"
+        )
+        self.assertGreater(
+            pragma, text.find("*/"), "pragma must follow the header comment"
+        )
+        imports = re.findall(r"^import .*$", text, re.MULTILINE)
+        self.assertEqual(imports, ["import QtQuick"], imports)
+
+    def test_as_local_path_stringifies_resolved_url(self):
+        # Qt.resolvedUrl answers a QUrl in this engine (TypeError: Property
+        # 'slice' ... is not a function, 2026-11-04 session probe), so the
+        # prefix walk below needs a string.
+        text = read_text(self.path)
+        self.assertIn(
+            "Qt.resolvedUrl(name).toString()", text,
+            "asLocalPath must stringify Qt.resolvedUrl before its prefix walk",
+        )
+        self.assertNotIn("Qt.resolvedUrl(name);", text)
 
 
 class TestMetadata(unittest.TestCase):

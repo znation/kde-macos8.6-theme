@@ -1,9 +1,11 @@
 """Makefile tests for the `_uninstall` kwinrc window-decoration theme key.
 
 `make apply` applies the shipped look-and-feel, whose defaults publish
-`[kwinrc][org.kde.kdecoration2]` with `theme=__aurorae__svg__org.macos8.desktop`
+`[kwinrc][org.kde.kdecoration2]` with `theme=org.macos8.desktop`
 beside `library=org.kde.kwin.aurorae` -- along with the button pair the landed
-kwinrc suites cover. After `make uninstall` removes the aurorae package, that
+kwinrc suites cover. After `make uninstall` removes the installed packages
+(the aurorae theme and the kwin/decorations/org.macos8.desktop decoration
+package), that
 theme id names a decoration package that no longer exists, and KWin silently
 falls back on the next start; `_uninstall` prints a diagnostic naming the
 `kwriteconfig6 --delete` reset for the two keys when the last value of `theme`
@@ -25,7 +27,7 @@ REMOVAL_GROUP = "org.kde.kdecoration2"
 LIBRARY_KEY = "library"
 THEME_KEY = "theme"
 AURORAE_LIBRARY = "org.kde.kwin.aurorae"
-AURORAE_THEME = "__aurorae__svg__org.macos8.desktop"
+AURORAE_THEME = "org.macos8.desktop"
 
 
 def rule_for(path):
@@ -33,7 +35,8 @@ def rule_for(path):
     return (
         "uninstall: the window-decoration selection still names "
         f"{AURORAE_THEME} after removal in {path}; KWin cannot load the "
-        "removed window decoration and keeps the default style. Reset it "
+        "removed kwin/decorations/org.macos8.desktop decoration package "
+        "and keeps the default style. Reset it "
         "with: kwriteconfig6 --file kwinrc --group "
         f"{REMOVAL_GROUP} --key {THEME_KEY} --delete && kwriteconfig6 "
         f"--file kwinrc --group {REMOVAL_GROUP} --key {LIBRARY_KEY} --delete"
@@ -58,7 +61,8 @@ def AURORAE_PAIR_RULE(path):
         "uninstall: the window-decoration selection "
         f"[{LIBRARY_KEY}={AURORAE_LIBRARY}, {THEME_KEY}={AURORAE_THEME}] "
         f"that the look-and-feel apply wrote is still in {path}; KWin cannot "
-        "load the removed aurorae package and keeps a default window "
+        "load the removed kwin/decorations/org.macos8.desktop decoration "
+        "package and keeps a default window "
         "decoration. Reset it with: kwriteconfig6 --file kwinrc --group "
         f"{REMOVAL_GROUP} --key {LIBRARY_KEY} --delete && kwriteconfig6 "
         f"--file kwinrc --group {REMOVAL_GROUP} --key {THEME_KEY} --delete"
@@ -478,7 +482,7 @@ class TestKwinrcDecorationUninstallDiagnostic(unittest.TestCase):
             config,
             "[" + REMOVAL_GROUP + "]\n"
             "library=org.kde.kwin.aurorae\n"
-            "theme=__aurorae__svg__org.macos8.desktop\n"
+            "theme=org.macos8.desktop\n"
             "ButtonsOnLeft=X\n"
             "ButtonsOnRight=AL\n",
         )

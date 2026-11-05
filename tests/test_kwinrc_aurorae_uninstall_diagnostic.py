@@ -2,9 +2,11 @@
 
 `make apply` applies the shipped look-and-feel, whose defaults publish
 `[kwinrc][org.kde.kdecoration2] library=org.kde.kwin.aurorae` and
-`theme=__aurorae__svg__org.macos8.desktop` -- the Aurorae plugin library and
-the package id KWin resolves the window decoration through. `make uninstall`
-removes the aurorae package but leaves those keys, and KWin keeps drawing
+`theme=org.macos8.desktop` -- the Aurorae plugin library and the
+`KWin/Decoration` package id KWin resolves the window decoration through.
+`make uninstall`
+removes the aurorae package and the installed kwin/decorations package but
+leaves those keys, and KWin keeps drawing
 its built-in default window decoration; `_uninstall` prints a diagnostic
 naming the `kwriteconfig6 --delete` reset for the two keys when the last
 values of both still trim to exactly that pair, without editing the file.
@@ -30,7 +32,7 @@ REMOVAL_GROUP = "org.kde.kdecoration2"
 LIBRARY_KEY = "library"
 THEME_KEY = "theme"
 AURORAE_LIBRARY = "org.kde.kwin.aurorae"
-AURORAE_THEME = "__aurorae__svg__org.macos8.desktop"
+AURORAE_THEME = "org.macos8.desktop"
 
 
 def rule_for(path):
@@ -39,7 +41,8 @@ def rule_for(path):
         "uninstall: the window-decoration selection "
         f"[{LIBRARY_KEY}={AURORAE_LIBRARY}, {THEME_KEY}={AURORAE_THEME}] "
         f"that the look-and-feel apply wrote is still in {path}; KWin cannot "
-        "load the removed aurorae package and keeps a default window "
+        "load the removed kwin/decorations/org.macos8.desktop decoration "
+        "package and keeps a default window "
         "decoration. Reset it with: kwriteconfig6 --file kwinrc --group "
         f"{REMOVAL_GROUP} --key {LIBRARY_KEY} --delete && kwriteconfig6 "
         f"--file kwinrc --group {REMOVAL_GROUP} --key {THEME_KEY} --delete"
@@ -461,7 +464,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(unittest.TestCase):
             config,
             "[" + REMOVAL_GROUP + "]\n"
             "library=org.kde.kwin.aurorae\n"
-            "theme=__aurorae__svg__org.macos8.desktop\n"
+            "theme=org.macos8.desktop\n"
             "ButtonsOnLeft=X\n"
             "ButtonsOnRight=AL\n",
         )

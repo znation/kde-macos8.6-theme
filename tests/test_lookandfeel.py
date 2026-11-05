@@ -199,12 +199,14 @@ class TestDefaults(unittest.TestCase):
         )
 
     def test_window_decoration_names_the_shipped_theme(self):
-        """The global theme must select the Aurorae theme this repo ships.
+        """The global theme must select the decoration package this repo ships.
 
-        The id is the directory holding the installed package's
-        `metadata.desktop`, so renaming the Aurorae directory without updating
-        `defaults` fails here instead of pointing KWin at a theme that is not
-        installed.
+        The `theme` value is the `KWin/Decoration` KPackage id KWin resolves
+        under `kwin/decorations/` (its QML package directory plus a KPlugin.Id
+        in the installed `metadata.json`), and it is also the Aurorae
+        directory holding the installed `metadata.desktop`, so renaming
+        either package without updating `defaults` fails here instead of
+        pointing KWin at a theme that is not installed.
         """
         self.assertEqual(
             self.parser.get(KWIN_SECTION, "library"), "org.kde.kwin.aurorae"
@@ -212,7 +214,15 @@ class TestDefaults(unittest.TestCase):
         theme_id = os.path.basename(AURORAE_DIR)
         self.assertEqual(
             self.parser.get(KWIN_SECTION, "theme"),
-            "__aurorae__svg__" + theme_id,
+            theme_id,
+        )
+        package_metadata = os.path.join(
+            ROOT, "theme", "kwin-decoration", theme_id, "metadata.json"
+        )
+        self.assertTrue(
+            os.path.isfile(package_metadata),
+            "KWin's package matching needs"
+            " theme/kwin-decoration/" + theme_id + "/metadata.json",
         )
         self.assertTrue(
             os.path.isfile(os.path.join(AURORAE_DIR, "metadata.desktop")),

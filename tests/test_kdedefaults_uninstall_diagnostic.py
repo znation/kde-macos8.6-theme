@@ -352,7 +352,7 @@ class TestKdedefaultsUninstallDiagnostic(unittest.TestCase):
             kwinrc,
             (
                 "[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
         ksplash_bytes, kwinrc_bytes = read_bytes(ksplash), read_bytes(kwinrc)
@@ -362,7 +362,7 @@ class TestKdedefaultsUninstallDiagnostic(unittest.TestCase):
         assert_succeeded(self, result)
         aurorae_at = result.stderr.index(
             "uninstall: the window-decoration selection [library="
-            "org.kde.kwin.aurorae, theme=__aurorae__svg__" + LNF_ID + "]"
+            "org.kde.kwin.aurorae, theme=" + LNF_ID + "]"
         )
         splash_at = result.stderr.index(splash_rule(ksplash))
         self.assertLess(aurorae_at, splash_at)

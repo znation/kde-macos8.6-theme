@@ -548,7 +548,7 @@ class TestSessionThemeSources(unittest.TestCase):
         # Exactly the two files the session's in-session commands read; extra
         # files here would also end up in the caller-visible default config.
         self.assertEqual(["kwinrc", "plasmarc"], written)
-        self.assertIn("theme=__aurorae__svg__org.macos8.desktop", kwinrc)
+        self.assertIn("theme=org.macos8.desktop", kwinrc)
         self.assertEqual("[Theme]\nname=org.macos8.desktop\n", plasmarc)
 
     def test_write_kvantum_selection_names_the_theme_for_qt_clients(self):

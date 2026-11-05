@@ -76,6 +76,23 @@ class TestReadmeDialogGateProse(unittest.TestCase):
         )
         self.assertIn("TestMenuDialogRender", bullet)
 
+    def test_readme_documents_the_decoration_selection_equality(self):
+        # The shipped selection renders in every capture: README names the
+        # pair the scratch home takes from the look-and-feel defaults and
+        # points at the session-level A/B equality evidence recorded in
+        # docs/invariants.md.
+        readme = read("README.md")
+        paragraph = next(
+            block
+            for block in readme.split("\n\n")
+            if "scratch data home" in block and "byte-identical" in block
+        )
+        self.assertIn("theme=org.macos8.desktop", paragraph)
+        self.assertIn("library=org.kde.kwin.aurorae", paragraph)
+        self.assertIn("__aurorae__svg__org.macos8.desktop", paragraph)
+        self.assertIn("## kwin-decoration", paragraph)
+        self.assertIn("invariants.md", paragraph)
+
 
 if __name__ == "__main__":
     unittest.main()

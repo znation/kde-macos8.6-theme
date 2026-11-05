@@ -6,7 +6,7 @@ recorded on the landed kdedefaults diagnostics wrote `kdedefaults/kdeglobals`
 holding `[Icons] Theme=org.macos8.desktop` and `[KDE] widgetStyle=kvantum`,
 `kdedefaults/kwinrc` holding `[org.kde.kdecoration2]` `NoPlugin=false` beside
 the `library=org.kde.kwin.aurorae` and
-`theme=__aurorae__svg__org.macos8.desktop` pair, and `kdedefaults/plasmarc`
+`theme=org.macos8.desktop` pair, and `kdedefaults/plasmarc`
 holding `[Theme] name=org.macos8.desktop`. After `make uninstall` removes
 the installed packages and the landed resets `--delete` the live keys, a
 start still re-resolves the removed ids from these untouched mirrors.
@@ -69,10 +69,11 @@ def mirror_kwinrc_rule(path):
     """The expected mirror decoration-pair line (wording is the contract)."""
     return (
         "uninstall: the window-decoration selection [library="
-        "org.kde.kwin.aurorae, theme=__aurorae__svg__" + LNF_ID +
+        "org.kde.kwin.aurorae, theme=" + LNF_ID +
         "] that the look-and-feel apply left in defaults is still in " +
         path + "; when the live keys are absent or reset away, the defaults "
-        "layer re-selects the removed aurorae package and KWin keeps a "
+        "layer re-selects the removed kwin/decorations/org.macos8.desktop "
+        "decoration package and KWin keeps a "
         "default window decoration. Reset it with: kwriteconfig6 --file " +
         path + " --group org.kde.kdecoration2 --key library --delete && "
         "kwriteconfig6 --file " + path +
@@ -160,7 +161,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "[org.kde.kdecoration2]\nNoPlugin=false\n"
                 "library=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
         original = read_bytes(path)
@@ -199,7 +200,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "[org.kde.kdecoration2]\nNoPlugin=false\n"
                 "library=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
         write_file(plasma_path, "[Theme]\nname=" + LNF_ID + "\n")
@@ -228,7 +229,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "[org.kde.kdecoration2]\nNoPlugin=false\n"
                 "library=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
         write_file(plasma_path, "[Theme]\nname=" + LNF_ID + "\n")
@@ -257,7 +258,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "kwinrc",
                 "﻿[org.kde.kdecoration2]\r\nlibrary = org.kde.kwin.aurorae\r\n"
-                "theme = __aurorae__svg__" + LNF_ID + "\r\n",
+                "theme = " + LNF_ID + "\r\n",
             ),
             ("plasmarc", "﻿[Theme]\r\n  name = " + LNF_ID + "  \r\n"),
         ):
@@ -286,7 +287,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "kwinrc",
                 "[org.kde.kdecoration2]\n  library = org.kde.kwin.aurorae\n"
-                "  theme = __aurorae__svg__" + LNF_ID + "  \n",
+                "  theme = " + LNF_ID + "  \n",
                 mirror_kwinrc_rule,
             ),
             ("plasmarc", "[Theme]\n  name = " + LNF_ID + "  \n", mirror_plasmarc_rule),
@@ -321,7 +322,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "kwinrc",
                 "[org.kde.kdecoration2]\nlibrary=other\ntheme=breeze\n"
-                "library=org.kde.kwin.aurorae\ntheme=__aurorae__svg__"
+                "library=org.kde.kwin.aurorae\ntheme="
                 + LNF_ID
                 + "\n",
                 mirror_kwinrc_rule,
@@ -431,7 +432,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "kwinrc",
                 "[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\nlibrary=other\n",
+                "theme=" + LNF_ID + "\nlibrary=other\n",
             ),
             ("plasmarc", "[Theme]\nname=" + LNF_ID + "\nname=breeze\n"),
         ):
@@ -485,7 +486,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
         for body, keep in (
             ("[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n", "library"),
             (
-                "[org.kde.kdecoration2]\ntheme=__aurorae__svg__"
+                "[org.kde.kdecoration2]\ntheme="
                 + LNF_ID
                 + "\n",
                 "theme",
@@ -518,7 +519,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
     def test_silent_when_the_selections_live_in_other_groups(self):
         for name, body in (
             ("kdeglobals", "[General]\nwidgetStyle=kvantum\nTheme=" + LNF_ID + "\n"),
-            ("kwinrc", "[Misc]\nlibrary=org.kde.kwin.aurorae\ntheme=__aurorae__svg__" + LNF_ID + "\n"),
+            ("kwinrc", "[Misc]\nlibrary=org.kde.kwin.aurorae\ntheme=" + LNF_ID + "\n"),
             ("plasmarc", "[General]\nname=" + LNF_ID + "\n"),
         ):
             with self.subTest(name=name):
@@ -601,7 +602,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             (
                 "[org.kde.kdecoration2]\nNoPlugin=false\n"
                 "library=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
         write_file(plasma_path, "[Theme]\nname=" + LNF_ID + "\n")
@@ -611,7 +612,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             live_kwinrc,
             (
                 "[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n"
-                "theme=__aurorae__svg__" + LNF_ID + "\n"
+                "theme=" + LNF_ID + "\n"
             ),
         )
 
@@ -621,7 +622,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
         order = (
             result.stderr.index(
                 "uninstall: the window-decoration selection [library="
-                "org.kde.kwin.aurorae, theme=__aurorae__svg__" + LNF_ID + "]"
+                "org.kde.kwin.aurorae, theme=" + LNF_ID + "]"
             ),
             result.stderr.index("uninstall: the splash selection"),
             result.stderr.index("uninstall: the look-and-feel package default"),

@@ -242,10 +242,12 @@ AURORAE_ID := org.macos8.desktop
 AURORAE_PACKAGE := theme/aurorae/themes/$(AURORAE_ID)
 AURORAE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/aurorae/themes
 
-# The KWin decoration QML package is the same window decoration selected
-# through a KPackage under `kwin/decorations/` instead of the SVG-Aurorae
-# `__aurorae__svg__` route; it installs beside the aurorae family in the
-# same data home so the package's own QML can walk to the aurorae art.
+# The KWin decoration QML package is the window decoration the shipped
+# look-and-feel defaults select: their `[kwinrc][org.kde.kdecoration2]`
+# pair `library=org.kde.kwin.aurorae`, `theme=org.macos8.desktop` matches
+# this KPackage under `kwin/decorations/` by `KPlugin.Id`; it installs
+# beside the aurorae family in the same data home so the package's own QML
+# can walk to the aurorae art.
 # Family `kwin-decoration`.
 KWINDEC_ID := org.macos8.desktop
 KWINDEC_PACKAGE := theme/kwin-decoration/$(KWINDEC_ID)

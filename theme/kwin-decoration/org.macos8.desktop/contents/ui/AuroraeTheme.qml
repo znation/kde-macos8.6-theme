@@ -31,13 +31,23 @@
     borders() prefactors default to KDecoration3::BorderSize::Normal): the
     render-gate sessions this project targets.
 */
+// 2026-11-04: the singleton's only import. A KWin/Decoration QML package
+// loads this file through the package qmldir's implicit import alone, which
+// provides no types: QtObject and the color valuetype live on QtQuick, the
+// import every engine QML file names.
+pragma Singleton
+import QtQuick
+
 QtObject {
     id: auroraeTheme
 
     // `path:` converts the package-relative walk into a local path string
     // for the KSvg.FrameSvg `imagePath` the copies feed.
     function asLocalPath(name) {
-        var url = Qt.resolvedUrl(name);
+        // Qt.resolvedUrl answers a QUrl here, not a string (TypeError: slice
+        // is not a function on the 2026-11-04 session probe), so stringify
+        // before the prefix walk below.
+        var url = Qt.resolvedUrl(name).toString();
         var prefix = "file://";
         if (url.slice(0, prefix.length) === prefix) {
             return decodeURIComponent(url.slice(prefix.length));

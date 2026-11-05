@@ -729,7 +729,7 @@ class TestFailurePaths(StubTools):
         text = record.read_text(encoding="utf-8")
         self.assertIn("--width 64 --height 48", text)
         self.assertIn("--socket render-surface", text)
-        self.assertIn("theme=__aurorae__svg__org.macos8.desktop", text)
+        self.assertIn("theme=org.macos8.desktop", text)
         self.assertIn("--exit-with-session", text)
         last = text.splitlines()[-1].split()
         self.assertTrue(Path(last[0]).parent.name.startswith("render-surface-"))

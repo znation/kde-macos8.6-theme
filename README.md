@@ -72,7 +72,7 @@ color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, the `org.macos8.desktop`
-window decoration's QML package into `kwin/decorations/` (installed but not selected by any defaults; the `theme=` key keeps the `__aurorae__svg__` value), the
+window decoration's QML package into `kwin/decorations/` (the look-and-feel defaults select it: their `library=org.kde.kwin.aurorae` / `theme=org.macos8.desktop` pair pins the package here, where KWin 6.3.6 matches this plugin's packages under `kwin/decorations/` by `KPlugin.Id`), the
 `org.macos8.desktop` wallpaper into `wallpapers/`, the `org.macos8.desktop` icon theme into
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
@@ -343,8 +343,9 @@ documented `--delete` option is the grounded platform-required value; the
 reference screenshots show no uninstall warning to sample it from); and if
 the window-decoration selection the look-and-feel apply wrote
 (`[kwinrc][org.kde.kdecoration2] library=org.kde.kwin.aurorae` and
-`theme=__aurorae__svg__org.macos8.desktop`, the Aurorae package id KWin
-resolves the window decoration through under that plugin library) is still
+`theme=org.macos8.desktop`, the `KWin/Decoration` package id KWin resolves
+the window decoration through under that plugin library -- its packages live
+under `kwin/decorations/` and match the id by `KPlugin.Id`) is still
 there after the uninstall, it prints a warning naming the reset
 `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
 --delete && kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key
@@ -352,12 +353,12 @@ theme --delete`, which deletes exactly the two keys the apply wrote and
 reverts KWin to the keys' absence, where it draws its built-in default
 window decoration (the `--delete` reset is the same grounded
 `kwriteconfig6` platform-required value as the button layout's, and the
-fallback claim -- what KWin draws when the `__aurorae__svg__` package name
-cannot resolve inside the Aurorae engine -- is grounded against the
+fallback claim -- what KWin draws when the package id cannot resolve
+inside the Aurorae engine -- is grounded against the
 upstream KWin window-decoration sources the project reads for its aurorae
 engine; the reference screenshots show no uninstall warning to sample it
 from); and if the window-decoration theme key alone -- the
-`theme=__aurorae__svg__org.macos8.desktop` value in
+`theme=org.macos8.desktop` value in
 `[kwinrc][org.kde.kdecoration2]`, even when `library` is missing or foreign,
 a shape the pair diagnostic above stays silent on -- still names the removed
 decoration package after the uninstall, it prints a warning naming the
@@ -391,7 +392,7 @@ file whose `[KDE]` group's last `widgetStyle` value is `kvantum` and whose
 `[Icons]` group's last `Theme` value is `org.macos8.desktop` (the two
 conditions independent), a `kdedefaults/kwinrc` file whose
 `[org.kde.kdecoration2]` group holds the `library=org.kde.kwin.aurorae` and
-`theme=__aurorae__svg__org.macos8.desktop` pair (the `NoPlugin=false` key
+`theme=org.macos8.desktop` pair (the `NoPlugin=false` key
 the apply also wrote is not a match condition), and a
 `kdedefaults/plasmarc` file whose `[Theme]` group's last `name` value is
 `org.macos8.desktop` -- it prints four warnings naming the resets
@@ -503,7 +504,14 @@ the references, see [Fidelity checking](#fidelity-checking).
 `spectacle` and exits 2 naming the first missing tool; a `make` or `dbus-run-session`
 that exists but cannot be started is reported the same way, as is a scratch session
 directory that cannot be created. It
-installs into a scratch data home and leaves your own Plasma configuration alone. A wholly
+installs into a scratch data home and leaves your own Plasma configuration alone. The
+scratch config home takes its `[kwinrc][org.kde.kdecoration2]` selection from the look-and-feel
+`defaults` (`library=org.kde.kwin.aurorae`, `theme=org.macos8.desktop`), the `KWin/Decoration`
+package id KWin matches under `kwin/decorations/`; re-running the same capture in the same
+session setup with the earlier SVG-aurorae value (`__aurorae__svg__org.macos8.desktop`) pasted in
+produces a byte-identical PNG, the A/B selection-equality check recorded in docs/invariants.md's
+`## kwin-decoration` row, and sabotaging an installed package file the QML copies need makes the
+two captures differ instead of silently passing. A wholly
 black capture — the screen before the window has painted — is refused with a diagnostic
 naming the settle wait rather than published as a render. A failed install, render or
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.

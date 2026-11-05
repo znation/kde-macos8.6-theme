@@ -19,7 +19,7 @@ name=org.macos8.desktop
 
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__org.macos8.desktop
+theme=org.macos8.desktop
 ButtonsOnLeft=X
 ButtonsOnRight=AL
 

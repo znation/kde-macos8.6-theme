@@ -340,28 +340,27 @@ def diagnostics(
             )
         library = deco.get(("org.kde.kdecoration2", "library"))
         theme = deco.get(("org.kde.kdecoration2", "theme"))
-        if library == "org.kde.kwin.aurorae" and theme == (
-            f"__aurorae__svg__{aurorae_id}"
-        ):
+        if library == "org.kde.kwin.aurorae" and theme == aurorae_id:
             messages.append(
                 "uninstall: the window-decoration selection"
-                f" [library=org.kde.kwin.aurorae,"
-                f" theme=__aurorae__svg__{aurorae_id}] that the"
-                f" look-and-feel apply wrote is still in {kwinrc}; KWin"
-                " cannot load the removed aurorae package and keeps a"
-                " default window decoration. Reset it with: kwriteconfig6"
-                " --file kwinrc --group org.kde.kdecoration2 --key library"
-                " --delete && kwriteconfig6 --file kwinrc --group"
-                " org.kde.kdecoration2 --key theme --delete"
+                f" [library=org.kde.kwin.aurorae, theme={aurorae_id}] that"
+                f" the look-and-feel apply wrote is still in {kwinrc};"
+                " KWin cannot load the removed"
+                f" kwin/decorations/{aurorae_id} decoration package and"
+                " keeps a default window decoration. Reset it with:"
+                " kwriteconfig6 --file kwinrc --group org.kde.kdecoration2"
+                " --key library --delete && kwriteconfig6 --file kwinrc"
+                " --group org.kde.kdecoration2 --key theme --delete"
             )
-        if theme == f"__aurorae__svg__{aurorae_id}":
+        if theme == aurorae_id:
             messages.append(
                 "uninstall: the window-decoration selection still names"
-                f" __aurorae__svg__{aurorae_id} after removal in {kwinrc};"
-                " KWin cannot load the removed window decoration and keeps"
-                " the default style. Reset it with: kwriteconfig6 --file"
-                " kwinrc --group org.kde.kdecoration2 --key theme --delete"
-                " && kwriteconfig6 --file kwinrc --group"
+                f" {aurorae_id} after removal in {kwinrc};"
+                " KWin cannot load the removed"
+                f" kwin/decorations/{aurorae_id} decoration package and"
+                " keeps the default style. Reset it with: kwriteconfig6"
+                " --file kwinrc --group org.kde.kdecoration2 --key theme"
+                " --delete && kwriteconfig6 --file kwinrc --group"
                 " org.kde.kdecoration2 --key library --delete"
             )
 
@@ -423,16 +422,15 @@ def diagnostics(
         )
         if df.get(("org.kde.kdecoration2", "library")) == (
             "org.kde.kwin.aurorae"
-        ) and df.get(("org.kde.kdecoration2", "theme")) == (
-            f"__aurorae__svg__{aurorae_id}"
-        ):
+        ) and df.get(("org.kde.kdecoration2", "theme")) == aurorae_id:
             messages.append(
                 "uninstall: the window-decoration selection"
                 " [library=org.kde.kwin.aurorae,"
-                f" theme=__aurorae__svg__{aurorae_id}] that the"
+                f" theme={aurorae_id}] that the"
                 " look-and-feel apply left in defaults is still in"
                 f" {df_kwinrc}; when the live keys are absent or reset away,"
-                " the defaults layer re-selects the removed aurorae package"
+                " the defaults layer re-selects the removed"
+                f" kwin/decorations/{aurorae_id} decoration package"
                 " and KWin keeps a default window decoration. Reset it with:"
                 f" kwriteconfig6 --file {df_kwinrc} --group"
                 " org.kde.kdecoration2 --key library --delete &&"
