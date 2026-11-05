@@ -4223,11 +4223,16 @@ for radio in (False, True):
                 "window.dialog-window.alert .body-scrolled-window > viewport",
             },
         )
+        # The 2026-11-04 selection-surface record's two compound dialog-host
+        # spellings joined this family scan.
         self.assertEqual(
             {s for s in self.rules if "dialog-host" in s},
             {
                 "dialog-host > dialog.alert sheet",
                 "dialog-host > dialog.alert sheet .body-scrolled-window > viewport",
+                "dialog-host > dialog.view sheet:selected",
+                "window.print:not(.ssd-frame) dialog-host > "
+                "dialog.dialog-action-box sheet:selected",
             },
         )
         self.assertEqual(
@@ -4262,6 +4267,60 @@ for radio in (False, True):
             self.assertGreater(
                 self.selectors.index(selector),
                 self.selectors.index("cursor-handle > contents"),
+            )
+
+    def test_selection_surface_corners(self):
+        # The 2026-11-04 selection-surface comment block appends one
+        # three-selector comma group after the landed spin-button axis
+        # chains at the sheet tail; the sheet parser splits it into
+        # per-selector keys. These three compound spellings are the
+        # members of stock's selected-view comma arm that the landed
+        # class-only .view:selected restatement, the icon-view group and
+        # the row groups lose the specificity tie against, so stock's
+        # 9px-rounded selected face paints them until this group restates
+        # the zero the landed square-corner policy carries everywhere but
+        # the radio circle.
+        members = {
+            "window.print:not(.ssd-frame) .dialog-action-box:selected": {
+                "border-radius": "0"
+            },
+            "dialog-host > dialog.view sheet:selected": {
+                "border-radius": "0"
+            },
+            "window.print:not(.ssd-frame) dialog-host > "
+            "dialog.dialog-action-box sheet:selected": {
+                "border-radius": "0"
+            },
+        }
+        # The token sweeps key on substrings no landed selector carries:
+        # both sheet spellings alone carry "sheet:selected", and the print
+        # action-box spelling alone carries "dialog-action-box:selected".
+        self.assertEqual(
+            {s for s in self.rules if "sheet:selected" in s},
+            {
+                "dialog-host > dialog.view sheet:selected",
+                "window.print:not(.ssd-frame) dialog-host > "
+                "dialog.dialog-action-box sheet:selected",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if "dialog-action-box:selected" in s},
+            {"window.print:not(.ssd-frame) .dialog-action-box:selected"},
+        )
+        for selector, rule in members.items():
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, rule)
+                self.assertEqual(self.rules[selector], rule)
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_matches_frame(selector, "border-radius")
+        for selector in members:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index(
+                    "spinbutton.vertical > button.image-button.down"
+                    ":not(.flat):not(.raised):not(.suggested-action)"
+                    ":not(.destructive-action):not(.opaque):first-child"
+                ),
             )
 
     def test_expander_widget_title_corners(self):
