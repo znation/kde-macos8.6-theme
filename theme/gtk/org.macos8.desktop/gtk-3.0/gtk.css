@@ -3814,3 +3814,63 @@ modelbutton.flat,
 scrollbar.overlay-indicator:not(.dragging):not(.hovering) button {
   border-radius: 0;
 }
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK CSD
+   popup menu, generic popover container, popup-window shadow shell, tooltip
+   shadow shell or message-dialog shadow shell (the GTK scope's standing
+   adaptation premise), so the five radius-bearing stock arm spellings this
+   sheet never restates are squared against the landed square-corner policy
+   of this same sheet — the landed `menu`, `popover` and `tooltip`
+   restatements and the landed messagedialog band and body groups carry
+   `border-radius: 0`, with the landed `radio` circle as the
+   reference-grounded exception. The toolkit resource (gtk-contained.css
+   inside libgtk-3, probed with gresource on 2026-11-04, libgtk-3 3.24.49;
+   its full resource path is recorded in docs/invariants.md) rounds five
+   faces this sheet answers at nothing: `.csd menu, .csd .menu,
+   .csd .context-menu` rounds the CSD-classed popup menus 5px;
+   `.csd popover.background, popover.background` rounds the generic popover
+   border container 9px; `.csd.popup decoration` rounds the popup-window
+   decoration shell 5px; `tooltip.csd decoration` rounds the tooltip
+   window's decoration wrapper 5px; and `messagedialog.csd decoration`
+   rounds the message dialog's decoration shell 8px. The landed plain
+   `menu, .menu, popover, .popover` face group, the landed `tooltip` group
+   and the landed messagedialog groups are name-level rules that match none
+   of these class-armed or decoration-node spellings; the landed popover
+   tint groups declare colours only; and this sheet names no `decoration`
+   selector at all. One landed record reads a GTK 3 theme selection as
+   replacing the stock stylesheet entirely, while the landed per-property
+   records read the toolkit resource as the lower sheet; every restatement
+   below is byte-equal to its stock twin and sits later in source order, so
+   under either reading only the radius changes hands — the restatement
+   wins each equal-specificity tie per-property, or is the sheet's own pin
+   for a surface it did not cover. The toolkit resource itself already
+   squares the menu-bar neighbour `menubar .csd.popup decoration` (and its
+   `.menubar` twin) to 0, so it is left unrestated here as inert. Stock's
+   `border: none` on the CSD menu arm, the popover pair's border and
+   background paint, the two shadow-bearing decorations' box-shadow paint,
+   the tooltip decoration's empty shadow and stock's backdrop decoration
+   arms stay inherited per-property, and every state arm of these spellings
+   that carries no radius is left inherited. Declaration checks do not
+   establish rendered pixels. */
+.csd menu,
+.csd .menu,
+.csd .context-menu {
+  border-radius: 0;
+}
+
+.csd popover.background,
+popover.background {
+  border-radius: 0;
+}
+
+.csd.popup decoration {
+  border-radius: 0;
+}
+
+tooltip.csd decoration {
+  border-radius: 0;
+}
+
+messagedialog.csd decoration {
+  border-radius: 0;
+}
