@@ -374,8 +374,8 @@ class TestKdedefaultsUninstallDiagnostic(unittest.TestCase):
             ["-n", "_uninstall"], env=theme_install.make_env()
         )
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("kdedefaults/ksplashrc", result.stdout)
-        self.assertIn("kdedefaults/package", result.stdout)
+        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+        self.assertIn('--lnf-id "org.macos8.desktop"', result.stdout)
 
 
 if __name__ == "__main__":

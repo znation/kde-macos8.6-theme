@@ -379,8 +379,8 @@ class TestKwinrcUninstallDiagnostic(unittest.TestCase):
             ["-n", "_uninstall"], env=theme_install.make_env()
         )
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn(LEFT_KEY, result.stdout)
-        self.assertIn(RIGHT_KEY, result.stdout)
+        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+        self.assertIn('--scheme-id "MacOS8"', result.stdout)
 
 
 if __name__ == "__main__":

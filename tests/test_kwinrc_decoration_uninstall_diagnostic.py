@@ -505,10 +505,8 @@ class TestKwinrcDecorationUninstallDiagnostic(unittest.TestCase):
             ["-n", "_uninstall"], env=theme_install.make_env()
         )
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn(AURORAE_THEME, result.stdout)
-        self.assertIn("--key theme --delete", result.stdout)
-        self.assertIn("--key library --delete", result.stdout)
-        self.assertIn("window-decoration", result.stdout)
+        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+        self.assertIn('--aurorae-id "org.macos8.desktop"', result.stdout)
 
 
 if __name__ == "__main__":

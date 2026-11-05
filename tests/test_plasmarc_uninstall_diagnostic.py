@@ -286,7 +286,8 @@ class TestPlasmarcUninstallDiagnostic(unittest.TestCase):
             ["-n", "_uninstall"], env=theme_install.make_env()
         )
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("plasmarc", result.stdout)
+        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+        self.assertIn('--desktop-id "org.macos8.desktop"', result.stdout)
 
 
 if __name__ == "__main__":
