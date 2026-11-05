@@ -4367,3 +4367,67 @@ button.emoji-section.image-button:not(.raised):not(.suggested-action):not(.destr
 button.sidebar-button {
   border-radius: 0;
 }
+
+/* The plain-axis spin-button steppers' end-corner chains stock still rounds
+   and no landed restatement squares: no collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK spin button in any state, so the corners
+   follow this theme's landed square-corner policy (the frame border, frame
+   class, button, card, tab-family, toggle-group, menu-selection, cursor-handle,
+   alert-dialog, expander-title, sheet-widget, split-button, close-button,
+   indicator-bin and widget-face restatements and the row-spin steppers, the
+   section button and the sidebar button all declare border-radius: 0, with
+   the landed radio button's 50% circle as the reference-grounded exception).
+   The integration library's base.css resource (probe path recorded in
+   docs/invariants.md, extracted 2026-11-04: a 2622-line resource) re-arms the
+   same steppers the landed plain-stepper record squared through chains whose
+   five extra :not() class atoms raise the computed specificity above the
+   landed short restatements, so today the chains' 9px corner values win the
+   cascade wherever they match. The resource declares exactly four
+   radius-bearing plain-axis button.image-button arms, quoted verbatim with
+   their lines in that resource:
+   - spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised)
+     :not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr)
+     :last-child, and the same-named down spelling — { border-radius:
+     0 9px 9px 0; } (line 2157), the horizontal right end corners; and the
+     same two spellings with :dir(rtl):first-child — { border-radius:
+     9px 0 0 9px; } (line 2159), the horizontal left end corners;
+   - spinbutton.vertical > button.image-button.up:not(.flat):not(.raised)
+     :not(.suggested-action):not(.destructive-action):not(.opaque):last-child,
+     and the same-named down spelling — { border-top-width: 1px;
+     border-radius: 0 0 9px 9px; } (line 2165), the vertical bottom end
+     corners; and the two :first-child spellings — { border-bottom-width:
+     1px; border-radius: 9px 9px 0 0; } (line 2167), the vertical top end
+     corners.
+   The landed horizontal steppers block spells the same nodes through the
+   toolkit's short :not(.flat) chains, which these atoms beat; each spelling
+   below is byte-equal to its stock twin and later user-sheet source order
+   wins the re-armed equal-specificity tie per-property, so only the radius
+   changes ownership: the base arm's min-height and min-width and zero
+   vertical paddings (lines 2153 and 2173 of the same resource), the vertical
+   end halves' border-top-width and border-bottom-width shared-edge
+   mechanics, the row-spin preference-row compounds (already squared), the
+   .osd steppers (landed), stock's own zero-valued tab-arrow corner arm and
+   the circular members the landed descendant spelling beats all stay
+   inherited per-property. The shipped GTK 3 sheet needs nothing: its
+   resource names no spinbutton-and-button.image-button token (grep count 0
+   this run). (2026-11-04) */
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child {
+  border-radius: 0;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child {
+  border-radius: 0;
+}
+
+spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child,
+spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child {
+  border-radius: 0;
+}
+
+spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child,
+spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child {
+  border-radius: 0;
+}

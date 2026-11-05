@@ -3556,6 +3556,26 @@ for radio in (False, True):
             "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
             "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
         )
+        # The 2026-11-04 axis-chain record adds the eight byte-equal
+        # libadwaita spin-button end-corner chains (five extra :not() atoms
+        # beat these landed short restatements' specificity, so the chains
+        # needed their own zero-radius restatement) to this scan; their
+        # selectors carry the `` button`` token the scan keys on, and each
+        # rule is the bare zero radius the new record restates.
+        chain = (
+            "spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+            "spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+            "spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child",
+            "spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child",
+        )
+        for selector in chain:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
         self.assertEqual(
             {
                 s
@@ -3564,7 +3584,7 @@ for radio in (False, True):
                 and " button" in s
                 and ".osd" not in s
             },
-            set(expected) | set(row_spin),
+            set(expected) | set(row_spin) | set(chain),
         )
         # The seven groups sit between the landed entry.warning focus arm
         # and the landed OSD entry-field block.
@@ -3579,6 +3599,69 @@ for radio in (False, True):
         self.assertLess(
             last, self.selectors.index(".osd spinbutton.vertical > text")
         )
+
+    def test_spinbutton_axis_corner_chains(self):
+        """Pin the restated stock plain-axis spinbutton end-corner chains.
+
+        No collected reference screenshot shows a GTK spin button in any
+        state, so the sheet restates the integration resource's four
+        radius-bearing plain-axis ``button.image-button`` arms with a bare
+        zero radius — each byte-equal to its stock twin and winning the
+        equal-specificity tie by later user-sheet source order. The landed
+        plain-stepper record squared these same nodes through the toolkit
+        resource's short :not(.flat) chains, but the integration chains
+        carry five extra :not() class atoms whose higher specificity beat
+        those short restatements, so the corner radii stayed stock's 9px
+        cuts until these four groups landed; the arms were probed
+        2026-11-04 from /org/gnome/Adwaita/styles/base.css (lines 2157,
+        2159, 2165 and 2167, quoted verbatim in the sheet comment whose
+        probe path is recorded in docs/invariants.md), and the toolkit's
+        Default resources carry only the short spelling the landed short
+        restatements are byte-equal to. The vertical end halves'
+        border-top-width and
+        border-bottom-width shared-edge mechanics stay inherited
+        per-property, and the base arm's sizing paddings stay stock too.
+        """
+        chains = (
+            "spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "spinbutton:not(.vertical) > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+            "spinbutton:not(.vertical) > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+            "spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "spinbutton.vertical > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child",
+            "spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):first-child",
+        )
+        for selector in chains:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_matches_frame(selector, "border-radius")
+        # The sweep keys on the :not() atom count stock's chains alone
+        # carry: every landed spinbutton-rooted key carries at most two
+        # :not() atoms and the row-spin keys start with the row compound,
+        # so the scan kills a dropped, renamed or de-qualified chain.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if s.startswith("spinbutton")
+                and s.count(":not(") >= 5
+            },
+            set(chains),
+        )
+        # Every chain sits after the landed short corner twin in source
+        # order, so the additions are tail-resident whatever merges first.
+        for selector in chains:
+            with self.subTest(selector=selector):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index(
+                        "spinbutton:not(.vertical)"
+                        " > button.image-button.down:not(.flat)"
+                        ":dir(rtl):first-child"
+                    ),
+                )
 
     def test_osd_progress_scale(self):
         progress_trough = PROGRESSBAR_TROUGH
