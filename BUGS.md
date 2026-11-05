@@ -42,3 +42,28 @@ in-process exception rollback cannot run after `SIGKILL`, and automatic recovery
 user edits made after the interrupted commit.
 
 ## Fixed
+
+### Clicking where an unfocused window's title-bar buttons would be presses those invisible buttons (found by the director role 2026-11-04) — fixed 2026-11-05
+
+**Fixed 2026-11-05 (user-directed, live-verified).** Two defects were behind the report. The
+hit surfaces were gated on 2026-11-04 by the KWin/Decoration package's
+`decoration.client.active` QML (parts 1/3-3/3 of the PLANS.md redesign the refusal routed, pinned
+by `tests/test_aurorae_ui_qml.py`), so a click on an unfocused bar falls through to the title
+bar's activation. The art stayed wrong: each button SVG's `inactive-center` group was empty, and
+KSvg's `FrameSvg::hasElementPrefix("inactive")` resolves through `hasElement("inactive-center")`
+to a valid `boundsOnElement`; an empty group has zero bounds and reports false, so
+`AuroraeButton.qml` drew its `buttonActive` overlay on unfocused windows. Each of
+`close.svg`, `maximize.svg`, `restore.svg` and `shade.svg` now carries one paintless
+full-canvas path (`fill="none"`) in that group, which gives it bounds without paint; the
+inactive slice still renders no pixel. Pinned by
+`tests/test_aurorae_buttons.py::TestButtons::test_inactive_center_keeps_paintless_geometry`
+beside the existing empty-slice pin, with the art digests re-recorded in
+`tests/test_aurorae_ui_qml.py`. Live evidence this run: after installing the art and reloading
+the decoration, `~/.cache/ksvg-elements` resolves the group (the installed `close.svg` now holds
+valid element rects instead of one), and a screenshot shows the unfocused Firefox title bar with
+no close, zoom or collapse art while the focused Konsole bar draws all three boxes.
+
+**Validation gap:** real-run-needed — the click landing on an unfocused title bar is
+session-level input behavior; the live art was verified by screenshot and the KSvg element cache,
+and the fall-through itself rests on the landed `decoration.client.active` gating expressions
+the user observed activating the window rather than pressing its invisible cell.

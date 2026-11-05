@@ -124,15 +124,19 @@
     <rect x="6" y="12" width="11" height="1" fill="#FFFFFF"/>
   </g>
   <g id="inactive-center" transform="translate(0,0)">
-    <!-- Empty on purpose: the reference's unfocused windows
+    <!-- Paintless on purpose: the reference's unfocused windows
          (macos8.6-screenshots/desktop_fandom.png) draw no title-bar box at
-         all, so the inactive state ships no art and hovering or pressing
-         cannot erase or change it. The empty group itself stays because
-         /usr/share/kwin/aurorae/AuroraeButton.qml (KWin 6.3.6) shows that a
-         false supportsInactive draws the boxActive overlay's active art on
-         unfocused windows, which a deleted element would cause; the one
-         element with an inactive prefix is platform-required by that
-         fallback and draws nothing. Pinned by tests/test_aurorae_buttons.py
-         as a fully transparent slice. -->
+         all, so the inactive state ships no visible art and hovering or
+         pressing cannot erase or change it. The group needs geometry, not
+         just its id: /usr/share/kwin/aurorae/AuroraeButton.qml (KWin 6.3.6)
+         hides its boxActive overlay on an unfocused window only when
+         supportsInactive is true, and that reads
+         FrameSvg::hasElementPrefix("inactive") -> hasElement("inactive-center")
+         -> a valid boundsOnElement. An empty <g> has empty bounds and reports
+         false, which paints the active box on unfocused windows (reported
+         2026-11-05); this fill="none" path gives the group the full 21x13
+         canvas bounds and paints nothing. Pinned by tests/test_aurorae_buttons.py
+         as a fully transparent slice with geometry. -->
+    <path d="M 0,0 H 21 V 13 H 0 Z" fill="none"/>
   </g>
 </svg>

@@ -4,11 +4,14 @@ The close, maximize, restore and collapse (windowshade) widget SVGs, their
 active state re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png`
 and `systemprofiler_betawiki.png` through `tools/png/loader.py`. The
 reference's unfocused windows (`desktop_fandom.png`) draw no close, zoom or
-collapse boxes in their title bars, so the inactive states ship no art: an
-empty `inactive-center` group renders nothing. The elements stay present
-because `/usr/share/kwin/aurorae/AuroraeButton.qml`'s `buttonActive` overlay
-draws the active art on unfocused windows when `supportsInactive` is false,
-so deleting the element would undo the reference drawing. The
+collapse boxes in their title bars, so the inactive states ship no visible
+art: each `inactive-center` group carries one paintless full-canvas path and
+never a rect, so it renders nothing. The geometry keeps the group for a
+platform reason: `/usr/share/kwin/aurorae/AuroraeButton.qml`'s
+`buttonActive` overlay draws the active art on unfocused windows when
+`supportsInactive` is false, and `FrameSvg::hasElementPrefix("inactive")`
+reports true only for an element with valid bounds -- an empty `<g>` has
+none, which is how the active boxes kept drawing on unfocused bars. The
 references are stored with Git LFS, so a clone without them skips these
 tests rather than failing `make check`.
 """
@@ -28,6 +31,7 @@ from support.svg_case import parse_svg
 from svg_assertions import (
     assert_no_script_elements,
     assert_unique_ids,
+    children_named,
     groups_with_id,
     render_slices,
 )
@@ -144,10 +148,11 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         # The reference's unfocused windows draw no close, zoom or collapse
         # box at all (desktop_fandom.png), so every inactive state renders
         # nothing: the inactive-center slice holds no painted pixel, which is
-        # fully transparent at every pixel of the widget's canvas. With no
-        # inactive art shipped, hovering or pressing an unfocused window's
-        # button cannot erase or change anything (BUGS.md's erasure symptom
-        # has nothing it can act on).
+        # fully transparent at every pixel of the widget's canvas. The one
+        # paintless path it carries supplies KSvg geometry, not paint, so
+        # hovering or pressing an unfocused window's button cannot erase or
+        # change anything (BUGS.md's erasure symptom has nothing it can act
+        # on).
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
@@ -157,13 +162,18 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                 # boxes, so the canvas is not emptied wholesale.
                 self.assertTrue(slices["active-center"])
 
-    def test_one_inactive_element_is_platform_required(self):
+    def test_inactive_center_keeps_paintless_geometry(self):
         # Each button SVG keeps exactly one element whose id carries the
-        # `inactive` prefix. `/usr/share/kwin/aurorae/AuroraeButton.qml`
-        # (KWin 6.3.6) shows a false `supportsInactive` draws the
-        # `buttonActive` overlay's active art on unfocused windows, which a
-        # deleted `inactive-center` element would cause; the emptiness ships
-        # as an empty group, not a removed one.
+        # `inactive` prefix, and that `inactive-center` group carries
+        # geometry (one paintless full-canvas path) rather than being an
+        # empty <g>. `/usr/share/kwin/aurorae/AuroraeButton.qml` (KWin
+        # 6.3.6) hides the `buttonActive` overlay on unfocused windows only
+        # when `supportsInactive` is true; KSvg resolves that through
+        # `hasElement("inactive-center")` and a valid `boundsOnElement`, and
+        # an empty group's zero bounds read as false -- so KWin painted the
+        # active box on unfocused bars (reported 2026-11-05). The path's
+        # `fill="none"` paints nothing, and the slice test above pins the
+        # rendered result as fully transparent.
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):
                 ids = [group.get("id") for group in groups_with_id(tree)]
@@ -171,6 +181,15 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                     [gid for gid in ids if "inactive" in gid],
                     ["inactive-center"],
                 )
+                (group,) = [
+                    element
+                    for element in tree.iter()
+                    if element.get("id") == "inactive-center"
+                ]
+                (path,) = children_named(group, "path")
+                self.assertEqual(path.get("fill"), "none")
+                self.assertIsNone(path.get("stroke"))
+                self.assertEqual(children_named(group, "rect"), [])
 
     def test_button_svgs_are_self_contained(self):
         for name, tree in _parsed_svgs(BUTTON_SVGS):

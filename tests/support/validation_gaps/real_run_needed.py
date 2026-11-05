@@ -94,9 +94,15 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_aurorae_buttons.py::TestButtons"
         "::test_inactive_center_ships_nothing",
     ),
+    Reproduction(
+        "aurorae-inactive-button-art-bounds",
+        ("Clicking where an unfocused window",),
+        "tests/test_aurorae_buttons.py::TestButtons"
+        "::test_inactive_center_keeps_paintless_geometry",
+    ),
 )
 
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 10
+REAL_RUN_NEEDED_BASELINE = 11

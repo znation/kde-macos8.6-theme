@@ -10,7 +10,7 @@ These pins are parse/grep-level statements about the shipped copies in the
 style of the splash QML pins; they need no reference image and no engine
 render. The landed aurorae button SVG art stays byte-identical -- the pin
 is a digest set, the same content pin `tests/test_fonts.py` spells -- so
-any art change fails here beside the empty `inactive-center` pins in
+any art change fails here beside the paintless `inactive-center` pins in
 `tests/test_aurorae_buttons.py`, which they keep true.
 """
 
@@ -26,13 +26,15 @@ from support.repo_root import ROOT
 PACKAGE_UI = f"{ROOT}/theme/kwin-decoration/{AURORAE_ID}/contents/ui"
 BUTTON_SVG_DIR = f"{ROOT}/theme/aurorae/themes/{AURORAE_ID}"
 
-# The landed button art set, digested 2026-11-04 before the part 3/3 gating
-# landed; the gating edits only QML, so these digests must still hold.
+# The landed button art set, re-digested 2026-11-05 after each button's
+# `inactive-center` group gained the paintless full-canvas path that makes
+# `supportsInactive` resolve true (an empty group drew the active box on
+# unfocused bars); the gating edits only QML.
 LANDED_SVG_DIGESTS = {
-    "close.svg": "7da05b72f78bae0a306afb1dacbcabaaf4bf18a1cb206b27510f654875231547",
-    "maximize.svg": "ef17ef0c6984a2faa7e3d46ac52c6fae1f1206d05909f16dadc46ed12df6d6b6",
-    "restore.svg": "d0da6e2d1c1445178aa3fe674814641e72e784dfae1010d83ba07c771a7c66be",
-    "shade.svg": "2c30a016e9d0eb5b2dafd96203cffd17716f8e55b3af9018d27cd7b74d458b6d",
+    "close.svg": "50bb86821206753fa1c7410a411ed1cce2d51012b2c7c097df26102bb1a7d592",
+    "maximize.svg": "7c8f955bc3aeb032655c1128ca6cc1d4a68009e1feff09e614caa9628c05dc82",
+    "restore.svg": "1552ce5806120f8e1273c70108567451a89f6f40015df2c20d7b2f7e7177d76e",
+    "shade.svg": "8fc57a040f09d96d606c5b498c0073cf729981983e550131f2e7e1ea7d62c8eb",
 }
 
 
