@@ -4228,3 +4228,64 @@ dialog.about .main-page .app-version,
 .accent-color-row color {
   border-radius: 0;
 }
+
+/* The color button's inner swatch face, its overlay and the coloured
+   menu-button containers have no collected reference surface: no
+   screenshot in macos8.6-screenshots/ shows a GTK color button, its
+   swatch or overlay, or a suggested-action or opaque menu-button
+   container, so the corners follow this theme's landed square-corner
+   policy (the frame border, frame class, button, card, tab-family,
+   toggle-group, cursor-handle and indicator-bin restatements and the
+   residual widget-face group above all declare border-radius: 0, with
+   the landed radio button's 50% circle as the reference-grounded
+   exception). The integration library's base.css resource (probe path
+   recorded in docs/invariants.md, extracted 2026-11-04: a 2622-line
+   resource) declares four radius-bearing arms for these faces, quoted
+   verbatim with their lines in that resource:
+   - button.color > colorswatch:only-child { border-radius: 4.5px; }
+     (line 316);
+   - button.color > colorswatch:only-child > overlay
+     { border-radius: 4px; } (line 318);
+   - menubutton.suggested-action, menubutton.opaque
+     { border-radius: 9px; } (line 336);
+   - menubutton.suggested-action.circular,
+     menubutton.suggested-action.pill, menubutton.opaque.circular,
+     menubutton.opaque.pill { border-radius: 9999px; } (line 338).
+   The landed restatements cannot reach these six spellings: the landed
+   colorswatch family squares the generic and edge-qualified colorswatch
+   and overlay spellings plus the two chooser-group members, but every
+   one of them loses the swatch arms' higher specificity (the button's
+   own class and the :only-child position); the landed pill record
+   squares only the two .pill members of the container arm, and the
+   landed circular record squares only the children
+   menubutton.circular button and button.circular, leaving the plain
+   containers and the two .circular container members unnamed. The
+   coloured containers paint their own rounding: their background arms
+   rest on the container node while the covered child buttons declare
+   transparent backgrounds, so the container radius is the visible
+   face. The plain toolkit's own resource declares zero on the two
+   swatch faces already and names zero plain coloured container tokens,
+   and the GTK 3 resource squares the colour-button swatch in the older
+   descendant spelling and names the menu-button widget not at all; the
+   toolkit's zero twin loses the equal-specificity race to the
+   integration library's later arm, so byte-equal restatement after
+   both wins both cascades whatever order resolves. The two .pill
+   container spellings stay out of this group: the landed pill record
+   already squares them byte-for-byte. Each twin below is byte-equal to
+   its stock spelling, and later user-sheet source order wins stock's
+   equal-specificity tie per-property, so only the radius changes
+   ownership: the swatch button's own padding and its light overlay's
+   translucent border, the containers' background and colour arms and
+   the child-transparency arm declare no radius and stay inherited
+   per-property. The shipped GTK 3 sheet needs nothing: its
+   resource already squares the colour-button swatch and its overlay,
+   and the menu-button widget has no GTK 3 twin. (2026-11-04) */
+
+button.color > colorswatch:only-child,
+button.color > colorswatch:only-child > overlay,
+menubutton.suggested-action,
+menubutton.opaque,
+menubutton.suggested-action.circular,
+menubutton.opaque.circular {
+  border-radius: 0;
+}

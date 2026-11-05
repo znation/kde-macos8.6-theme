@@ -2633,9 +2633,15 @@ for radio in (False, True):
                     )
 
     def test_circular_button_corners(self):
+        # The landed circular record squares the two children the toolkit
+        # arms name; the 2026-11-04 container entry adds the two .circular
+        # container members stock groups with the pill pair, so the
+        # .circular sweep covers all four spellings.
         expected = {
             "menubutton.circular button",
             "button.circular",
+            "menubutton.suggested-action.circular",
+            "menubutton.opaque.circular",
         }
         self.assertEqual(
             {selector for selector in self.rules if ".circular" in selector},
@@ -2919,6 +2925,14 @@ for radio in (False, True):
             " > overlay",
             extra_declarations={
                 "colorswatch:focus:focus-visible": {"outline-color": BLACK},
+                # The 2026-11-04 container entry squares the colour
+                # button's two higher-specificity swatch spellings stock
+                # groups before the integration library's own arm; they
+                # carry the corner radius and nothing else.
+                "button.color > colorswatch:only-child": {"border-radius": "0"},
+                "button.color > colorswatch:only-child > overlay": {
+                    "border-radius": "0"
+                },
             },
         )
 
@@ -3884,6 +3898,46 @@ for radio in (False, True):
                     self.selectors.index(selector),
                     self.selectors.index("floating-sheet > sheet"),
                 )
+
+    def test_color_button_and_menubutton_container_corners(self):
+        # The 2026-11-04 container group squares the colour button's inner
+        # swatch face and its overlay plus the plain, suggested-action and
+        # opaque menu-button containers; the coloured container paints its
+        # own rounding (its background arm rests on the container node
+        # while the covered child buttons declare transparent
+        # backgrounds), so the six face groups join them in one comma
+        # group. The two .pill container spellings stay excluded: the
+        # landed pill record already squares them byte-for-byte.
+        selectors = {
+            "button.color > colorswatch:only-child",
+            "button.color > colorswatch:only-child > overlay",
+            "menubutton.suggested-action",
+            "menubutton.opaque",
+            "menubutton.suggested-action.circular",
+            "menubutton.opaque.circular",
+        }
+        for selector in sorted(selectors):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("indicatorbin > mask"),
+                )
+        # The distinctive button colour token is new to the sheet, so the
+        # scan is its whole contract; a stray state twin would carry it
+        # into the set. (The menu-button tokens cannot be swept by
+        # substring: landed band focus and covered-button spellings name
+        # them too, so those faces guard by count-1 and whole-rule above.)
+        self.assertEqual(
+            {selector for selector in self.rules if "button.color" in selector},
+            {
+                "button.color > colorswatch:only-child",
+                "button.color > colorswatch:only-child > overlay",
+            },
+        )
 
     def test_residual_radius_corners(self):
         # The 2026-11-04 residual-corner row squares the last seven
