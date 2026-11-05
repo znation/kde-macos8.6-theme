@@ -870,9 +870,15 @@ for radio in (False, True):
     def test_emoji_section_button_focus_outline_color(self):
         selector = "button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)"
         self.assert_black_focus_outline((selector,))
+        # The 2026-11-04 residual radii record adds the section button's
+        # own byte-equal zero-radius spelling to this token sweep; the
+        # focus spelling stays the sweep's other member.
         self.assertEqual(
             {item for item in self.selectors if "emoji-section" in item},
-            {selector},
+            {
+                selector,
+                "button.emoji-section.image-button:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            },
         )
 
     def test_entry_focus_outline_color(self):
@@ -2657,6 +2663,78 @@ for radio in (False, True):
                         self.rules[reference]["border-radius"],
                     )
 
+    def test_row_spin_stepper_corners(self):
+        """Pin the six restated preference-row spin stepper arms.
+
+        No collected reference screenshot shows a preference-row spin
+        stepper, so the sheet restates the six row-spin members stock's
+        34px-minimum arm (and its earlier 9px arm) declares byte-equal,
+        each carrying exactly the zero radius: the landed generic button
+        restate names the one element and loses the compound row.spin tie,
+        and the landed plain horizontal stepper groups name
+        spinbutton:not(.vertical), so stock paints these steppers 9px and
+        9999px round today. The six spellings sit in one comma group at the
+        sheet tail with their dated comment.
+        """
+        expected = (
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(ltr):last-child",
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(rtl):first-child",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+        )
+        for selector in expected:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_matches_frame(selector, "border-radius")
+        self.assertEqual(
+            {selector for selector in self.rules if "row.spin" in selector},
+            set(expected),
+        )
+
+    def test_emoji_section_button_corners(self):
+        """Pin the restated emoji picker's section-button radius arm.
+
+        No collected reference screenshot shows an emoji picker's section
+        row, so the sheet restates stock's 34px-minimum section-button arm
+        byte-equal with exactly the zero radius: the landed emoji-section
+        record squares the picker's emoji-completion-row corners and owns
+        only this button's focus outline, so stock keeps this button's own
+        face round today.
+        """
+        selector = (
+            "button.emoji-section.image-button:not(.raised):not(.suggested-action)"
+            ":not(.destructive-action):not(.opaque)"
+        )
+        self.assert_rule(selector, {"border-radius": "0"})
+        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_matches_frame(selector, "border-radius")
+
+    def test_sidebar_button_corners(self):
+        """Pin the restated sidebar navigation-button radius arm.
+
+        No collected reference screenshot shows a sidebar navigation
+        button, so the sheet restates stock's 16px-minimum 100%-radius arm
+        byte-equal with exactly the zero radius: the landed sidebar records
+        own the focus outline colour and the selection-tint colours only,
+        so stock keeps this button's face round today.
+        """
+        selector = "button.sidebar-button"
+        self.assert_rule(selector, {"border-radius": "0"})
+        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_matches_frame(selector, "border-radius")
+        self.assertEqual(
+            {selector for selector in self.rules if "sidebar-button" in selector},
+            {
+                "button.sidebar-button",
+                "button.sidebar-button:focus:focus-visible",
+                "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled)",
+                "row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop",
+            },
+        )
+
     def test_scale_popup_buttons(self):
         """Clear the stock rounded scale-popup button overrides."""
         self.assertEqual(
@@ -3464,6 +3542,20 @@ for radio in (False, True):
         # sheet: the landed .linked group members pair the two names but
         # carry no `` button`` token, and the landed OSD steppers are
         # excluded here, so the scan kills renamed and stray variants.
+        # The 2026-11-04 residual radii record adds the six byte-equal
+        # row-spin steppers (the vertical preference-row variant stock
+        # gives its own 9px and 9999px arms) to this scan; the landed
+        # plain-steppers record named those variants its own future
+        # candidates, and their selectors carry the `` button`` token the
+        # scan keys on.
+        row_spin = (
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child",
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(ltr):last-child",
+            "row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(rtl):first-child",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child",
+            "row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child",
+        )
         self.assertEqual(
             {
                 s
@@ -3472,7 +3564,7 @@ for radio in (False, True):
                 and " button" in s
                 and ".osd" not in s
             },
-            set(expected),
+            set(expected) | set(row_spin),
         )
         # The seven groups sit between the landed entry.warning focus arm
         # and the landed OSD entry-field block.

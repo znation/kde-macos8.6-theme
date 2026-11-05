@@ -4289,3 +4289,81 @@ menubutton.suggested-action.circular,
 menubutton.opaque.circular {
   border-radius: 0;
 }
+
+/* The preference-row spin steppers, the emoji picker's section button and
+   the sidebar's navigation button are radius-bearing arms stock still
+   rounds and no landed restatement squares: no collected reference
+   screenshot in macos8.6-screenshots/ shows a preference-row spin
+   stepper, an emoji picker's section row or a sidebar navigation button,
+   so the corners follow this theme's landed square-corner policy (the
+   frame border, frame class, button, card, tab-family, toggle-group,
+   slider, pill and plain-stepper restatements, the popover interior and
+   the widget-family records all declare border-radius: 0, with the landed
+   radio button's 50% circle as the reference-grounded exception). The
+   integration library's base.css resource (probe path recorded in
+   docs/invariants.md, extracted 2026-11-04: a 2622-line resource)
+   declares three radius-bearing arms naming these faces, quoted verbatim
+   with their lines in that resource:
+   - notebook > header > tabs > arrow, row.spin spinbutton >
+     button.image-button.up:not(.flat):not(.raised):not(.suggested-action)
+     :not(.destructive-action):not(.opaque):last-child, and that up
+     spelling's :dir(ltr):last-child and :dir(rtl):first-child twins, and
+     the down spelling without a position qualifier beside its
+     :dir(ltr):last-child and :dir(rtl):first-child twins —
+     { min-height: 24px; min-width: 16px; padding: 5px 10px;
+     border-radius: 9px; font-weight: bold; } — the six members stock
+     gives a rounded base (line 166); and the same six spellings plus
+     button.emoji-section.image-button:not(.raised):not(.suggested-action)
+     :not(.destructive-action):not(.opaque), menubutton.circular > button
+     and button.circular — { min-width: 34px; min-height: 34px;
+     padding: 0; border-radius: 9999px; } (line 286);
+   - button.sidebar-button { min-height: 26px; min-width: 26px;
+     margin-top: 3px; margin-bottom: 3px; padding: 0;
+     border-radius: 100%; } (line 859).
+   The landed restatements cannot reach these faces: the landed generic
+   button restate names the one element and loses the row-spin steppers'
+   compound row.spin tie, the landed plain horizontal stepper groups name
+   spinbutton:not(.vertical) and cannot tie this vertical row variant,
+   and both landed records' scope statements name the non-.osd row.spin
+   variants their own future candidates; the landed emoji-section work
+   squares the picker's emoji-completion-row corners and owns only the
+   section button's focus outline, and the landed sidebar records own the
+   focus colour and the selection-tint colours, no radius. The six
+   steppers and the section button paint stock's rounding directly: the
+   row-spin steppers paint the 34px-minimum round face of the line-286
+   arm, and the sidebar button paints the 100% round face. Each spelling
+   below is byte-equal to its stock spelling, and later user-sheet source
+   order wins stock's equal-specificity tie per-property, so only the
+   radius changes ownership: the steppers' minimums, padding and bold
+   label face, the section button's 34px minimums and zero padding, and
+   the sidebar button's minimums, vertical margins and zero padding stay
+   inherited per-property. Excluded on purpose: the notebook tab arrow,
+   the one remaining 9px member of the line-166 group, stays stock for a
+   later planner — no landed posture names it today; the two circular
+   members stock groups in the line-286 arm are already square by the
+   landed menubutton.circular button / button.circular descendant
+   spelling winning the equal-specificity race in this sheet's later
+   source order, so restating them would be inert; the
+   checkbutton.selection-mode check/radio 100px twins stay stock per the
+   landed sheet comment; and the emoji-picker's :hover/:checked membership
+   recolour arms declare no radius. The shipped GTK 3 sheet needs
+   nothing: its resource names no row-spin token (there is no equivalent)
+   and it already sets the emoji-section button stock at radius 0 itself.
+   (2026-11-04) */
+
+row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child,
+row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(ltr):last-child,
+row.spin spinbutton > button.image-button.up:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):last-child:dir(rtl):first-child,
+row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(ltr):last-child,
+row.spin spinbutton > button.image-button.down:not(.flat):not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque):dir(rtl):first-child {
+  border-radius: 0;
+}
+
+button.emoji-section.image-button:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) {
+  border-radius: 0;
+}
+
+button.sidebar-button {
+  border-radius: 0;
+}
