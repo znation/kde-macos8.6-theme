@@ -4125,3 +4125,37 @@ infobar .close,
 searchbar > revealer > box .close {
   border-radius: 0;
 }
+
+/* The GTK indicator-bin badge — the dot, optionally with its count label,
+   hung out of tab buttons, inline view switchers and toggle pills — and
+   its reveal mask have no collected reference surface: no screenshot in
+   macos8.6-screenshots/ shows either node, so the corners follow this
+   theme's landed square-corner policy (the frame border, frame class,
+   button, card, tab-family, toggle-group and cursor-handle restatements
+   all declare border-radius: 0, with the landed radio button's 50% circle
+   as the reference-grounded exception). The integration library's
+   base.css resource (probe path recorded in docs/invariants.md, extracted
+   2026-11-04: a 2622-line resource) declares exactly one radius-bearing
+   indicator-bin arm, quoted verbatim: indicatorbin > indicator,
+   indicatorbin > mask { min-width: 6px; min-height: 6px; border-radius:
+   100px; }. The landed restatements cannot reach these nodes: the
+   indicator bin is not a button, so the generic button restate never
+   matches it, and the landed toggle-family and tab-family records name
+   the toggle shells and the tab-page indicator, never this badge widget's
+   own children. Stock expects the drawn dot and its mask circular
+   together, so both are squared in one comma group: squaring the mask
+   alone would leave it clipping a circular dot, or the reverse. Each twin
+   below is byte-equal to its stock spelling and wins the
+   equal-specificity tie by later user-sheet source order, so only the
+   radius changes ownership; the indicator's own margin and background
+   arm, the mask's padding and background arm, the needs-attention and
+   badge state arms, the tabbutton transform twins and the
+   inline-view-switcher padding, label and translate arms declare no
+   radius and stay inherited per-property. The shipped GTK 3 sheet names
+   zero indicatorbin tokens (this widget has no GTK 3 twin), so it needs
+   nothing. (2026-11-04) */
+
+indicatorbin > indicator,
+indicatorbin > mask {
+  border-radius: 0;
+}

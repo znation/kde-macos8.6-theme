@@ -3858,6 +3858,28 @@ for radio in (False, True):
                 self.selectors.index(".toolbar"),
             )
 
+    def test_indicator_bin_corners(self):
+        # Stock cuts the indicator bin's badge dot and its reveal mask into
+        # circles; the square-corner policy squares both nodes together —
+        # squaring one alone would leave them disagreeing. The two
+        # descendants of this comma group are the sheet's whole
+        # indicatorbin family.
+        selectors = {"indicatorbin > indicator", "indicatorbin > mask"}
+        self.assertEqual(
+            {selector for selector in self.rules if "indicatorbin" in selector},
+            selectors,
+        )
+        for selector in sorted(selectors):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("floating-sheet > sheet"),
+                )
+
     def test_alert_dialog_corners(self):
         # The 2026-11-04 alert-dialog comment block appends six
         # stock-comma groups after the landed cursor-handle tail group;
