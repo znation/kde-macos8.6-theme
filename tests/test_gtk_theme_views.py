@@ -407,8 +407,22 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # The four tokens have no landed or unrelated neighbours: the landed
         # keycap corner record is the GTK 4 `shortcut > .keycap` spelling,
         # and the suite's other emoji sweeps name GTK 4 spellings only.
+        # 2026-11-04: the linked-field end-corner record restates six more
+        # linked arm members naming the inline-toolbar token — the three
+        # `.inline-toolbar button…` end members and the three
+        # `toolbar.inline-toolbar toolbutton…` end members — all pinned
+        # with the other linked-field spellings by
+        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_linked_end_field_corners.
         self.assertEqual(
-            {s for s in self.rules if "inline-toolbar" in s}, {".inline-toolbar"}
+            {s for s in self.rules if "inline-toolbar" in s},
+            {".inline-toolbar",
+             ".inline-toolbar button:first-child",
+             ".inline-toolbar button:last-child",
+             ".inline-toolbar button:only-child",
+             "toolbar.inline-toolbar toolbutton:first-child > button.flat",
+             "toolbar.inline-toolbar toolbutton:last-child > button.flat",
+             "toolbar.inline-toolbar toolbutton:only-child > button.flat"},
         )
         self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
         self.assertEqual(

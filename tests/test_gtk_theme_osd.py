@@ -316,14 +316,24 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # ``modelbutton.flat`` and ``.menuitem.button.flat`` stock twins
             # (menu rows, not overlay bands, pinned by
             # test_gtk_theme.TestGtkTheme::test_round_button_face_corners),
-            # excluded like the notebook arms.
+            # excluded like the notebook arms. 2026-11-04: the linked-field
+            # end-corner record restates the three
+            # ``toolbar.inline-toolbar toolbutton…`` end-member arms (linked
+            # rows, not overlay bands, pinned by
+            # test_gtk_theme_controls.TestGtkThemeControls::
+            # test_linked_end_field_corners), excluded like the notebook
+            # arms.
             {selector
              for selector in self.rules
              if "button" in selector and "flat" in selector
              and not selector.startswith("button")
              and not selector.startswith("row:selected button")
              and not selector.startswith("notebook > header tab")
-             and selector not in ("modelbutton.flat", ".menuitem.button.flat")},
+             and selector not in
+             ("modelbutton.flat", ".menuitem.button.flat",
+              "toolbar.inline-toolbar toolbutton:first-child > button.flat",
+              "toolbar.inline-toolbar toolbutton:last-child > button.flat",
+              "toolbar.inline-toolbar toolbutton:only-child > button.flat")},
             enumerated | {".osd .scale-popup button.flat"},
         )
 

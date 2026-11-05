@@ -3940,3 +3940,150 @@ scale.fine-tune trough {
 popover.emoji-picker .emoji :hover {
   border-radius: 0;
 }
+
+/* Stock rounds the two ends and the lone child of every linked container
+   onto per-corner radius arms the shipped sheet cannot answer. The
+   landed 2026-10-29 linked-border record gives each group its shared
+   black border through style-only groups, the landed unclassed `button`
+   restate carries no pseudo-class, and the landed round-button class
+   twins spell no `:first-child`/`:last-child`/`:only-child` linked
+   member, so stock's 5px corner cuts and their matching
+   `-gtk-outline-radius` focus-ring halves would paint every linked
+   row's two ends instead — no collected reference screenshot shows a
+   GTK linked field's end corners (the GTK scope's standing adaptation
+   premise), so the ends square against the landed square-corner policy
+   (the landed `menu`, `button`, frame and scrollbar restatements this
+   same sheet carry `border-radius: 0`, with the landed `radio` circle
+   as the reference-grounded exception), and the focus-ring halves
+   square through the `-gtk-outline-` longhands zeroed beside their
+   radius twins.
+
+   The toolkit resource (gtk-contained.css inside libgtk-3, probed with
+   gresource on 2026-11-04; its full resource path is recorded in
+   docs/invariants.md) rounds six of its linked arms, each quoted
+   verbatim at its resource line:
+
+   * line 405 — `.linked:not(.vertical) > combobox:first-child > box >
+     button.combo, combobox.linked button:nth-child(2):dir(rtl),
+     filechooser .path-bar.linked > button:dir(rtl):last-child,
+     filechooser .path-bar.linked > button:dir(ltr):first-child,
+     .linked:not(.vertical) > spinbutton:first-child:not(.vertical),
+     .linked:not(.vertical) > entry:first-child, .inline-toolbar
+     button:first-child, .linked > button:first-child,
+     toolbar.inline-toolbar toolbutton:first-child > button.flat {
+     border-top-left-radius: 5px; border-bottom-left-radius: 5px;
+     -gtk-outline-top-left-radius: 5px;
+     -gtk-outline-bottom-left-radius: 5px; }`
+   * line 407 — the first-child arm's nine spellings with `:first-child`
+     recast `:last-child` and its two `:dir` members swapped for the
+     rtl/ltr mirror twins, closing `{ border-right-style: solid;
+     border-top-right-radius: 5px; border-bottom-right-radius: 5px;
+     -gtk-outline-top-right-radius: 5px;
+     -gtk-outline-bottom-right-radius: 5px; }`
+   * line 409 — `.linked:not(.vertical) > combobox:only-child > box >
+     button.combo, filechooser .path-bar.linked > button:only-child,
+     .linked:not(.vertical) > spinbutton:only-child:not(.vertical),
+     .linked:not(.vertical) > entry:only-child, .inline-toolbar
+     button:only-child, .linked > button:only-child,
+     toolbar.inline-toolbar toolbutton:only-child > button.flat {
+     border-style: solid; border-radius: 5px; -gtk-outline-radius: 5px
+     }`
+   * line 413 — `.linked.vertical > combobox:first-child > box >
+     button.combo, .linked.vertical > spinbutton:first-child:not(.vertical),
+     .linked.vertical > entry:first-child, .linked.vertical >
+     button:first-child { border-top-left-radius: 5px;
+     border-top-right-radius: 5px; -gtk-outline-top-left-radius: 5px;
+     -gtk-outline-top-right-radius: 5px; }`
+   * line 415 — the same four vertical family spellings with
+     `:last-child`, closing `{ border-bottom-style: solid;
+     border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+     -gtk-outline-bottom-left-radius: 5px;
+     -gtk-outline-bottom-right-radius: 5px; }`
+   * line 417 — the same four vertical family spellings with
+     `:only-child`, closing `{ border-style: solid; border-radius: 5px;
+     -gtk-outline-radius: 5px; }`
+
+   Stock's other `.linked` arms carry no radius — the sibling-adjacency
+   focus, error, drop and disabled border-coupling arms recolour the
+   shared border only — and the non-radius companions stock pairs into
+   the corner arms stay inherited per-property: the horizontal last
+   arm's `border-right-style: solid`, both only-child arms'
+   `border-style: solid` and the vertical last arm's
+   `border-bottom-style: solid` keep governing beside the landed
+   border-sharing groups' own style declarations. Loading path: one
+   landed record reads a GTK 3 theme selection as replacing the stock
+   stylesheet entirely, while the landed per-property records read the
+   toolkit resource as the lower sheet; every restatement below is
+   byte-equal to its stock twin and sits later in source order, so
+   under either reading only the radius changes hands — the
+   restatement wins each equal-specificity tie per-property, or is the
+   sheet's own pin for a surface it did not cover. Declaration checks
+   do not establish rendered pixels. */
+.linked:not(.vertical) > combobox:first-child > box > button.combo,
+combobox.linked button:nth-child(2):dir(rtl),
+filechooser .path-bar.linked > button:dir(rtl):last-child,
+filechooser .path-bar.linked > button:dir(ltr):first-child,
+.linked:not(.vertical) > spinbutton:first-child:not(.vertical),
+.linked:not(.vertical) > entry:first-child,
+.inline-toolbar button:first-child,
+.linked > button:first-child,
+toolbar.inline-toolbar toolbutton:first-child > button.flat {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  -gtk-outline-top-left-radius: 0;
+  -gtk-outline-bottom-left-radius: 0;
+}
+
+.linked:not(.vertical) > combobox:last-child > box > button.combo,
+combobox.linked button:nth-child(2):dir(ltr),
+filechooser .path-bar.linked > button:dir(rtl):first-child,
+filechooser .path-bar.linked > button:dir(ltr):last-child,
+.linked:not(.vertical) > spinbutton:last-child:not(.vertical),
+.linked:not(.vertical) > entry:last-child,
+.inline-toolbar button:last-child,
+.linked > button:last-child,
+toolbar.inline-toolbar toolbutton:last-child > button.flat {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  -gtk-outline-top-right-radius: 0;
+  -gtk-outline-bottom-right-radius: 0;
+}
+
+.linked:not(.vertical) > combobox:only-child > box > button.combo,
+filechooser .path-bar.linked > button:only-child,
+.linked:not(.vertical) > spinbutton:only-child:not(.vertical),
+.linked:not(.vertical) > entry:only-child,
+.inline-toolbar button:only-child,
+.linked > button:only-child,
+toolbar.inline-toolbar toolbutton:only-child > button.flat {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+.linked.vertical > combobox:first-child > box > button.combo,
+.linked.vertical > spinbutton:first-child:not(.vertical),
+.linked.vertical > entry:first-child,
+.linked.vertical > button:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  -gtk-outline-top-left-radius: 0;
+  -gtk-outline-top-right-radius: 0;
+}
+
+.linked.vertical > combobox:last-child > box > button.combo,
+.linked.vertical > spinbutton:last-child:not(.vertical),
+.linked.vertical > entry:last-child,
+.linked.vertical > button:last-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  -gtk-outline-bottom-left-radius: 0;
+  -gtk-outline-bottom-right-radius: 0;
+}
+
+.linked.vertical > combobox:only-child > box > button.combo,
+.linked.vertical > spinbutton:only-child:not(.vertical),
+.linked.vertical > entry:only-child,
+.linked.vertical > button:only-child {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
