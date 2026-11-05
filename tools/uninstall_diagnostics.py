@@ -59,18 +59,37 @@ def config_home(env: dict[str, str]) -> str | None:
     return config_home or None
 
 
+# A config file is a small settings file the running user owns, so the
+# diagnostics-only reader applies the same 1 MiB cap every other bounded read
+# here applies (``reference_sources``' sources.txt, ``theme_defaults``' defaults
+# file, ``gtk_user_files``' settings and CSS, the Firefox profile files):
+# a file bigger than that is unreadable for these warnings' purposes instead
+# of being loaded whole.
+_MAX_CONFIG_BYTES = 1 << 20
+
+
 def read_text(path: str) -> str | None:
-    """Return the file's text, or ``None`` when absent or unreadable.
+    """Return the file's text, or ``None`` when absent, unreadable or over the cap.
 
     Unmappable bytes are kept as surrogate escapes so a foreign file is not
-    silently empty; an unmapped value never matches one of the ids.
+    silently empty; an unmapped value never matches one of the ids. At most
+    one byte past the cap is read, so a config file grown (or left corrupt by
+    another tool) larger than :data:`_MAX_CONFIG_BYTES` cannot exhaust memory
+    inside this diagnostics-only reader, which must always succeed; at the
+    cap exactly the file is read whole and parsed. An over-cap file is
+    unreadable in the sense the module contract pins -- its selections are
+    left silent -- because reading a prefix and parsing it could compare a
+    selection against a value the cap cut short and misreport one that the
+    whole file would have named differently.
     """
     if not os.path.isfile(path):
         return None
     try:
         with open(path, "rb") as handle:
-            data = handle.read()
+            data = handle.read(_MAX_CONFIG_BYTES + 1)
     except OSError:
+        return None
+    if len(data) > _MAX_CONFIG_BYTES:
         return None
     return data.decode("utf-8", errors="surrogateescape")
 
@@ -265,14 +284,12 @@ def diagnostics(
         ):
             chosen = f"{chosen} {ini}"
     css = os.path.join(config_home, "gtk-4.0", "gtk.css")
-    if os.path.isfile(css):
-        try:
-            with open(css, "rb") as handle:
-                css_data = handle.read()
-        except OSError:
-            css_data = None
-        if css_data is not None and css_marker.encode("utf-8") in css_data:
-            chosen = f"{chosen} {css}"
+    # The marker is ASCII, so the same bounded read_text scan the ini files
+    # get finds it in the decoded text byte-for-byte; a shared-cap reader
+    # cannot read this path while skipping the cap the ini reads have.
+    css_text = read_text(css)
+    if css_text is not None and css_marker in css_text:
+        chosen = f"{chosen} {css}"
     if chosen:
         messages.append(
             f"uninstall: a GTK selection still names {gtk_id} after removal"
