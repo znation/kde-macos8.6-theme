@@ -541,6 +541,65 @@ for radio in (False, True):
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
 
+    def test_disabled_view_face(self):
+        """Pin the restated disabled view field stock-twin."""
+        # 2026-11-04: disabled views keep the landed white content field —
+        # stock's (0,2,0) disabled view arm beats the landed (0,1,0)
+        # `.view, list` group and no landed rule names its compound twins,
+        # so stock would wash each member grey without the group.
+        selectors = (
+            ".view:disabled",
+            "window.print:not(.ssd-frame) .dialog-action-box:disabled",
+            "dialog-host > dialog.view sheet:disabled",
+            "window.print:not(.ssd-frame) dialog-host > "
+            "dialog.dialog-action-box sheet:disabled",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"background-color": WHITE})
+                self.assertEqual(self.rules[selector], {"background-color": WHITE})
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+        # The token sweeps key on substrings no landed selector carries:
+        # the print action-box spelling alone carries
+        # "dialog-action-box:disabled", and both sheet spellings alone
+        # carry "sheet:disabled".
+        self.assertEqual(
+            {s for s in self.rules if "dialog-action-box:disabled" in s},
+            {"window.print:not(.ssd-frame) .dialog-action-box:disabled"},
+        )
+        self.assertEqual(
+            {s for s in self.rules if "sheet:disabled" in s},
+            {
+                "dialog-host > dialog.view sheet:disabled",
+                "window.print:not(.ssd-frame) dialog-host > "
+                "dialog.dialog-action-box sheet:disabled",
+            },
+        )
+        # The landed frame pair declares no background-color, so the fill
+        # anchors to the pinned WHITE constant the landed `.view, list`
+        # view-field test uses.
+        self.assertEqual(self.rules[".view:disabled"]["background-color"], WHITE)
+        # The sheet parser splits the landed comma group into per-selector
+        # keys, so the landed field anchor reads under its .view key.
+        self.assertEqual(self.rules[".view"]["background-color"], WHITE)
+        # Source order: the restated group files after the landed
+        # ``.view:disabled:selected`` ink key, then after the landed
+        # selection-surface group that ended the sheet tail before it.
+        for selector in selectors:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index(".view:disabled:selected"),
+                selector,
+            )
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index(
+                    "window.print:not(.ssd-frame) dialog-host > "
+                    "dialog.dialog-action-box sheet:selected"
+                ),
+                selector,
+            )
+
     def test_content_view_field_and_hover(self):
         self.assert_rule(".content-view", VIEW_BACKGROUND)
         self.assert_rule(".content-view:hover", {"-gtk-icon-filter": "none"})
@@ -4224,7 +4283,8 @@ for radio in (False, True):
             },
         )
         # The 2026-11-04 selection-surface record's two compound dialog-host
-        # spellings joined this family scan.
+        # spellings joined this family scan, and the same-day disabled-view
+        # record's two sheet spellings join them beside it.
         self.assertEqual(
             {s for s in self.rules if "dialog-host" in s},
             {
@@ -4233,6 +4293,9 @@ for radio in (False, True):
                 "dialog-host > dialog.view sheet:selected",
                 "window.print:not(.ssd-frame) dialog-host > "
                 "dialog.dialog-action-box sheet:selected",
+                "dialog-host > dialog.view sheet:disabled",
+                "window.print:not(.ssd-frame) dialog-host > "
+                "dialog.dialog-action-box sheet:disabled",
             },
         )
         self.assertEqual(
