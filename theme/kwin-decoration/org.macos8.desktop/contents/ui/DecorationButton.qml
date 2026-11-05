@@ -8,11 +8,26 @@ import org.kde.kwin.decoration
 
 Item {
     id: button
+    // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+    // part 3/3": Platinum is active=frontmost (the 2026-11-04 direction), so an
+    // unfocused window's bar is the flat buttonless strip its empty
+    // inactive-centre art draws while this button's hit cell stayed live and a
+    // click meant only to refocus could close or maximize the window. This
+    // KWin/Decoration package copy -- run instead of the engine file only through
+    // the loadComponent() KPackage route, the Option A plan part 1/3 chose over
+    // Option B's data-home shadow of the shared engine component -- gates the
+    // interactive hit area on window activity. Geometry and art are untouched:
+    // active windows draw and press as before, and on an unfocused window the
+    // disabled Item drops its MouseArea so the click falls through to the title
+    // bar's activate.
     property int buttonType : DecorationOptions.DecorationButtonNone
     property bool hovered: false
     property bool pressed: false
     property bool toggled: false
     enabled: {
+        if (!decoration.client.active) {
+            return false;
+        }
         switch (button.buttonType) {
         case DecorationOptions.DecorationButtonClose:
             return decoration.client.closeable;

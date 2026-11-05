@@ -2,7 +2,8 @@
 
 The `KWin/Decoration` KPackage under theme/kwin-decoration/: the metadata
 KPackage discovers, the engine QML component copies (byte-equal where the
-engine file references no auroraeTheme, rename-only where it does), the
+engine file references no auroraeTheme, rename-only where it does, gated on
+window activity where it draws a button hit cell, all part 3/3), the
 `AuroraeTheme` singleton that answers the context name KWin withholds from
 QML packages, and the install/uninstall lifecycle. The shipped look-and-feel
 defaults select the package: `[kwinrc][org.kde.kdecoration2]` publishes
@@ -42,8 +43,10 @@ RC_PATH = f"{AURORAE_DIR}/org.macos8.desktoprc"
 
 # The engine files the package copies byte-equal (no `auroraeTheme` source
 # token), and the rename each engine file needs. `aurorae.qml` ships as
-# `main.qml`, the component Helper::loadComponent() reads.
-BYTE_EQUAL_COPIES = ("Decoration.qml", "DecorationButton.qml", "MenuButton.qml")
+# `main.qml`, the component Helper::loadComponent() reads. Part 3/3 moved its
+# three gated copies out of these tuples into the expectations that follow:
+# equal-plus-gate, not plain equal.
+BYTE_EQUAL_COPIES = ("Decoration.qml",)
 RENAMED_COPIES = (
     ("aurorae.qml", "main.qml"),
     ("AuroraeButton.qml", "AuroraeButton.qml"),
@@ -68,6 +71,89 @@ INSTALLED_FILES = (
 
 PROPERTY_RE = re.compile(r"^\s*property (\w+) (\w+): (.*)$")
 REFERENCE_RE = re.compile(r"\bauroraeTheme\.(\w+)")
+
+# The part 3/3 hit-area gating (2026-11-04): the package copy equals its engine
+# file with only the additions below, so an un-gated copy or an engine byte
+# touched anywhere else fails. The comments are the dated plan-notes the
+# copies carry; each expected text re-derives from the engine file on disk.
+DECORATION_BUTTON_COMMENT = """\
+    // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+    // part 3/3": Platinum is active=frontmost (the 2026-11-04 direction), so an
+    // unfocused window's bar is the flat buttonless strip its empty
+    // inactive-centre art draws while this button's hit cell stayed live and a
+    // click meant only to refocus could close or maximize the window. This
+    // KWin/Decoration package copy -- run instead of the engine file only through
+    // the loadComponent() KPackage route, the Option A plan part 1/3 chose over
+    // Option B's data-home shadow of the shared engine component -- gates the
+    // interactive hit area on window activity. Geometry and art are untouched:
+    // active windows draw and press as before, and on an unfocused window the
+    // disabled Item drops its MouseArea so the click falls through to the title
+    // bar's activate.
+"""
+MENU_BUTTON_COMMENT = """\
+        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // part 3/3": gate the standalone hit area on window activity -- on an
+        // unfocused window's flat buttonless bar a long-press here eats the
+        // refocusing click and, with closeOnDoubleClick, a second click could
+        // even close the window; the active=frontmost direction (2026-11-04) and
+        // the package KPackage route (part 1/3's Option A, not Option B's
+        // data-home engine shadow) are recorded in this file's package copy.
+"""
+MAXIMIZE_BUTTON_COMMENT = """\
+        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // part 3/3": gate the standalone hit area on window activity -- the
+        // maximize/restore cell on an unfocused window's flat buttonless bar
+        // maximized windows meant only to be refocused; the active=frontmost
+        // direction (2026-11-04) and the package KPackage route (part 1/3's
+        // Option A, not Option B's data-home engine shadow) are recorded in this
+        // package's copy of the engine file (AuroraeTheme singleton spelling).
+"""
+DECORATION_BUTTON_COMMENT_HEAD = "    id: button\n"
+ENABLED_BLOCK_HEAD = "    enabled: {\n"
+MOUSEAREA_HEAD = "    MouseArea {\n        anchors.fill: parent\n"
+INACTIVE_GUARD = """\
+        if (!decoration.client.active) {
+            return false;
+        }
+"""
+INACTIVE_MOUSEAREA_GATE = "        enabled: decoration.client.active\n"
+
+
+def expected_gated_decoration_button(engine):
+    """The package DecorationButton.qml copy: comment, then the guarded switch."""
+    assert engine.count(DECORATION_BUTTON_COMMENT_HEAD) == 1, ENGINE_DIR
+    copy = engine.replace(
+        DECORATION_BUTTON_COMMENT_HEAD,
+        DECORATION_BUTTON_COMMENT_HEAD + DECORATION_BUTTON_COMMENT,
+    )
+    assert copy.count(ENABLED_BLOCK_HEAD) == 1, ENGINE_DIR
+    return copy.replace(ENABLED_BLOCK_HEAD, ENABLED_BLOCK_HEAD + INACTIVE_GUARD)
+
+
+def expected_gated_menu_button(engine):
+    """The package MenuButton.qml copy: the enabled MouseArea, comment first."""
+    assert engine.count(MOUSEAREA_HEAD) == 1, ENGINE_DIR
+    return engine.replace(
+        MOUSEAREA_HEAD,
+        MOUSEAREA_HEAD + MENU_BUTTON_COMMENT + INACTIVE_MOUSEAREA_GATE,
+    )
+
+
+def expected_gated_aurorae_maximize_button(engine):
+    """The package AuroraeMaximizeButton.qml copy: rename, comment, gate."""
+    renamed = engine.replace("auroraeTheme.", "AuroraeTheme.")
+    assert renamed.count(MOUSEAREA_HEAD) == 1, ENGINE_DIR
+    return renamed.replace(
+        MOUSEAREA_HEAD,
+        MOUSEAREA_HEAD + MAXIMIZE_BUTTON_COMMENT + INACTIVE_MOUSEAREA_GATE,
+    )
+
+
+GATED_COPIES = (
+    ("DecorationButton.qml", expected_gated_decoration_button),
+    ("MenuButton.qml", expected_gated_menu_button),
+    ("AuroraeMaximizeButton.qml", expected_gated_aurorae_maximize_button),
+)
 
 
 def read_text(path):
@@ -130,13 +216,33 @@ class TestCopies(unittest.TestCase):
         for engine_name, copy_name in RENAMED_COPIES:
             engine = read_text(f"{ENGINE_DIR}/{engine_name}")
             copy = read_text(f"{PACKAGE_DIR}/contents/ui/{copy_name}")
-            self.assertEqual(copy, engine.replace("auroraeTheme.", "AuroraeTheme."))
+            expected = engine.replace("auroraeTheme.", "AuroraeTheme.")
+            if copy_name == "AuroraeMaximizeButton.qml":
+                # Part 3/3 additionally gates this copy's standalone MouseArea;
+                # its expected text spells that added difference (above).
+                for gated_name, expectation in GATED_COPIES:
+                    if gated_name == copy_name:
+                        with self.subTest(name=copy_name):
+                            self.assertEqual(copy, expectation(engine))
+                continue
+            self.assertEqual(copy, expected)
             self.assertNotIn("auroraeTheme", copy, engine_name)
             self.assertEqual(
                 engine.count("auroraeTheme."),
                 copy.count("AuroraeTheme."),
                 engine_name,
             )
+
+    def test_gated_copies_match_the_engine_files_with_their_gate(self):
+        # Part 3/3 (2026-11-04): a hit-surface copy equals its engine file plus
+        # exactly the dated comment and the window-activity gate, so a dropped
+        # gate or an engine byte changed anywhere else fails rather than
+        # silently changing what a pressed invisible button does.
+        for name, expectation in GATED_COPIES:
+            engine = read_text(f"{ENGINE_DIR}/{name}")
+            copy = read_text(f"{PACKAGE_DIR}/contents/ui/{name}")
+            with self.subTest(name=name):
+                self.assertEqual(copy, expectation(engine))
 
 class TestSingleton(unittest.TestCase):
     """The singleton property set and the values it spells."""

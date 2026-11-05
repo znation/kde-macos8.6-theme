@@ -31,6 +31,14 @@ Item {
     }
     MouseArea {
         anchors.fill: parent
+        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // part 3/3": gate the standalone hit area on window activity -- on an
+        // unfocused window's flat buttonless bar a long-press here eats the
+        // refocusing click and, with closeOnDoubleClick, a second click could
+        // even close the window; the active=frontmost direction (2026-11-04) and
+        // the package KPackage route (part 1/3's Option A, not Option B's
+        // data-home engine shadow) are recorded in this file's package copy.
+        enabled: decoration.client.active
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: {
             parent.pressed = true;

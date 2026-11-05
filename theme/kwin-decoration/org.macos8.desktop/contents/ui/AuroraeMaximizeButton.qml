@@ -43,6 +43,14 @@ Item {
     }
     MouseArea {
         anchors.fill: parent
+        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // part 3/3": gate the standalone hit area on window activity -- the
+        // maximize/restore cell on an unfocused window's flat buttonless bar
+        // maximized windows meant only to be refocused; the active=frontmost
+        // direction (2026-11-04) and the package KPackage route (part 1/3's
+        // Option A, not Option B's data-home engine shadow) are recorded in this
+        // package's copy of the engine file (AuroraeTheme singleton spelling).
+        enabled: decoration.client.active
         acceptedButtons: {
             return Qt.LeftButton | Qt.RightButton | Qt.MiddleButton;
         }
