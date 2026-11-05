@@ -3760,3 +3760,57 @@ label:link:visited:selected:disabled:backdrop:hover,
 label:link:visited:selected:disabled:backdrop:active {
   color: #888888;
 }
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   circular button, sidebar navigation button, non-window-control title-bar
+   button, popover-menu model button row or overlay-scrollbar indicator dot
+   (the GTK scope's standing adaptation premise), so the five radius-bearing
+   stock arm spellings this sheet never restates are squared against the
+   landed square-corner policy of this same sheet — the landed plain `button`
+   restatement and the landed `scrollbar button` and window-control
+   restatements carry `border-radius: 0`, with the landed `radio` circle as
+   the reference-grounded exception. The toolkit resource (gtk-contained.css
+   inside libgtk-3, probed with gresource on 2026-11-04, libgtk-3 3.24.49;
+   its full resource path is recorded in docs/invariants.md) rounds five
+   faces this sheet answers at nothing: `button.circular` rounds 9999px with
+   an equal outline radius; `button.sidebar-button` rounds 100% with an equal
+   outline radius; `button.titlebutton:not(.appmenu)` rounds 9999px beyond
+   the three landed window controls; `modelbutton.flat, .menuitem.button.flat`
+   rounds 5px on the popover-menu and menu-item row faces; and
+   `scrollbar.overlay-indicator:not(.dragging):not(.hovering) button` rounds
+   100%. The landed plain `button` restatement is unclassed and loses stock's
+   class-qualified arms by one more class token; the landed window-control
+   groups reach only the closed, maximize and minimize title-buttons; the
+   landed `scrollbar button` rule is two elements and loses stock's
+   three-class overlay arm; and the landed popover tint groups declare
+   colours only, so no landed rule owns the model-button row radius. Each
+   restated selector below is the exact stock twin and sits later in source
+   order, so it wins every equal-specificity tie per-property; the two
+   outline-radius zeros keep the circular and sidebar keyboard focus rings
+   square like the landed focus restatements. Stock's padding, margins,
+   minimum sizes, background boxes, borders, dark face colour, opacity and
+   icon sources stay inherited per-property, and every state arm of these
+   spellings that carries no radius is left inherited. Declaration checks do
+   not establish rendered pixels. */
+button.circular {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+button.sidebar-button {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+button.titlebutton:not(.appmenu) {
+  border-radius: 0;
+}
+
+modelbutton.flat,
+.menuitem.button.flat {
+  border-radius: 0;
+}
+
+scrollbar.overlay-indicator:not(.dragging):not(.hovering) button {
+  border-radius: 0;
+}

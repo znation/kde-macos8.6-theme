@@ -312,12 +312,18 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # keeping only the named prefix sets. 2026-10-31: the notebook
             # tab-close restatements (pinned by
             # test_notebook_tab_close_button_arms) get their own exclusion.
+            # 2026-11-04: the landed round-button face corners carry the bare
+            # ``modelbutton.flat`` and ``.menuitem.button.flat`` stock twins
+            # (menu rows, not overlay bands, pinned by
+            # test_gtk_theme.TestGtkTheme::test_round_button_face_corners),
+            # excluded like the notebook arms.
             {selector
              for selector in self.rules
              if "button" in selector and "flat" in selector
              and not selector.startswith("button")
              and not selector.startswith("row:selected button")
-             and not selector.startswith("notebook > header tab")},
+             and not selector.startswith("notebook > header tab")
+             and selector not in ("modelbutton.flat", ".menuitem.button.flat")},
             enumerated | {".osd .scale-popup button.flat"},
         )
 
