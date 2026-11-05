@@ -3874,3 +3874,69 @@ tooltip.csd decoration {
 messagedialog.csd decoration {
   border-radius: 0;
 }
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   inline toolbar, keyboard-shortcut keycap, fine-tuned scale trough or
+   emoji-picker hover highlight (the GTK scope's standing adaptation
+   premise), so the four radius-bearing stock arm spellings this sheet
+   never restates are squared against the landed square-corner policy —
+   the landed `menu`, `button`, frame and scrollbar restatements this
+   same sheet carries `border-radius: 0`, with the landed `radio`
+   circle as the reference-grounded exception. The toolkit resource
+   (gtk-contained.css inside libgtk-3, probed with gresource on
+   2026-11-04; its full resource path is recorded in docs/invariants.md)
+   rounds four faces this sheet answers at nothing (stock arm quoted,
+   hex paint values elided, resource line named): line 572 declares
+   `.inline-toolbar { padding: 3px; border-width: 0 1px 1px;
+   border-radius: 0  0 5px 5px; }`, rounding the inline toolbar
+   container's two bottom corners 5px; line 1926 declares `.keycap {
+   min-width: 20px; min-height: 25px; ... border-radius: 5px; ... }`,
+   rounding the keyboard-shortcut keycap 5px; line 1238 declares
+   `scale.fine-tune fill, scale.fine-tune highlight,
+   scale.fine-tune trough { border-radius: 5px;
+   -gtk-outline-radius: 7px; }`, rounding the fine-tuned scale's fill,
+   highlight and trough 5px; and line 1968 declares
+   `popover.emoji-picker .emoji :hover { ... border-radius: 6px; }`,
+   rounding the emoji-picker grid cell hover highlight 6px. No landed group reaches
+   these four spellings: none of the four selectors appears elsewhere in
+   this sheet, and the landed keycap corner record is the GTK 4 spelling
+   `shortcut > .keycap`, which cannot match the bare GTK 3 compound.
+   Stock's own neighbours carry no radius: the `.inline-toolbar
+   toolbutton > button` state arms recolour only (their `:backdrop` twin
+   sets colours and shadow only), `.keycap:backdrop` sets colours and a
+   transition only, the scrollbar and scale fine-tune slider, marks and
+   indicator arms set minimum sizes, border widths and margins only, and
+   the emoji completion row arm carries no radius. The `.inline-toolbar
+   button` members inside stock's linked-field comma-group arms are the
+   reserved linked-field arms a later part owns — this entry squares the
+   standalone container rule only. Loading path: one landed record reads
+   a GTK 3 theme selection as replacing the stock stylesheet entirely,
+   while the landed per-property records read the toolkit resource as
+   the lower sheet; every restatement below is byte-equal to its stock
+   twin and sits later in source order, so under either reading only the
+   radius changes hands — the restatement wins each equal-specificity
+   tie per-property, or is the sheet's own pin for a surface it did not
+   cover. The restated arms' other properties stay inherited
+   per-property: the toolbar container's `padding: 3px` and
+   `border-width: 0 1px 1px`; the keycap's minimum sizes, top margin,
+   paddings, colour, background, border, border colours, inset relief
+   shadow and smaller font size; the trough arm's
+   `-gtk-outline-radius: 7px`; and the emoji hover's highlight fill.
+   Declaration checks do not establish rendered pixels. */
+.inline-toolbar {
+  border-radius: 0;
+}
+
+.keycap {
+  border-radius: 0;
+}
+
+scale.fine-tune fill,
+scale.fine-tune highlight,
+scale.fine-tune trough {
+  border-radius: 0;
+}
+
+popover.emoji-picker .emoji :hover {
+  border-radius: 0;
+}

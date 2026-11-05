@@ -383,6 +383,57 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                         self.selectors.index(landed),
                     )
 
+    def test_inline_toolbar_keycap_finetune_emoji_corners(self):
+        """Pin the inline-toolbar, keycap, fine-tune trough and emoji hover corners.
+
+        The four appended groups rest stock's inline-toolbar container,
+        shortcut keycap, fine-tuned scale trough family and emoji-picker
+        hover radius arms at zero; nothing else in the sheet names any of
+        the four tokens.
+        """
+        selectors = (
+            ".inline-toolbar",
+            ".keycap",
+            "scale.fine-tune fill",
+            "scale.fine-tune highlight",
+            "scale.fine-tune trough",
+            "popover.emoji-picker .emoji :hover",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assert_rule(selector, {"border-radius": "0"})
+        # The four tokens have no landed or unrelated neighbours: the landed
+        # keycap corner record is the GTK 4 `shortcut > .keycap` spelling,
+        # and the suite's other emoji sweeps name GTK 4 spellings only.
+        self.assertEqual(
+            {s for s in self.rules if "inline-toolbar" in s}, {".inline-toolbar"}
+        )
+        self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
+        self.assertEqual(
+            {s for s in self.rules if "fine-tune" in s},
+            {
+                "scale.fine-tune fill",
+                "scale.fine-tune highlight",
+                "scale.fine-tune trough",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.rules if "emoji" in s},
+            {"popover.emoji-picker .emoji :hover"},
+        )
+        # Source order: every appended spelling sits after the landed
+        # modelbutton restatement near the sheet tail, so the byte-equal
+        # stock twins win the equal-specificity ties under the lower-sheet
+        # reading of how the toolkit resource competes.
+        for selector in selectors:
+            with self.subTest(selector=selector, after="modelbutton.flat"):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("modelbutton.flat"),
+                )
+
     def test_menu_scroll_arrows(self):
         for selector in MENU_SCROLL_UP:
             self.assert_rule(
