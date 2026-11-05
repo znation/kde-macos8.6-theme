@@ -128,6 +128,7 @@ def _search_match(args, image) -> dict:
 
 
 def report_search(args, image, width: int, height: int, header: str) -> None:
+    """Print the find-color report: the region's match for the requested color, as JSON or plain text."""
     region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
     match = _search_match(args, image)
     count = match["count"]

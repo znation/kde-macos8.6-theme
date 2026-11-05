@@ -135,6 +135,7 @@ def region_error(args: argparse.Namespace, image_width: int, image_height: int) 
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the sample tool's command-line argument parser."""
     parser = EscapingArgumentParser(
         prog="sample",
         description="Print a reference screenshot pixel's RGB and hex value.",

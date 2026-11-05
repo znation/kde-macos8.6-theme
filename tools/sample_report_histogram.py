@@ -173,6 +173,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
 
 
 def report_histogram(args, image, width: int, height: int, header: str) -> None:
+    """Print the histogram report: the region's counted colors, as JSON or plain text."""
     result = _histogram_result(args, image, width, height)
     if args.json:
         print(json.dumps(result, ensure_ascii=True))

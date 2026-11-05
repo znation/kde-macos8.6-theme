@@ -91,6 +91,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
 
 
 def report_runs(args, image, width: int, height: int, header: str) -> None:
+    """Print the runs report: the region's same-color runs, as JSON or plain text."""
     result = _runs_result(args, image, width, height)
     if args.json:
         print(json.dumps(result, ensure_ascii=True))

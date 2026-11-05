@@ -15,6 +15,7 @@ else:  # run directly: python3 tools/sample.py
 
 
 def report(args, image, width: int, height: int, header: str) -> None:
+    """Print the report the flags select: runs, a histogram, a find-color search, or pixels."""
     if args.runs:
         report_runs(args, image, width, height, header)
         return
