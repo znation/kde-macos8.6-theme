@@ -4279,17 +4279,25 @@ for radio in (False, True):
         # the row groups lose the specificity tie against, so stock's
         # 9px-rounded selected face paints them until this group restates
         # the zero the landed square-corner policy carries everywhere but
-        # the radio circle.
+        # the radio circle. The 2026-11-04 palette half extends the same
+        # group in place: each member's block carries the flat opaque
+        # #CCCCFF selection fill above the zero radius, so stock's
+        # accent-tinted quarter-accent mix — fed the shipped
+        # accent_bg_color — no longer leaves 75% of the underlying view
+        # field showing through, and the parse union keeps both keys.
         members = {
             "window.print:not(.ssd-frame) .dialog-action-box:selected": {
-                "border-radius": "0"
+                "background-color": "#CCCCFF",
+                "border-radius": "0",
             },
             "dialog-host > dialog.view sheet:selected": {
-                "border-radius": "0"
+                "background-color": "#CCCCFF",
+                "border-radius": "0",
             },
             "window.print:not(.ssd-frame) dialog-host > "
             "dialog.dialog-action-box sheet:selected": {
-                "border-radius": "0"
+                "background-color": "#CCCCFF",
+                "border-radius": "0",
             },
         }
         # The token sweeps key on substrings no landed selector carries:
@@ -4313,6 +4321,10 @@ for radio in (False, True):
                 self.assertEqual(self.rules[selector], rule)
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_matches_frame(selector, "border-radius")
+                # The landed frame pair declares no background-color, so
+                # the fill anchors to the pinned SELECTION constant the
+                # landed .view, row and icon-view selection tests use.
+                self.assertEqual(rule["background-color"], SELECTION)
         for selector in members:
             self.assertGreater(
                 self.selectors.index(selector),
