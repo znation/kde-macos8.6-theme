@@ -4159,3 +4159,72 @@ indicatorbin > indicator,
 indicatorbin > mask {
   border-radius: 0;
 }
+
+/* The remaining integration-library widget faces stock still rounds — the
+   avatar disc, the both-marks scale thumb, the color-scale trough, the
+   color chooser's on-screen-display popover cap, the shortcut-row shell,
+   the about window's version-number pill and the preference accent-row
+   swatch — have no collected reference surface: no screenshot
+   macos8.6-screenshots/ shows a GTK avatar, a GTK color scale or its
+   trough, a color chooser's on-screen-display popover, a shortcuts-window
+   row shell, a version pill or a preference accent swatch, so the corners
+   follow this theme's landed square-corner policy (the frame border,
+   frame class, button, card, tab-family, toggle-group and slider
+   restatements, the popover interior and the widget-family records all
+   declare border-radius: 0, with the landed radio button's 50% circle as
+   the reference-grounded exception). The integration library's base.css
+   resource (probe path recorded in docs/invariants.md, extracted
+   2026-11-04: a 2622-line resource) still declares one radius-bearing arm
+   for each face, quoted verbatim with its line in that resource:
+   - avatar { border-radius: 9999px; font-weight: bold; } (line 90);
+   - scale.horizontal.marks-before.marks-after > trough > slider
+     { border-radius: 100%; } (line 1944);
+   - scale.color > trough { border: none; background: none;
+     border-radius: 10px; } (line 1982);
+   - colorchooser .popover.osd { border-radius: 15px; } (line 540);
+   - shortcut { border-spacing: 6px; border-radius: 6px; } (line 2056);
+   - window.about .main-page .app-version, dialog.about .main-page
+     .app-version { padding: 3px 18px; color: var(--accent-color);
+     border-radius: 999px; margin-top: 3px; } (line 1643);
+   - .accent-color-row color { min-width: 16px; min-height: 16px;
+     border-radius: 16px; } (line 1026).
+
+   The landed restatements cannot reach these faces: no landed rule names
+   an avatar, an app-version, an accent-color-row, a scale.color, a
+   popover.osd or a marks-before.marks-after token, and no bare shortcut
+   group exists yet — the landed keycap entry squares only
+   shortcut > .keycap, and the landed shortcut focus group matches only
+   shortcut:focus:focus-visible. The both-marks thumb spelling also
+   out-specifies the landed scale slider restate (its fourth class pair is
+   equal-match to the landed spelling, not equal, and stock re-declares
+   the thumb after the shipped sheet's own source position anyway), and
+   the popover cap's two added classes beat the landed
+   popover > contents, popover > arrow restate on specificity. Each twin
+   below is byte-equal to its stock spelling, and later user-sheet source
+   order wins stock's equal-specificity tie per-property, so only the
+   radius changes ownership: the avatar's bold label face, the pill's
+   padding, accent colour and top margin, the trough's border:none and
+   background:none, the shortcut shell's border-spacing and the swatch's
+   16px minimums stay inherited per-property. Left stock on purpose: the
+   three marks-before/marks-after scale-slider corner longhands stock
+   itself already sets to zero (restating them would be inert), the video
+   overlay face already squared by the landed block above, the
+   developer-preview device views whose variable corner radii emulate
+   handset bezels rather than a Platinum widget surface, and the CSD
+   window radius, where the desktop's own window frame draws the landed
+   Platinum border. The shipped GTK 3 sheet needs nothing from this
+   entry: its resource names no avatar, shortcut, accent-row or version
+   pill token, declares zero-valued corner longhands on its color-scale
+   arms, and its color chooser's popover cap is already squared by the
+   landed GTK 3 record. (2026-11-04) */
+
+avatar,
+scale.horizontal.marks-before.marks-after > trough > slider,
+scale.color > trough,
+colorchooser .popover.osd,
+shortcut,
+window.about .main-page .app-version,
+dialog.about .main-page .app-version,
+.accent-color-row color {
+  border-radius: 0;
+}

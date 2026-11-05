@@ -3183,6 +3183,11 @@ for radio in (False, True):
             for state in ("", ":hover", ":active", ":disabled")
         }
         landed = {
+            # The 2026-11-04 residual-corner row squares the color chooser's
+            # class-qualified OSD popover cap; its rule carries only the
+            # radius, and the sweep's tokens name no `button` in that
+            # spelling, so the whole-sheet sweep below must know it too.
+            "colorchooser .popover.osd",
             "video image.osd",
             "progressbar.osd > trough",
             "progressbar.osd.horizontal > trough",
@@ -3879,6 +3884,68 @@ for radio in (False, True):
                     self.selectors.index(selector),
                     self.selectors.index("floating-sheet > sheet"),
                 )
+
+    def test_residual_radius_corners(self):
+        # The 2026-11-04 residual-corner row squares the last seven
+        # radius-bearing stock widget faces no landed restatement reaches:
+        # the eight byte-equal spellings in one tail comma group (the
+        # about-dialog version pill carries two node arms stock splits in
+        # its own comma group, so eight selectors serve seven faces).
+        selectors = {
+            "avatar",
+            "scale.horizontal.marks-before.marks-after > trough > slider",
+            "scale.color > trough",
+            "colorchooser .popover.osd",
+            "shortcut",
+            "window.about .main-page .app-version",
+            "dialog.about .main-page .app-version",
+            ".accent-color-row color",
+        }
+        for selector in sorted(selectors):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_matches_frame(selector, "border-radius")
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("indicatorbin > mask"),
+                )
+        # Family sweeps on the distinctive tokens no landed selector
+        # carries; the shortcut shell settles for the whole-dict and
+        # count-1 guard above because the token already names the landed
+        # keycap and focus spellings.
+        self.assertEqual(
+            {selector for selector in self.rules if "avatar" in selector},
+            {"avatar"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules if "app-version" in selector},
+            {
+                "window.about .main-page .app-version",
+                "dialog.about .main-page .app-version",
+            },
+        )
+        self.assertEqual(
+            {selector for selector in self.rules if "scale.color" in selector},
+            {"scale.color > trough"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules if "popover.osd" in selector},
+            {"colorchooser .popover.osd"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules if "accent-color-row" in selector},
+            {".accent-color-row color"},
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if "marks-before.marks-after" in selector
+            },
+            {"scale.horizontal.marks-before.marks-after > trough > slider"},
+        )
 
     def test_alert_dialog_corners(self):
         # The 2026-11-04 alert-dialog comment block appends six
