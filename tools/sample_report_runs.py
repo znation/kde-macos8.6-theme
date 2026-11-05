@@ -5,9 +5,13 @@ from __future__ import annotations
 import json
 
 if __package__:
-    from tools.sample_report_pixels import _hex, _region_alpha, _region_pixels
+    from tools.sample_report_pixels import (
+        _hex, _region_alpha, _region_pixels, print_region_line, region_from_args,
+    )
 else:  # run directly: python3 tools/sample.py
-    from sample_report_pixels import _hex, _region_alpha, _region_pixels
+    from sample_report_pixels import (
+        _hex, _region_alpha, _region_pixels, print_region_line, region_from_args,
+    )
 
 
 def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: bool = False):
@@ -28,7 +32,7 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
 
 
 def _runs_result(args, image, width: int, height: int) -> dict:
-    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+    region = region_from_args(args)
     axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
     selected_colors = set(args.run_colors) if args.run_colors else None
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
@@ -97,8 +101,7 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
         print(json.dumps(result, ensure_ascii=True))
         return
     print(header)
-    region = result["region"]
-    print(f"region ({region['x']}, {region['y']}) {region['width']}x{region['height']}:")
+    print_region_line(args)
     print(f"axis: {result['axis']}")
     if "longest_run" in result:
         run = result["longest_run"]

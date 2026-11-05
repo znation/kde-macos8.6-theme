@@ -9,6 +9,26 @@ def _hex(rgb: tuple[int, int, int]) -> str:
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 
+def region_from_args(args) -> dict:
+    """Return the region the report's args define, as the {"x", "y", "width", "height"}
+    dict every sample report result and JSON document carries. Four call sites: the pixels,
+    runs, histogram and find-color-search report handlers."""
+    return {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+
+
+def print_region_line(args) -> None:
+    """Print the plain-text region line each sample report prints before its rows.
+    Four call sites: the pixels, runs, histogram and find-color-search report handlers."""
+    print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+
+
+def _compact_json(obj) -> str:
+    """Serialize obj as compact JSON, the format the sample reports embed list and
+    mapping fields inside their plain-text lines. Eight call sites: six in the
+    find-color-search report and two in the histogram report."""
+    return json.dumps(obj, separators=(",", ":"))
+
+
 def _region_pixels(image, x: int, y: int, width: int, height: int):
     rgb = image.rgb
     image_width = image.width
@@ -46,7 +66,7 @@ def _pixel_records(args, image):
 
 def report_pixels(args, image, width: int, height: int, header: str) -> None:
     """Print the ordinary single-pixel or rectangle report."""
-    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+    region = region_from_args(args)
     if args.json:
         pixels = list(_pixel_records(args, image))
         print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
@@ -60,7 +80,7 @@ def report_pixels(args, image, width: int, height: int, header: str) -> None:
         print(f"pixel ({args.x}, {args.y}): {r},{g},{b}  {pixel['hex']}{suffix}")
         return
     print(header)
-    print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+    print_region_line(args)
     for pixel in _pixel_records(args, image):
         r, g, b = pixel["rgb"]
         suffix = f"  alpha={pixel['alpha']}" if args.alpha else ""

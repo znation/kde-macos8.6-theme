@@ -8,11 +8,13 @@ from heapq import nsmallest
 
 if __package__:
     from tools.sample_report_pixels import (
-        _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        print_region_line, region_from_args,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_pixels import (
-        _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        print_region_line, region_from_args,
     )
 
 
@@ -95,7 +97,7 @@ def _scanline_color_counts(args, image):
 
 def _histogram_result(args, image, width: int, height: int) -> dict:
     """Assemble the complete histogram report without printing or mutating args."""
-    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+    region = region_from_args(args)
     if args.alpha:
         pixels = zip(_region_pixels(image, args.x, args.y, args.width, args.height),
                      _region_alpha(image, args.x, args.y, args.width, args.height))
@@ -179,8 +181,7 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
         print(json.dumps(result, ensure_ascii=True))
         return
     print(header)
-    region = result["region"]
-    print(f"region ({region['x']}, {region['y']}) {region['width']}x{region['height']}:")
+    print_region_line(args)
     if "color_offset" in result:
         print(f"color offset: {result['color_offset']}")
     for color in result["colors"]:
@@ -201,9 +202,9 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             suffix += f"  centroid={centroid['x']},{centroid['y']}"
         print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {color['hex']}  count={color['count']}{suffix}")
     if "row_color_counts" in result:
-        print(f"row color counts: {json.dumps(result['row_color_counts'], separators=(',', ':'))}")
+        print(f"row color counts: {_compact_json(result['row_color_counts'])}")
     if "column_color_counts" in result:
-        print(f"column color counts: {json.dumps(result['column_color_counts'], separators=(',', ':'))}")
+        print(f"column color counts: {_compact_json(result['column_color_counts'])}")
     if _palette_filters_requested(args):
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")

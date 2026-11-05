@@ -5,10 +5,16 @@ from __future__ import annotations
 import json
 
 if __package__:
-    from tools.sample_report_pixels import _hex, _positioned_region_pixels, _region_alpha
+    from tools.sample_report_pixels import (
+        _compact_json, _hex, _positioned_region_pixels, _region_alpha,
+        print_region_line, region_from_args,
+    )
     from tools.sample_match_runs import _MatchRuns
 else:  # run directly: python3 tools/sample.py
-    from sample_report_pixels import _hex, _positioned_region_pixels, _region_alpha
+    from sample_report_pixels import (
+        _compact_json, _hex, _positioned_region_pixels, _region_alpha,
+        print_region_line, region_from_args,
+    )
     from sample_match_runs import _MatchRuns
 
 
@@ -129,7 +135,7 @@ def _search_match(args, image) -> dict:
 
 def report_search(args, image, width: int, height: int, header: str) -> None:
     """Print the find-color report: the region's match for the requested color, as JSON or plain text."""
-    region = {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
+    region = region_from_args(args)
     match = _search_match(args, image)
     count = match["count"]
     bounds = match["bounds"]
@@ -139,7 +145,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             "region": region, "match": match}, ensure_ascii=True))
         return
     print(header)
-    print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
+    print_region_line(args)
     print(f"color: {color_hex}")
     if args.color_tolerance is not None:
         print(f"tolerance: {match['tolerance']}")
@@ -165,7 +171,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             print(f"matching run count: {match['run_count']}")
         if "run_offset" in match:
             print(f"matching run offset: {match['run_offset']}")
-        print(f"matching runs: {json.dumps(match['runs'], separators=(',', ':'))}")
+        print(f"matching runs: {_compact_json(match['runs'])}")
         if "omitted_runs" in match:
             print(f"omitted matching runs: {match['omitted_runs']}")
     elif args.match_run_count:
@@ -175,17 +181,17 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     if args.match_column_runs:
         if "column_run_offset" in match:
             print(f"matching column run offset: {match['column_run_offset']}")
-        print(f"matching column runs: {json.dumps(match['column_runs'], separators=(',', ':'))}")
+        print(f"matching column runs: {_compact_json(match['column_runs'])}")
         if "omitted_column_runs" in match:
             print(f"omitted matching column runs: {match['omitted_column_runs']}")
     if args.match_rows:
-        print(f"matching rows: {json.dumps(match['rows'], separators=(',', ':'))}")
+        print(f"matching rows: {_compact_json(match['rows'])}")
     if args.match_columns:
-        print(f"matching columns: {json.dumps(match['columns'], separators=(',', ':'))}")
+        print(f"matching columns: {_compact_json(match['columns'])}")
     if args.match_row_bounds:
-        print(f"matching row bounds: {json.dumps(match['row_bounds'], separators=(',', ':'))}")
+        print(f"matching row bounds: {_compact_json(match['row_bounds'])}")
     if args.match_column_bounds:
-        print(f"matching column bounds: {json.dumps(match['column_bounds'], separators=(',', ':'))}")
+        print(f"matching column bounds: {_compact_json(match['column_bounds'])}")
     if args.longest_match_run:
         run = match["longest_run"]
         print("longest matching run: none" if run is None else
