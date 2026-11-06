@@ -4512,3 +4512,100 @@ radio:indeterminate:backdrop {
   border-color: #000000;
   box-shadow: none;
 }
+
+/* A hovered menu row, a hovered or open menu-bar title, a disabled or
+   backdropped menu row and a `:dir` submenu arrow keep the landed face
+   under every state. No collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK menu row or menu-bar title, so these
+   faces are platform-required and the landed values ground them. Under
+   the dual cascade reading the landed records accept (a theme selection
+   replacing the stock stylesheet entirely, or the toolkit resource
+   loading first as the lower sheet), the resource's higher-specificity
+   classic-menu state arms repaint the landed faces per-property: the
+   landed `menuitem:hover, .menuitem:hover` selection-fill groups above
+   win their own per-property ties only where the resource's states declare
+   nothing, because the resource's two-token menu-row hover arm outranks
+   every landed spelling here on both its properties (the 2026-11-06
+   `gresource extract` probe of the toolkit's default light GTK 3 resource
+   — its exact resource path, the library path and every restated arm's
+   verbatim text live in docs/invariants.md, because this sheet's
+   palette-literal scan reads comments as declarations — returns the
+   nine arms restated below and no other element-level classic-menu state
+   arm), the resource's menubar hover arm declares no fill so the landed
+   menu fill survives it while adding the toolkit's blue title text and
+   underline inset, the resource's disabled and backdrop arms grey a row
+   instead of the landed inactive grey, and the resource's `:dir` arrow
+   arms carry an icon source the landed `menu menuitem arrow` rule cannot
+   outrank. So each arm below lands as the byte-equal stock-twin spelling,
+   later in source order, under the per-property landed-face-under-every-
+   state policy the landed `.osd` check and radio face record spells, with
+   the landed selection-row backdrop policy and the landed disabled-text
+   greys as the face sources: the flat selection fill with black text on
+   every hot row whether focused or backdropped, black text on a
+   backdropped row at rest, the "Insensitive widgets grey their label"
+   inactive grey on every disabled arm, black text and no underline on a
+   hovered or open menu-bar title (the landed menu-bar-title hover colour
+   comes only from the landed selection-fill groups, and the landed GTK 4
+   menubar record declares the twin fill and no text colour of its own),
+   and the shipped submenu triangle on both directional arrows with
+   stock's 10px margins kept stock. Every stock twin quoted here carries
+   hex values the scan elides: white text on the toolkit selection-blue
+   fill at the menu-row hover arm, blue underline and blue-hued text at the
+   menubar hover arm, the toolkit grey at the shipped face's every disabled
+   arm, the toolkit grey at rest and transparent fill at the backdrop arm,
+   a dimmed cream ink at the disabled-backdrop arm, and two icon-theme
+   chevron sources at the `:dir` arrow pair. The excluded companions stay
+   stock per the entry: the `menuitem accelerator` dim arm (a candidate
+   plan of its own), the `menu menuitem label:dir` inherit arm, the two
+   geometry-only arms (the menubar padding and minimum-height group, where
+   the landed `menubar > menuitem` padding group already wins its
+   equal-specificity tie, and the row padding, minimum widths, minimum
+   height and text-shadow group), the `menu menuitem check` and `radio` and
+   popover-menu and modelbutton families (landed), and `menu:backdrop`, the
+   landed `menu` shell group's neighbour, which names no row. Stock's
+   menubar disabled arm declares the same shadow-none the landed face
+   wants, so the disabled title restates only its colour, and stock's
+   transparent backdrop fill is right at rest, so the plain backdrop arm
+   restates only its colour. This sheet loads after the stock resource, so
+   each spelling below wins the equal-specificity tie by later user-sheet
+   source order. Declaration checks do not establish rendered pixels.
+   (2026-11-06) */
+
+menu menuitem:hover, .menu menuitem:hover, .context-menu menuitem:hover {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+menu menuitem:disabled, .menu menuitem:disabled, .context-menu menuitem:disabled {
+  color: #888888;
+}
+
+menu menuitem:disabled:backdrop, .menu menuitem:disabled:backdrop, .context-menu menuitem:disabled:backdrop {
+  color: #888888;
+}
+
+menu menuitem:backdrop, .menu menuitem:backdrop, .context-menu menuitem:backdrop {
+  color: #000000;
+}
+
+menu menuitem:backdrop:hover, .menu menuitem:backdrop:hover, .context-menu menuitem:backdrop:hover {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+menubar > menuitem:hover, .menubar > menuitem:hover {
+  color: #000000;
+  box-shadow: none;
+}
+
+menubar > menuitem:disabled, .menubar > menuitem:disabled {
+  color: #888888;
+}
+
+menu menuitem arrow:dir(ltr), .menu menuitem arrow:dir(ltr), .context-menu menuitem arrow:dir(ltr) {
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
+}
+
+menu menuitem arrow:dir(rtl), .menu menuitem arrow:dir(rtl), .context-menu menuitem arrow:dir(rtl) {
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
+}
