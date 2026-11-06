@@ -82,13 +82,15 @@ class TestDefaultsGroups(unittest.TestCase):
         # The second heading must continue the same group instead of starting
         # an empty one, or the keys unique to the first occurrence vanish from
         # the config the theme writes.
+        # A key repeated within the continued section keeps its later value,
+        # the ordinary within-section assignment semantics.
         path = make_tmp_dir(self) / "defaults"
         path.write_text(
-            "[kwinrc][Theme]\nfirst=1\n[kwinrc][Theme]\nsecond=2\n",
+            "[kwinrc][Theme]\nfirst=1\n[kwinrc][Theme]\nsecond=2\nfirst=3\n",
             encoding="utf-8",
         )
         self.assertEqual(
-            {("kwinrc", "Theme"): {"first": "1", "second": "2"}},
+            {("kwinrc", "Theme"): {"first": "3", "second": "2"}},
             theme_defaults.defaults_groups(path),
         )
 
