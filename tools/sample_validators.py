@@ -82,6 +82,27 @@ def color_fraction(value: str) -> float:
     return parsed
 
 
+def nonnegative_offset(option: str):
+    """Return a parser accepting *option* only as a nonnegative integer.
+
+    The ``--run-offset``, ``--match-run-offset`` and ``--match-column-run-offset``
+    paging indexes each count eligible steps from the start of the ranked list,
+    so Python's parsing and slicing would silently map a negative value onto a
+    different page instead of reporting the rejection. The returned parser
+    checks the value the way ``color_offset`` does for the histogram offset.
+    """
+
+    def parse(value: str) -> int:
+        parsed = plain_number(value, option, "integer", "a nonnegative", int)
+        if parsed < 0:
+            raise argparse.ArgumentTypeError(
+                f"{option} must be nonnegative: {value!r}"
+            )
+        return parsed
+
+    return parse
+
+
 def max_color_fraction(value: str) -> float:
     """Parse a finite maximum histogram fraction from zero through one."""
     parsed = plain_number(value, "--max-color-fraction", "number", "a", float)

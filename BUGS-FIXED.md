@@ -5,6 +5,36 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A negative `--run-offset` paging index is accepted and silently names a different page (found by the bugfix role 2026-11-05) — fixed 2026-11-05 by the bugfix role
+
+The sampler's three paging-offset options — `--run-offset`, `--match-run-offset` and
+`--match-column-run-offset` — are documented as nonnegative page indexes that count
+eligible steps from the start of the ranked list (README's `--run-offset` paragraph says
+"is nonnegative"; docs/invariants.md's run, match-run and match-column-run rows say
+"invalid offset use is rejected before image reads"), and the fidelity side's
+`--difference-run-offset`/`--difference-column-run-offset` do reject negatives, but the
+sample side only ran the value through `plain_number` with the word "nonnegative" in the
+diagnostic, never checking it. A negative value stayed in `args` and silently changed the
+report: `--run-offset -1` behaves exactly like no offset while printing
+`run offset: -1`, and `--match-run-offset -1` flips to Python's negative slicing
+(`matched_runs[-1:limit]`), naming a different page than the printed offset claims.
+
+Reproduce without the fix:
+```
+python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 0 0 \
+  --runs --max-runs 3 --run-offset -1 --json
+```
+It exits 0, lists the first page's runs, and reports `"run_offset": -1` — while the same
+command with `--run-offset 2` skips two eligible runs first. Fixed by a shared
+`nonnegative_offset(option)` type parser in `tools/sample_validators.py` (same shape as
+`color_offset`/`match_pixel_offset`) wired to the three options in
+`tools/sample_arguments.py`; the negative value now exits 2 with
+`--run-offset must be nonnegative: '-1'` before any image is read.
+
+**Validation gap:** no-observability — no shipped check, test or diagnostic ever fed a
+negative offset, so the documented nonnegative rejection sat unenforced with every check
+green; the new `tests/test_sample_option_validation.py` offset cases observe it.
+
 ### The GTK settings uninstall diagnostic goes silent when a later duplicate `gtk-theme-name` key names a foreign theme (found by the bugfix role 2026-11-05) — fixed 2026-11-05 by the bugfix role
 
 `make uninstall`'s GTK settings warning is meant to latch on any `[Settings]`

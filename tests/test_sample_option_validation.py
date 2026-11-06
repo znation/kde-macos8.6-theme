@@ -166,6 +166,31 @@ class TestSampleOptionValidation(CliTestCase):
                 self.assertEqual(region_error(args, width, height), expected)
                 self.assertEqual(vars(args), before)
 
+    def test_offset_options_reject_negative_values_before_image_reads(self):
+        # The three paging-offset options count eligible steps from the start;
+        # a negative value would silently name a different page (and flip the
+        # match-offset slices to Python's negative indexing), so each parser
+        # rejects it at parse time, before any image is read.
+        cases = (
+            ("--runs", "--max-runs", "1", "--run-offset", "-1"),
+            ("--find-color", "010203", "--match-runs", "--max-match-runs", "1",
+             "--match-run-offset", "-1"),
+            ("--find-color", "010203", "--match-column-runs",
+             "--max-match-column-runs", "1", "--match-column-run-offset", "-1"),
+        )
+        for options in cases:
+            with self.subTest(options=options), \
+                    mock.patch.object(sample, "read_png_size") as size, \
+                    mock.patch.object(sample, "read_png") as read, \
+                    mock.patch.object(sample.os, "open") as open_image:
+                result = self._run("unread.png", "0", "0", *options)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.stderr.count("must be nonnegative"), 1)
+            size.assert_not_called()
+            read.assert_not_called()
+            open_image.assert_not_called()
+
     def test_cli_reports_header_bounds_before_decoding(self):
         image = self._write(self._tmp_dir(), "header-only.png", solid_rgb(4, 3)[1])
         cases = (

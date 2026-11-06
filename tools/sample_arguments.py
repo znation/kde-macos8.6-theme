@@ -6,11 +6,13 @@ import argparse
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, plain_number, positive_int
     from tools.sample_validators import (color_fraction, max_color_fraction, color_tolerance, match_alpha,
-                                        color_offset, match_pixel_offset, match_pixels, rgb_argument)
+                                        color_offset, match_pixel_offset, match_pixels,
+                                        nonnegative_offset, rgb_argument)
 else:
     from argument_parsing import EscapingArgumentParser, plain_number, positive_int
     from sample_validators import (color_fraction, max_color_fraction, color_tolerance, match_alpha,
-                                   color_offset, match_pixel_offset, match_pixels, rgb_argument)
+                                   color_offset, match_pixel_offset, match_pixels,
+                                   nonnegative_offset, rgb_argument)
 
 
 def option_error(args: argparse.Namespace) -> str | None:
@@ -152,7 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-run-length", type=positive_int("--min-run-length"), metavar="N", help="with --runs, omit color runs shorter than N pixels")
     parser.add_argument("--max-run-length", type=positive_int("--max-run-length"), metavar="N", help="with --runs, omit color runs longer than N pixels")
     parser.add_argument("--max-runs", type=positive_int("--max-runs"), metavar="N", help="with --runs, display at most N eligible color runs")
-    parser.add_argument("--run-offset", type=lambda value: plain_number(value, "--run-offset", "integer", "a nonnegative", int), metavar="K", help="with --runs and --max-runs, skip K eligible runs before displaying the page")
+    parser.add_argument("--run-offset", type=nonnegative_offset("--run-offset"), metavar="K", help="with --runs and --max-runs, skip K eligible runs before displaying the page")
     parser.add_argument("--run-color", dest="run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, retain this RGB color (repeatable)")
     parser.add_argument("--exclude-run-color", dest="excluded_run_colors", type=rgb_argument, action="append", default=None, metavar="RRGGBB", help="with --runs, omit this RGB color (repeatable)")
     parser.add_argument("--run-count", action="store_true", help="with --runs, report the total number of scanline color runs before filters")
@@ -184,7 +186,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-match-run-length", type=positive_int("--min-match-run-length"), metavar="N", help="with --match-runs, omit matching segments shorter than N pixels")
     parser.add_argument("--max-match-run-length", type=positive_int("--max-match-run-length"), metavar="N", help="with --match-runs, omit matching segments longer than N pixels")
     parser.add_argument("--max-match-runs", type=positive_int("--max-match-runs"), metavar="N", help="with --match-runs, report at most N matching segments")
-    parser.add_argument("--match-run-offset", type=lambda value: plain_number(value, "--match-run-offset", "integer", "a nonnegative", int), metavar="K", help="with --match-runs and --max-match-runs, skip K eligible segments after length filters")
+    parser.add_argument("--match-run-offset", type=nonnegative_offset("--match-run-offset"), metavar="K", help="with --match-runs and --max-match-runs, skip K eligible segments after length filters")
     parser.add_argument("--longest-match-run", action="store_true", help="with --find-color, report the longest horizontal matching segment")
     parser.add_argument("--longest-match-column-run", action="store_true", help="with --find-color, report the longest vertical matching segment")
     parser.add_argument("--match-column-runs", action="store_true", help="with --find-color, report contiguous vertical matching segments")
@@ -192,7 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-match-column-run-length", type=positive_int("--min-match-column-run-length"), metavar="N", help="with --match-column-runs, omit matching segments shorter than N pixels")
     parser.add_argument("--max-match-column-run-length", type=positive_int("--max-match-column-run-length"), metavar="N", help="with --match-column-runs, omit matching segments longer than N pixels")
     parser.add_argument("--max-match-column-runs", type=positive_int("--max-match-column-runs"), metavar="N", help="with --match-column-runs, report at most N eligible matching vertical segments")
-    parser.add_argument("--match-column-run-offset", type=lambda value: plain_number(value, "--match-column-run-offset", "integer", "a nonnegative", int), metavar="K", help="with --match-column-runs and --max-match-column-runs, skip K eligible segments after length filters")
+    parser.add_argument("--match-column-run-offset", type=nonnegative_offset("--match-column-run-offset"), metavar="K", help="with --match-column-runs and --max-match-column-runs, skip K eligible segments after length filters")
     parser.add_argument("--match-rows", action="store_true", help="with --find-color, count matches in each row")
     parser.add_argument("--match-columns", action="store_true", help="with --find-color, count matches in each column")
     parser.add_argument("--match-row-bounds", action="store_true", help="with --find-color, report enclosing match bounds in each row")

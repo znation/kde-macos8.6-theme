@@ -13,7 +13,7 @@ from .records import Reproduction
 
 # The number of ``no-observability`` records the archive held when the ledger
 # landed. A new record must be retired with a test instead of raising this.
-NO_OBSERVABILITY_BASELINE = 25
+NO_OBSERVABILITY_BASELINE = 26
 
 NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
@@ -95,5 +95,11 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
         ("`## Planned` is empty while it holds a planned entry",),
         "tests/test_backlog_placeholders.py::TestShippedBacklogs"
         "::test_no_placeholder_claims_a_section_that_holds_an_entry",
+    ),
+    Reproduction(
+        "sample-negative-offset-page",
+        ("negative `--run-offset` paging index",),
+        "tests/test_sample_option_validation.py::TestSampleOptionValidation"
+        "::test_offset_options_reject_negative_values_before_image_reads",
     ),
 )
