@@ -4189,3 +4189,237 @@ iconview.content-view.check:backdrop:checked:not(list),
 .content-view:not(list) check:backdrop:checked {
   border-radius: 0;
 }
+
+/* No collected reference screenshot shows a GTK check button or radio in
+   any non-rest state (the GTK scope's standing adaptation premise, the
+   same surface the landed .osd check/radio record above spells), so the
+   plain state arms the toolkit's own themes paint over the landed
+   element-only `check, radio`, `check`, `radio`, `check:checked`,
+   `radio:checked` and `check:indeterminate, radio:indeterminate` face and
+   glyph recipes are restated with the landed face under every state: the
+   landed hover policy keeps the same face, :active keeps the recipes
+   unchanged, and :disabled changes no declaration either — the same
+   closed rule the landed .osd check/.osd radio entry spells. A
+   2026-11-05 `gresource extract` probe of the toolkit's default light
+   GTK 3 resource in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 — its exact
+   resource path and every restated arm's verbatim text live in
+   docs/invariants.md, because this sheet's palette-literal scan reads
+   comments as declarations — found the same eleven-arm shape: a flat
+   grey hover face; a pressed inset shadow whose blue press fill is
+   image-only on the toolkit's fourth resource; a disabled shadow-clear
+   with a dimmed ink; the checked and indeterminate families carrying the
+   toolkit blue-surface face (a two-stop blue gradient, a state border
+   colour, a flat outer shadow, a border-box clip and a white ink), each
+   with its own :hover, :active and :disabled twins; a stock-handled
+   :backdrop spelling per family — the plain
+
+   check:backdrop, radio:backdrop { background-image: image(white); box-shadow: none; }
+
+   arm, whose radio member already reads the landed white face and whose
+   check member paints white over the landed raised face — the checked
+   and indeterminate families each carrying a flat blue :backdrop face.
+   The resource's :backdrop:disabled twins and motion, glyph and
+   selected-descendant arms stay stock per the entry's exclusion list, as
+   does every higher-specificity family: the `.osd` indicator family
+   (landed above), the `menu menuitem` transparency group and the model
+   buttons (stock and the landed menu records govern menus), the 32px
+   content-view tile-check colour family (the landed tail groups above
+   own its radius only), and the tree-view selected check colour arm.
+   Each arm below lands as the exact stock-twin spelling of its own
+   member — no comma group, because the two landed faces' shadows differ
+   — later in source order, so each arm's landed-DIFFERENT state
+   properties fall to it at equal specificity and stock's untouched
+   properties stay inherited per-property: geometry, ink, glyph source,
+   radius, background-clip and transition keep the landed cascade. Every
+   check spelling repeats the landed check face's fill, border colour and
+   shadow pair (the landed `check` group's raised face colour restated
+   beside them on the checked and indeterminate families, whose press,
+   hover and backdrop paint stock as image-only), every radio spelling
+   the landed radio face's white-field equivalents, and stock's dimmed
+   state inks are left to stock because the shipped glyph assets carry no
+   recolour. No glyph restatement: the landed `check:checked`,
+   `radio:checked` and `check:indeterminate, radio:indeterminate` glyph
+   rules already win their own ties. The
+   `GtkSharedControlCases::test_check_and_radio` support case pins the
+   plain arms in both suites. This sheet loads after the stock resource,
+   so each spelling below wins the equal-specificity tie by later
+   user-sheet source order. Declaration checks do not establish rendered
+   pixels. (2026-11-05) */
+
+check:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}

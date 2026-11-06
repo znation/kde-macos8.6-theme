@@ -51,6 +51,7 @@ from support.gtk_theme_spec import (
     LINK_BUTTON,
     LINK_TEXT,
     MENU_SEPARATOR,
+    MENU_CHECK,
     MIXED_GLYPH,
     PANED_HANDLE_HORIZONTAL,
     PANED_HANDLE_VERTICAL,
@@ -512,6 +513,111 @@ class GtkSharedControlCases(GtkSheetRuleCases):
         self.assert_rule("radio:checked", RADIO_GLYPH)
         self.assert_rule("check:indeterminate", MIXED_GLYPH)
         self.assert_rule("radio:indeterminate", MIXED_GLYPH)
+
+        # The 2026-11-05 plain state-twin arms keep the landed face under
+        # every state: each suite's sheet restates the toolkit's plain
+        # element-level state arms (quoted verbatim in the sheet-tail
+        # comment and in docs/invariants.md) with the landed check and
+        # radio faces' fill, border colour and shadow pair -- no geometry,
+        # ink, glyph, radius, clip or transition restatement. The scanned
+        # parser merges each checked and indeterminate spelling's face
+        # blocks into the landed glyph spelling's dictionary, so the four
+        # merged keys pin the glyph union and the other spellings land in
+        # one block each. The suites carry the same plain dictionaries;
+        # the GTK 3 sheet adds the three plain :backdrop face arms its
+        # toolkit resource declares and the GTK 4 resource lacks.
+        check_face = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": CHECK["box-shadow"],
+        }
+        check_checked_face = {**check_face, "background-color": FACE}
+        radio_face = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": "none",
+        }
+        expected = {
+            "check:hover": check_face,
+            "radio:hover": radio_face,
+            "check:active": check_face,
+            "radio:active": radio_face,
+            "check:disabled": check_face,
+            "radio:disabled": radio_face,
+            "check:checked": {**CHECK_GLYPH, **check_checked_face},
+            "radio:checked": {**RADIO_GLYPH, **radio_face},
+            "check:checked:hover": check_checked_face,
+            "radio:checked:hover": radio_face,
+            "check:checked:active": check_checked_face,
+            "radio:checked:active": radio_face,
+            "check:checked:disabled": check_checked_face,
+            "radio:checked:disabled": radio_face,
+            "check:indeterminate": {**MIXED_GLYPH, **check_checked_face},
+            "radio:indeterminate": {**MIXED_GLYPH, **radio_face},
+            "check:indeterminate:hover": check_checked_face,
+            "radio:indeterminate:hover": radio_face,
+            "check:indeterminate:active": check_checked_face,
+            "radio:indeterminate:active": radio_face,
+            "check:indeterminate:disabled": check_checked_face,
+            "radio:indeterminate:disabled": radio_face,
+        }
+        merged = (
+            "check:checked",
+            "radio:checked",
+            "check:indeterminate",
+            "radio:indeterminate",
+        )
+        if "gtk-3.0" in str(self.CSS_PATH):
+            expected.update(
+                {
+                    "check:backdrop": check_face,
+                    "radio:backdrop": radio_face,
+                    "check:checked:backdrop": check_checked_face,
+                    "radio:checked:backdrop": radio_face,
+                    "check:indeterminate:backdrop": check_checked_face,
+                    "radio:indeterminate:backdrop": radio_face,
+                }
+            )
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    self.selectors.count(selector),
+                    2 if selector in merged else 1,
+                )
+                self.assertEqual(self.rules[selector], declarations)
+
+        # The landed out-of-reach provenance stays: the suite's menu-check
+        # keys keep their landed bare-glyph dictionaries and the landed OSD
+        # pressed indicators keep the recipe properties their own record
+        # pins (the full dictionaries differ between the two sheets'
+        # stock-cleared shadow twins, so this pins the recipe surface per
+        # property).
+        if "gtk-3.0" in str(self.CSS_PATH):
+            menu_keys = (
+                "menu menuitem check",
+                "menu menuitem radio",
+                "popover modelbutton check",
+                "popover modelbutton radio",
+            )
+        else:
+            menu_keys = (
+                "popover modelbutton check",
+                "popover.background modelbutton check",
+                "popover modelbutton radio",
+                "popover.background modelbutton radio",
+            )
+        for selector in menu_keys:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], MENU_CHECK)
+        osd_pins = (
+            (".osd check:active", CHECK),
+            (".osd radio:active", RADIO),
+        )
+        for selector, recipe in osd_pins:
+            with self.subTest(selector=selector):
+                for name in ("background-color", "box-shadow", "border-radius"):
+                    self.assertEqual(self.rules[selector][name], recipe[name])
+                self.assertEqual(self.rules[selector]["outline-color"], BLACK)
 
     def test_combobox_arrow(self):
         self.assert_rule("combobox arrow", COMBO_ARROW)
