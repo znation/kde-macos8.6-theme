@@ -4836,3 +4836,63 @@ iconview.content-view.check:backdrop:checked:not(list),
 popover.menu accelerator {
   color: #888888;
 }
+
+/* A check's and a radio's faces on a selected treeview row keep the landed
+   faces under every node state, 2026-11-06. No collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK treeview's row check or
+   radio at all, let alone on a selected row — this face is
+   platform-required, and the landed check/radio recipe plus the landed
+   row-selection ink are the policy sources. Under the dual cascade reading
+   the landed records accept, either toolkit resource could style a
+   presented app's treeview rows, and the toolkit base stylesheet's
+   Default-light twin (libgtk-4/Default-light.css; probed 2026-11-06, exact
+   library paths and probe commands in docs/invariants.md — the base
+   integration stylesheet returns none of these arms) declares the four
+   treeview-class-armed selected-row arms the landed recipes cannot reach:
+   the colour arm `treeview.view check:selected:focus, treeview.view
+   check:selected, treeview.view radio:selected:focus, treeview.view
+   radio:selected { color: #ffffff; border-color: #185fb4; }` (Default-light
+   line 1076) turns the box's ink and border to the toolkit's white and its
+   selection-accent blue over the landed `#CCCCFF` selection fill, the
+   checked glyph arm `treeview.view radio:checked:selected, radio:checked
+   { -gtk-icon-source: -gtk-scaled(-gtk-recolor of the toolkit's own
+   assets/bullet-symbolic.symbolic.png and its assets/bullet@2-symbolic
+   .symbolic.png half-scale path) }` (line 1072) and the
+   indeterminate twin `treeview.view radio:indeterminate:selected,
+   radio:indeterminate { -gtk-icon-source: -gtk-scaled(-gtk-recolor of the
+   toolkit's own assets/dash-symbolic.symbolic.png and its
+   assets/dash@2-symbolic.symbolic.png half-scale path) }` (line 1074)
+   recolour the toolkit's symbolic dot and dash, and the plane arm `treeview.view
+   radio:selected:focus, treeview.view radio:selected, radio
+   { border-radius: 100%; -gtk-icon-size: 14px; }` (line 1070) rounds and
+   sizes the face. The restatement answers both members of the colour arm
+   per-property — the ink takes the landed row-selection record's black
+   text and the border the landed check/radio recipe's hard black — and
+   swaps each glyph to the landed `radio:checked` and `check:indeterminate,
+   radio:indeterminate` records' own shipped black-ink assets, one group
+   per lost arm, each spelling byte-equal to its Default-light twin
+   statement and later in user-sheet source order, so the
+   equal-specificity tie falls the landed face's way under either cascade
+   reading (a theme selection replacing the stock stylesheet entirely, or
+   the resource loading first as the lower sheet). Stock's plane arm
+   restates nothing: both of its members paint the same circle on the
+   square 14px box (the landed radio keeps its 50% radius) and the 14px
+   glyph size equals the landed face's own minimums, so radius and size
+   stay inherited. The shipped glyph assets carry their baked black ink, so
+   the colour arm's white remnant recolours no shipped source and the glyph
+   answers are source swaps, not recolours. Declaration checks do not
+   establish rendered pixels. */
+
+treeview.view check:selected:focus, treeview.view check:selected,
+treeview.view radio:selected:focus, treeview.view radio:selected {
+  color: #000000;
+  border-color: #000000;
+}
+
+treeview.view radio:checked:selected {
+  -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+treeview.view radio:indeterminate:selected {
+  -gtk-icon-source: url("../assets/check-mixed.svg");
+}

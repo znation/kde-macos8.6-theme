@@ -18,6 +18,8 @@ from support.gtk_theme_spec import (
     CHECK_GLYPH,
     DISABLED_TEXT,
     MENU_CHECK,
+    MIXED_GLYPH,
+    RADIO_GLYPH,
     SUBMENU_ARROW,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
@@ -114,6 +116,47 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 ),
             },
         )
+
+    def test_treeview_selected_check_radio_faces(self):
+        """Pin the selected-row check and radio restated off the landed faces."""
+        # The 2026-11-06 sheet-tail record answers the toolkit resource's
+        # four treeview-class-armed selected-row arms (probed verbatim in
+        # the sheet comment and docs/invariants.md) per-property: the
+        # colour arm's ink and border return to the landed check recipe's
+        # hard black, the checked and indeterminate glyph arms swap the
+        # toolkit's recoloured symbolic dot and dash for the landed
+        # black-ink shipped assets, and stock's radius and 14px-size arm
+        # restates nothing. No landing here adds a face declaration beyond
+        # the two answers per member spelling.
+        seal = {"color": BLACK, "border-color": BLACK}
+        expected = {
+            "treeview.view check:selected:focus": dict(seal),
+            "treeview.view check:selected": dict(seal),
+            "treeview.view radio:selected:focus": dict(seal),
+            "treeview.view radio:selected": dict(seal),
+            "treeview.view radio:checked:selected": dict(RADIO_GLYPH),
+            "treeview.view radio:indeterminate:selected": dict(MIXED_GLYPH),
+        }
+        self.assert_rule_group(expected)
+        # The family sweep: every rule carrying one of the two
+        # treeview-class-armed control tokens is one of the six spellings
+        # above, so no stock arm of either group survives unrepresented.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if "treeview.view check" in s or "treeview.view radio" in s
+            },
+            set(expected),
+        )
+        # Source order: each restated spelling lands after the landed
+        # plain-state `radio:checked` glyph rule's parsed position.
+        for selector in expected:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("radio:checked"),
+                selector,
+            )
 
     def test_header_drop_indicator(self):
         targets = ("", "header.", "header ")
