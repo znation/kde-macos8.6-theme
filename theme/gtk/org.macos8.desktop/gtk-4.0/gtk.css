@@ -4806,3 +4806,33 @@ iconview.content-view.check:backdrop:checked:not(list),
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
+
+/* A popover-menu row's accelerator label keeps the landed face in every
+   row state, 2026-11-06. No collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK menu accelerator or any GTK menu
+   label, so this face is platform-required and the landed `.dim-label`
+   secondary-label record is the policy source. Under the dual cascade
+   reading the landed records accept, either GTK 4 toolkit resource could
+   be in force for a presented app, and each declares the one twin arm
+   that dims the row's colour — verbatim, the toolkit base stylesheet's
+   `popover.menu accelerator { color: color-mix(in srgb, currentColor
+   var(--dim-opacity), transparent); }` grouped under its root
+   `--dim-opacity: 55%`, and the GTK 4 default light resource's twin
+   `popover.menu accelerator { color: rgb(from currentColor r g b /
+   calc(alpha * 0.55)); }` (both resources' exact library paths, the
+   probe commands and the base stylesheet's dim-opacity declaration live
+   in docs/invariants.md; `gresource extract` on libgtk-4 and the base
+   library, re-probed 2026-11-06) — so at 0.55, 45% of whatever the row
+   state inherits shows through, with no palette colour pinned under the
+   arm in any row state anywhere. The restatement below reuses the landed
+   `.dim-label` record's grey at full opacity (the twins dim inside the
+   `color` declaration alone, so no `opacity` or `text-shadow` clamp is
+   needed) with the stock spelling itself, one class token and one element
+   token and no state pseudo-class, so it wins the equal-specificity tie
+   by later user-sheet source order; the twins' `:dir` margin arms (12px
+   at each menu side) are geometry with no landed conflict and stay
+   stock. Declaration checks do not establish rendered pixels. */
+
+popover.menu accelerator {
+  color: #888888;
+}

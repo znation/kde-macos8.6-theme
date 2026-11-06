@@ -2293,6 +2293,22 @@ for radio in (False, True):
                     self.selectors.index(selector), self.selectors.index(earlier)
                 )
 
+    def test_popover_menu_accelerator_foreground(self):
+        selector = "popover.menu accelerator"
+        self.assert_disabled_text((selector,))
+        self.assert_rule(selector, {**DISABLED_TEXT})
+        # Stock dims the accelerator inside the color declaration alone, so
+        # the restatement carries the opacity-free, shadow-free dict whole.
+        self.assertEqual(self.rules[selector], {**DISABLED_TEXT})
+        self.assertEqual(self.selectors.count(selector), 1)
+        # The stock-twin spelling lands after the landed popover-menu
+        # modelbutton faces, the source position that beats either toolkit
+        # arm on the tie.
+        self.assertGreater(
+            self.selectors.index(selector),
+            self.selectors.index("popover.menu modelbutton"),
+        )
+
     def test_toast_surface(self):
         selectors = {"toast", "toast:backdrop"}
         self.assertEqual(

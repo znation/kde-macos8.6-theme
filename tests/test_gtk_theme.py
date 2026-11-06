@@ -275,6 +275,21 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
         self.assertEqual(self.selectors.count(selector), 1)
 
+    def test_menu_accelerator_foreground(self):
+        selector = "menuitem accelerator"
+        self.assert_disabled_text((selector,))
+        self.assert_rule(selector, {**DISABLED_TEXT})
+        # Stock dims the accelerator inside the color declaration alone, so
+        # the restatement carries the opacity-free, shadow-free dict whole.
+        self.assertEqual(self.rules[selector], {**DISABLED_TEXT})
+        self.assertEqual(self.selectors.count(selector), 1)
+        # The stock-twin spelling lands after the landed menu-row hover
+        # face, the source position that beats the toolkit arm on the tie.
+        self.assertGreater(
+            self.selectors.index(selector),
+            self.selectors.index("menu menuitem:hover"),
+        )
+
     def test_header_subtitle_foreground(self):
         selectors = (".titlebar:not(headerbar) .subtitle", "headerbar .subtitle")
         self.assert_disabled_text(selectors)

@@ -4609,3 +4609,30 @@ menu menuitem arrow:dir(ltr), .menu menuitem arrow:dir(ltr), .context-menu menui
 menu menuitem arrow:dir(rtl), .menu menuitem arrow:dir(rtl), .context-menu menuitem arrow:dir(rtl) {
   -gtk-icon-source: url("../assets/submenu-arrow.svg");
 }
+
+/* A menu row's accelerator label keeps the landed face in every row state,
+   2026-11-06. No collected reference screenshot in macos8.6-screenshots/
+   shows a GTK menu accelerator or any GTK menu label, so this face is
+   platform-required and the landed `.dim-label` secondary-label record is
+   the policy source. Under the dual cascade reading the landed records
+   accept, the toolkit's GTK 3 resource declares one arm, verbatim
+   `menuitem accelerator { color: alpha(currentColor,0.55); }` (the exact
+   resource path, the library path and the probe command live in
+   docs/invariants.md because this sheet's palette-literal scan reads
+   comments as declarations; `gresource extract` on libgtk-3 3.24.49,
+   re-probed 2026-11-06) — whichever colour the row state inherits, the
+   arm dims it to 0.55 translucency with no colour value pinned to the
+   palette anywhere: a colourless dim of the row's black at rest, a dim
+   translucent dim over the landed `#CCCCFF` selection fill, a dim
+   of the disabled grey on a disabled row; no landed colour lives under
+   the arm in any row state. The restatement below reuses the landed
+   `.dim-label` record's grey at full opacity with its no-text-shadow
+   policy (stock's group dims inside the `color` declaration alone and
+   declares neither `opacity` nor `text-shadow`): the one-class one-element
+   spelling below is the stock arm's own spelling, so it wins the
+   equal-specificity tie by later user-sheet source order. Declaration
+   checks do not establish rendered pixels. */
+
+menuitem accelerator {
+  color: #888888;
+}
