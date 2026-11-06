@@ -4694,3 +4694,50 @@ treeview.view radio:checked:selected {
 treeview.view radio:indeterminate:selected {
   -gtk-icon-source: url("../assets/check-mixed.svg");
 }
+
+/* Adaptation 2026-11-06: no collected reference screenshot shows a GTK list
+   row pressed or holding an open context-menu popup (the standing GTK-scope
+   adaptation premise), but the resource
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with gresource on
+   2026-11-06) declares four element-level row arms the landed selection and
+   hover records never answer: a hover arm grouped with a popup class
+   (row.activatable.has-open-popup, row.activatable:hover) in the toolkit's
+   near-black five-percent alpha wash whose extra class token beats the
+   landed hover group, two pressed arms (row.activatable:active and
+   row.activatable:selected:active) painting the toolkit's dark inset
+   shadows, and a selected popup-hover group
+   (row.activatable:selected.has-open-popup, row.activatable:selected:hover)
+   painting the toolkit's selection-accent blue over the landed #CCCCFF
+   fill. Each rule below is the byte-equal stock twin appended after the
+   landed selection-backdrop groups, so later source order wins every tie:
+   the popup-holding hover pair take the landed transparent hover face (the
+   ROW_HOVER recipes), the pressed pairs take box-shadow: none so the etched
+   row face keeps no shadow under states no landed record gives one, and the
+   selected popup-hover pair takes the landed #CCCCFF selection fill (the
+   ROW_SELECTED recipe). The resource paints background-color on the two
+   popup-holding arms and box-shadow on the two pressed arms and nothing
+   else on any of the four, so nothing else is restated: no color, radius,
+   fill image, padding or motion is appended (the landed bare-row record
+   owns row motion). The fresh probe also returns two element-level state
+   arms the landed records already answer: a backdrop variant of the popup
+   hover whose toolkit value is the landed transparent itself, and a backdrop
+   selection arm out-ranked per-property by the landed list- and
+   placessidebar-armed selection-backdrop recipes, so neither is restated
+   here. Declaration checks do not establish rendered pixels. Recorded
+   2026-11-06 by the feature role. */
+
+row.activatable.has-open-popup, row.activatable:hover {
+  background-color: transparent;
+}
+
+row.activatable:active {
+  box-shadow: none;
+}
+
+row.activatable:selected:active {
+  box-shadow: none;
+}
+
+row.activatable:selected.has-open-popup, row.activatable:selected:hover {
+  background-color: #CCCCFF;
+}

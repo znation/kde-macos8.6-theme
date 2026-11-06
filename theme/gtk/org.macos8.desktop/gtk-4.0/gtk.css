@@ -4896,3 +4896,56 @@ treeview.view radio:checked:selected {
 treeview.view radio:indeterminate:selected {
   -gtk-icon-source: url("../assets/check-mixed.svg");
 }
+
+/* Adaptation 2026-11-06: no collected reference screenshot shows a GTK list
+   row pressed or holding an open context-menu popup (the standing GTK-scope
+   adaptation premise), but two resources paint these states. The resource
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (extracted with gresource on
+   2026-11-06, libgtk-4 4.18.6) declares four element-level row arms the
+   landed selection and hover records never answer:
+   row.activatable.has-open-popup, row.activatable:hover { background-color:
+   rgba(46, 52, 54, 0.05); }, row.activatable:active { box-shadow: inset 0
+   2px 2px -2px rgba(0, 0, 0, 0.2); }, row.activatable:selected:active {
+   box-shadow: inset 0 2px 3px -1px rgba(0, 0, 0, 0.5); } and
+   row.activatable:selected.has-open-popup, row.activatable:selected:hover {
+   background-color: #347cd3; }; the integration library's base.css resource
+   (probe path recorded in docs/invariants.md) paints the same four states as
+   background colours on five spellings: row.activatable:hover and
+   row.activatable.has-open-popup in a color-mix(in srgb, currentColor 4%,
+   transparent) wash, row.activatable:active in an 8% wash,
+   row.activatable:selected:hover and row.activatable:selected.has-open-popup
+   in a var(--accent-bg-color) 32% mix, and row.activatable:selected:active
+   in a 39% mix. Each rule below is the byte-equal stock twin appended after
+   the landed selection-backdrop groups, so later source order wins every
+   tie: the popup-holding hover pair take the landed transparent hover face
+   (the ROW_HOVER recipes), the pressed arms carry the background answers as
+   well as the toolkit's shadow answers (the base stylesheet paints
+   background-color on both pressed spellings while the toolkit resource
+   paints only the insets) with box-shadow: none so the etched row face keeps
+   no shadow under states no landed record gives one, and the selected
+   popup-hover and pressed-selection arms take the landed #CCCCFF selection
+   fill (the ROW_SELECTED recipe). No color is appended: none of the painted
+   statements paints row ink, so the landed selection ink reaches the
+   selected members through the landed selected groups alone. Nothing else is
+   restated: the landed bare-row record owns row motion, and the toolkit and
+   base stylesheet declarations outside these groups keep their landed
+   answers. Declaration checks do not establish rendered pixels. Recorded
+   2026-11-06 by the feature role. */
+
+row.activatable.has-open-popup, row.activatable:hover {
+  background-color: transparent;
+}
+
+row.activatable:active {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+row.activatable:selected:active {
+  background-color: #CCCCFF;
+  box-shadow: none;
+}
+
+row.activatable:selected.has-open-popup, row.activatable:selected:hover {
+  background-color: #CCCCFF;
+}

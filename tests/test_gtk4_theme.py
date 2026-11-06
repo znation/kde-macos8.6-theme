@@ -1646,6 +1646,37 @@ for radio in (False, True):
             self.css.index("list row.activatable:selected:"),
         )
 
+    def test_list_row_press_and_popup_faces(self):
+        # The pressed and popup-holding row states restate the landed
+        # faces: stock's toolkit resource and the integration library's
+        # base.css resource would paint a tinted hover-wash, pressed
+        # insets-wash-or-an-accent fill on rows the landed records paint
+        # transparent or with the flat lavender selection, and the
+        # integration library paints background colors on the pressed
+        # spellings as well as the toolkit's insets (recorded 2026-11-06
+        # by the feature role).
+        expected = {
+            "row.activatable.has-open-popup": dict(ROW_HOVER),
+            "row.activatable:hover": dict(ROW_HOVER),
+            "row.activatable:active": {"background-color": "transparent", "box-shadow": "none"},
+            "row.activatable:selected:active": {"background-color": SELECTION, "box-shadow": "none"},
+            "row.activatable:selected.has-open-popup": {"background-color": SELECTION},
+            "row.activatable:selected:hover": {"background-color": SELECTION},
+        }
+        self.assert_rule_group(expected)
+        # The landed row spellings are all list-, listview-, columnview-
+        # or popover-armed, and the landed bare-row groups spell `row` and
+        # `row:focus:focus-visible`, so this element-level family is
+        # exactly six.
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("row.activatable")},
+            set(expected),
+        )
+        self.assertGreater(
+            self.selectors.index("row.activatable:active"),
+            self.selectors.index("list row.activatable:selected"),
+        )
+
     def test_selected_row_button_arms(self):
         # The selected-row button arms restate the landed black: stock's
         # three selected-row arms would paint an opaque button with a

@@ -18,6 +18,7 @@ from support.gtk_theme_spec import (
     CHECK_GLYPH,
     DISABLED_TEXT,
     MENU_CHECK,
+    ROW_HOVER,
     MIXED_GLYPH,
     RADIO_GLYPH,
     SUBMENU_ARROW,
@@ -64,6 +65,32 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assertGreater(
             self.css.index("list row.activatable:selected:backdrop"),
             self.css.index("list row.activatable:selected:"),
+        )
+
+    def test_list_row_press_and_popup_faces(self):
+        # The pressed and popup-holding row states restate the landed
+        # faces: stock's four element-level row arms would paint a tinted
+        # hover-wash, pressed insets and a selection-accent fill on rows
+        # the landed records paint transparent or with the flat lavender
+        # selection (recorded 2026-11-06 by the feature role).
+        expected = {
+            "row.activatable.has-open-popup": dict(ROW_HOVER),
+            "row.activatable:hover": dict(ROW_HOVER),
+            "row.activatable:active": {"box-shadow": "none"},
+            "row.activatable:selected:active": {"box-shadow": "none"},
+            "row.activatable:selected.has-open-popup": {"background-color": SELECTION},
+            "row.activatable:selected:hover": {"background-color": SELECTION},
+        }
+        self.assert_rule_group(expected)
+        # The landed row spellings are all list-, listview- or
+        # treeview-armed, so this element-level family is exactly six.
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("row.activatable")},
+            set(expected),
+        )
+        self.assertGreater(
+            self.selectors.index("row.activatable:active"),
+            self.selectors.index("list row.activatable:selected"),
         )
 
     def test_iconview_selected_arms(self):
