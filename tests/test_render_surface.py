@@ -251,6 +251,21 @@ class TestMissingTool(unittest.TestCase):
         )
 
 
+def crashed_applet_setup_diagnosis(setup_timeout):
+    """Return the fail message the crashed-applet fixture builds on expiry.
+
+    Shared by the crashed-applet test and the offline reproduction of its
+    expired-wait diagnosis, so both name the recorded wait instead of a bare
+    status mismatch.
+    """
+    return (
+        "the crashed applet's setup did not "
+        f"{setup_timeout.read_text().strip()} within the polling "
+        "budget; the settle stub must start and reap it before the "
+        "session's liveness check"
+    )
+
+
 class TestFailurePaths(StubTools):
     def run_main(self, *extra):
         """Run ``main`` on ``out.png`` with *extra* and return status, stderr, output."""
@@ -555,17 +570,54 @@ class TestFailurePaths(StubTools):
         )
         status, stderr, output = self.run_main("--settle", "0")
         if setup_timeout.exists():
-            self.fail(
-                "the crashed applet's setup did not "
-                f"{setup_timeout.read_text().strip()} within the polling "
-                "budget; the settle stub must start and reap it before the "
-                "session's liveness check"
-            )
+            self.fail(crashed_applet_setup_diagnosis(setup_timeout))
         self.assertEqual(1, status)
         self.assertIn("render session exited 1", stderr)
         self.assertIn("plasmawindowed exited before the capture", stderr)
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
+
+    def test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch(self):
+        # The offline reproduction of the crashed-applet fixture's expired
+        # setup wait (the archived slow-check record): a stubbed session whose
+        # applet start passes inside the widened 1500-iteration bound, and
+        # whose recorded `setup-timeout` file then names the expired wait, so
+        # the shipped diagnosis branch fires and reports the wait by name
+        # before any status assertion. The stub forces the file's content
+        # instead of spending the real 1500-iteration 0.02 s poll -- the
+        # ledger requires the failure diagnosis to be reproduced offline,
+        # not the wall clock -- and it reaps the applet first, so the
+        # session's own liveness check still fails the render deterministically.
+        pidfile = self.root / "applet.pid"
+        setup_timeout = self.root / "setup-timeout"
+        self.stub_live_session(f"echo $$ > {shlex.quote(str(pidfile))}; exit 1")
+        self.stub(
+            "sleep",
+            f"pidfile={shlex.quote(str(pidfile))}; "
+            f"timeout={shlex.quote(str(setup_timeout))}; "
+            f"pause={shlex.quote(self.real_sleep)}; "
+            'n=0; while [ ! -s "$pidfile" ]; do n=$((n + 1)); '
+            '[ "$n" -gt 1500 ] && exit 1; "$pause" 0.02; done; '
+            'pid=$(cat "$pidfile"); n=0; '
+            'while kill -0 "$pid" 2>/dev/null; do n=$((n + 1)); '
+            '[ "$n" -gt 1500 ] && exit 1; "$pause" 0.02; done; '
+            # Forced: name the expired start wait, then fail the settle
+            # exactly as the shipped stub's expired branch does.
+            'echo start > "$timeout"; exit 1',
+        )
+        status, stderr, output = self.run_main("--settle", "0")
+        self.assertEqual(1, status)
+        self.assertIn("render session exited 1", stderr)
+        self.assertIn("plasmawindowed exited before the capture", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+        # The forced record names the expired wait, and the diagnosis the
+        # shipped crashed-applet fixture builds from it names that wait and
+        # its polling budget -- never a bare status mismatch.
+        self.assertEqual("start", setup_timeout.read_text().strip())
+        diagnosis = crashed_applet_setup_diagnosis(setup_timeout)
+        self.assertIn("start", diagnosis)
+        self.assertIn("within the polling budget", diagnosis)
 
     def test_a_failing_capture_session_exits_1_writes_no_output_and_removes_scratch(self):
         # A live applet can sit inside a session whose capture command fails
@@ -1077,6 +1129,19 @@ class TestRenderBudgets(unittest.TestCase):
         self.assertIn("--settle", flags)
         settle = flags[flags.index("--settle") + 1]
         self.assertEqual(settle, "20")
+
+    def test_the_applet_gate_renders_at_the_documented_default_settle(self):
+        # The offline reproduction of the archived slow-check record about the
+        # applet render gate: its flags in _Renders.KINDS carry no --settle
+        # argument at all, so the gate renders at the tool's documented
+        # default paint budget (8 s) and cannot under-budget the paint wait
+        # the way the removed --settle 3 override did on a loaded host. This
+        # is a static pin of the shipped flag list -- a real render session
+        # runs in none of it, and the stubbed capture the byte-compare gates
+        # exercise is elsewhere; the tool's --settle default is the fixture
+        # this pin's flag list keeps out of reach.
+        flags = dict((kind, flags) for kind, flags, _ in _Renders.KINDS)["applet"]
+        self.assertNotIn("--settle", flags)
 
 
 class _DialogGate:

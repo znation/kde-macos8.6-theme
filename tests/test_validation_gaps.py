@@ -6,9 +6,11 @@ record to the test that now reproduces its failure offline, each
 ``unclear-invariant`` record to the test and the ``docs/invariants.md`` row
 that now state the guarantee it needed, each ``no-fake`` record to the test
 and fixture that now manufacture the failure, each ``real-run-needed``
-record to the test that now pins the same bound offline, and each ``no-repro``
-record to the test that now reproduces it deterministically. These tests drive
-the five ledgers against the shipped ``BUGS.md``/``BUGS-FIXED.md`` archives:
+record to the test that now pins the same bound offline, each ``no-repro``
+record to the test that now reproduces it deterministically, and each
+``slow-check`` record to the test that now pins its shipped budget or drives
+its stub diagnosis offline. These tests drive
+the six ledgers against the shipped ``BUGS.md``/``BUGS-FIXED.md`` archives:
 every record must name an entry, every entry must name a real test (and, for
 ``unclear-invariant``, an existing register guarantee), and each tag's record
 count must not exceed its baseline so a new tag fails the suite instead of
@@ -162,10 +164,10 @@ class _LedgerMixin:
 class TestReproductionLookup(unittest.TestCase):
     """Pin reproduction_for's branches the real-archive suites do not reach.
 
-    The prose matcher accepts any lowercase tag, so a sixth tag can reach
-    read_gaps; its lookup must refuse that record rather than lend another
-    ledger's entry, and a record must match an entry through any one of its
-    markers, not all of them.
+    The prose matcher accepts any lowercase tag, so a tag name with no
+    shipped ledger can reach read_gaps; its lookup must refuse that record
+    rather than lend another ledger's entry, and a record must match an entry
+    through any one of its markers, not all of them.
     """
 
     def test_a_foreign_tag_borrows_no_ledger_entry(self):
@@ -173,7 +175,10 @@ class TestReproductionLookup(unittest.TestCase):
         # that ignores the tag would find that entry; the refusal is what we
         # pin.
         subject = validation_gaps.NO_OBSERVABILITY_REPRODUCTIONS[0].markers[0]
-        record = validation_gaps.Gap("slow-check", "bugs.md", 1, subject)
+        # Every shipped tag now has a ledger, so the foreign tag here is one
+        # that no ledger covers yet (rename it again if such a tag ever
+        # becomes a real concern).
+        record = validation_gaps.Gap("future-tag", "bugs.md", 1, subject)
         self.assertIsNone(validation_gaps.reproduction_for(record))
 
     def test_any_single_marker_of_an_entry_identifies_its_record(self):
@@ -267,6 +272,18 @@ class TestNoReproLedger(_LedgerMixin, unittest.TestCase):
     growth_advice = (
         "make the failure deterministic in a test and add its ledger entry "
         "instead of raising NO_REPRO_BASELINE"
+    )
+
+
+class TestSlowCheckLedger(_LedgerMixin, unittest.TestCase):
+    tag = "slow-check"
+    missing_advice = (
+        "pin the shipped budget or drive the stub diagnosis offline in a "
+        "test and add its ledger entry"
+    )
+    growth_advice = (
+        "add the offline reproduction and ledger entry for the new failure "
+        "instead of raising SLOW_CHECK_BASELINE"
     )
 
 

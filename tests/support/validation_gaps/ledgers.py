@@ -26,6 +26,10 @@ from support.validation_gaps.real_run_needed import (
     REAL_RUN_NEEDED_BASELINE,
     REAL_RUN_NEEDED_REPRODUCTIONS,
 )
+from support.validation_gaps.slow_check import (
+    SLOW_CHECK_BASELINE,
+    SLOW_CHECK_REPRODUCTIONS,
+)
 from support.validation_gaps.unclear_invariant import (
     UNCLEAR_INVARIANT_BASELINE,
     UNCLEAR_INVARIANT_REPRODUCTIONS,
@@ -48,6 +52,7 @@ LEDGERS = {
         REAL_RUN_NEEDED_REPRODUCTIONS, REAL_RUN_NEEDED_BASELINE
     ),
     "no-repro": Ledger(NO_REPRO_REPRODUCTIONS, NO_REPRO_BASELINE),
+    "slow-check": Ledger(SLOW_CHECK_REPRODUCTIONS, SLOW_CHECK_BASELINE),
 }
 
 
@@ -64,9 +69,9 @@ def reproduction_for(record):
 
     A record carrying a tag this module does not ledger (or one whose subject
     matches no entry) has no reproduction, so a new tag cannot borrow another
-    ledger's entries. :data:`LEDGERS` names the five ledgers:
+    ledger's entries. :data:`LEDGERS` names the six ledgers:
     ``no-observability``, ``unclear-invariant``, ``no-fake``,
-    ``real-run-needed`` and ``no-repro``.
+    ``real-run-needed``, ``no-repro`` and ``slow-check``.
     """
     ledger = LEDGERS.get(record.tag)
     if ledger is None:

@@ -13,7 +13,12 @@ tag marked a failure the suite could only confirm with a bounded real run
 (a memory limit, a live KDE session); its records now name the offline test
 that pins the same bound. The ``no-repro`` tag marked a failure that was not
 deterministic when filed; its records now name the test that makes it
-deterministic. This package turns all five into a structured ledger
+deterministic. The ``slow-check`` tag marked a failure the suite could
+only confirm under render or wall-clock-shaped load (the full parallel
+check, CPU hogs on one core, or a deliberately slow applet); its records now
+name the offline test that pins the shipped budget or drives the same stub
+diagnosis without the wall clock. This package turns all six into a
+structured ledger
 that maps each mechanism to the test that confirms it offline, and refuses a
 record that names no reproduction.
 ``tests/test_validation_gaps.py`` drives the ledgers and caps each tag's count
@@ -23,9 +28,10 @@ growing the gap.
 The package is split by concern and re-exported here, so a test module imports
 every public name from ``validation_gaps`` regardless of which submodule
 defines it: ``records`` holds the shared ``Gap`` and ``Reproduction`` record
-types, ``reader`` parses the archives' records, the five per-tag modules
-(``no_observability``, ``unclear_invariant``, ``no_fake``, ``real_run_needed``
-and ``no_repro``) hold each ledger's reproduction entries and baseline, and
+types, ``reader`` parses the archives' records, the six per-tag modules
+(``no_observability``, ``unclear_invariant``, ``no_fake``, ``real_run_needed``,
+``no_repro`` and ``slow_check``) hold each ledger's reproduction entries and
+baseline, and
 ``ledgers`` maps every tag to its entries in one table.
 """
 
@@ -54,6 +60,10 @@ from .real_run_needed import (
     REAL_RUN_NEEDED_REPRODUCTIONS,
 )
 from .records import Gap, Reproduction
+from .slow_check import (
+    SLOW_CHECK_BASELINE,
+    SLOW_CHECK_REPRODUCTIONS,
+)
 from .unclear_invariant import (
     UNCLEAR_INVARIANT_BASELINE,
     UNCLEAR_INVARIANT_REPRODUCTIONS,
@@ -71,6 +81,8 @@ __all__ = [
     "NO_REPRO_REPRODUCTIONS",
     "REAL_RUN_NEEDED_BASELINE",
     "REAL_RUN_NEEDED_REPRODUCTIONS",
+    "SLOW_CHECK_BASELINE",
+    "SLOW_CHECK_REPRODUCTIONS",
     "UNCLEAR_INVARIANT_BASELINE",
     "UNCLEAR_INVARIANT_REPRODUCTIONS",
     "Gap",
