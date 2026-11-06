@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The direct-script option-combination regression test is defined after `unittest.main()` and never collected (found by the bugfix role 2026-11-06)
+
+`tests/test_sample_option_validation.py` defined `test_direct_script_reports_invalid_option_combination` inside the `if __name__ == "__main__":` block, after `unittest.main()`, so unittest discovery never collected it: a sample-tool regression test for `--match-runs requires --find-color` silently never ran. Moved it into `TestSampleOptionValidation`, where the runner now collects and passes it.
+
+**Validation gap:** none — discovery's collected-test output reproduced it (7 tests collected before, the moved test collected and passing after).
+
 ### A negative `--run-offset` paging index is accepted and silently names a different page (found by the bugfix role 2026-11-05) — fixed 2026-11-05 by the bugfix role
 
 The sampler's three paging-offset options — `--run-offset`, `--match-run-offset` and

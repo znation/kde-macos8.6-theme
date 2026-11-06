@@ -222,14 +222,14 @@ class TestSampleOptionValidation(CliTestCase):
         self.assertEqual(package.stderr,
                          "sample: error: region (3, 2) 2x2 is outside the 4x3 image\n")
 
-
-if __name__ == "__main__":
-    import unittest
-
-    unittest.main()
-
     def test_direct_script_reports_invalid_option_combination(self):
         result = self._run_script("missing.png", "0", "0", "--match-runs")
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
         self.assertIn("--match-runs requires --find-color", result.stderr)
+
+
+if __name__ == "__main__":
+    import unittest
+
+    unittest.main()
