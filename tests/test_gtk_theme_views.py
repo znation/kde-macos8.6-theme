@@ -15,14 +15,17 @@ from pathlib import Path
 
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
+    CHECK_GLYPH,
     MENU_CHECK,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
     BLACK,
+    ETCH_DARK,
     FACE,
     SELECTION,
+    WHITE,
 )
 from support.repo_root import ROOT
 
@@ -472,10 +475,16 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     def test_vertical_stepper_and_content_view_check_corners(self):
         """Pin the vertical steppers and content-view check faces square.
 
-        The two appended stepper groups and the eight appended
-        content-view check state groups rest stock's vertical stepper
-        end halves and the eight selection-check state faces at zero;
-        nothing else in the sheet names any of the three tokens.
+        The two appended stepper groups rest stock's vertical stepper
+        end halves at zero, and the eight content-view check state
+        groups rest the eight selection-check state faces at zero and
+        take the landed check face under every state: the 2026-11-05
+        tile-check face record extends the landed radius-only groups
+        in place, so the scanned parser reads the merged dictionaries
+        in this suite, and the suite's parser leaves each spelling
+        once in the selector list -- repeating the spellings in new
+        blocks would break the once-per-selector pin. Nothing else in
+        the sheet names any of the three tokens.
         """
         stepper_up = "spinbutton.vertical button.up"
         stepper_down = "spinbutton.vertical button.down"
@@ -495,8 +504,36 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             *[f".content-view:not(list) check{state}" for state in states],
         )
         spellings = (stepper_up, stepper_down) + check_spellings
+        # The docstring comment above the groups names both probes and
+        # the face source, and the realized dictionaries merge this
+        # record's zero radius with the 2026-11-05 face record's landed
+        # check face under every state: the four unchecked spellings
+        # carry the raised etched face, the four checked ones the same
+        # five declarations under the shipped checkmark glyph.
+        tile_face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
+        }
+        tile_rules = {}
+        for state_index in range(len(states)):
+            declarations = (
+                tile_face
+                if state_index < 4
+                else {**tile_face, **CHECK_GLYPH}
+            )
+            for member_index in range(3):
+                tile_rules[
+                    check_spellings[member_index * len(states) + state_index]
+                ] = dict(declarations)
         self.assert_rule_group(
-            {selector: {"border-radius": "0"} for selector in spellings}
+            {
+                stepper_up: {"border-radius": "0"},
+                stepper_down: {"border-radius": "0"},
+                **tile_rules,
+            }
         )
         # The three tokens have no landed or unrelated neighbours: the
         # landed `.content-view` rules name no check node or `:not(list)`
@@ -520,6 +557,15 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         }
         self.assertEqual(bare_compound, set(check_spellings[16:]))
         self.assertEqual(view_and_iconview | bare_compound, set(check_spellings))
+        # One sweep further: every rule naming both tokens is one of the
+        # twenty-four tile spellings, so the face record leaves no stray
+        # check-and-content-view neighbour and the landed `.content-view`
+        # field, hover and rubberband arms (which name no check node)
+        # stay outside the family.
+        self.assertEqual(
+            {s for s in self.rules if "check" in s and "content-view" in s},
+            set(check_spellings),
+        )
         self.assertEqual(
             {s for s in self.rules if "spinbutton.vertical button.up" in s},
             {stepper_up},

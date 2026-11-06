@@ -4130,10 +4130,13 @@ toolbar.inline-toolbar toolbutton:only-child > button.flat {
    selection as replacing the stock stylesheet entirely, while the
    landed per-property records read the toolkit resource as the lower
    sheet; every restatement below is byte-equal to its stock twin and
-   sits later in source order, so under either reading only the radius
-   changes hands — the restatement wins each equal-specificity tie
-   per-property, or is the sheet's own pin for a surface it did not
-   cover. Declaration checks do not establish rendered pixels. */
+   sits later in source order, so under either reading this record
+   changes only the radius — the restatement wins each equal-specificity
+   tie per-property, or is the sheet's own pin for a surface it did not
+   cover. The 2026-11-05 tile-check face comment below extends the eight
+   tile groups of this record with the landed face declarations; the
+   face claims are that record's. Declaration checks do not establish
+   rendered pixels. */
 spinbutton.vertical button.up {
   border-radius: 0;
 }
@@ -4142,52 +4145,136 @@ spinbutton.vertical button.down {
   border-radius: 0;
 }
 
+/* 2026-11-05: no collected reference screenshot shows a GTK content
+   view's selection check in any state — a file- or icon-grid selection
+   swatch (the GTK scope's standing adaptation premise) — so the eight
+   tile-check state faces the toolkit resource paints over the landed
+   radius-only groups above take the landed check face under every
+   state, per-property. A `gresource extract` probe that day of the
+   toolkit's default light resource (its exact resource path and library
+   path live in docs/invariants.md, because this sheet's palette scan
+   reads comments as declarations and stock is quoted only through
+   neutral wording here) returns exactly the eight class-armed comma
+   triples across rest, :hover, :active, :backdrop, :checked,
+   :checked:hover, :checked:active and :backdrop:checked — resource
+   lines 1089 through 1103, the same shape the landed radius record
+   quoted, each carrying its 5px rounding among margins, minimum sizes,
+   colours, paints, transition, border-width, icon source and icon
+   shadow: a flat toolkit-blue swatch at rest, hover and press with a
+   flat grey backdrop twin, and a checked swatch under the toolkit's
+   symbolic select glyph whose backdrop ink is dimmed — so a selection
+   swatch painted stock instead of the landed recipe. The GTK 4 sister
+   record of this theme restates the same eight state faces from the
+   light resource of that toolkit (paths in docs/invariants.md). The
+   landed bare `check, radio`, `check` and `check:checked` groups
+   cannot reach these class-armed spellings: they name the element node
+   and lose the class-armed specificity tie, so each spelling below
+   restates exactly the landed `check` recipe's face — the light-grey
+   fill, the 1px solid black outline and the inset white/dark-grey
+   relief pair — on top of this record's zero radius, and the four
+   checked spellings add the landed `check:checked` glyph source (the
+   landed `check` group's raised face colour restates beside the glyph,
+   stock painting the checked swatch image-only). The suite's scanned
+   parser merges the landed radius blocks and these face declarations
+   into one dictionary per spelling, and the landed corner test pins
+   the merged dictionaries, so the faces extend the landed groups in
+   place — repeating the spellings in new blocks would leave each
+   spelling twice in the scanned selector list. Backdrop keeps the face
+   unchanged per the landed `.osd` check/radio record's policy, which
+   states no `.osd` :backdrop arm. Stock's 32px minimums, 4px margins,
+   residual ink, 200ms transition and the unchecked none icon source
+   stay inherited per-property — the swatch is a platform-defined
+   surface whose 32px geometry the reference set does not show, a
+   shipped-file glyph source is not tinted by the element ink, and the
+   landed plain-state record makes the same transition and ink choice —
+   while stock's `border-width: 0` loses the width half of the restated
+   `border` shorthand per-property, so the swatch keeps the landed hard
+   black outline. This sheet loads after the resource, so each spelling
+   wins the equal-specificity tie by later user-sheet source order.
+   Declaration checks do not establish rendered pixels. */
+
 .view.content-view.check:not(list),
 iconview.content-view.check:not(list),
 .content-view:not(list) check {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:hover:not(list),
 iconview.content-view.check:hover:not(list),
 .content-view:not(list) check:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:active:not(list),
 iconview.content-view.check:active:not(list),
 .content-view:not(list) check:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:backdrop:not(list),
 iconview.content-view.check:backdrop:not(list),
 .content-view:not(list) check:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:checked:not(list),
 iconview.content-view.check:checked:not(list),
 .content-view:not(list) check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:checked:hover:not(list),
 iconview.content-view.check:checked:hover:not(list),
 .content-view:not(list) check:checked:hover {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:checked:active:not(list),
 iconview.content-view.check:checked:active:not(list),
 .content-view:not(list) check:checked:active {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 .view.content-view.check:backdrop:checked:not(list),
 iconview.content-view.check:backdrop:checked:not(list),
 .content-view:not(list) check:backdrop:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
 /* No collected reference screenshot shows a GTK check button or radio in
@@ -4224,7 +4311,9 @@ iconview.content-view.check:backdrop:checked:not(list),
    (landed above), the `menu menuitem` transparency group and the model
    buttons (stock and the landed menu records govern menus), the 32px
    content-view tile-check colour family (the landed tail groups above
-   own its radius only), and the tree-view selected check colour arm.
+   own its radius, and the 2026-11-05 face comment before those groups
+   extends them with the landed face), and the tree-view selected check
+   colour arm.
    Each arm below lands as the exact stock-twin spelling of its own
    member — no comma group, because the two landed faces' shadows differ
    — later in source order, so each arm's landed-DIFFERENT state

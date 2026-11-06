@@ -26,6 +26,7 @@ from support.gtk_theme_spec import (
     BUTTON_BEVEL,
     CALENDAR_SELECTED_DAY,
     CHECK,
+    CHECK_GLYPH,
     COMBO_ARROW,
     DISABLED_TEXT,
     ENTRY_FIELD,
@@ -37,10 +38,12 @@ from support.gtk_theme_spec import (
     VISITED_LINK,
     MENU_CHECK,
     INVERTED_BUTTON_BEVEL,
+    MIXED_GLYPH,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
     RADIO,
+    RADIO_GLYPH,
     ROW_HOVER,
     ROW_SELECTED,
     SCALE_EMPTY_FILL,
@@ -603,6 +606,103 @@ for radio in (False, True):
     def test_content_view_field_and_hover(self):
         self.assert_rule(".content-view", VIEW_BACKGROUND)
         self.assert_rule(".content-view:hover", {"-gtk-icon-filter": "none"})
+
+    def test_tile_check_faces(self):
+        """Pin the eight 32px content-view tile-check state faces.
+
+        The 2026-11-05 sheet-tail record restates the toolkit resource's
+        eight class-armed comma triples (probed verbatim in the sheet
+        comment and docs/invariants.md) with the landed check face under
+        every state: the four unchecked spellings carry the raised
+        etched face with the zero radius and hard black outline, the
+        four checked ones the same under the shipped checkmark glyph.
+        Stock's 32px geometry, margins, residual colour and 200ms
+        transition and the unchecked none icon source stay inherited
+        per-property (no declaration here), so this dictionary is the
+        whole group.
+        """
+        states = (
+            "",
+            ":hover",
+            ":active",
+            ":backdrop",
+            ":checked",
+            ":checked:hover",
+            ":checked:active",
+            ":backdrop:checked",
+        )
+        class_armed = tuple(
+            f"{head}{state}:not(list)"
+            for state in states
+            for head in (
+                ".view.content-view.check",
+                "iconview.content-view.check",
+            )
+        )
+        tile_members = tuple(
+            f".content-view .tile check{state}:not(list)" for state in states
+        )
+        unchecked = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
+        }
+        checked = {**unchecked, "-gtk-icon-source": CHECK_GLYPH["-gtk-icon-source"]}
+        expected = {
+            selector: dict(unchecked) for selector in class_armed + tile_members
+        }
+        for state in states[4:]:
+            for head in (
+                ".view.content-view.check",
+                "iconview.content-view.check",
+            ):
+                expected[f"{head}{state}:not(list)"] = dict(checked)
+            expected[f".content-view .tile check{state}:not(list)"] = dict(
+                checked
+            )
+        self.assert_rule_group(expected)
+        # The class-armed sweep: every rule carrying the content-view.check
+        # token is one of the sixteen `.view`/`iconview` spellings, and the
+        # `.tile check` token reaches exactly the eight third members.
+        self.assertEqual(
+            {s for s in self.rules if "content-view.check" in s},
+            set(class_armed),
+        )
+        self.assertEqual(
+            {s for s in self.rules if ".tile check" in s},
+            set(tile_members),
+        )
+        # Provenance guards: the landed `.content-view` field and hover
+        # arms, the landed element `check`/`radio` recipes, the four merged
+        # checked and indeterminate glyph unions the plain-state record
+        # pins and the merged zero-radius `check` key stay byte-equal, so
+        # the tile record added no declaration to any landed key.
+        self.assert_rule(".content-view", VIEW_BACKGROUND)
+        self.assert_rule(".content-view:hover", {"-gtk-icon-filter": "none"})
+        self.assert_rule("check", CHECK)
+        self.assertEqual(self.selectors.count("check"), 2)
+        self.assert_rule("radio", RADIO)
+        check_face = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": CHECK["box-shadow"],
+        }
+        check_checked_face = {**check_face, "background-color": FACE}
+        radio_face = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": "none",
+        }
+        self.assert_rule("check:checked", {**CHECK_GLYPH, **check_checked_face})
+        self.assert_rule("radio:checked", {**RADIO_GLYPH, **radio_face})
+        self.assert_rule(
+            "check:indeterminate", {**MIXED_GLYPH, **check_checked_face}
+        )
+        self.assert_rule(
+            "radio:indeterminate", {**MIXED_GLYPH, **radio_face}
+        )
 
     def test_links(self):
         self.assert_links(
@@ -2469,6 +2569,20 @@ for radio in (False, True):
         self.assert_matches_frame("iconview.view:selected", "border-radius")
         # The family keeps the landed DND drop border as its only other
         # icon-view rule: a renamed restated arm leaves exactly its successor.
+        # 2026-11-05: the tile-check face record restates eight more
+        # iconview arms -- the selection-check state faces
+        # `iconview.content-view.check…:not(list)` -- all pinned with the
+        # other content-view check spellings by test_tile_check_faces.
+        states = (
+            "",
+            ":hover",
+            ":active",
+            ":backdrop",
+            ":checked",
+            ":checked:hover",
+            ":checked:active",
+            ":backdrop:checked",
+        )
         self.assertEqual(
             {selector for selector in self.rules if "iconview" in selector},
             {
@@ -2478,6 +2592,10 @@ for radio in (False, True):
                 "iconview.view:selected",
                 "iconview.view:selected:focus",
                 "iconview.view:backdrop:selected",
+                *(
+                    f"iconview.content-view.check{state}:not(list)"
+                    for state in states
+                ),
             },
         )
 
