@@ -35,14 +35,13 @@ def _kde_config_value(path):
 class TestReadersAgree(unittest.TestCase):
     def test_the_corpus_is_read_the_same_way_by_every_reader(self):
         scratch = make_tmp_dir(self)
-        ini = scratch / "kdeglobals"
         defaults = scratch / "defaults"
         config = scratch / "config"
         config.mkdir()
         with installed_destdir(self, packages="color-scheme") as destdir:
             for case in CASES:
                 with self.subTest(case=case.name):
-                    ini.write_text(case.text, encoding="utf-8")
+                    ini = kde_config.write(scratch, case.text)
                     self._assert_kde_config_agrees(case, ini)
 
                     defaults.write_text(
