@@ -5069,3 +5069,51 @@ spinbutton:not(.vertical) image:backdrop, entry image:backdrop {
   background-color: #CCCCFF;
   color: #000000;
 }
+
+/* No reference screenshot shows a GTK calendar header rule, navigation
+   button, day highlight or backdrop state, so these faces are
+   platform-required. libgtk-3's compiled stylesheet declares nine further
+   calendar arms: a pale translucent header rule that recolours nowhere,
+   dim translucent grey navigation-button glyphs that recolour under
+   hover, backdrop and disabled states, a day-highlight ink twin that
+   repens paler in an unfocused window, and a pale backdrop day grain and
+   greige backdrop outer border. The header rule takes the etched dark
+   half #888888, the landed calendar:indeterminate ink that already edges
+   the GTK 4 calendar header; the navigation buttons take full-strength
+   black #000000 at rest, under hover and in an unfocused window (one
+   landed glyph, per the erase precedents, so the recolours never show)
+   and the inactive grey #888888 while disabled; day highlights take
+   #888888 at rest and in an unfocused window, with no pale repen; and
+   the backdrop window keeps the landed day grain and outer border face,
+   per the landed button:backdrop keep-the-landed-face policy. Stock
+   declares only the colour on each arm, so stock's separator geometry
+   and the byte-equal stock spellings stay. Restated 2026-11-08 by the
+   feature role. */
+calendar.header {
+  border-bottom-color: #888888;
+}
+calendar.header:backdrop {
+  border-bottom-color: #888888;
+}
+calendar.button {
+  color: #000000;
+}
+calendar.button:hover {
+  color: #000000;
+}
+calendar.button:backdrop {
+  color: #000000;
+}
+calendar.button:disabled {
+  color: #888888;
+}
+calendar.highlight {
+  color: #888888;
+}
+calendar.highlight:backdrop {
+  color: #888888;
+}
+calendar:backdrop {
+  color: #000000;
+  border-color: #000000;
+}

@@ -743,6 +743,43 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
     def test_calendar_focus_outline(self):
         self.assert_dotted_focus_outline("calendar:focus")
 
+    def test_calendar_state_arms(self):
+        # No reference screenshot shows a GTK calendar header, navigation
+        # button, day highlight or backdrop state, so the nine stock arms
+        # rest on landed faces: ETCH_DARK for the header rule and day
+        # highlights, BLACK for the navigation glyphs (the erase
+        # precedents, with no hover motion) and the disabled grey, and the
+        # landed button:backdrop keep-the-landed-face policy for the
+        # backdrop window.
+        expected = {
+            "calendar.header": {"border-bottom-color": ETCH_DARK},
+            "calendar.header:backdrop": {"border-bottom-color": ETCH_DARK},
+            "calendar.button": {"color": BLACK},
+            "calendar.button:hover": {"color": BLACK},
+            "calendar.button:backdrop": {"color": BLACK},
+            "calendar.button:disabled": {"color": DISABLED_TEXT["color"]},
+            "calendar.highlight": {"color": ETCH_DARK},
+            "calendar.highlight:backdrop": {"color": ETCH_DARK},
+            "calendar:backdrop": {"color": BLACK, "border-color": BLACK},
+        }
+        for selector, rule in expected.items():
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertEqual(self.rules[selector], rule, selector)
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("calendar")},
+            {
+                "calendar",
+                "calendar:selected",
+                "calendar:indeterminate",
+                "calendar:focus",
+                *expected,
+            },
+        )
+        self.assertGreater(
+            self.css.index("calendar.header {"),
+            self.css.index("calendar:focus {"),
+        )
+
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
         # The restated entry colour-class twins carry .warning/.error
