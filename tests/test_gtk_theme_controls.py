@@ -955,6 +955,56 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         for selector in expected:
             self.assertGreater(uncommented.index(selector), anchor, selector)
 
+    def test_entry_image_inks(self):
+        # The landed entry recipe never names the icon child GTK embeds
+        # inside a field or spin button, so the toolkit resource paints
+        # its own inks on it: a foreign grey-green at rest, a dark grey
+        # under hover, the accent hue while pressed or keyboard-active
+        # and a pale grey inside an unfocused window, plus a 6px gap
+        # between each side icon and the field's text that the landed
+        # sheet owns nowhere. Every colour arm restates its stock twin
+        # with the landed field's black ink (no collected reference
+        # screenshot shows an embedded icon, so the landed text-ink
+        # record stands in; the backdrop twin keeps that face per the
+        # landed button:backdrop policy since Platinum's model is
+        # active=frontmost), and the two margin twins keep stock's own
+        # spacing byte-equal.
+        expected = {
+            "spinbutton:not(.vertical) image.left": {"margin-right": "6px"},
+            "entry image.left": {"margin-right": "6px"},
+            "spinbutton:not(.vertical) image.right": {"margin-left": "6px"},
+            "entry image.right": {"margin-left": "6px"},
+            "spinbutton:not(.vertical) image": {"color": BLACK},
+            "entry image": {"color": BLACK},
+            "spinbutton:not(.vertical) image:hover": {"color": BLACK},
+            "entry image:hover": {"color": BLACK},
+            "spinbutton:not(.vertical) image:active": {"color": BLACK},
+            "entry image:active": {"color": BLACK},
+            "spinbutton:not(.vertical) image:backdrop": {"color": BLACK},
+            "entry image:backdrop": {"color": BLACK},
+        }
+        for selector, declarations in expected.items():
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertEqual(self.rules[selector], declarations, selector)
+        # No other spelling in the family exists: the token sweep kills
+        # renamed, stray and dropped twins alike.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if s.startswith("spinbutton:not(.vertical) image")
+                or s.startswith("entry image")
+            },
+            set(expected),
+        )
+        # Every restated spelling sits after the landed field rule, so
+        # the equal-specificity ties resolve the landed face's way under
+        # either cascade reading.
+        uncommented = strip_comments(self.css)
+        anchor = uncommented.index("entry, spinbutton:not(.vertical) {")
+        for selector in expected:
+            self.assertGreater(uncommented.index(selector), anchor, selector)
+
     def test_horizontal_spinbutton_focus_outline(self):
         self.assert_dotted_focus_outline("spinbutton:focus:not(.vertical)")
 

@@ -4946,3 +4946,52 @@ treeview entry:focus:dir(rtl), treeview entry:focus:dir(ltr) {
 treeview entry.flat:focus, treeview entry:focus {
   border-color: #000000;
 }
+
+/* No collected reference screenshot shows an entry's or spin button's
+   embedded icon child (the magnifier, clear-button or stepper glyph GTK
+   stacks inside a field): the missing entry-image reference surfaces, so
+   the landed field recipe's black ink and the landed button:backdrop
+   record's keep-the-landed-face-in-backdrop policy (Platinum's model is
+   active=frontmost) stand in per the standing GTK-scope adaptation
+   premise. Recorded 2026-11-07. The toolkit resource's own image arms
+   (extracted the same day from libgtk-3's compiled stylesheet, stock
+   lines 115, 117, 141, 143, 145 and 147, quoted here with the foreign
+   inks elided) otherwise paint on the embedded icons: a grey-green at
+   rest, a dark grey under hover, the accent hue while pressed or
+   keyboard-active, a pale grey in a backdrop window, and a 6px gap
+   between each side icon and the field's text — geometry the landed
+   sheet repeats nowhere. Each colour rule below restates its stock
+   twin's spelling exactly with the landed black ink, and the two margin
+   twins keep stock's own values byte-equal, later in user-sheet source
+   order, so the restatement wins the equal-specificity tie under either
+   cascade reading. Excluded: the Gtk 4 twin colour arms (a follow-up
+   candidate needing its own fresh probe of the landed Gtk 4 sheet's
+   entry area), the global disabled-image and filter arms, the check,
+   radio and submenu glyph sources (recorded above), the `.entry-tag`
+   fill family (no landed entry-tag record; a separate candidate) and
+   the nested-field clearing arm (recorded above). Declaration checks do
+   not establish rendered pixels. */
+
+spinbutton:not(.vertical) image.left, entry image.left {
+  margin-right: 6px;
+}
+
+spinbutton:not(.vertical) image.right, entry image.right {
+  margin-left: 6px;
+}
+
+spinbutton:not(.vertical) image, entry image {
+  color: #000000;
+}
+
+spinbutton:not(.vertical) image:hover, entry image:hover {
+  color: #000000;
+}
+
+spinbutton:not(.vertical) image:active, entry image:active {
+  color: #000000;
+}
+
+spinbutton:not(.vertical) image:backdrop, entry image:backdrop {
+  color: #000000;
+}
