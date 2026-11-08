@@ -428,8 +428,8 @@ class TestTiledRgbValidation(unittest.TestCase):
         # tile edge, rather than being refused or producing different bytes.
         tile = bytes((i * 7) % 256 for i in range(TILE * TILE * 3))
         self.assertEqual(
-            make_wallpaper.tiled_rgb(tile, 130, 3),
-            make_wallpaper.tiled_rgb(bytearray(tile), 130, 3),
+            make_wallpaper.tiled_rgb(tile, 130, TILE + 3),
+            make_wallpaper.tiled_rgb(bytearray(tile), 130, TILE + 3),
         )
 
 
