@@ -4741,3 +4741,103 @@ row.activatable:selected:active {
 row.activatable:selected.has-open-popup, row.activatable:selected:hover {
   background-color: #CCCCFF;
 }
+
+/* Adaptation 2026-11-06: no collected reference screenshot shows an
+   error- or warning-classed GTK field or label (the standing GTK-scope
+   adaptation premise), so the landed entry face answers the toolkit
+   resource's colour-class arms without their inks: an `error`- or
+   `warning`-classed entry, spin-button field or label paints the landed
+   black ink and border, the landed etch under keyboard focus, the landed
+   selection fill under a selection, and the landed label policy's
+   inherited black or insensitive grey, where the toolkit's resource would
+   paint its error red or warning orange on the text, border, focus ring
+   and selection and its translucent red on a disabled error-classed
+   label. `gresource extract` on the toolkit's own lower stylesheet
+   resource (the library path lives in docs/invariants.md, probed
+   2026-11-06) returns exactly ten colour-class statements: a
+   `label.error` arm declaring only the red colour, its disabled twin
+   declaring the red at half translucency, a disabled-backdrop twin
+   grounding that translucency, the error field pair's colour-and-border
+   arm, the error field pair's focus arm declaring an inset focus ring in
+   the red over the border colour, the error field pair's selection arm
+   declaring only the red selection fill, the byte-twin warning triple in
+   the toolkit's orange, and one late colour-only repeat of the error
+   field arm the first arm already covers per-property. Those arms' inks
+   and translucency values are the resource's own, not this sheet's
+   palette, so they are quoted here with the paint values elided and named
+   in docs/invariants.md, whose palette scan does not read this sheet.
+   Nine grouped rules below restate nine of the ten statements with the
+   landed faces, in stock statement order, one group per stock statement:
+   the label base arm in the landed `entry, spinbutton:not(.vertical)`
+   field rule's inherited black, the two disabled label arms in the landed
+   insensitive grey with no backdrop dim (this sheet carries no label
+   backdrop dim, and the landed GTK 4 label colour-class record restates
+   its disabled twin the same way), then per class the field pair's
+   colour-and-border arm restating the landed field's black text and hard
+   black border, the field pair's focus arm restating the landed
+   `inset 1px 1px #999999` etch and the border colour with nothing else
+   (stock's arm declares only these two properties, so the landed dotted
+   focus outline cascades unchanged), and the field pair's selection arm
+   restating the landed `#CCCCFF` selection fill's background property
+   alone (the landed element-level selection groups own the selection ink
+   for any entry spelling, colour-classed or not). Each restated spelling
+   is the byte-equal stock twin spelling later in user-sheet source order,
+   so the equal-specificity tie falls the landed face's way under either
+   cascade reading the landed records accept, while the class keeps its
+   place in the cascade. Stock's late colour-only repeat needs no twin of
+   its own: it loses per-property to whichever twin answers the matching
+   statement either source order puts last. No other addition: no radius,
+   geometry, shadow, motion or `-gtk-icon-effect` member is appended
+   (stock's colour-class arms carry no motion; the tiled field face and
+   landed motion records own everything else). Exclusions, recorded in
+   docs/invariants.md: the resource's linked border-coupling arms that
+   pass an error-classed field's red on to its linked neighbours' shared
+   edges (the landed linked-family records' own decision keeps them
+   stock), the universal arm's error-underline colour for text views,
+   stock's `.osd` field families (the resource ships no colour-class
+   twins there, and the landed OSD records stay), and vertical spin
+   button geometry (unaffected: every field colour-class arm the
+   resource ships carries the horizontal guard itself, so a vertical
+   spin button's field never receives a colour-class statement at all).
+   Declaration checks do not establish rendered pixels.
+   Recorded 2026-11-06 by the feature role. */
+
+label.error {
+  color: #000000;
+}
+
+label.error:disabled {
+  color: #888888;
+}
+
+label.error:disabled:backdrop {
+  color: #888888;
+}
+
+spinbutton.error:not(.vertical), entry.error {
+  color: #000000;
+  border-color: #000000;
+}
+
+spinbutton.error:focus:not(.vertical), entry.error:focus {
+  box-shadow: inset 1px 1px #999999;
+  border-color: #000000;
+}
+
+spinbutton.error:not(.vertical) selection, entry.error selection {
+  background-color: #CCCCFF;
+}
+
+spinbutton.warning:not(.vertical), entry.warning {
+  color: #000000;
+  border-color: #000000;
+}
+
+spinbutton.warning:focus:not(.vertical), entry.warning:focus {
+  box-shadow: inset 1px 1px #999999;
+  border-color: #000000;
+}
+
+spinbutton.warning:not(.vertical) selection, entry.warning selection {
+  background-color: #CCCCFF;
+}

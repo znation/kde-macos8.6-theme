@@ -14,11 +14,12 @@ import sys
 import unittest
 from pathlib import Path
 
-from support.gtk_css import assert_svg_root_first
+from support.gtk_css import assert_svg_root_first, strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
     DISABLED_TEXT,
+    ENTRY_FIELD,
     ENTRY_PROGRESS,
     ETCH_DARK,
     INVERTED_BUTTON_BEVEL,
@@ -26,6 +27,7 @@ from support.gtk_theme_spec import (
 from support.platinum_palette import (
     BLACK,
     FACE,
+    SELECTION,
     WHITE,
 )
 from support.repo_root import ROOT
@@ -704,6 +706,76 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
 
     def test_entry_focus_outline(self):
         self.assert_dotted_focus_outline("entry:focus")
+
+    def test_entry_error_warning_colour_classes(self):
+        # The landed entry policy takes no colour class: the sheet
+        # restates the stock colour-class arms with byte-equal twins
+        # declaring the landed faces, so an entry, spin-button field or
+        # label carrying the `error` or `warning` class paints the landed
+        # recipe instead of the toolkit resource's red or orange. The
+        # label's disabled twins both take the landed insensitive grey
+        # with no backdrop dim (the landed sheet carries no label backdrop
+        # dim, matching the landed GTK 4 label colour-class record); the
+        # selection arms restate only the fill, the landed element-level
+        # selection groups owning the ink; the focus arms restate only the
+        # etch and the border colour, the landed dotted outlines cascading
+        # unchanged; and stock's late colour-only repeat of the error
+        # field base arm needs no twin of its own.
+        expected = {
+            "label.error": {"color": BLACK},
+            "label.error:disabled": DISABLED_TEXT,
+            "label.error:disabled:backdrop": DISABLED_TEXT,
+            "spinbutton.error:not(.vertical)": {
+                "color": BLACK,
+                "border-color": BLACK,
+            },
+            "entry.error": {"color": BLACK, "border-color": BLACK},
+            "spinbutton.error:focus:not(.vertical)": {
+                "box-shadow": ENTRY_FIELD["box-shadow"],
+                "border-color": BLACK,
+            },
+            "entry.error:focus": {
+                "box-shadow": ENTRY_FIELD["box-shadow"],
+                "border-color": BLACK,
+            },
+            "spinbutton.error:not(.vertical) selection": {
+                "background-color": SELECTION,
+            },
+            "entry.error selection": {"background-color": SELECTION},
+            "spinbutton.warning:not(.vertical)": {
+                "color": BLACK,
+                "border-color": BLACK,
+            },
+            "entry.warning": {"color": BLACK, "border-color": BLACK},
+            "spinbutton.warning:focus:not(.vertical)": {
+                "box-shadow": ENTRY_FIELD["box-shadow"],
+                "border-color": BLACK,
+            },
+            "entry.warning:focus": {
+                "box-shadow": ENTRY_FIELD["box-shadow"],
+                "border-color": BLACK,
+            },
+            "spinbutton.warning:not(.vertical) selection": {
+                "background-color": SELECTION,
+            },
+            "entry.warning selection": {"background-color": SELECTION},
+        }
+        self.assert_rule_group(expected)
+        # No other error or warning selector exists in the sheet: the
+        # family sweep kills renamed, dropped and stray class spellings
+        # alike.
+        self.assertEqual(
+            {s for s in self.rules if ".error" in s or ".warning" in s},
+            set(expected),
+        )
+        # Every restated spelling sits after the landed field rule, so the
+        # equal-specificity ties resolve the landed face's way under either
+        # cascade reading the landed records accept.
+        uncommented = strip_comments(self.css)
+        anchor = uncommented.index("entry, spinbutton:not(.vertical) {")
+        for selector in expected:
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertGreater(uncommented.index(selector), anchor, selector)
 
     def test_horizontal_spinbutton_focus_outline(self):
         self.assert_dotted_focus_outline("spinbutton:focus:not(.vertical)")
