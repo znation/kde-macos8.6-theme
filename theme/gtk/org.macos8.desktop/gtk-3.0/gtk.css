@@ -4841,3 +4841,108 @@ spinbutton.warning:focus:not(.vertical), entry.warning:focus {
 spinbutton.warning:not(.vertical) selection, entry.warning selection {
   background-color: #CCCCFF;
 }
+
+/* No reference screenshot shows a GTK field's disabled, unfocused-window,
+   drag-hover, treeview-editable-cell or nested spin-button state: the
+   missing entry-state reference surfaces, so the landed field recipe, the
+   landed insensitive grey and the landed button:backdrop record's
+   no-motion backdrop policy stand in per the standing GTK-scope adaptation
+   premise. Recorded 2026-11-06. The toolkit resource's own state arms
+   (extracted the same day from libgtk-3's compiled stylesheet and quoted
+   here with the foreign inks elided) otherwise paint on the landed
+   spellings: a focused field gets an accent hairline ring and accent border
+   inside the landed dotted outline (two class-level states, so the landed
+   one-state insensitive grey on the ink loses it too); a disabled, backdrop
+   or backdrop-disabled field gets a greige border, an off-white fill and
+   no etch, and a backdrop field a 200 ms recolour motion; a drag-hover
+   over a field rims it green; a focused treeview editable cell gets the
+   accent border and a motion property; and the nested field inside a
+   horizontal spin button is cleared by the resource, stock's `min-width:
+   28px` and `margin: 0` standing in force with it, a clearing the landed
+   sheet never repeated. Each rule below restates its stock twin's
+   declarations and spelling exactly, with the landed faces in place of the
+   foreign inks, later in user-sheet source order, so the restatement wins
+   the equal-specificity tie under either cascade reading. The vertical
+   spin button's colour-only twins take the landed ink, the toolkit ships
+   no plain vertical backdrop arm, and the vertical drop twin and the
+   nested-field clearing keep stock's own values verbatim. Excluded: the
+   linked border-coupling arms (the landed linked-family records keep them
+   stock), the class-armed field spellings (recorded above), the
+   `.entry-tag` fill family (no landed entry-tag record; a separate
+   candidate) and the entry image colour family (the landed mapping needs a
+   GTK 4 twin probe first; a follow-up candidate). Declaration checks do
+   not establish rendered pixels. */
+
+spinbutton:focus:not(.vertical), entry:focus {
+  box-shadow: inset 1px 1px #999999;
+  border-color: #000000;
+}
+
+spinbutton:disabled:not(.vertical), entry:disabled {
+  color: #888888;
+  border-color: #000000;
+  background-color: #FFFFFF;
+  box-shadow: inset 1px 1px #999999;
+}
+
+spinbutton:backdrop:not(.vertical), entry:backdrop {
+  color: #000000;
+  border-color: #000000;
+  background-color: #FFFFFF;
+  box-shadow: inset 1px 1px #999999;
+  transition: none;
+}
+
+spinbutton:backdrop:disabled:not(.vertical), entry:backdrop:disabled {
+  color: #888888;
+  border-color: #000000;
+  background-color: #FFFFFF;
+  box-shadow: inset 1px 1px #999999;
+}
+
+spinbutton.vertical:disabled {
+  color: #888888;
+}
+
+spinbutton.vertical:backdrop:disabled {
+  color: #888888;
+}
+
+spinbutton:drop(active):not(.vertical), entry:drop(active):focus, entry:drop(active) {
+  border-color: #000000;
+  box-shadow: inset 1px 1px #999999;
+}
+
+spinbutton.vertical:drop(active) {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) entry, spinbutton:not(.vertical) entry {
+  min-width: 28px;
+  margin: 0;
+  background: none;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+spinbutton:not(.vertical) entry:backdrop:disabled {
+  background-color: transparent;
+}
+
+treeview entry.flat, treeview entry {
+  border-radius: 0;
+  background-image: none;
+  background-color: #FFFFFF;
+}
+
+treeview entry:focus:dir(rtl), treeview entry:focus:dir(ltr) {
+  background-color: #FFFFFF;
+  transition-property: none;
+}
+
+treeview entry.flat:focus, treeview entry:focus {
+  border-color: #000000;
+}

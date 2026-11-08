@@ -114,7 +114,8 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_osd_entry_fields(self):
-        """Pin the four restated stock OSD field arms.
+        """Pin the four restated stock OSD field arms and the nested
+        spin-button field's stock-identical clearing.
 
         No collected reference screenshot shows a field inside a GTK OSD
         overlay, so the sheet restates the toolkit resource's four grouped
@@ -146,6 +147,19 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd entry:backdrop": field,
             ".osd spinbutton:disabled:not(.vertical)": disabled,
             ".osd entry:disabled": disabled,
+            # The 2026-11-07 nested-field clearing twin restated the
+            # resource's byte-equal `.osd spinbutton:not(.vertical) entry`
+            # spelling in the entry state-faces record's group, so the
+            # family sweep gains its stock-identical clearing.
+            ".osd spinbutton:not(.vertical) entry": {
+                "min-width": "28px",
+                "margin": "0",
+                "background": "none",
+                "background-color": "transparent",
+                "border": "none",
+                "border-radius": "0",
+                "box-shadow": "none",
+            },
         }
         self.assert_rule_group(expected)
         for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
