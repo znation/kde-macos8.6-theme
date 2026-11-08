@@ -5117,3 +5117,33 @@ calendar:backdrop {
   color: #000000;
   border-color: #000000;
 }
+
+/* No reference screenshot shows a GTK assistant step sidebar, so these
+   faces are platform-required. libgtk-3's compiled stylesheet declares
+   five assistant sidebar arms: a greige-edged sidebar field, a paler
+   backdrop twin that repens it in an unfocused window, a csd arm that
+   drops the top edge, a step-label padding and a blue-grey active-step
+   label face. The sidebar field keeps the landed white content field
+   #FFFFFF; the top edge takes the etched dark half #888888, the landed
+   etched band edge the infobar reuses; the active step label takes the
+   landed face grey #DDDDDD, the landed neutral band face — the current
+   page of a wizard is not a selected row, so no selection blue applies.
+   The label padding and the csd top-edge drop are stock's own shapes,
+   kept byte-equal. In an unfocused window the sidebar keeps exactly the
+   landed field, edge and step face — no pale backdrop repen — per the
+   landed button:backdrop keep-the-landed-face policy. The landed GTK 4
+   assistant step-label corners row is the cross-toolkit twin. Restated
+   2026-11-08 by the feature role. */
+assistant .sidebar {
+  background-color: #FFFFFF;
+  border-top: 1px solid #888888;
+}
+assistant.csd .sidebar {
+  border-top-style: none;
+}
+assistant .sidebar label {
+  padding: 6px 12px;
+}
+assistant .sidebar label.highlight {
+  background-color: #DDDDDD;
+}

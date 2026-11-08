@@ -791,6 +791,36 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 if "infobar" in selector:
                     self.assertNotIn(message_type, selector, message_type)
 
+    def test_assistant_sidebar_arms(self):
+        # No reference screenshot shows a GTK assistant sidebar, so the
+        # five stock sidebar arms rest on landed faces: WHITE for the
+        # sidebar field, ETCH_DARK for the top edge (the landed etched
+        # band edge the infobar reuses) and FACE for the active-step
+        # label — a wizard's current page is not a selected row, so no
+        # selection blue applies. Stock's own padding and csd shape stay
+        # byte-equal, and the backdrop window keeps the landed face per
+        # the landed button:backdrop keep-the-landed-face policy.
+        expected = {
+            "assistant .sidebar": {
+                "background-color": WHITE,
+                "border-top": "1px solid " + ETCH_DARK,
+            },
+            "assistant.csd .sidebar": {"border-top-style": "none"},
+            "assistant .sidebar label": {"padding": "6px 12px"},
+            "assistant .sidebar label.highlight": {"background-color": FACE},
+        }
+        for selector, rule in expected.items():
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertEqual(self.rules[selector], rule, selector)
+        self.assertEqual(
+            {s for s in self.rules if "assistant" in s}, set(expected)
+        )
+        self.assertNotIn("assistant .sidebar:backdrop", self.rules)
+        self.assertGreater(
+            self.css.index("assistant .sidebar {"),
+            self.css.index("infobar > revealer > box {"),
+        )
+
     def test_search_bar(self):
         self.assert_infobar(("searchbar > revealer > box",))
 
