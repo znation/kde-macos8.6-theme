@@ -4995,3 +4995,77 @@ spinbutton:not(.vertical) image:active, entry image:active {
 spinbutton:not(.vertical) image:backdrop, entry image:backdrop {
   color: #000000;
 }
+
+/* No collected reference screenshot shows an entry's tag chips (the
+   fill tokens a tagged entry embeds at its tail): the missing
+   entry-tag reference surfaces, so the chip reuses the palette's flat
+   selection fill SELECTION (#CCCCFF, grounded by the firstboot-banner
+   selection anchor in firstboot_betawiki.png) and the landed field's
+   black ink (#000000), with the landed button:backdrop record's
+   keep-the-landed-face-in-backdrop policy (Platinum's model is
+   active=frontmost) for the pale backdrop twin and the landed
+   button:hover and .content-view:hover full-strength erase precedents
+   for the close button's dimmed translucent white inks. Recorded
+   2026-11-08. The toolkit resource's own entry-tag arms (extracted the
+   same day from libgtk-3's compiled stylesheet, resource lines 195,
+   197, 199, 201, 203, 205, 207 and 209 of the 2055-line extract,
+   quoted here with the foreign inks elided) otherwise paint on the
+   chips: an accent-blue fill with white ink at rest, a lighter accent
+   under hover, a pale-repeat twin inside an unfocused window and a
+   dimmed translucent white close-button ink with an accent ring and
+   fill under hover and press. Stock's own geometry is kept byte-equal
+   (the 5px padding, the 2px vertical margins, no border, the 8px and
+   -5px direction margins mirrored between the two direction
+   spellings), and each colour rule below restates its stock twin's
+   spelling exactly with the landed values, later in user-sheet source
+   order, so the restatement wins the equal-specificity tie under
+   either cascade reading; the sheet gains no rule-level translucent
+   value. Excluded: the Gtk 4 twin chip arms in the integration
+   library's resource (a separate candidate needing its own fresh
+   probe of that tagged-entry region), the check, radio and submenu
+   glyph sources and the other `> image` families (recorded above),
+   and the Gtk 4 sheet (the waiting entry-image sibling owns it).
+   Declaration checks do not establish rendered pixels. */
+
+.entry-tag {
+  padding: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  border-style: none;
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+:dir(ltr) .entry-tag {
+  margin-left: 8px;
+  margin-right: -5px;
+}
+
+:dir(rtl) .entry-tag {
+  margin-left: -5px;
+  margin-right: 8px;
+}
+
+.entry-tag:hover {
+  background-color: #CCCCFF;
+}
+
+:backdrop .entry-tag {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+.entry-tag.button {
+  background-color: transparent;
+  color: #000000;
+}
+
+:not(:backdrop) .entry-tag.button:hover {
+  border: 1px solid #000000;
+  color: #000000;
+}
+
+:not(:backdrop) .entry-tag.button:active {
+  background-color: #CCCCFF;
+  color: #000000;
+}
