@@ -680,9 +680,20 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                     "border-radius": "0",
                     "-gtk-outline-radius": "0",
                 },
+                # Joined 2026-11-08: the five byte-equal stock geometry
+                # declarations (probe of the toolkit resource, libgtk-3
+                # 3.24.49, arm at resource line 1687) joined the landed
+                # corner record's bare sidebar-button rule to pin the
+                # button's box geometry against upstream drift; the radius
+                # pair is the landed 2026-11-04 pair.
                 "button.sidebar-button": {
                     "border-radius": "0",
                     "-gtk-outline-radius": "0",
+                    "min-height": "26px",
+                    "min-width": "26px",
+                    "margin-top": "3px",
+                    "margin-bottom": "3px",
+                    "padding": "0",
                 },
                 "button.titlebutton:not(.appmenu)": {"border-radius": "0"},
                 "modelbutton.flat": {"border-radius": "0"},

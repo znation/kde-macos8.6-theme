@@ -3790,8 +3790,31 @@ label:link:visited:selected:disabled:backdrop:active {
    square like the landed focus restatements. Stock's padding, margins,
    minimum sizes, background boxes, borders, dark face colour, opacity and
    icon sources stay inherited per-property, and every state arm of these
-   spellings that carries no radius is left inherited. Declaration checks do
-   not establish rendered pixels. */
+   spellings that carries no radius is left inherited — for the four other
+   faces, that is: the sidebar button's minimum sizes, vertical margins and
+   padding joined the landed restatement on 2026-11-08 (the note below), so
+   this sentence now bounds the circular, title, model and overlay-dot
+   faces only.
+
+   Adaptation 2026-11-08: re-probed the resource with gresource on
+   2026-11-08 (the same gtk-contained.css inside libgtk-3, libgtk-3
+   3.24.49, 2055 lines): the sidebar-button arm reads `button.sidebar-button
+   { min-height: 26px; min-width: 26px; margin-top: 3px; margin-bottom: 3px;
+   padding: 0; border-radius: 100%; -gtk-outline-radius: 100%; }` at
+   resource line 1687. No collected reference screenshot in
+   macos8.6-screenshots/ shows a places sidebar's per-row navigation button
+   (the GTK scope's standing adaptation premise above), so the five joined
+   declarations are the probe's byte-equal stock values — platform values
+   the reference set does not show. The 2026-11-04 landing squared the
+   radius pair and left the arm's padding, margins and minimum sizes
+   inherited per-property; this join extends the landed restatement to pin
+   the button's 26px square box, 3px vertical margins and zero padding
+   inside the landed places rows against upstream libgtk geometry drift —
+   under the probed library it is inert and changes no rendered surface.
+   Left stock on purpose: the `> image` opacity arms on the next stock
+   line, `button.circular`'s and the other four faces' own geometry, and
+   every state arm of these spellings carrying no geometry here.
+   Declaration checks do not establish rendered pixels. */
 button.circular {
   border-radius: 0;
   -gtk-outline-radius: 0;
@@ -3800,6 +3823,11 @@ button.circular {
 button.sidebar-button {
   border-radius: 0;
   -gtk-outline-radius: 0;
+  min-height: 26px;
+  min-width: 26px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  padding: 0;
 }
 
 button.titlebutton:not(.appmenu) {
