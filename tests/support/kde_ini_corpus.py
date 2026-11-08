@@ -9,7 +9,9 @@ The project's readers also strip a leading UTF-8 BOM, a deliberate leniency
 (KConfig logs a BOM-prefixed first line as invalid) so an editor-saved file
 still loads. A line that opens a group header but never closes it (``[General``)
 is one more invalid entry KConfig skips: a following key stays in the section
-that is still open. A key before the first header is not ignored: KConfig
+that is still open, and an entry whose name parses empty (``=oops``) is skipped
+the same way, so it neither opens a group nor replaces a following key. A key
+before the first header is not ignored: KConfig
 files it in the ``<default>`` root group, and an empty ``[]`` header opens a
 group of its own, so a key after it does not join the previous group.
 
@@ -105,6 +107,11 @@ CASES = (
         "colon line is skipped",
         "[General]\nColorScheme:MacOS8\nColorScheme=BreezeLight\n",
         "BreezeLight",
+    ),
+    Case(
+        "empty key is skipped",
+        "[General]\n=oops\nColorScheme=MacOS8\n",
+        "MacOS8",
     ),
     Case(
         "semicolon is not a comment",

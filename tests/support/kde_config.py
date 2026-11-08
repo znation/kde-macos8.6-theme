@@ -27,7 +27,10 @@ def _parseable_lines(handle):
 
     KDE trims each line before parsing it. A non-comment, non-heading line
     with no ``=`` is an invalid entry that KDE logs and ignores; configparser
-    would instead reject the whole file. A colon-delimited line
+    would instead reject the whole file. An entry whose name parses empty
+    (``=oops``) is likewise invalid -- KConfig works on the name before the
+    first ``=`` and skips the line when it is empty -- so it is dropped the
+    same way; configparser would otherwise raise ``ParsingError`` on it. A colon-delimited line
     (``ColorScheme:MacOS8``) is one of those entries: ``=`` is the only
     delimiter KDE accepts, so dropping it keeps the colon from becoming a key
     value the other readers never see. A line that opens a heading but never
@@ -59,7 +62,7 @@ def _parseable_lines(handle):
             else:
                 mode = "skip"
             continue
-        if "=" not in stripped:
+        if "=" not in stripped or not stripped.partition("=")[0]:
             continue
         if mode == "section":
             yield line

@@ -5,6 +5,23 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A key-less `=value` line in a theme INI makes `kde_config.read` raise `ParsingError` instead of skipping it (found by the bugfix role 2026-11-08) — fixed 2026-11-08 by the bugfix role
+
+Reproduce: write `=oops\n[General]\n=oops\nColorScheme=MacOS8\n` to a theme
+INI and call `tests/support/kde_config.py::read` on it — the call raises
+`ParsingError` naming the `=oops` line, so the theme file a Plasma session
+greets on-screen fails to load at all. KConfig works on the name before the
+first `=` and skips an entry whose name parses empty, the same way it skips
+the colon-delimited entries the reader already drops.
+
+Fixed: `_parseable_lines` now drops a line whose part before the first `=`
+trims to empty, in the root group and inside a section alike, and the shared
+parity corpus gains a pinning case for all three readers.
+
+**Validation gap:** none — a scratch run reproduced it deterministically and
+the existing suite needed only a new test on the one reader; nothing was
+missing beyond the uncovered branch.
+
 ### A regular file swapped for a FIFO between the uninstall diagnostics' path check and its open hangs `make uninstall` waiting for a writer (found by the bugfix role 2026-11-07) — fixed 2026-11-07 by the bugfix role
 
 `tools/uninstall_diagnostics.py::read_text` guarded its read with

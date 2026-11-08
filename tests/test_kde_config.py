@@ -92,6 +92,21 @@ class TestReadKdeConfig(unittest.TestCase):
         self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
         self.assertEqual(parser.get("General", "Name"), "x")
 
+    def test_an_entry_with_an_empty_key_is_skipped(self):
+        # KConfig works on the name before the first '=' and skips an entry
+        # whose name parses empty (`=oops`), as it skips any other invalid
+        # entry; configparser instead raises ParsingError on the line. The
+        # reader must drop it so the file still loads and the following keys
+        # keep their values. The line before any group header is dropped the
+        # same way instead of opening the <default> root group with an
+        # empty-named key.
+        path = make_tmp_dir(self) / "theme.ini"
+        path.write_text("=oops\n[General]\n=oops\nColorScheme=MacOS8\n", encoding="utf-8")
+        parser = kde_config.read(path)
+        self.assertNotIn("<default>", parser.sections())
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+        self.assertEqual(parser.options("General"), ["ColorScheme"])
+
     def test_a_semicolon_prefix_is_not_a_comment(self):
         # KConfig treats only a leading '#' as a comment. A line beginning
         # with ';' is a key whose name includes the ';', so the reader must
