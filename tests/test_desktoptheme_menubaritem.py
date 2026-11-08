@@ -64,8 +64,7 @@ class TestMenuBarItem(NineSliceCase, unittest.TestCase):
         # centre hint with the wrong position or size passes it while KSvg
         # lays the title out wrong. Pin every hint: all three prefixes share a
         # 7px left/right and 3px top/bottom border around a 6x6 centre tile on
-        # the 20x12 canvas. The shared helper assumes one square border, so
-        # the expected map is spelled out.
+        # the 20x12 canvas.
         self.assertEqual(
             rect_geometry(self.tree),
             nine_slice_rect_hint_geometry(self.PREFIXES, 7, 3, 6, 6),

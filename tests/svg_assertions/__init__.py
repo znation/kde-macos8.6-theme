@@ -65,9 +65,9 @@ from .elements import (
 from .nine_slice import (
     nine_slice_hint_geometry,
     nine_slice_id_set,
-    nine_slice_rect_hint_geometry,
     nine_slice_inset_hints,
     nine_slice_margins,
+    nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     solid_tile,
     tile_origins,
