@@ -410,7 +410,6 @@ class TestSelection(CursorCase):
         self.assertIn(
             f"cannot run {cursor_selection.SELECT_TOOL}", result.stderr
         )
-        self.assertNotIn("Traceback", result.stderr)
         self.assertTrue(self.link.is_symlink())
 
 

@@ -382,10 +382,9 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         result = self.run_tool()
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn("settings.ini", result.stderr)
         self.assertIn("utf-8", result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
         self.assert_gtk3_unchanged(before)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
@@ -403,7 +402,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         result = self.run_tool("--remove")
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn("utf-8", result.stderr)
         self.assert_gtk3_unchanged(gtk3_before)
         self.assertTrue(css.is_file())
@@ -504,10 +503,9 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         result = self.run_tool()
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(gtk4), result.stderr)
         self.assertIn("larger than", result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
         self.assert_gtk3_unchanged(before)
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
@@ -525,7 +523,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         result = self.run_tool("--remove")
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(css), result.stderr)
         self.assertIn("larger than", result.stderr)
         self.assert_settings_unchanged(gtk3_before, gtk4_before)
@@ -578,7 +576,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
 
         result = self.run_tool()
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(gtk4), result.stderr)
         self.assertIn("1048576-byte limit", result.stderr)
         self.assert_settings_unchanged(gtk3_before, data)
