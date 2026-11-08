@@ -389,6 +389,112 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             {"border-radius": "0"},
         )
 
+    def test_sidebar_row_geometry(self):
+        # No collected reference screenshot shows a GTK sidebar list,
+        # places sidebar or stack sidebar, so the sheet restates the
+        # stock sidebar seam and row geometry the landed .sidebar field
+        # record leaves stock: the directional border twins and the
+        # sidebar-direction separator take the landed etched dark half,
+        # and every padding, the 36px row height, the viewport edge
+        # drop and the paned border drop are stock's own shapes kept
+        # byte-equal. The exact stock arms and the excluded faces live
+        # in docs/invariants.md.
+        seam = {
+            "stacksidebar.sidebar:dir(ltr) list",
+            "stacksidebar.sidebar.left list",
+            "stacksidebar.sidebar.left:dir(rtl) list",
+            ".sidebar:not(separator):dir(ltr)",
+            ".sidebar:not(separator).left",
+        }
+        self.assert_rule_group(
+            {selector: {
+                "border-right": "1px solid " + ETCH_DARK,
+                "border-left-style": "none",
+            } for selector in seam}
+        )
+        self.assert_rule_group(
+            {selector: {
+                "border-left": "1px solid " + ETCH_DARK,
+                "border-right-style": "none",
+            } for selector in (
+                "stacksidebar.sidebar:dir(rtl) list",
+                "stacksidebar.sidebar.right list",
+                ".sidebar:not(separator):dir(rtl)",
+                ".sidebar:not(separator).right",
+            )}
+        )
+        paned = {
+            "paned .sidebar.left",
+            "paned .sidebar.right",
+            "paned .sidebar.left:dir(rtl)",
+            "paned .sidebar:dir(rtl)",
+            "paned .sidebar:dir(ltr)",
+            "paned .sidebar",
+        }
+        self.assert_rule_group({key: {"border-style": "none"} for key in paned})
+        self.assert_rule("stacksidebar row", {"padding": "10px 4px"})
+        self.assert_rule(
+            "stacksidebar row > label",
+            {"padding-left": "6px", "padding-right": "6px"},
+        )
+        self.assert_rule("separator.sidebar", {"background-color": ETCH_DARK})
+        self.assert_rule(
+            "placessidebar > viewport.frame",
+            {"border-style": "none"},
+        )
+        self.assert_rule(
+            "placessidebar row",
+            {"min-height": "36px", "padding": "0px"},
+        )
+        self.assert_rule("placessidebar row > revealer", {"padding": "0 14px"})
+        icon_ltr = "placessidebar row image.sidebar-icon:dir(ltr)"
+        icon_rtl = "placessidebar row image.sidebar-icon:dir(rtl)"
+        self.assert_rule(icon_ltr, {"padding-right": "8px"})
+        self.assert_rule(icon_rtl, {"padding-left": "8px"})
+        label_ltr = "placessidebar row label.sidebar-label:dir(ltr)"
+        label_rtl = "placessidebar row label.sidebar-label:dir(rtl)"
+        self.assert_rule(label_ltr, {"padding-right": "2px"})
+        self.assert_rule(label_rtl, {"padding-left": "2px"})
+        # The whole sheet holds exactly these sides of the sidebar
+        # family: a swapped border side, a dropped direction twin, a
+        # stray stock restatement or a renamed restated arm fails the
+        # sweep, and the pale and selection-mode separator twins stay
+        # owned by the backdrop and selection-mode records.
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("paned .sidebar")},
+            paned,
+        )
+        self.assertEqual(
+            {s for s in self.rules if "image.sidebar-icon" in s},
+            {icon_ltr, icon_rtl},
+        )
+        self.assertEqual(
+            {s for s in self.rules if "label.sidebar-label" in s},
+            {label_ltr, label_rtl},
+        )
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("stacksidebar")},
+            {
+                "stacksidebar.sidebar:dir(ltr) list",
+                "stacksidebar.sidebar.left list",
+                "stacksidebar.sidebar.left:dir(rtl) list",
+                "stacksidebar.sidebar:dir(rtl) list",
+                "stacksidebar.sidebar.right list",
+                "stacksidebar row",
+                "stacksidebar row > label",
+                # The landed needs-attention record owns the badge twin.
+                "stacksidebar row.needs-attention > label",
+            },
+        )
+        self.assertNotIn("separator.sidebar:backdrop", self.selectors)
+        self.assertNotIn("separator.sidebar.selection-mode", self.selectors)
+        # The seam complements the landed .sidebar field record in the
+        # sheet, so the restated seam arms follow that block in source.
+        self.assertLess(
+            self.css.index(".sidebar {"),
+            self.css.index("stacksidebar.sidebar:dir(ltr) list"),
+        )
+
     def test_message_dialog_action_area(self):
         # The stock toolkit resource re-pads the message dialog's action
         # buttons to 10px 14px and rounds the end buttons' bottom corners

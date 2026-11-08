@@ -5147,3 +5147,105 @@ assistant .sidebar label {
 assistant .sidebar label.highlight {
   background-color: #DDDDDD;
 }
+
+/* No reference screenshot in macos8.6-screenshots/ shows a GTK sidebar
+   list, places sidebar or stack sidebar, so these faces and shapes are
+   platform-required adaptations. libgtk-3's compiled stylesheet
+   declares, beyond the landed .sidebar field record, seam and geometry
+   arms the landed records never touch: directional border twins along
+   the sidebar's outer edge (resource lines 1638 and 1640), a greige
+   sidebar-direction separator (1654), a places-sidebar viewport edge
+   drop (1663), a 36px places row with zero padding (1665), a 14px
+   revealer inlay (1667) and pane-internal sidebar border drops (1646).
+   The landed .sidebar field record owns the field face and text only,
+   so the border twins' greige seam keeps painting between that field
+   and the content. The seam edge and the sidebar separator take the
+   etched dark half #888888, the landed etched band edge the landed
+   separator.horizontal, separator.vertical, menu-separator and infobar
+   records reuse (the same band edge the assistant sidebar block and
+   its GTK 4 twin give the wizard sidebar); the landed .sidebar field
+   record is the neighbouring face owner. Every padding, the 36px row
+   height, the viewport edge drop and the paned border drop are stock's
+   own shapes, kept byte-equal; direction margins mirror between the
+   :dir(ltr) and :dir(rtl) twins exactly as stock spells them. Stock
+   calls the same sheets: .sidebar { border-style: none; } (1636) stays
+   undeclared, since stock's own none already reads the landed look's
+   borderless field and the landed colour record deliberately never
+   touched shape.  Stock statements probed 2026-11-08 with gresource
+   extract from /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49,
+   the 2055-line resource; line numbers below). Restated arms, with the
+   foreign greiges elided to their landed sources: 1638 the five
+   left-splash selectors take border-right: 1px solid #888888;
+   border-left-style: none; 1640 the four right-splash selectors take
+   border-left: 1px solid #888888; border-right-style: none; 1646 the
+   six paned child selectors keep stock's border-style: none; 1648
+   stacksidebar row keeps stock's padding: 10px 4px; 1650
+   stacksidebar row > label keeps stock's 6px left and right clips;
+   1654 separator.sidebar re-inks to #888888; 1663 the places viewport
+   keeps stock's border-style: none; 1665 the places row keeps stock's
+   min-height: 36px; padding: 0px; 1667 the places revealer keeps
+   stock's 0 14px inlay; 1679 the :dir(ltr) icon gain keeps stock's 8px
+   padding-right; 1681 the :dir(rtl) twin keeps stock's 8px
+   padding-left; 1683 the :dir(ltr) label clip keeps stock's 2px
+   padding-right; 1685 the :dir(rtl) twin keeps stock's 2px
+   padding-left. Each restated spelling is byte-equal to its stock twin
+   and wins the equal-specificity tie by later user-sheet source order.
+   Owned contrasts stay out: the row state colours (row:selected,
+   row:disabled, row:backdrop and row:selected:active, and the places
+   row colour twins including the landed row.activatable:selected:backdrop
+   arm) are the landed selection, dimmed-row and backdrop colour
+   records' own states; the row.sidebar-placeholder-row and
+   row:drop(active) drag-and-drop arms are a separate candidate needing
+   its own probe of the landed DND records; button.sidebar-button's
+   minimums, margins and padding are its landed corner record's, and
+   row:selected button.sidebar-button the landed 2026-10-31 comment's;
+   row image.sidebar-icon and its opacity twins are the landed
+   entry-image and image:disabled icon-ink records'; the pale
+   separator.sidebar:backdrop twin never shows, per the active=frontmost
+   model and the landed button:backdrop keep-the-landed-face policy;
+   the blue separator.sidebar.selection-mode twin is a separate
+   candidate. Declaration checks do not establish rendered pixels.
+   Restated 2026-11-08 by the feature role. */
+stacksidebar.sidebar:dir(ltr) list, stacksidebar.sidebar.left list, stacksidebar.sidebar.left:dir(rtl) list, .sidebar:not(separator):dir(ltr), .sidebar:not(separator).left {
+  border-right: 1px solid #888888;
+  border-left-style: none;
+}
+stacksidebar.sidebar:dir(rtl) list, stacksidebar.sidebar.right list, .sidebar:not(separator):dir(rtl), .sidebar:not(separator).right {
+  border-left: 1px solid #888888;
+  border-right-style: none;
+}
+paned .sidebar.left, paned .sidebar.right, paned .sidebar.left:dir(rtl), paned .sidebar:dir(rtl), paned .sidebar:dir(ltr), paned .sidebar {
+  border-style: none;
+}
+stacksidebar row {
+  padding: 10px 4px;
+}
+stacksidebar row > label {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+separator.sidebar {
+  background-color: #888888;
+}
+placessidebar > viewport.frame {
+  border-style: none;
+}
+placessidebar row {
+  min-height: 36px;
+  padding: 0px;
+}
+placessidebar row > revealer {
+  padding: 0 14px;
+}
+placessidebar row image.sidebar-icon:dir(ltr) {
+  padding-right: 8px;
+}
+placessidebar row image.sidebar-icon:dir(rtl) {
+  padding-left: 8px;
+}
+placessidebar row label.sidebar-label:dir(ltr) {
+  padding-right: 2px;
+}
+placessidebar row label.sidebar-label:dir(rtl) {
+  padding-left: 2px;
+}
