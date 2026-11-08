@@ -18,6 +18,8 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
+_None yet._
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)

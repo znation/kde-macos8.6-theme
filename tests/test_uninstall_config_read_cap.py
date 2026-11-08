@@ -8,13 +8,16 @@ the cap is still parsed whole, an over-cap file keeps its bytes and stays
 silent like an unreadable one, and the GTK marker scan shares that cap.
 """
 
+from unittest import mock
+
+import io
 import os
 import unittest
 
 from support import theme_install
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
-from tools import uninstall_diagnostics
+from tools import containment, uninstall_diagnostics
 
 STYLE_RESET = "kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete"
 STYLE_RULE_TAIL = (
@@ -75,6 +78,57 @@ class TestReaderCap(unittest.TestCase):
             os.path.getsize(path), len(kdeglobals_bytes(cap, True))
         )
         self.assertTrue(os.path.exists(os.path.join(tmp, "config")))
+
+
+class TestReaderFifo(unittest.TestCase):
+    def test_a_fifo_swapped_in_for_a_regular_file_is_refused(self):
+        # A regular file can become a FIFO between the path check and the
+        # open (tests/test_apply_gtk_errors.py pins the same race for the
+        # GTK settings reader). The patch set routes whichever open the
+        # reader uses at the FIFO while os.path.isfile still reports a
+        # regular file, through non-blocking descriptor opens, so a missing
+        # descriptor check fails this assertion instead of blocking the run:
+        # a reader that opens the pipe returns its held bytes instead of
+        # refusing the swap, and a reader that refuses when only the path is
+        # checked returns its None early and never sees the swap.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        tmp = str(make_tmp_dir(self))
+        fifo = os.path.join(tmp, "config", "kdeglobals")
+        os.makedirs(os.path.dirname(fifo), exist_ok=True)
+        os.mkfifo(fifo)
+        body = b"[KDE]\nwidgetStyle=kvantum\n"
+        real_open = os.open
+
+        def open_the_fifo(target, flags, *args, **kwargs):
+            # O_RDWR makes the test itself independent of the flags under
+            # test (a plain O_WRONLY open would block with no reader), and
+            # O_NONBLOCK keeps the open off any waiting path.
+            return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
+
+        with mock.patch.object(os.path, "isfile", return_value=True), \
+                mock.patch.object(
+                    uninstall_diagnostics, "open", create=True,
+                    return_value=io.BytesIO(body),
+                ), \
+                mock.patch.object(
+                    containment.os, "open", side_effect=open_the_fifo,
+                ):
+            # A reader that opens the pipe and reads its held bytes does not
+            # refuse the swap: it answers with selections instead of None.
+            self.assertIsNone(uninstall_diagnostics.read_text(fifo))
+
+    def test_a_fifo_at_the_path_is_silent_without_a_swap(self):
+        # Calibration: an unswapped FIFO stays silent either way -- the
+        # interrupted swap is the only case a missing descriptor check
+        # blocks on.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        tmp = str(make_tmp_dir(self))
+        fifo = os.path.join(tmp, "config", "kdeglobals")
+        os.makedirs(os.path.dirname(fifo), exist_ok=True)
+        os.mkfifo(fifo)
+        self.assertIsNone(uninstall_diagnostics.read_text(fifo))
 
 
 class TestRecipeCap(unittest.TestCase):

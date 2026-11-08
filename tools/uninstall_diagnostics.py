@@ -39,6 +39,11 @@ from collections.abc import Iterator
 import os
 import sys
 
+if __package__:
+    from tools.containment import open_regular_binary
+else:  # imported from a directly run tool
+    from containment import open_regular_binary
+
 _BOM = "\ufeff"
 _WHITESPACE = " \t\r\n\f\v"
 
@@ -82,13 +87,18 @@ def read_text(path: str) -> str | None:
     left silent -- because reading a prefix and parsing it could compare a
     selection against a value the cap cut short and misreport one that the
     whole file would have named differently.
+
+    The path is opened through :func:`containment.open_regular_binary`, as
+    every other bounded reader here opens its files: the check runs on the
+    opened descriptor, so a regular file swapped for a FIFO between a path
+    check and the open of a blocking ``open()`` cannot hang the run waiting
+    for a writer that never comes, and a FIFO or device is left unread and
+    silent like any other unreadable file.
     """
-    if not os.path.isfile(path):
-        return None
     try:
-        with open(path, "rb") as handle:
+        with open_regular_binary(path) as handle:
             data = handle.read(_MAX_CONFIG_BYTES + 1)
-    except OSError:
+    except (OSError, ValueError):
         return None
     if len(data) > _MAX_CONFIG_BYTES:
         return None

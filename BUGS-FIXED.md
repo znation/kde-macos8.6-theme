@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A regular file swapped for a FIFO between the uninstall diagnostics' path check and its open hangs `make uninstall` waiting for a writer (found by the bugfix role 2026-11-07) — fixed 2026-11-07 by the bugfix role
+
+`tools/uninstall_diagnostics.py::read_text` guarded its read with
+`os.path.isfile` before `open(path, "rb")`. A regular config file that check
+just accepted can become a FIFO before the open, and that blocking open then
+waits for a writer: with a writer that only ever holds its end open, the
+reader's buffered read waits for 1 MiB+1 bytes that never come, so
+`make uninstall` hangs inside a diagnostics-only reader whose own contract
+pins that it must always succeed. A FIFO already at the path stays silent
+(the path check refuses it), and every other bounded reader in the project
+opens its files through `containment.open_regular_binary`'s descriptor
+check.
+
+Reproduce by patching `os.path.isfile` to keep reporting a regular file over
+an existing FIFO and calling `read_text` on it: before the fix the reader
+answered with the FIFO's held bytes instead of `None` (and without a
+non-blocking descriptor reroute, its open and read never return). The
+patch-set reproduction, including the case's non-blocking arrangement, is
+pinned by
+tests/test_uninstall_config_read_cap.py::TestReaderFifo::
+test_a_fifo_swapped_in_for_a_regular_file_is_refused, with the unswapped
+FIFO case kept as calibration because it is silent under both readers.
+
+Fix: `read_text` opens the path through the shared
+`containment.open_regular_binary`, whose regular-file check runs on the
+opened descriptor, so the swap is refused before any read and the path
+check is unnecessary; a FIFO or device is left silent like every other
+unreadable file.
+
+**Validation gap:** no-fake — confirming it needed a non-blocking FIFO-swap
+fake the suite lacked: the direct reproduction (a held-open FIFO behind the
+patched path check) blocked the run instead of failing, because the old
+reader's buffered read waits past 1 MiB of pipe bytes, so the descriptor
+reroute mock had to be built before the defect could fail a test.
+
 ### The direct-script option-combination regression test is defined after `unittest.main()` and never collected (found by the bugfix role 2026-11-06)
 
 `tests/test_sample_option_validation.py` defined `test_direct_script_reports_invalid_option_combination` inside the `if __name__ == "__main__":` block, after `unittest.main()`, so unittest discovery never collected it: a sample-tool regression test for `--match-runs requires --find-color` silently never ran. Moved it into `TestSampleOptionValidation`, where the runner now collects and passes it.

@@ -14,7 +14,7 @@ from .records import Reproduction
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 34
+NO_FAKE_BASELINE = 35
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -114,6 +114,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("Firefox profile file blocks the install",),
         "tests/test_install_firefox.py::TestRemove"
         "::test_a_fifo_at_either_profile_file_is_refused_without_blocking",
+    ),
+    Reproduction(
+        "uninstall-diagnostics-fifo-swap",
+        ("a FIFO between the uninstall diagnostics",),
+        "tests/test_uninstall_config_read_cap.py::TestReaderFifo"
+        "::test_a_fifo_swapped_in_for_a_regular_file_is_refused",
     ),
     Reproduction(
         "png-trns-before-plte",
