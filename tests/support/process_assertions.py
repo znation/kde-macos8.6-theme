@@ -10,8 +10,8 @@ names that expectation once::
 
 *result* is a ``subprocess.CompletedProcess`` with decoded-text
 ``stdout``/``stderr``: the suites get one from ``theme_install.run_captured``,
-``process_runner.run`` or ``subprocess.run(..., text=True)``. Both helpers
-attach the child's stdout and stderr to a failure message, so a failing test
+``process_runner.run`` or ``subprocess.run(..., text=True)``. Every helper
+attaches the child's stdout and stderr to a failure message, so a failing test
 shows the diagnostic the child printed rather than only one stream.
 ``CliTestCase._assert_success`` delegates here; the install/make suites, which
 do not subclass ``CliTestCase``, call these functions directly.
