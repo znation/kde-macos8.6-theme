@@ -4949,3 +4949,99 @@ row.activatable:selected:active {
 row.activatable:selected.has-open-popup, row.activatable:selected:hover {
   background-color: #CCCCFF;
 }
+
+/* No collected reference screenshot shows an entry's or spin button's
+   embedded icon child (the magnifier, clear-button or stepper glyph GTK
+   stacks inside a field), so the landed field recipe's black ink and the
+   landed button:hover erase precedent's full-strength icon stand in per
+   the standing GTK-scope adaptation premise. Recorded 2026-11-07. The
+   toolkit theme resource's own image arms (extracted the same day from
+   the toolkit's compiled light stylesheet, stock lines 132, 134, 164,
+   166 and 168, quoted here with the foreign inks elided) otherwise paint
+   on the embedded icons: a grey-green at rest, a dark grey under hover,
+   the accent hue while pressed or keyboard-active, and a 6px gap between
+   each side icon and the field's text — geometry the landed sheet repeats
+   nowhere. Each colour rule below restates its stock twin's spelling
+   exactly with the landed black ink, and the two margin twins keep
+   stock's own values byte-equal, later in user-sheet source order, so
+   the restatement wins the equal-specificity tie under either cascade
+   reading. The resource names the entry-image family with :backdrop
+   nowhere, so no backdrop twin is restated. The global disabled-image
+   icon-filter arm of each resource stays out: kept toolkit residue,
+   dimming a disabled entry's icon exactly as the landed button:disabled
+   record keeps it. Declaration checks do not establish rendered
+   pixels. */
+
+spinbutton.vertical > text > image.left,
+spinbutton:not(.vertical) > image.left,
+entry > image.left {
+  margin-right: 6px;
+}
+
+spinbutton.vertical > text > image.right,
+spinbutton:not(.vertical) > image.right,
+entry > image.right {
+  margin-left: 6px;
+}
+
+spinbutton.vertical > text > image,
+spinbutton:not(.vertical) > image,
+entry > image {
+  color: #000000;
+}
+
+spinbutton.vertical > text > image:hover,
+spinbutton:not(.vertical) > image:hover,
+entry > image:hover {
+  color: #000000;
+}
+
+spinbutton.vertical > text > image:active,
+spinbutton:not(.vertical) > image:active,
+entry > image:active {
+  color: #000000;
+}
+
+/* The base stylesheet resource the toolkit's clients load alongside the
+   theme resource paints the same icon family a second time (extracted
+   2026-11-07 from its compiled base stylesheet, stock lines 809, 811,
+   813, 815 and 817, quoted here with the dimming elided): a dimmed icon
+   at rest, full strength under hover, dimmed again while pressed, and
+   the same 6px side gaps byte-equal as the theme resource's. The rules
+   below restate those five arms in stock line order: every state's
+   opacity is the landed erase precedent's full strength so the embedded
+   icon never shows either resource's dimming motion, and the two margin
+   twins keep stock's own values byte-equal. The icon spelling shared
+   with the theme resource (each bare `entry > image` and the two
+   `entry > image.left`/`.right` twins) merges both resources'
+   declarations on one key, so the colour rule above and the opacity
+   rule below meet there; the margin arms repeat the theme resource's
+   identical 6px values exactly. The resource names the entry-image
+   family with :backdrop nowhere, so no backdrop twin is restated, and
+   its global disabled-image icon-filter arm stays out with the theme
+   resource's. Declaration checks do not establish rendered pixels. */
+
+spinbutton > image,
+entry > image {
+  opacity: 1;
+}
+
+spinbutton > image:hover,
+entry > image:hover {
+  opacity: 1;
+}
+
+spinbutton > image:active,
+entry > image:active {
+  opacity: 1;
+}
+
+spinbutton > image.left,
+entry > image.left {
+  margin-right: 6px;
+}
+
+spinbutton > image.right,
+entry > image.right {
+  margin-left: 6px;
+}
