@@ -1090,6 +1090,10 @@ The post-merge review of commit `e24439aed785ddd4cf4b0c1e91277c689fc4c322` (Repo
 
 The post-merge review of commit `f5166a809800661a99e27f3e4d930ea05e4fedce` (Add black ink for GTK 4 links inside selected nodes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 1106c3e5 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `1106c3e570d431b5f0c4e0a81bd6fc274efa7e08` (Cover untracked scratch files in the hygiene scan fixture) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
