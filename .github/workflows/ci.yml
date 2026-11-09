@@ -18,9 +18,16 @@ jobs:
       # the nested KWin session still gets a Wayland client.
       QT_QPA_PLATFORM: offscreen
       # The runner has no GPU; KWin's virtual backend otherwise tries Zink,
-      # finds no Vulkan driver and cannot create its EGL screen.
+      # finds no Vulkan driver and cannot create its EGL screen. Only
+      # LIBGL_ALWAYS_SOFTWARE is set: a pinned MESA_LOADER_DRIVER_OVERRIDE
+      # =llvmpipe breaks KWin's virtual session on a real-GPU host with a KMS
+      # dumb-buffer permission denial (BUGS.md, "the render tests' KWin
+      # session cannot allocate its capture buffers under the workflow's
+      # llvmpipe env", 2026-11-09), and with no driver-name pinning the
+      # render gates' skip guard already fires on LIBGL_ALWAYS_SOFTWARE=1
+      # alone. The runner-side virtual session under this env remains
+      # unobserved until the next hosted run that reaches the suite.
       LIBGL_ALWAYS_SOFTWARE: '1'
-      MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
     strategy:
       fail-fast: false
       matrix:

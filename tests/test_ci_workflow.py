@@ -153,10 +153,19 @@ class TestCiWorkflow(unittest.TestCase):
             "the check job must select a headless Qt platform",
         )
         # KWin's virtual backend still needs an EGL driver; the runner has no
-        # GPU, and Mesa otherwise tries Zink and fails before the session paints.
+        # GPU, and Mesa otherwise tries Zink and fails before the session
+        # paints. LIBGL_ALWAYS_SOFTWARE=1 provides that software driver; a
+        # pinned MESA_LOADER_DRIVER_OVERRIDE=llvmpipe (added with it in
+        # a005ece42, so the override never carried its own evidence — the
+        # hosted 18ded7fe run failed at the install step before any test)
+        # breaks KWin's virtual session on a real-GPU host with a KMS
+        # dumb-buffer permission denial. No driver name is pinned.
         self.assertRegex(workflow, r"(?m)^\s+LIBGL_ALWAYS_SOFTWARE: '1'$")
-        self.assertRegex(
-            workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE: llvmpipe$"
+        self.assertNotRegex(
+            workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE:"
+        )
+        self.assertNotRegex(
+            workflow, r"(?m)^\s+GALLIUM_DRIVER:"
         )
 
     def test_workflow_pins_the_runner_image(self):
