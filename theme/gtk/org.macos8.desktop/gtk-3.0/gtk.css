@@ -1046,6 +1046,67 @@ entry progress {
   margin: 0;
 }
 
+/* A treeview row's progress cell — the cell renderer's fill and trough
+ * inside a tree column — restates the landed meter recipe here, 2026-11-09.
+ * No collected reference screenshot in macos8.6-screenshots/ shows a GTK
+ * treeview's progress cell at all, so the cell is platform-required and the
+ * landed plain meter `progressbar trough`, `progressbar progress` and
+ * `progressbar progress:disabled` groups cannot reach it: the toolkit resource
+ * re-declares the fill's whole node with treeview-armed statements and the
+ * trough under its own `treeview.view.trough` spelling that is not the bare
+ * `progressbar trough` descendant pairing those groups name. The installed
+ * GTK 3 theme resource gtk-contained.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource`)
+ * declares six such arms at its resource lines 735, 737, 739, 741 and
+ * 743/745: the base fill arm
+ * `treeview.view.progressbar` paints the toolkit's selection accent over the
+ * cell text in white; the two selected and selected-backdrop arms paint the
+ * accent text over a white paper tint; the backdrop fill arm paints paper
+ * text over the kept accent fill; the trough arm washes translucent ink over
+ * the meter face; the selected trough arm washes translucent white over it.
+ * The recipes below answer each arm per-property in stock arm order and each
+ * selector spelling is byte-equal to its stock twin so the later user-sheet
+ * source order wins the equal-specificity tie; the value sources are the
+ * landed meter's own inks and the landed row selection's black text.
+ * Declaration checks do not establish rendered pixels. */
+
+treeview.view.progressbar {
+  color: #000000;
+  background-color: #CCCCFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+treeview.view.progressbar:selected:focus, treeview.view.progressbar:selected {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+treeview.view.progressbar:selected:focus:backdrop, treeview.view.progressbar:selected:backdrop {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+treeview.view.progressbar:backdrop {
+  color: #000000;
+  background-image: none;
+  box-shadow: none;
+}
+
+treeview.view.trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+}
+
+treeview.view.trough:selected:focus, treeview.view.trough:selected {
+  background-color: #EEEEEE;
+}
+
 levelbar trough {
   background-color: #EEEEEE;
   background-image: none;
