@@ -5500,3 +5500,137 @@ scale.vertical.marks-after:not(.marks-before) slider:backdrop:disabled {
 scale.vertical.marks-after:not(.marks-before).fine-tune slider {
   margin: -5px;
 }
+
+/* An infobar's close and action buttons leave the landed plain `button`
+   paint underneath stock's typed arms, so the toolkit resource's infobar
+   button, selection and link families are restated with the landed
+   surface-button recipe.
+
+   The stock arms probed 2026-11-09 with `gresource extract` of
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49, the 2055-line resource, foreign hex literals
+   below elided with `...`)
+   are the four typed button families — `infobar.info button`, the
+   `question`, `warning` and `error` twins, three-to-five tokens each:
+   `infobar.info button, ... { color: ...; outline-color: rgba(46, 52,
+   54, 0.3); border-color: ...; border-bottom-color: ...;
+   background-image: linear-gradient(to top, ... 2px, ...); text-shadow:
+   0 1px rgba(255, 255, 255, 0.769231); -gtk-icon-shadow: 0 1px
+   rgba(255, 255, 255, 0.769231); box-shadow: inset 0 1px white, 0 1px
+   2px rgba(0, 0, 0, 0.07); }` and its `:hover` twin on a lighter
+   gradient (resource lines 1745 and 1747), the `:active`/`:checked`
+   group settling `box-shadow` to `inset 0 1px rgba(255, 255, 255, 0)`
+   over an `image(...)` wash (line 1749), the `:disabled` group (line
+   1751), the `:backdrop` twins with a repeated `border-color` claim
+   (line 1753), the `:backdrop:disabled` twins (line 1755) and a late
+   grouped arm re-declaring the ink on `...button:backdrop label`/
+   `...button label` and the button spellings again (line 1757); outside
+   the button families, `infobar.info selection, ...` retints selected
+   text inside the band (line 1759) and `infobar.info *:link, ...`
+   retints a message-area link (line 1761). The toolkit's warm band
+   inks, toolkit gradient inks and the toolkit link blue live in the
+   `## gtk` table row of docs/invariants.md; no collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK infobar at all — the
+   standing GTK-scope adaptation premise.
+
+   Every spelling embeds the landed measured chain `infobar > revealer >
+   box` and carries no message-type token, so the landed `test_infobar`
+   message-type ban stays in force, and each out-tokens its stock rival
+   or wins the equal-token tie by later user-sheet source order. The
+   face, pressed and insensitive recipes come from the landed
+   `.app-notification button` and `.osd` button restatements above
+   (pinned by tests/test_gtk_theme.py::TestGtkTheme::test_button and
+   test_app_notification_band): the raised #DDDDDD face with the 1px
+   black border and square corners, the `inset 1px 1px #FFFFFF,
+   inset -1px -1px #AAAAAA` bevel swapped for its inverse when pressed,
+   the insensitive arm without `outline-color` (the landed
+   `.osd button:disabled` shape) and the Inactive grey #888888 ink, and
+   the backdrop arm keeping the landed face (the landed
+   `.osd button:backdrop` shape). The `#CCCCFF` selection fill and the
+   #0000EE link ink are the landed entry-selection groups' fill and the
+   landed `label:link` record's ink; the state-only `:link` descent is
+   spelled on the two node names GTK realizes inside a bar, so no
+   universal selector appears and the sheet-wide
+   test_no_universal_selector ban stays green.
+
+   Exclusions: the message label's own typed ink arm (`infobar.info
+   > revealer > box label`, resource line 1741, five tokens because of
+   the type class) is NOT restated — no untyped band-chain spelling can
+   out-token it (the chain tops at four) and no message type may be
+   named, so a message label keeps its near-black toolkit ink inside the
+   black-text band, a written limitation with its reason, not silently
+   dropped; the typed band-box and backdrop band arms (the resource's
+   line 1735 `:hover` group and line 1739 group with its backdrop
+   members) are the landed band record's own scope and stay; the two
+   `text-shadow: none` statements (resource lines 1737 and 1743) are
+   already none at the landed policy and need no twin; no motion, no
+   geometry and no radius beyond the square `border-radius: 0` the face
+   recipe carries (stock's bar arms declare none of them); and the GTK
+   4 toolkit's infobar arms (the Default resource's `infobar > revealer
+   > box` padding and border-spacing, its typed band twins and the
+   `infobar .close` circular arms) are a different family left for a
+   later entry. Declaration and source-order checks do not establish
+   rendered pixels. */
+infobar > revealer > box button,
+infobar > revealer > box button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:active,
+infobar > revealer > box button:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:disabled,
+infobar > revealer > box button:disabled:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button label,
+infobar > revealer > box button:backdrop label {
+  color: #000000;
+}
+
+infobar > revealer > box selection {
+  background-color: #CCCCFF;
+}
+
+infobar > revealer > box label:link,
+infobar > revealer > box button:link {
+  color: #0000EE;
+}

@@ -27,6 +27,7 @@ from support.gtk_theme_spec import (
     BUTTON_BEVEL,
     DISABLED_TEXT,
     ETCH_DARK,
+    INVERTED_BUTTON_BEVEL,
     LINK,
     SCALE_THUMB,
     VISITED_LINK,
@@ -830,6 +831,79 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             for selector in self.selectors:
                 if "infobar" in selector:
                     self.assertNotIn(message_type, selector, message_type)
+
+    def test_infobar_button_family(self):
+        """The bar's typed stock button, selection and link arms restated.
+
+        gtk-contained.css's four typed infobar button families out-token
+        the landed plain ``button`` rule inside an infobar, and the bar's
+        ``selection`` and ``*:link`` arms out-token the landed selection
+        and link records, so the sheet restates them with the untyped
+        band-chain spellings: the landed surface-button face/pressed/
+        insensitive/backdrop recipes (the landed ``.app-notification``
+        and ``.osd`` button groups), the landed selection fill and the
+        landed link ink. All twelve spellings embed the landed measured
+        chain ``infobar > revealer > box`` and name no message type, so
+        ``test_infobar``'s ban stays green uncited here.
+        """
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        pressed = {**face, "box-shadow": INVERTED_BUTTON_BEVEL}
+        # The landed `.osd button:disabled` shape: no ``outline-color``,
+        # the Inactive grey (DISABLED_TEXT) label ink.
+        disabled = {
+            **{k: v for k, v in face.items() if k != "outline-color"},
+            "color": DISABLED_TEXT["color"],
+        }
+        expected = {
+            "infobar > revealer > box button": face,
+            "infobar > revealer > box button:hover": face,
+            "infobar > revealer > box button:active": pressed,
+            "infobar > revealer > box button:checked": pressed,
+            "infobar > revealer > box button:disabled": disabled,
+            "infobar > revealer > box button:disabled:backdrop": disabled,
+            "infobar > revealer > box button:backdrop": face,
+            "infobar > revealer > box button label": {"color": BLACK},
+            "infobar > revealer > box button:backdrop label": {"color": BLACK},
+            "infobar > revealer > box selection": {"background-color": SELECTION},
+            "infobar > revealer > box label:link": {"color": LINK},
+            "infobar > revealer > box button:link": {"color": LINK},
+        }
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assertEqual(self.rules[selector], declarations, selector)
+        # The family sweep: the landed band rule plus exactly these
+        # twelve restatements — no respelling escapes the family.
+        self.assertEqual(
+            {s for s in self.selectors if "infobar" in s},
+            {"infobar > revealer > box", *expected},
+        )
+        # Source order: every group follows the landed band rule at the
+        # sheet tail (after the marked-scale thumb blocks).
+        sheet = gtk_css.strip_comments(self.css)
+        band = sheet.index("\ninfobar > revealer > box {")
+        for selector in expected:
+            positions = []
+            start = 0
+            while True:
+                found = sheet.find(f"\n{selector}", start)
+                if found == -1:
+                    break
+                positions.append(found)
+                start = found + 1
+            self.assertTrue(positions, selector)
+            for position in positions:
+                self.assertGreater(position, band, selector)
 
     def test_assistant_sidebar_arms(self):
         # No reference screenshot shows a GTK assistant sidebar, so the
