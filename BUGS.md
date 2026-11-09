@@ -622,6 +622,10 @@ The post-merge review of commit `5b0cb131cbb759a398d7ce91471b434db353cc39` (Add 
 
 The post-merge review of commit `ad8211d9564e1a847f22eb8a6ff7c94523622aac` (Share process-group cleanup helpers with parallel check workers) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 3332caa5 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `3332caa546f4c11ace94bf981606af11edb61d96` (Keep GTK 3 swatch selection marks solid in backdrop) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
