@@ -106,6 +106,7 @@ class TestScanGuardRunsTheChildWhenASurfaceExists(unittest.TestCase):
         )
         write_file(kdedefaults, "[KDE]\nwidgetStyle=kvantum\n")
         env = dict(os.environ, XDG_CONFIG_HOME=os.path.join(tmp, "config"))
+        env["HOME"] = os.path.join(tmp, "home")
 
         result = theme_install.uninstall_recipe(tmp, env=env)
 
