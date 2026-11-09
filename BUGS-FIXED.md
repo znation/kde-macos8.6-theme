@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9ea1e0e5 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Settled as no-defect. The commit only adds a test pinning read_gaps' prose-wins-over-bullet precedence, and the current tree matches its claims: the pinned test `test_a_prose_line_with_a_trailing_bullet_tag_is_read_once_as_prose` exists in tests/test_validation_gaps.py, and the scanner (now the package at tests/support/validation_gaps/reader.py, not the single tests/support/validation_gaps.py file the diff names) matches PROSE_GAP first and `continue`s past the BULLET_GAP search, so a hybrid prose-plus-bullet line yields exactly one prose record with the prose tag. `python3 -m unittest test_validation_gaps` run from tests/ passes.
+
+**Validation gap:** none — the existing suite reproduced and confirmed the pinned precedence behavior; nothing was missing.
+
 ### post-merge review of 759593cd never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Settled as no-defect. Read the commit's diff on main and verified every claim in the current tree: the about:preferences search-field rule (`moz-input-search#searchInput` setting only the five `--input-text-*`/`--icon-color` custom properties with `!important`) is present in `theme/firefox/org.macos8.desktop/chrome/userContent.css` inside the existing `@-moz-document url("about:preferences")` block; the suite lives on since the merge in `tests/support/firefox_content_cases.py` (`SEARCH`/`REQUIRED_PREFERENCES_RULES`, same five token declarations in order) with the four `TestFirefoxPreferencesSearchTheme` tests in `tests/test_firefox_content_preferences.py`; and the matching `docs/invariants.md` firefox row names the current test module. The later surface-button infill (`#mainPrefPane button` rules) after the search rule in the same block is later merges' work, not this commit's. `tests/test_firefox_content_preferences.py` and `tests/test_firefox_content_theme.py` pass.
