@@ -1538,6 +1538,10 @@ for radio in (False, True):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1, selector)
                 self.assert_rule(selector, {"transition": "none"})
+                # Exact-dict, not the per-property subset: a stray
+                # rotation, transform, colour or geometry declaration on
+                # either twin must fail, per the entry's guarantee.
+                self.assertEqual(self.rules[selector], {"transition": "none"}, selector)
         self.assertEqual(
             {s for s in self.rules if "server-list-button" in s},
             set(selectors),
