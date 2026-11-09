@@ -5161,6 +5161,46 @@ for radio in (False, True):
             disabled="scale > trough > slider:disabled",
         )
 
+    def test_scale_plain_container_geometry(self):
+        """The plain (non-fine-tuned) scale node keeps stock's allocation.
+
+        The toolkit's arm on the sheet's only bare `scale` spelling
+        carries the 10px transverse node minimums, the 12px push-out
+        padding and the stock outline-motion riders; the sheet restates
+        the arm byte-equal so a plain scale's container allocation stays
+        unchanged under either loading reading. The whole-dict read and
+        the occurrence count kill a dropped or changed member, an added
+        member, a split grouping and any second bare rule; the compound
+        sweep kills a duplicate padding declaration hidden behind a
+        descendant or state-armed `scale `-prefixed spelling.
+        """
+        expected = {
+            "min-height": "10px",
+            "min-width": "10px",
+            "padding": "12px",
+            "transition-property": (
+                "outline, outline-width, outline-offset, outline-color"
+            ),
+            "transition-duration": "300ms",
+            "animation-timing-function": "ease-in-out",
+        }
+        # (a) The bare spelling carries exactly the stock members,
+        # appearing exactly once in the sheet.
+        self.assert_rule_group({"scale": expected})
+        # (b) The whole-sheet sweep: no second bare rule or a restate
+        # split across groups can hold `scale` again.
+        self.assertEqual(self.selectors.count("scale"), 1)
+        # (c) The compound sweep: no descendant or state-armed spelling
+        # starting `scale ` re-declares a container padding member.
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale ") and "padding" in self.rules.get(s, {})
+            },
+            set(),
+        )
+
     def test_scale_fine_tune_thumb_margin(self):
         for selector in (
             "scale.horizontal.fine-tune > trough > slider",

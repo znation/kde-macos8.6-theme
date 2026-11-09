@@ -1894,6 +1894,71 @@ scale:disabled {
   filter: none;
 }
 
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+ * scale's container spacing (the GTK scope's standing adaptation
+ * premise), so the plain (non-fine-tuned) scale node keeps the
+ * toolkit's own allocation — the 10px transverse node minimums and the
+ * 12px push-out padding that separates a scale from its neighbours,
+ * with the bare node's stock outline-motion riders. Stock's bare scale
+ * arm is the toolkit resource's only arm on the `scale` spelling: the
+ * landed `scale > trough`, fine-tune and state groups all quote
+ * compound spellings, so without a bare restate a plain scale loses
+ * both minimums and the padding and its container collapses to the
+ * toolkit's stockless defaults, crowding neighbouring controls. The
+ * landed GTK 3 plain container record restates the libgtk-3 twin arm
+ * the same way (its spelling carries no motion members); this sheet
+ * restate keeps its three motion riders byte-equal because the bare
+ * node reads them stock-only and no landed counter-arm carries them.
+ * Probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css: light line 1101
+ * declares `scale { min-height: 10px; min-width: 10px; padding: 12px;
+ * transition-property: outline, outline-width, outline-offset,
+ * outline-color; transition-duration: 300ms;
+ * animation-timing-function: ease-in-out; }` and the dark twin
+ * (Default-dark.css) declares the identical arm byte-for-byte at line
+ * 1089, every line in this region shifted -12; the desktop integration
+ * library (name and resource path recorded in docs/invariants.md)
+ * declares at line 1888 the same allocation without motion members.
+ * The restate below repeats the arm byte-equal and sits later, so under
+ * either loading reading — a theme selection replacing the stock sheet
+ * entirely, where the restate is the only holder of the spellings, or
+ * the stock declarations riding as a lower sheet, where the restate
+ * wins each single per-property tie at equal specificity — the plain
+ * scale's container allocation is unchanged. Exclusions with
+ * per-property reasons: the `scale > trough` outline arm (light 1103,
+ * dark 1091), the `scale:focus:focus-visible > trough` outline arm
+ * (light 1105, dark 1093) and the `scale > trough` outline-motion arm
+ * (light 1107, dark 1095) are the landed scale-focus groups' focus
+ * keys; the `scale > trough > fill, scale > trough > highlight {
+ * margin: -1px; }` arm (light 1109, dark 1097) is answered by the
+ * landed same-spelling group's `margin: 0` riding the equal-specificity
+ * source-order win, so the landed zero governs; the `scale > trough >
+ * slider { min-height: 18px; min-width: 18px; margin: -9px; }` arm
+ * (light 1111, dark 1099) is the knob's own geometry, answered by the
+ * landed slider groups; the fine-tune trough-margin (light 1113, dark
+ * 1101) and slider-margin (light 1115, dark 1103) arms and the
+ * fine-tune radius arm (light 1117, dark 1105) are the landed
+ * fine-tune margin restates' and the landed fine-tuned radius record's
+ * deliverables, not the plain container; the integration library's knob
+ * arm (its resource line 1894, 20px minimums, -8px margin, rounded) is
+ * the knob too, answered per-property by the landed slider groups; and
+ * the integration library's fine-tune marks, margin and indicator arms
+ * (its resource lines 1926-1970) are the fine-tuned marked-scale
+ * geometry, their own separate candidate outside this entry. No
+ * descending group's policy changes: the motion riders ride the bare
+ * node alone and the landed descendant focus groups keep their own
+ * no-motion policy. Declared 2026-11-09 by the feature role. */
+
+scale {
+  min-height: 10px;
+  min-width: 10px;
+  padding: 12px;
+  transition-property: outline, outline-width, outline-offset, outline-color;
+  transition-duration: 300ms;
+  animation-timing-function: ease-in-out;
+}
+
 scale > trough > slider:hover, scale > trough > slider:active {
   background-color: #DDDDDD;
   background-image: none;
