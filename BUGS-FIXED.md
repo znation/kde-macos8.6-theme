@@ -5,6 +5,13 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 22feeb3c never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `22feeb3c5460430d08c3db584af8e758ba8b1849` (Hold the data-home lock across apply-cursor's installed-theme check, ~/.icons link and selection) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** no defect found. Checked `git show 22feeb3c` against the live tree: the commit's behavior survives two later merges — `apply_cursor.py` no longer carries the lock itself, because `938d4ac36` (Serialize cursor removal with apply on the data-home lock) moved it into `tools/cursor_workflow.py`, where `apply()` still checks `cursor_link.require_installed` before taking `installed_data_lock` on the data home, re-checks the theme under the lock, keeps it through `install_link` and `selection`, and uses the same bounded `LOCK_TIMEOUT = 60.0` via `tools/file_lock.exclusive_flock`; `remove()` also takes the lock (the later commit's extension), and the exit-status docstring still names the data-home lock. The commit's tests survive as `tests/test_apply_cursor_locks.py` (`TestDataHomeLock`, four tests, OK) and the `docs/invariants.md` cursor-selection row pins the lock guarantee with that test reference.
+**Validation gap:** none — the existing replay of `tests/test_apply_cursor_locks.py` reproduced the settled guarantee and only the verdict was missing.
+
 ### post-merge review of d2cd2c6b never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `d2cd2c6b6b26d7e985307c07250006c9fb483688` (Paint about:preferences pane buttons as Platinum push buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
