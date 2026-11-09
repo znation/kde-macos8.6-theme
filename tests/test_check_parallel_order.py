@@ -258,6 +258,39 @@ class TestDurationsRecorded(unittest.TestCase):
         self.assertLess(durations["test_slow"], 30)
         self.assertLess(durations["test_ok"], 30)
 
+    def test_a_timed_out_module_records_its_timeout_span(self):
+        """A worker killed at its deadline still records a duration.
+
+        ``_supervise``'s docstring promises a timed-out worker records its
+        timeout-span, spawn through kill, so the next run's ordering steers
+        a module that ends only at the kill around the critical path
+        instead of treating it as never run. The kill happens only after
+        the deadline, so the recorded span covers the whole budget and is
+        far below the sleeping worker's own run time.
+        """
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        long_sleeper = (
+            "import time, unittest\n"
+            "\n"
+            "\n"
+            "class TestSlow(unittest.TestCase):\n"
+            "    def test_runs(self):\n"
+            "        time.sleep(5)\n"
+        )
+        with open(os.path.join(tests_dir, "test_slow.py"), "w",
+                  encoding="utf-8") as sink:
+            sink.write(long_sleeper)
+        log_paths = {"test_slow": os.path.join(tests_dir, "test_slow.log")}
+
+        statuses, durations = self._supervise(
+            tests_dir, ["test_slow"], log_paths, 0.1, 1,
+        )
+
+        self.assertEqual({"test_slow": None}, statuses)
+        self.assertGreaterEqual(durations["test_slow"], 0.1)
+        self.assertLess(durations["test_slow"], 5)
+
     def test_a_never_started_module_records_nothing(self):
         # The unopenable-log case records the module as never started; with
         # no worker time to report, it contributes no duration and the next
