@@ -260,5 +260,110 @@ class TestMainWiring(unittest.TestCase):
         self.assertEqual({}, captured)
 
 
+# The coordinator's eleven handler calls, in the recipe order, with the
+# `diagnostics` parameter each one forwards in argument order. Each handler
+# sees the value of these slots and of nothing else; the docstring above
+# DIAGNOSTIC_PARAMS lists the parameter names once, and these tuples are how
+# the forwarding reads them per handler call.
+HANDLER_SLOTS = (
+    ("kdeglobals_messages", ("config_home", "scheme_id", "icon_theme_id", "lnf_id")),
+    ("gtk_messages", ("config_home", "gtk_id", "css_marker")),
+    ("kvantum_messages", ("config_home", "kvantum_id")),
+    ("plasmarc_messages", ("config_home", "dtheme_id")),
+    ("kcminputrc_messages", ("config_home", "icon_theme_id")),
+    ("kwinrc_messages", ("config_home", "aurorae_id")),
+    ("ksplashrc_messages", ("config_home", "lnf_id")),
+    ("package_messages", ("config_home", "lnf_id")),
+    ("kdedefaults_kdeglobals_messages", ("config_home", "icon_theme_id")),
+    ("kdedefaults_kwinrc_messages", ("config_home", "aurorae_id")),
+    ("kdedefaults_plasmarc_messages", ("config_home", "dtheme_id")),
+)
+
+# One distinct sentinel per forwarded parameter. Every id the recipe passes
+# bar the color-scheme id reads org.macos8.desktop, so the family tests
+# staging that value in every surface see nothing change when two id slots
+# swap between handlers; forward the sentinels instead and each swapped slot
+# yields no message at all.
+FORWARD_SENTINELS = {
+    "config_home": "forward:config",
+    "scheme_id": "forward:scheme",
+    "icon_theme_id": "forward:icon",
+    "kvantum_id": "forward:kvantum",
+    "gtk_id": "forward:gtk",
+    "dtheme_id": "forward:desktop",
+    "lnf_id": "forward:lnf",
+    "aurorae_id": "forward:aurorae",
+    "css_marker": "/* forward marker */",
+}
+
+
+class TestHandlerForwarding(unittest.TestCase):
+    """`diagnostics` gives each handler exactly the slots it is documented for.
+
+    The order test above pins the eleven calls only through each message's
+    wording prefix, and every family suite stages the one shared theme value
+    in every id, so swapping two same-valued id arguments between two handler
+    calls (say, the pointer check reading the desktop-theme id) keeps every
+    message printing with the values today; the same swap changes behavior
+    the moment any recipe id stops matching its handler's surface. These
+    tests patch all eleven handlers and pin each call's positional arguments
+    against the forwarding tuples above, one distinct sentinel per
+    parameter, so a swapped or dropped argument changes what a handler is
+    called with.
+    """
+
+    def run_forwarding(self, calls):
+        """Patch every handler to record its call and return no message."""
+
+        def recorder(name):
+            def record(*args):
+                calls.append(name)
+                return []
+
+            return record
+
+        with mock.patch.multiple(
+            uninstall_diagnostics,
+            **{name: mock.DEFAULT for name, _ in HANDLER_SLOTS},
+        ) as mocks:
+            for name, _ in HANDLER_SLOTS:
+                mocks[name].side_effect = recorder(name)
+            messages = uninstall_diagnostics.diagnostics(
+                FORWARD_SENTINELS["config_home"],
+                scheme_id=FORWARD_SENTINELS["scheme_id"],
+                icon_theme_id=FORWARD_SENTINELS["icon_theme_id"],
+                kvantum_id=FORWARD_SENTINELS["kvantum_id"],
+                gtk_id=FORWARD_SENTINELS["gtk_id"],
+                dtheme_id=FORWARD_SENTINELS["dtheme_id"],
+                lnf_id=FORWARD_SENTINELS["lnf_id"],
+                aurorae_id=FORWARD_SENTINELS["aurorae_id"],
+                css_marker=FORWARD_SENTINELS["css_marker"],
+            )
+        return mocks, messages
+
+    def test_each_handler_receives_exactly_its_own_slots(self):
+        calls = []
+        mocks, messages = self.run_forwarding(calls)
+
+        self.assertEqual([], messages)
+        self.assertEqual(
+            [name for name, _ in HANDLER_SLOTS],
+            calls,
+            "each handler must be called exactly once, and in recipe order",
+        )
+        for name, slots in HANDLER_SLOTS:
+            with self.subTest(handler=name):
+                self.assertEqual(
+                    {}, mocks[name].call_args.kwargs,
+                    f"{name} must be called positionally",
+                )
+                expected = tuple(FORWARD_SENTINELS[slot] for slot in slots)
+                self.assertEqual(
+                    expected,
+                    mocks[name].call_args.args,
+                    f"{name} must receive exactly the {slots} values",
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
