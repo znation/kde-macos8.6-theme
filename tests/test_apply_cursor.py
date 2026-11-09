@@ -454,8 +454,10 @@ class TestRemove(CursorCase):
         assert_succeeded(self, self.run_tool("--remove"))
 
     def test_a_missing_data_home_still_removes_our_link(self):
-        # make uninstall clears the whole data home before the removal runs,
-        # so the last thing the removal sees can be a data home that is gone.
+        # The data home can be gone entirely when the removal runs: nothing
+        # else owns that path, and a caller may have deleted it after moving
+        # the tree (make uninstall removes the installed icon theme, never the
+        # data home itself).
         # cursor_workflow.remove stats the data home only to learn whether a
         # directory flock is even available: an absent home means no lock, and
         # the removal must still take its own link down (a run that instead
