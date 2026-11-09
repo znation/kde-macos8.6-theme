@@ -77,7 +77,7 @@ jobs:
             # dialog render's client.
             sudo apt-get install -y --no-install-recommends \
               dbus kwin-wayland plasma-workspace plasma-widgets-addons \
-              libgl1-mesa-dri kdialog zenity
+              libgl1-mesa-dri libtesseract5 kdialog zenity
             # Ubuntu 26.04 (the release `ubuntu-latest` moved to) renamed
             # the screenshot package from `spectacle` to `kde-spectacle`;
             # the installed binary stayed `/usr/bin/spectacle`. Select the

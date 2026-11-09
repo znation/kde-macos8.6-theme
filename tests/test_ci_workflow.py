@@ -69,6 +69,11 @@ class TestCiWorkflow(unittest.TestCase):
         self.assertRegex(
             workflow, r"(?s)apt-get install.*libgl1-mesa-dri"
         )
+        # Spectacle's OCR probe otherwise warns through three candidates and
+        # leaves the optional path unavailable on the runner.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*libtesseract5"
+        )
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
         # Ubuntu 26.04 moved the Aurorae decoration engine out of kwin-common.
         self.assertRegex(

@@ -163,16 +163,21 @@ def session_script() -> str:
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
         '"$@" & client=$!; '
+        'echo "render-session: client started" >&2; '
         'sleep "$settle"; '
+        'echo "render-session: settle done" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
+        'echo "render-session: capturing" >&2; '
         'spectacle -b -n -f -o "$capture"; status=$?; '
+        'echo "render-session: capture status $status" >&2; '
         'kill "$client" 2>/dev/null; '
         'waited=0; '
         'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
         'sleep 0.1; waited=$((waited + 1)); done; '
         'kill -9 "$client" 2>/dev/null; '
         'wait "$client" 2>/dev/null; '
+        'echo "render-session: client reaped" >&2; '
         "exit $status"
     )
 
