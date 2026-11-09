@@ -29,6 +29,7 @@ import os
 import sys
 
 if __package__:
+    from tools.terminal import escape_controls
     from tools.uninstall_config import config_home
     from tools.uninstall_defaults_diagnostics import (
         kdedefaults_kdeglobals_messages,
@@ -46,6 +47,7 @@ if __package__:
         plasmarc_messages,
     )
 else:  # imported from a directly run tool
+    from terminal import escape_controls
     from uninstall_config import config_home
     from uninstall_defaults_diagnostics import (
         kdedefaults_kdeglobals_messages,
@@ -124,7 +126,13 @@ def main(argv: list[str] | None = None) -> int:
             args.css_marker,
         )
         for message in messages:
-            print(message, file=sys.stderr)
+            # The diagnostics contract routes contributor-supplied text
+            # (the ids on the command line, the config-home path from the
+            # environment, and the offsets the handlers embed in a
+            # message) through the terminal escaper before it reaches
+            # stderr; a control character in any of them must never drive
+            # this operator's terminal directly.
+            print(escape_controls(message), file=sys.stderr)
     return 0
 
 
