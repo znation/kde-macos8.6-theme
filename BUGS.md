@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 9e2126ef never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `9e2126ef2e5b076d445968fcfce888c15aed63ba` (Cap the parallel check's printed worker logs at a bounded 64 KiB tail with a hidden-bytes note) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 7e872a94 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `7e872a94a111a8b95bcb8be97f140ee17ccd0ec9` (Recolour Firefox chrome and page scrollbars with the Platinum two-face scrollbar-color sweep) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
