@@ -21,22 +21,12 @@ from support import theme_install
 from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
-
-REMOVAL_GROUP = "org.kde.kdecoration2"
-LEFT_KEY = "ButtonsOnLeft"
-RIGHT_KEY = "ButtonsOnRight"
-
-
-def rule_for(path):
-    """The expected diagnostic line naming *path* (the wording is the contract)."""
-    return (
-        "uninstall: the window-button layout "
-        f"[{LEFT_KEY}=X, {RIGHT_KEY}=AL] that make apply wrote is still in "
-        f"{path}; KWin keeps that layout under the default decoration after "
-        "removal. Reset it with: kwriteconfig6 --file kwinrc --group "
-        f"{REMOVAL_GROUP} --key {LEFT_KEY} --delete && kwriteconfig6 --file "
-        f"kwinrc --group {REMOVAL_GROUP} --key {RIGHT_KEY} --delete"
-    )
+from support.kwinrc_uninstall_wording import (
+    RIGHT_KEY,
+    LEFT_KEY,
+    REMOVAL_GROUP,
+    button_rule as rule_for,
+)
 
 
 def POINTER_RULE(path):

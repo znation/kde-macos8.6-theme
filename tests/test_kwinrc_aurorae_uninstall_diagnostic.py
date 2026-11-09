@@ -28,40 +28,15 @@ from support import theme_install
 from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
-
-REMOVAL_GROUP = "org.kde.kdecoration2"
-LIBRARY_KEY = "library"
-THEME_KEY = "theme"
-AURORAE_LIBRARY = "org.kde.kwin.aurorae"
-AURORAE_THEME = "org.macos8.desktop"
-
-
-def rule_for(path):
-    """The expected diagnostic line naming *path* (the wording is the contract)."""
-    return (
-        "uninstall: the window-decoration selection "
-        f"[{LIBRARY_KEY}={AURORAE_LIBRARY}, {THEME_KEY}={AURORAE_THEME}] "
-        f"that the look-and-feel apply wrote is still in {path}; KWin cannot "
-        "load the removed kwin/decorations/org.macos8.desktop decoration "
-        "package and keeps a default window "
-        "decoration. Reset it with: kwriteconfig6 --file kwinrc --group "
-        f"{REMOVAL_GROUP} --key {LIBRARY_KEY} --delete && kwriteconfig6 "
-        f"--file kwinrc --group {REMOVAL_GROUP} --key {THEME_KEY} --delete"
-    )
-
-
-def BUTTON_RULE(path):
-    """The landed button-layout diagnostic's line (wording owned by that suite)."""
-    return (
-        "uninstall: the window-button layout [ButtonsOnLeft=X, "
-        f"ButtonsOnRight=AL] that make apply wrote is still in {path}; KWin "
-        "keeps that layout under the default decoration after removal. Reset "
-        "it with: kwriteconfig6 --file kwinrc --group "
-        f"{REMOVAL_GROUP} --key ButtonsOnLeft --delete && kwriteconfig6 --file "
-        f"kwinrc --group {REMOVAL_GROUP} --key ButtonsOnRight --delete"
-    )
-
-
+from support.kwinrc_uninstall_wording import (
+    AURORAE_LIBRARY,
+    AURORAE_THEME,
+    LIBRARY_KEY,
+    REMOVAL_GROUP,
+    THEME_KEY,
+    aurorae_pair_rule as rule_for,
+    button_rule as BUTTON_RULE,
+)
 
 def write_kwinrc(config, body):
     """Write *body* as `<config>/kwinrc`; return its path."""
