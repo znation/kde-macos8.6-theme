@@ -4151,16 +4151,132 @@ floating-sheet > sheet {
    headerbar windowcontrols button.close and
    .titlebar windowcontrols button.close. Each twin below is byte-equal to
    its stock spelling and wins the equal-specificity tie by later
-   user-sheet source order, so only the radius changes ownership; stock's
-   min-width, min-height and padding, and the hover, pressed and disabled
-   flat-band arms naming the close class, declare no radius and stay
-   inherited per-property. The shipped GTK 3 sheet names no message-item or
-   search-bar close button outside the landed title-button pair, so it
-   needs nothing. (2026-11-04) */
+   user-sheet source order. Extended 2026-11-09: the pair's face is no
+   longer stock's transparent band — the group below also declares this
+   theme's landed `button.flat` face recipe (the same
+   background-color/background-image/border/box-shadow recipe that
+   restatement states, plus the landed immediate transition) beside the
+   radius, answering the toolkit band arm's transparent face, transparent
+   border, no image and no shadow in full for this theme; stock's
+   min-width, min-height and padding geometry and :dir margins stay
+   inherited per-property (this record's own precedent; no reference shows
+   the close button), and the hover, pressed, checked and disabled band
+   arms naming the close class are restated in the dated family comment
+   that follows this group. The shipped GTK 3 sheet names no message-item
+   or search-bar close button outside the landed title-button pair, so it
+   needs nothing. (2026-11-04, face extended 2026-11-09) */
 
 infobar .close,
 searchbar > revealer > box .close {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+/* 2026-11-09: the infobar and search-bar close-button families follow the
+   extended corner pair above, restating the stock flat-band arms the
+   landed generic `button` groups' one-token selectors cannot reach. A
+   fresh two-probe re-check at implementation time found the 2026-11-04
+   corner record's same arm inventory and versions. The toolkit resource
+   (Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6, re-probed with gresource 2026-11-09: a 1940-line
+   resource) pairs the flat band `infobar .close, searchbar .close` (a
+   transparent face, a transparent border, no image, no shadow) with its
+   `:hover` twin (a stock ink, a stock border colour, a gradient face and
+   a drop shadow), and arms the band around them: a geometry arm (padding
+   and border spacing, restated landed-geometry by the landed band record),
+   a warm `infobar.action:hover > revealer > box` face that out-tokens the
+   landed band group's selectors, and four typed band twins the landed
+   message-type ban keeps stock. The integration library's base.css
+   resource (probe path recorded in docs/invariants.md, re-extracted
+   2026-11-09: a 2622-line resource) arms the close class inside its canopy
+   lists — a transparent base arm and a motion-transition arm, an accent
+   `:focus:focus-visible` ring, a colour-mix hover arm, a pressed arm
+   naming `.keyboard-activating.close` and `:active`, `:checked`,
+   `:checked:hover`, `:checked.keyboard-activating` and `:checked:active`,
+   a `:disabled:not(:checked)` arm with a dim filter and a
+   `:drop(active)` accent ring — beside two geometry arms and their `:dir`
+   margins. Every one of these faces is restated below except the four
+   typed band twins (a restatement would need a message-type token, which
+   the landed `test_infobar` ban forbids inside the infobar family, so a
+   typed message item keeps its toolkit band face) and the `:drop(active)`
+   ring (no numbered rule states it; nothing landed governs a button drop
+   arm). Each spelling below is byte-equal to its stock twin or twin
+   member, so the equal-specificity tie falls to the later user-sheet
+   source order the landed records establish; stock geometry stays
+   inherited per-property. Declaration and source-order checks do not
+   establish rendered pixels. */
+
+infobar.action:hover > revealer > box {
+  /* The toolkit's warm band-hover face carries two class tokens the landed
+   * band group lacks; this byte-equal twin re-lands the `#DDDDDD` band
+   * face, and the integration library's own hover-image wash on the same
+   * spelling stays inherited per-property. */
+  background-color: #DDDDDD;
+}
+
+infobar .close:hover,
+searchbar .close:hover,
+searchbar > revealer > box .close:hover {
+  /* The landed `button.flat` hover face recipe with the stock ink claim
+   * cleared to black. The plain `searchbar .close:hover` member ties the
+   * toolkit twin; the deep member joins because the integration library's
+   * own hover arm names that deeper spelling, and its extra element
+   * tokens outrank any plain byte-equal twin (the corner record's deep
+   * precedent). No radius declaration joins the family spellings; the
+   * corner pair above keeps the radius ownership. */
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+  color: #000000;
+}
+
+infobar .keyboard-activating.close,
+infobar .close:active,
+searchbar > revealer > box .keyboard-activating.close,
+searchbar > revealer > box .close:active,
+infobar .close:checked,
+searchbar > revealer > box .close:checked {
+  /* The landed pressed bevel for the toolkit's pressed and checked band
+   * arms. */
+  background-color: #DDDDDD;
+  background-image: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+infobar .close:checked:hover,
+searchbar > revealer > box .close:checked:hover,
+infobar .close:checked.keyboard-activating,
+infobar .close:checked:active,
+searchbar > revealer > box .close:checked.keyboard-activating,
+searchbar > revealer > box .close:checked:active {
+  /* The same landed pressed bevel for the checked-hover and
+   * checked-motion arms. */
+  background-color: #DDDDDD;
+  background-image: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+infobar .close:disabled:not(:checked),
+searchbar > revealer > box .close:disabled:not(:checked) {
+  /* The landed `button:disabled` group's shape, with the stock dim filter
+   * cleared under the landed preserve-the-palette policy. */
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  filter: none;
+}
+
+infobar .close:focus:focus-visible {
+  /* The landed searchbar close focus recipe; the integration library's
+   * accent ring loses the byte-equal tie and user-sheet order. */
+  outline-color: #000000;
 }
 
 /* The GTK indicator-bin badge — the dot, optionally with its count label,
