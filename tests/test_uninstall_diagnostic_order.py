@@ -112,7 +112,7 @@ def read_bytes(path):
 
 
 # The recipe's flag spellings, each with a distinct sentinel value so a test
-# that captures them sees which named slot a value reached. The \"main:\"
+# that captures them sees which named slot a value reached. The "main:"
 # prefix marks every synthetic id; the real recipe's values all read
 # org.macos8.desktop and the ColorScheme id derives from MacOS8, so
 # mapping-swap bugs here would be invisible in value.
