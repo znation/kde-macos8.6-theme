@@ -5,6 +5,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+**Drift (found by the steward role 2026-11-09):** The `Running checks` section in `README.md` still tells users to run the GTK 4 indicator and view-census probes visibly on their desktop. Revise those instructions to match the 2026-11-09 principle: probes must use an isolated, non-visible display, or be explicitly requested without presenting windows in the user's session. Keep the routine-check skip guidance and update the documented commands to the supported isolated-display path.
+
 ### Platinum GTK 3 sidebar icons: remove the stock row-icon opacity veil (planned 2026-11-09 by the plan role)
 
 **Goal and grounding.** Show sidebar row icons at their authored opacity instead of applying an extra 0.7 veil. The 2026-11-09 probe `gresource extract /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 /org/gtk/libgtk/theme/Adwaita/gtk-contained.css` returns `row image.sidebar-icon { opacity: 0.7; }`. The shipped sheet has only the two directional padding selectors for this family; its `entry image` rules cannot match a plain row icon. The finished sidebar-seams plan explicitly leaves opacity as a follow-up, and the queued separator and pending DND work concern other properties and selectors.
