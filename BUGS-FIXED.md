@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9bdf3f1d never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `9bdf3f1d83383a371ac5ee30cf3114fb2a8e631b` (Refuse a FLOCK_TIMEOUT carrying a recipe-shell metacharacter at make level) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix — settled as no defect. Commit `9bdf3f1d` is merged on main (`git merge-base --is-ancestor` holds), and the guard it added is live in the tree, since refactored: `Makefile:142` still lists FLOCK_TIMEOUT in the `$(foreach …$(call refuse_unsafe_value,…)` refusal set, built from `refuse_unsafe_value` at `Makefile:103` with the same refusal diagnostics. Live probe: `make -n install 'FLOCK_TIMEOUT=x"; evil; "'` fails at parse time — `Makefile:142: *** FLOCK_TIMEOUT contains a shell metacharacter ('"' in 'x"; evil; "'); …'` with no recipe shell executed — while `make -n install FLOCK_TIMEOUT=5` still yields the digit-guard prefix `set -- "5"` unchanged. The commit's test still exists, since moved: `tests/test_make_refusals.py` `test_each_metacharacter_is_refused_in_FLOCK_TIMEOUT` (all four metacharacter subtests) passes under `make check CHECK_TESTS='test_make_refusals'`, and the doc strings at `Makefile:43–46`, `README.md` and `docs/invariants.md` present in the diff match the live text. Nothing in the commit's scope is wrong on main.
+
+**Validation gap:** none — the existing refusal tests and the live `make -n` probes reproduced and confirmed the committed behavior.
+
 ### post-merge review of ad6e0b13 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `ad6e0b134f2b9e3b1bc97575a2abea33c5d75084` (Add two synthetic-tree tests naming the scanner's untested dotted-candidate forms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
