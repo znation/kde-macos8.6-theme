@@ -3238,6 +3238,33 @@ The post-merge review of commit `9dd07beb32cd5a3b8a03fa1fa5d8ae9452cf4e1c` (Add 
 
 The post-merge review of commit `ed3452b6c48d4efc9ef5c45e73f1efd765d5826d` (Add a focused outline for GTK 3 radio buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### the render tests' KWin session cannot allocate its capture buffers under the workflow's llvmpipe env (found by the ci role 2026-11-09)
+
+`make check` at main's tip `3a380abe20b939b96004b32fd07ddc3e5d9bf49f` fails `tests/test_render_surface.py` with 32 errors and 5 failures: every KWin virtual render session (`tools/render_session.py`: plain `kwin_wayland --virtual`) fails with `KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied`, so the session produces no capture and the tests that read the rendered PNG get `cannot read ... dialog.png: [Errno 2] No such file or directory`.
+
+Reproduce with the workflow job env on this host:
+
+    QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe \
+      make check CHECK_TESTS=test_render_surface
+
+Suspected cause: commit `a005ece42` added `MESA_LOADER_DRIVER_OVERRIDE: llvmpipe` (and `LIBGL_ALWAYS_SOFTWARE: '1'`) to `.github/workflows/ci.yml`'s job env for the GPU-less hosted runner. On this host (kernel `6.12.115+deb13.1-amd64`, a real GPU is present): with `LIBGL_ALWAYS_SOFTWARE=1` alone the virtual session is clean, but adding `MESA_LOADER_DRIVER_OVERRIDE=llvmpipe` drives Mesa's KMS/GBM dumb-buffer path, and the kernel refuses dumb-buffer creation on the render node while permitting it on the primary node — verified with a direct `drmModeCreateDumb`-equivalent ioctl probe: `/dev/dri/card0` succeeds, `/dev/dri/renderD128` returns `Permission denied`. KWin then logs `kmsro: driver missing`, `Failed to open drm node: ""`, and the dumb-buffer denial, and spectacle's `CaptureScreen` on `Virtual-0` gets no reply.
+
+A local-only fix inside project code (unsetting the override in the session or the check target) would silence the env for the runner-run `make check` too, defeating the env the runner still needs and whose runner-side value was never observed: the hosted run at `18ded7fe` failed at the install step before tests, so the forced-llvmpipe KWin path has never executed on the runner. The workflow files are out of the ci role's scope by this team's charter, so this filing routes to the bugfix or plan role: either drop the override from the workflow's env or read why it is needed on the runner and give the session an env it can steer there only.
+
+Worked output from the reproduce run:
+
+    AssertionError: 0 != 1 : render_surface: error: capture is not a readable PNG: cannot read /tmp/tumwater-run-Q0oLZO/render-surface-d99iuox1/surface.png: [Errno 2] No such file or directory: '/tmp/tumwater-run-Q0oLZO/render-surface-d99iuox1/surface.png'
+      An error occurred while taking a screenshot.
+      KWin screenshot request failed:
+      Did not receive a reply. Possible causes include: the remote application did not send a reply, the message bus security policy blocked the reply, the reply timeout expired, or the network connection was broken.
+      Potentially relevant information:
+      - Method: CaptureScreen
+      - Method specific arguments: "Virtual-0"
+      
+      render-session: capture status 0
+      KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied
+      render-session: client reaped
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
