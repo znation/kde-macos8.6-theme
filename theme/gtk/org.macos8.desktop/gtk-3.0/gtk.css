@@ -936,7 +936,7 @@ scrollbar slider {
    }` and line 1003 `scrollbar slider:disabled { background-color:
    transparent; }`; the toolkit's dark-twin resource gtk-contained-dark.css
    declares the identical three arms at lines 989, 991 and 995. Each
-   stock arm carries one more pseudo-class than the landed bare group and
+   stock arm carries more pseudo-classes than the landed bare group and
    declares only a background colour, so each rule below spells its stock
    twin byte-equal — winning the equal-specificity tie by later user-sheet
    source order — and declares only the landed face, leaving the bare
