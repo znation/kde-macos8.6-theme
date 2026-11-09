@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 5f1680eb never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: Reviewed commit `5f1680ebc216a4206741e085c124415468f1b9ed`: `[ToolboxTab]` inherits `[Tab]`, and its test checks the inherited elements, margins and text offsets. The section is registered in the section coverage and margin tables; the mapping reuses the reference-grounded tab surface without changing its art. No defect found.
+
+**Validation gap:** none — the existing config tests confirm the registered `[ToolboxTab]` mapping and its inherited tab settings; no defect in the reviewed change needed a missing runtime path to identify.
+
 ### post-merge review of 932f21cb never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Reviewed the selector-matcher escape handling added by the commit and found that its quoted-value parser rejected valid CSS string continuations: a backslash followed by a newline should remove that newline from the value. This exposed the missing guarantee for CSS escapes in attribute values. Added a regression test, taught the quoted-value parser and decoder to handle LF, CR, CRLF and form-feed continuations, and updated the selector-matcher invariant and its reconstruction record.

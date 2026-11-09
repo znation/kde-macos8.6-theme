@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 5f1680eb never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `5f1680ebc216a4206741e085c124415468f1b9ed` (Paint Qt toolbox tabs with the Platinum tab face via [ToolboxTab]) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 74cee7ee never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `74cee7ee6a73a963d73e2e2948424ee0ff90e6b7` (Paint Page Info dialog display fields as Platinum line edits) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
