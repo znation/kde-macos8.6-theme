@@ -2213,6 +2213,46 @@ for radio in (False, True):
         self.assertNotIn("drop(active).after", self.css)
         self.assertNotIn("drop(active).before", self.css)
 
+    def test_view_accelerator_editor(self):
+        # The stock label face tints the view family's on-screen
+        # accelerator editor -- the overlay label a header button shows
+        # while it captures a key -- with its accent. No collected
+        # reference screenshot shows accelerator editing, so the pinned
+        # selection fill answers it, as for the selected rows and the
+        # drop header arm (see the sheet's 2026-11-09 adaptation
+        # comment). The three stock arms were probed fresh 2026-11-09
+        # with gresource extract of Default-light.css and Default-dark.css
+        # in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6,
+        # light 726 / dark 718) and of the desktop integration library's
+        # base stylesheet resource (the library name and resource path
+        # recorded in docs/invariants.md, base 716): none claims any
+        # member beyond background-color.
+        expected = {"background-color": SELECTION}
+        spellings = (
+            "columnview.view acceleditor > label",
+            "treeview.view acceleditor > label",
+            "window.print:not(.ssd-frame) treeview.dialog-action-box acceleditor > label",
+        )
+        self.assert_rule_group({spelling: expected for spelling in spellings})
+        # The sweep kills renamed and stray accelerator-editor spellings
+        # alike; comment mentions are not selectors.
+        self.assertEqual(
+            {s for s in self.rules if "acceleditor" in s},
+            set(spellings),
+        )
+        # Order pin: the restated group sits directly after the landed
+        # drag-drop header-button group and before the expander group.
+        self.assertGreater(
+            self.selectors.index("columnview.view acceleditor > label"),
+            self.selectors.index(
+                "window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd"
+            ),
+        )
+        self.assertLess(
+            self.selectors.index("columnview.view acceleditor > label"),
+            self.selectors.index("treeview.view.expander"),
+        )
+
     def test_spin_button_field(self):
         self.assert_spin_button_field(
             ("spinbutton:not(.vertical)", "spinbutton.vertical > text")

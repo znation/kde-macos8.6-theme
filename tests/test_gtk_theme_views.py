@@ -222,6 +222,38 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     def test_no_dndtarget_node_declared(self):
         self.assertNotIn("dndtarget", self.css)
 
+    def test_view_accelerator_editor(self):
+        # The stock label face tints the view family's on-screen
+        # accelerator editor -- the overlay label a header button shows
+        # while it captures a key -- with its accent. No collected
+        # reference screenshot shows accelerator editing, so the pinned
+        # selection fill answers it, as for the selected rows and the
+        # drop header arm (see the sheet's 2026-11-09 adaptation
+        # comment); the one stock arm was probed fresh 2026-11-09 with
+        # gresource extract of the toolkit resource in
+        # /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (its resource path is
+        # recorded in docs/invariants.md, line 755), with no ink,
+        # geometry or state member beyond background-color.
+        spelling = "treeview.view acceleditor > label"
+        self.assertEqual(self.selectors.count(spelling), 1, spelling)
+        self.assertEqual(self.rules[spelling], {"background-color": SELECTION})
+        self.assertEqual(
+            {s for s in self.rules if "acceleditor" in s},
+            {spelling},
+        )
+        # Order pin: the rule sits directly after the landed header-drop
+        # group and before the landed list-row focus group (the comma
+        # group's members are split selectors, so the pin read the sheet
+        # text for the earlier operand).
+        self.assertGreater(
+            self.css.index(spelling),
+            self.css.index("treeview.view header button.dnd:selected {"),
+        )
+        self.assertLess(
+            self.css.index(spelling),
+            self.css.index("list row:focus {"),
+        )
+
     def test_list_row_focus_outline(self):
         self.assert_dotted_focus_outline("list row:focus")
 

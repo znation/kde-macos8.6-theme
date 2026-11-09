@@ -1425,6 +1425,42 @@ window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd {
   border-radius: 0;
 }
 
+/* Adaptation 2026-11-09: no collected reference screenshot shows GTK
+   accelerator editing. The stock GTK 4 scheme fills the view family's
+   on-screen accelerator editor -- the overlay label a view header
+   button shows while it captures a key -- with its accent face. The
+   pinned selection fill answers it, as for the selected rows, view
+   selections and the drag-and-drop header arm this block carries.
+   Stock grouped arm probed 2026-11-09 with gresource extract
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+   /org/gtk/libgtk/theme/Default/Default-light.css (libgtk-4 4.18.6):
+   light line 726 declares `columnview.view acceleditor > label,
+   treeview.view acceleditor > label { background-color: <the foreign
+   accent>; }`, the resource's only acceleditor arm, and the dark twin
+   carries the identical spelling at line 718 with its own accent-deep
+   light-field value. The desktop integration library's base stylesheet
+   resource (library name and resource path recorded in
+   docs/invariants.md) rides the same spellings at base line 716,
+   naming the print dialog's action box beside the bare views and
+   composing its wash from currentColor over the view field, a colour
+   member no stock arm claims. Each spelling below is byte-equal to its
+   stock twin, wins the per-property tie by later user-sheet source
+   order under a lower stock sheet and stands as the spelling's only
+   holder when this sheet replaces stock entirely. The label's ink
+   stays inherited from the landed view field per-property; geometry
+   and shadings stay inherited per-property too, and grep-fact no
+   `:backdrop`, `:disabled` or `.osd` sibling acceleditor arm exists in
+   any of the three sources. Recorded 2026-11-09 by the feature role.
+   */
+
+columnview.view acceleditor > label, treeview.view acceleditor > label {
+  background-color: #CCCCFF;
+}
+
+window.print:not(.ssd-frame) treeview.dialog-action-box acceleditor > label {
+  background-color: #CCCCFF;
+}
+
 treeview.view.expander, expander {
   min-width: 16px;
   min-height: 16px;

@@ -829,6 +829,26 @@ treeview.view header button.dnd:active, treeview.view header button.dnd:selected
   border-radius: 0;
 }
 
+/* No GTK reference screenshot shows accelerator editing either. The
+   stock GTK 3 scheme fills the on-screen accelerator editor a view
+   header button opens while it captures a key -- the overlay label
+   carrying the "New accelerator..." prompt -- with its accent face.
+   The pinned selection fill answers it, as for the selected rows and
+   the drag-and-drop header arm above, and the label's ink is stock's
+   own inheritance from the landed view field, so it follows
+   per-property with no colour member stock claims or the theme needs
+   to answer. Stock arm probed 2026-11-09 with gresource extract of
+   the toolkit resource in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (the compiled base stylesheet whose resource path is recorded in
+   docs/invariants.md): line 755 declares `treeview.view acceleditor
+   > label { background-color: <the foreign accent>; }`, the
+   resource's only acceleditor arm, with no :backdrop, :disabled or
+   .osd sibling arm anywhere (adaptation 2026-11-09). */
+
+treeview.view acceleditor > label {
+  background-color: #CCCCFF;
+}
+
 /* No GTK list-row keyboard-focus reference exists; reuse button:focus's
    dotted outline, offset and square corners. */
 list row:focus {
