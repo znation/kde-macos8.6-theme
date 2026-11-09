@@ -5,7 +5,9 @@ file it inspects, so a corrupt or grown config file cannot exhaust memory
 inside a reader whose contract is "always succeed" and "edit nothing".
 Watched here: the reader applies the project's shared 1 MiB cap, a file at
 the cap is still parsed whole, an over-cap file keeps its bytes and stays
-silent like an unreadable one, and the GTK marker scan shares that cap.
+silent like an unreadable one, the GTK marker scan shares that cap, and a
+config holding bytes utf-8 cannot decode is kept as surrogate escapes so a
+foreign file is never silently empty and never crashes the recipe.
 """
 
 from unittest import mock
@@ -134,6 +136,33 @@ class TestReaderFifo(unittest.TestCase):
         self.assertIsNone(uninstall_config.read_text(fifo))
 
 
+class TestReaderMalformedBytes(unittest.TestCase):
+    def read_case(self, body):
+        tmp = str(make_tmp_dir(self))
+        path = write_bytes(os.path.join(tmp, "config", "kdeglobals"), body)
+        return tmp, path, uninstall_config.read_text(path)
+
+    def test_an_unmappable_config_is_kept_whole_including_its_unmapped_bytes(self):
+        # The decode sits after the cap check and outside the open's try, so
+        # read_text's only promise against a decode error escaping this
+        # always-succeeds reader is its non-strict decode. The docstring pins
+        # the exact escape: unmappable bytes are kept as surrogate escapes, so
+        # a foreign file is not silently empty (errors="ignore" would drop the
+        # bytes) and never raise. The valid lines around them stay parseable.
+        _tmp, _path, text = self.read_case(
+            b"[KDE]\nwidgetStyle=kvantum\n\xff\xfe\n"
+        )
+        self.assertEqual(
+            text, "[KDE]\nwidgetStyle=kvantum\n\udcff\udcfe\n"
+        )
+        self.assertEqual(
+            uninstall_config.read_selected_values(
+                text, {"KDE": ("widgetStyle",)}
+            ),
+            {("KDE", "widgetStyle"): "kvantum"},
+        )
+
+
 class TestRecipeCap(theme_install.UninstallRecipeTestCase):
     def test_a_config_at_the_cap_still_warns(self):
         cap = uninstall_config._MAX_CONFIG_BYTES
@@ -173,6 +202,46 @@ class TestRecipeCap(theme_install.UninstallRecipeTestCase):
         self.assertNotIn("Traceback", result.stderr)
         with open(path, "rb") as handle:
             self.assertEqual(original, handle.read())
+
+
+class TestRecipeMalformedBytes(theme_install.UninstallRecipeTestCase):
+    def test_unmappable_bytes_still_name_the_reset_and_the_recipe_succeeds(self):
+        # The unmapped bytes stand before the selection line, so a strict
+        # decode would raise on the whole file and stop the scan before any
+        # diagnostic; the non-strict decode keeps the reset visible.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_bytes(
+            os.path.join(config, "kdeglobals"),
+            b"\xff\xfe\n[KDE]\nwidgetStyle=kvantum\n",
+        )
+        with open(path, "rb") as handle:
+            original = handle.read()
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(STYLE_RULE_TAIL.format(path), result.stderr)
+        self.assertIn(STYLE_RESET, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        with open(path, "rb") as handle:
+            self.assertEqual(original, handle.read())
+
+    def test_an_unmapped_selection_value_is_never_reported_and_the_recipe_succeeds(self):
+        # The escaped value cannot equal one of the ids, so the file stays
+        # silent; the recipe must still succeed without a traceback.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_bytes(
+            os.path.join(config, "kdeglobals"), b"[KDE]\nwidgetStyle=\xff\xfe\n"
+        )
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertNotIn(STYLE_RULE_TAIL.format(path), result.stderr)
+        self.assertNotIn(STYLE_RESET, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
 
 class TestGtkMarkerSharesTheCap(unittest.TestCase):
