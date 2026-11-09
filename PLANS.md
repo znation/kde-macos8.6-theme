@@ -5,7 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
 
 ### Platinum GTK 3 scale marked-node geometry: keep the toolkit's mark push-out margins and tick indicator minimums, plain and fine-tuned, in both orientations under both loading readings (planned 2026-11-09 by the plan role; independent of the waiting GTK 3 scale decoration ink entry ahead of it in the queue — that entry inserts one `scale marks, scale value` ink group between the landed `scale slider:backdrop:disabled` and `row:selected scale slider:disabled, row:selected scale slider` groups and tests between `test_meter_state_and_backdrop_faces` and `test_scale_focus_outline`, while this entry appends twelve allocation-only margin/minimum groups directly before the landed marked-thumb record's first `scale.horizontal.marks-before:not(.marks-after) slider` group near the sheet's tail and tests between `test_scale_focus_outline` and `test_button_focus_outline`, so no sheet region, landed group, selector spelling, test name or order anchor overlaps; also independent of the unmerged GTK 3 fine-tuned scale container geometry change — that change appends its two container groups directly after the landed `scale.fine-tune fill, scale.fine-tune highlight, scale.fine-tune trough` radius group and lists these twelve marks/indicator spellings among its recorded exclusions, so this entry is the follow-on candidate that change records, not an overlap of it)
 

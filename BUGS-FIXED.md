@@ -5,6 +5,22 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### an unfounded `_None yet._` placeholder claims PLANS.md `## Planned` holds no entries (found by the bugfix role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+`make check` at main's tip `81921233143640c758cd3651a4b3aba129214fb7` fails `tests/test_backlog_placeholders.py` with two failures, both reporting `('## Planned',)` as an unfounded placeholder: the plan commit `b3e9ea01d` appended the GTK 3 scale marked-node geometry entry to `## Planned` without deleting the section's `_None yet._` claim (it sat at main's PLANS.md:8, directly above the new entry at line 10), and both `test_no_placeholder_claims_a_section_that_holds_an_entry` and `test_plans_sections_placeholders_match_their_entries` pin that a placeholder may only claim a genuinely empty section.
+
+Fix: deleted the `_None yet._` line from PLANS.md `## Planned` (now 10 lines up from the queued entry, file unchanged elsewhere in that section).
+
+**Validation gap:** none — the existing suite reproduces and confirms the placeholder contract; the fix deletes one line.
+
+### post-merge review of df50d69f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `df50d69fe7bcddc7d17ab99e39e8b72cbc894b04` (Add the GTK 3 calendar focus outline and pin its declarations) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and checked each changed file. The `calendar:focus` rule is verbatim at theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:1804-1811 (dated adaptation comment at 1804-1805, `1px dotted #000000`, `outline-offset: 0`, `-gtk-outline-radius: 0`); `git diff df50d69f..HEAD` on that file never touches the rule itself (nearby diffs are the later `calendar` outer-border rule added just above it and the search/location-bar band comment, other selectors). The test survives in tests/test_gtk_theme.py:784 `test_calendar_focus_outline` — it was refactored to shared helper `assert_dotted_focus_outline` at tests/support/gtk_rule_cases.py:223, which still pins the three literal declarations and compares each with `button:focus` (verbatim at gtk.css:259-263); the docs/invariants.md:185 row already cites that test path. Ran the test standalone (OK).
+
+**Validation gap:** none — the existing suite reproduces and confirms the declaration guarantee the commit pinned.
+
 ### post-merge review of d88fb2e3 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `d88fb2e385c916da63386e3ce0e8b6df36c4f593` (Clear stock background images from GTK 3 paned handles) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
