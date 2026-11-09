@@ -4783,16 +4783,31 @@ radio:indeterminate:disabled {
   box-shadow: none;
 }
 
+/* 2026-11-09: an indicator keeps its landed face in an unfocused window
+   with no stock fade. The toolkit's default light GTK 3 resource was
+   probed 2026-11-09 with `gresource extract`; the exact resource path
+   and every restated arm's verbatim text live in docs/invariants.md,
+   because this sheet's palette-literal scan reads comments as
+   declarations. Stock's bare `check:backdrop, radio:backdrop` arm at
+   resource line 1155 (dark twin line 1141) fades the backdrop repaint
+   through `transition: 200ms ease-out`; the landed no-fade policy — the
+   same reopen-proof extension the landed backdrop-band and mark records
+   use — erases it, byte-equal so later user-sheet source order wins the
+   tie. The two bare groups match checked, mixed and unchecked indicators
+   alike, so the amendments below cover every indicator state and the
+   residue block before the menu record restates none of them. */
 check:backdrop {
   background-image: none;
   border-color: #000000;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  transition: none;
 }
 
 radio:backdrop {
   background-image: none;
   border-color: #000000;
   box-shadow: none;
+  transition: none;
 }
 
 check:checked:backdrop {
@@ -4819,6 +4834,57 @@ radio:indeterminate:backdrop {
   background-image: none;
   border-color: #000000;
   box-shadow: none;
+}
+
+/* 2026-11-09: a disabled or selected-row indicator keeps the landed
+   plain record's face inside an unfocused window. No collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK check or radio in a
+   disabled, selected-row or unfocused state — the standing GTK-scope
+   adaptation premise — so every restatement below reuses a landed value:
+   the base `check` recipe's etch (`inset 1px 1px #FFFFFF, inset -1px
+   -1px #888888`) and black border, the landed selected-row policy of
+   the `row:selected button` and tree-view records, and the landed
+   no-fade policy. The toolkit's default light GTK 3 resource was
+   probed 2026-11-09 with `gresource extract`; the exact resource path
+   and every restated arm's verbatim text live in docs/invariants.md,
+   because this sheet's palette-literal scan reads comments as
+   declarations. Stock paints a disabled indicator inside an unfocused
+   window with a higher-specificity per-state twin that clears the
+   shadow and dims the ink — the base twin at resource line 1129, the
+   checked family at line 1141 and the mixed family at line 1153, each
+   `check`-headed with `box-shadow: none` plus a dimmed ink (dark twin
+   lines 1115, 1127 and 1139) — so each twin beats the landed one-pseudo
+   `:backdrop` groups' raised etch per-property and each arm below
+   lands as the byte-equal stock-twin spelling, later in source order.
+   A selected-row indicator rim recolours stock's accent; the resource
+   arms the element-only selected-row spellings at line 1157 and the
+   dark twin declares no such arm. Exclusions, with reasons: no
+   `radio:backdrop:disabled` spelling — stock's shadow-clear matches the
+   landed radio face's own none, so nothing repaints; no stock ink —
+   the landed family owns no ink member and the shipped glyph assets
+   are static, pinned by the landed glyph tests; no `border-color`
+   restate on the backdrop-disabled twins — stock's arms declare none,
+   so the landed black border survives; no backdrop-fade restatement
+   here — the two dated amendments above cover every indicator state;
+   no `.osd` state arm — the landed `.osd` block answers it; no 32px
+   content-view tile spelling — its own landed tail groups own it; and
+   no menu glyph, margin or label-padding arm — the landed menu record
+   below owns menus. Declaration counts and source order do not
+   establish rendered pixels. */
+check:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check:checked:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check:indeterminate:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+row:selected check, row:selected radio {
+  border-color: #000000;
 }
 
 /* A hovered menu row, a hovered or open menu-bar title, a disabled or

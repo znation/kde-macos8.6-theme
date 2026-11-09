@@ -537,7 +537,9 @@ class GtkSharedControlCases(GtkSheetRuleCases):
         # element-level state arms (quoted verbatim in the sheet-tail
         # comment and in docs/invariants.md) with the landed check and
         # radio faces' fill, border colour and shadow pair -- no geometry,
-        # ink, glyph, radius, clip or transition restatement. The scanned
+        # ink, glyph, radius or clip restatement (one transition reach:
+        # the 2026-11-09 amendment erases the stock 200ms backdrop fade
+        # on the two bare :backdrop groups). The scanned
         # parser merges each checked and indeterminate spelling's face
         # blocks into the landed glyph spelling's dictionary, so the four
         # merged keys pin the glyph union and the other spellings land in
@@ -586,10 +588,13 @@ class GtkSharedControlCases(GtkSheetRuleCases):
             "radio:indeterminate",
         )
         if "gtk-3.0" in str(self.CSS_PATH):
+            # The 2026-11-09 no-fade amendment erases the stock 200ms
+            # backdrop fade on the two bare :backdrop groups only, so the
+            # checked and indeterminate :backdrop twins read unchanged.
             expected.update(
                 {
-                    "check:backdrop": check_face,
-                    "radio:backdrop": radio_face,
+                    "check:backdrop": {**check_face, "transition": "none"},
+                    "radio:backdrop": {**radio_face, "transition": "none"},
                     "check:checked:backdrop": check_checked_face,
                     "radio:checked:backdrop": radio_face,
                     "check:indeterminate:backdrop": check_checked_face,

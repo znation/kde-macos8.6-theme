@@ -1551,6 +1551,82 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
                 self.selectors.index(spelling), tail, spelling
             )
 
+    def test_check_radio_backdrop_motion_disabled_and_selected_row(self):
+        """Disabled and selected-row indicators keep the landed face unfocused,
+        and no ``:backdrop`` indicator repaint fades over the stock 200ms."""
+        etch = "inset 1px 1px #FFFFFF, inset -1px -1px #888888"
+        self.assert_rule_group(
+            {
+                "check:backdrop": {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": etch,
+                    "transition": "none",
+                },
+                "radio:backdrop": {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": "none",
+                    "transition": "none",
+                },
+            }
+        )
+        disabled_face = {"box-shadow": etch}
+        self.assert_rule_group(
+            {
+                "check:backdrop:disabled": disabled_face,
+                "check:checked:backdrop:disabled": disabled_face,
+                "check:indeterminate:backdrop:disabled": disabled_face,
+                "row:selected check": {"border-color": BLACK},
+                "row:selected radio": {"border-color": BLACK},
+            }
+        )
+        # The residue block answers the check twins only: stock's shadow
+        # clear matches the landed radio face's own none, so no radio
+        # backdrop-disabled spelling lands (a stray twin dies here).
+        self.assertEqual(
+            {s for s in self.selectors
+             if ":backdrop:disabled" in s
+             and (s.startswith("check") or s.startswith("radio"))},
+            {"check:backdrop:disabled",
+             "check:checked:backdrop:disabled",
+             "check:indeterminate:backdrop:disabled"},
+        )
+        self.assertEqual(
+            {s for s in self.selectors
+             if s.startswith("row:selected check")
+             or s.startswith("row:selected radio")},
+            {"row:selected check", "row:selected radio"},
+        )
+        # The fade erasure stays bound to the two amended bare :backdrop
+        # groups and the landed no-fade mark group: a stray fade on any
+        # other check or radio state, a dropped amendment or a transition
+        # leaking onto the landed hover, active, disabled or glyph faces
+        # dies here.
+        self.assertEqual(
+            {s for s in self.selectors
+             if (s.startswith("check") or s.startswith("radio"))
+             and "transition" in self.rules[s]},
+            {"check:backdrop", "radio:backdrop",
+             "radio:checked:not(:backdrop)",
+             "radio:indeterminate:not(:backdrop)",
+             "check:checked:not(:backdrop)",
+             "check:indeterminate:not(:backdrop)"},
+        )
+        # One landed tail block holds the five residue spellings, after
+        # the amended :backdrop groups' block and before the menu record.
+        top = self.css.index("radio:indeterminate:backdrop")
+        bottom = self.css.index("hovered menu row")
+        for spelling in (
+            "check:backdrop:disabled",
+            "check:checked:backdrop:disabled",
+            "check:indeterminate:backdrop:disabled",
+            "row:selected check, row:selected radio",
+        ):
+            position = self.css.index(spelling + " {")
+            self.assertGreater(position, top, spelling)
+            self.assertLess(position, bottom, spelling)
+
     def test_menubar_titles(self):
         self.assert_menubar_titles("menubar > menuitem")
 
