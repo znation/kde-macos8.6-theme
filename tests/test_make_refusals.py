@@ -548,6 +548,7 @@ class TestShellUnsafePython(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("PYTHON contains a shell metacharacter", result.stderr)
         self.assertIn(shown_value, result.stderr)
+        return result
 
     def test_the_double_quoted_hostiles_are_refused(self):
         # A value pasted into `set -- "$(PYTHON)"` (require_python) and into
@@ -564,8 +565,11 @@ class TestShellUnsafePython(unittest.TestCase):
 
     def test_a_newline_is_refused(self):
         # An unquoted newline is a command separator, and make carries a
-        # command-line assignment's newline into the value verbatim.
-        self._assert_refused("py\nx; touch CANARY", "py\nx; touch CANARY")
+        # command-line assignment's newline into the value verbatim. The
+        # value carries no other refused character, so the newline branch
+        # itself must fire; make reports it as the word `newline`.
+        result = self._assert_refused("py\nx", "py\nx")
+        self.assertIn("('newline'", result.stderr)
 
     def test_a_hostile_value_runs_no_shell(self):
         """A refused PYTHON must not run any of its injected words.
