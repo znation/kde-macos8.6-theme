@@ -4507,6 +4507,69 @@ scale.fine-tune trough {
   border-radius: 0;
 }
 
+/* Stock sizes a fine-tuned scale's container — the container padding and
+   transverse minimum that take effect while the modifier is held — with
+   two arms this sheet never restated. No collected reference
+   screenshot shows a fine-tuned GTK scale (the GTK scope's standing
+   adaptation premise), so no landed value exists to derive: the values
+   are the toolkit's own container geometry, kept under either loading
+   reading the landed records treat as live. The reading that takes a
+   theme selection as replacing the stock stylesheet entirely would
+   otherwise lose both arms, collapsing the container to the stockless
+   defaults (no transverse paddings, no transverse minimum) while the
+   landed marked-scale record keeps its fine-tuned slider restate, so
+   the fine-tuned thumb slides hard against the trough ends and the
+   marks reflow; the per-property readings take the toolkit resource as
+   the lower sheet, where these restates are byte-equal to the stock
+   arms they tie with at equal specificity and sit later, winning the
+   single per-property tie with the same value. The compiled toolkit
+   stylesheet (2055 lines, probed fresh 2026-11-09 with gresource
+   extract; the library path lives in docs/invariants.md) declares the
+   arms stock-side, each quoted here exactly and hex-free, the only
+   stock arms anywhere in the resource that size the fine-tuned
+   containers: line 1232 `scale.fine-tune.horizontal { padding-top: 9px;
+   padding-bottom: 9px; min-height: 16px; }` and line 1234
+   `scale.fine-tune.vertical { padding-left: 9px; padding-right: 9px;
+   min-width: 16px; }`; the dark-twin resource carries the same pair at
+   lines 1216/1218, every line shifted -16 for this region, and neither
+   resource arms a disabled, :backdrop or other state counter-arm on
+   either container spelling. The landed 2026-11-09 meter geometry
+   record touches the neighbouring scale arms and names these two
+   container arms as its own candidate rather than restating them
+   there; this record takes them. Exclusions with per-property reasons:
+   the `scale.fine-tune slider { margin: -6px; }` arm (line 1236) is
+   the fine-tuned thumb's own geometry, not the container's: the landed
+   marked-scale record's fine-tune margin restate out-specifies it
+   where the landed marked arms reach, and that record's own exclusion
+   already frames the bare arm's claim as left stock (a geometry-only
+   claim mixing into no art), pinned by
+   tests/test_gtk_theme.py::TestGtkTheme::test_marked_scale_thumb_arms; the fine-tune radius arm itself (line
+   1238) is restated by the landed 2026-11-04 corner record's
+   `scale.fine-tune fill, scale.fine-tune highlight, scale.fine-tune
+   trough` group directly above, whose `-gtk-outline-radius: 7px`
+   member that record keeps inherited, so this record declares no
+   outline property; the fine-tuned marks and indicator margin and
+   minimum arms (lines 1281-1300) only space the fine-tuned scale's own
+   tick lines and readout, not the container, and rest unrestated
+   candidates outside this entry; and stock's plain `scale { min-height:
+   10px; min-width: 10px; padding: 12px; }` node arm (line 1226) is the
+   plain node's own spacing, left unrestated as the landed meter
+   geometry record's exclusion already reasons. Declaration checks do
+   not establish rendered pixels. Restated 2026-11-09 by the feature
+   role. */
+
+scale.fine-tune.horizontal {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  min-height: 16px;
+}
+
+scale.fine-tune.vertical {
+  padding-left: 9px;
+  padding-right: 9px;
+  min-width: 16px;
+}
+
 popover.emoji-picker .emoji :hover {
   border-radius: 0;
 }

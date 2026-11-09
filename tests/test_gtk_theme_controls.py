@@ -1108,6 +1108,55 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         self.assertEqual((width, style, color), ("1px", "dotted", BLACK))
         self.assertEqual(self.rules["scale trough"]["border-radius"], "0")
 
+    def test_scale_fine_tune_container_geometry(self):
+        """A fine-tuned scale's container keeps the toolkit's stock geometry.
+
+        The landed restatement stands directly after the fine-tune radius
+        group, so both orientations keep stock's 9px transverse paddings
+        and 16px transverse minimum under either loading reading; assert
+        each spelling once, whole-driven, family-clean and in radius-block
+        order.
+        """
+        self.assert_rule_group(
+            {
+                "scale.fine-tune.horizontal": {
+                    "padding-top": "9px",
+                    "padding-bottom": "9px",
+                    "min-height": "16px",
+                },
+                "scale.fine-tune.vertical": {
+                    "padding-left": "9px",
+                    "padding-right": "9px",
+                    "min-width": "16px",
+                },
+            }
+        )
+        # Family sweeps: no state twin, no bare-class fallback, no split
+        # spelling (the landed .fine-tune slider and fill/highlight/trough
+        # spellings do not satisfy the prefixed equality and stay out).
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale.fine-tune.horizontal")
+            },
+            {"scale.fine-tune.horizontal"},
+        )
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale.fine-tune.vertical")
+            },
+            {"scale.fine-tune.vertical"},
+        )
+        # The container block sits beside the landed fine-tune radius
+        # group, so its equal-specificity ties win by later source order.
+        self.assert_rule_after(
+            "scale.fine-tune.horizontal {",
+            "scale.fine-tune trough {",
+        )
+
     def test_button_focus_outline(self):
         self.assert_rule(
             "button:focus",

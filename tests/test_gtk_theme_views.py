@@ -809,13 +809,19 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
         # 2026-11-09: the four marked-scale fine-tune arms also name the
         # token and are pinned with the marked-scale thumbs by
-        # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms.
+        # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
+        # same date's fine-tuned container geometry restatement adds the
+        # two orientation container spellings, pinned by
+        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_scale_fine_tune_container_geometry.
         self.assertEqual(
             {s for s in self.rules if "fine-tune" in s},
             {
                 "scale.fine-tune fill",
                 "scale.fine-tune highlight",
                 "scale.fine-tune trough",
+                "scale.fine-tune.horizontal",
+                "scale.fine-tune.vertical",
                 "scale.horizontal.marks-before:not(.marks-after).fine-tune slider",
                 "scale.horizontal.marks-after:not(.marks-before).fine-tune slider",
                 "scale.vertical.marks-before:not(.marks-after).fine-tune slider",
