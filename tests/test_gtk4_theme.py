@@ -5323,6 +5323,16 @@ for radio in (False, True):
                 "scale.horizontal.fine-tune > marks.top",
                 "scale.horizontal.fine-tune > marks.bottom",
                 "scale.horizontal.fine-tune > marks indicator",
+                "scale.vertical > marks.top",
+                "scale.vertical > marks.bottom",
+                "scale.vertical > marks indicator",
+                "scale.vertical:not(.marks-before) > value.left",
+                "scale.vertical:not(.marks-after) > value.right",
+                "scale.vertical > value.top",
+                "scale.vertical > value.bottom",
+                "scale.vertical.fine-tune > marks.top",
+                "scale.vertical.fine-tune > marks.bottom",
+                "scale.vertical.fine-tune > marks indicator",
             },
         )
         self.assert_rule_after("switch {", "scale > value,")
@@ -5367,6 +5377,54 @@ for radio in (False, True):
         self.assert_rule_after("scale.horizontal > marks.top {", "scale > value,")
         self.assert_rule_after(
             "switch {", "scale.horizontal.fine-tune > marks indicator {"
+        )
+
+    def test_scale_vertical_marks_value_allocation(self):
+        """A plain or fine-tuned vertical marked scale keeps the toolkit's own allocation.
+
+        The toolkit's ten vertical arms (push-out margins, tick
+        minimums, value-label orientation margins, fine-tune halves) are
+        restated byte-equal behind this block, so both cascade loading
+        readings carry the same spacing — the keep-both-readings parity
+        restate the landed plain-container record set, companion to the
+        horizontal twin block above, with the indicator currentColor
+        member carried byte-equal so the arm survives the replacement
+        reading too.
+        """
+        self.assert_rule_group(
+            {
+                "scale.vertical > marks.top": {"margin-right": "6px"},
+                "scale.vertical > marks.bottom": {"margin-left": "6px"},
+                "scale.vertical > marks indicator": {
+                    "background-color": "currentColor",
+                    "min-height": "1px",
+                    "min-width": "6px",
+                },
+                "scale.vertical:not(.marks-before) > value.left": {
+                    "margin-right": "12px"
+                },
+                "scale.vertical:not(.marks-after) > value.right": {
+                    "margin-left": "12px"
+                },
+                "scale.vertical > value.top": {"margin-bottom": "9px"},
+                "scale.vertical > value.bottom": {"margin-top": "9px"},
+                "scale.vertical.fine-tune > marks.top": {
+                    "margin-left": "3px"
+                },
+                "scale.vertical.fine-tune > marks.bottom": {
+                    "margin-right": "3px"
+                },
+                "scale.vertical.fine-tune > marks indicator": {
+                    "min-width": "3px"
+                },
+            }
+        )
+        self.assert_rule_after(
+            "scale.vertical > marks.top {",
+            "scale.horizontal.fine-tune > marks indicator {",
+        )
+        self.assert_rule_after(
+            "switch {", "scale.vertical.fine-tune > marks indicator {"
         )
 
     def test_scale(self):
