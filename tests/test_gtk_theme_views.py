@@ -62,9 +62,9 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "treeview.view:selected:backdrop",
             "list row.activatable:selected:backdrop",
         ))
-        self.assertGreater(
-            self.css.index("list row.activatable:selected:backdrop"),
-            self.css.index("list row.activatable:selected:"),
+        self.assert_rule_after(
+            "list row.activatable:selected:backdrop",
+            "list row.activatable:selected:",
         )
 
     def test_list_row_press_and_popup_faces(self):
@@ -413,11 +413,9 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             set(selectors),
         )
         # A later .view rule would win the cascade again.
-        self.assertGreater(
-            self.css.index(
-                ".rubberband, rubberband,\n.content-view rubberband,"
-            ),
-            self.css.index(".view, textview text, list {"),
+        self.assert_rule_after(
+            ".rubberband, rubberband,\n.content-view rubberband,",
+            ".view, textview text, list {",
         )
 
     def test_spin_button_field(self):
@@ -591,9 +589,9 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assertNotIn("separator.sidebar:backdrop", self.selectors)
         # The seam complements the landed .sidebar field record in the
         # sheet, so the restated seam arms follow that block in source.
-        self.assertLess(
-            self.css.index(".sidebar {"),
-            self.css.index("stacksidebar.sidebar:dir(ltr) list"),
+        self.assert_rule_after(
+            "stacksidebar.sidebar:dir(ltr) list",
+            ".sidebar {",
         )
 
     def test_message_dialog_action_area(self):

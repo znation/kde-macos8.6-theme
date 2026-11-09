@@ -855,8 +855,8 @@ for radio in (False, True):
         self.assert_rule(disabled, {"color": "#888888"})
         self.assertEqual(self.rules[disabled]["color"], self.rules["label:disabled"]["color"])
         self._assert_inactive_grey_from_scheme()
-        self.assertGreater(self.css.index(disabled), self.css.index(selected))
-        self.assertGreater(self.css.index(disabled), self.css.index(other_month))
+        self.assert_rule_after(disabled, selected)
+        self.assert_rule_after(disabled, other_month)
 
     def test_calendar_disabled_selected_day_text(self):
         disabled_selected = "calendar > grid > label.day-number:disabled:selected"
@@ -867,7 +867,7 @@ for radio in (False, True):
         self.assertEqual(self.rules[disabled_selected]["color"],
                          self.rules[disabled]["color"])
         self.assertEqual(self.rules[selected]["background-color"], SELECTION)
-        self.assertGreater(self.css.index(disabled_selected), self.css.index(selected))
+        self.assert_rule_after(disabled_selected, selected)
 
     def test_calendar_today_underline(self):
         today = "calendar > grid > label.today"
@@ -891,7 +891,7 @@ for radio in (False, True):
         self.assertEqual(self.rules[marked]["background-color"],
                          self.rules[trough]["background-color"])
         self.assertEqual(self.rules[selected]["background-color"], SELECTION)
-        self.assertLess(self.css.index(marked), self.css.index(selected))
+        self.assert_rule_after(selected, marked)
 
     def test_calendar_outer_border(self):
         calendar = "calendar"
@@ -1794,13 +1794,13 @@ for radio in (False, True):
         # location strip, so no such spelling belongs here.
         self.assertNotIn("actionbar > revealer > box:backdrop", self.rules)
         self.assertFalse([s for s in self.rules if "location-bar" in s])
-        self.assertGreater(
-            self.css.index("searchbar > revealer > box:backdrop"),
-            self.css.index("actionbar > revealer > box {"),
+        self.assert_rule_after(
+            "searchbar > revealer > box:backdrop",
+            "actionbar > revealer > box {",
         )
-        self.assertLess(
-            self.css.index("searchbar > revealer > box:backdrop"),
-            self.css.index("statusbar {"),
+        self.assert_rule_after(
+            "statusbar {",
+            "searchbar > revealer > box:backdrop",
         )
 
     def test_status_bar(self):
@@ -1924,9 +1924,9 @@ for radio in (False, True):
             "columnview.view:selected:backdrop",
             "listview > row.activatable:selected:backdrop",
         ))
-        self.assertGreater(
-            self.css.index("list row.activatable:selected:backdrop"),
-            self.css.index("list row.activatable:selected:"),
+        self.assert_rule_after(
+            "list row.activatable:selected:backdrop",
+            "list row.activatable:selected:",
         )
 
     def test_list_row_press_and_popup_faces(self):
@@ -2522,11 +2522,9 @@ for radio in (False, True):
                 "entry > image.right",
             },
         )
-        self.assertGreater(
-            self.css.index("spinbutton.vertical > text > image.left"),
-            self.css.index(
-                "entry, spinbutton:not(.vertical), spinbutton.vertical > text {"
-            ),
+        self.assert_rule_after(
+            "spinbutton.vertical > text > image.left",
+            "entry, spinbutton:not(.vertical), spinbutton.vertical > text {",
         )
 
     def test_caps_lock_indicator(self):

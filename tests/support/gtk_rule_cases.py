@@ -117,6 +117,22 @@ class SheetRuleAssertions:
                 self.assertEqual(self.selectors.count(selector), 1, selector)
                 self.assertEqual(self.rules[selector], declarations, selector)
 
+    def assert_rule_after(self, later, earlier):
+        """Assert *later* first appears after *earlier* in the parsed sheet.
+
+        The GTK suites pin cascade precedence as a source-order comparison:
+        a landed restatement beats a stock arm of equal specificity only by
+        coming later in the sheet text, so a rule-order pin asserts which of
+        two substrings ``self.css`` holds first. The two-operand pins across
+        the GTK 3 and GTK 4 suites route through here; loop-anchor and
+        offset-search probes keep their bespoke forms.
+        """
+        self.assertGreater(
+            self.css.index(later),
+            self.css.index(earlier),
+            f"{later!r} does not follow {earlier!r} in the sheet",
+        )
+
     def assert_rule(self, selector, expected):
         """Assert *selector* exists and carries each declaration in *expected*."""
         self.assertIn(selector, self.rules, f"missing rule for {selector}")

@@ -648,9 +648,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
     def test_disabled_text_follows_the_entry_text_rule(self):
         # spinbutton:disabled ties spinbutton:not(.vertical) on specificity, so
         # only coming later greys a disabled spin button's text.
-        self.assertGreater(
-            self.css.index("label:disabled, entry:disabled, spinbutton:disabled {"),
-            self.css.index("entry, spinbutton:not(.vertical) {"),
+        self.assert_rule_after(
+            "label:disabled, entry:disabled, spinbutton:disabled {",
+            "entry, spinbutton:not(.vertical) {",
         )
 
     def test_button_text_and_icon_shadows(self):
@@ -816,9 +816,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 *expected,
             },
         )
-        self.assertGreater(
-            self.css.index("calendar.header {"),
-            self.css.index("calendar:focus {"),
+        self.assert_rule_after(
+            "calendar.header {",
+            "calendar:focus {",
         )
 
     def test_infobar(self):
@@ -930,9 +930,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {s for s in self.rules if "assistant" in s}, set(expected)
         )
         self.assertNotIn("assistant .sidebar:backdrop", self.rules)
-        self.assertGreater(
-            self.css.index("assistant .sidebar {"),
-            self.css.index("infobar > revealer > box {"),
+        self.assert_rule_after(
+            "assistant .sidebar {",
+            "infobar > revealer > box {",
         )
 
     def test_search_bar(self):
@@ -945,9 +945,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {s for s in self.rules if "location-bar" in s},
             {".location-bar", ".location-bar:backdrop"},
         )
-        self.assertLess(
-            self.css.index(".location-bar"),
-            self.css.index("statusbar {"),
+        self.assert_rule_after(
+            "statusbar {",
+            ".location-bar",
         )
 
     def test_action_bar(self):
@@ -990,13 +990,13 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # focused and unfocused windows alike, so stock's grouped
         # `.inline-toolbar:backdrop` membership stays stock.
         self.assertNotIn(".inline-toolbar:backdrop", self.rules)
-        self.assertGreater(
-            self.css.index("searchbar > revealer > box:backdrop"),
-            self.css.index("searchbar > revealer > box,"),
+        self.assert_rule_after(
+            "searchbar > revealer > box:backdrop",
+            "searchbar > revealer > box,",
         )
-        self.assertLess(
-            self.css.index("searchbar > revealer > box:backdrop"),
-            self.css.index("statusbar {"),
+        self.assert_rule_after(
+            "statusbar {",
+            "searchbar > revealer > box:backdrop",
         )
 
     def test_app_notification_band(self):
