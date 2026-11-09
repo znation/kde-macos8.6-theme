@@ -270,6 +270,10 @@ The post-merge review of commit `ad6e0b134f2b9e3b1bc97575a2abea33c5d75084` (Add 
 
 The post-merge review of commit `9bdf3f1d83383a371ac5ee30cf3114fb2a8e631b` (Refuse a FLOCK_TIMEOUT carrying a recipe-shell metacharacter at make level) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 572fb8c0 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `572fb8c022f925bf7fca2ff209da2f3f7bdf5d53` (Fix garbled about:support provenance sentence in userContent.css) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
