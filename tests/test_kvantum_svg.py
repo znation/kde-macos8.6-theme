@@ -505,6 +505,9 @@ class TestSvg(unittest.TestCase):
         for section in parser.sections():
             for key, value in parser.items(section):
                 if key.endswith(".element"):
+                    # Only the MDI buttons intentionally use compiled-in art.
+                    if (section, key, value) == ("TitleBar", "indicator.element", "mdi"):
+                        continue
                     names.add(value)
         for name in names:
             with self.subTest(element=name):

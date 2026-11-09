@@ -269,6 +269,7 @@ SURFACE_CONTROL_CONFIG = {
     "TitleBar": {
         "frame": "false",
         "interior.element": "titlebar",
+        "indicator.element": "mdi",
     },
 }
 
