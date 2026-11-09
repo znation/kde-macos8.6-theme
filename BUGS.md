@@ -138,6 +138,10 @@ The post-merge review of commit `f87abc9a141e0aa2edff1181c96439f9debae330` (Walk
 
 The post-merge review of commit `ee71c6147138acf6165958ea383081d1e48fd575` (Fix unused-import scanner's re-export pass to match the imported name, not its alias) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2f8f7f05 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `2f8f7f056a00a4b5480e31613eb065fc8a869013` (Share Firefox chrome provenance bundles as two FirefoxChrome constants) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
