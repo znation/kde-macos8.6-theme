@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of ea5a840d never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: Reviewed the added `write_rgba_cursor` cases against the shared frame validator and the parallel PNG-writer rejection tests. The RGBA tests cover named payload/type, record length, each numeric field's name and representative type or range failures; the byte-buffer length remains covered by its existing test. The diff correctly pins the shared validation behavior through the RGBA entry point.
+
+**Validation gap:** none — the review was confirmed by comparing the regression cases with the shared validator and existing PNG-writer coverage; no runtime failure prevented confirmation.
+
 ### CI's render-tool install asks apt for `spectacle`, which Ubuntu 26.04's runner index publishes as `kde-spectacle` (found by the ci role 2026-11-09) — fixed 2026-11-09 by the ci role
 
 GitHub run [42615044769](https://github.com/znation/kde-macos8.6-theme/actions/runs/42615044769) failed on `ubuntu-latest`, now Ubuntu 26.04, before any test ran: its archives renamed the image-capture package to `kde-spectacle` (the installed binary is still `/usr/bin/spectacle`), and `sudo apt-get install ... spectacle` exited 100 with `E: Unable to locate package spectacle`. The install step now selects `spectacle` when `apt-cache show spectacle` finds it and `kde-spectacle` otherwise, installs the selected name, and the existing post-install loop still verifies the `spectacle` binary beside the six other render tools. `tests/test_ci_workflow.py::test_workflow_installs_and_verifies_the_plasma_render_tools` pins the selection.
