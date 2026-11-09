@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9c34d34a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `9c34d34a806d8d30396dd4f28aeae390b280daf2` (Share the Aurorae box inactive-flattening rule in one aurorae_fixtures helper) never reached a verdict. Settled as no-defect: the diff was checked against the commit's claims — the shared `inactive_fill` helper in tests/support/aurorae_fixtures.py expresses exactly the rule the removed copies pinned (its keep-set `ETCH_DARK`/`BOX_INNER_OUTLINE` is `#888888`/`#222222` in support/platinum_palette.py, its flatten target `INACTIVE_GREY` is `#CCCCCC`, byte-for-byte the literals the old inline copies used), the helper parses cleanly, and its one live consumer (tests/test_kvantum_svg.py `TestMdiButtons._expectation`, the disabled-state flattening) applies the identical mapping. The second consumer the commit named (tests/test_aurorae_buttons.py) has since been removed on main by the 2026-11-04 inactive-art direction — the inactive Aurorae groups now ship no box art at all — so `inactive_fill` outlives that caller by design, not defect; no re-dedupe or follow-up is warranted.
+
+**Validation gap:** none — the suite reproduces and confirms the rule: both consumer modules pass under the project's check (`make check CHECK_TESTS="test_aurorae_buttons test_kvantum_svg"`, exit 0, 28 tests, OK).
+
 ### post-merge review of ee83d1d6 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `ee83d1d60f978a60fd36fdd28e03dfdfcdf7a13e` (Add tests/test_file_lock.py pinning the shared flock's retry and release arms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
