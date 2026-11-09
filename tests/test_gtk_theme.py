@@ -28,8 +28,8 @@ from support.gtk_theme_spec import (
     DISABLED_TEXT,
     ETCH_DARK,
     LINK,
-    VISITED_LINK,
     SCALE_THUMB,
+    VISITED_LINK,
 )
 from support.platinum_palette import (
     BLACK,
