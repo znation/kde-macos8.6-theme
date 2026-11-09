@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 07818902 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `07818902d67a2c08ee786523758d08611bb82956` (Revise the clock.svg plan: fix SVG counts, hand-cap geometry, hint-id names) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no-defect against the current tree 2026-11-09. Verified each objection: the package ships 31 `widgets/` SVGs (`ls | wc -l`) with clock.svg present; the SVG header says ten hint ids (six rotation-center + four shadow-offset) and quotes the east id as `hint-hands-shadows-offset-to-east`, matching the installed plasmoid's `main.qml:98`; recomputed the hand caps (hour 54+2=56, minute 86.5+1.5=88, second 87+1=88 — each equals its rect's lower edge; tails are pivot−12); `tests/test_desktoptheme_clock.TestClock` (6 tests, OK) and the touched canvas/install pins in `tests/test_desktoptheme` pass; `README.md`, `docs/invariants.md` and the archived Goal carry the corrected thirty-one count. `make check` green after the move.
+
+**Validation gap:** none — the commit's own test module reproduces and confirms every claim the review questioned.
+
 ### post-merge review of 2f8f7f05 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `2f8f7f056a00a4b5480e31613eb065fc8a869013` (Share Firefox chrome provenance bundles as two FirefoxChrome constants) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
