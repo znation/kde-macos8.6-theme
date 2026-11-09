@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 2c379b28 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `2c379b28758fb69d225d658c58bc98acf727d6bc` (Refuse control bytes in CHECK_TESTS and CHECK_PARALLEL at make parse time, unecheod) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: checked the landed tree and the commit's declared behavior holds — `make check CHECK_TESTS=$'tests_x\x1b'` refuses at parse (`Makefile:142 *** CHECK_TESTS contains a control character ...`) with the variable named and the 0x1b byte absent from both streams, the legal values still dry-run (`make -n check CHECK_TESTS=test_colorscheme.TestAnchors CHECK_PARALLEL=2` exits 0), and the commit's tests survive in `tests/test_make_refusals.py::TestShellUnsafeCheckVariables` (extended to also pin the double-quote breakout `2c379b28` left to the recipe guards, via the no-slower shared refusal later commit `321bded65` gave both variables in the line-142 `refuse_unsafe_value` foreach — no regression). The landed tree no longer carries the commit's dedicated two-line guard; the shared foreach guard refuses a control byte the same unecheod way, so nothing is wrong to fix.
+
+**Validation gap:** none — the landed suite's `TestShellUnsafeCheckVariables` reproduces the refusal and the scratch parse-time and legal-value runs confirmed the rest.
+
 ### post-merge review of 4e97dc86 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `4e97dc86812ef81e5b0af62a959e52bc106ccc4b` (Paint the GTK 3 scrollbar corner junction as the flat #EEEEEE scrollbar band) never reached a verdict: You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
