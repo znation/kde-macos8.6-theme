@@ -14,7 +14,7 @@ from .records import Reproduction
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 35
+NO_FAKE_BASELINE = 36
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -222,6 +222,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("A Ctrl-C that arrives while a child starts",),
         "tests/test_process_group.py::TestRunLogged"
         "::test_a_sigint_while_popen_returns_still_kills_the_child",
+    ),
+    Reproduction(
+        "run-logged-custom-sigterm",
+        ("post-merge review of bdcedf73",),
+        "tests/test_process_group.py::TestRunLogged"
+        "::test_a_custom_sigterm_handler_keeps_its_behavior_during_start",
     ),
     Reproduction(
         "required-output-log-removal-fails",

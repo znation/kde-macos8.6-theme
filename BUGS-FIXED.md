@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of bdcedf73 never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
+
+The post-merge review of commit `bdcedf73a00aec41ff0b1ed54a1cf4406cdb304c` (Kill a command's group when SIGTERM arrives during its startup) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro); settled after reviewing the startup deferral. The deferral treated every callable SIGTERM/SIGHUP handler as `exit_on_termination`'s handler and converted it to `SystemExit`, breaking callers' custom handler behavior. Deferral now applies to the marked handler installed by `exit_on_termination`; a forced signal during `Popen` verifies a custom SIGTERM handler runs and the child completes normally.
+
+**Validation gap:** no-fake — the existing race fixture forced SIGTERM during `Popen` but did not cover a caller-installed handler; the regression test adds that case.
+
 ### post-merge review of 4bad64f9 never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
 
 The post-merge review of commit `4bad64f9b539808dd67cbf9f65b0f8d7b9eeecfe` (Name signals when required external commands terminate) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore); settled after checking both required-command paths. `_signal_name` maps recognized negative wait statuses to their symbolic signal names and unknown numbers to their number; both paths report exit 1 with the selected log tail. Regression tests cover a real SIGTERM child (including its log tail) on both paths and the unknown-number fallback.

@@ -66,6 +66,10 @@ def _defer_signals(
             or threading.current_thread() is not threading.main_thread()
         ):
             continue
+        if number in _TERMINATION_SIGNALS and not getattr(
+            old, "_process_group_termination_handler", False
+        ):
+            continue
         if callable(old):
             previous.append((number, old))
             signal.signal(
@@ -220,6 +224,8 @@ def exit_on_termination() -> Iterator[None]:
 
     def handler(signum: int, frame: FrameType | None) -> None:
         raise SystemExit(128 + signum)
+
+    handler._process_group_termination_handler = True
 
     signals = _TERMINATION_SIGNALS
     previous = [signal.signal(number, handler) for number in signals]

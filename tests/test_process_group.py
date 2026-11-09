@@ -256,6 +256,25 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual([signal.SIGINT], received)
         self.assertIs(handler, signal.getsignal(signal.SIGINT))
 
+    def test_a_custom_sigterm_handler_keeps_its_behavior_during_start(self):
+        received = []
+        handler = lambda number, frame: received.append(number)
+        old = signal.signal(signal.SIGTERM, handler)
+        self.addCleanup(signal.signal, signal.SIGTERM, old)
+        real_popen = subprocess.Popen
+
+        def popen_then_terminate(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            os.kill(os.getpid(), signal.SIGTERM)
+            return process
+
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=popen_then_terminate
+        ):
+            self.assertEqual(0, self.run_sh("exit 0"))
+        self.assertEqual([signal.SIGTERM], received)
+        self.assertIs(handler, signal.getsignal(signal.SIGTERM))
+
     def test_default_signal_handlers_allow_running_from_a_worker_thread(self):
         for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
             handler = (
