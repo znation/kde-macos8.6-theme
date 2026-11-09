@@ -136,8 +136,10 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # mean and RMSE still divide by four channels when alpha is compared.
     if alpha_checked:
         channel_count = len(deltas)
+    elif compare_alpha:
+        channel_count = 4
     else:
-        channel_count = 4 if compare_alpha else 3
+        channel_count = 3
     totals = [sum(delta) for delta in deltas]
     total_abs_r, total_abs_g, total_abs_b = totals[:3]
     total_sq = sum(sum_squares(delta) for delta in deltas)
@@ -193,6 +195,13 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         difference_bounds = (left, top, right - left + 1, bottom - top + 1)
 
     channels = pixels * channel_count
+    if not compare_alpha:
+        mae_a = None
+    elif alpha_checked:
+        mae_a = totals[3] / pixels
+    else:
+        mae_a = 0.0
+
     return Metrics(
         width=candidate.width,
         height=candidate.height,
@@ -207,6 +216,6 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         max_y=max_y,
         differing=differing,
         frac_differing=differing / pixels,
-        mae_a=None if not compare_alpha else (totals[3] / pixels if alpha_checked else 0.0),
+        mae_a=mae_a,
         difference_bounds=difference_bounds,
     )
