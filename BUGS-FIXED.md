@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 74cee7ee never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Reviewed commit `74cee7ee6a73a963d73e2e2948424ee0ff90e6b7`: its Page Info field rule is scoped under the Page Info-only `#mainDeck` id, and the selector assertions check the intended controls and exclude browser chrome fields. The existing test also checks the exact Platinum declarations and rejects extra `#mainDeck input` variants; no defect was found.
+
+**Validation gap:** none — the existing selector tests confirm the Page Info field scope and declarations; rendered pixels remain outside their claim.
+
 ### post-merge review of 5f1680eb never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Fix: Reviewed commit `5f1680ebc216a4206741e085c124415468f1b9ed`: `[ToolboxTab]` inherits `[Tab]`, and its test checks the inherited elements, margins and text offsets. The section is registered in the section coverage and margin tables; the mapping reuses the reference-grounded tab surface without changing its art. No defect found.
