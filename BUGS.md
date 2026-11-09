@@ -494,6 +494,10 @@ The post-merge review of commit `1bc392e979c1bc62c930925ac65d7be831a64db8` (Rest
 
 The post-merge review of commit `71f9dcd3689640fdf0064e6ddefb28169efbc119` (Queue check workers slowest-first using per-module durations recorded in an XDG cache) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e6a1b58b never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `e6a1b58ba02c6c3ac9e8e747b0163e4d73277541` (Bound process_runner.finish's second pipe wait by REAP_TIMEOUT) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
