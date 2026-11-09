@@ -17,6 +17,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.close_tracking import tracking_closes
+from support.theme_install import write_file
 from tools import gtk_user_files
 
 
@@ -145,8 +146,7 @@ class TestUserCssDecisions(unittest.TestCase):
     def css(self, text: str | None) -> Path:
         path = gtk_user_files.user_css_path(self.config)
         if text is not None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(text.encode("utf-8"))
+            write_file(path, text)
         return path
 
     def write(self):
@@ -221,8 +221,7 @@ class TestUserCssBackup(unittest.TestCase):
         self.path = gtk_user_files.user_css_path(self.directory)
 
     def css(self, text: str) -> Path:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_bytes(text.encode("utf-8"))
+        write_file(self.path, text)
         return self.path
 
     def test_the_plain_bak_name_copies_every_byte(self):

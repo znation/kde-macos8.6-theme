@@ -12,6 +12,7 @@ from unittest import mock
 from support import containment, repo_root
 from support.gtk_fixtures import PACKAGE, SHIPPED_FILES
 from support.process_assertions import assert_failed, assert_succeeded
+from support.theme_install import read_bytes, write_file
 from support.shipped_files import shipped_files
 from support.symlink_fixtures import symlinked_repo
 from support.installed_paths import installed_gtk_theme
@@ -334,15 +335,12 @@ class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
     @staticmethod
     def _write(path, text):
         """Create *path*'s directory and write *text* as UTF-8."""
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write(text)
+        write_file(path, text)
         return text
 
     @staticmethod
     def _read(path):
-        with open(path, encoding="utf-8") as handle:
-            return handle.read()
+        return read_bytes(path).decode("utf-8")
 
     def test_warns_for_a_still_selected_gtk3_settings_ini(self):
         # The install put the theme's sheets in place; uninstall removes

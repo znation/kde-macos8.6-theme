@@ -14,13 +14,9 @@ from unittest import mock
 
 from support import repo_root, snippet_child
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
+from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase
 from tools import firefox_profile, firefox_user_files
-
-
-def _write(path, text):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(text.encode("utf-8"))
 
 
 class TestProfileResolution(FirefoxProfileTestCase):

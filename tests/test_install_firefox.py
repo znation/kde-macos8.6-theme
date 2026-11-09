@@ -20,6 +20,7 @@ from unittest import mock
 from support import containment, snippet_child
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
+from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase
 from tools import (
     file_lock,
@@ -35,11 +36,6 @@ CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
 
 def _read(path):
     return path.read_bytes().decode("utf-8")
-
-
-def _write(path, text):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(text.encode("utf-8"))
 
 class TestInstall(FirefoxProfileTestCase):
     def test_install_refuses_a_symlinked_chrome_directory(self):

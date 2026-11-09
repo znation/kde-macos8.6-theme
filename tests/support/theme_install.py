@@ -62,9 +62,22 @@ def write_file(path, body):
     """Write *body* at *path*, creating its parent directory as needed.
 
     *body* may be ``str`` (encoded here as UTF-8) or ``bytes`` (written as
-    is). The uninstall suites stage a config file's contents under the test's
-    config home before running the recipe, and later assert the file came
-    back unchanged.
+    is). This is the one copy of the read-dirs-then-create-parent staging
+    write: the recipe suites stage config-file contents under the test's
+    config home with :func:`write_config_file`, the Firefox suites stage
+    profile files through their local ``_write``/``write`` bindings, and the
+    GTK user-CSS/uninstall suites stage user-file fixtures through it inline.
+
+    Callers outside this module keep local names:
+    test_install_firefox.py and test_firefox_profile.py bind ``_write`` as an
+    import alias, ApplyGtkTestCase.write and test_gtk_install._write delegate
+    their bodies here, and test_gtk_user_files.py's two ``css()`` helpers call
+    it directly. Deliberately left: ApplyGtkTestCase.write_bytes writes raw
+    bytes, not UTF-8 text, and the kdedefaults suites' one-line direct
+    ``write_file`` call sites are already shared, not duplicated. Still
+    unconverted next-run material is the mkdir-then-write_text family in
+    support/kde_config.py, support/checker_scratch.py, test_invariants.py,
+    test_no_unused_imports.py and test_remove_kvantum.py.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:

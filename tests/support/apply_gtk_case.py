@@ -18,6 +18,7 @@ from unittest import mock
 from support import repo_root
 from support import snippet_child
 from support.cli_fixtures import run_main
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import apply_gtk
 
@@ -71,8 +72,7 @@ class ApplyGtkTestCase(unittest.TestCase):
         return self.config / version / "settings.ini"
 
     def write(self, path, text):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        write_file(path, text)
 
     def write_bytes(self, path, data):
         path.parent.mkdir(parents=True, exist_ok=True)
