@@ -294,6 +294,42 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             {"background-color": SELECTION, "color": BLACK},
         )
         self.assert_rule("placessidebar row.sidebar-new-bookmark-row", {"color": BLACK})
+        # The drag-session arms restate the stock drop strip and drag-over
+        # row twins on the landed selection lavender with black ink
+        # (recorded 2026-11-09 by the feature role); each keeps stock's own
+        # geometry members so the byte-equal spelling wins the cascade by
+        # later user-sheet source order.
+        expected_drop = {
+            "placessidebar row.sidebar-placeholder-row": {
+                "padding": "0 8px",
+                "min-height": "2px",
+                "background-image": f"image({SELECTION})",
+                "background-clip": "content-box",
+            },
+            "placessidebar row:drop(active):not(:disabled)": {
+                "color": BLACK,
+                "box-shadow":
+                    f"inset 0 1px {SELECTION}, inset 0 -1px {SELECTION}",
+            },
+            "placessidebar row:drop(active):not(:disabled):selected": {
+                "color": BLACK,
+                "background-color": SELECTION,
+            },
+        }
+        self.assert_rule_group(expected_drop)
+        # The element-level drag-over family is exactly these two arms: the
+        # sweep kills a renamed spelling or a stray twin.
+        self.assertEqual(
+            {s for s in self.rules
+             if s.startswith("placessidebar row:drop")},
+            {
+                "placessidebar row:drop(active):not(:disabled)",
+                "placessidebar row:drop(active):not(:disabled):selected",
+            },
+        )
+        anchor = self.css.index(".sidebar {")
+        for spelling in expected_drop:
+            self.assertGreater(self.css.index(spelling), anchor)
 
     def test_stack_switcher_tabs(self):
         forms = {

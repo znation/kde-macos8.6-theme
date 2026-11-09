@@ -2242,6 +2242,43 @@ placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
   color: #000000;
 }
 
+/* No collected screenshot shows a places sidebar inside a drag session, and
+   the reference set's desktop shows no places sidebar at all, so no ground
+   exists for the drop strip or the drag-over row twins; the toolkit
+   resource's own arms paint foreign greens the set never shows. Dropping
+   or dragging a bookmark reads the landed selection lavender with black
+   ink, the same mapping the sibling sheet's landed colour-swatch
+   drop-target record composes, while the strip's and the drag-over rows'
+   shape keeps the resource's own geometry so the restated spellings stay
+   the stock twins that win the cascade by later user-sheet source order.
+   Stock statements probed 2026-11-09 with gresource extract; the 1940-line
+   resource; line numbers below, with the grouped row-shadow clearing arm
+   at line 1478 staying stock untouched — it carries no palette value.
+   Restated arms, with the foreign greens elided to the reference-pinned
+   #CCCCFF selection fill of widgets/listitem.svg: 1610 the placeholder
+   strip keeps stock's padding, min-height and background clip and inks to
+   the lavender; 1614 the drag-over row inks its label black and its two
+   inset hover bands lavender; 1616 the selected drag-over row takes the
+   lavender fill with black ink, the landed selection-backdrop record's
+   pair. Declaration checks do not establish rendered pixels. Restated
+   2026-11-09 by the feature role. */
+placessidebar .navigation-sidebar > row.sidebar-placeholder-row {
+  padding: 0 8px;
+  min-height: 2px;
+  background-image: image(#CCCCFF);
+  background-clip: content-box;
+}
+
+placessidebar .navigation-sidebar > row:drop(active):not(:disabled) {
+  color: #000000;
+  box-shadow: inset 0 1px #CCCCFF, inset 0 -1px #CCCCFF;
+}
+
+placessidebar .navigation-sidebar > row:drop(active):not(:disabled):selected {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
 /* No GTK navigation-sidebar reference is available; adapt its item corners
    to the square frame treatment (2026-10-29). */
 .navigation-sidebar > row,
