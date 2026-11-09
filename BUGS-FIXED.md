@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9abbd3d7 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `9abbd3d758e1b8bc3498199e4c601915b84b2c62` (Pin the check log-cap's breakless-window and CRLF branches) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Verdict: landed correct, nothing to fix.** Checked the commit's diff against the current code: `tools/check_parallel_results.py::_bounded_log_text` realizes the breakless-window arm exactly as the new `test_a_window_without_any_line_break_is_shown_whole` pins it (no `\n` in the window leaves it whole at 65536 shown, so the leading `check:` note names 100000 − 65536 = 34464 hidden bytes, nothing dropped), and it realizes the CRLF arm exactly as `test_crlf_worker_log_lines_end_before_the_line_breaks` pins it (`tools/text_lines.py::split_lines` folds `\r\n` and bare `\r` into one line per record before `escape_controls` replays the tail, so no literal carriage return survives); both new tests exist in `tests/test_check_parallel.py::TestCoordinator` and `docs/invariants.md`'s tooling row was updated to name them.
+
+**Validation gap:** none — the commit's own two new coordinator tests reproduce and confirm both pinned branches offline.
+
 ### post-merge review of b02a1811 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `b02a18113d564a1c870f6af5a56aa99a53f5ec07` (Factor the dotted focus-outline assertion in tests/test_gtk_theme.py into one helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
