@@ -18,12 +18,15 @@ from support import theme_install
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import containment, uninstall_config, uninstall_diagnostics
+from tools.gtk_user_files import GTK4_CSS_MARKER
 
 STYLE_RESET = "kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete"
 STYLE_RULE_TAIL = (
     "([KDE] widgetStyle=kvantum) is still in {} after removal;"
 )
-CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
+# The published sheet's first line, spelled by the publisher: a fixture
+# hand-copy would keep testing a spelling the apply side could rename.
+CSS_MARKER = GTK4_CSS_MARKER
 # Same ids the family tests publish; the diagnostics compare these strings.
 IDS = dict(
     scheme_id="MacOS8",

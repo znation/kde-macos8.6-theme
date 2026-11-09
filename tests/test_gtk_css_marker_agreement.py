@@ -9,14 +9,14 @@ definition, which its recipe passes as ``uninstall_diagnostics.py``'s
 sheet. The two sides are separate files that no shared import joins: a
 spelling edited on one side alone would leave the uninstall diagnostic
 permanently silent about a gtk.css the apply really published, with every
-fixture-based family test still green: the GTK family's fixtures read the
-publisher's constant and follow that side only, and the uninstall-diagnostic
-fixtures hand-copy their own literal, so neither tie reaches the Makefile.
+fixture-based family test still green.
 These tests pin the Makefile's definition to the publisher's constant and
 pin the recipe to the variable, so the marker can only change on both sides
-at once.
+at once, and pin the fixture suites to the publisher's constant too, so a
+staged "published" sheet always spells the marker the apply side writes.
 """
 
+import glob
 import os
 import re
 import unittest
@@ -64,6 +64,37 @@ class TestMarkerAgreement(unittest.TestCase):
         # definition and the recipe's reference -- so the diagnostic's
         # marker has one source in the file make runs.
         self.assertEqual(2, text.count("GTK_USER_CSS_MARKER"))
+
+
+class TestFixturesUseThePublishedMarker(unittest.TestCase):
+    # The tail of a marker string literal in a tests/*.py source line: a
+    # staged gotcha whose spelling must track the publisher's constant.
+    # Every line carrying this substring must name GTK4_CSS_MARKER, so no
+    # source line below speaks the marker's spelling without the constant.
+    MARKER_TAIL = "user CSS */"  # matches GTK4_CSS_MARKER's tail
+
+    def test_no_test_source_spells_the_marker_literal_inline(self):
+        # The uninstall-diagnostic and make-level fixtures stage "a
+        # published gtk.css" with the marker its first line. Staged as a
+        # hand-copied literal, such a fixture keeps testing a spelling the
+        # apply side could rename -- every assertion stays green while the
+        # fixture stops representing reality. The constant the publisher
+        # defines is the one spelling tests stage, through import or an
+        # alias assignment, so a respelled marker fails the family tests
+        # only where the difference matters rather than sitting latent.
+        pattern = os.path.join(repo_root.ROOT, "tests", "**", "*.py")
+        inline = []
+        for path in sorted(glob.glob(pattern, recursive=True)):
+            with open(path, encoding="utf-8") as handle:
+                for number, line in enumerate(handle, 1):
+                    if self.MARKER_TAIL in line and "GTK4_CSS_MARKER" not in line:
+                        inline.append(f"{path}:{number} {line.strip()}")
+        self.assertEqual(
+            [],
+            inline,
+            "a test file spells the GTK 4 user-CSS marker literal inline; "
+            "import or alias tools.gtk_user_files.GTK4_CSS_MARKER instead",
+        )
 
 
 if __name__ == "__main__":

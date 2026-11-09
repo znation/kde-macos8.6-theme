@@ -24,6 +24,7 @@ from support.cli_fixtures import run_main
 from support.theme_install import read_bytes, write_file
 from support.tmp_dir import make_tmp_dir
 from tools import uninstall_diagnostics
+from tools.gtk_user_files import GTK4_CSS_MARKER
 
 IDS = dict(
     scheme_id="org.macos8.desktop",
@@ -33,7 +34,7 @@ IDS = dict(
     dtheme_id="org.macos8.desktop",
     lnf_id="org.macos8.desktop",
     aurorae_id="org.macos8.desktop",
-    css_marker="/* org.macos8.desktop GTK 4 user CSS */",
+    css_marker=GTK4_CSS_MARKER,
 )
 
 # One prefix per handler, in the recipe order the coordinator documents. The

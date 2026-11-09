@@ -23,6 +23,7 @@ from support.symlink_fixtures import symlinked_repo
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
+from tools.gtk_user_files import GTK4_CSS_MARKER
 
 
 def _assert_install_packages_refused(case, value, *expected):
@@ -485,7 +486,7 @@ class TestShellUnsafeXdgConfigHome(unittest.TestCase):
         config_home = tmp / "cfg\x1b(2Jhome"
         (config_home / "gtk-4.0").mkdir(parents=True)
         (config_home / "gtk-4.0" / "gtk.css").write_text(
-            "/* org.macos8.desktop GTK 4 user CSS */\n"
+            GTK4_CSS_MARKER + "\n"
         )
         env = theme_install.make_env("XDG_CONFIG_HOME", "XDG_DATA_HOME")
         env["XDG_CONFIG_HOME"] = str(config_home)
