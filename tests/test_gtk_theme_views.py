@@ -494,8 +494,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # The whole sheet holds exactly these sides of the sidebar
         # family: a swapped border side, a dropped direction twin, a
         # stray stock restatement or a renamed restated arm fails the
-        # sweep, and the pale and selection-mode separator twins stay
-        # owned by the backdrop and selection-mode records.
+        # sweep, and the pale separator twin remains outside this record.
         self.assertEqual(
             {s for s in self.rules if s.startswith("paned .sidebar")},
             paned,
@@ -523,7 +522,23 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             },
         )
         self.assertNotIn("separator.sidebar:backdrop", self.selectors)
-        self.assertNotIn("separator.sidebar.selection-mode", self.selectors)
+        selection_mode = (
+            "separator.sidebar.selection-mode",
+            ".selection-mode separator.sidebar",
+        )
+        for selector in selection_mode:
+            self.assert_rule(selector, {"background-color": ETCH_DARK})
+            self.assertEqual(self.selectors.count(selector), 1)
+        separator_family = {
+            selector for selector in self.rules if "separator.sidebar" in selector
+        }
+        self.assertEqual(
+            separator_family,
+            {"separator.sidebar", *selection_mode},
+        )
+        base_position = self.css.index("separator.sidebar {")
+        for selector in selection_mode:
+            self.assertGreater(self.css.index(selector), base_position)
         # The seam complements the landed .sidebar field record in the
         # sheet, so the restated seam arms follow that block in source.
         self.assertLess(
