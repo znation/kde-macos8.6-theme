@@ -20,7 +20,12 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
+from tools.gtk_settings import (
+    GTK_ID,
+    remove_key_from_section,
+    remove_theme_name,
+    set_theme_name,
+)
 
 
 class TestSetThemeName(unittest.TestCase):
@@ -169,6 +174,31 @@ class TestRemoveThemeName(unittest.TestCase):
         selected = set_theme_name(original, GTK_ID)
         self.assertNotEqual(original, selected)
         self.assertEqual((original, True), remove_theme_name(selected))
+
+
+class TestRemoveKeyFromSection(unittest.TestCase):
+    """The shared removal helper scopes by section, not by key name alone."""
+
+    def test_the_same_key_and_value_in_another_section_is_kept(self):
+        # ``remove_key_from_section`` is shared by the GTK and Kvantum
+        # removals; if it deleted by key name without checking the current
+        # section, the Kvantum call would strip a same-named foreign key in
+        # an earlier or later section, and vice versa.
+        text = "[General]\ntheme=org.macos8.desktop\n[Other]\ntheme=org.macos8.desktop\n"
+        self.assertEqual(
+            (
+                "[General]\n[Other]\ntheme=org.macos8.desktop\n",
+                True,
+            ),
+            remove_key_from_section(text, "General", "theme", "org.macos8.desktop"),
+        )
+
+    def test_a_foreign_value_inside_the_section_reports_no_change(self):
+        text = "[General]\ntheme=other\n"
+        self.assertEqual(
+            (text, False),
+            remove_key_from_section(text, "General", "theme", "org.macos8.desktop"),
+        )
 
 
 class TestLineEndings(unittest.TestCase):

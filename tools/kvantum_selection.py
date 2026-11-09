@@ -14,9 +14,10 @@ comments and each line's own ending — byte-identical. An absent ``Kvantum/``
 directory, an absent file or a selection not naming our id is left alone,
 with a note saying so, and nothing is created.
 
-The line surgery reuses the generic ini scanners of ``tools/gtk_settings`` —
-the same BOM, ending and key parsing the GTK tests pin — so the behaviour
-matches the file ``kvantummanager`` writes. The runs serialize on the same
+The line surgery reuses the generic ``tools/gtk_settings`` ini scanners
+through ``remove_key_from_section`` — the same BOM, ending and key parsing
+the GTK tests pin — so the behaviour matches the file ``kvantummanager``
+writes. The runs serialize on the same
 bounded-wait config-home flock as ``tools/apply_gtk`` and publish through
 ``tools/atomic_write``, so a mid-run failure leaves the previous file
 intact.
@@ -47,15 +48,7 @@ if __package__:
     from tools.atomic_write import write_bytes_atomically
     from tools.diagnostics import report_error, report_note
     from tools.file_lock import parent_dir_lock
-    from tools.gtk_settings import (
-        _ENDINGS,
-        _join_lines,
-        _key_name,
-        _section_name,
-        _split_bom,
-        _split_lines,
-        _with_bom,
-    )
+    from tools.gtk_settings import remove_key_from_section
     from tools.gtk_user_files import ConfigError, read_config_text
     from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/kvantum_selection.py
@@ -64,15 +57,7 @@ else:  # run directly: python3 tools/kvantum_selection.py
     from atomic_write import write_bytes_atomically
     from diagnostics import report_error, report_note
     from file_lock import parent_dir_lock
-    from gtk_settings import (
-        _ENDINGS,
-        _join_lines,
-        _key_name,
-        _section_name,
-        _split_bom,
-        _split_lines,
-        _with_bom,
-    )
+    from gtk_settings import remove_key_from_section
     from gtk_user_files import ConfigError, read_config_text
     from symlink_refusal import refuse_symlink
 
@@ -92,39 +77,12 @@ LOCK_TIMEOUT = 60.0
 def remove_theme(text: str) -> tuple[str, bool]:
     """Remove our ``theme`` lines from *text*'s ``[General]`` section.
 
-    Returns ``(new_text, removed)``. Only a ``theme`` key under ``[General]``
-    whose value trims to exactly :data:`KVANTUM_ID` is deleted; a foreign
-    value (and the same key name in another section), every comment, every
-    other key and each line's own ending are kept byte-identical. A leading
-    UTF-8 BOM is matched through and written back. A file that did not end
-    with a line ending still does not end with one, even when the removed
-    key was its last line. When nothing matched, *text* is returned
-    unchanged so a foreign file is not rewritten.
+    Returns ``(new_text, removed)``; the surgery, its byte-identical line
+    keeping and its no-match no-rewrite contract are
+    :func:`tools.gtk_settings.remove_key_from_section` applied to the
+    ``[General]`` ``theme`` key and :data:`KVANTUM_ID`.
     """
-    had_bom, body = _split_bom(text)
-    lines = _split_lines(body)
-    kept = []
-    section = None
-    removed = False
-    for content, ending in lines:
-        name = _section_name(content)
-        if name is not None:
-            section = name
-            kept.append((content, ending))
-            continue
-        if section == "General" and _key_name(content) == "theme":
-            value = content.split("=", 1)[1].strip()
-            if value == KVANTUM_ID:
-                removed = True
-                continue
-        kept.append((content, ending))
-    if not removed:
-        return text, False
-    if kept and not any(body.endswith(ending) for ending in _ENDINGS):
-        # The file had no final line ending; removing its unterminated last
-        # line must not give the new last line one.
-        kept[-1] = (kept[-1][0], "")
-    return _with_bom(had_bom, _join_lines(kept)), True
+    return remove_key_from_section(text, "General", "theme", KVANTUM_ID)
 
 
 def _note(message: str) -> None:

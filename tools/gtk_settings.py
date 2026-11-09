@@ -89,6 +89,51 @@ def _default_ending(lines: list[tuple[str, str]]) -> str:
     return "\n"
 
 
+def remove_key_from_section(
+    text: str, section: str, key: str, value: str
+) -> tuple[str, bool]:
+    """Remove ``key=value`` lines naming *value* inside ``[section]``.
+
+    Returns ``(new_text, removed)``. Only a *key* under *section* whose value
+    trims to exactly *value* is deleted; a foreign value (and the same key
+    name in another section), every comment, every other key and each line's
+    own ending are kept byte-identical. A leading UTF-8 BOM is matched
+    through and written back. A file that did not end with a line ending
+    still does not end with one, even when the removed key was its last
+    line. When nothing matched, *text* is returned unchanged so a foreign
+    file is not rewritten.
+
+    The ini scanners of :mod:`tools.gtk_settings` serve both callers:
+    :func:`tools.gtk_settings.remove_theme_name` (``[Settings]``
+    ``gtk-theme-name``) and :func:`tools.kvantum_selection.remove_theme`
+    (``[General]`` ``theme``).
+    """
+    had_bom, body = _split_bom(text)
+    lines = _split_lines(body)
+    kept = []
+    focused = None
+    removed = False
+    for content, ending in lines:
+        name = _section_name(content)
+        if name is not None:
+            focused = name
+            kept.append((content, ending))
+            continue
+        if focused == section and _key_name(content) == key:
+            found = content.split("=", 1)[1].strip()
+            if found == value:
+                removed = True
+                continue
+        kept.append((content, ending))
+    if not removed:
+        return text, False
+    if kept and not any(body.endswith(ending) for ending in _ENDINGS):
+        # The file had no final line ending; removing its unterminated last
+        # line must not give the new last line one.
+        kept[-1] = (kept[-1][0], "")
+    return _with_bom(had_bom, _join_lines(kept)), True
+
+
 def set_theme_name(text: str, value: str) -> str:
     """Return *text* with ``gtk-theme-name=value`` in its ``[Settings]``.
 
@@ -145,27 +190,4 @@ def remove_theme_name(text: str) -> tuple[str, bool]:
     when the removed key was its last line. When nothing matched, *text* is
     returned unchanged so a foreign file is not rewritten.
     """
-    had_bom, body = _split_bom(text)
-    lines = _split_lines(body)
-    kept = []
-    section = None
-    removed = False
-    for content, ending in lines:
-        name = _section_name(content)
-        if name is not None:
-            section = name
-            kept.append((content, ending))
-            continue
-        if section == "Settings" and _key_name(content) == "gtk-theme-name":
-            value = content.split("=", 1)[1].strip()
-            if value == GTK_ID:
-                removed = True
-                continue
-        kept.append((content, ending))
-    if not removed:
-        return text, False
-    if kept and not any(body.endswith(ending) for ending in _ENDINGS):
-        # The file had no final line ending; removing its unterminated last
-        # line must not give the new last line one.
-        kept[-1] = (kept[-1][0], "")
-    return _with_bom(had_bom, _join_lines(kept)), True
+    return remove_key_from_section(text, "Settings", "gtk-theme-name", GTK_ID)
