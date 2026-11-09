@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of f49ae710 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `f49ae710ff1b16367b0a9df2e8e7552b19679e48` (Fix the unused-import scanner dropping annotated `__all__` assignments) never reached a verdict.
+
+**Fix:** settled as no-defect. Re-read the commit's diff and verified every claim against the current tree, which has moved on since Oct 27: the one-line scanner fix (`elif isinstance(node, ast.AnnAssign) and node.value is not None: targets = [node.target]`) is present in `_scan_module()` at `tests/support/unused_imports.py:119`, correctly guarded so a bare `__all__: list[str]` declaration (no value, no strings) still contributes nothing to the re-export allowance; the two fixtures the commit added survive as `tests/test_no_unused_imports.py::TestNoUnusedImports::test_an_annotated_all_entry_re_exports_the_import` and `::test_an_annotated_all_declaration_without_a_value_keeps_the_flag`; and the required no-fake ledger record survives the later split of `tests/support/validation_gaps.py` into a package as `unused-imports-annotated-all` in `tests/support/validation_gaps/no_fake.py` (the ledger file the diff named no longer exists at that path). All 36 tests in `tests.test_no_unused_imports` pass under `make check CHECK_TESTS=test_no_unused_imports.TestNoUnusedImports`.
+
+**Validation gap:** none — the commit's own two fixtures reproduce and confirm the annotated-`__all__` behavior; only the verdict was missing.
+
 ### post-merge review of 273bb60a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `273bb60ae3842c349afc18e6f7dd0666af2704a9` (Hand DESTDIR to the apply refusals via `export` + `$$DESTDIR`, not expansion) never reached a verdict.
