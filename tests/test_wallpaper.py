@@ -25,7 +25,6 @@ WALLPAPER_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "wallpapers", WALLPAPER_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
 IMAGES = os.path.join(PACKAGE, "contents", "images")
-REFERENCE = os.path.join(ROOT, make_wallpaper.REFERENCE)
 TILE = make_wallpaper.TILE_SIZE
 
 
@@ -170,45 +169,6 @@ class TestTiledRgb(unittest.TestCase):
         with self.assertRaises(ValueError) as caught:
             make_wallpaper.tiled_rgb("not bytes", 4, 4)
         self.assertIn("bytes or bytearray", str(caught.exception))
-
-
-@unittest.skip("the placeholder is intentionally not a reference crop")
-class TestReferenceTile(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.reference = None
-        cls.reference_error = None
-        cls.shipped = None
-        try:
-            cls.reference = read_shipped_png(REFERENCE)
-            cls.shipped = read_shipped_png(
-                os.path.join(IMAGES, "1024x768.png")
-            )
-        except png.PngError as exc:
-            cls.reference_error = exc
-
-    def setUp(self):
-        skip_unless_materialized(self, REFERENCE, self.reference_error)
-
-    def test_tile_from_reference_equals_the_shipped_tile(self):
-        self.assertEqual(
-            make_wallpaper.tile_from_reference(self.reference),
-            block(self.shipped, 0, 0),
-        )
-
-    def test_the_tile_repeats_every_128_pixels_in_the_reference(self):
-        tile = make_wallpaper.tile_from_reference(self.reference)
-        self.assertEqual(block(self.reference, *make_wallpaper.TILE_ORIGIN), tile)
-        for origin in ((384, 384), (768, 512)):
-            with self.subTest(origin=origin):
-                self.assertEqual(block(self.reference, *origin), tile)
-
-    def test_reference_pixel_is_the_dominant_desktop_colour(self):
-        pixel = png.pixel_at(self.reference, 300, 500)
-        self.assertEqual(pixel, (0x63, 0x63, 0x9C))
-        tile = make_wallpaper.tile_from_reference(self.reference)
-        offset = ((500 % TILE) * TILE + 300 % TILE) * 3
-        self.assertEqual(tuple(tile[offset : offset + 3]), pixel)
 
 
 @unittest.skipUnless(shutil.which("kpackagetool6"), "needs kpackagetool6")

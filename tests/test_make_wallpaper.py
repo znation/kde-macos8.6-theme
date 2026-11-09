@@ -35,37 +35,6 @@ def gradient(width, height):
     return bytes((i * 5 + i // 251) % 256 for i in range(width * height * 3))
 
 
-@unittest.skip("reference tile extraction was removed")
-class TestTileFromReferenceBounds(unittest.TestCase):
-    @unittest.skip("wallpaper generation no longer reads a reference tile")
-    def image(self, width, height):
-        """Return a zero-filled *width* x *height* image."""
-        return png.Image(width, height, bytes(width * height * 3))
-
-    def test_image_one_pixel_short_in_either_axis_is_rejected(self):
-        for width, height in ((X0 + TILE - 1, Y0 + TILE), (X0 + TILE, Y0 + TILE - 1)):
-            with self.subTest(size=(width, height)):
-                with self.assertRaises(ValueError) as caught:
-                    make_wallpaper.tile_from_reference(self.image(width, height))
-                self.assertIn("does not fit", str(caught.exception))
-                self.assertIn(f"{width}x{height}", str(caught.exception))
-
-    def test_non_image_is_rejected(self):
-        for bad in (b"abc", 1, None):
-            with self.subTest(bad=bad):
-                with self.assertRaises(ValueError) as caught:
-                    make_wallpaper.tile_from_reference(bad)
-                self.assertIn("must be an Image", str(caught.exception))
-
-    def test_image_exactly_fitting_the_tile_is_accepted(self):
-        width, height = X0 + TILE, Y0 + TILE
-        rgb = gradient(width, height)
-        tile = make_wallpaper.tile_from_reference(png.Image(width, height, rgb))
-        self.assertEqual(len(tile), TILE * TILE * 3)
-        self.assertEqual(tile[:3], rgb[(Y0 * width + X0) * 3 :][:3])
-        self.assertEqual(tile[-3:], rgb[-3:])
-
-
 class TestArguments(unittest.TestCase):
     """The generator has no options, but must not silently ignore its argv.
 
@@ -198,90 +167,6 @@ class TestMain(WallpaperCase):
         self.assertEqual(status, 2)
         self.assertIn("cannot create", err)
         self.assertIn(str(self.images), err)
-
-    @unittest.skip("the original placeholder has no reference input")
-    def test_missing_reference_exits_2_naming_it_and_writes_nothing(self):
-        status, err = self.run_main()
-        self.assertEqual(status, 2)
-        self.assertTrue(err.startswith("make_wallpaper: error: "))
-        self.assertIn(make_wallpaper.REFERENCE, err)
-        self.assertFalse(self.images.exists())
-
-    @unittest.skip("the original placeholder has no reference input")
-    def test_a_control_character_in_the_reference_path_is_escaped(self):
-        # A checkout path can carry a control character, and read_png embeds
-        # the path in its error message. The tool must route that message
-        # through the shared escaped diagnostic instead of printing the raw
-        # ESC to the operator's terminal.
-        with mock.patch.object(
-            make_wallpaper, "REFERENCE", "\x1b[31mhidden.png"
-        ):
-            status, err = self.run_main()
-        self.assertEqual(status, 2)
-        self.assertTrue(err.startswith("make_wallpaper: error: "))
-        self.assertNotIn("\x1b", err)
-        self.assertIn("\\u001b", err)
-
-    @unittest.skip("the original placeholder has no reference input")
-    def test_reference_too_small_for_the_tile_exits_2_and_writes_nothing(self):
-        self.write_reference(TILE, TILE)
-        status, err = self.run_main()
-        self.assertEqual(status, 2)
-        self.assertIn("does not fit", err)
-        self.assertFalse(self.images.exists())
-
-
-@unittest.skip("the original placeholder has no reference input")
-class TestReferenceContainment(ContainmentCase):
-    """The reference screenshot is a repository file; a symlink out of it is refused.
-
-    A checked-in symlink can point anywhere on the machine, and the generator
-    copies what it reads into the wallpaper package inside the repository, so
-    reading a private file through such a symlink would publish its pixels
-    with the next commit.
-    """
-
-    def test_a_reference_symlinked_outside_the_repository_is_refused(self):
-        # The symlink points at a valid PNG outside the repository, so a
-        # generator that follows it decodes the file and writes its pixels
-        # into the package; the guard must refuse it before the decode.
-        width, height = X0 + TILE, Y0 + TILE
-        secret = self.outside / "private.png"
-        secret.write_bytes(encode_png(width, height, gradient(width, height)))
-        self.reference.parent.mkdir(parents=True)
-        self.reference.symlink_to(secret)
-
-        status, err = self.run_main()
-
-        self.assertEqual(status, 2)
-        self.assertTrue(err.startswith("make_wallpaper: error: "))
-        self.assertIn("symlink escape", err)
-        self.assertFalse(self.images.exists())
-
-    def test_a_reference_inside_the_repository_is_still_read(self):
-        # The guard must not refuse the ordinary case: the shipped reference
-        # lives in the repository, and its pixels are the wallpaper's tile.
-        width, height = X0 + TILE, Y0 + TILE
-        rgb = gradient(width, height)
-        self.reference.parent.mkdir(parents=True)
-        self.reference.write_bytes(encode_png(width, height, rgb))
-
-        status, err = self.run_main()
-
-        self.assertEqual((status, err), (0, ""))
-        for w, h in SMALL_RESOLUTIONS:
-            with self.subTest(size=(w, h)):
-                image = png.read_png(self.images / f"{w}x{h}.png")
-                self.assertEqual(
-                    image.rgb,
-                    make_wallpaper.tiled_rgb(
-                        make_wallpaper.tile_from_reference(
-                            png.Image(width, height, rgb)
-                        ),
-                        w,
-                        h,
-                    ),
-                )
 
 
 class TestOutputContainment(ContainmentCase):
