@@ -18,7 +18,8 @@ if __package__:
         DiscoveryError, _log_paths, discover_modules,
     )
     from tools.check_parallel_order import (
-        cache_path, load_durations, order_modules, save_durations,
+        cache_path, load_durations, merge_durations, order_modules,
+        save_durations,
     )
     from tools.check_parallel_results import _plural, _print_results
     from tools.check_parallel_workers import _supervise
@@ -32,7 +33,8 @@ else:  # run directly: python3 tools/check_parallel.py
         DiscoveryError, _log_paths, discover_modules,
     )
     from check_parallel_order import (
-        cache_path, load_durations, order_modules, save_durations,
+        cache_path, load_durations, merge_durations, order_modules,
+        save_durations,
     )
     from check_parallel_results import _plural, _print_results
     from check_parallel_workers import _supervise
@@ -113,10 +115,23 @@ def main(argv: list[str] | None = None) -> int:
         try:
             save_durations(
                 cache_path(),
-                {module: durations[module] for module in modules
-                 if module in durations},
+                merge_durations(
+                    cache_path(),
+                    {module: durations[module] for module in modules
+                     if module in durations},
+                    # The merge needs the whole-tree module list: a narrow
+                    # pattern must not prune the sibling durations the next
+                    # full run's queue orders by, while modules removed or
+                    # renamed since their last run leave nothing behind.
+                    # The walk lists the test tree only -- one os.listdir
+                    # per directory, the same family of calls the discovery
+                    # pass above already exercised -- and its OSError or
+                    # DiscoveryError keeps the save best-effort, as at
+                    # startup.
+                    set(discover_modules(tests_dir)),
+                ),
             )
-        except OSError as exc:
+        except (OSError, DiscoveryError) as exc:
             print(
                 "check: note: could not record module durations for the "
                 f"next run: {escape_controls(str(exc))}",

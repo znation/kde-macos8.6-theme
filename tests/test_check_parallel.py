@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import contextlib
 import io
+import json
 from pathlib import Path
 import signal
 import subprocess
@@ -84,6 +85,35 @@ def _write_module(tests_dir, name, source):
 
 class TestCoordinator(unittest.TestCase):
     """Run the coordinator against scratch suites of fixture modules."""
+
+    def setUp(self):
+        # Address every run's durations cache at a scratch home: a sandbox
+        # suite's save must not rewrite the developer's real user cache,
+        # whose recorded durations the next full run's queue orders by (the
+        # coordinator prunes entries whose modules are absent from
+        # --tests-dir, so a one-module sandbox tree's save used to leave
+        # that real cache holding one module of 317).
+        self.cache_home = make_tmp_dir(self) / "cache"
+        cache = mock.patch.dict(
+            os.environ, {"XDG_CACHE_HOME": str(self.cache_home)}
+        )
+        cache.start()
+        self.addCleanup(cache.stop)
+
+    def test_a_sandbox_run_saves_under_the_addressed_cache_home(self):
+        # Each run resolves its durations cache through the environment's
+        # XDG_CACHE_HOME, so a test run over the scratch --tests-dir above
+        # cannot reach the real user cache: its save is observed at the
+        # addressed home only.
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        result = self._run("--tests-dir", tests_dir)
+        assert_succeeded(self, result)
+        cache = (
+            self.cache_home / "kde-macos8.6-theme" / "check-durations.json"
+        )
+        self.assertTrue(cache.is_file())
+        record = json.loads(cache.read_text(encoding="utf-8"))
+        self.assertEqual(["test_ok"], list(record["durations"]))
 
     def _project(self, files: dict[str, str]) -> str:
         """Write a scratch suite and return its tests directory."""

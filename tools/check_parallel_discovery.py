@@ -20,8 +20,13 @@ class DiscoveryError(Exception):
     """
 
 
-def discover_modules(tests_dir: str, pattern: str) -> list[str]:
+def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
     """Return the dotted module names unittest discovery would import.
+
+    *pattern* narrows the result to modules whose file name matches it, as
+    the unittest discovery flags do; without a pattern every valid module
+    in the tree is returned, the whole-tree list the durations-cache merge
+    prunes the cache's entries by.
 
     Any directory of the tree whose listing fails -- a permission error, or
     a directory removed after :func:`discover_modules` was entered -- raises
@@ -47,7 +52,8 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
                 if os.path.isfile(os.path.join(path, "__init__.py")):
                     visit(path, f"{prefix}{entry}.")
                 continue
-            if _VALID_MODULE_NAME.match(entry) and fnmatch.fnmatch(entry, pattern):
+            if (_VALID_MODULE_NAME.match(entry)
+                    and (pattern is None or fnmatch.fnmatch(entry, pattern))):
                 names.append(f"{prefix}{entry[:-len('.py')]}")
 
     visit(tests_dir, "")

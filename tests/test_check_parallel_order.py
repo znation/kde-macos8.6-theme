@@ -160,6 +160,51 @@ class TestCache(unittest.TestCase):
             check_parallel_order.load_durations(str(path)),
         )
 
+    def test_a_merge_keeps_the_entries_the_run_did_not_touch(self):
+        # A narrower run must not erase the durations a full run left for
+        # the modules it skipped: they are what keeps the next full run's
+        # slowest-first queue from falling back to alphabetical order.
+        path = str(make_tmp_dir(self) / "cache.json")
+        check_parallel_order.save_durations(
+            path, {"test_ok": 0.1, "test_render": 24.0},
+        )
+        self.assertEqual(
+            {"test_ok": 0.2, "test_render": 24.0},
+            check_parallel_order.merge_durations(
+                path, {"test_ok": 0.2}, {"test_ok", "test_render"},
+            ),
+        )
+
+    def test_a_merge_drops_entries_for_modules_absent_from_the_tree(self):
+        path = str(make_tmp_dir(self) / "cache.json")
+        check_parallel_order.save_durations(
+            path, {"test_ok": 0.1, "test_gone": 4.0},
+        )
+        self.assertEqual(
+            {"test_ok": 0.2},
+            check_parallel_order.merge_durations(
+                path, {"test_ok": 0.2}, {"test_ok"},
+            ),
+        )
+
+    def test_a_merge_treats_a_missing_or_malformed_cache_as_empty(self):
+        for contents in ("", "not json", '{"version": 1}'):
+            path = str(make_tmp_dir(self) / "cache.json")
+            with open(path, "wb") as sink:
+                sink.write(contents.encode("utf-8"))
+            self.assertEqual(
+                {"test_ok": 0.5},
+                check_parallel_order.merge_durations(
+                    path, {"test_ok": 0.5}, {"test_ok", "test_other"},
+                ),
+            )
+        self.assertEqual(
+            {"test_ok": 0.5},
+            check_parallel_order.merge_durations(
+                "/missing/cache.json", {"test_ok": 0.5}, {"test_ok"},
+            ),
+        )
+
     def test_the_cache_lives_under_the_absolute_xdg_cache_home(self):
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": "/abs/cache"}):
             self.assertEqual(
@@ -279,9 +324,42 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
             result.stdout.index("===== test_zzz_ok"),
         )
 
+    def test_a_targeted_run_keeps_its_sibling_modules_recorded_durations(self):
+        # A run over a narrower pattern records its own module without
+        # erasing the entries a full run left for the modules it did not
+        # run: erasing them would send the next full run (this one's
+        # distribution of long and short modules) back to alphabetical
+        # ordering. A module removed from the tree still leaves no entry.
+        tests_dir = self._project(
+            {"test_aaa_ok.py": OK_MODULE, "test_zzz_ok.py": OK_MODULE}
+        )
+        cache_dir = make_tmp_dir(self) / "cache"
+        cache = cache_dir / "kde-macos8.6-theme" / "check-durations.json"
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        with open(cache, "w", encoding="utf-8") as sink:
+            json.dump(
+                {"version": 1,
+                 "durations": {"test_zzz_ok": 9.9, "test_gone": 4.0}},
+                sink,
+            )
+        with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(cache_dir)}):
+            result = self._run(
+                "--tests-dir", tests_dir, "-p", "test_aaa*.py",
+            )
+        assert_succeeded(self, result)
+        record = json.loads(cache.read_text(encoding="utf-8"))
+        self.assertEqual(
+            9.9, record["durations"]["test_zzz_ok"],
+        )
+        self.assertGreater(record["durations"]["test_aaa_ok"], 0.0)
+        self.assertEqual(
+            {"test_aaa_ok", "test_zzz_ok"}, set(record["durations"]),
+        )
+
     def test_a_run_rewrites_the_cache_with_its_own_modules(self):
-        # The save drops stale entries from other trees and records every
-        # module that ran, so the file cannot grow without bound.
+        # The save drops entries whose modules left the tree -- a renamed
+        # or removed test module -- and records every module that ran, so
+        # the file cannot grow beyond the tree.
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         cache_dir = make_tmp_dir(self) / "cache"
         cache = cache_dir / "kde-macos8.6-theme" / "check-durations.json"

@@ -12,9 +12,9 @@ The durations come from the previous run's completion times, saved to a
 small JSON cache under ``$XDG_CACHE_HOME`` (default ``~/.cache``). The
 cache is best-effort in both directions: any read or parse failure leaves
 discovery order, any write failure only names itself on stderr, so a
-read-only host runs the plain discovery order. Only the run's own modules
-are kept in the cache, so removed modules leave no entries behind and the
-file cannot grow without bound.
+read-only host runs the plain discovery order. Entries for modules absent
+from the current tree are dropped when a run saves, so removed modules
+leave no entries behind and the file cannot grow beyond the tree.
 """
 
 from __future__ import annotations
@@ -91,6 +91,28 @@ def order_modules(modules: list[str],
     results still print in discovery order.
     """
     return sorted(modules, key=lambda module: -durations.get(module, 0.0))
+
+
+def merge_durations(path: str, recorded: dict[str, float],
+                    tree_modules: set[str]) -> dict[str, float]:
+    """Merge this run's recorded durations into the cache's other entries.
+
+    A narrower run -- a targeted pattern, or one whose every module never
+    recorded -- must not erase the entries a full run left for the modules
+    it did not touch: the queue's slowest-first ordering depends on the
+    full tree's durations waiting in the cache. Loading again here (not
+    reusing the startup snapshot) keeps the entries another concurrent run
+    wrote after this run read the cache for its ordering. Entries remaining
+    for modules absent from the current tree (removed or renamed) stay
+    dropped, so the file cannot grow beyond the tree. A missing, unreadable
+    or malformed cache contributes nothing, exactly as
+    :func:`load_durations` reads it, so the merge is best-effort in the
+    same direction and this run's own recordings always win.
+    """
+    merged = load_durations(path)
+    merged.update(recorded)
+    return {module: seconds for module, seconds in merged.items()
+            if module in tree_modules}
 
 
 def save_durations(path: str, durations: dict[str, float]) -> None:
