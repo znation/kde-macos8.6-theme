@@ -12,7 +12,6 @@ from unittest import mock
 from support import containment, repo_root
 from support.gtk_fixtures import PACKAGE, SHIPPED_FILES
 from support.process_assertions import assert_failed, assert_succeeded
-from support.theme_install import read_bytes, write_file
 from support.shipped_files import shipped_files
 from support.symlink_fixtures import symlinked_repo
 from support.installed_paths import installed_gtk_theme
@@ -21,9 +20,11 @@ from support.theme_install import (
     assert_files_identical,
     install,
     installed_destdir,
+    read_bytes,
     shadow_command_env,
     uninstall,
     uninstall_recipe,
+    write_file,
 )
 from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
 

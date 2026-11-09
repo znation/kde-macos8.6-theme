@@ -37,6 +37,7 @@ CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
 def _read(path):
     return path.read_bytes().decode("utf-8")
 
+
 class TestInstall(FirefoxProfileTestCase):
     def test_install_refuses_a_symlinked_chrome_directory(self):
         outside = self.root / "outside-chrome"
