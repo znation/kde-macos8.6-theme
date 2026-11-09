@@ -36,14 +36,25 @@ def shipped_files(root, suffix=None, anchor=None):
     path = os.path.join(os.getcwd(), os.fspath(root))
     path = path.rstrip(os.sep) or os.sep
     boundary = os.path.realpath(str(ROOT) if anchor is None else str(anchor))
+    # Locate the trusted boundary in the raw spelling, including when a
+    # host symlink aliases the checkout. Never normalize away a later '..'.
+    prefixes = []
     while True:
-        if os.path.islink(path):
+        prefixes.append(path)
+        parent = os.path.dirname(path)
+        if parent == path:
+            break
+        path = parent
+    scanning = False
+    for path in reversed(prefixes):
+        if not scanning and os.path.realpath(path) == boundary:
+            scanning = True
+            if path != prefixes[0]:
+                continue
+        if (scanning or path == prefixes[0]) and os.path.islink(path):
             raise ValueError(
                 f"{path} is a symlink; a package ships regular files, not links"
             )
-        if path == boundary or not path.startswith(boundary + os.sep):
-            break
-        path = os.path.dirname(path)
     found = set()
     for dirpath, dirnames, filenames in os.walk(root):
         for name in (*dirnames, *filenames):
