@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+**Fix:** Reviewed the shared PNG stream framing change. `png_stream` prepends the established signature and concatenates the supplied chunks; callers retain control of IEND and malformed streams. The `make_png` and `png_with_idat` call sites preserve their prior chunk contents and order. No defect found.
+
+**Validation gap:** none — the review was settled by direct comparison with the prior fixture construction and the existing helper tests; no missing reproduction path prevented confirmation.
+
 ### The dangling-GTK-selection uninstall warning misses the exotic settings line endings the probe itself writes, so `test_gtk_install` fails on main (found by the feature role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 `tools/uninstall_diagnostics.py::_ini_entries` used `text.split("\n")`, which left form-feed, information separators, NEL and Unicode line/paragraph separators inside a line. It now uses `str.splitlines()`, matching the line boundaries accepted by the regression probe. The existing test covers the warning and confirms uninstall leaves each settings file unchanged.

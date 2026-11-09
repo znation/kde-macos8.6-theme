@@ -17,11 +17,6 @@ PLANS.md plan and let the user decide whether to fund it before moving the bug. 
 user 2026-11-01; recorded by the director role.)
 
 ## Open
-
-### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `3df2c383cab22aa065c31d319570e6b18b3e43c5` (Share PNG test stream framing via `png_stream`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 75b43ff8 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `75b43ff89d8f25b4e7ee4e234dfc619f17d04a27` (Align four tool exit-status docs with their actual statuses) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
