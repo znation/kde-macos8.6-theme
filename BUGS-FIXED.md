@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 5d0ebdbf never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Settled as no defect. Read the commit's diff on main and verified it against the live tree: the commit only moves an assertion loop out of four Library suites in `tests/test_firefox_theme_library.py` into the new `FirefoxChromeTestCase.assert_arms_match_required` helper in `tests/support/firefox_chrome_cases.py`; the helper's body (`subTest(selector=arm)`, `assertEqual(self.rules[arm], REQUIRED_RULES[arm])`, per-value `endswith("!important")`) is identical to all four replaced loops, it resolves the unqualified `REQUIRED_RULES` in the same `tests/support/firefox_chrome_cases.py` globals the test module imports, and no arm list changed. The two deliberately different sites were left untouched as the commit says (the search field's `property=` subTests and the tree-rules exclusion test), and `grep` confirms `endswith("!important")` now appears only in the helper and those two sites. Focused check: `make check CHECK_PATTERN='test_firefox_theme_library.py'` ran OK (22 tests, including all six `TestFirefoxLibrary*` classes the helper serves).
+
+**Validation gap:** none — the converted Library suites' own assertions cover the helper's equivalence directly, so nothing was missing from confirmation.
+
 ### post-merge review of 30be8108 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `30be81086b83ef084215c41c10f8db3819500da4` (Land Library part 6/6: Platinum details-pane fields, menulist, tag selector) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
