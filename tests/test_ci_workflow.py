@@ -70,6 +70,13 @@ class TestCiWorkflow(unittest.TestCase):
             workflow, r"(?s)apt-get install.*libgl1-mesa-dri"
         )
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
+        # Ubuntu 26.04 moved the Aurorae decoration engine out of kwin-common.
+        self.assertRegex(
+            workflow,
+            r"(?s)apt-cache show kwin-style-aurorae .*?"
+            r"aurorae_package=kwin-style-aurorae",
+            "the install must select the split Aurorae engine package",
+        )
         # Ubuntu 26.04 publishes the screenshot package as `kde-spectacle`;
         # 24.04 publishes `spectacle`. The install must follow the name its
         # apt index actually provides, while verifying the unchanged

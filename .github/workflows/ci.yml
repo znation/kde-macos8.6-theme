@@ -91,6 +91,18 @@ jobs:
             fi
             sudo apt-get install -y --no-install-recommends \
               "$spectacle_package"
+            # Ubuntu 26.04 splits the Aurorae decoration engine out of
+            # kwin-common into kwin-style-aurorae; the renderer's kwinrc
+            # selects org.kde.kwin.aurorae and KWin refuses to start the
+            # session without the plugin. Install the name each release
+            # provides.
+            if apt-cache show kwin-style-aurorae >/dev/null 2>&1; then
+              aurorae_package=kwin-style-aurorae
+            else
+              aurorae_package=kwin-common
+            fi
+            sudo apt-get install -y --no-install-recommends \
+              "$aurorae_package"
             # Newer Debian-family releases split dbus-run-session out of the
             # 'dbus' package; cover that layout too.
             command -v dbus-run-session >/dev/null || \
