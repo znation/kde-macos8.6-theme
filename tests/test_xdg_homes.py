@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import xdg_homes
+from tools import uninstall_config, xdg_homes
 
 
 class TestDefaultDataHome(unittest.TestCase):
@@ -97,6 +97,29 @@ class TestConfigHome(unittest.TestCase):
         for env in ({}, {"HOME": "relative/home"}):
             with self.subTest(env=env):
                 self.assertIsNone(xdg_homes.config_home(env))
+
+
+class TestUninstallConfigSharesTheRule(unittest.TestCase):
+    """uninstall_config.config_home restates the shared rule, not its own."""
+
+    ENVS = (
+        {"XDG_CONFIG_HOME": "/config", "HOME": "/home/u"},
+        {"XDG_CONFIG_HOME": "", "HOME": "/home/u"},
+        {"XDG_CONFIG_HOME": "relative", "HOME": "/home/u"},
+        {"HOME": "/home/u"},
+        {"HOME": "relative/home"},
+        {},
+    )
+
+    def test_the_diagnostics_resolve_the_config_home_through_xdg_homes(self):
+        # uninstall_config.config_home must keep naming exactly the directory
+        # xdg_homes.config_home resolves, as a string or None, so the
+        # uninstall diagnostics never drift from the recipe's own rule.
+        for env in self.ENVS:
+            with self.subTest(env=env):
+                resolved = xdg_homes.config_home(env)
+                expected = str(resolved) if resolved is not None else None
+                self.assertEqual(expected, uninstall_config.config_home(env))
 
 
 class TestRequireHome(unittest.TestCase):

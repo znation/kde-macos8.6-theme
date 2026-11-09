@@ -32,13 +32,14 @@ earlier one of ours.
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterator
 
 if __package__:
     from tools.containment import open_regular_binary
+    from tools.xdg_homes import config_home as resolve_config_home
 else:  # imported from a directly run tool
     from containment import open_regular_binary
+    from xdg_homes import config_home as resolve_config_home
 
 _BOM = "\ufeff"
 _WHITESPACE = " \t\r\n\f\v"
@@ -49,16 +50,13 @@ def config_home(env: dict[str, str]) -> str | None:
 
     An absolute ``XDG_CONFIG_HOME`` wins; an unset, empty or relative one
     falls back to ``$HOME/.config``; with no absolute file root at all there
-    is nothing to read and nothing to warn about.
+    is nothing to read and nothing to warn about. The rule itself is
+    :func:`tools.xdg_homes.config_home`'s, the one resolver every tool shares;
+    this wrapper only re-states it as the plain string the diagnostics join
+    their config-file paths onto.
     """
-    config_home = env.get("XDG_CONFIG_HOME", "")
-    if not config_home.startswith("/"):
-        config_home = ""
-    if not config_home:
-        home = env.get("HOME", "")
-        if home.startswith("/"):
-            config_home = os.path.join(home, ".config")
-    return config_home or None
+    resolved = resolve_config_home(env)
+    return str(resolved) if resolved is not None else None
 
 
 # A config file is a small settings file the running user owns, so the
