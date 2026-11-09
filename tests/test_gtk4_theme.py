@@ -1524,6 +1524,29 @@ for radio in (False, True):
                 face,
             )
 
+    def test_expander_row_arrow_transition_motion(self):
+        # An expander row's disclosure arrow keeps stock's two
+        # orientations (half a turn at rest, upright while checked) while
+        # the 200ms icon-transform ease is erased: the byte-equal stock
+        # twin spelling declares only `transition: none`, sitting after
+        # the landed caps-lock groups at the sheet tail. (2026-11-09)
+        selector = "row.expander image.expander-row-arrow"
+        self.assertEqual(self.selectors.count(selector), 1, selector)
+        self.assert_rule(selector, {"transition": "none"})
+        # Exact-dict, not the per-property subset: a stray rotation,
+        # transform, colour or geometry declaration must fail, per the
+        # entry's guarantee.
+        self.assertEqual(self.rules[selector], {"transition": "none"}, selector)
+        # The spelling is new to the sheet, so a stray state twin, a
+        # second rule or a wrongly-spelled selector fails this sweep.
+        self.assertEqual(
+            {s for s in self.rules if "expander-row-arrow" in s}, {selector}
+        )
+        self.assertGreater(
+            self.selectors.index(selector),
+            self.selectors.index("entry.password image.caps-lock-indicator"),
+        )
+
     def test_server_list_button_rotation_motion(self):
         # The places view's server-button icon keeps stock's two
         # orientations (upright at rest, half a turn while checked) while

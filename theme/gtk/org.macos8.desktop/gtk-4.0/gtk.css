@@ -5371,3 +5371,36 @@ placesview .server-list-button > image {
 placesview .server-list-button:checked > image {
   transition: none;
 }
+
+/* An expander row's disclosure arrow — the small arrow glyph the
+   boxed-list row flips when it unfolds its nested list — glides through
+   a 200ms icon-transform ease in stock, and no collected reference
+   screenshot in `macos8.6-screenshots/` shows the toolkit's expander
+   row or its arrow, so the landed no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the landed tab-bar
+   motion record erase stock motion the same way, leaving state values
+   inherited per-property). Recorded 2026-11-09. Fresh probe the same
+   day: the platform style library's compiled base stylesheet (the
+   toolkit's clients load it alongside the theme resource; its
+   provenance and resource line are recorded in docs/invariants.md)
+   declares line 1387 the only transition statement naming this family
+   anywhere in the stock resources (the toolkit's `Default-light.css`
+   and `Default-dark.css`, extracted from the same library the same
+   day, never name the family, so there is no toolkit-resource twin):
+   `row.expander image.expander-row-arrow { transition:
+   -gtk-icon-transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }`.
+   The orientation arms stay stock per-property, undeclared here: the
+   rest transforms (resource lines 1393 and 1395), the checked upright
+   transform and full opacity (line 1399), the 3px directional margins
+   (lines 1389 and 1391), the disabled opacity filter (line 1397) and
+   the checked accent ink (line 1401, with its `.osd` twin at line
+   1403) are colour, geometry, transform and style values this group
+   does not answer, so an expanded row keeps its distinct arrow look —
+   only the animation is erased. The rule below spells a byte-equal
+   stock twin so later user-sheet source order wins the
+   equal-specificity tie. Declaration checks do not establish rendered
+   pixels. */
+
+row.expander image.expander-row-arrow {
+  transition: none;
+}
