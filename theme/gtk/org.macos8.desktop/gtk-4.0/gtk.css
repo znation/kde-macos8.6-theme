@@ -2094,6 +2094,52 @@ scale.marks-after:not(.marks-before):disabled > trough > slider {
   box-shadow: none;
 }
 
+/* 2026-11-09: a GTK 4 scale's tick-mark lines and its value label read the
+   landed black window ink. No collected reference screenshot in
+   macos8.6-screenshots/ shows GTK scale marks, tick lines or a scale value
+   label (the GTK scope's standing adaptation premise), so the restated
+   value is the landed black window ink this sheet already pins (the value
+   the landed GTK 3 decoration-ink record restated on its toolkit's arms,
+   tests/test_gtk_theme_controls.py::TestGtkThemeControls,
+   re-extracted 2026-11-09). The toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares on line 1143
+   `scale > value { color: <the stock diluted grey ink>;
+   font-feature-settings: "tnum"; }`, on line 1145
+   `scale.horizontal > marks { color: <the stock diluted grey ink>; }` and
+   on line 1167 `scale.vertical > marks { color: <the stock diluted grey
+   ink>; }` — the three ink members this entry restates — and the dark
+   twin /org/gtk/libgtk/theme/Default/Default-dark.css carries the
+   identical spellings at lines 1131, 1133 and 1155 (every line in this
+   region shifted -12) with the identical diluted grey expression; the
+   integration library's base.css resource (probe paths, resource paths
+   and versions recorded verbatim in docs/invariants.md) rides the same
+   property on its two marks arms with another diluted expression and
+   reaches the value label only through its dilution and typography
+   families, never declaring a colour on the value. The user sheet wins
+   the single per-property tie under lower-sheet source order, and under
+   the replacement reading it arms the spellings stock's own arms cover.
+   Exclusions, each with its per-property reason: the value arm's
+   `font-feature-settings: "tnum"` member (light 1143) — stock-only label
+   typography the integration library restarts in its numeric family and
+   no repainted member answers, so it stays inherited; the marks indicator
+   `background-color: currentColor` arms (light 1151 and 1173, dark
+   1139 and 1161, each shifted -12) — `currentColor` inherits from the
+   restated marks ink, so the tick lines follow the restate without a
+   restate of their own; the integration library's dilution `opacity`
+   family and its disabled-row `opacity: 1` twin — opacity members the
+   ink restate never claims; the marks top/bottom and value margin arms
+   (light 1147-1187) and the integration library's plain and fine-tuned
+   marks, margin and indicator arms — allocation geometry, their own
+   future candidates; and the has-marks slider arms (light 1189 onward) —
+   the landed marked-thumb records' slider faces. Declaration, count and
+   order checks do not establish rendered pixels. */
+
+scale > value, scale.horizontal > marks, scale.vertical > marks {
+  color: #000000;
+}
+
 switch {
   /* No reference screenshot shows a GTK switch (adaptation 2026-10-29);
      zero internal spacing keeps

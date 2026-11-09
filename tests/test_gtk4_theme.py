@@ -5253,6 +5253,42 @@ for radio in (False, True):
                 self.selectors.index("expander-widget > box > title"),
             )
 
+    def test_scale_marks_value_ink(self):
+        """Scale tick marks and the value label read the landed black ink.
+
+        The toolkit dilutes both through `currentColor`-alpha arms; the
+        restated comma group wins the per-property tie under lower-sheet
+        riding, and the marks indicators follow their `currentColor` fill.
+        """
+        self.assert_rule_group(
+            {
+                "scale > value": {"color": BLACK},
+                "scale.horizontal > marks": {"color": BLACK},
+                "scale.vertical > marks": {"color": BLACK},
+            }
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if selector.startswith("scale")
+                and (
+                    "value" in selector
+                    or (
+                        "marks" in selector
+                        and "marks-" not in selector
+                        and "slider" not in selector
+                    )
+                )
+            },
+            {
+                "scale > value",
+                "scale.horizontal > marks",
+                "scale.vertical > marks",
+            },
+        )
+        self.assert_rule_after("switch {", "scale > value,")
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",
