@@ -71,6 +71,7 @@ from support.platinum_palette import (
 )
 from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
+from support.gui_tests import require_gui_opt_in
 from support.symlink_fixtures import symlinked_repo
 
 THEME_ID = "org.macos8.desktop"
@@ -168,6 +169,7 @@ class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
         self.assertNotIn(".dimmed", self.selectors)
 
     def test_mixed_indicators_draw_black_dashes(self):
+        require_gui_opt_in()
         # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
         result = subprocess.run(
             [sys.executable, "-c", '''

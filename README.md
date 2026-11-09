@@ -1457,6 +1457,11 @@ replace the full check.
 | One test class | `make check CHECK_TESTS=test_colorscheme.TestAnchors` |
 | Serial discovery | `make check CHECK_PARALLEL=0` |
 
+The GTK 4 indicator and view-census probes present visible windows. They skip during routine
+checks; run them deliberately on a desktop only when visible test windows are acceptable, with
+`PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_theme.TestGtk4Theme.test_mixed_indicators_draw_black_dashes`
+or `PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk_view_census`.
+
 Reference image validation is separate: see [Validating the reference set](#validating-the-reference-set)
 for `make check-references` and its Git LFS materialization requirement.
 

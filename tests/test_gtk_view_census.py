@@ -79,6 +79,7 @@ from pathlib import Path
 
 from support.platinum_palette import SELECTION
 from support.repo_root import ROOT
+from support.gui_tests import require_gui_opt_in
 
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
 
@@ -112,6 +113,7 @@ def _selection_rgb():
 
 def _run_child(source, *args):
     """Run *source* as a GTK 4 child interpreter; 77 means the skip path."""
+    require_gui_opt_in()
     return subprocess.run(
         [sys.executable, "-c", source, *[str(a) for a in args]],
         env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
@@ -299,6 +301,26 @@ class TestSelectedViewFace(unittest.TestCase):
             "#%02X%02X%02X" % _selection_rgb(), SELECTION,
             "the pinned fill is the palette's #CCCCFF selection constant",
         )
+
+
+class TestGuiProbeGuard(unittest.TestCase):
+    def test_host_display_does_not_enable_gui_probes(self):
+        from unittest.mock import patch
+        for value in (None, "0", "true"):
+            env = {"DISPLAY": ":77"}
+            if value is not None:
+                env["PLATINUM_RUN_GUI_TESTS"] = value
+            with patch.dict(os.environ, env, clear=True):
+                with self.assertRaises(unittest.SkipTest):
+                    _run_child("pass")
+
+    def test_explicit_opt_in_allows_child_launch(self):
+        from unittest.mock import patch
+        completed = subprocess.CompletedProcess([], 77, "", "")
+        with patch.dict(os.environ, {"DISPLAY": ":77", "PLATINUM_RUN_GUI_TESTS": "1"}, clear=True):
+            with unittest.mock.patch(__name__ + ".subprocess.run", return_value=completed) as run:
+                self.assertEqual(_run_child("pass").returncode, 77)
+                run.assert_called_once()
 
 
 if __name__ == "__main__":

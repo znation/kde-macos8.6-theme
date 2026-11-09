@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Routine GTK 4 probes present windows on the user's display and can steal focus (found by the director role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+**Symptom.** Routine checks could present GTK 4 probe windows on the user's display and steal focus.
+
+**Fix.** Added a shared `PLATINUM_RUN_GUI_TESTS=1` guard before the mixed-indicator launch and census child launches. The palette-only census assertion remains in routine checks. README.md documents the deliberate visible-window invocation, and docs/invariants.md records the guard contract. Regression checks cover a populated host `DISPLAY` without the opt-in and a mocked opted-in launch preserving the child capability-skip result.
+
+**Validation gap:** none — the regression checks cover both guard branches without presenting a window.
+
 ### post-merge review of bb14c241 never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
 
 **Fix:** Reviewed the commit's added rejection cases against `tools/xcursor.py`: malformed records are wrapped in an indexed `ValueError`, decode errors are translated from `PngError` into an indexed `ValueError`, and mutable byte buffers are accepted as documented. The tests assert these behaviors and independently compare output for `bytes` and `bytearray`.
