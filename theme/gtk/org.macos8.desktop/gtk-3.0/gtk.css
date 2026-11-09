@@ -4526,8 +4526,8 @@ scale.fine-tune trough {
    stylesheet (2055 lines, probed fresh 2026-11-09 with gresource
    extract; the library path lives in docs/invariants.md) declares the
    arms stock-side, each quoted here exactly and hex-free, the only
-   stock arms anywhere in the resource that size the fine-tuned
-   containers: line 1232 `scale.fine-tune.horizontal { padding-top: 9px;
+   stock arms anywhere in the resource that size the scale node's
+   fine-tuned containers: line 1232 `scale.fine-tune.horizontal { padding-top: 9px;
    padding-bottom: 9px; min-height: 16px; }` and line 1234
    `scale.fine-tune.vertical { padding-left: 9px; padding-right: 9px;
    min-width: 16px; }`; the dark-twin resource carries the same pair at
@@ -4551,7 +4551,10 @@ scale.fine-tune trough {
    outline property; the fine-tuned marks and indicator margin and
    minimum arms (lines 1281-1300) only space the fine-tuned scale's own
    tick lines and readout, not the container, and rest unrestated
-   candidates outside this entry; and stock's plain `scale { min-height:
+   candidates outside this entry; the scrollbar's `.fine-tune` slider
+   border-width arms and the `scale.color` fine-tune container and
+   member padding arms tune other widgets' fine-tune surfaces and stay
+   outside this record's scale-node scope; and stock's plain `scale { min-height:
    10px; min-width: 10px; padding: 12px; }` node arm (line 1226) is the
    plain node's own spacing, left unrestated as the landed meter
    geometry record's exclusion already reasons. Declaration checks do
