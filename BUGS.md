@@ -470,6 +470,10 @@ The post-merge review of commit `c85bd14f406f3e48acabe32a7af3301ed04a2949` (Plan
 
 The post-merge review of commit `d09254ec367bcdb9eff27c6c0ed6014163479d6c` (Restate the five stock GTK 3 OSD check/radio arms with the landed check and radio recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2cc598f0 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `2cc598f04fabc8632f6754048da449ffeeac1c02` (Restate the GTK 4 OSD check/radio arms with the landed Platinum check and radio recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
