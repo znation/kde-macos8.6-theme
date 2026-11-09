@@ -101,6 +101,25 @@ from support.svg_case import parse_svg
 from svg_assertions import rect_geometry
 
 
+ROW_SELECTED_BUTTON_ARM_SIDEBAR = (
+    "row:selected button.sidebar-button"
+    ":not(:active):not(:checked):not(:hover):not(disabled)"
+)
+ROW_SELECTED_BUTTON_ARM_FLAT = (
+    "row:selected button.flat"
+    ":not(:active):not(:checked):not(:hover):not(disabled)"
+)
+ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP = ROW_SELECTED_BUTTON_ARM_SIDEBAR + ":backdrop"
+ROW_SELECTED_BUTTON_ARM_FLAT_BACKDROP = ROW_SELECTED_BUTTON_ARM_FLAT + ":backdrop"
+ROW_SELECTED_BUTTON_ARM_SELECTORS = frozenset((
+    "row:selected button",
+    ROW_SELECTED_BUTTON_ARM_SIDEBAR,
+    ROW_SELECTED_BUTTON_ARM_FLAT,
+    ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP,
+    ROW_SELECTED_BUTTON_ARM_FLAT_BACKDROP,
+))
+
+
 class SheetRuleAssertions:
     """Rule assertions for suites that store the parsed sheet in ``self.rules``."""
 
@@ -187,6 +206,46 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     def assert_row_selection_backdrop(self, selectors):
         for selector in selectors:
             self.assert_rule(selector, ROW_SELECTED)
+
+    def assert_selected_row_button_arms(self, flat_stock_backdrop):
+        """Assert the sheet-tail selected-row push-button arm block.
+
+        A push button inside a selected row keeps reading black on the
+        landed lavender fill with the landed raised and flat treatments:
+        stock's three selected-row arms would paint an opaque button with
+        a blue border and a flat button with a white label on the landed
+        light selection fill and recolour the flat label near white in
+        backdrop, so each restated selector is the exact stock twin
+        appended at the sheet tail, winning the tie by later source order
+        with the landed palette's black (recorded 2026-10-31 by the
+        feature role; the block is spelled identically in both shipped
+        sheets). Both suites run this whole assertion; the only
+        suite-owned input is *flat_stock_backdrop*, each toolkit's own
+        spelling of the plain flat-backdrop selector.
+        """
+        self.assert_rule("row:selected button", {"border-color": BLACK})
+        for selector in (
+            ROW_SELECTED_BUTTON_ARM_SIDEBAR,
+            ROW_SELECTED_BUTTON_ARM_FLAT,
+        ):
+            self.assert_rule(selector, {"color": BLACK, "border-color": BLACK})
+        for selector in (
+            ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP,
+            ROW_SELECTED_BUTTON_ARM_FLAT_BACKDROP,
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+        self.assertEqual(
+            self.rules[ROW_SELECTED_BUTTON_ARM_FLAT_BACKDROP]["color"],
+            self.rules[flat_stock_backdrop]["color"],
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("row:selected button")
+            },
+            ROW_SELECTED_BUTTON_ARM_SELECTORS,
+        )
 
     def assert_tab_faces(self, forms=None):
         """Assert each tab state's Platinum notebook-face rule.
