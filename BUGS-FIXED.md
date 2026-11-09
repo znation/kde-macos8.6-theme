@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 432fac12 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: read the diff of commit `432fac122f8e696eccf13ee4ffeff409039162d1` (Make the apply-cursor and Firefox HOME refusals name the received HOME value) on main — nothing is wrong, so there is nothing to fix. Both refusals still stand on the landed tree with the wording the diff landed: `tools/apply_cursor.py`'s `resolve_homes` raises `HOME is {state}; export an absolute HOME` and `tools/firefox_profile.py`'s `resolve_profile` raises `HOME is {state} and no Firefox profile was named; …`, where the shared `xdg_homes.unresolved_home_state` (later factoring) keeps an unset or empty value `"unset"` and quotes any other non-absolute value as `'...value...'`. No equal-tier rule or later edit strips it: the only remaining `"unset or not absolute"` wording lives in `apply_gtk`'s own message, left unchanged on purpose per the commit's RISK note. The two test files still pin the new wording, including `test_home_value_reaches_the_diagnostic_escaped` for the control-byte escape; ran them green through the project's check (`make check CHECK_TESTS='test_apply_cursor test_firefox_profile'`, OK, exit 0).
+
+**Validation gap:** none — the recorded tests reproduce and confirm the wording this commit pins; nothing was missing.
+
 ### post-merge review of 6ed8830f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `6ed8830f4906d3b9038ec267337365f5174cd132` (Repaint GTK 4 drag-and-drop drop states with the #CCCCFF selection fill) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
