@@ -1546,6 +1546,10 @@ compound forms still pass. The new
 selectors and the supported forms; the focused run failed those malformed
 subtests before the fix and passes after.
 
+Review also found that stripping `:hover` exposed a trailing `*` as a leading
+tag. Hover spans now retain a marker too; the test additionally rejects
+`:hover*`, `:hover*.a` and `:not(.b):hover*` while preserving valid hover forms.
+
 **Validation gap:** none — the closest tag: no existing matcher test carried
 unrecognized text in a compound, but a scratch call reproduced the false
 matches deterministically, and the new test pins them.

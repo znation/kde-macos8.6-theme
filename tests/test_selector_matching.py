@@ -218,14 +218,16 @@ class TestSelectorMatching(unittest.TestCase):
                          attrs={"title": "t"}, hover=True)
         for selector in ("&", "a&b", "*&", ".a&", "a!", "a&.b",
                          "[title]a", "[title]a.a", ".a[title]b",
-                         ":not(.b)*", ":not(.b)a"):
+                         ":not(.b)*", ":not(.b)a", ":hover*",
+                         ":hover*.a", ":not(.b):hover*"):
             with self.subTest(selector=selector):
                 self.assertFalse(_selector_is_supported(selector))
                 self.assertFalse(matches(selector, target))
         # The supported compound forms are still recognized after the check.
         for selector in ("a", "*", ".a", "#x", "[title]", "a:hover",
                          "a.a#x[title]:hover", ":not(.b)", "*:not(.b)",
-                         "a:not(.b)", ":not(.b)#x", "[title]:not(.b)"):
+                         "a:not(.b)", ":not(.b)#x", "[title]:not(.b)",
+                         ":hover.a", "[title]:hover", ":not(.b):hover"):
             with self.subTest(selector=selector):
                 self.assertTrue(_selector_is_supported(selector))
                 self.assertTrue(matches(selector, target))

@@ -483,7 +483,7 @@ def _compound_is_supported(compound):
         if not _ATTRIBUTE.fullmatch(remainder[start:end]):
             return False
     compound = _mask_attributes(remainder, spans)
-    compound = _HOVER.sub("", compound)
+    compound = _HOVER.sub(_NEGATION_PLACEHOLDER, compound)
     if ":" in compound:
         return False
     tag = _TAG.match(compound)
