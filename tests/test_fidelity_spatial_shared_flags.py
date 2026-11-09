@@ -5,7 +5,7 @@ hands it to every spatial report the run requested: each diagnostic's
 ``flags=`` parameter takes the string, and ``None`` derives it in the call,
 the behavior a caller that drives one diagnostic keeps. This module pins the
 shared-pass contract -- explicit and derived flags give identical outputs on
-every report and the CLI derives the string once per run --
+every report, and the CLI derives the string once per run.
 """
 
 from __future__ import annotations
