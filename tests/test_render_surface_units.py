@@ -380,6 +380,17 @@ class TestSessionScript(unittest.TestCase):
         )
         self.assertLess(script.index('"$@"'), script.index("sleep"))
 
+    def test_pins_the_clients_to_the_nested_wayland_platform(self):
+        # A headless caller has no XDG_SESSION_TYPE, so Qt otherwise falls
+        # through to xcb and aborts without a display. The export lives in
+        # this session shell, after KWin has started, so it reaches only the
+        # clients and the scheme apply.
+        script = render_session.session_script()
+        self.assertTrue(
+            script.startswith("export QT_QPA_PLATFORM=wayland; "),
+            "the session must export the nested Wayland platform first",
+        )
+
     def test_captures_to_the_capture_positional_with_spectacle(self):
         # `-b` runs without a GUI, `-n` suppresses the notification, `-f`
         # captures the full screen, and `-o` writes the surface path that the

@@ -142,6 +142,12 @@ def session_script() -> str:
     # before the capture and fails the session with a log line naming the
     # client's first word instead.
     return (
+        # Qt selects its platform plugin from the ambient session type, which
+        # a headless caller does not set even though this session exports its
+        # own WAYLAND_DISPLAY. Pin the clients to the nested compositor's
+        # Wayland socket here, inside the session shell only, so the choice
+        # cannot fall through to xcb and abort before the client is visible.
+        "export QT_QPA_PLATFORM=wayland; "
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
         '"$@" & client=$!; '

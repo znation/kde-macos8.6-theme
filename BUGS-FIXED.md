@@ -5,11 +5,17 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
-### CI's render-tool install asks apt for `spectacle`, which Ubuntu 26.04's runner index publishes as `kde-spectacle` (found by the ci role 2026-11-09) — fixed 2026-11-09 by the ci role
+### The hosted CI check cannot complete: Ubuntu 26.04 renames the screenshot package, and the runner has no display or KWin Aurorae files (found by the ci role 2026-11-09) — fixed 2026-11-09 by the ci role
 
-GitHub run [42615044769](https://github.com/znation/kde-macos8.6-theme/actions/runs/42615044769) failed on `ubuntu-latest`, now Ubuntu 26.04, before any test ran: its archives renamed the image-capture package to `kde-spectacle` (the installed binary is still `/usr/bin/spectacle`), and `sudo apt-get install ... spectacle` exited 100 with `E: Unable to locate package spectacle`. The install step now selects `spectacle` when `apt-cache show spectacle` finds it and `kde-spectacle` otherwise, installs the selected name, and the existing post-install loop still verifies the `spectacle` binary beside the six other render tools. `tests/test_ci_workflow.py::test_workflow_installs_and_verifies_the_plasma_render_tools` pins the selection.
+The check job first failed before any test ran: on `ubuntu-latest` (now Ubuntu 26.04) the image-capture package is `kde-spectacle`, so `sudo apt-get install ... spectacle` exited 100 with `E: Unable to locate package spectacle` (run [42615044769](https://github.com/znation/kde-macos8.6-theme/actions/runs/42615044769)). After that was repaired, run [42621380033](https://github.com/znation/kde-macos8.6-theme/actions/runs/42621380033) reached `make check` and failed four modules:
 
-**Validation gap:** none — the fixed workflow ran on the hosted 26.04 runner and passed the install step; the local 24.04-family host resolves `spectacle`, the other branch.
+- `test_colorscheme_install` and `test_desktoptheme` ran `plasma-apply-colorscheme`/`plasma-apply-desktoptheme`, whose Qt xcb plugin aborted with no display (`qt.qpa.xcb: could not connect to display`).
+- `test_render_surface`'s clients also fell through to xcb inside the nested KWin session, because the session exported its own `WAYLAND_DISPLAY` but no session type, so no capture was written.
+- `test_kwin_decoration_package::test_gated_copies...` read `/usr/share/kwin/aurorae/` without the sibling skip guard, turning a missing engine package into an error.
+
+The install step now selects `spectacle` when `apt-cache show` finds it and `kde-spectacle` otherwise, then verifies the unchanged `spectacle` binary. The check job sets `QT_QPA_PLATFORM=offscreen` for the suite, while the render session's shell exports `QT_QPA_PLATFORM=wayland` for its own scheme apply, client and capture so they reach the nested KWin socket. The gated-copy test now carries the same `needs /usr/share/kwin/aurorae/` skip as its siblings. `tests/test_ci_workflow.py` pins the package selection and the headless platform, and `tests/test_render_surface_units.py` pins the session export.
+
+**Validation gap:** none — both hosted failures reproduced locally by removing `DISPLAY`, `WAYLAND_DISPLAY` and `XDG_SESSION_TYPE` from the test environment: the apply tests aborted on the xcb plugin and the render gates wrote no capture, and both passed after the fixes; the CI and session tests pin the two environment settings.
 
 ### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
