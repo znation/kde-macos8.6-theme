@@ -34,7 +34,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "check-parallel-stray-file-discovery",
         ("a stray file matching a broad pattern",),
-        "tests/test_check_parallel.py::TestDiscovery"
+        "tests/test_check_parallel_discovery.py::TestDiscovery"
         "::test_files_unittest_cannot_load_are_skipped",
     ),
     Reproduction(
