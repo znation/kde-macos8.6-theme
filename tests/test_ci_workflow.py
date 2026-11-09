@@ -116,6 +116,17 @@ class TestCiWorkflow(unittest.TestCase):
                 f"{name} does not name its upstream version tag in a comment",
             )
 
+    def test_workflow_runs_the_suite_on_the_headless_qt_platform(self):
+        workflow = self.read_workflow()
+        # The runner has no display; plasma-apply-colorscheme and
+        # plasma-apply-desktoptheme abort when Qt's xcb plugin cannot connect.
+        # The render session pins its own clients back to `wayland`.
+        self.assertRegex(
+            workflow,
+            r"(?m)^\s+QT_QPA_PLATFORM: offscreen$",
+            "the check job must select a headless Qt platform",
+        )
+
     def test_workflow_pins_the_python_development_version(self):
         workflow = self.read_workflow()
         matrix = re.search(

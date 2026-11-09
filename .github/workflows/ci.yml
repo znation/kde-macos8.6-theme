@@ -11,6 +11,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # The runner has no display, and plasma-apply-colorscheme /
+      # plasma-apply-desktoptheme abort when Qt falls through to xcb. The
+      # render session overrides this to `wayland` for its own clients, so
+      # the nested KWin session still gets a Wayland client.
+      QT_QPA_PLATFORM: offscreen
     strategy:
       fail-fast: false
       matrix:

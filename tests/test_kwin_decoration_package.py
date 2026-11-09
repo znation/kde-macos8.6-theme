@@ -296,6 +296,9 @@ class TestCopies(unittest.TestCase):
                 engine_name,
             )
 
+    @unittest.skipUnless(
+        os.path.isdir(ENGINE_DIR), "needs /usr/share/kwin/aurorae/"
+    )
     def test_gated_copies_match_the_engine_files_with_their_gate(self):
         # Part 3/3 (2026-11-04): a hit-surface copy equals its engine file plus
         # exactly the dated comment and the window-activity gate, so a dropped
