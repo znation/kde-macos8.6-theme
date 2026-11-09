@@ -5702,3 +5702,38 @@ infobar > revealer > box label:link,
 infobar > revealer > box button:link {
   color: #0000EE;
 }
+
+/* A places view's server button — the disc button the file chooser's
+   network page (GtkPlacesView) shows for connecting to a server —
+   flips its icon half a turn in stock while checked, through a 200ms
+   ease that no collected reference surface has: no collected
+   reference screenshot in `macos8.6-screenshots/` shows a GTK places
+   view or its server button (the standing GTK-scope adaptation
+   premise), so the landed no-transition policy stands in (the landed
+   `button:backdrop` groups restate stock's 200ms backdrop ease as
+   `transition: none`, pinned by the
+   `button.flat:hover:active` and backdrop assertions in
+   tests/test_gtk_theme_controls.py, erasing only the animation while
+   state values stay inherited per-property). Recorded 2026-11-09.
+   Fresh probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 1701 `placesview .server-list-button > image
+   { transition: 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); -gtk-icon-transform:
+   rotate(0turn); }` and line 1703 `placesview
+   .server-list-button:checked > image` with the same 200ms transition
+   and `rotate(-0.5turn)`. The two rules below erase only the
+   animation, each spelling a byte-equal stock twin so later
+   user-sheet source order wins the equal-specificity tie; the
+   `-gtk-icon-transform: rotate(0turn)` rest and `rotate(-0.5turn)`
+   checked orientations stay stock per-property, and no rotation,
+   transform, colour or geometry declaration is added. Declaration
+   checks do not establish rendered pixels. */
+
+placesview .server-list-button > image {
+  transition: none;
+}
+
+placesview .server-list-button:checked > image {
+  transition: none;
+}
