@@ -917,8 +917,36 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
+# Mesa drivers that render on the CPU. KWin's ScreenShot2 offscreen effect
+# allocates a non-software EGL buffer for its render target; on a software
+# renderer the allocation has no render engine behind it, and llvmpipe faults
+# while the DBus reply waits on the resulting fence. KWin fixed this in 6.8
+# (offscreeneffect: allocate a software buffer on software renderers,
+# add43708), which the hosted 26.04 image does not carry, so the capture
+# gates skip rather than time out there.
+SOFTWARE_RENDERER_DRIVERS = frozenset({"llvmpipe", "softpipe", "swrast", "zink"})
 
 
+def software_renderer_skip_reason():
+    """Return the capture gates' skip reason when Mesa is forced to software."""
+    if os.environ.get("LIBGL_ALWAYS_SOFTWARE") == "1":
+        return SOFTWARE_RENDER_SKIP_REASON
+    for variable in ("MESA_LOADER_DRIVER_OVERRIDE", "GALLIUM_DRIVER"):
+        if os.environ.get(variable, "").lower() in SOFTWARE_RENDERER_DRIVERS:
+            return SOFTWARE_RENDER_SKIP_REASON
+    return None
+
+
+SOFTWARE_RENDER_SKIP_REASON = (
+    "KWin's ScreenShot2 offscreen effect hangs on a software Mesa renderer "
+    "(fixed in KWin 6.8); run on a GPU-backed host to exercise the capture gates"
+)
+
+
+@unittest.skipIf(
+    software_renderer_skip_reason() is not None,
+    software_renderer_skip_reason() or "",
+)
 @unittest.skipUnless(
     all(shutil.which(tool) for tool in REAL_TOOLS),
     "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle and "
@@ -1045,9 +1073,33 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             set(DIALOG_REAL_TOOLS) - set(render_surface.REQUIRED_TOOLS),
         )
 
+    def test_the_skip_guard_also_covers_a_software_renderer(self):
+        # The hosted job forces llvmpipe, where KWin's ScreenShot2 effect
+        # hangs before it can reply; the guard must skip the capture rather
+        # than let the render time out.
+        with mock.patch.dict(
+            os.environ, {"MESA_LOADER_DRIVER_OVERRIDE": "llvmpipe"}, clear=False
+        ):
+            self.assertEqual(
+                SOFTWARE_RENDER_SKIP_REASON, software_renderer_skip_reason()
+            )
+        with mock.patch.dict(
+            os.environ, {"LIBGL_ALWAYS_SOFTWARE": "1"}, clear=False
+        ):
+            self.assertEqual(
+                SOFTWARE_RENDER_SKIP_REASON, software_renderer_skip_reason()
+            )
+        with mock.patch.dict(
+            os.environ, {"MESA_LOADER_DRIVER_OVERRIDE": "iris"}, clear=False
+        ):
+            os.environ.pop("LIBGL_ALWAYS_SOFTWARE", None)
+            self.assertIsNone(software_renderer_skip_reason())
+
     def test_all_dialog_gates_skip_only_when_a_tool_is_absent(self):
         tools = DIALOG_REAL_TOOLS
-        expected = not all(shutil.which(tool) for tool in tools)
+        expected = software_renderer_skip_reason() is not None or not all(
+            shutil.which(tool) for tool in tools
+        )
         for gate in (
             TestCheckboxDialogRender,
             TestComboboxDialogRender,
@@ -1231,7 +1283,7 @@ def _dialog_gate_guard():
     that merely lacks Plasma, where the sibling applet gate already skips.
     """
     tools = DIALOG_REAL_TOOLS
-    reason = (
+    reason = software_renderer_skip_reason() or (
         "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
         "plasma-apply-colorscheme, kdialog and zenity on PATH"
     )
@@ -1240,8 +1292,9 @@ def _dialog_gate_guard():
     def decorator(cls):
         # `unittest.skip` only annotates when its condition fails, so the
         # guard writes the attributes itself: the skip flag must be
-        # present (False where every tool exists) whatever the host has.
-        cls.__unittest_skip__ = bool(missing)
+        # present (False where every tool exists and the renderer is a GPU)
+        # whatever the host has.
+        cls.__unittest_skip__ = bool(missing) or software_renderer_skip_reason() is not None
         cls.__unittest_skip_why__ = reason
         return cls
 
