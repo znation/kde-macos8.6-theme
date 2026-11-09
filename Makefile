@@ -85,7 +85,10 @@ shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(
 # variable without splitting it. The blank-byte hits are concatenated OUTSIDE
 # the strip: a lone CR, VT or FF hit is blank to make too, and strip would
 # erase it, so only the non-blank hits are stripped.
-control_chars = $(shell awk 'BEGIN { for (i = 1; i <= 31; i++) if (i != 9 && i != 10 && i != 11 && i != 12 && i != 13) printf "%c ", i; printf "%c ", 127 }')
+# Immediate assignment: the awk program is deterministic, so one shell spawn
+# per make invocation holds the value, and every later guard evaluation
+# substitutes it instead of re-running awk.
+control_chars := $(shell awk 'BEGIN { for (i = 1; i <= 31; i++) if (i != 9 && i != 10 && i != 11 && i != 12 && i != 13) printf "%c ", i; printf "%c ", 127 }')
 vt_byte := $(shell printf '\013')
 ff_byte := $(shell printf '\014')
 cr_byte := $(shell printf '\015')
