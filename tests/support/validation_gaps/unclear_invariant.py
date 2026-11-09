@@ -81,7 +81,13 @@ FIREFOX_SYMLINK_GUARANTEE = (
     "a sheet or `user.js` path that is a symbolic link is refused by name "
     "before the install writes or the removal deletes anything, so the "
     "user's link and the file it names are left untouched instead of the link "
-    "being replaced or deleted"
+    "being replaced or deleted; the refusal fires at a path the action plans "
+    "to change — the install refuses every link at those paths because its "
+    "write would replace it, while the removal refuses the `chrome` directory "
+    "up front, then an owned sheet's link and a `user.js` link whose "
+    "preference block it would rewrite — so a dangling link at a sheet or "
+    "`user.js` path reads back as an absent file and a removal exits 0 "
+    "leaving that link in place while it still removes what it owns beside it"
 )
 
 BOM_MARKER_GUARANTEE = (
