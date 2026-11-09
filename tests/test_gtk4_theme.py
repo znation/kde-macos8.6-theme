@@ -1524,6 +1524,29 @@ for radio in (False, True):
                 face,
             )
 
+    def test_server_list_button_rotation_motion(self):
+        # The places view's server-button icon keeps stock's two
+        # orientations (upright at rest, half a turn while checked) while
+        # the 200ms rotation ease is erased: the two byte-equal stock twin
+        # spellings declare only `transition: none`, sitting after the
+        # landed caps-lock groups at the sheet tail. (2026-11-09)
+        selectors = (
+            "placesview .server-list-button > image",
+            "placesview .server-list-button:checked > image",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assert_rule(selector, {"transition": "none"})
+        self.assertEqual(
+            {s for s in self.rules if "server-list-button" in s},
+            set(selectors),
+        )
+        self.assertGreater(
+            self.selectors.index("placesview .server-list-button > image"),
+            self.selectors.index("entry.password image.caps-lock-indicator"),
+        )
+
     def test_notebook_focus_transition(self):
         self.assert_scale_slider_transition(
             "notebook > header > tabs > tab:checked"

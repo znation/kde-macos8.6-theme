@@ -5330,3 +5330,44 @@ spinbutton.password image.caps-lock-indicator,
 entry.password image.caps-lock-indicator {
   opacity: 1;
 }
+
+/* A places view's server button — the disc button the file chooser's
+   network page shows for connecting to a server — flips its icon half a
+   turn in stock while checked, through a 200ms ease that no collected
+   reference surface has: no collected reference screenshot in
+   `macos8.6-screenshots/` shows a GTK places view or its server button,
+   so the landed no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the landed tab-bar
+   motion record erase stock motion the same way, leaving state values
+   inherited per-property). Recorded 2026-11-09. Fresh probes the same
+   day: the toolkit resource
+   `/org/gtk/libgtk/theme/Default/Default-light.css` in
+   `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6) declares
+   line 1618 `placesview .server-list-button > image { transition: 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); -gtk-icon-transform:
+   rotate(0turn); }` and line 1620 the `:checked` twin with the same
+   200ms transition and `rotate(-0.5turn)`; the same extraction of
+   `Default-dark.css` (1928 lines) declares lines 1606 and 1608 the
+   identical pair; and the platform style library's compiled base
+   stylesheet (the toolkit's clients load it alongside the theme
+   resource; its provenance and resource line are recorded in
+   docs/invariants.md) declares line 875 the property-scoped spelling
+   `placesview .server-list-button > image { transition:
+   -gtk-icon-transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+   -gtk-icon-transform: rotate(0turn); }` and line 877
+   `placesview .server-list-button:checked > image {
+   -gtk-icon-transform: rotate(-0.5turn); }` with no transition of its
+   own. The two rules below erase only the animation, each spelling a
+   byte-equal stock twin so later user-sheet source order wins the
+   equal-specificity tie; both `-gtk-icon-transform` orientation values
+   stay stock per-property, and no rotation, transform, colour or
+   geometry declaration is added. Declaration checks do not establish
+   rendered pixels. */
+
+placesview .server-list-button > image {
+  transition: none;
+}
+
+placesview .server-list-button:checked > image {
+  transition: none;
+}
