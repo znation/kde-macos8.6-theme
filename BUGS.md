@@ -354,6 +354,10 @@ The post-merge review of commit `2843fac7ecb8824d3dbc79e408ef0ac86593d736` (Remo
 
 The post-merge review of commit `1555c1c261debc86fcb890bf4806353af6e5c7c7` (Remove the stray, unreferenced `adwaita3.css` from the repo root) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 4e97dc86 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `4e97dc86812ef81e5b0af62a959e52bc106ccc4b` (Paint the GTK 3 scrollbar corner junction as the flat #EEEEEE scrollbar band) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
