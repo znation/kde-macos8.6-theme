@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 1a67eb30 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `1a67eb30f521acff177d3687b7be4401550b156e` (Paint the Firefox prefs sidebar separators as the Platinum etch) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** Reviewed the commit's full diff and its state on main. No defect: the `#nav-separator` etched pair and the two `--page-nav-*` override rules still sit in `theme/firefox/org.macos8.desktop/chrome/userContent.css` (lines 537-546) inside the `about:preferences` `@-moz-document` block, the `ETCH_DARK = "#888888"` token still lives in `tests/support/platinum_palette.py`, and docs/invariants.md line 105 still pins the three separators with their lineage. The commit's tests were later moved intact from `tests/test_firefox_content_theme.py` into `tests/test_firefox_content_preferences.py::TestFirefoxPreferencesNavTheme` by the content-module split; the class still pins the etched separator pair and the header provenance, and `make check CHECK_TESTS='test_firefox_content_preferences test_firefox_content_theme'` passed.
+
+**Validation gap:** none — the settled commit's own tests reproduce and confirm its claims.
+
 ### post-merge review of 4e43a636 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `4e43a6362f33f2fa06eda7fe6901ea4f8aba8174` (Serialize an apply-gtk selection on the data-home lock make install/uninstall hold) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

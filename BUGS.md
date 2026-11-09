@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 1a67eb30 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `1a67eb30f521acff177d3687b7be4401550b156e` (Paint the Firefox prefs sidebar separators as the Platinum etch) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 39b3984f never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `39b3984f6ee0f273eef64a513c05da673c96d884` (Share ihdr_end/with_ihdr_byte's IHDR unpack in one png_fixtures helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
