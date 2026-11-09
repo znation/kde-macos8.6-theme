@@ -79,6 +79,57 @@ def max_byte_index(data: bytes) -> int:
 _ABS_DIFF_MASKS_CACHE: dict[int, tuple[int, int]] = {}
 
 
+def byte_max(a: bytes, b: bytes) -> bytes:
+    """Return the per-byte maximum of two equal-length byte strings.
+
+    ``bytes(x if x >= y else y for x, y in zip(a, b))`` is the obvious
+    spelling, but it walks both strings one Python int at a time.  This
+    packs the two strings two bytes per 16-bit lane -- the same packing
+    :func:`abs_diff` uses -- sets a guard bit on the first string's lanes so
+    the per-lane subtraction cannot borrow into its neighbour, and selects
+    each lane's low byte from whichever string holds the larger value.
+
+    Both byte strings must be the same length; :func:`require_equal_lengths`
+    rejects a mismatch and returns the shared length.
+    """
+    length = require_equal_lengths(a, b, "byte_max")
+    if length == 0:
+        return b""
+    if length & 1:
+        # Pad to a whole number of 16-bit lanes; the extra byte is dropped by
+        # ``to_bytes(length)`` at the end.
+        a = a + b"\x00"
+        b = b + b"\x00"
+    lanes = len(a) // 2
+    cached = _ABS_DIFF_MASKS_CACHE.get(lanes)
+    if cached is None:
+        low = int.from_bytes(b"\xff\x00" * lanes, "little")
+        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
+        cached = (low, guard_bit)
+        _ABS_DIFF_MASKS_CACHE[lanes] = cached
+    else:
+        low, guard_bit = cached
+    x = int.from_bytes(a, "little")
+    y = int.from_bytes(b, "little")
+
+    def lane_greater(u: int, v: int) -> int:
+        # With the guard bit set, ``u - v`` is 256 + u - v in [1, 511], so the
+        # subtraction never borrows across a lane and bit 8 is set exactly
+        # when u >= v; spreading that bit across the lane yields an 0xFF mask.
+        higher = ((u | guard_bit) - v) & guard_bit
+        return higher - (higher >> 8)
+
+    def lane_max(u: int, v: int) -> int:
+        ge_mask = lane_greater(u, v)
+        # When u >= v the 0xFF ge_mask keeps u's byte; otherwise the 0xFF
+        # complement keeps v's byte.
+        return (u & ge_mask) | (v & (low ^ ge_mask))
+
+    even = lane_max(x & low, y & low)
+    odd = lane_max((x >> 8) & low, (y >> 8) & low)
+    return (even | (odd << 8)).to_bytes(length, "little")
+
+
 def abs_diff(a: bytes, b: bytes) -> bytes:
     """Return the per-byte absolute difference of two equal-length byte strings.
 

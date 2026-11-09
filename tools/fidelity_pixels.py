@@ -1,31 +1,65 @@
-"""Pixel diagnostics for fidelity surfaces."""
+"""Pixel diagnostics for fidelity surfaces.
+
+Every diagnostic derives the same per-channel absolute-delta byte
+strings that :func:`tools.fidelity_metrics.compare` builds -- a strided
+RGB channel slice per channel through ``tools.byte_lanes.abs_diff``, plus
+an alpha string whenever the planes differ in presence or content -- and
+then folds them with ``tools.byte_lanes.byte_max`` into one maximum-delta
+byte string per pixel.  Each scan reads those strings back through
+C-speed ``bytes`` operations instead of re-deriving each pixel's raw RGBA
+deltas in Python, which dominated a screenshot-sized diagnostic.
+"""
 
 from __future__ import annotations
 
-import heapq
+from collections import Counter
 
 if __package__:
+    from tools.byte_lanes import abs_diff, byte_max, max_byte_index
+    from tools.fidelity_metrics import over_table
     from tools.png import Image
 else:  # imported by a directly run CLI
+    from byte_lanes import abs_diff, byte_max, max_byte_index
+    from fidelity_metrics import over_table
     from png import Image
 
 
-def _absolute_deltas(
-    candidate_rgb: bytes,
-    reference_rgb: bytes,
-    candidate_alpha: bytes | None,
-    reference_alpha: bytes | None,
-    index: int,
-) -> tuple[int, int, int, int]:
-    """Return one raw RGBA absolute delta tuple; absent alpha means opaque."""
-    offset = index * 3
-    return (
-        abs(candidate_rgb[offset] - reference_rgb[offset]),
-        abs(candidate_rgb[offset + 1] - reference_rgb[offset + 1]),
-        abs(candidate_rgb[offset + 2] - reference_rgb[offset + 2]),
-        abs((255 if candidate_alpha is None else candidate_alpha[index])
-            - (255 if reference_alpha is None else reference_alpha[index])),
-    )
+def _channel_deltas(candidate: Image, reference: Image) -> list[bytes]:
+    """Return per-channel absolute-delta byte strings in RGBA order.
+
+    RGB deltas are read straight from the packed planes, including beneath
+    transparent pixels, so a pixel's RGB entries index the strings exactly
+    like the image-local pixel index.  A plane without an image alpha
+    channel is fully opaque; when both alpha sides are opaque -- present or
+    absent -- every pixel's alpha delta is zero and the string is omitted,
+    the opaque-plane skip :func:`tools.fidelity_metrics.compare` makes, and
+    diagnostics that would have counted a zero alpha contribution simply
+    read that zero from the absent string.
+    """
+    deltas = [
+        abs_diff(candidate.rgb[channel::3], reference.rgb[channel::3])
+        for channel in range(3)
+    ]
+    alpha_a, alpha_b = candidate.alpha, reference.alpha
+    if alpha_a is not None or alpha_b is not None:
+        pixels = len(deltas[0])
+        opaque_a = alpha_a is None or alpha_a.count(255) == pixels
+        opaque_b = alpha_b is None or alpha_b.count(255) == pixels
+        if not (opaque_a and opaque_b):
+            opaque = b"\xff" * pixels
+            deltas.append(abs_diff(
+                opaque if alpha_a is None else alpha_a,
+                opaque if alpha_b is None else alpha_b,
+            ))
+    return deltas
+
+
+def _maximum_deltas(deltas: list[bytes]) -> bytes:
+    """Return one byte string holding each pixel's maximum channel delta."""
+    maximum = deltas[0]
+    for delta in deltas[1:]:
+        maximum = byte_max(maximum, delta)
+    return maximum
 
 
 def worst_pixels(
@@ -42,33 +76,46 @@ def worst_pixels(
     limit in 1..1000. Ties follow row-major order; coordinates are image-local.
     The optional offset skips earlier ranked records; selection storage is
     bounded by the image area and grows with the requested page position.
+
+    The ranking walks delta values from 255 down to one past the tolerance and,
+    inside each value, the maximum-delta string's ``find`` scan in image
+    order -- the same descending-delta, row-major-ties order a full sort of
+    ``(-delta, index)`` would produce -- stopping as soon as the requested
+    selection size is gathered.
     """
     width, height = candidate.width, candidate.height
-    candidate_rgb = candidate.rgb
-    reference_rgb = reference.rgb
-    candidate_alpha = candidate.alpha
-    reference_alpha = reference.alpha
-
-    def ranked():
-        for index in range(width * height):
-            delta = max(_absolute_deltas(
-                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-            ))
-            if delta > tolerance:
-                yield (-delta, index)
-
     area = width * height
     selection_size = min(offset + limit, area)
-    selected = heapq.nsmallest(selection_size, ranked())[offset:]
+    selected: list[tuple[int, int]] = []
+    if selection_size:
+        maximum = _maximum_deltas(_channel_deltas(candidate, reference))
+        for value in range(255, tolerance, -1):
+            position = maximum.find(value)
+            while position >= 0:
+                selected.append((value, position))
+                if len(selected) == selection_size:
+                    break
+                position = maximum.find(value, position + 1)
+            if len(selected) == selection_size:
+                break
+
+    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
+    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
     records = []
-    for negative_delta, index in selected:
-        offset = index * 3
+    for delta, index in selected[offset:]:
+        channel_offset = index * 3
         records.append({
             "x": index % width,
             "y": index // width,
-            "candidate_rgba": [*candidate_rgb[offset:offset + 3], 255 if candidate_alpha is None else candidate_alpha[index]],
-            "reference_rgba": [*reference_rgb[offset:offset + 3], 255 if reference_alpha is None else reference_alpha[index]],
-            "max_delta": -negative_delta,
+            "candidate_rgba": [
+                *candidate_rgb[channel_offset:channel_offset + 3],
+                255 if candidate_alpha is None else candidate_alpha[index],
+            ],
+            "reference_rgba": [
+                *reference_rgb[channel_offset:channel_offset + 3],
+                255 if reference_alpha is None else reference_alpha[index],
+            ],
+            "max_delta": delta,
         })
     return records
 
@@ -89,25 +136,11 @@ def channel_counts(
     they must not be summed to obtain the union differing-pixel count.
     A missing alpha plane counts every pixel as opaque 255.
     """
-    width, height = candidate.width, candidate.height
-    candidate_rgb = candidate.rgb
-    reference_rgb = reference.rgb
-    candidate_alpha = candidate.alpha
-    reference_alpha = reference.alpha
     counts = {"r": 0, "g": 0, "b": 0, "a": 0}
-    for index in range(width * height):
-        deltas = _absolute_deltas(
-            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-        )
-        red_delta, green_delta, blue_delta, alpha_delta = deltas
-        if red_delta > tolerance:
-            counts["r"] += 1
-        if green_delta > tolerance:
-            counts["g"] += 1
-        if blue_delta > tolerance:
-            counts["b"] += 1
-        if alpha_delta > tolerance:
-            counts["a"] += 1
+    over = over_table(tolerance)
+    for name, delta in zip(("r", "g", "b", "a"),
+                           _channel_deltas(candidate, reference)):
+        counts[name] = delta.translate(over).count(1)
     return counts
 
 
@@ -116,16 +149,20 @@ def channel_bias(candidate: Image, reference: Image) -> dict[str, float]:
 
     Inputs are equally sized validated images. RGB bytes are compared raw,
     including under transparent pixels, and a missing alpha plane is opaque.
+    Each mean is the difference of two whole-channel byte sums -- the same
+    sum as the per-pixel accumulation, just gathered with C-speed ``sum``
+    over strided channel slices.
     """
     pixels = candidate.width * candidate.height
-    sums = [0, 0, 0, 0]
-    for index in range(pixels):
-        offset = index * 3
-        for channel in range(3):
-            sums[channel] += candidate.rgb[offset + channel] - reference.rgb[offset + channel]
-        sums[3] += (255 if candidate.alpha is None else candidate.alpha[index]) - (
-            255 if reference.alpha is None else reference.alpha[index]
-        )
+    sums = [
+        sum(candidate.rgb[channel::3]) - sum(reference.rgb[channel::3])
+        for channel in range(3)
+    ]
+    alpha_a, alpha_b = candidate.alpha, reference.alpha
+    sums.append(
+        (255 * pixels if alpha_a is None else sum(alpha_a))
+        - (255 * pixels if alpha_b is None else sum(alpha_b))
+    )
     return {name: total / pixels for name, total in zip(("r", "g", "b", "a"), sums)}
 
 
@@ -134,31 +171,27 @@ def channel_maxima(candidate: Image, reference: Image) -> dict[str, int]:
 
     Inputs are equally sized validated images. RGB bytes are compared raw,
     including beneath transparent pixels, and a missing alpha plane is opaque.
+    Each maximum comes from the bit-sliced :func:`max_byte_index` pass, which
+    yields both the maximum and its first occurrence from one walk.
     """
-    maxima = [0, 0, 0, 0]
-    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
-    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
-    for index in range(candidate.width * candidate.height):
-        for channel, delta in enumerate(_absolute_deltas(
-            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-        )):
-            maxima[channel] = max(maxima[channel], delta)
-    return dict(zip(("r", "g", "b", "a"), maxima))
+    maxima = {"r": 0, "g": 0, "b": 0, "a": 0}
+    for name, delta in zip(("r", "g", "b", "a"),
+                           _channel_deltas(candidate, reference)):
+        if delta:
+            maxima[name] = delta[max_byte_index(delta)]
+    return maxima
 
 
 def delta_histogram(candidate: Image, reference: Image) -> list[dict[str, int]]:
     """Count compared pixels by their maximum absolute RGBA channel delta.
 
     Inputs are equally sized validated images, as checked by the CLI's
-    comparison. Missing alpha planes represent opaque pixels.
+    comparison. Missing alpha planes represent opaque pixels. Counts gather
+    from the maximum-delta byte string in one streamed pass -- the
+    standard library's ``Counter`` walks the bytes at C speed -- instead
+    of one Python loop step per pixel.
     """
-    counters = [0] * 256
-    candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
-    candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
-    for index in range(candidate.width * candidate.height):
-        delta = max(_absolute_deltas(
-            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-        ))
-        counters[delta] += 1
-    return [{"delta": delta, "count": count}
-            for delta, count in enumerate(counters) if count]
+    maximum = _maximum_deltas(_channel_deltas(candidate, reference))
+    counted = Counter(maximum)
+    return [{"delta": delta, "count": counted[delta]}
+            for delta in range(256) if counted[delta]]

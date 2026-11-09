@@ -65,6 +65,33 @@ class TestAbsDiff(unittest.TestCase):
                 )
 
 
+class TestByteMax(unittest.TestCase):
+    """The packed-integer byte maximum must agree with the per-byte form."""
+
+    @staticmethod
+    def _reference(a: bytes, b: bytes) -> bytes:
+        return bytes(x if x >= y else y for x, y in zip(a, b))
+
+    def test_matches_per_byte_reference(self):
+        assert_matches_oracle(
+            self, byte_lanes.byte_max, self._reference, arity=2
+        )
+
+    def test_unequal_lengths_raise(self):
+        assert_rejects_unequal_lengths(self, byte_lanes.byte_max)
+
+    def test_extreme_values(self):
+        # 0/255 is where a borrow, carry or mask slip would show up first, for
+        # both an even and an odd byte count.
+        for length, x, y in itertools.product((1, 2, 7), (0, 255), (0, 255)):
+            a = bytes([x]) * length
+            b = bytes([y]) * length
+            with self.subTest(length=length, x=x, y=y):
+                self.assertEqual(
+                    byte_lanes.byte_max(a, b), self._reference(a, b)
+                )
+
+
 class TestSumSquares(unittest.TestCase):
     """The split-table sum of squares must agree with the per-byte form."""
 
