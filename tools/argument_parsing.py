@@ -8,8 +8,9 @@ non-ASCII digits, surrounding whitespace) that would silently name a
 different value. Both live here so ``tools/fidelity_arguments.py``, ``tools/sample.py``,
 ``tools/render_surface.py``, ``tools/apply_theme.py``, ``tools/apply_gtk.py``,
 ``tools/make_wallpaper.py``, ``tools/local_hook.py``,
-``tools/make_cursors.py``, ``tools/install_firefox.py`` and
-``tools/apply_cursor.py`` share one implementation.
+``tools/make_cursors.py``, ``tools/install_firefox.py``,
+``tools/apply_cursor.py`` and ``tools/uninstall_diagnostics.py`` share one
+implementation.
 
 The operator-facing diagnostic contract -- the ``<tool>: error:`` line, its
 exit status and the bounded log tail -- lives in the sibling

@@ -24,11 +24,11 @@ a message here must not change without changing its test.
 
 from __future__ import annotations
 
-import argparse
 import os
 import sys
 
 if __package__:
+    from tools.argument_parsing import EscapingArgumentParser
     from tools.terminal import escape_controls
     from tools.uninstall_config import config_home
     from tools.uninstall_defaults_diagnostics import (
@@ -47,6 +47,7 @@ if __package__:
         plasmarc_messages,
     )
 else:  # imported from a directly run tool
+    from argument_parsing import EscapingArgumentParser
     from terminal import escape_controls
     from uninstall_config import config_home
     from uninstall_defaults_diagnostics import (
@@ -100,7 +101,7 @@ def diagnostics(
 
 def main(argv: list[str] | None = None) -> int:
     """Print the diagnostics for the running environment; always succeed."""
-    parser = argparse.ArgumentParser(
+    parser = EscapingArgumentParser(
         description="print the uninstall recipe's selection diagnostics"
     )
     parser.add_argument("--scheme-id", required=True)

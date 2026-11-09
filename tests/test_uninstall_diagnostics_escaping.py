@@ -18,9 +18,11 @@ import subprocess
 import sys
 import unittest
 
-from support import repo_root
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.cli_fixtures import run_main
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
+from tools import uninstall_diagnostics
 
 TOOL = os.path.join(repo_root.ROOT, "tools", "uninstall_diagnostics.py")
 
@@ -78,6 +80,30 @@ class TestScanEscapesAControlByteInTheConfigHomeName(unittest.TestCase):
             "uninstall: color scheme TestScheme is still selected in",
             result.stderr,
         )
+        self.assertNotIn("\u001b", result.stderr)
+        self.assertIn(r"\u001b", result.stderr)
+
+
+class TestScanEscapesAControlByteInAnUnrecognizedArgument(unittest.TestCase):
+    """argparse's own diagnostics escape the raw argv they echo.
+
+    ``unrecognized arguments: ...`` is formatted from the command line as
+    given, so a control byte in a flag the scan does not know would print
+    raw through argparse itself. The scan parses with the shared
+    ``EscapingArgumentParser`` like every other CLI here; the parse error
+    fires before any environment read, so this test calls ``main``
+    in-process with no staged config.
+    """
+
+    def test_an_unknown_flag_carrying_esc_prints_escaped(self):
+        result = run_main(
+            uninstall_diagnostics.main,
+            "uninstall_diagnostics.py",
+            [*COMMON_IDS, "--be\u001bad"],
+        )
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn("error: unrecognized arguments:", result.stderr)
         self.assertNotIn("\u001b", result.stderr)
         self.assertIn(r"\u001b", result.stderr)
 
