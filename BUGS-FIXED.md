@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 37a806fc never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `37a806fc8fb732d5f3391e73321fe4e672315d29` (Skip symlinked package directories during test discovery) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix.** Settled as landed-OK by re-reviewing the commit on main against the live tree: the commit is an ancestor of main and its three changes are all in the tree. `tools/check_parallel_discovery.py` skips every `os.path.islink` entry in the discovery walk, with the outside-the-tree import rationale in the comment; `tests/test_check_parallel.py::TestDiscovery::test_symlinked_package_directories_are_not_recursed` builds an outside package beside a scratch tests dir, links it in, and asserts empty discovery; and the coordinator row in `docs/invariants.md` names the symlink skip and points at that pinning test. A later landed sibling in the same class, `TestsDiscovery::test_a_symlinked_test_module_file_is_not_imported`, extends the guard to symlinked module files. Focused run `make check CHECK_PATTERN='test_check_parallel*.py'` exits 0 with that test passing and no FAILED or ERROR line in its log.
+
+**Validation gap:** none — the commit's own discovery regression reproduces and confirms the guard offline, and the follow-up module-file test re-confirms it after the coordinator split.
+
 ### post-merge review of c1325a54 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `c1325a54c20a2aae1d9efaac0251fa9934a1c7ec` (Split the parallel check coordinator by responsibility) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
