@@ -156,6 +156,53 @@ class TestTestMarkerStep(unittest.TestCase):
         self.assertFalse(completed)
         self.assertIsNone(self._scan("test_x (pkg.Cls) ..\nok"))
 
+    def test_the_whitespace_after_the_id_may_be_a_newline(self):
+        # The step description allows the whitespace after the id's ``)``
+        # to be a newline itself, so the dots of the following line can
+        # still complete the marker. Every end-to-end fixture prints the
+        # realistic ``) ... `` spelling on one line, so no other test
+        # reaches this whitespace form.
+        state, dots, completed = _test_marker_step(
+            ord("\n"), _MARKER_SEEKS_SPACE, 0
+        )
+        self.assertEqual(state, _MARKER_COUNTS_DOTS)
+        self.assertEqual(dots, 0)
+        self.assertFalse(completed)
+        # (pkg.Cls) ends at byte 15, the newline is the sought whitespace
+        # at 16, the three dots take 17-19, and the space at 20 completes.
+        self.assertEqual(self._scan("test_x (pkg.Cls)\n... ok"), 20)
+
+    def test_an_extra_paren_before_the_whitespace_keeps_looking(self):
+        # A second ``)`` still sits where the whitespace after the id is
+        # expected: the seek state keeps looking instead of returning to
+        # the paren seek, so the following whitespace and dots still find
+        # the marker.
+        state, _, completed = _test_marker_step(
+            ord(")"), _MARKER_SEEKS_SPACE, 0
+        )
+        self.assertEqual(state, _MARKER_SEEKS_SPACE)
+        self.assertFalse(completed)
+        # - "test_x " is bytes 0-6, "(pkg.Cls))" is bytes 7-16, the space
+        # at 17 is the sought whitespace, the three dots take 18-20, and
+        # the space at 21 completes.
+        self.assertEqual(self._scan("test_x (pkg.Cls)) ... ok"), 21)
+
+    def test_a_stray_byte_inside_the_dot_count_resets_only_the_count(self):
+        # An ordinary stray byte inside the dot count clears the partial
+        # count but stays in the counting state, unlike the newline above
+        # it, which returns to the paren seek: a later contiguous dot run
+        # in the same line can still complete the marker.
+        state, dots, completed = _test_marker_step(
+            ord("x"), _MARKER_COUNTS_DOTS, 1
+        )
+        self.assertEqual(state, _MARKER_COUNTS_DOTS)
+        self.assertEqual(dots, 0)
+        self.assertFalse(completed)
+        # - the space at 16 after "(pkg.Cls)", the dot at 17 counts 1,
+        # the stray byte at 18 clears the count, the dots at 19-21 count
+        # to 3, and the space at 22 completes.
+        self.assertEqual(self._scan("test_x (pkg.Cls) .x... ok"), 22)
+
     def test_stray_byte_after_the_space_returns_to_the_paren_seek(self):
         # A stray byte where the whitespace after the id was expected drops
         # the scan back to the paren seek, and the marker's space after a
