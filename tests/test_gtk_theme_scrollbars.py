@@ -142,6 +142,54 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
         )
         self.assertNotIn("junction:dir", self.css)
 
+    def test_scrollbar_backdrop_faces(self):
+        """The scrollbar band and thumb keep the landed faces in backdrop.
+
+        The stock toolkit resource repaints a scrollbar's band and thumb
+        through its own backdrop arms in an unfocused window; no collected
+        reference screenshot shows a GTK scrollbar in an unfocused window,
+        so the sheet restates the landed TROUGH band and FACE thumb through
+        byte-equal stock twins and erases the bare bar's and thumb's 300ms
+        repaint ease with the landed no-transition policy.
+        """
+        self.assert_rule_group(
+            {
+                "scrollbar:backdrop": {
+                    "background-color": TROUGH,
+                    "border-color": BLACK,
+                    "transition": "none",
+                },
+                "scrollbar slider:backdrop": {"background-color": FACE},
+            },
+        )
+        self.assert_rule("scrollbar", {"transition": "none"})
+        self.assert_rule("scrollbar slider", {"transition": "none"})
+        # The parser merges same-spelling groups into one declared rule, so
+        # a sweep catches copy or variant spellings instead: exactly these
+        # two scrollbar-rooted backdrop spellings exist in the sheet and none
+        # carries foreign paint (the bare `scrollbar` selectors above use
+        # assert_rule because the parser merges their landed group with the
+        # transition restate; the slider spelling starts with "scrollbar"
+        # too, so one combined sweep covers both root and descendant roots).
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if "scrollbar" in s and ":backdrop" in s
+            },
+            {"scrollbar:backdrop", "scrollbar slider:backdrop"},
+        )
+        # Both new groups sit at the sheet tail, after the junction's
+        # backdrop restate and the landed places-view link-button arm.
+        self.assertLess(
+            self.selectors.index("scrolledwindow junction:backdrop"),
+            self.selectors.index("scrollbar:backdrop"),
+        )
+        self.assertLess(
+            self.selectors.index("infobar > revealer > box button:link"),
+            self.selectors.index("scrollbar:backdrop"),
+        )
+
     def test_junction_backdrop_shares_the_scrollbar_band(self):
         """The scrollbar corner stays the flat trough band in backdrop."""
         self.assertEqual(

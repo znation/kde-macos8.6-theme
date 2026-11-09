@@ -896,6 +896,13 @@ scrollbar {
   background-color: #EEEEEE;
   border: 1px solid #000000;
   padding: 0;
+  /* 2026-11-09: stock animates every repaint of the bar with a 300ms
+     ease (the toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 981); the landed no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the bar repaints instantly. */
+  transition: none;
 }
 
 scrollbar slider {
@@ -904,6 +911,13 @@ scrollbar slider {
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  /* 2026-11-09: stock animates every repaint of the thumb with the
+     same 300ms ease (the toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 995); the landed no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the thumb repaints instantly. */
+  transition: none;
 }
 
 /* No GTK thumb minimum-length policy appears in the reference set; reuse the overlay square minimum from its 16px band minus both 1px borders. */
@@ -5779,4 +5793,51 @@ placesview .server-list-button:checked > image {
 
 radio:checked:not(:backdrop), radio:indeterminate:not(:backdrop), check:checked:not(:backdrop), check:indeterminate:not(:backdrop) {
   transition: none;
+}
+
+/* A scrollbar's band and thumb — the bar a scroll field sits against and
+   the grip painted on it — repaint through the toolkit's own backdrop
+   arms when a window loses focus, through a 200ms ease no collected
+   reference surface has: no collected reference screenshot in
+   `macos8.6-screenshots/` shows a GTK scrollbar in an unfocused window
+   (the standing GTK-scope adaptation premise), so the backdrop answers
+   restate the landed faces this sheet already pins: the landed `TROUGH`
+   band the bare `scrollbar` rule paints and the landed `FACE` of its
+   bare `scrollbar slider` rule (pinned in
+   tests/test_gtk_theme_scrollbars.py). Recorded 2026-11-09. Fresh probe
+   the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 981
+   `scrollbar { background-color: …; transition: all 300ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); }`, line 993
+   `scrollbar:backdrop { background-color: …; border-color: …;
+   transition: 200ms ease-out; }`, line 995 the bare `scrollbar slider`
+   arm whose paint carries the same 300ms cubic-bezier transition, and
+   line 1001 `scrollbar slider:backdrop { background-color: …; }`; the
+   toolkit's dark-twin resource gtk-contained-dark.css declares the
+   identical four arms at lines 973, 985, 987 and 993. The two rules
+   below erase only the animation on the bare bar (its 300ms ease is
+   already erased inside the landed bare arm above) and restate the
+   backdrop paint to the landed faces, each spelling a byte-equal
+   stock twin so later user-sheet source order wins the
+   equal-specificity ties. Excluded per-property arms stay stock: the
+   thumb's `scrollbar slider:hover` grey-restore,
+   `scrollbar slider:hover:active` accent and `scrollbar slider:disabled`
+   `{ background-color: transparent; }` faces (each its own
+   face-decision candidate under the same policy, not a motion
+   question), and the scrollbar buttons' bare
+   `scrollbar button { … transition-property: min-height, min-width,
+   color; … }` sizing mechanics that the landed steppers repaint
+   statically. No geometry, margin, minimum, overlay state or
+   disabled-arm declaration is added. Declaration checks do not
+   establish rendered pixels. */
+
+scrollbar:backdrop {
+  background-color: #EEEEEE;
+  border-color: #000000;
+  transition: none;
+}
+
+scrollbar slider:backdrop {
+  background-color: #DDDDDD;
 }
