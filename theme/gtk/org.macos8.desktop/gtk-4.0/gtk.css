@@ -1767,6 +1767,59 @@ scale.vertical.fine-tune > trough {
   margin: 0;
 }
 
+/* Adaptation 2026-11-09: no collected reference screenshot shows a
+ * fine-tuned GTK scale in any state (the GTK scope's standing
+ * adaptation premise), so the fine-tuned trough, fill and highlight
+ * corners keep the landed square-corner policy — the same squared set
+ * this sheet already carries on `scale > trough`,
+ * `scale > trough > fill, scale > trough > highlight`,
+ * `scale > trough > slider`, their hover/active and disabled twins and
+ * the progressbar trough/progress groups; the landed GTK 3 fine-tune
+ * radius record restates the libgtk-3 twin arm the same way, keeping
+ * that arm's outline member inherited, while this sheet's toolkit
+ * resource declares no outline-radius companion on the arm. Stock's
+ * fine-tune radius arm is the only fine-tune radius arm anywhere in
+ * the toolkit resource (probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css, the light twin, and
+ * gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-dark.css, the dark twin; there
+ * is no disabled, :backdrop or .osd counter-arm on the bare spelling):
+ * light line 1117 declares `scale.fine-tune > trough > fill,
+ * scale.fine-tune > trough > highlight, scale.fine-tune > trough {
+ * border-radius: 5px; }` and the dark twin declares it identically at
+ * line 1105, every line in this region shifted -12. The restate below
+ * repeats the group byte-equal and sits later, so under either loading
+ * reading — a theme selection replacing the stock sheet entirely,
+ * where the restate is the only holder of the spellings, or the stock
+ * declarations riding as a lower sheet, where the restate wins the
+ * single per-property tie at equal specificity — the held modifier
+ * never re-rounds the landed square faces. Exclusions with
+ * per-property reasons: the fine-tune trough-margin arm (light 1113,
+ * dark 1101) and the fine-tune slider-margin arm (light 1115, dark
+ * 1103) are answered above by the landed `margin: 0` trough-spacing
+ * group and below by the landed `-5px` thumb-margin group; the desktop
+ * integration library (name and resource path recorded in
+ * docs/invariants.md) declares no fine-tune radius arm at all — its
+ * trough and progress rounding rides orientationless
+ * `border-radius: 99px` comma groups the landed base and oriented
+ * groups already answer per-property, and its fine-tuned marks,
+ * indicator and margin arms are their own future geometry candidates,
+ * its fine-tune trough and slider margins answered by the landed
+ * margin groups; the transparent `scale > trough > fill:disabled` and
+ * `.osd scale > trough > fill:disabled` arms (light 1119 and 1123,
+ * dark 1107 and 1111) answer nothing this sheet repaints over the
+ * landed transparent fill; and the fine-tuned marked-slider margin
+ * twins (light 1193 onward, dark 1181 onward) restate the landed
+ * marked-thumb records' transform and shadow policy — margins, not a
+ * corner. Declared 2026-11-09 by the feature role. */
+
+scale.fine-tune > trough > fill,
+scale.fine-tune > trough > highlight,
+scale.fine-tune > trough {
+  border-radius: 0;
+}
+
 /* 2026-10-29: no GTK scale interaction reference; parent states reuse the trough face. */
 scale:hover > trough, scale:active > trough {
   background-color: #EEEEEE;

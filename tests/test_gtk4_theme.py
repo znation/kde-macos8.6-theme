@@ -5175,6 +5175,53 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"margin": "0"})
 
+    def test_scale_fine_tune_radius(self):
+        """A held modifier never re-rounds the scale's landed square faces.
+
+        The toolkit's `scale.fine-tune` radius arm re-rounds the trough,
+        fill and highlight with border-radius: 5px while the modifier is
+        held; the sheet restates the group byte-equal with a zero radius
+        so a fine-tuned scale stays on the landed square-corner policy
+        under either loading reading. The whole-dict read kills a restored
+        stock 5px, a dropped or extra member and any second rule reusing a
+        spelling; the family sweep kills renames, state-armed twins and
+        strays; the raw-text order pins keep the restate between the
+        landed fine-tune trough-margin group and the landed parent-state
+        trough-face group.
+        """
+        radius_spellings = (
+            "scale.fine-tune > trough > fill",
+            "scale.fine-tune > trough > highlight",
+            "scale.fine-tune > trough",
+        )
+        # (a) The three comma-group members each carry exactly the one
+        # declaration, appearing exactly once in the sheet.
+        self.assert_rule_group(
+            dict.fromkeys(radius_spellings, {"border-radius": "0"})
+        )
+        # (b) The sweep: the bare `scale.fine-tune` prefix selects exactly
+        # these three spellings — a restored state twin, an orientation
+        # suffix (`scale.horizontal.fine-tune...` from the landed margin
+        # groups does not satisfy the bare prefix) or a renamed spelling
+        # fails before any value is read.
+        self.assertEqual(
+            {s for s in self.selectors if s.startswith("scale.fine-tune")},
+            set(radius_spellings),
+        )
+        # (c) Order pins on raw sheet text: the restate sits directly
+        # after the landed fine-tune trough-margin group and before the
+        # landed parent-state trough-face comma-group start.
+        self.assert_rule_after(
+            "scale.fine-tune > trough > fill,\n"
+            "scale.fine-tune > trough > highlight,\n"
+            "scale.fine-tune > trough {",
+            "scale.vertical.fine-tune > trough {",
+        )
+        self.assert_rule_after(
+            "scale:hover > trough,",
+            "scale.fine-tune > trough > highlight,\nscale.fine-tune > trough {",
+        )
+
     def test_scale_marked_thumb_transform(self):
         for selector in (
             "scale.marks-before:not(.marks-after) > trough > slider",
