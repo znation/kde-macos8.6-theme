@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of dd5937a3 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `dd5937a3252314dce97d0a87ef7d46bbfe172c5b` (Add a GTK 3 focus outline for flow-box children) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and checked each changed file. `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` still declares `flowbox > flowboxchild:focus` with `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`, preceded by the dated missing-reference adaptation comment (line 856). The commit's test moved from `tests/test_gtk_theme.py` to `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_flowbox_child_focus_outline` (line 234), which now pins the three literal declarations plus the `button:focus` copy through the shared `assert_dotted_focus_outline` helper — a superset of the commit's original assertions. The invariant row at `docs/invariants.md:400` already cites the moved test path. Nothing was wrong on main.
+
+**Validation gap:** none — the commit's own test reproduces the outline declarations on main via the moved helper; the focused check (40 tests) passed on the live tree.
+
 ### post-merge review of 97f6c248 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Landed-OK fix. Checked the commit's diff against the live tree: `treeview.view:focus` stands verbatim at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:842` with its dotted black 1px outline, zero offset, `-gtk-outline-radius: 0` and the dated-plan's adaptation comment intact (`git diff 97f6c248 -- <that file>` changes nothing in the rule). The commit's own test was reorganized rather than lost: `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_treeview_focus_outline` (line 229) now pins the selector through `tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_dotted_focus_outline`, a superset of the commit's inline assertions (the same three declarations, plus the `button:focus` comparison). `docs/invariants.md` already retargeted its GTK 3 `treeview.view:focus` row to the moved test path. Focused run `CHECK_PATTERN='test_gtk_theme_views.py' make check` passed on the worktree tree.
