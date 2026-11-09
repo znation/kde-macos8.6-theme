@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 3b03b9fd never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: Reviewed commit `3b03b9fdabaad8620f33c8b0c2a64f89dc5e7e58`: its check-job install step covers all five render tools the gate needs (dbus-run-session, kwin_wayland, plasmawindowed, plasma-apply-colorscheme, spectacle), fails the step naming the first tool still absent after install, and its README paragraph records what CI now installs. The test pins `test_workflow_runs_public_checks_with_materialized_assets` (timeout 30, exactly the two public run steps) and `test_workflow_installs_and_verifies_the_plasma_render_tools` match the workflow on main, and the whole `test_ci_workflow` module passes. Later commits extended the step to the seven tools and the 26.04 package renames without contradicting the reviewed change. No defect found.
+
+**Validation gap:** none — the CI-workflow test pins confirm the install step and its by-name verification against the workflow on main; no defect in the reviewed change needed a missing runtime path to identify.
+
 ### post-merge review of 74cee7ee never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Reviewed commit `74cee7ee6a73a963d73e2e2948424ee0ff90e6b7`: its Page Info field rule is scoped under the Page Info-only `#mainDeck` id, and the selector assertions check the intended controls and exclude browser chrome fields. The existing test also checks the exact Platinum declarations and rejects extra `#mainDeck input` variants; no defect was found.
