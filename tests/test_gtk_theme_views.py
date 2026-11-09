@@ -515,6 +515,14 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         icon_rtl = "placessidebar row image.sidebar-icon:dir(rtl)"
         self.assert_rule(icon_ltr, {"padding-right": "8px"})
         self.assert_rule(icon_rtl, {"padding-left": "8px"})
+        row_icon = "row image.sidebar-icon"
+        self.assert_rule(row_icon, {"opacity": "1"})
+        self.assertEqual(self.selectors.count(row_icon), 1)
+        rtl_icon_position = self.css.index(icon_rtl)
+        self.assertGreater(
+            self.css.index(row_icon, rtl_icon_position + len(icon_rtl)),
+            rtl_icon_position,
+        )
         label_ltr = "placessidebar row label.sidebar-label:dir(ltr)"
         label_rtl = "placessidebar row label.sidebar-label:dir(rtl)"
         self.assert_rule(label_ltr, {"padding-right": "2px"})
@@ -530,7 +538,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         )
         self.assertEqual(
             {s for s in self.rules if "image.sidebar-icon" in s},
-            {icon_ltr, icon_rtl},
+            {icon_ltr, icon_rtl, row_icon},
         )
         self.assertEqual(
             {s for s in self.rules if "label.sidebar-label" in s},

@@ -5227,8 +5227,8 @@ assistant .sidebar label.highlight {
    restatement block's own; button.sidebar-button's
    minimums, margins and padding are its landed corner record's, and
    row:selected button.sidebar-button the landed 2026-10-31 comment's;
-   row image.sidebar-icon and its opacity twins are the landed
-   entry-image and image:disabled icon-ink records'; the pale
+   entry-image and image:disabled icon-ink records'; row-icon opacity is
+   restated separately below; the pale
    separator.sidebar:backdrop twin never shows, per the active=frontmost
    model and the landed button:backdrop keep-the-landed-face policy.
    No reference screenshot shows a selection-mode sidebar separator;
@@ -5277,6 +5277,14 @@ placessidebar row image.sidebar-icon:dir(ltr) {
 }
 placessidebar row image.sidebar-icon:dir(rtl) {
   padding-left: 8px;
+}
+/* No collected reference shows a GTK sidebar row icon. The 2026-11-09
+   libgtk-3 theme-resource probe gives row image.sidebar-icon a 0.7 veil.
+   Full opacity preserves authored artwork, following the landed GTK 4
+   embedded-entry-icon adaptation; this is platform provenance, not a
+   sampled reference value. */
+row image.sidebar-icon {
+  opacity: 1;
 }
 placessidebar row label.sidebar-label:dir(ltr) {
   padding-right: 2px;
