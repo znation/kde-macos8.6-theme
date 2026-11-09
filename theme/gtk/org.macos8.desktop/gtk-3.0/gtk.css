@@ -1352,8 +1352,10 @@ switch image {
    the three selected-row arms `row:selected switch` (line 1082),
    `row:selected switch:backdrop` (line 1084) and `row:selected switch >
    slider:checked, row:selected switch > slider` (line 1086); the
-   dark-twin resource gtk-contained-dark.css declares the same family
-   with its own palette at lines 1046-1072. Each selector below is the
+   dark-twin resource gtk-contained-dark.css declares the same state and
+   backdrop arms with its own palette at lines 1046-1072 but none of the
+   three selected-row arms, which only the light resource declares.
+   Each selector below is the
    exact stock spelling and sits later in source order, so it wins every
    tie; every restated value is the landed recipe above. The three landed
    groups above are amended to hold the recipe through the states: the
