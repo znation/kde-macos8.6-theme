@@ -247,6 +247,55 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             ROW_SELECTED_BUTTON_ARM_SELECTORS,
         )
 
+    def assert_button_disabled_and_backdrop(self):
+        """Assert the landed insensitive and unfocused-window button faces.
+
+        Unfocused windows dim no landed push button: the suites'
+        backdrop states restate the landed raised and sunken bevels with
+        black labels and no transition, and the six-member disabled group
+        keeps the raised bevel with :data:`DISABLED_TEXT`'s insensitive
+        grey label and no backdrop state of its own. Both suites run this
+        whole assertion; nothing in it is suite-owned.
+        """
+        self.assert_rule(
+            "button:backdrop",
+            {
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "transition": "none",
+            },
+        )
+        for selector in ("button:backdrop:active", "button:backdrop:checked"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": INVERTED_BUTTON_BEVEL,
+                    "color": BLACK,
+                    "transition": "none",
+                },
+            )
+        for selector in (
+            "button:disabled",
+            "button:disabled:active",
+            "button:disabled:checked",
+            "button:backdrop:disabled",
+            "button:backdrop:disabled:active",
+            "button:backdrop:disabled:checked",
+        ):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": BUTTON_BEVEL,
+                    "color": DISABLED_TEXT["color"],
+                },
+            )
+
     def assert_tab_faces(self, forms=None):
         """Assert each tab state's Platinum notebook-face rule.
 

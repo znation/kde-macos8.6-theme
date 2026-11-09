@@ -1331,44 +1331,7 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         )
 
     def test_button_disabled_and_backdrop(self):
-        self.assert_rule(
-            "button:backdrop",
-            {
-                "background-image": "none",
-                "border-color": BLACK,
-                "box-shadow": BUTTON_BEVEL,
-                "color": BLACK,
-                "transition": "none",
-            },
-        )
-        for selector in ("button:backdrop:active", "button:backdrop:checked"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-image": "none",
-                    "border-color": BLACK,
-                    "box-shadow": INVERTED_BUTTON_BEVEL,
-                    "color": BLACK,
-                    "transition": "none",
-                },
-            )
-        for selector in (
-            "button:disabled",
-            "button:disabled:active",
-            "button:disabled:checked",
-            "button:backdrop:disabled",
-            "button:backdrop:disabled:active",
-            "button:backdrop:disabled:checked",
-        ):
-            self.assert_rule(
-                selector,
-                {
-                    "background-image": "none",
-                    "border-color": BLACK,
-                    "box-shadow": BUTTON_BEVEL,
-                    "color": DISABLED_TEXT["color"],
-                },
-            )
+        self.assert_button_disabled_and_backdrop()
 
     def test_checkbutton_focus_outline(self):
         self.assert_dotted_focus_outline("checkbutton:focus")
