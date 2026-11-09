@@ -1126,6 +1126,10 @@ The post-merge review of commit `a2f045281a4a204bc4e907865ba7974436dbac01` (Shar
 
 The post-merge review of commit `d1046956d8728dcfa8a8df093ebd321c303a16de` (Implement disabled selected GTK 4 inline-link styling) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of b3f5b561 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `b3f5b5617e9abbfe29d60e391bce01c8c3b52d91` (Pin disabled self-selected GTK 3 inline-link colours) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
