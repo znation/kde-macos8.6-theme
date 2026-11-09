@@ -262,9 +262,9 @@ class TestMainWiring(unittest.TestCase):
 
 # The coordinator's eleven handler calls, in the recipe order, with the
 # `diagnostics` parameter each one forwards in argument order. Each handler
-# sees the value of these slots and of nothing else; the docstring above
-# DIAGNOSTIC_PARAMS lists the parameter names once, and these tuples are how
-# the forwarding reads them per handler call.
+# sees the value of these slots and of nothing else; the DIAGNOSTIC_PARAMS
+# tuple above lists the parameter names once, and these tuples are how the
+# forwarding reads them per handler call.
 HANDLER_SLOTS = (
     ("kdeglobals_messages", ("config_home", "scheme_id", "icon_theme_id", "lnf_id")),
     ("gtk_messages", ("config_home", "gtk_id", "css_marker")),
