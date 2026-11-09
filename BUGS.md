@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of d2cd2c6b never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `d2cd2c6b6b26d7e985307c07250006c9fb483688` (Paint about:preferences pane buttons as Platinum push buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 22feeb3c never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `22feeb3c5460430d08c3db584af8e758ba8b1849` (Hold the data-home lock across apply-cursor's installed-theme check, ~/.icons link and selection) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

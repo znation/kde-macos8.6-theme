@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of d2cd2c6b never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `d2cd2c6b6b26d7e985307c07250006c9fb483688` (Paint about:preferences pane buttons as Platinum push buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix.** Settled as no defect by re-reviewing the commit against the live tree. The two `#mainPrefPane button:not(.arrowhead):not([disabled])`/`:hover` rules in `theme/firefox/org.macos8.desktop/chrome/userContent.css` (lines ~566–580) match the commit's diff byte-for-byte: `#DDDDDD` face, black text, 1px black outline, `border-radius: 0`, `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA` bevel on the base rule, and flat `#CCCCFF` with `box-shadow: none` on hover — the same recipe the commit's tests pin for userChrome's push buttons. Scope is intact: both selectors stay `#mainPrefPane`-prefixed, exclude the six `.arrowhead` disclosure arrows, exclude `[disabled]`, and leave the `#dialogTemplate` overlay, sidebar, `categories` and button geometry untouched. The two `TestFirefoxPreferencesPushButtonsTheme`-era rules the commit added to `tests/test_firefox_content_theme.py` live after the file split in `tests/test_firefox_content_preferences.py::TestFirefoxPreferencesPushButtonsTheme` and the `docs/invariants.md` row points at that post-split home; the pane intent, header-provenance naming and pinned palette (`FACE`, `BUTTON_SHADOW`, `SELECTION`, `WHITE`, `BLACK`) hold. The plan bookkeeping in the commit (PLANS.md entry moved to PLANS-DONE.md with the appended done stamp) checks out in the archives. Dependency on no reference screenshot is recorded in the invariants row (platform colour adaptation). No defect found.
+
+**Validation gap:** none — the commit's own declaration tests (now in `test_firefox_content_preferences.py`) reproduce and confirm the rules, and the bar is a CSS declaration match, not a rendered pixel, so nothing was missing beyond a Firefox render.
+
 ### post-merge review of f49ae710 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `f49ae710ff1b16367b0a9df2e8e7552b19679e48` (Fix the unused-import scanner dropping annotated `__all__` assignments) never reached a verdict.
