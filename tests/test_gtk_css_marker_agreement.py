@@ -9,9 +9,12 @@ definition, which its recipe passes as ``uninstall_diagnostics.py``'s
 sheet. The two sides are separate files that no shared import joins: a
 spelling edited on one side alone would leave the uninstall diagnostic
 permanently silent about a gtk.css the apply really published, with every
-fixture-based family test still green (they hand-copy the marker). These
-tests pin the Makefile's definition to the publisher's constant and pin the
-recipe to the variable, so the marker can only change on both sides at once.
+fixture-based family test still green: the GTK family's fixtures read the
+publisher's constant and follow that side only, and the uninstall-diagnostic
+fixtures hand-copy their own literal, so neither tie reaches the Makefile.
+These tests pin the Makefile's definition to the publisher's constant and
+pin the recipe to the variable, so the marker can only change on both sides
+at once.
 """
 
 import os
