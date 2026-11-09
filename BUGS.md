@@ -2326,6 +2326,10 @@ The post-merge review of commit `0c353bd582e7d5179c7851e98224fd4e294ffe6d` (Land
 
 The post-merge review of commit `3aad68ffdfa8a5b05a436897d7b63c58ebdf27d4` (Move apply_keymap's required-command read into shared run_required_output) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 56b888d1 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `56b888d1ca8cfb7e5743942a57507edddeed9b64` (Share one GTK file list across the Makefile's install and uninstall recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
