@@ -7,7 +7,7 @@ import unittest
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import rgb_image
+from support.png_fixtures import make_png, rgb_image
 from tools import sample
 from tools.sample_match_runs import _ColumnRuns
 
@@ -136,6 +136,26 @@ class TestCappedColumnRunsStorage(CliTestCase):
         self._assert_success(direct)
         self.assertEqual(json.loads(direct.stdout)["match"]["column_runs"],
                          [{"x": 2, "y": 6, "length": 3}])
+
+    def test_capped_column_scan_pairs_each_alpha_with_its_own_pixel(self):
+        # Alpha 255 sits on the region's left column in both rows: the column
+        # scan must serve alphas in its own, column-major order. A row-major
+        # alpha iterator consumed column-major would pair (3,0)'s alpha 0 with
+        # (2,1) and (2,1)'s alpha 255 with (3,0), splitting the one length-2
+        # column run into two length-1 runs in different columns.
+        rows = [bytes((0, 0, 0, 0)) * 2 + bytes((4, 5, 6, 255)) + bytes((4, 5, 6, 0)),
+                bytes((0, 0, 0, 0)) * 2 + bytes((4, 5, 6, 255)) + bytes((4, 5, 6, 0))]
+        path = self._write(self._tmp_dir(), "alpha-columns.png",
+                           make_png(4, 2, rows, color_type=6))
+        capped = self._run(path, "2", "0", "--width", "2", "--height", "2",
+                           "--find-color", "040506", "--match-column-runs",
+                           "--match-alpha", "255",
+                           "--max-match-column-runs", "2", "--json")
+        self._assert_success(capped)
+        match = json.loads(capped.stdout)["match"]
+        self.assertEqual(match["column_runs"], [{"x": 2, "y": 0, "length": 2}])
+        self.assertEqual(match["omitted_column_runs"], 0)
+        self.assertEqual(match["count"], 2)
 
 
 if __name__ == "__main__":

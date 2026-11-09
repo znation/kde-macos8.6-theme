@@ -94,8 +94,16 @@ def _search_match(args, image) -> dict:
             max_x, max_y = max(max_x, x), max(max_y, y)
     matched_runs, matched_column_runs = intervals.finish()
     if capped_columns:
-        column_alphas = (iter(_region_alpha(image, args.x, args.y, args.width, args.height))
-                         if args.match_alpha is not None else None)
+        column_alphas = None
+        if args.match_alpha is not None:
+            # _region_alpha yields row-major, but the column scan below walks
+            # the region column-major: serve alphas in the scan's order so each
+            # pixel keeps its own alpha value.
+            region_alphas = list(_region_alpha(image, args.x, args.y, args.width, args.height))
+            column_alphas = iter(
+                region_alphas[(row - args.y) * args.width + column - args.x]
+                for column in range(args.x, args.x + args.width)
+                for row in range(args.y, args.y + args.height))
         for x, y, rgb in _positioned_region_column_pixels(
                 image, args.x, args.y, args.width, args.height):
             column_collector.observe(
