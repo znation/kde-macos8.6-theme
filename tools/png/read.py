@@ -7,8 +7,9 @@ also applies a ``tRNS`` chunk's transparency for the color types that store it
 out of band; both paths refuse a ``tRNS`` chunk the header's color type or
 palette cannot carry, even though the RGB path discards alpha, and both refuse
 a ``PLTE`` chunk the header's greyscale color type can never use. This module
-holds the decode pipeline (inflate and row handling); the chunk-stream and
-header validation it reads first lives in ``tools/png/header.py``, its tRNS
+holds the decode pipeline (inflate and row handling); the header validation
+it reads first lives in ``tools/png/header.py``, chunk ordering and
+payload collection in ``tools/png/stream.py``, its tRNS
 length rules in ``tools/png/trns.py``, and the
 color expansion from unfiltered samples to RGB or RGBA lives in
 ``tools/png/expand.py``. The file reader that loads a path and applies the

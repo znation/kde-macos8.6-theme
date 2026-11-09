@@ -3,16 +3,13 @@
 Turns a PNG's chunk stream into the pieces the decoders and the size-only file
 reader need: the validated IHDR payload, the optional PLTE palette, the
 concatenated IDAT image data, the optional tRNS transparency payload and
-whether that tRNS came before any PLTE chunk. Header validation lives in
-``tools/png/header.py``; this module refuses a misordered or
-duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk after the image
-data, a tRNS chunk the header's color type or palette cannot carry, a tRNS
-chunk before a PLTE chunk that is present, a PLTE chunk on a greyscale
-color type, non-consecutive IDAT
-chunks, a malformed PLTE
-length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
-missing IHDR, so
-every caller sees the same diagnosis.
+whether that tRNS came before any PLTE chunk. This module refuses a
+misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk
+after the image data, non-consecutive IDAT chunks, a malformed PLTE length,
+an unknown critical chunk, a chunk after IEND, a missing IEND and a missing
+IHDR, so every caller sees the same diagnosis. Header validation -- the
+IHDR fields and, given a color type, the tRNS and PLTE payload rules --
+lives in ``tools/png/header.py``.
 ``tools/png/chunks.py`` does the lower-level framing and CRC checks this
 builds on.
 
@@ -67,8 +64,9 @@ def collect_chunks(
 
     Walks the chunks after the signature, collecting the image header, palette,
     IDAT payloads, the optional tRNS transparency payload and whether that
-    tRNS appeared before any PLTE chunk (an ordering :func:`check_trns` refuses
-    once a PLTE is known to be present). It refuses
+    tRNS appeared before any PLTE chunk (an ordering
+    :func:`tools.png.header.check_trns` refuses once a PLTE is known to be
+    present). It refuses
     a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
     chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
     length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
@@ -153,8 +151,9 @@ def collect_chunks(
                 )
             trns = payload
             if palette is None:
-                # Record the ordering, not a verdict: :func:`check_trns`
-                # decides once the stream has shown whether a PLTE follows.
+                # Record the ordering, not a verdict:
+                # :func:`tools.png.header.check_trns` decides once the stream
+                # has shown whether a PLTE follows.
                 # tRNS before a PLTE chunk is illegal for every color type,
                 # including a truecolor image's suggested palette.
                 trns_before_plte = True

@@ -15,7 +15,11 @@ from .trns import check_palette_trns_length, check_sample_trns_length
 # color_type -> channels per pixel at bit depth 8
 CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 
-# Bound declared pixels before allocating decoded scanlines.
+# Cap on declared pixels. A PNG's IDAT can be arbitrarily smaller than the
+# scanlines it expands to, so a few KB can demand gigabytes (a decompression
+# bomb). 64 MP is far above any screenshot this tool compares and still bounds
+# one decode to a few hundred MB. Bound declared pixels before allocating
+# decoded scanlines.
 MAX_PIXELS = 64_000_000
 
 
