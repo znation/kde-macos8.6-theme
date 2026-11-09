@@ -154,6 +154,10 @@ The post-merge review of commit `a7ebee6944ba7b4349fce03f1235f1e6fbfd287f` (Spli
 
 The post-merge review of commit `759593cd087f96118fd36c5f3f5a59f109c18ca4` (Land Firefox about:preferences Platinum search field via moz-input-search tokens) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 9ea1e0e5 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `9ea1e0e5b925d0d14b0d3bb9fc24985e7510c034` (Pin read_gaps' prose-wins-over-bullet precedence in tests/test_validation_gaps.py) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
