@@ -23,6 +23,7 @@ from support.gtk_theme_spec import (
     ENTRY_PROGRESS,
     ETCH_DARK,
     INVERTED_BUTTON_BEVEL,
+    RAISED_BEVEL,
 )
 from support.platinum_palette import (
     BLACK,
@@ -849,6 +850,174 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             vertical="scale.vertical slider",
             disabled="scale slider:disabled",
         )
+
+    def test_meter_state_and_backdrop_faces(self):
+        """Disabled, selected-row and unfocused-window meters keep the landed
+        faces, and no meter repaint fades over the stock 200ms."""
+        self.assert_rule_group(
+            {
+                "progressbar trough:disabled": {"background-color": TROUGH},
+                "scale trough:disabled": {"background-color": TROUGH},
+                "progressbar trough:backdrop": {
+                    "background-color": TROUGH,
+                    "border-color": BLACK,
+                    "transition": "none",
+                },
+                "scale trough:backdrop": {
+                    "background-color": TROUGH,
+                    "border-color": BLACK,
+                    "transition": "none",
+                },
+                "progressbar trough:backdrop:disabled": {
+                    "background-color": TROUGH,
+                },
+                "scale trough:backdrop:disabled": {
+                    "background-color": TROUGH,
+                },
+                "row:selected progressbar trough": {"border-color": BLACK},
+                "progressbar row:selected trough": {"border-color": BLACK},
+                "row:selected scale trough": {"border-color": BLACK},
+                "scale row:selected trough": {"border-color": BLACK},
+                "scale fill:backdrop": {"background-color": "transparent"},
+                "scale slider:backdrop": {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": RAISED_BEVEL,
+                    "transition": "none",
+                },
+                "scale slider:backdrop:disabled": {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border-color": GREY,
+                    "box-shadow": "none",
+                    "transition": "none",
+                },
+                "row:selected scale slider:disabled": {"border-color": BLACK},
+                "row:selected scale slider": {"border-color": BLACK},
+            }
+        )
+        # The single amendment to the landed bare knob group: the landed
+        # assert_scale reads that group per-property, so only an added,
+        # altered or duplicated transition member dies here.
+        self.assert_rule("scale slider", {"transition": "none"})
+        self.assertEqual(self.selectors.count("scale slider"), 1)
+        # Family sweep: the trough keeps the landed face in exactly the six
+        # stock state spellings. A stray state trough spelling, a renamed
+        # member or a pale trough face leaking onto a disabled fill dies.
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if (s.startswith("progressbar trough")
+                    or s.startswith("scale trough"))
+                and (":disabled" in s or ":backdrop" in s)
+            },
+            {
+                "progressbar trough:disabled",
+                "scale trough:disabled",
+                "progressbar trough:backdrop",
+                "scale trough:backdrop",
+                "progressbar trough:backdrop:disabled",
+                "scale trough:backdrop:disabled",
+            },
+        )
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale slider:backdrop")
+            },
+            {"scale slider:backdrop", "scale slider:backdrop:disabled"},
+        )
+        # Exactly the six selected-row meter members restated: no selected-row
+        # fill or highlight rim (inert over the zero-width border), and no
+        # spelling drift on the odd disabled-first slider group.
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith(
+                    (
+                        "row:selected scale",
+                        "row:selected progressbar",
+                        "scale row:selected",
+                        "progressbar row:selected",
+                    )
+                )
+            },
+            {
+                "row:selected progressbar trough",
+                "progressbar row:selected trough",
+                "row:selected scale trough",
+                "scale row:selected trough",
+                "row:selected scale slider:disabled",
+                "row:selected scale slider",
+            },
+        )
+        # Every non-.osd meter backdrop spelling is accounted for: a dropped
+        # rule or a stray twin outside the state block dies. The landed .osd
+        # and treeview progressbar backdrop spellings carry a prefix neither
+        # a scale nor a progressbar root, so neither joins; the landed one-sided
+        # marked-scale record (test_marked_scale_thumb_arms) contributes its
+        # eight backdropped slider spellings, verbatim from the fresh parse.
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith(("scale", "progressbar"))
+                and ":backdrop" in s
+                and ".osd" not in s
+            },
+            {
+                "scale fill:backdrop",
+                "progressbar trough:backdrop",
+                "scale trough:backdrop",
+                "progressbar trough:backdrop:disabled",
+                "scale trough:backdrop:disabled",
+                "scale slider:backdrop",
+                "scale slider:backdrop:disabled",
+                "progressbar:backdrop",
+                "scale.horizontal.marks-after:not(.marks-before) slider:backdrop",
+                "scale.horizontal.marks-after:not(.marks-before) slider:backdrop:disabled",
+                "scale.horizontal.marks-before:not(.marks-after) slider:backdrop",
+                "scale.horizontal.marks-before:not(.marks-after) slider:backdrop:disabled",
+                "scale.vertical.marks-after:not(.marks-before) slider:backdrop",
+                "scale.vertical.marks-after:not(.marks-before) slider:backdrop:disabled",
+                "scale.vertical.marks-before:not(.marks-after) slider:backdrop",
+                "scale.vertical.marks-before:not(.marks-after) slider:backdrop:disabled",
+            },
+        )
+        # Source-order pin: the nine rules sit between the landed
+        # scale fill/highlight and bare knob groups, so each wins its
+        # equal-specificity tie by later user-sheet source order.
+        # Both anchors get a line-start bolt: the new row:selected slider
+        # group's "row:selected scale slider {" spelling would otherwise
+        # satisfy the bare "scale slider {" substring.
+        top = self.css.index("\nscale fill, scale highlight {")
+        bottom = self.css.index("\nscale slider {")
+        # Comma groups pin by their full byte-equal spelling (the parser
+        # stores each member individually); solo rules by their selector.
+        for spelling in (
+            "progressbar trough:disabled, scale trough:disabled",
+            "progressbar trough:backdrop, scale trough:backdrop",
+            "progressbar trough:backdrop:disabled, scale trough:backdrop:disabled",
+            "row:selected progressbar trough, progressbar row:selected trough,"
+            " row:selected scale trough, scale row:selected trough",
+            "scale fill:backdrop",
+            "scale slider:backdrop",
+            "scale slider:backdrop:disabled",
+            "row:selected scale slider:disabled, row:selected scale slider",
+            "progressbar:backdrop",
+        ):
+            # A line-start bolt keeps treeview's landed
+            # treeview.view.progressbar:backdrop spelling out of this search.
+            position = self.css.index(
+                ("\n" + spelling if spelling == "progressbar:backdrop"
+                 else spelling) + " {"
+            )
+            self.assertGreater(position, top, spelling)
+            self.assertLess(position, bottom, spelling)
 
     def test_scale_focus_outline(self):
         self.assert_rule(

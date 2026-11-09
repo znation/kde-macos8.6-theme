@@ -1238,6 +1238,122 @@ scale fill, scale highlight {
   margin: 0;
 }
 
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+   meter (a progress bar or a scale) in any state — disabled, behind a
+   selected row or in an unfocused window (the GTK scope's standing
+   adaptation premise) — so the toolkit's nine state, backdrop,
+   selected-row and node-motion meter arms are restated against the
+   landed meter recipe of this same sheet: the flat #EEEEEE trough with
+   its 1px solid black border and inset 1px 1px #999999 etch, the
+   transparent fill and highlight, the flat #CCCCFF progress fill and
+   the square #DDDDDD knob with its raised inset 1px 1px #FFFFFF,
+   inset -1px -1px #999999 bevel, pinned as PROGRESSBAR_TROUGH,
+   PROGRESSBAR_PROGRESS, SCALE_TROUGH, SCALE_EMPTY_FILL and SCALE_THUMB
+   in tests/support/gtk_theme_spec.py — and the landed `row:selected
+   button` record. Fresh probe the same day: the toolkit resource
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0,
+   extracted with `gresource extract` (libgtk-3 3.24.49, the 2055-line
+   resource), declares, and the landed meter groups answer none of: a
+   line 1200 `progressbar trough:disabled, scale fill:disabled, scale
+   trough:disabled` pale probe face, a line 1202
+   `progressbar trough:backdrop, scale fill:backdrop, scale
+   trough:backdrop` greige face and greige border behind a 200ms
+   ease-out fade, a line 1204 `progressbar trough:backdrop:disabled,
+   scale fill:backdrop:disabled, scale trough:backdrop:disabled` pale
+   face, a line 1206 selected-row trough rim group (six members; only
+   the four trough members are restated, see the exclusions), a line
+   1214 `progressbar progress:disabled, scale highlight:disabled`
+   transparent arm, lines 1216/1218 `progressbar progress:backdrop
+   (and :backdrop:disabled), scale highlight:backdrop (and
+   :backdrop:disabled)` border-colour arms, a line 1220 selected-row
+   progress/highlight rim group, a line 1242 `scale fill:backdrop,
+   scale fill` greige face whose bare member ties with and loses to the
+   landed `scale fill` and `scale highlight` rule above while its
+   `:backdrop` member repaints, a line 1250 bare `scale slider` knob
+   arm whose 200ms double transition members animate every knob
+   repaint, a line 1258 `scale slider:backdrop` pale image behind a
+   200ms fade with a greige border and a flat inset, a line 1260
+   `scale slider:backdrop:disabled` arm, a line 1262 `row:selected
+   scale slider:disabled, row:selected scale slider` accent rim (with
+   stock's odd disabled-first member order, reproduced byte-equal
+   below) and a line 1449 `progressbar:backdrop` 200ms ease-out arm; the
+   toolkit's dark-twin resource gtk-contained-dark.css carries the same
+   arms with its own palette at lines 1184–1246 and 1433, every line
+   shifted −16. Each selector below is the exact stock spelling and
+   sits later in source order, so it wins every tie; each declared
+   value is the landed recipe. The landed bare `scale slider` rule
+   below is amended with one member to hold the recipe through the
+   states. Exclusions, each with its reason: no ink member (`color`,
+   `text-shadow`, `-gtk-icon-shadow`) on the knob arms — the landed
+   thumb owns no ink member and the stock text shadows describe a label
+   the landed knob never shows; the stock `scale fill:disabled`,
+   `scale fill:disabled:backdrop` and `scale highlight:disabled`
+   transparent arms — matched to the landed transparent fill/highlight
+   face, nothing repaints; the stock `progressbar progress:backdrop`,
+   `progressbar progress:backdrop:disabled`, `scale
+   highlight:backdrop`, `scale highlight:backdrop:disabled` and
+   selected-row progress/highlight border-colour arms plus the two
+   selected-row `scale fill` members of the line 1206 group —
+   border-colour members inert over the landed fill's zero-width
+   border, no repaint; the stock meter geometry arms (`progressbar
+   .horizontal/.vertical trough/progress` 2px minimums, the progress
+   orientation margins, the per-side progress radius arms, the `scale
+   trough` outline arm, the `scale fill` and `scale highlight` margin
+   arm, and the empty-progress reset arm) and the `progressbar`
+   text-ink and font arms — each its own geometry or ink candidate; and
+   the `.osd` meter arms — the landed `.osd` meter blocks already
+   answer them. No hover arm is required: stock declares no trough
+   hover arm, and the landed `scale slider:hover, scale slider:active`
+   rule wins its equal-specificity tie with the stock knob hover arm by
+   later source order. Declaration checks do not establish rendered
+   pixels. */
+
+progressbar trough:disabled, scale trough:disabled {
+  background-color: #EEEEEE;
+}
+
+progressbar trough:backdrop, scale trough:backdrop {
+  background-color: #EEEEEE;
+  border-color: #000000;
+  transition: none;
+}
+
+progressbar trough:backdrop:disabled, scale trough:backdrop:disabled {
+  background-color: #EEEEEE;
+}
+
+row:selected progressbar trough, progressbar row:selected trough, row:selected scale trough, scale row:selected trough {
+  border-color: #000000;
+}
+
+scale fill:backdrop {
+  background-color: transparent;
+}
+
+scale slider:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  transition: none;
+}
+
+scale slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #999999;
+  box-shadow: none;
+  transition: none;
+}
+
+row:selected scale slider:disabled, row:selected scale slider {
+  border-color: #000000;
+}
+
+progressbar:backdrop {
+  transition: none;
+}
+
 scale slider {
   background-color: #DDDDDD;
   background-image: none;
@@ -1245,6 +1361,14 @@ scale slider {
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
   margin: -5px;
+  /* 2026-11-09: stock animates every knob repaint with a 200ms curve
+     and a background/border/box-shadow transition-property member (the
+     toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 1250); the landed no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the knob repaints instantly. */
+  transition: none;
 }
 
 scale.horizontal slider {

@@ -863,10 +863,17 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             self.rules[".osd scale slider:disabled"],
             self.rules["scale slider:disabled"],
         )
+        # The plain knob's landed no-fade amendment is specific to the bare
+        # arm's stock animating members; stock's .osd thumb arms claim no
+        # transition, so the shared recipe excludes that one member.
         self.assertEqual(
             self.rules[".osd scale slider"],
             {
-                **self.rules["scale slider"],
+                **{
+                    name: value
+                    for name, value in self.rules["scale slider"].items()
+                    if name != "transition"
+                },
                 "outline-color": BLACK,
                 "text-shadow": "none",
                 "-gtk-icon-shadow": "none",
