@@ -242,6 +242,10 @@ The post-merge review of commit `a1dbce3771c394be8536a65c6b330dd97975c1fc` (Pain
 
 The post-merge review of commit `b55283673f4e43a3d318127107a1fe99cd1b6161` (Guard COLOR_SCHEME and keep it out of the id-derivation shell string) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of bb60d757 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `bb60d757dd6e6d5733d09559eb968f230d7824be` (paint the Firefox Library toolbar band and menu titles Platinum) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
