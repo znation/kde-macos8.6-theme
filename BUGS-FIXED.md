@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9203bead never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: settled Landed-OK at HEAD. The commit's CSS rule is present as its own selector at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (`spinbutton.vertical:focus` declaring `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`, with its dated no-vertical-reference adaptation comment after the horizontal `spinbutton:focus:not(.vertical)` rule), its pin lives at `tests/test_gtk_theme_controls.py::TestGtkThemeControls::test_vertical_spinbutton_focus_outline` — the spin-button outline tests have since moved from `tests/test_gtk_theme.py` to `tests/test_gtk_theme_controls.py`, where the helper-backed `assert_dotted_focus_outline("spinbutton.vertical:focus", anchor="spinbutton:focus:not(.vertical)")` still asserts the three literal declarations and the per-property equality with the landed horizontal rule — and the invariants row (renamed to name `tests/test_gtk_theme_controls.py::TestGtkThemeControls::test_vertical_spinbutton_focus_outline`) sits under `## gtk` in `docs/invariants.md`. Both the vertical and horizontal focused-outline tests pass under unittest, and `make check` exits 0 at this tree. Nothing in the landed change was wrong.
+
+**Validation gap:** none — the existing suite reproduced and confirmed the landed assertions; nothing was missing.
+
 ### post-merge review of 85d1a439 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Fix: settled the review by hand on main's tip. The commit's pieces are all landed and verified at HEAD: the dated adaptation comment and `calendar { border: 1px solid #000000; }` rule at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:1796-1801`, the pin `tests/test_gtk_theme.py::TestGtkTheme::test_calendar_outer_border` at line 776 (asserting the exact `calendar` border declaration and its equality with both `frame > border` and `.frame`), and the invariant row at `docs/invariants.md:184`. Ran the focused test (pass); ran `make check` (pass).
