@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 97f6c248 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Landed-OK fix. Checked the commit's diff against the live tree: `treeview.view:focus` stands verbatim at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:842` with its dotted black 1px outline, zero offset, `-gtk-outline-radius: 0` and the dated-plan's adaptation comment intact (`git diff 97f6c248 -- <that file>` changes nothing in the rule). The commit's own test was reorganized rather than lost: `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_treeview_focus_outline` (line 229) now pins the selector through `tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_dotted_focus_outline`, a superset of the commit's inline assertions (the same three declarations, plus the `button:focus` comparison). `docs/invariants.md` already retargeted its GTK 3 `treeview.view:focus` row to the moved test path. Focused run `CHECK_PATTERN='test_gtk_theme_views.py' make check` passed on the worktree tree.
+
+**Validation gap:** none — the commit's own tests reproduce and hold the tree-view focus outline on main, and the focused check run passed on the live tree.
+
 ### post-merge review of 9ddcbc8b never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 **Fix.** Settled as landed-OK on main. The commit's declaration lives verbatim in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (`list row:focus` with the `1px dotted #000000` outline, zero offset and `-gtk-outline-radius: 0`, not restricted to `.activatable`, reusing `button:focus` per the provenance comment, beside the generic row selection rules); after the suite's later reorganization the test moved to `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_list_row_focus_outline` and was rewritten onto the shared `tests/support/gtk_rule_cases.py::assert_dotted_focus_outline` helper, which pins those literal declarations and the copy from the `button:focus` anchor; the gtk row in `docs/invariants.md` was retargeted to that moved test path and still names the recording. Focused `make check CHECK_PATTERN='test_gtk_theme_views.py'` reported OK for the module, and the full check passed. Nothing renders differently than the declaration claims, so there is nothing to fix.
