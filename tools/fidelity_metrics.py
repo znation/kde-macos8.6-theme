@@ -37,7 +37,14 @@ else:  # imported from a directly run tool
     from png import Image
     from fidelity_geometry import FidelityError, crop_rect_problem, crop
 
-__all__ = ["FidelityError", "crop_rect_problem", "crop", "Metrics", "compare"]
+__all__ = [
+    "FidelityError",
+    "crop_rect_problem",
+    "crop",
+    "Metrics",
+    "compare",
+    "over_table",
+]
 
 
 @dataclass(frozen=True)
