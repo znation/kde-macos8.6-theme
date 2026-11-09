@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 39b3984f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `39b3984f6ee0f273eef64a513c05da673c96d884` (Share ihdr_end/with_ihdr_byte's IHDR unpack in one png_fixtures helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** Reviewed the commit's full diff and its helper's state on main. No defect: the arithmetic is behavior-preserving — `_ihdr_payload_span` returns `start = len(_PNG_SIGNATURE) + 8` (= 16) and unpacks the length from `data[start - 8 : start - 4]` (= `data[8:12]`), exactly where both original call sites read it, so `ihdr_end`'s `start + length + 4` still equals the old `start + 8 + length + 4` and `with_ihdr_byte`'s payload start is still 16 (short-input slices now raise the same `struct.error` as before; no exception-type change). A grep of `tests/support/png_fixtures.py` shows `_PNG_SIGNATURE` and the IHDR-length `struct.unpack` appear only inside the helper, and its docstring's claim of exactly two callers still holds (`ihdr_end` line 84, `with_ihdr_byte` line 287). `make check CHECK_TESTS='test_png_fixtures test_png_chunks'` ran OK (58 tests), covering both call sites' pinned behavior.
+
+**Validation gap:** none — the settled commit's own tests reproduce and confirm its claims.
+
 ### post-merge review of 1a67eb30 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `1a67eb30f521acff177d3687b7be4401550b156e` (Paint the Firefox prefs sidebar separators as the Platinum etch) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
