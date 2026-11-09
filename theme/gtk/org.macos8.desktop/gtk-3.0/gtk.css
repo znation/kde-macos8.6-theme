@@ -1484,6 +1484,44 @@ scale slider:backdrop:disabled {
   transition: none;
 }
 
+/* A scale's tick marks and shown numeric readout — the text the toolkit
+ * paints beside the trough and over the value — keep the landed black
+ * window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK scale's marks or its numeric readout
+ * text, so the pair's ink is platform-required and the landed trough,
+ * fill, highlight and slider groups — other nodes — can reach the text in
+ * no context. The toolkit resource gtk-contained.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource`)
+ * declares the pair's one ink arm anywhere in the resource, `scale marks,
+ * scale value` at line 1276 with color set to the toolkit's translucent
+ * diluted ink and its tabular-figure setting, after the slider state
+ * twins and before its marks geometry arms; the dark-twin resource
+ * gtk-contained-dark.css declares the identical arm at line 1260, every
+ * line shifted by −16, so one landed ink answers both deliveries. No
+ * disabled, backdrop or `.osd` arm repaints the pair in either resource:
+ * those state twins (resource lines 1250–1260) set the slider node's own
+ * colour only — the ink the landed slider face groups already answer
+ * per-property — never the marks or value text, so this group wins the
+ * single per-property equal-specificity tie by later user-sheet source
+ * order in every state the bare pair reaches. The value source is the
+ * landed black window ink, the same policy the landed treeview
+ * progress-cell record applies to the cell's toolkit-painted text and the
+ * landed insensitive-label, separator-label and disabled link-button
+ * records apply to inherited-window-ink text. Removed members: the arm's
+ * tabular-figure setting stays inherited — stock-only readout typography
+ * no counter-arm repaints, the landed theme synthesizes no other
+ * control's font-feature setting, and the user-sheet read is per-property;
+ * the marks arms that closely follow the ink arm (resource lines
+ * 1278–1300: the four orientation margins and their fine-tune twins and
+ * the indicator minimum arms) are allocation-only spacing and sizing of
+ * the tick lines, painting no face or ink; and the landed marked-scale
+ * record's marks-before/marks-after arms restate the slider node's own
+ * asset faces, not this text. Declaration, count and source-order checks
+ * do not establish rendered pixels. */
+scale marks, scale value {
+  color: #000000;
+}
+
 row:selected scale slider:disabled, row:selected scale slider {
   border-color: #000000;
 }

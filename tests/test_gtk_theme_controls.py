@@ -1095,6 +1095,46 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             self.assertGreater(position, top, spelling)
             self.assertLess(position, bottom, spelling)
 
+    def test_scale_decoration_ink(self):
+        """A scale's tick marks and readout paint the landed window ink.
+
+        The landed group sits directly after the landed backdrop-disabled
+        slider twin and before the landed selected-row slider twin, so the
+        single repainted member reads through the toolkit's stock ink arm
+        in every state the bare pair reaches. Assert each spelling once,
+        whole-driven, family-clean and in the landed group order.
+        """
+        # The parser stores comma-group members individually, so the
+        # whole-dict assertion pins the two spellings the group declares,
+        # each exactly once, and the stripped sheet's single comma-spelled
+        # group kills a split into bare spelling blocks.
+        self.assert_rule_group(
+            {"scale marks": {"color": BLACK}, "scale value": {"color": BLACK}}
+        )
+        self.assertEqual(
+            strip_comments(self.css).count("scale marks, scale value {"), 1
+        )
+        # Order pins: the pair group reads later than the backdrop-disabled
+        # slider twin it follows and earlier than the selected-row slider
+        # twin it precedes in the landed sheet order.
+        self.assert_rule_after(
+            "scale marks, scale value {", "scale slider:backdrop:disabled {"
+        )
+        self.assert_rule_after(
+            "row:selected scale slider:disabled, row:selected scale slider {",
+            "scale marks, scale value {",
+        )
+        # No renamed, stray or state-armed marks/value spelling exists: the
+        # family sweeps admit only the group's two members.
+        self.assertEqual(
+            {s for s in self.selectors if s.startswith("scale marks")},
+            {"scale marks"},
+        )
+        self.assertEqual(
+            {s for s in self.selectors if s.startswith("scale value")},
+            {"scale value"},
+        )
+
     def test_scale_focus_outline(self):
         self.assert_rule(
             "scale:focus",
