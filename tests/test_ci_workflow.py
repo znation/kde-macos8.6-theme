@@ -59,7 +59,32 @@ class TestCiWorkflow(unittest.TestCase):
         # (?s) lets the pattern cross the shell line continuations.
         self.assertRegex(workflow, r"(?s)apt-get install.*kwin-wayland")
         self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
+        # The applet render opens org.kde.plasma.calculator, which the runner
+        # image does not preinstall; the package must arrive with the tools.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*plasma-widgets-addons"
+        )
+        # The GPU-less runner needs Mesa's software EGL driver for KWin's
+        # virtual backend.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*libgl1-mesa-dri"
+        )
+        # Spectacle's OCR probe otherwise warns through three candidates and
+        # leaves the optional path unavailable on the runner.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*libtesseract5"
+        )
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*tesseract-ocr-eng"
+        )
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
+        # Ubuntu 26.04 moved the Aurorae decoration engine out of kwin-common.
+        self.assertRegex(
+            workflow,
+            r"(?s)apt-cache show kwin-style-aurorae .*?"
+            r"aurorae_package=kwin-style-aurorae",
+            "the install must select the split Aurorae engine package",
+        )
         # Ubuntu 26.04 publishes the screenshot package as `kde-spectacle`;
         # 24.04 publishes `spectacle`. The install must follow the name its
         # apt index actually provides, while verifying the unchanged
@@ -87,7 +112,8 @@ class TestCiWorkflow(unittest.TestCase):
             r"command -v plasma-apply-colorscheme >/dev/null && \\\s*"
             r"command -v spectacle >/dev/null && \\\s*"
             r"command -v kdialog >/dev/null && \\\s*"
-            r"command -v zenity >/dev/null; then",
+            r"command -v zenity >/dev/null && \\\s*"
+            r"has_calculator_applet; then",
         )
 
     def test_every_use_pins_a_full_commit_sha(self):
@@ -125,6 +151,12 @@ class TestCiWorkflow(unittest.TestCase):
             workflow,
             r"(?m)^\s+QT_QPA_PLATFORM: offscreen$",
             "the check job must select a headless Qt platform",
+        )
+        # KWin's virtual backend still needs an EGL driver; the runner has no
+        # GPU, and Mesa otherwise tries Zink and fails before the session paints.
+        self.assertRegex(workflow, r"(?m)^\s+LIBGL_ALWAYS_SOFTWARE: '1'$")
+        self.assertRegex(
+            workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE: llvmpipe$"
         )
 
     def test_workflow_pins_the_python_development_version(self):

@@ -303,6 +303,27 @@ class TestSessionSetup(unittest.TestCase):
             )
             self.assertEqual(str(session.data), session.environment["XDG_DATA_HOME"])
 
+    def test_environment_disables_kwin_screenshot_authorization(self):
+        # The nested compositor cannot map its clients to a desktop-file
+        # identity, and KWin 6.6 rejects an unauthorized ScreenShot2 call
+        # before Spectacle can write the capture. The switch must reach KWin
+        # through the session environment, so the capture still works there.
+        with render_session.Session.create() as session:
+            self.assertEqual(
+                "1",
+                session.environment["KWIN_SCREENSHOT_NO_PERMISSION_CHECKS"],
+            )
+
+    def test_environment_forces_spectacles_null_video_platform(self):
+        # Spectacle would otherwise build its Wayland video platform even for
+        # a still capture and wait on a nonexistent PipeWire/screencast
+        # service before the capture starts.
+        with render_session.Session.create() as session:
+            self.assertEqual(
+                "VideoPlatformNull",
+                session.environment["SPECTACLE_VIDEO_PLATFORM"],
+            )
+
     def test_environment_drops_the_callers_session(self):
         ambient = {
             "WAYLAND_DISPLAY": "wl",
@@ -404,6 +425,16 @@ class TestSessionScript(unittest.TestCase):
         self.assertIn('kill "$client"', script)
         self.assertIn('wait "$client"', script)
         self.assertIn("exit $status", script)
+        # A client that ignores SIGTERM must not hold the session past its
+        # capture; the bounded wait escalates to SIGKILL before reaping.
+        self.assertIn("waited=0; ", script)
+        self.assertIn('kill -9 "$client"', script)
+        self.assertLess(
+            script.index('kill "$client"'), script.index('kill -9 "$client"')
+        )
+        self.assertLess(
+            script.index('kill -9 "$client"'), script.index('wait "$client"')
+        )
         # Reap the killed child before exiting; the wait's status must not
         # replace the capture status saved above.
         self.assertLess(

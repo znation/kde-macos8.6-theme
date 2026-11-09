@@ -85,6 +85,18 @@ class Session:
                 # aborts in QGuiApplication and D-Bus retries it in a
                 # core-dump loop.
                 WAYLAND_DISPLAY=SOCKET,
+                # KWin 6.6 refuses ScreenShot2 calls from a process it cannot
+                # map to a desktop-file identity. This throwaway compositor
+                # and its private bus have no such identity to offer, so the
+                # capture is refused before Spectacle can write the PNG.
+                # Disable the check only for this scratch session.
+                KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
+                # Spectacle constructs its Wayland video platform even for a
+                # still capture; that path binds KWin's screencast interface
+                # and starts PipeWire, which the headless runner does not run.
+                # A still render has no video platform, so force Spectacle's
+                # null one (its documented testing override) in this session.
+                SPECTACLE_VIDEO_PLATFORM="VideoPlatformNull",
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
                 HOME=str(home),
@@ -151,12 +163,21 @@ def session_script() -> str:
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
         '"$@" & client=$!; '
+        'echo "render-session: client started" >&2; '
         'sleep "$settle"; '
+        'echo "render-session: settle done" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
+        'echo "render-session: capturing" >&2; '
         'spectacle -b -n -f -o "$capture"; status=$?; '
+        'echo "render-session: capture status $status" >&2; '
         'kill "$client" 2>/dev/null; '
+        'waited=0; '
+        'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
+        'sleep 0.1; waited=$((waited + 1)); done; '
+        'kill -9 "$client" 2>/dev/null; '
         'wait "$client" 2>/dev/null; '
+        'echo "render-session: client reaped" >&2; '
         "exit $status"
     )
 
