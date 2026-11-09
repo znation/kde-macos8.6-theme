@@ -2,11 +2,11 @@
 
 Both test-side unchanged-file caches key their entries on this one fingerprint:
 the SVG tree cache in ``support.svg_case`` and the Xcursor parse cache in
-``support.xcursor``. Their suites pin the cache behaviour with the helper
-mocked away (``test_svg_case``) or through a read that fails before the
-fingerprint matters (``test_xcursor``), so no test pins the fingerprint's own
-contract; these do, so a change to the identity rule is caught here rather
-than in both caches at once.
+``support.xcursor``. Their suites exercise reuse and rewrite invalidation
+with the real helper. Stat-failure coverage instead mocks the helper
+(``test_svg_case``) or uses a missing file whose read fails anyway
+(``test_xcursor``). These tests directly pin the exact tuple and the helper's
+stat-failure result, alongside its stability and invalidation properties.
 
 Run with the project's check harness (stdlib unittest)::
 
