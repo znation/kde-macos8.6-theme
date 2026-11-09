@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9f35b16a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `9f35b16a4ebad0f8b7ce052d9d142c027c2d2a29` (Add an explicit focus outline to GTK 3 expander titles) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and checked each changed file. `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` still declares `expander > title:focus` with `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`, preceded by the dated missing-reference adaptation comment (line 880); `git diff 9f35b16a4eb..main -- that file` leaves the rule itself untouched (the surrounding diffs are the disclosure RTL rule above it and the spin-button spelling shift below). The commit's test remains at `tests/test_gtk_theme.py::TestGtkTheme::test_expander_title_focus_outline` (line 217) and now pins the three literal declarations plus the `button:focus` copy through the shared `assert_dotted_focus_outline` helper in `tests/support/gtk_rule_cases.py` (line 223) — a superset of the commit's original assertions. The invariant row at `docs/invariants.md:188` already cites that live test path. Nothing was wrong on main.
+
+**Validation gap:** none — the commit's own test reproduces the outline declarations on main via the shared helper; the focused GTK check (40 tests) and the named test passed on the live tree.
+
 ### post-merge review of dd5937a3 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `dd5937a3252314dce97d0a87ef7d46bbfe172c5b` (Add a GTK 3 focus outline for flow-box children) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
