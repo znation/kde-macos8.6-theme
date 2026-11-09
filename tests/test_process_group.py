@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest import mock
 
@@ -234,6 +235,36 @@ class TestRunLogged(unittest.TestCase):
         # deferral, so this pins the same cleanup for SIGHUP.
         caught = self._run_while_popen_returns(signal.SIGHUP, SystemExit)
         self.assertEqual(128 + signal.SIGHUP, caught.code)
+
+    def test_a_custom_sigint_handler_keeps_its_behavior_during_start(self):
+        received = []
+        handler = lambda number, frame: received.append(number)
+        old = signal.signal(signal.SIGINT, handler)
+        self.addCleanup(signal.signal, signal.SIGINT, old)
+        real_popen = subprocess.Popen
+
+        def popen_then_interrupt(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            os.kill(os.getpid(), signal.SIGINT)
+            return process
+
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=popen_then_interrupt
+        ):
+            self.assertEqual(0, self.run_sh("exit 0"))
+        self.assertEqual([signal.SIGINT], received)
+        self.assertIs(handler, signal.getsignal(signal.SIGINT))
+
+    def test_default_signal_handlers_allow_running_from_a_worker_thread(self):
+        for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+            handler = (
+                signal.default_int_handler if number == signal.SIGINT
+                else signal.SIG_DFL
+            )
+            old = signal.signal(number, handler)
+            self.addCleanup(signal.signal, number, old)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            self.assertEqual(3, executor.submit(self.run_sh, "exit 3").result(10))
 
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise

@@ -22,6 +22,7 @@ import contextlib
 import os
 import signal
 import subprocess
+import threading
 from collections.abc import Iterator
 from pathlib import Path
 from types import FrameType
@@ -57,6 +58,14 @@ def _defer_signals(
     previous: list[tuple[int, object]] = []
     for number in signals:
         old = signal.getsignal(number)
+        # Only the default Ctrl-C handler has the KeyboardInterrupt semantics
+        # replayed below. Other handlers belong to the caller. Signals execute
+        # on the main thread, and Python forbids installing handlers elsewhere.
+        if number == signal.SIGINT and (
+            old is not signal.default_int_handler
+            or threading.current_thread() is not threading.main_thread()
+        ):
+            continue
         if callable(old):
             previous.append((number, old))
             signal.signal(
