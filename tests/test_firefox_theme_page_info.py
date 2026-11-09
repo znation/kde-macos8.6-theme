@@ -558,7 +558,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         other_panel = element("vbox", "otherPanel", parent=main_deck)
         stray_box = element("groupbox", "strayBox", parent=other_panel)
         stray_header = element(
-            "label", "strayHeader", ("header",), parent=other_panel
+            "label", "strayHeader", ("header",), parent=stray_box
         )
         for box in boxes:
             with self.subTest(security_groupbox=True):
