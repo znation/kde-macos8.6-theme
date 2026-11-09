@@ -2290,6 +2290,10 @@ The post-merge review of commit `4b8ddf551389e23f102f0c43c5efe02abe58ec2a` (Rest
 
 The post-merge review of commit `ff2d7fa7e9aba76e2803841eb366f0b7a297d90d` (Repaint the GTK 4 no-compositor window frame with the Platinum outline as a 1px window border) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 43c63bd6 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `43c63bd616c6b57cc6bfe0716488170a9bfc7abd` (Steer the Kvantum combo field to a raised `combofield` frame family) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
