@@ -258,6 +258,75 @@ class TestUserCssBackup(unittest.TestCase):
         self.assertFalse(path.with_name("gtk.css.bak").exists())
         self.assertEqual(b"x\n", path.read_bytes())
 
+    def test_a_failed_write_leaves_no_partial_backup(self):
+        # The open and the exclusive create succeeded, so a write failure
+        # must close the descriptor, discard the partial sibling and refuse
+        # naming the stylesheet and the backup; the source stays untouched.
+        path = self.css("original\n")
+        backup = path.with_name("gtk.css.bak")
+
+        class FailingHandle:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def write(self, data):
+                raise OSError(errno.ENOSPC, "simulated write failure")
+
+        with mock.patch.object(
+            os, "fdopen", return_value=FailingHandle()
+        ):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.user_css_backup(path)
+        self.assertIn(f"cannot back up {path} to {backup}", str(caught.exception))
+        self.assertIn("simulated write failure", str(caught.exception))
+        self.assertFalse(backup.exists())
+        self.assertEqual(b"original\n", path.read_bytes())
+
+    def test_an_open_refusal_names_the_backup(self):
+        # The exclusive create is the only open that must refuse for a reason
+        # other than "name taken"; the stylesheet's own read still succeeds,
+        # so the refusal names the backup the copy never created.
+        path = self.css("x\n")
+        backup = path.with_name("gtk.css.bak")
+        real_open = os.open
+
+        def refuse_backup_open(file, *args, **keywords):
+            if "bak" in os.fspath(file):
+                raise PermissionError(errno.EACCES, "simulated open refusal")
+            return real_open(file, *args, **keywords)
+
+        with mock.patch.object(
+            gtk_user_files.os, "open", side_effect=refuse_backup_open
+        ):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.user_css_backup(path)
+        self.assertIn(f"cannot back up {path} to {backup}", str(caught.exception))
+        self.assertIn("simulated open refusal", str(caught.exception))
+        self.assertFalse(backup.exists())
+        self.assertEqual(b"x\n", path.read_bytes())
+
+    def test_exhausted_backup_names_are_refused_by_name(self):
+        # Every sibling ``.bak.N`` name through the last attempted suffix
+        # taken must exhaust the search, not wrap onto an earlier name or
+        # print a suffix the loop never visited. The count comes from the
+        # module constant, so a changed attempt budget stays in step with
+        # these names.
+        path = self.css("x\n")
+        attempts = gtk_user_files._BACKUP_NAME_ATTEMPTS
+        for index in range(attempts):
+            suffix = "" if index == 0 else f".{index}"
+            (path.with_name(f"{path.name}{gtk_user_files.USER_CSS_BACKUP_SUFFIX}{suffix}")
+             .write_bytes(b"taken\n"))
+        with self.assertRaises(gtk_user_files.ConfigError) as caught:
+            gtk_user_files.user_css_backup(path)
+        self.assertIn(
+            f"cannot find an unused backup name for {path}", str(caught.exception)
+        )
+        self.assertEqual(b"x\n", path.read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()
