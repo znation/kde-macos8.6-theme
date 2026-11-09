@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of ee83d1d6 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `ee83d1d60f978a60fd36fdd28e03dfdfcdf7a13e` (Add tests/test_file_lock.py pinning the shared flock's retry and release arms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and found no defect. The commit only adds `tests/test_file_lock.py` plus one `docs/invariants.md` row. The three tests it adds genuinely pin the arms they claim in `tools/file_lock.py`: the EINTR test patches `fcntl.flock`, which the module calls at attribute level, and asserts one interruption then a clean reacquire; the contention test holds a real `LOCK_EX` from another thread and releases after four `POLL_SECONDS` intervals so the waiter's bounded loop must acquire; the release test raises inside the body and reacquires, pinning the `finally` close. The module's `_wait_for_flock_error` retries EINTR without sleeping and treats only `EACCES`/`EAGAIN` as contention, matching the tests. Later merges have grown the module to six tests (a repeated-interruption deadline test and a `TestParentDirLock` pair); all six pass under `make check CHECK_TESTS=test_file_lock`, and the invariants row names exactly `tests/test_file_lock.py::TestExclusiveFlock`.
+
+**Validation gap:** none — the existing suite reproduced and confirmed it; nothing was missing
+
 ### post-merge review of 37c08ac3 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `37c08ac30c9e3986f43d107fe153fce38fa6982d` (Move the GTK 3 pixel tests into child interpreters so the suite process never imports gi) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
