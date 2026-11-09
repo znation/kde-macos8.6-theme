@@ -498,6 +498,10 @@ The post-merge review of commit `71f9dcd3689640fdf0064e6ddefb28169efbc119` (Queu
 
 The post-merge review of commit `e6a1b58ba02c6c3ac9e8e747b0163e4d73277541` (Bound process_runner.finish's second pipe wait by REAP_TIMEOUT) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of ee605981 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `ee605981d7b76b80dc1bcf50fb1b159aa10e8c86` (Restate GTK 3 OSD push-button arms with the plain Platinum button) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
