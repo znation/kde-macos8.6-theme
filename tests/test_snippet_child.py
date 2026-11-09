@@ -205,5 +205,36 @@ class TestTimeoutPath(unittest.TestCase):
         self.assertIn("was not released", stderr.getvalue())
 
 
+class TestCollectorDescriptors(unittest.TestCase):
+    def test_output_is_collected_from_pipes_above_selects_fd_limit(self):
+        import fcntl
+        import resource
+
+        if resource.getrlimit(resource.RLIMIT_NOFILE)[0] <= 1025:
+            self.skipTest("requires room for two descriptors above 1023")
+        reads = []
+        try:
+            for payload in (b"stdout", b"stderr"):
+                read, write = os.pipe()
+                try:
+                    reads.append(fcntl.fcntl(read, fcntl.F_DUPFD, 1024))
+                    os.write(write, payload)
+                finally:
+                    os.close(read)
+                    os.close(write)
+            # Model an already exited child with real buffered output: the
+            # first drain reads the bytes, the next observes EOF. No real
+            # child is needed to exercise the wait between those drains.
+            with mock.patch.object(snippet_child.os, "waitpid", return_value=(42, 0)):
+                child = snippet_child._collect(42, *reads, ["pass"], 1)
+            reads.clear()  # _collect closes both descriptors on success.
+            self.assertEqual(0, child.returncode)
+            self.assertEqual("stdout", child.stdout)
+            self.assertEqual("stderr", child.stderr)
+        finally:
+            for fd in reads:
+                os.close(fd)
+
+
 if __name__ == "__main__":
     unittest.main()

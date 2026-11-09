@@ -171,7 +171,8 @@ def _collect(pid, out_read, err_read, snippet_argv, timeout):
     reported as `subprocess.TimeoutExpired`. The wait between drains is a
     bounded ``select`` on the still-open pipes, so a chunk or the EOF a
     child's exit closes its pipes with wakes it at once; the 5ms bound keeps
-    the ready-wait short and a pipe-less child keeps the old 5ms sleep.
+    the ready-wait short. A pipe-less child, or pipes beyond ``select``'s
+    descriptor range, keep the old 5ms sleep.
 
     A child that has already exited is never signalled: its status has been
     reaped, so the pid may belong to another process by the time the wait
@@ -199,7 +200,13 @@ def _collect(pid, out_read, err_read, snippet_argv, timeout):
                 # a chunk that arrives mid-slice (or the EOF a child's exit
                 # closes its pipes with) wakes the select at once, so a fast
                 # child does not pay the full slice before its next drain.
-                select.select(tuple(open_streams), (), (), 0.005)
+                try:
+                    select.select(tuple(open_streams), (), (), 0.005)
+                except ValueError:
+                    # select's fd_set has a smaller descriptor range than
+                    # read/waitpid. Preserve collection in a busy parent
+                    # whose pipes fall outside that range.
+                    time.sleep(0.005)
             else:
                 time.sleep(0.005)
             continue
