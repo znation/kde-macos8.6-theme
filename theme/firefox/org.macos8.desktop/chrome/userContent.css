@@ -399,7 +399,7 @@
    records; a checked box, #autorefcheck:checked, overlays the shipped
    glyph; #autorefcheck's stock --checkbox-size sizing from
    in-content/common-shared.css stays Firefox's). The #sectionTitle
-   heading, the four hrs and the about-logging link paragraph stay
+   heading, the three hrs and the about-logging link paragraph stay
    Firefox's. The page loads top-level in a tab like the landed
    about:support. A headless run of this ESR on 2026-10-27 with a
    temporary profile whose userContent.css held an
