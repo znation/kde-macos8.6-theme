@@ -1126,8 +1126,14 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         )
         # Family sweep: no state twin, no rename and no split spelling (the
         # landed scale trough, fill/highlight and slider spellings fail the
-        # equality and stay out).
+        # equality and stay out); the state sweep admits only the landed
+        # `scale:focus` record's spelling, so an added `scale:disabled` or
+        # `scale:backdrop` bare-node twin dies here too.
         self.assertEqual({s for s in self.selectors if s == "scale"}, {"scale"})
+        self.assertEqual(
+            {s for s in self.selectors if s.startswith("scale:")},
+            {"scale:focus"},
+        )
         # Order pins: the container block sits after the fine-tune radius
         # group and the fine-tuned container record follows it, mirroring
         # stock's plain-before-fine-tuned order. The two-operand pins ride
