@@ -206,7 +206,8 @@ def write_cursor(images) -> bytes:
     *images* is an iterable of ``(nominal_size, width, height, hotspot_x,
     hotspot_y, png_bytes)`` records, one per image frame. Each ``png_bytes``
     must decode to exactly ``width`` x ``height`` RGBA pixels. Raises
-    ``ValueError`` when *images* contains no frames, and otherwise naming the
+    ``ValueError`` when *images* is not iterable or contains no frames, and
+    otherwise naming the
     offending record field for a dimension outside 1..``MAX_IMAGE_SIZE``, a
     hotspot outside its image, a non-integer numeric field (including a
     ``bool``), a PNG field that is not ``bytes``/``bytearray``, and a PNG
@@ -227,9 +228,9 @@ def write_rgba_cursor(images) -> bytes:
     must hold exactly ``width * height * 4`` bytes in row order. The result is
     byte-identical to :func:`write_cursor` given the same pixels encoded as
     PNG, without the encode/decode round trip. Raises ``ValueError`` naming
-    the offending record field, as :func:`write_cursor` does, when a dimension
-    or hotspot is invalid or the pixel buffer is the wrong type or length, and
-    when *images* contains no frames.
+    the offending record field, as :func:`write_cursor` does, when *images*
+    is not iterable, a dimension or hotspot is invalid or the pixel buffer is
+    the wrong type or length, and when *images* contains no frames.
     """
     frames = [
         _rgba_frame(index, record)
