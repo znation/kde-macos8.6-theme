@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 4e97dc86 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `4e97dc86812ef81e5b0af62a959e52bc106ccc4b` (Paint the GTK 3 scrollbar corner junction as the flat #EEEEEE scrollbar band) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 2c379b28 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `2c379b28758fb69d225d658c58bc98acf727d6bc` (Refuse control bytes in CHECK_TESTS and CHECK_PARALLEL at make parse time, unecheod) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

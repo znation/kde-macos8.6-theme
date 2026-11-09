@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 4e97dc86 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `4e97dc86812ef81e5b0af62a959e52bc106ccc4b` (Paint the GTK 3 scrollbar corner junction as the flat #EEEEEE scrollbar band) never reached a verdict: You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: reviewed commit `4e97dc86`'s diff on main's current tree. The GTK 3 sheet declares exactly two junction rules — `scrolledwindow junction` and `scrolledwindow junction:backdrop`, each pinning `background-color: #EEEEEE` (the landed scrollbar band trough ink), `border-color: transparent` and `border-image: none` — inside an adaptation comment that names the missing reference surface (no collected screenshot shows a GTK scrollbar corner) and the stock `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` inventory it adapts, with no stray `junction:dir` arm; the live tests pin the exact rule shape and the arm's absence, and the docs/invariants.md GTK 3 junction row cross-references them. Nothing wrong to fix.
+
+**Validation gap:** none — the landed suite already pins the junction rules' shape, state coverage and arm absence, confirming the change as landed.
+
 ### post-merge review of 1555c1c2 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `1555c1c261debc86fcb890bf4806353af6e5c7c7` (Remove the stray, unreferenced `adwaita3.css` from the repo root) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
