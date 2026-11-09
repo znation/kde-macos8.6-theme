@@ -3930,6 +3930,21 @@ for radio in (False, True):
             disabled="progressbar > trough > progress:disabled",
         )
 
+    def test_progressbar_label_ink(self):
+        """A meter's show-text percentage label keeps the landed window ink."""
+        self.assert_rule_group({"progressbar": {"color": BLACK}})
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("progressbar")
+                and ">" not in s
+                and "." not in s
+            },
+            {"progressbar", "progressbar:disabled"},
+        )
+        self.assert_rule_after("progressbar > trough {", "progressbar {")
+
     def test_progressbar_osd_trough_paint(self):
         selector = "progressbar.osd > trough"
         expected = {

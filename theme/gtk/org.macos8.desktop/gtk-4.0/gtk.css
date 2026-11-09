@@ -1579,6 +1579,57 @@ scrollbar > range > trough > slider:disabled {
   opacity: 1;
 }
 
+/* A meter's show-text percentage label — the text the toolkit paints
+ * over the bar itself when `show-text` is enabled — keeps the landed
+ * black window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK meter's percentage label, so the bare
+ * `progressbar` widget node's ink is platform-required and the landed
+ * `progressbar > trough`, `progressbar > trough > progress`,
+ * `progressbar.osd > trough` and headerbar-descended meter groups — other
+ * nodes or other bars — can reach it in no plain context. The installed
+ * GTK 4 theme resource Default-light.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (extracted with `gresource`)
+ * declares the node's one ink arm at its resource line 1268,
+ * `progressbar { font-size: smaller; color: <the toolkit's translucent
+ * ink>; font-feature-settings: "tnum"; }`, and the dark-twin resource
+ * Default-dark.css declares the same arm at line 1256 with its own
+ * translucent grey literal, every line shifted by −12; no state,
+ * backdrop or `.osd` arm repaints the bare node ink in either resource.
+ * The integration library's `base.css` resource (probe path recorded
+ * in docs/invariants.md) declares no bare meter ink arm and collects
+ * the label node only through the `.dimmed` `opacity`
+ * family (line 1050), the `.numeric` `font-feature-settings` family
+ * (line 1079) and its own `progressbar > text { font-size: smaller; }`
+ * arm (line 1858) — no resource carries a `progressbar > text` color, so
+ * the label rides inheritance from the bare node, and the restatement
+ * below owns it in one group. It wins the single per-property
+ * equal-specificity tie by later user-sheet source order, so one landed
+ * ink answers light and dark deliveries and the `.osd` meter contexts
+ * the plain node reaches alike; the value source is the landed black
+ * window ink, the same policy the landed GTK 3 meter percentage-label
+ * record in the toolkit's other sheet applies to toolkit-painted text.
+ * The two stock typography members stay inherited: `font-size: smaller`
+ * is stock-only label sizing the landed theme synthesizes for no other
+ * control and `font-feature-settings: "tnum"` likewise, and neither has
+ * a toolkit, integration or user counter-arm to tie; the integration
+ * library's dilution and disabled-filter members (`.dimmed` opacity,
+ * `.numeric`
+ * figures, and the meter's disabled filter arm at base line 1860,
+ * already answered by the landed opaque-disabled `filter: none` group)
+ * stay outside this restatement, and so does a `progressbar >
+ * text` spelling, which would add a node arm the resources never
+ * declare. The toolkit's `columnview.view.progressbar,
+ * treeview.view.progressbar` cell arms (light lines 702–706, base
+ * lines 708–710) carry their own accent text ink over the accent fill
+ * under both cascade readings, so the cell meters are a separate future
+ * candidate; the `.osd` meter arms (light lines 1294–1298) carry only
+ * face and sizing members and no ink. Declaration checks do not
+ * establish rendered pixels. */
+
+progressbar {
+  color: #000000;
+}
+
 progressbar > trough {
   background-color: #EEEEEE;
   background-image: none;
