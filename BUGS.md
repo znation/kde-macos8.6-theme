@@ -1046,6 +1046,10 @@ The post-merge review of commit `cb0fd7093345446e907342d23628879e9fa596a5` (Add 
 
 The post-merge review of commit `7d6541dab5566777072b39dd1ce582e8ef842644` (Add GTK 3 child-disabled link-button label colours) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 70871b0f never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `70871b0f9055ce65073c6662a6eaecd8147e47bd` (Add selected inline-link ink rules for GTK 3) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
