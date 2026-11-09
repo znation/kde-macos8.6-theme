@@ -912,7 +912,7 @@ scrollbar:not(.overlay-indicator) slider {
   min-height: 12px;
 }
 
-/* No GTK overlay scrollbar appears in the reference set; reuse the ordinary 16px band minus the two 1px borders. */
+/* Adaptation recorded 2026-11-09: no GTK overlay scrollbar appears in the reference set; reuse the ordinary 16px band minus the two 1px borders. */
 scrollbar.overlay-indicator slider {
   min-width: 12px;
   min-height: 12px;
