@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 75b43ff8 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: Reviewed the commit diff against `tools/process_group.py`: its termination handler returns `128 + signum` for SIGTERM and SIGHUP, and the corresponding docs and help epilogs describe that status. `apply_gtk` documents its symbolic-link refusal consistently with its behavior. The documentation changes are accurate.
+
+**Validation gap:** none — the review was confirmed directly against the implementation and needed no runtime reproduction.
+
 ### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 **Fix:** Reviewed the shared PNG stream framing change. `png_stream` prepends the established signature and concatenates the supplied chunks; callers retain control of IEND and malformed streams. The `make_png` and `png_with_idat` call sites preserve their prior chunk contents and order. No defect found.
