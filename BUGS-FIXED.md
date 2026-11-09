@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of a1dbce37 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `a1dbce3771c394be8536a65c6b330dd97975c1fc` (Paint preferences panes' fields and menulists Platinum (plan part 8)) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. Settled as no defect.
+
+Fix: Verified the commit's diff on main against the live tree. The five new `#mainPrefPane` arms (enabled text field, menulist, and the menulist's `:hover` and `[open="true"]` states) are intact in `theme/firefox/org.macos8.desktop/chrome/userContent.css`; the four pinned recipes and the field/menulist population arms now live in `tests/support/firefox_content_cases.py` with `TestFirefoxPreferencesFieldsTheme` in `tests/test_firefox_content_preferences.py` (moved by later test refactorings); `docs/invariants.md`'s about:preferences fields-and-menulists row pins the palette and provenance. Nothing over-matches per the test population arms: the entries scope to `#mainPrefPane` and `:not([disabled])`, leaving the disabled `#fxaSyncComputerName`, dropdown menupopups and sub-dialogs Firefox's, and no selector or palette drift was introduced by the later merges. `cd tests && python3 -m unittest test_firefox_content_preferences` passes and `make check` ran green (rc=0, no FAILED or ERROR lines).
+
+**Validation gap:** none — the existing suite reproduced and confirmed it; nothing was missing.
+
 ### post-merge review of 4710a8fc never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `4710a8fc84723d375e1852c27f9da11417bda88c` (Treat `__all__.extend`/`append` re-exports as entry sources in the unused-import scanner) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
