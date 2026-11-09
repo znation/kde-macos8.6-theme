@@ -4118,9 +4118,15 @@ for radio in (False, True):
         self.assert_rule("progressbar > trough > progress", {"border-radius": "0"})
         for direction in ("left", "right", "top", "bottom"):
             with self.subTest(direction=direction):
+                selector = f"progressbar > trough > progress.{direction}"
                 self.assert_rule(
-                    f"progressbar > trough > progress.{direction}",
+                    selector,
                     {"border-radius": "0"},
+                )
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assertEqual(
+                    self.rules[selector]["border-radius"],
+                    self.rules["progressbar > trough > progress"]["border-radius"],
                 )
 
     def test_progressbar_disabled_filter(self):
