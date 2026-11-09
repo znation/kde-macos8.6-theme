@@ -172,7 +172,14 @@ class TestMain(WallpaperCase):
         first.write_bytes(b"previous good wallpaper")
 
         crash = crashing_fdopen(OSError(errno.ENOSPC, "No space left on device"))
-        with mock.patch.object(os, "fdopen", crash):
+        def encode_first_only(width, height, rgb):
+            if (width, height) != SMALL_RESOLUTIONS[0]:
+                raise AssertionError("rendered another image after a failed write")
+            return encode_png(width, height, rgb)
+
+        with mock.patch.object(os, "fdopen", crash), mock.patch.object(
+            make_wallpaper, "encode_png", encode_first_only
+        ):
             status, err = self.run_main()
         self.assertEqual(status, 2)
         self.assertIn("cannot write", err)
@@ -295,7 +302,11 @@ class TestOutputContainment(ContainmentCase):
         self.images.parent.mkdir(parents=True)
         self.images.symlink_to(self.outside, target_is_directory=True)
 
-        status, err = self.run_main()
+        with mock.patch.object(
+            make_wallpaper, "encode_png",
+            side_effect=AssertionError("rendered before destination was accepted"),
+        ):
+            status, err = self.run_main()
 
         self.assertEqual(status, 2)
         self.assertTrue(err.startswith("make_wallpaper: error: "))

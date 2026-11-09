@@ -113,13 +113,13 @@ def main(argv: list[str] | None = None) -> int:
     # contributor names, and overwrite same-named files there. The shared
     # publisher refuses a repository path that resolves outside the
     # repository before anything is written.
-    files = [
+    files = (
         (
             images / f"{width}x{height}.png",
             encode_png(width, height, tiled_rgb(TILE_RGB, width, height)),
         )
         for width, height in RESOLUTIONS
-    ]
+    )
     return write_generated_files(TOOL, ROOT, images, files)
 
 

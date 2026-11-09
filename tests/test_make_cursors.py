@@ -220,7 +220,10 @@ class TestMainErrors(unittest.TestCase):
         blocked.parent.mkdir(parents=True)
         blocked.write_text("occupied", encoding="utf-8")
         stderr = io.StringIO()
-        with mock.patch.object(make_cursors, "ROOT", tmp):
+        with mock.patch.object(make_cursors, "ROOT", tmp), mock.patch.object(
+            make_cursors, "cursor_bytes",
+            side_effect=AssertionError("rendered before destination was accepted"),
+        ):
             with contextlib.redirect_stderr(stderr):
                 status = make_cursors.main([])
         self.assertEqual(status, 2)
@@ -234,7 +237,10 @@ class TestMainErrors(unittest.TestCase):
         directory.parent.mkdir(parents=True)
         os.symlink(outside, directory)
         stderr = io.StringIO()
-        with mock.patch.object(make_cursors, "ROOT", tmp):
+        with mock.patch.object(make_cursors, "ROOT", tmp), mock.patch.object(
+            make_cursors, "cursor_bytes",
+            side_effect=AssertionError("rendered before destination was accepted"),
+        ):
             with contextlib.redirect_stderr(stderr):
                 status = make_cursors.main([])
         self.assertEqual(status, 2)

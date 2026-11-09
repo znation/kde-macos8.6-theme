@@ -221,15 +221,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.parse_args(argv)
     directory = ROOT / PACKAGE_DIR / CURSORS_DIR
-    files = []
-    for canonical, rows, hotspot, aliases in CURSORS:
-        data = cursor_bytes(rows, NOMINAL_SIZES, hotspot, name=canonical)
-        for name in (canonical, *aliases):
-            files.append((directory / name, data))
+    def files():
+        for canonical, rows, hotspot, aliases in CURSORS:
+            data = cursor_bytes(rows, NOMINAL_SIZES, hotspot, name=canonical)
+            for name in (canonical, *aliases):
+                yield directory / name, data
     # The publisher's write comes from this module's name so a test patching
     # make_cursors.write_bytes_atomically still intercepts the writes.
     return write_generated_files(
-        TOOL, ROOT, directory, files, write=write_bytes_atomically
+        TOOL, ROOT, directory, files(), write=write_bytes_atomically
     )
 
 
