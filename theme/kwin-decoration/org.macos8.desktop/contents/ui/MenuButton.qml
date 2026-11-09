@@ -31,7 +31,7 @@ Item {
     }
     MouseArea {
         anchors.fill: parent
-        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // 2026-11-04, feature role, PLANS-DONE.md "Platinum KWin Decoration package,
         // part 3/3": gate the standalone hit area on window activity -- on an
         // unfocused window's flat buttonless bar a long-press here eats the
         // refocusing click and, with closeOnDoubleClick, a second click could

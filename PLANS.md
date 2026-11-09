@@ -23,8 +23,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** A fresh grep of `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` finds the spellings (a)–(i) exactly once each and finds no selector carrying both `infobar`/`searchbar` and a message-type token (the landed ban reads directly); deleting any new group or restoring a stock claim such as the toolkit hover gradient or integration library's accent focus ring inside it fails `test_close_button_family` by both its count and dict assertions, so the restatement cannot silently shrink or slide back to stock; reordering any new group ahead of the corner groups fails its index assertions, keeping the source-order win honest. `test_close_button_corners` stays green with its merged dicts and unchanged radius sweep; `test_infobar`, `test_searchbar_button_focus_outline_color`, `test_no_universal_selector` and both sheets' `test_only_palette_hex_literals` pass untouched. The fresh re-probe at implementation time shows the same arm inventory above, and any mismatch is recorded in the sheet comment's probe line rather than guessed around. The implementation touches exactly the three files named above — the GTK 3 sheet, the launch suite's other files and all production tooling stay byte-unchanged — and `make check` passes after the final edit.
 
-_None yet._
-
 ## Done
 
 ### Platinum GTK 4 overlay scrollbar thumbs: retain the ordinary minimum breadth (planned 2026-10-29 by the plan role; independent of the queued ordinary trough margin plan) — done 2026-10-29 by the feature role

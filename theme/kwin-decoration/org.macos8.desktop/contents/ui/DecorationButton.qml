@@ -8,7 +8,7 @@ import org.kde.kwin.decoration
 
 Item {
     id: button
-    // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+    // 2026-11-04, feature role, PLANS-DONE.md "Platinum KWin Decoration package,
     // part 3/3": Platinum is active=frontmost (the 2026-11-04 direction), so an
     // unfocused window's bar is the flat buttonless strip its empty
     // inactive-centre art draws while this button's hit cell stayed live and a

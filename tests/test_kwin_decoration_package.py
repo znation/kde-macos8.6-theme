@@ -75,7 +75,7 @@ REFERENCE_RE = re.compile(r"\bauroraeTheme\.(\w+)")
 # touched anywhere else fails. The comments are the dated plan-notes the
 # copies carry; each expected text re-derives from the engine file on disk.
 DECORATION_BUTTON_COMMENT = """\
-    // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+    // 2026-11-04, feature role, PLANS-DONE.md "Platinum KWin Decoration package,
     // part 3/3": Platinum is active=frontmost (the 2026-11-04 direction), so an
     // unfocused window's bar is the flat buttonless strip its empty
     // inactive-centre art draws while this button's hit cell stayed live and a
@@ -89,7 +89,7 @@ DECORATION_BUTTON_COMMENT = """\
     // bar's activate.
 """
 MENU_BUTTON_COMMENT = """\
-        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // 2026-11-04, feature role, PLANS-DONE.md "Platinum KWin Decoration package,
         // part 3/3": gate the standalone hit area on window activity -- on an
         // unfocused window's flat buttonless bar a long-press here eats the
         // refocusing click and, with closeOnDoubleClick, a second click could
@@ -98,7 +98,7 @@ MENU_BUTTON_COMMENT = """\
         // data-home engine shadow) are recorded in this file's package copy.
 """
 MAXIMIZE_BUTTON_COMMENT = """\
-        // 2026-11-04, feature role, PLANS.md "Platinum KWin Decoration package,
+        // 2026-11-04, feature role, PLANS-DONE.md "Platinum KWin Decoration package,
         // part 3/3": gate the standalone hit area on window activity -- the
         // maximize/restore cell on an unfocused window's flat buttonless bar
         // maximized windows meant only to be refocused; the active=frontmost
