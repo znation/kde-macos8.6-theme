@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 787a809a never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `787a809a70ca20a8b050d86a7b18134bd7828e34` (Rename the four word-swapped test modules to mirror the tool modules they cover) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 4710a8fc never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `4710a8fc84723d375e1852c27f9da11417bda88c` (Treat `__all__.extend`/`append` re-exports as entry sources in the unused-import scanner) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

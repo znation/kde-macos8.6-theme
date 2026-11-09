@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 787a809a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `787a809a70ca20a8b050d86a7b18134bd7828e34` (Rename the four word-swapped test modules to mirror the tool modules they cover) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. The commit's rename is intact on main: all five renamed paths exist (`tests/test_apply_gtk.py`, `tests/test_apply_gtk_errors.py`, `tests/test_apply_gtk_locks.py`, `tests/test_install_firefox.py`, `tests/support/apply_gtk_case.py`); a tree-wide grep over the worktree (everything but `.git`, PLANS-DONE.md and BUGS-FIXED.md) for `test_gtk_apply`, `test_firefox_install`, `gtk_apply_case` and `GtkApplyCase` finds no live reference, so docstrings, docs/invariants.md and the validation-gap ledger point at the current names (the leading ledger strings resolve to `tests/test_apply_gtk.py`, `tests/test_apply_gtk_errors.py`, `tests/test_install_firefox.py` — the ledger regression test in the check would fail on a dangling string); the renamed modules collect and pass — `make check` green, rc=0, no failures, all 313 test modules ran.
+
+**Validation gap:** none — the suite's own references (invariants register, validation-gap ledger, cross-referencing docstrings) fail loudly on a stale module name, and the check confirmed every one was repointed.
+
 ### post-merge review of 525cfa27 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `525cfa27600dbc359f5a68852d3739aa48a40b58` (Fix two stale Firefox test-module docstrings whose scope lists lag the series parts landed today) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
