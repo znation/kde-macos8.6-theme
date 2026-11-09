@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of ad6e0b13 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `ad6e0b134f2b9e3b1bc97575a2abea33c5d75084` (Add two synthetic-tree tests naming the scanner's untested dotted-candidate forms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+No defect. The commit is on main and touches only `tests/test_no_unused_imports.py`. Its two tests are byte-identical to the live tree (`git diff ad6e0b13` against the region, moved to lines 351/387 by later insertion-only hunks that do not touch them), the scanner spelling they pin is still in `tests/support/unused_imports.py::_dotted_candidates` (repository dotted name, import-root mid form, bare stem), and the focused check on `test_no_unused_imports.py` passes — so the tests fail if a scanner change drops the mid or stem candidate forms, and nothing else changed.
+
+**Validation gap:** none — the existing suite reproduces and pins the scanner's candidate forms; nothing was missing.
+
 ### post-merge review of 5d0ebdbf never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Settled as no defect. Read the commit's diff on main and verified it against the live tree: the commit only moves an assertion loop out of four Library suites in `tests/test_firefox_theme_library.py` into the new `FirefoxChromeTestCase.assert_arms_match_required` helper in `tests/support/firefox_chrome_cases.py`; the helper's body (`subTest(selector=arm)`, `assertEqual(self.rules[arm], REQUIRED_RULES[arm])`, per-value `endswith("!important")`) is identical to all four replaced loops, it resolves the unqualified `REQUIRED_RULES` in the same `tests/support/firefox_chrome_cases.py` globals the test module imports, and no arm list changed. The two deliberately different sites were left untouched as the commit says (the search field's `property=` subTests and the tree-rules exclusion test), and `grep` confirms `endswith("!important")` now appears only in the helper and those two sites. Focused check: `make check CHECK_PATTERN='test_firefox_theme_library.py'` ran OK (22 tests, including all six `TestFirefoxLibrary*` classes the helper serves).
