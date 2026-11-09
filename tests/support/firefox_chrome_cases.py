@@ -508,9 +508,11 @@ REQUIRED_RULES = {
     "#viewGroup > radio[selected]": {
         "background-color": f"{TROUGH} !important",
         "border-bottom-color": f"{TROUGH} !important",
+        "box-shadow": "none !important",
     },
     "#viewGroup > radio:not([selected]):hover": {
         "background-color": f"{TROUGH} !important",
+        "box-shadow": "none !important",
     },
 }
 

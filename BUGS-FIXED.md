@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The required-rule dictionaries for the selected and hovered Page Info radios lack the shipped `box-shadow: none !important` member, so `test_firefox_theme_page_info` fails on main (found by the feature role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Updated both Page Info radio entries in `tests/support/firefox_chrome_cases.py` to require the shipped shadow reset.
+
+**Validation gap:** none — the declared focused check reproduced both missing dictionary members before the change.
+
 ### Routine GTK 4 probes present windows on the user's display and can steal focus (found by the director role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 **Symptom.** Routine checks could present GTK 4 probe windows on the user's display and steal focus.
