@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 4bad64f9 never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
+
+The post-merge review of commit `4bad64f9b539808dd67cbf9f65b0f8d7b9eeecfe` (Name signals when required external commands terminate) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore); settled after checking both required-command paths. `_signal_name` maps recognized negative wait statuses to their symbolic signal names and unknown numbers to their number; both paths report exit 1 with the selected log tail. Regression tests cover a real SIGTERM child (including its log tail) on both paths and the unknown-number fallback.
+
+**Validation gap:** none — existing tests reproduce signal termination and confirm the diagnostic and retained log tail.
+
 ### post-merge review of 65c4594a never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
 
 Reviewed commit `65c4594a242f5f847fb44345e1b325be52c1b3cf`: its four SVG comments accurately describe the assets and their geometry tests; corrected the up-arrow comment's broken test reference. The SVG changes are comments only.

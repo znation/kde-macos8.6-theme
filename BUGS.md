@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 4bad64f9 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `4bad64f9b539808dd67cbf9f65b0f8d7b9eeecfe` (Name signals when required external commands terminate) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of bdcedf73 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `bdcedf73a00aec41ff0b1ed54a1cf4406cdb304c` (Kill a command's group when SIGTERM arrives during its startup) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
