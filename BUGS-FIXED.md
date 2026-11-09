@@ -1308,8 +1308,7 @@ test failed, the same call passes after.
 
 `tests/support/gtk_css.py`'s `_rule_blocks` tracked quoted strings and
 backslash escapes but not parentheses, so a brace inside an unquoted
-`url(...)` token (its `{`/`}` are CSS url code points, and quotes inside the
-token do not open a string) paired the pending selector with half the
+`url(...)` token (its `{`/`}` are CSS url code points) paired the pending selector with half the
 declaration and reported the rest as a malformed declaration of a bogus
 selector. Before the fix, `parse_css('a { background-image:
 url(data:image/svg+xml,<g {x}>); color: red; }')` raised `ValueError ... in
@@ -1317,7 +1316,8 @@ selector 'background-image: url(data:image/svg+xml,<g': 'x'`. The fix follows
 `_split_declarations`, which already treated parentheses as value grouping at
 the declaration level: the block scanner now counts parentheses (an unmatched
 `)` is not tracked, mirroring the stray-parenthesis rule there), so a brace
-inside any `(...)` is text, while quotes stay literal inside parentheses.
+inside any `(...)` is text, while quoted strings inside parentheses keep
+their normal string semantics.
 `url(...)` appears in real GTK/Firefox sheets, and the declaration scanner
 already pinned the quoted-url `;` case, so the block-level gap was the
 remaining discrepancy between the two scanners.

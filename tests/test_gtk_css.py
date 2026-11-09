@@ -750,12 +750,12 @@ class TestRuleBlockSemantics(unittest.TestCase):
         )
 
     def test_a_brace_inside_an_unquoted_url_value_is_text(self):
-        # An unquoted url() token may hold braces (CSS url code points), and
-        # quotes inside it do not open a string. A brace there paired the
+        # An unquoted url() token may hold braces (CSS url code points).
+        # A brace there paired the
         # pending selector with half the declaration and reported the rest as
         # a malformed declaration of a bogus selector. The declaration scanner
         # already treats parentheses this way; the block scanner does the
-        # same, and a quote inside parentheses stays literal either way.
+        # same, while quoted strings still protect parentheses inside them.
         self.assertEqual(
             parse_css(
                 "a { background-image: url(data:image/svg+xml,<g {x}>);"
@@ -824,6 +824,17 @@ class TestRuleBlockSemantics(unittest.TestCase):
         self.assertEqual(
             parse_css("] a { color: red; } b { color: blue; }")[2],
             ["] a", "b"],
+        )
+
+    def test_a_quoted_url_parenthesis_does_not_end_value_grouping(self):
+        # The ')' in the string cannot close url(), so the later unquoted
+        # URL's brace and the following rule must both survive scanning.
+        self.assertEqual(
+            parse_css('a { background: url(")}") url(x{y}); } b { color: red; }')[1],
+            {
+                "a": {"background": 'url(")}") url(x{y})'},
+                "b": {"color": "red"},
+            },
         )
 
     def test_a_stray_closing_parenthesis_does_not_hide_a_brace_either(self):
