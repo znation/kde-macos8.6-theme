@@ -15,7 +15,7 @@ from collections import namedtuple
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 36
+UNCLEAR_INVARIANT_BASELINE = 37
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -101,9 +101,9 @@ GTK_GLYPH_ROOT_GUARANTEE = (
 SELECTOR_MATCHER_ESCAPE_GUARANTEE = (
     "The test-side selector matcher decodes a backslash escape in an "
     "attribute selector's quoted or unquoted value, so an escaped quote or "
-    "backslash, and a hex escape — whose one-whitespace terminator belongs to "
-    "the escape, not the value — tests the character it denotes instead of "
-    "being read as the string's end."
+    "backslash, a CSS string continuation, and a hex escape — whose one-"
+    "whitespace terminator belongs to the escape, not the value — test the "
+    "character or string they denote instead of being read as the string's end."
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -368,7 +368,10 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     ),
     UnclearInvariant(
         "selector-matcher-escaped-quote",
-        ("CSS escapes in attribute values",),
+        (
+            "The test-side selector matcher rejects CSS escapes in attribute values",
+            "post-merge review of 932f21cb",
+        ),
         "tests/test_selector_matching.py::TestSelectorMatching"
         "::test_an_escaped_quote_inside_an_attribute_value_is_literal",
         SELECTOR_MATCHER_ESCAPE_GUARANTEE,

@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 932f21cb never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Reviewed the selector-matcher escape handling added by the commit and found that its quoted-value parser rejected valid CSS string continuations: a backslash followed by a newline should remove that newline from the value. This exposed the missing guarantee for CSS escapes in attribute values. Added a regression test, taught the quoted-value parser and decoder to handle LF, CR, CRLF and form-feed continuations, and updated the selector-matcher invariant and its reconstruction record.
+
+**Validation gap:** unclear-invariant — the matcher documented escaped characters and hex escapes but omitted CSS string continuations, so the supported escape behavior was reconstructed and recorded in `docs/invariants.md`.
+
 ### post-merge review of 69623e21 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `69623e212723aba879109ffb7b8fecf23d8d9721` (Paint Firefox notification doorhanger primary button as Platinum) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

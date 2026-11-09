@@ -29,7 +29,8 @@ is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
 value is literal: ``[title=":hover"]`` is an attribute test, not a hover test.
 A backslash escape in a supported attribute value is decoded as CSS does, so ``[title="a\\"b"]`` tests the value ``a"b``
-instead of being read as a malformed selector. A hex escape's digits may end with one whitespace that only terminates the
+instead of being read as a malformed selector; a backslash followed by a CSS
+string newline is removed as a string continuation. A hex escape's digits may end with one whitespace that only terminates the
 escape: ``[title=a\22 b]`` tests ``a"b``, in quoted and unquoted values alike.
 """
 
@@ -44,8 +45,8 @@ _TAG = re.compile(r"^([-\w]+|\*)")
 _HOVER = re.compile(r":hover(?![-\w])")
 _ATTRIBUTE = re.compile(
     r"\[\s*([-\w]+)\s*"
-    r"(?:=\s*(?:\"((?:[^\"\\]|\\.)*)\""
-    r"|'((?:[^'\\]|\\.)*)'"
+    r"(?:=\s*(?:\"((?:[^\"\\]|\\(?:\r\n|[\n\r\f]|.))*)\""
+    r"|'((?:[^'\\]|\\(?:\r\n|[\n\r\f]|.))*)'"
     # In an unquoted value a hex escape may be terminated by one whitespace,
     # which the value group owns; the hex form must stand before ``\\.`` so a
     # run of hex digits after the backslash is read as one escape.
@@ -113,6 +114,12 @@ def _css_unescape(value):
             index = hexadecimal.end()
             continue
         escaped = value[index + 1]
+        if escaped == "\r" and index + 2 < len(value) and value[index + 2] == "\n":
+            index += 3
+            continue
+        if escaped in "\n\r\f":
+            index += 2
+            continue
         result.append(escaped)
         index += 2
     return "".join(result)
