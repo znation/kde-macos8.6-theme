@@ -72,6 +72,20 @@ class Metrics:
 _OVER_TABLE_CACHE: dict[int, bytes] = {}
 
 
+def over_table(tolerance: int) -> bytes:
+    """Return the flag table translating each byte delta to 0/1 over tolerance.
+
+    A byte delta is 0-255, so one 256-entry table suffices for any tolerance;
+    it is cached per tolerance because a tolerance is fixed for one CLI run
+    while the table feeds every channel translation.
+    """
+    table = _OVER_TABLE_CACHE.get(tolerance)
+    if table is None:
+        table = bytes(1 if value > tolerance else 0 for value in range(256))
+        _OVER_TABLE_CACHE[tolerance] = table
+    return table
+
+
 def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     """Compare a candidate image against a reference image.
 
@@ -167,10 +181,7 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # A pixel differs when any channel exceeds tolerance.  Translate each
     # channel to a 0/1 flag byte, OR the flag strings as one big integer, and
     # popcount it, so a pixel with several differing channels counts once.
-    over = _OVER_TABLE_CACHE.get(tolerance)
-    if over is None:
-        over = bytes(1 if value > tolerance else 0 for value in range(256))
-        _OVER_TABLE_CACHE[tolerance] = over
+    over = over_table(tolerance)
     flags = 0
     for delta in deltas:
         flags |= int.from_bytes(delta.translate(over), "little")

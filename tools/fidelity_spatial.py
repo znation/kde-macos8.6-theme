@@ -20,28 +20,14 @@ from collections.abc import Iterable, Iterator
 
 if __package__:
     from tools.byte_lanes import abs_diff
+    from tools.fidelity_metrics import over_table
     from tools.png import Image
 else:  # imported as the top-level package by a directly run CLI
     from byte_lanes import abs_diff
+    from fidelity_metrics import over_table
     from png import Image
 
 _RUN = re.compile(b"\x01+")
-
-_OVER_TABLES: dict[int, bytes] = {}
-
-
-def _over_table(tolerance: int) -> bytes:
-    """Return the flag table translating each byte delta to 0/1 over tolerance.
-
-    A byte delta is 0-255, so one 256-entry table suffices for any tolerance;
-    it is cached per tolerance because a tolerance is fixed for one CLI run
-    while the table feeds every channel translation.
-    """
-    table = _OVER_TABLES.get(tolerance)
-    if table is None:
-        table = bytes(1 if value > tolerance else 0 for value in range(256))
-        _OVER_TABLES[tolerance] = table
-    return table
 
 
 def _differing_flags(candidate: Image, reference: Image, tolerance: int) -> bytes:
@@ -67,7 +53,7 @@ def _differing_flags(candidate: Image, reference: Image, tolerance: int) -> byte
             alpha_a = opaque if alpha_a is None else alpha_a
             alpha_b = opaque if alpha_b is None else alpha_b
         deltas.append(abs_diff(alpha_a, alpha_b))
-    table = _over_table(tolerance)
+    table = over_table(tolerance)
     flags = 0
     for delta in deltas:
         flags |= int.from_bytes(delta.translate(table), "little")
