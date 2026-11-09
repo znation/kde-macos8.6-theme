@@ -157,8 +157,9 @@ class TestSvgCaseCache(unittest.TestCase):
             with mock.patch.object(
                 svg_case.ET, "parse", wraps=svg_case.ET.parse
             ) as parse:
-                with self.assertRaises(ValueError):
-                    svg_case.parse_svg(path)
+                for _ in range(2):
+                    with self.assertRaises(ValueError):
+                        svg_case.parse_svg(path)
                 self.assertEqual(parse.call_count, 0)
                 path.write_text("<svg id='fixed'/>", encoding="utf-8")
                 first = svg_case.parse_svg(path)
@@ -179,8 +180,9 @@ class TestSvgCaseCache(unittest.TestCase):
             with mock.patch.object(
                 svg_case.ET, "parse", wraps=svg_case.ET.parse
             ) as parse:
-                with self.assertRaises(ValueError) as caught:
-                    svg_case.parse_svg(path)
+                for _ in range(2):
+                    with self.assertRaises(ValueError) as caught:
+                        svg_case.parse_svg(path)
                 self.assertEqual(parse.call_count, 0)
                 path.write_text("<svg id='fixed'/>", encoding="utf-8")
                 first = svg_case.parse_svg(path)
@@ -188,6 +190,24 @@ class TestSvgCaseCache(unittest.TestCase):
         self.assertIn("DTD or entity", str(caught.exception))
         self.assertIs(first, second)
         self.assertEqual(parse.call_count, 1)
+
+    def test_a_failed_xml_parse_is_not_cached(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            path.write_text("<svg>", encoding="utf-8")
+            with mock.patch.object(
+                svg_case.ET, "parse", wraps=svg_case.ET.parse
+            ) as parse:
+                for _ in range(2):
+                    with self.assertRaises(svg_case.ET.ParseError):
+                        svg_case.parse_svg(path)
+                self.assertEqual(parse.call_count, 2)
+                path.write_text("<svg id='fixed'/>", encoding="utf-8")
+                first = svg_case.parse_svg(path)
+                second = svg_case.parse_svg(path)
+        self.assertIs(first, second)
+        self.assertEqual(first.getroot().get("id"), "fixed")
+        self.assertEqual(parse.call_count, 3)
 
     def test_a_file_that_cannot_be_statted_is_never_cached(self):
         # A fingerprint of None means the file cannot be statted, so the cache
@@ -203,6 +223,10 @@ class TestSvgCaseCache(unittest.TestCase):
             ) as parse:
                 first = svg_case.parse_svg(path)
                 second = svg_case.parse_svg(path)
+            recovered = svg_case.parse_svg(path)
+            cached = svg_case.parse_svg(path)
+        self.assertIs(recovered, cached)
+        self.assertIsNot(second, recovered)
         self.assertIsNot(first, second)
         self.assertEqual(first.getroot().get("id"), "nostat")
         self.assertEqual(parse.call_count, 2)
