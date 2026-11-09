@@ -847,9 +847,37 @@ _uninstall:
 # for one config surface each live in tools/uninstall_live_diagnostics.py and
 # tools/uninstall_defaults_diagnostics.py, so tools/uninstall_diagnostics.py
 # only owns the CLI and the ordered calls. The scan of
-# one shell spawned one extra child per diagnostic before; the module is one
-# child and a diagnostic failure is still never uninstall's failure.
-	@$(PYTHON) tools/uninstall_diagnostics.py --scheme-id "$(COLOR_SCHEME_ID)" --icon-id "$(ICON_THEME_ID)" --kvantum-id "$(KVANTUM_ID)" --gtk-id "$(GTK_ID)" --desktop-id "$(DTHEME_ID)" --lnf-id "$(LNF_ID)" --aurorae-id "$(AURORAE_ID)" --css-marker "$(GTK_USER_CSS_MARKER)" || true
+# one shell spawned one extra child per diagnostic before; the module is at
+# most one child and a diagnostic failure is still never uninstall's failure.
+# The handlers read exactly the thirteen paths the guard loop below stats, so
+# the recipe lists them before it spawns the child: when none exists the scan
+# cannot name any selection and is skipped. The shell resolves the config
+# home exactly the way tools/uninstall_config.py's `config_home` does (an
+# absolute `XDG_CONFIG_HOME` wins; an unset, empty or relative one falls back
+# to `$HOME/.config`; with neither the scan runs nowhere) -- the config-home
+# resolution and these paths are platform-required surfaces the reference
+# screenshots do not show; their provenance is the same apply-published
+# selections the diagnostics name above. Parity between the guard and the
+# scan (every handler path listed, fallback and none-cases resolved alike,
+# one child only) is pinned by
+# tests/test_uninstall_diagnostics_skip.py.
+	@cfg="$$XDG_CONFIG_HOME"; \
+	case "$$cfg" in /*) ;; *) cfg="";; esac; \
+	if [ -z "$$cfg" ]; then case "$$HOME" in /*) cfg="$$HOME/.config";; esac; fi; \
+	if [ -n "$$cfg" ]; then \
+	  scan=""; \
+	  for path in "$$cfg/kdeglobals" "$$cfg/kdedefaults/kdeglobals" \
+	  "$$cfg/kdedefaults/kwinrc" "$$cfg/kdedefaults/plasmarc" \
+	  "$$cfg/kdedefaults/ksplashrc" "$$cfg/kdedefaults/package" \
+	  "$$cfg/gtk-3.0/settings.ini" "$$cfg/gtk-4.0/settings.ini" \
+	  "$$cfg/gtk-4.0/gtk.css" "$$cfg/Kvantum/kvantum.kvconfig" \
+	  "$$cfg/plasmarc" "$$cfg/kcminputrc" "$$cfg/kwinrc"; do \
+	    if [ -e "$$path" ]; then scan="yes"; break; fi; \
+	  done; \
+	  if [ -n "$$scan" ]; then \
+	    $(PYTHON) tools/uninstall_diagnostics.py --scheme-id "$(COLOR_SCHEME_ID)" --icon-id "$(ICON_THEME_ID)" --kvantum-id "$(KVANTUM_ID)" --gtk-id "$(GTK_ID)" --desktop-id "$(DTHEME_ID)" --lnf-id "$(LNF_ID)" --aurorae-id "$(AURORAE_ID)" --css-marker "$(GTK_USER_CSS_MARKER)" || true; \
+	  fi; \
+	fi
 
 install-gtk:
 	@$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
