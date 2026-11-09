@@ -1197,6 +1197,123 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             "scale.fine-tune trough {",
         )
 
+    def test_scale_marks_indicator_geometry(self):
+        """A marked scale keeps the toolkit's tick spacing and line sizes.
+
+        The twelve restated arms stand directly before the landed
+        marked-scale record, so both orientations keep stock's 6px tick
+        push-out with the -12px plain and -9px fine-tuned stop margins and
+        the 6px-by-1px plain and 3px fine-tuned indicator minimums under
+        either loading reading; assert each spelling once, whole-driven,
+        family-clean and in record order.
+        """
+        self.assert_rule_group(
+            {
+                "scale.horizontal marks.top": {
+                    "margin-bottom": "6px",
+                    "margin-top": "-12px",
+                },
+                "scale.horizontal.fine-tune marks.top": {
+                    "margin-bottom": "6px",
+                    "margin-top": "-9px",
+                },
+                "scale.horizontal marks.bottom": {
+                    "margin-top": "6px",
+                    "margin-bottom": "-12px",
+                },
+                "scale.horizontal.fine-tune marks.bottom": {
+                    "margin-top": "6px",
+                    "margin-bottom": "-9px",
+                },
+                "scale.vertical marks.top": {
+                    "margin-right": "6px",
+                    "margin-left": "-12px",
+                },
+                "scale.vertical.fine-tune marks.top": {
+                    "margin-right": "6px",
+                    "margin-left": "-9px",
+                },
+                "scale.vertical marks.bottom": {
+                    "margin-left": "6px",
+                    "margin-right": "-12px",
+                },
+                "scale.vertical.fine-tune marks.bottom": {
+                    "margin-left": "6px",
+                    "margin-right": "-9px",
+                },
+                "scale.horizontal indicator": {
+                    "min-height": "6px",
+                    "min-width": "1px",
+                },
+                "scale.horizontal.fine-tune indicator": {
+                    "min-height": "3px",
+                },
+                "scale.vertical indicator": {
+                    "min-height": "1px",
+                    "min-width": "6px",
+                },
+                "scale.vertical.fine-tune indicator": {
+                    "min-width": "3px",
+                },
+            }
+        )
+        # Family sweeps: no renamed spelling, no stray or split member
+        # (the landed has-marks slider spellings carry neither token and
+        # stay out).
+        for token, members in (
+            (
+                "marks.top",
+                (
+                    "scale.horizontal marks.top",
+                    "scale.horizontal.fine-tune marks.top",
+                    "scale.vertical marks.top",
+                    "scale.vertical.fine-tune marks.top",
+                ),
+            ),
+            (
+                "marks.bottom",
+                (
+                    "scale.horizontal marks.bottom",
+                    "scale.horizontal.fine-tune marks.bottom",
+                    "scale.vertical marks.bottom",
+                    "scale.vertical.fine-tune marks.bottom",
+                ),
+            ),
+        ):
+            self.assertEqual(
+                {s for s in self.selectors if token in s}, set(members)
+            )
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale.h") and s.endswith("indicator")
+            },
+            {
+                "scale.horizontal indicator",
+                "scale.horizontal.fine-tune indicator",
+            },
+        )
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scale.v") and s.endswith("indicator")
+            },
+            {
+                "scale.vertical indicator",
+                "scale.vertical.fine-tune indicator",
+            },
+        )
+        # The block sits after the landed trough group and before the
+        # landed marked-scale record's closing group, so its
+        # equal-specificity ties win by later source order.
+        self.assert_rule_after(
+            "scale.vertical.marks-after:not(.marks-before).fine-tune slider {",
+            "scale.vertical.fine-tune indicator {",
+        )
+        self.assert_rule_after("scale.horizontal marks.top {", "scale trough {")
+
     def test_button_focus_outline(self):
         self.assert_rule(
             "button:focus",

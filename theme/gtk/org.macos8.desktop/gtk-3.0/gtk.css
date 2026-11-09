@@ -6042,6 +6042,117 @@ placessidebar row:drop(active):not(:disabled):selected {
   background-color: #CCCCFF;
 }
 
+/* Stock spaces a marked scale away from its tick lines and sizes the tick
+   lines themselves with twelve allocation-only arms this sheet never
+   restated. No collected reference screenshot shows a GTK scale's tick
+   marks or their fine-tuned spacing (the GTK scope's standing adaptation
+   premise), so no landed value exists to derive: the values are the
+   toolkit's own allocation, kept under either loading reading the landed
+   records treat as live. The reading that takes a theme selection as
+   replacing the stock stylesheet entirely would otherwise lose all twelve
+   arms, crowding the drawn ticks against the trough and shrinking the
+   tick lines to stockless defaults while the landed marked-scale record
+   directly below keeps only the thumb faces; the per-property readings
+   take the toolkit resource as the lower sheet, where these restates are
+   byte-equal to the stock arms they tie with at equal specificity and
+   sit later, winning the single per-property tie with the same values.
+   The compiled toolkit stylesheet (2055 lines, probed fresh 2026-11-09
+   with gresource extract; the library paths live in docs/invariants.md)
+   declares the twelve arms stock-side, each quoted here exactly and
+   hex-free, the only stock arms anywhere in the resource that push a
+   marked scale away from its tick lines or size those tick lines (no
+   disabled, :backdrop or .osd counter-arm reaches any of the twelve
+   spellings): light resource lines 1278/1280/1282/1284/1286/1288/
+   1290/1292/1294/1296/1298/1300 and dark-twin resource lines 1262..1284,
+   every line shifted -16: `scale.horizontal marks.top { margin-bottom:
+   6px; margin-top: -12px; }`, `scale.horizontal.fine-tune marks.top {
+   margin-bottom: 6px; margin-top: -9px; }`, `scale.horizontal
+   marks.bottom { margin-top: 6px; margin-bottom: -12px; }`,
+   `scale.horizontal.fine-tune marks.bottom { margin-top: 6px;
+   margin-bottom: -9px; }`, `scale.vertical marks.top { margin-right:
+   6px; margin-left: -12px; }`, `scale.vertical.fine-tune marks.top {
+   margin-right: 6px; margin-left: -9px; }`, `scale.vertical
+   marks.bottom { margin-left: 6px; margin-right: -12px; }`,
+   `scale.vertical.fine-tune marks.bottom { margin-left: 6px;
+   margin-right: -9px; }`, `scale.horizontal indicator { min-height: 6px;
+   min-width: 1px; }`, `scale.horizontal.fine-tune indicator {
+   min-height: 3px; }`, `scale.vertical indicator { min-height: 1px;
+   min-width: 6px; }` and `scale.vertical.fine-tune indicator {
+   min-width: 3px; }`. The landed 2026-11-09 fine-tuned container record
+   directly names these twelve as its own candidate rather than
+   restating the modifiers' tick spacing; this record takes them.
+   Exclusions with per-property reasons: the pair ink and typography arm
+   (`scale marks, scale value`, resource line 1276) is the landed
+   2026-11-09 scale decoration ink record's deliverable, ink not
+   geometry; the fine-tuned container paddings and minimums, the
+   fine-tuned slider margin and the fine-tune radius arms (resource
+   lines 1232/1234/1236 and 1238) are the landed fine-tuned container
+   record's and the landed 2026-11-04 radius record's deliveries; stock's
+   bare `scale` node arm (resource line 1226) is the plain node's own
+   container spacing, a separately recorded candidate; and the has-marks
+   slider arms the resource carries next (resource lines 1302 onward)
+   are the landed marked-scale thumb record's slider faces directly
+   below. Declaration checks do not establish rendered pixels. Restated
+   2026-11-09 by the feature role. */
+
+scale.horizontal marks.top {
+  margin-bottom: 6px;
+  margin-top: -12px;
+}
+
+scale.horizontal.fine-tune marks.top {
+  margin-bottom: 6px;
+  margin-top: -9px;
+}
+
+scale.horizontal marks.bottom {
+  margin-top: 6px;
+  margin-bottom: -12px;
+}
+
+scale.horizontal.fine-tune marks.bottom {
+  margin-top: 6px;
+  margin-bottom: -9px;
+}
+
+scale.vertical marks.top {
+  margin-right: 6px;
+  margin-left: -12px;
+}
+
+scale.vertical.fine-tune marks.top {
+  margin-right: 6px;
+  margin-left: -9px;
+}
+
+scale.vertical marks.bottom {
+  margin-left: 6px;
+  margin-right: -12px;
+}
+
+scale.vertical.fine-tune marks.bottom {
+  margin-left: 6px;
+  margin-right: -9px;
+}
+
+scale.horizontal indicator {
+  min-height: 6px;
+  min-width: 1px;
+}
+
+scale.horizontal.fine-tune indicator {
+  min-height: 3px;
+}
+
+scale.vertical indicator {
+  min-height: 1px;
+  min-width: 6px;
+}
+
+scale.vertical.fine-tune indicator {
+  min-width: 3px;
+}
+
 /* Adaptation 2026-11-09: no collected reference screenshot shows a marked
    GTK scale (the GTK scope's standing adaptation premise); a GtkScale node
    carrying one-sided value marks (marks-before or marks-after, never both)

@@ -807,13 +807,17 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
              "toolbar.inline-toolbar toolbutton:only-child > button.flat"},
         )
         self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
-        # 2026-11-09: the four marked-scale fine-tune arms also name the
-        # token and are pinned with the marked-scale thumbs by
+        # 2026-11-09: the four marked-scale fine-tune thumb arms also name
+        # the token and are pinned with the marked-scale thumbs by
         # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
         # same date's fine-tuned container geometry restatement adds the
         # two orientation container spellings, pinned by
         # test_gtk_theme_controls.TestGtkThemeControls::
-        # test_scale_fine_tune_container_geometry.
+        # test_scale_fine_tune_container_geometry; and the same date's
+        # marked-node geometry restatement adds the six fine-tuned tick
+        # margin and minimum spellings, pinned by
+        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_scale_marks_indicator_geometry.
         self.assertEqual(
             {s for s in self.rules if "fine-tune" in s},
             {
@@ -826,6 +830,12 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 "scale.horizontal.marks-after:not(.marks-before).fine-tune slider",
                 "scale.vertical.marks-before:not(.marks-after).fine-tune slider",
                 "scale.vertical.marks-after:not(.marks-before).fine-tune slider",
+                "scale.horizontal.fine-tune marks.top",
+                "scale.horizontal.fine-tune marks.bottom",
+                "scale.vertical.fine-tune marks.top",
+                "scale.vertical.fine-tune marks.bottom",
+                "scale.horizontal.fine-tune indicator",
+                "scale.vertical.fine-tune indicator",
             },
         )
         self.assertEqual(
