@@ -87,3 +87,50 @@ class _MatchRuns:
                     {"x": x, "y": start, "length": self.bottom - start})
             self.column_runs.sort(key=lambda run: (run["x"], run["y"]))
         return self.runs, self.column_runs
+
+
+class _ColumnRuns:
+    """Collect vertical match intervals for a capped column-run page over a
+    column-major scan: eligibility mirrors _MatchRuns' horizontal pattern, the
+    active interval closes at every column boundary and the bottom edge, the
+    eligible total is kept separately from the retained page, and only the
+    requested page of eligible intervals is retained."""
+
+    def __init__(self, x: int, y: int, width: int, height: int, *,
+                 min_run_length: int | None = None,
+                 max_run_length: int | None = None,
+                 run_limit: int | None = None, run_offset: int = 0) -> None:
+        self.x, self.y = x, y
+        self.bottom = y + height
+        self.min_run_length, self.max_run_length = min_run_length, max_run_length
+        self.run_limit, self.run_offset = run_limit, run_offset
+        self.run_count = 0
+        self.eligible_run_count = 0
+        self.runs: list[dict] = []
+        self.start_x = self.start_y = None
+
+    def observe(self, x: int, y: int, matches: bool) -> None:
+        if self.start_x is not None and x != self.start_x:
+            self._close(self.bottom - self.start_y)
+        if matches and self.start_x is None:
+            self.start_x, self.start_y = x, y
+        elif not matches and self.start_x is not None:
+            self._close(y - self.start_y)
+
+    def _close(self, length: int) -> None:
+        self.run_count += 1
+        run = {"x": self.start_x, "y": self.start_y, "length": length}
+        eligible = ((self.min_run_length is None or length >= self.min_run_length) and
+                    (self.max_run_length is None or length <= self.max_run_length))
+        if eligible:
+            index = self.eligible_run_count
+            self.eligible_run_count += 1
+            if index >= self.run_offset and (self.run_limit is None or
+                                             len(self.runs) < self.run_limit):
+                self.runs.append(run)
+        self.start_x = self.start_y = None
+
+    def finish(self) -> list[dict]:
+        if self.start_x is not None:
+            self._close(self.bottom - self.start_y)
+        return self.runs

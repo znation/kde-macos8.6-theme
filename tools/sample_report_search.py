@@ -7,17 +7,17 @@ import json
 if __package__:
     from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_pixels, _region_alpha,
-        print_region_line,
+        _compact_json, _hex, _positioned_region_column_pixels,
+        _positioned_region_pixels, _region_alpha, print_region_line,
     )
-    from tools.sample_match_runs import _MatchRuns
+    from tools.sample_match_runs import _ColumnRuns, _MatchRuns
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import report_context
     from sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_pixels, _region_alpha,
-        print_region_line,
+        _compact_json, _hex, _positioned_region_column_pixels,
+        _positioned_region_pixels, _region_alpha, print_region_line,
     )
-    from sample_match_runs import _MatchRuns
+    from sample_match_runs import _ColumnRuns, _MatchRuns
 
 
 def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
@@ -29,9 +29,17 @@ def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
         bound[length_key] = position - bound[coordinate_key] + 1
 
 
+def _pixel_matches(alphas, rgb, target, tolerance, match_alpha) -> bool:
+    """Evaluate one pixel against the exact-alpha and RGB-tolerance predicate;
+    the row-major and capped column-major scans share it."""
+    return (alphas is None or next(alphas) == match_alpha) and \
+        max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance
+
+
 def _search_match(args, image) -> dict:
     target = args.find_color
     tolerance = args.color_tolerance if args.color_tolerance is not None else 0
+    capped_columns = getattr(args, "max_match_column_runs", None) is not None
     count = 0
     sum_x = sum_y = 0
     matched_pixels = []
@@ -51,12 +59,17 @@ def _search_match(args, image) -> dict:
         run_limit=getattr(args, "max_match_runs", None),
         run_offset=getattr(args, "match_run_offset", None) or 0,
         summarize_columns=args.longest_match_column_run,
-        collect_column_runs=args.match_column_runs)
+        collect_column_runs=(not capped_columns and args.match_column_runs))
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
+    column_collector = _ColumnRuns(
+        args.x, args.y, args.width, args.height,
+        min_run_length=args.min_match_column_run_length,
+        max_run_length=args.max_match_column_run_length,
+        run_limit=args.max_match_column_runs,
+        run_offset=getattr(args, "match_column_run_offset", None) or 0)
     alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
     for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
-        alpha_matches = alphas is None or next(alphas) == args.match_alpha
-        matches = alpha_matches and max(abs(channel - wanted) for channel, wanted in zip(rgb, target)) <= tolerance
+        matches = _pixel_matches(alphas, rgb, target, tolerance, args.match_alpha)
         intervals.observe(x, y, matches)
         if matches:
             count += 1
@@ -80,23 +93,31 @@ def _search_match(args, image) -> dict:
             min_x, min_y = min(min_x, x), min(min_y, y)
             max_x, max_y = max(max_x, x), max(max_y, y)
     matched_runs, matched_column_runs = intervals.finish()
+    if capped_columns:
+        column_alphas = (iter(_region_alpha(image, args.x, args.y, args.width, args.height))
+                         if args.match_alpha is not None else None)
+        for x, y, rgb in _positioned_region_column_pixels(
+                image, args.x, args.y, args.width, args.height):
+            column_collector.observe(
+                x, y, _pixel_matches(column_alphas, rgb, target, tolerance,
+                                     args.match_alpha))
+        matched_column_runs = column_collector.finish()
     omitted_runs = None
     run_offset = getattr(args, "match_run_offset", None)
     if getattr(args, "max_match_runs", None) is not None:
         omitted_runs = intervals.eligible_run_count - len(matched_runs)
-    if args.min_match_column_run_length is not None:
-        matched_column_runs = [run for run in matched_column_runs
-                               if run["length"] >= args.min_match_column_run_length]
-    if args.max_match_column_run_length is not None:
-        matched_column_runs = [run for run in matched_column_runs
-                               if run["length"] <= args.max_match_column_run_length]
     omitted_column_runs = None
     column_run_offset = getattr(args, "match_column_run_offset", None)
-    if getattr(args, "max_match_column_runs", None) is not None:
-        eligible_column_count = len(matched_column_runs)
-        offset = column_run_offset or 0
-        matched_column_runs = matched_column_runs[offset:offset + args.max_match_column_runs]
-        omitted_column_runs = eligible_column_count - len(matched_column_runs)
+    if capped_columns:
+        omitted_column_runs = (column_collector.eligible_run_count
+                               - len(matched_column_runs))
+    else:
+        if args.min_match_column_run_length is not None:
+            matched_column_runs = [run for run in matched_column_runs
+                                   if run["length"] >= args.min_match_column_run_length]
+        if args.max_match_column_run_length is not None:
+            matched_column_runs = [run for run in matched_column_runs
+                                   if run["length"] <= args.max_match_column_run_length]
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
     return {"rgb": list(target), "hex": _hex(target), "count": count,

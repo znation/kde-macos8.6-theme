@@ -1031,15 +1031,18 @@ first `N` eligible vertical intervals in column-major order, after both
 inclusive length filters. JSON adds `match.omitted_column_runs`; text prints
 `omitted matching column runs: N` immediately after the list, including zero.
 Counts, longest-run summaries and other search measurements still cover the
-full region. The cap bounds reported output; interval collection still retains
-the full list.
+full region. When a cap is supplied, the search runs one extra column-major
+predicate scan over the already-decoded region, and completed vertical
+intervals are filtered and paged as that scan collects them, so retained
+vertical interval storage is bounded by the cap.
 
 Pass `--match-column-run-offset K` with `--match-column-runs` and
 `--max-match-column-runs` to skip K eligible vertical intervals in column-major
 order after both length filters. JSON adds `match.column_run_offset`; text prints
 `matching column run offset: K` before the list. The omitted count includes
-skipped and trailing eligible intervals. Paging limits output; segmentation
-still retains the full interval list.
+skipped and trailing eligible intervals. Paging requires the cap and rides the
+same bounded capped collection, so skipped eligible intervals are not
+retained.
 
 Add `--match-rows` with `--find-color` to count matching pixels in each row of
 the requested region. JSON adds a dense `match.rows` array and text prints the

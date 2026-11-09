@@ -42,6 +42,19 @@ def _positioned_region_pixels(image, x: int, y: int, width: int, height: int):
         yield x + index % width, y + index // width, rgb
 
 
+def _positioned_region_column_pixels(image, x: int, y: int, width: int, height: int):
+    """Yield each RGB pixel in a rectangle with its absolute image position,
+    column-major. Column-major twin of _positioned_region_pixels; it re-reads
+    the already-decoded buffers and owns one call site: the capped vertical
+    match-run collector"""
+    rgb, image_width = image.rgb, image.width
+    for column in range(x, x + width):
+        for row in range(y, y + height):
+            offset = (row * image_width + column) * 3
+            yield (column, row,
+                   (rgb[offset], rgb[offset + 1], rgb[offset + 2]))
+
+
 def _region_alpha(image, x: int, y: int, width: int, height: int):
     alpha = image.alpha
     for row in range(y, y + height):
