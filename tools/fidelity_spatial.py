@@ -30,7 +30,7 @@ else:  # imported as the top-level package by a directly run CLI
 _RUN = re.compile(b"\x01+")
 
 
-def _differing_flags(candidate: Image, reference: Image, tolerance: int) -> bytes:
+def differing_flags(candidate: Image, reference: Image, tolerance: int) -> bytes:
     """Return one 0/1 flag byte per pixel, row-major.
 
     A pixel's flag is 1 when its maximum raw RGBA delta strictly exceeds
@@ -39,6 +39,12 @@ def _differing_flags(candidate: Image, reference: Image, tolerance: int) -> byte
     pixel as opaque 255 -- the same union the CLI's ``compare`` call
     computes. This is the module's only pass over the image planes; every
     scanline report reads the flag string it returns.
+
+    The scan interface takes this string through the optional keyword-only
+    *flags* parameter: a run that requests several spatial reports computes
+    the pass once, up front, and hands the result to each call. Passing
+    ``None`` (the default) derives the string here, so every one-function
+    caller keeps the behaviour it had.
     """
     width, height = candidate.width, candidate.height
     pixels = width * height
@@ -60,42 +66,76 @@ def _differing_flags(candidate: Image, reference: Image, tolerance: int) -> byte
     return flags.to_bytes(pixels, "little")
 
 
-def difference_rows(candidate: Image, reference: Image, tolerance: int) -> list[int]:
-    """Count over-tolerance pixels in each row of equally sized images."""
-    return _difference_axis_counts(candidate, reference, tolerance, vertical=False)
+def difference_rows(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[int]:
+    """Count over-tolerance pixels in each row of equally sized images.
+
+    *flags* shares one :func:`differing_flags` pass across a run of spatial
+    reports; ``None`` derives the string here.
+    """
+    return _difference_axis_counts(
+        candidate, reference, tolerance, vertical=False, flags=flags
+    )
 
 
-def difference_columns(candidate: Image, reference: Image, tolerance: int) -> list[int]:
-    """Count over-tolerance pixels in each column of equally sized images."""
-    return _difference_axis_counts(candidate, reference, tolerance, vertical=True)
+def difference_columns(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[int]:
+    """Count over-tolerance pixels in each column of equally sized images.
+
+    *flags* shares one :func:`differing_flags` pass across a run of spatial
+    reports; ``None`` derives the string here.
+    """
+    return _difference_axis_counts(
+        candidate, reference, tolerance, vertical=True, flags=flags
+    )
 
 
 def _difference_axis_counts(
-    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+    candidate: Image, reference: Image, tolerance: int,
+    *, vertical: bool, flags: bytes | None = None,
 ) -> list[int]:
     """Count each over-tolerance pixel once in its row or column."""
-    flags = _differing_flags(candidate, reference, tolerance)
+    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     width, height = candidate.width, candidate.height
     if vertical:
         return [flags[x::width].count(1) for x in range(width)]
     return [flags[y * width:(y + 1) * width].count(1) for y in range(height)]
 
 
-def difference_row_bounds(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int] | None]:
-    """Return each differing row's smallest crop-relative horizontal interval."""
-    return _difference_axis_bounds(candidate, reference, tolerance, vertical=False)
+def difference_row_bounds(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[dict[str, int] | None]:
+    """Return each differing row's smallest crop-relative horizontal interval.
+
+    *flags* shares one :func:`differing_flags` pass across a run of spatial
+    reports; ``None`` derives the string here.
+    """
+    return _difference_axis_bounds(
+        candidate, reference, tolerance, vertical=False, flags=flags
+    )
 
 
-def difference_column_bounds(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int] | None]:
-    """Return each differing column's smallest crop-relative vertical interval."""
-    return _difference_axis_bounds(candidate, reference, tolerance, vertical=True)
+def difference_column_bounds(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[dict[str, int] | None]:
+    """Return each differing column's smallest crop-relative vertical interval.
+
+    *flags* shares one :func:`differing_flags` pass across a run of spatial
+    reports; ``None`` derives the string here.
+    """
+    return _difference_axis_bounds(
+        candidate, reference, tolerance, vertical=True, flags=flags
+    )
 
 
 def _difference_axis_bounds(
-    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+    candidate: Image, reference: Image, tolerance: int,
+    *, vertical: bool, flags: bytes | None = None,
 ) -> list[dict[str, int] | None]:
     """Collect each scanline's smallest interval containing a differing pixel."""
-    flags = _differing_flags(candidate, reference, tolerance)
+    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     width, height = candidate.width, candidate.height
     start_key, length_key = ("y", "height") if vertical else ("x", "width")
     bounds = []
@@ -114,15 +154,18 @@ def _difference_axis_bounds(
 
 
 def _iter_difference_axis_runs(
-    candidate: Image, reference: Image, tolerance: int, *, vertical: bool
+    candidate: Image, reference: Image, tolerance: int,
+    *, vertical: bool, flags: bytes | None = None,
 ) -> Iterator[dict[str, int]]:
     """Yield maximal over-tolerance intervals along each scanline.
 
     Horizontal runs scan rows row-major; vertical runs scan columns
     column-major, so a run never spans a scanline boundary -- the same
     segmentation the axis counts and bounds read from the flag string.
+    *flags* shares one :func:`differing_flags` pass across a run of spatial
+    reports; ``None`` derives the string here.
     """
-    flags = _differing_flags(candidate, reference, tolerance)
+    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     width, height = candidate.width, candidate.height
     for scanline in range(width if vertical else height):
         scanline_flags = (
@@ -142,45 +185,67 @@ def select_longest_run(runs: Iterable[dict[str, int]]) -> dict[str, int] | None:
     return max(runs, key=lambda run: run["length"], default=None)
 
 
-def longest_difference_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
+def longest_difference_run(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> dict[str, int] | None:
     """Return the longest horizontal mismatch run; ties use earliest (y, x)."""
     return select_longest_run(
-        _iter_difference_axis_runs(candidate, reference, tolerance, vertical=False)
+        _iter_difference_axis_runs(
+            candidate, reference, tolerance, vertical=False, flags=flags
+        )
     )
 
 
-def longest_difference_column_run(candidate: Image, reference: Image, tolerance: int) -> dict[str, int] | None:
+def longest_difference_column_run(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> dict[str, int] | None:
     """Return the longest vertical mismatch run; ties use earliest (x, y)."""
     return select_longest_run(
-        _iter_difference_axis_runs(candidate, reference, tolerance, vertical=True)
+        _iter_difference_axis_runs(
+            candidate, reference, tolerance, vertical=True, flags=flags
+        )
     )
 
 
-def difference_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
+def difference_runs(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[dict[str, int]]:
     """Return maximal horizontal runs of over-tolerance pixels, row-major."""
-    return list(_iter_difference_axis_runs(candidate, reference, tolerance, vertical=False))
+    return list(_iter_difference_axis_runs(
+        candidate, reference, tolerance, vertical=False, flags=flags
+    ))
 
 
-def difference_run_count(candidate: Image, reference: Image, tolerance: int) -> int:
+def difference_run_count(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> int:
     """Count horizontal mismatch runs without retaining their intervals."""
     return sum(1 for _ in _iter_difference_axis_runs(
-        candidate, reference, tolerance, vertical=False
+        candidate, reference, tolerance, vertical=False, flags=flags
     ))
 
 
-def difference_column_run_count(candidate: Image, reference: Image, tolerance: int) -> int:
+def difference_column_run_count(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> int:
     """Count vertical mismatch runs without retaining their intervals."""
     return sum(1 for _ in _iter_difference_axis_runs(
-        candidate, reference, tolerance, vertical=True
+        candidate, reference, tolerance, vertical=True, flags=flags
     ))
 
 
-def difference_column_runs(candidate: Image, reference: Image, tolerance: int) -> list[dict[str, int]]:
+def difference_column_runs(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> list[dict[str, int]]:
     """Return maximal vertical runs of over-tolerance pixels, column-major."""
-    return list(_iter_difference_axis_runs(candidate, reference, tolerance, vertical=True))
+    return list(_iter_difference_axis_runs(
+        candidate, reference, tolerance, vertical=True, flags=flags
+    ))
 
 
-def difference_centroid(candidate: Image, reference: Image, tolerance: int) -> dict[str, float] | None:
+def difference_centroid(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> dict[str, float] | None:
     """Return the equal-pixel centroid of over-tolerance pixels, crop-relative.
 
     The centroid reads along the flag string's maximal runs rather than
@@ -191,7 +256,7 @@ def difference_centroid(candidate: Image, reference: Image, tolerance: int) -> d
     visits only run boundaries.
     """
     width, height = candidate.width, candidate.height
-    flags = _differing_flags(candidate, reference, tolerance)
+    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     count = flags.count(1)
     if not count:
         return None

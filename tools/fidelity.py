@@ -54,7 +54,7 @@ if __package__:
     from tools.fidelity_geometry import FidelityError, crop
     from tools.fidelity_metrics import compare
     from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -71,7 +71,7 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_geometry import FidelityError, crop
     from fidelity_metrics import compare
     from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -131,48 +131,73 @@ def main(argv: list[str] | None = None) -> int:
                     if args.channel_counts else None)
         bias = channel_bias(candidate, reference) if args.channel_bias else None
         maxima = channel_maxima(candidate, reference) if args.channel_maxima else None
-        rows = difference_rows(candidate, reference, args.tolerance) if args.difference_rows else None
-        columns = difference_columns(candidate, reference, args.tolerance) if args.difference_columns else None
-        row_bounds = (difference_row_bounds(candidate, reference, args.tolerance)
+        # One flags pass serves every spatial report the run requested: it
+        # derives each pixel's differing flag once and each scanline report
+        # reads the same string. Any requested spatial option turns it on;
+        # the default output, which reads none of them, pays nothing.
+        wants_flags = (
+            args.difference_rows or args.difference_columns
+            or args.difference_row_bounds or args.difference_column_bounds
+            or args.difference_runs or args.difference_run_count
+            or args.longest_difference_run or args.difference_column_runs
+            or args.difference_column_run_count
+            or args.longest_difference_column_run or args.difference_centroid
+        )
+        flags = (differing_flags(candidate, reference, args.tolerance)
+                 if wants_flags else None)
+        rows = (difference_rows(candidate, reference, args.tolerance, flags=flags)
+                if args.difference_rows else None)
+        columns = (difference_columns(candidate, reference, args.tolerance, flags=flags)
+                   if args.difference_columns else None)
+        row_bounds = (difference_row_bounds(candidate, reference, args.tolerance,
+                                            flags=flags)
                       if args.difference_row_bounds else None)
-        column_bounds = (difference_column_bounds(candidate, reference, args.tolerance)
+        column_bounds = (difference_column_bounds(candidate, reference, args.tolerance,
+                                                  flags=flags)
                          if args.difference_column_bounds else None)
-        runs = difference_runs(candidate, reference, args.tolerance) if args.difference_runs else None
+        runs = (difference_runs(candidate, reference, args.tolerance, flags=flags)
+                if args.difference_runs else None)
         if args.difference_run_count:
             run_count = (len(runs) if runs is not None else
-                         difference_run_count(candidate, reference, args.tolerance))
+                         difference_run_count(candidate, reference, args.tolerance,
+                                              flags=flags))
         else:
             run_count = None
         longest_run = None
         if args.longest_difference_run:
             longest_run = (select_longest_run(runs) if runs is not None else
-                           longest_difference_run(candidate, reference, args.tolerance))
+                           longest_difference_run(candidate, reference, args.tolerance,
+                                                  flags=flags))
         omitted_runs = None
         if runs is not None:
             runs, omitted_runs = _filter_run_report(
                 runs, args.min_difference_run_length,
                 args.max_difference_run_length, args.max_difference_runs,
                 args.difference_run_offset or 0)
-        column_runs = (difference_column_runs(candidate, reference, args.tolerance)
+        column_runs = (difference_column_runs(candidate, reference, args.tolerance,
+                                              flags=flags)
                        if args.difference_column_runs else None)
         if args.difference_column_run_count:
             column_run_count = (len(column_runs) if column_runs is not None else
                                 difference_column_run_count(candidate, reference,
-                                                            args.tolerance))
+                                                            args.tolerance,
+                                                            flags=flags))
         else:
             column_run_count = None
         longest_column_run = None
         if args.longest_difference_column_run:
             longest_column_run = (select_longest_run(column_runs) if column_runs is not None else
                                   longest_difference_column_run(candidate, reference,
-                                                                args.tolerance))
+                                                                args.tolerance,
+                                                                flags=flags))
         omitted_column_runs = None
         if column_runs is not None:
             column_runs, omitted_column_runs = _filter_run_report(
                 column_runs, args.min_difference_column_run_length,
                 args.max_difference_column_run_length, args.max_difference_column_runs,
                 args.difference_column_run_offset or 0)
-        centroid = (difference_centroid(candidate, reference, args.tolerance)
+        centroid = (difference_centroid(candidate, reference, args.tolerance,
+                                        flags=flags)
                     if args.difference_centroid else None)
         histogram = (delta_histogram(candidate, reference)
                      if args.delta_histogram or args.delta_percentiles else None)
