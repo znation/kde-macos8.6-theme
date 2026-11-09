@@ -1846,6 +1846,10 @@ The post-merge review of commit `52d6b44aadab1b291a23e2cee5a43b951dbc1350` (Add 
 
 The post-merge review of commit `1050dead9af31a4af92dcce0b7e3be29999fe0ae` (Move fidelity text and JSON rendering into a dedicated module) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of b281cb85 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `b281cb858c50d206f7088df728bbf2109a268091` (Pin fidelity argument validator boundaries) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
