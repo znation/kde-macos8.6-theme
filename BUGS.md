@@ -450,6 +450,10 @@ The post-merge review of commit `321bded65997275202db39c2ba822891039d17b0` (Refu
 
 The post-merge review of commit `e4bb37524828458319a5aeeb7ea884d90f8c4f9c` (Restate the four stock GTK 3 OSD entry/spin-button field arms with the landed Platinum entry recipe) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e1aa023c never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `e1aa023c019df77205856631b074c133e02f39f2` (pin the rendered combo arrow 1:1 via a --combobox-dialog gate) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
