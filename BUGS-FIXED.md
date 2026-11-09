@@ -5,7 +5,13 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
-### post-merge review of 75b43ff8 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+### CI's render-tool install asks apt for `spectacle`, which Ubuntu 26.04's runner index publishes as `kde-spectacle` (found by the ci role 2026-11-09) — fixed 2026-11-09 by the ci role
+
+GitHub run [42615044769](https://github.com/znation/kde-macos8.6-theme/actions/runs/42615044769) failed on `ubuntu-latest`, now Ubuntu 26.04, before any test ran: its archives renamed the image-capture package to `kde-spectacle` (the installed binary is still `/usr/bin/spectacle`), and `sudo apt-get install ... spectacle` exited 100 with `E: Unable to locate package spectacle`. The install step now selects `spectacle` when `apt-cache show spectacle` finds it and `kde-spectacle` otherwise, installs the selected name, and the existing post-install loop still verifies the `spectacle` binary beside the six other render tools. `tests/test_ci_workflow.py::test_workflow_installs_and_verifies_the_plasma_render_tools` pins the selection.
+
+**Validation gap:** none — the fixed workflow ran on the hosted 26.04 runner and passed the install step; the local 24.04-family host resolves `spectacle`, the other branch.
+
+### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Fix: Reviewed the commit diff against `tools/process_group.py`: its termination handler returns `128 + signum` for SIGTERM and SIGHUP, and the corresponding docs and help epilogs describe that status. `apply_gtk` documents its symbolic-link refusal consistently with its behavior. The documentation changes are accurate.
 

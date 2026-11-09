@@ -55,7 +55,20 @@ jobs:
             # tool; `kdialog` provides the dialog render's three kdialog
             # clients and `zenity` the GTK 4 dialog render's client.
             sudo apt-get install -y --no-install-recommends \
-              dbus kwin-wayland plasma-workspace spectacle kdialog zenity
+              dbus kwin-wayland plasma-workspace kdialog zenity
+            # Ubuntu 26.04 (the release `ubuntu-latest` moved to) renamed
+            # the screenshot package from `spectacle` to `kde-spectacle`;
+            # the installed binary stayed `/usr/bin/spectacle`. Select the
+            # name the runner's index provides so the 24.04 and 26.04
+            # images both install, and the by-name verification below
+            # still checks the binary.
+            if apt-cache show spectacle >/dev/null 2>&1; then
+              spectacle_package=spectacle
+            else
+              spectacle_package=kde-spectacle
+            fi
+            sudo apt-get install -y --no-install-recommends \
+              "$spectacle_package"
             # Newer Debian-family releases split dbus-run-session out of the
             # 'dbus' package; cover that layout too.
             command -v dbus-run-session >/dev/null || \

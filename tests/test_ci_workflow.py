@@ -60,6 +60,15 @@ class TestCiWorkflow(unittest.TestCase):
         self.assertRegex(workflow, r"(?s)apt-get install.*kwin-wayland")
         self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
+        # Ubuntu 26.04 publishes the screenshot package as `kde-spectacle`;
+        # 24.04 publishes `spectacle`. The install must follow the name its
+        # apt index actually provides, while verifying the unchanged
+        # `spectacle` binary.
+        self.assertRegex(
+            workflow,
+            r"(?s)apt-cache show spectacle .*?spectacle_package=kde-spectacle",
+            "the install must select the renamed package when the index lacks spectacle",
+        )
         self.assertRegex(workflow, r"(?s)apt-get install.*kdialog")
         self.assertRegex(workflow, r"(?s)apt-get install.*zenity")
         self.assertRegex(
