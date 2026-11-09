@@ -3581,6 +3581,24 @@ for radio in (False, True):
             {"outline-color": BLACK},
         )
 
+    def test_sidebar_row_icon_opacity(self):
+        # The 2026-11-09 adaptation restates the toolkit resource's 0.7 veil
+        # arm, which is state-independent, so no hover, active, selected or
+        # backdrop twin exists and the family holds exactly this one rule.
+        self.assertEqual(
+            {selector for selector in self.rules if "sidebar-icon" in selector},
+            {"row image.sidebar-icon"},
+        )
+        self.assert_rule("row image.sidebar-icon", {"opacity": "1"})
+        self.assertEqual(self.selectors.count("row image.sidebar-icon"), 1)
+        # Held in the landed sidebar neighbourhood, not a detached tail.
+        self.assertGreater(
+            self.selectors.index("row image.sidebar-icon"),
+            self.selectors.index(
+                "placessidebar .navigation-sidebar > row:drop(active)"
+                ":not(:disabled):selected"),
+        )
+
     def test_boxed_list_corners(self):
         roots = ("list.boxed-list", "list.content")
         suffixes = (

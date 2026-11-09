@@ -2347,6 +2347,28 @@ placessidebar .navigation-sidebar > row:drop(active):not(:disabled):selected {
   background-color: #CCCCFF;
 }
 
+/* No collected screenshot in macos8.6-screenshots/ shows a GTK sidebar row
+   icon, so the row icon has no reference surface to sample; give it full
+   opacity by removing the toolkit's own extra transparency layer, the
+   value the sibling sheet's landed GTK 3 row-icon record pins from the
+   toolkit resource's gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (added 2026-11-09). Stock arms
+   probed 2026-11-09 with gresource extract of /org/gtk/libgtk/theme/
+   Default/Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+   (the 1940-line resource, libgtk-4 4.18.6): line 1591
+   row image.sidebar-icon { opacity: 0.7; } — and the same extraction of
+   Default-dark.css: line 1579 the identical arm. No further sidebar-icon
+   opacity statement exists in either resource, and the arm is
+   state-independent, so no hover, active, selected or backdrop twin is
+   restated. The two stock directional padding twins (light 1598/1600,
+   dark 1586/1588) stay stock: the shipped sheet declares no padding for
+   this family, and stock's own 8px geometry governs, matching the
+   colours-only choice of the sibling sheet's landed record. Declaration
+   checks do not establish rendered pixels. */
+row image.sidebar-icon {
+  opacity: 1;
+}
+
 /* No GTK navigation-sidebar reference is available; adapt its item corners
    to the square frame treatment (2026-10-29). */
 .navigation-sidebar > row,
