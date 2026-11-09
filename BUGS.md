@@ -346,6 +346,10 @@ The post-merge review of commit `9c1b673822eb2bed96e47d46d29360a910ef4384` (Pin 
 
 The post-merge review of commit `514cfd137f072b8df4777047d7917807e8c46174` (Extend the GTK 4 linked-group strip to menubutton, colorbutton, fontbutton and tabbutton members) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2843fac7 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `2843fac7ecb8824d3dbc79e408ef0ac86593d736` (Remove the dead private wrapper `_link_target` from tools/apply_cursor.py) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
