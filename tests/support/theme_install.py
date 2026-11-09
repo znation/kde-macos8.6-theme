@@ -88,12 +88,19 @@ def write_file(path, body):
     tools/check_references_selftest.py stages inline in ``tools`` rather
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
-    Still unconverted next-run material is the further mkdir-then-write_text
-    staging family in tests/test_gtk_staging.py, tests/test_apply_cursor.py,
-    tests/test_apply_gtk_errors.py, tests/test_install_firefox.py (the
-    ``user.js`` fixture), tests/test_firefox_profile.py,
-    tests/test_local_hook.py (``write_fake_make``), tests/test_make_cursors.py,
-    tests/test_svg_case.py, and support/symlink_fixtures.py's content staging.
+    Still unconverted next-run material includes the further
+    mkdir-then-write_text staging family in tests/test_gtk_staging.py,
+    tests/test_apply_cursor.py, tests/test_apply_gtk_errors.py,
+    tests/test_install_firefox.py (the ``user.js`` fixture),
+    tests/test_firefox_profile.py, tests/test_local_hook.py
+    (``write_fake_make``), tests/test_make_cursors.py, tests/test_svg_case.py,
+    and support/symlink_fixtures.py's content staging; the same pair pattern
+    also survives in, for example, tests/test_apply_theme.py,
+    tests/test_sample_cli.py, tests/test_shipped_files.py,
+    tests/test_suite_discovery.py, tests/test_checker_mutations.py,
+    tests/test_render_surface_units.py,
+    tests/test_check_references_validation.py, tests/test_apply_cursor_locks.py,
+    and this module's own test_theme_install.py.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:
