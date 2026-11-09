@@ -30,17 +30,13 @@ from support.gtk_theme_spec import (
     INVERTED_BUTTON_BEVEL,
     LINK,
     SCALE_THUMB,
-    VISITED_LINK,
+    SHEET_PALETTE,
 )
 from support.platinum_palette import (
     BLACK,
-    BUTTON_SHADOW,
     FACE,
     GREY,
-    INACTIVE_OUTLINE,
     SELECTION,
-    TOOLTIP_FACE,
-    TROUGH,
     WHITE,
 )
 from support.repo_root import ROOT
@@ -129,21 +125,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         self.assertNotIn("adwaita", self.css.lower())
 
     def test_only_palette_hex_literals(self):
-        palette = {
-            BLACK,
-            WHITE,
-            GREY,
-            FACE,
-            BUTTON_SHADOW,
-            TROUGH,
-            SELECTION,
-            ETCH_DARK,
-            LINK,
-            VISITED_LINK,
-            TOOLTIP_FACE,
-            INACTIVE_OUTLINE,
-        }
-        self.assertEqual(set(HEX.findall(self.css)), palette)
+        self.assertEqual(set(HEX.findall(self.css)), SHEET_PALETTE)
 
     def test_no_universal_selector(self):
         for selector in self.selectors:

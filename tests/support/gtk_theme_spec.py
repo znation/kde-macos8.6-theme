@@ -35,6 +35,29 @@ ETCH_DARK = "#888888"
 LINK = "#0000EE"
 VISITED_LINK = "#551A8B"
 
+# The exact hex set the two GTK stylesheets may paint: the pinned Platinum
+# palette values plus the two link inks. The suites
+# tests/test_gtk_theme.py and tests/test_gtk4_theme.py assert their parsed
+# sheet against this one frozenset through test_only_palette_hex_literals,
+# so any other hex literal in either sheet fails both; the Firefox sheets'
+# palettes differ and still name their own smaller sets there.
+SHEET_PALETTE = frozenset(
+    {
+        BLACK,
+        WHITE,
+        GREY,
+        FACE,
+        BUTTON_SHADOW,
+        TROUGH,
+        SELECTION,
+        ETCH_DARK,
+        LINK,
+        VISITED_LINK,
+        TOOLTIP_FACE,
+        INACTIVE_OUTLINE,
+    }
+)
+
 BASE_DEFINED_COLOURS = {
     "theme_bg_color": FACE,
     "theme_fg_color": BLACK,

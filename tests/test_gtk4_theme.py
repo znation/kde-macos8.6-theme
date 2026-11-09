@@ -39,8 +39,8 @@ from support.gtk_theme_spec import (
     INFOBAR,
     LINK,
     MENUBUTTON_ARROWS,
-    VISITED_LINK,
     MENU_CHECK,
+    SHEET_PALETTE,
     INVERTED_BUTTON_BEVEL,
     MIXED_GLYPH,
     PROGRESSBAR_PROGRESS,
@@ -63,12 +63,10 @@ from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
 from support.platinum_palette import (
     BLACK,
-    BUTTON_SHADOW,
     FACE,
     GREY,
     INACTIVE_OUTLINE,
     SELECTION,
-    TOOLTIP_FACE,
     TROUGH,
     WHITE,
     hex_colour,
@@ -298,21 +296,7 @@ for radio in (False, True):
         self.assertNotIn("adwaita", self.css.lower())
 
     def test_only_palette_hex_literals(self):
-        palette = {
-            BLACK,
-            WHITE,
-            GREY,
-            FACE,
-            BUTTON_SHADOW,
-            TROUGH,
-            SELECTION,
-            ETCH_DARK,
-            LINK,
-            VISITED_LINK,
-            TOOLTIP_FACE,
-            INACTIVE_OUTLINE,
-        }
-        self.assertEqual(set(HEX.findall(strip_comments(self.css))), palette)
+        self.assertEqual(set(HEX.findall(strip_comments(self.css))), SHEET_PALETTE)
 
     def test_no_status_or_translucent_shade_roles(self):
         # Scan the raw declarations, not the parsed hex map, so a status or
