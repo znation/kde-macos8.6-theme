@@ -1726,6 +1726,54 @@ for radio in (False, True):
     def test_status_bar(self):
         self.assert_infobar(("statusbar",))
 
+    def test_dropdown_searchbar_rim(self):
+        # A dropdown's or combobox's searchable list popover draws the
+        # search strip's own stock rim beneath the band edge the strip's
+        # inner search box paints; the landed band group answers the inner
+        # box, so this rim restates the strip itself with the landed etched
+        # band edge (2026-11-09).
+        expected = {
+            "border-bottom": f"1px solid {ETCH_DARK}",
+            "box-shadow": f"inset 0 -1px {WHITE}",
+        }
+        for selector in (
+            "dropdown popover .dropdown-searchbar",
+            "combobox popover .dropdown-searchbar",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected)
+                self.assertEqual(self.rules[selector], expected)
+                self.assertEqual(self.selectors.count(selector), 1)
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("actionbar > revealer > box"),
+                )
+                self.assertLess(
+                    self.selectors.index(selector),
+                    self.selectors.index("statusbar"),
+                )
+                for prop in expected:
+                    self.assertEqual(
+                        self.rules[selector][prop],
+                        self.rules["infobar > revealer > box"][prop],
+                    )
+        # The landed scroll-edge spellings end with undershoot.top /
+        # undershoot.bottom and stay out of this suffix family.
+        self.assertEqual(
+            {s for s in self.rules if s.endswith("dropdown-searchbar")},
+            {
+                "dropdown popover .dropdown-searchbar",
+                "combobox popover .dropdown-searchbar",
+            },
+        )
+        # The strip's arm inventory must not grow a .combo-searchbar rule:
+        # stock's margin arm and the landed undershoot twins (which contain
+        # the token but end with an undershoot suffix) stay the only ones.
+        self.assertEqual(
+            {s for s in self.rules if s.endswith("combo-searchbar")},
+            set(),
+        )
+
     def test_path_bar_tabs(self):
         forms = {
             "base": ("pathbar > scrolledwindow > viewport > box > button",),

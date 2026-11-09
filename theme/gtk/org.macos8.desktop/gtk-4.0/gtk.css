@@ -2178,6 +2178,35 @@ actionbar > revealer > box {
   box-shadow: inset 0 -1px #FFFFFF;
 }
 
+/* 2026-11-09: a dropdown's or a combobox's searchable list popover draws
+   the search strip's own stock rim beneath the band edge the strip's inner
+   search box paints, and stock itself keeps that two-rim pair. No collected
+   reference screenshot shows a GTK dropdown search strip, so the rim takes
+   the landed etched band rule. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css in the GTK 4 library,
+   libgtk-4 4.18.6, probed with gresource 2026-11-09: a 1940-line resource
+   whose only .dropdown-searchbar colour arm is this front arm) declares on
+   line 546 `dropdown popover .dropdown-searchbar, combobox popover
+   .dropdown-searchbar { padding: 6px; border-bottom: 1px solid <the stock
+   warm-grey rim ink, recorded verbatim in docs/invariants.md>; }`; the
+   integration library's base.css resource (probe path recorded in
+   docs/invariants.md, re-extracted 2026-11-09: a 2622-line resource)
+   declares its `.menu` twin with padding only. No landed record reaches
+   this rim: the landed band group above answers the strip's inner search
+   box, the landed popover face group answers the popover shell, and no
+   landed rule carries the strip's class. The selectors below are
+   byte-equal to the toolkit twin, so equal specificity falls to the later
+   user-sheet source order and only the rim ink changes ownership; stock's
+   `padding: 6px`, the platform library's `.menu` twin and the stock
+   `.combo-searchbar` margin arm stay inherited per-property, and the
+   landed scroll-edge record keeps the undershoot spellings. Declaration
+   checks do not establish rendered pixels. */
+dropdown popover .dropdown-searchbar,
+combobox popover .dropdown-searchbar {
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+
 /* A status bar draws the menu-bar band: the #DDDDDD face, black text and the
    etched bottom rule. The GTK 4 statusbar builds statusbar > box > label
    with no frame node, so the band rule is the strip's only paint; :backdrop
