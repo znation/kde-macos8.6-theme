@@ -150,6 +150,20 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             self.selectors.index("levelbar trough"),
         )
 
+    def test_meter_label_ink(self):
+        """A meter's show-text percentage label keeps the landed window ink."""
+        self.assert_rule_group({"progressbar": {"color": BLACK}})
+        self.assert_rule_after("progressbar trough {", "progressbar {")
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("progressbar")
+                and not s.startswith(("progressbar ", "progressbar.", "progressbar:"))
+            },
+            {"progressbar"},
+        )
+
     def test_entry_progress(self):
         self.assert_rule("entry progress", ENTRY_PROGRESS)
 

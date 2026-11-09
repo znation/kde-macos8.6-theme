@@ -1064,6 +1064,42 @@ scrolledwindow junction:backdrop {
   border-image: none;
 }
 
+/* A meter's show-text percentage label — the text the toolkit paints
+ * over the bar itself when `show-text` is enabled — keeps the landed
+ * black window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK meter's percentage label, so the bare
+ * `progressbar` widget node's ink is platform-required and the landed
+ * `progressbar trough`, `progressbar progress`, `progressbar progress:disabled`,
+ * `progressbar.osd` and `treeview.view.progressbar` groups — other nodes or
+ * other bars — can reach it in no plain context. The installed GTK 3 theme
+ * resource gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+ * (extracted with `gresource`) declares the node's one ink arm at its
+ * resource line 1439, `progressbar { font-size: smaller; color: <the
+ * toolkit's translucent ink>; font-feature-settings: "tnum"; }`, and the
+ * dark-twin resource gtk-contained-dark.css declares the same arm at line
+ * 1423 with its own translucent grey literal, every line shifted by −16;
+ * no state, backdrop or `.osd` arm repaints the bare node ink in either
+ * resource. The restatement below wins the single per-property
+ * equal-specificity tie by later user-sheet source order, so one kit ink
+ * answers light and dark deliveries and the `.osd` meter contexts the
+ * plain node reaches alike; the value source is the landed black window
+ * ink, the same policy the landed treeview progress-cell record above
+ * applies to the cell text and the landed insensitive-label,
+ * separator-label and disabled link-button records apply to toolkit-painted
+ * text. The two stock typography members stay inherited: `font-size:
+ * smaller` is stock-only label sizing the landed theme synthesizes for no
+ * other control and `font-feature-settings: "tnum"` likewise, and neither
+ * has a toolkit or user counter-arm to tie. The scale's own mark and value
+ * decoration ink (`scale marks, scale value` at the light resource's line
+ * 1276 and the dark twin's line 1260) is the scale-decoration ink candidate
+ * outside this restatement, as this record's cell-text ink above is separate
+ * from the landed treeview progress-cell record's. Declaration checks do
+ * not establish rendered pixels. */
+
+progressbar {
+  color: #000000;
+}
+
 progressbar trough {
   background-color: #EEEEEE;
   background-image: none;
