@@ -72,6 +72,18 @@ def write_file(path, body):
     return path
 
 
+def write_config_file(config, name, body):
+    """Write *body* as `<config>`/name; return its path.
+
+    The recipe suites stage one config file (`plasmarc`, `kdeglobals`,
+    `kcminputrc`, `kwinrc`, `Kvantum/kvantum.kvconfig`, `settings.ini`, ...)
+    under the test's config home before running a recipe; a *name* carrying
+    further path segments is allowed. This is the one copy of that staging
+    write, so the suites' local wrappers stay one-line bindings.
+    """
+    return write_file(os.path.join(config, name), body)
+
+
 def run_make(args, env=None):
     """Run `make *args*` at the repository root under the suite's timeout runner.
 

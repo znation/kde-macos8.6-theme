@@ -17,7 +17,7 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_file
+from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -41,7 +41,7 @@ ICON_THEME_ID = "org.macos8.desktop"
 
 def write_selection(config, body):
     """Write *body* as `<config>/kdeglobals`; return its path."""
-    return write_file(os.path.join(config, "kdeglobals"), body)
+    return write_config_file(config, "kdeglobals", body)
 
 
 def rule_for(path):

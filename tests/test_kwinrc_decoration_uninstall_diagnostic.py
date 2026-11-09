@@ -20,7 +20,7 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_file
+from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -73,7 +73,7 @@ def AURORAE_PAIR_RULE(path):
 
 def write_kwinrc(config, body):
     """Write *body* as `<config>/kwinrc`; return its path."""
-    return write_file(os.path.join(config, "kwinrc"), body)
+    return write_config_file(config, "kwinrc", body)
 
 
 class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestCase):

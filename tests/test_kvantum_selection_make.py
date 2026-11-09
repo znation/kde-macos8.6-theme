@@ -16,7 +16,7 @@ import tempfile
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes
+from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -29,11 +29,7 @@ RESET = "Clear it with: make remove-kvantum"
 
 def write_selection(config, body):
     """Write *body* as `<config>/Kvantum/kvantum.kvconfig`; return its path."""
-    path = os.path.join(config, "Kvantum", "kvantum.kvconfig")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(body)
-    return path
+    return write_config_file(config, os.path.join("Kvantum", "kvantum.kvconfig"), body)
 
 
 
