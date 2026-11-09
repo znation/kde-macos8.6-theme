@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 7923474a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `7923474a2cd53d3c75f1efaf851ed5d6331e1f65` (Add `THEME_ROOT` to the Makefile's parse-time refusal of shell-metacharacter make inputs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: reviewed the commit's landing at HEAD. The parse-time guard list carries `THEME_ROOT` (Makefile:142, extended by later commits — it now also covers `COLOR_SCHEME_NAME`, `CHECK_PATTERN` and the check variables, with the dated comment at Makefile:116-118); `require_theme_links` still pastes the value into the double-quoted recipe words (`[ -L "$(THEME_ROOT)" ]`, `find "$(THEME_ROOT)" ...` at Makefile:338), so the guard is the right protection; the commit's tests survive — migrated intact (including the canary injection test and the HOSTILES sweep) to `tests/test_make_refusals.py:407` as `TestShellUnsafeThemeRoot`, and all four tests pass. The one gap found was in documentation, not code: the sibling variables' invariant row carried every guarded variable and test but never mentioned `THEME_ROOT`, so docs/invariants.md:698 now lists it with its test. The commit landed as ordinary verified-backlog work; nothing else in its scope was missing.
+
+**Validation gap:** none — the existing suite's `TestShellUnsafeThemeRoot` reproduces and confirms the guard's behavior.
+
 ### post-merge review of a44691d4 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `a44691d436e063ebd6a9d21d8a68aa7f49e09391` (Give GTK 4 linked groups one shared black border between members in the Platinum sheet) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
