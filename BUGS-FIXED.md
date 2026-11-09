@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 85d1a439 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: settled the review by hand on main's tip. The commit's pieces are all landed and verified at HEAD: the dated adaptation comment and `calendar { border: 1px solid #000000; }` rule at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:1796-1801`, the pin `tests/test_gtk_theme.py::TestGtkTheme::test_calendar_outer_border` at line 776 (asserting the exact `calendar` border declaration and its equality with both `frame > border` and `.frame`), and the invariant row at `docs/invariants.md:184`. Ran the focused test (pass); ran `make check` (pass).
+
+**Validation gap:** none — the landed suite already reproduced and confirmed the change; nothing was missing.
+
 ### post-merge review of 266c6cdc never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `266c6cdc073ac038f3c04daa63dd3078c1e5f2fc` (Declare GTK 3 tooltip descendant text treatment and complete its plan) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
