@@ -5350,9 +5350,61 @@ for radio in (False, True):
                 "scale > value",
                 "scale.horizontal > marks",
                 "scale.vertical > marks",
+                "scale.horizontal > marks.top",
+                "scale.horizontal > marks.bottom",
+                "scale.horizontal > marks indicator",
+                "scale.horizontal:not(.marks-before) > value.top",
+                "scale.horizontal:not(.marks-after) > value.bottom",
+                "scale.horizontal > value.left",
+                "scale.horizontal > value.right",
+                "scale.horizontal.fine-tune > marks.top",
+                "scale.horizontal.fine-tune > marks.bottom",
+                "scale.horizontal.fine-tune > marks indicator",
             },
         )
         self.assert_rule_after("switch {", "scale > value,")
+
+    def test_scale_horizontal_marks_value_allocation(self):
+        """A plain or fine-tuned horizontal marked scale keeps the toolkit's own allocation.
+
+        The toolkit's ten horizontal arms (push-out margins, tick
+        minimums, value-label orientation margins, fine-tune halves) are
+        restated byte-equal behind this block, so both cascade loading
+        readings carry the same spacing — the keep-both-readings parity
+        restate the landed plain-container record set, with the indicator
+        currentColor member carried byte-equal so the arm survives the
+        replacement reading too.
+        """
+        self.assert_rule_group(
+            {
+                "scale.horizontal > marks.top": {"margin-bottom": "6px"},
+                "scale.horizontal > marks.bottom": {"margin-top": "6px"},
+                "scale.horizontal > marks indicator": {
+                    "background-color": "currentColor",
+                    "min-height": "6px",
+                    "min-width": "1px",
+                },
+                "scale.horizontal:not(.marks-before) > value.top": {
+                    "margin-bottom": "12px"
+                },
+                "scale.horizontal:not(.marks-after) > value.bottom": {
+                    "margin-top": "12px"
+                },
+                "scale.horizontal > value.left": {"margin-right": "9px"},
+                "scale.horizontal > value.right": {"margin-left": "9px"},
+                "scale.horizontal.fine-tune > marks.top": {"margin-top": "3px"},
+                "scale.horizontal.fine-tune > marks.bottom": {
+                    "margin-bottom": "3px"
+                },
+                "scale.horizontal.fine-tune > marks indicator": {
+                    "min-height": "3px"
+                },
+            }
+        )
+        self.assert_rule_after("scale.horizontal > marks.top {", "scale > value,")
+        self.assert_rule_after(
+            "switch {", "scale.horizontal.fine-tune > marks indicator {"
+        )
 
     def test_scale(self):
         self.assert_scale(

@@ -2268,6 +2268,108 @@ scale > value, scale.horizontal > marks, scale.vertical > marks {
   color: #000000;
 }
 
+/* 2026-11-09: a plain or fine-tuned GTK 4 marked scale's horizontal
+   tick-line allocation keeps the toolkit's own push-out margins, tick
+   minimums and value-label orientation margins. No collected reference
+   screenshot in macos8.6-screenshots/ shows a marked GTK scale's tick
+   spacing or value margins (the GTK scope's standing adaptation
+   premise), so no repainted value exists and these ten restatements
+   carry the toolkit's own allocation — the keep-both-readings parity
+   restate the landed plain-container record set, applied byte-equal (the
+   landed ink comment above left the indicator currentColor member
+   unrestated so the tick lines would follow the restated marks ink;
+   this block carries that member byte-equal anyway, on that record's
+   byte-equal precedent, so the arm also survives the replacement
+   reading — one rationale in one place, so the two records read
+   together rather than against each other). The toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares, and the dark twin
+   /org/gtk/libgtk/theme/Default/Default-dark.css repeats byte-for-byte
+   at every line in this bank shifted -12 (light 1147-1165, dark
+   1135-1153): line 1147 `scale.horizontal > marks.top` carries
+   `margin-bottom: 6px`, 1149 `scale.horizontal > marks.bottom` carries
+   `margin-top: 6px`, 1151 `scale.horizontal > marks indicator` carries
+   `background-color: currentColor` with the `min-height: 6px` and
+   `min-width: 1px` minimums, 1153
+   `scale.horizontal:not(.marks-before) > value.top` carries
+   `margin-bottom: 12px`, 1155
+   `scale.horizontal:not(.marks-after) > value.bottom` carries
+   `margin-top: 12px`, 1157 `scale.horizontal > value.left` carries
+   `margin-right: 9px`, 1159 `scale.horizontal > value.right` carries
+   `margin-left: 9px`, 1161 `scale.horizontal.fine-tune > marks.top`
+   carries `margin-top: 3px`, 1163
+   `scale.horizontal.fine-tune > marks.bottom` carries
+   `margin-bottom: 3px` and 1165
+   `scale.horizontal.fine-tune > marks indicator` carries
+   `min-height: 3px` — the horizontal half of the toolkit's allocation
+   bank; the integration library's base.css resource carries identical
+   values on the same spellings (base 1912-1924 and 1930-1934; probe
+   paths, resource paths and versions recorded verbatim in
+   docs/invariants.md) and is the parity source, left unrepeated here.
+   No disabled, :backdrop or .osd counter-arm reaches any of the ten
+   spellings in any probed resource. Exclusions, each with its
+   per-property reason: the `scale.horizontal > marks` colour arm (light
+   1145) — the landed ink comma group's own member above; the whole
+   vertical bank (light 1169-1187, and light 1167's vertical colour arm
+   likewise already landed by that comma group) — the queued vertical
+   twin part's own queue, listed so no reader counts this block as the
+   whole allocation; the fine-tune trough and slider margin arms
+   (toolkit light 1113 -3px and 1115 -6px, and the integration library's
+   base 1926 -3px 0px and 1928 -5px -8px for this orientation) —
+   answered above by the landed `margin: 0` trough-spacing group and
+   below by the landed `-5px` thumb-margin group; and the has-marks
+   slider arms (light 1189 onward) alongside the integration library's
+   marks-before and marks-after zero-padding container arms (base 1936
+   `padding-top: 0` and 1940 `padding-bottom: 0`) — the landed
+   marked-thumb records' slider faces, with no container-padding
+   spelling in any probed resource (all three greps returned zero
+   matches), so neither toolkit side carries a counter-arm and the
+   padded arms sit with whichever resource rides the sheet. Declaration,
+   count and order checks do not establish rendered pixels. */
+
+scale.horizontal > marks.top {
+  margin-bottom: 6px;
+}
+
+scale.horizontal > marks.bottom {
+  margin-top: 6px;
+}
+
+scale.horizontal > marks indicator {
+  background-color: currentColor;
+  min-height: 6px;
+  min-width: 1px;
+}
+
+scale.horizontal:not(.marks-before) > value.top {
+  margin-bottom: 12px;
+}
+
+scale.horizontal:not(.marks-after) > value.bottom {
+  margin-top: 12px;
+}
+
+scale.horizontal > value.left {
+  margin-right: 9px;
+}
+
+scale.horizontal > value.right {
+  margin-left: 9px;
+}
+
+scale.horizontal.fine-tune > marks.top {
+  margin-top: 3px;
+}
+
+scale.horizontal.fine-tune > marks.bottom {
+  margin-bottom: 3px;
+}
+
+scale.horizontal.fine-tune > marks indicator {
+  min-height: 3px;
+}
+
 switch {
   /* No reference screenshot shows a GTK switch (adaptation 2026-10-29);
      zero internal spacing keeps
