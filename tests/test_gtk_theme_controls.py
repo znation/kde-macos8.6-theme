@@ -1368,6 +1368,40 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             "radiobutton:focus", anchor="checkbutton:focus"
         )
 
+    def test_check_radio_tick_motion(self):
+        """The checked and mixed marks flip with no stock transition."""
+        group = (
+            "radio:checked:not(:backdrop)",
+            "radio:indeterminate:not(:backdrop)",
+            "check:checked:not(:backdrop)",
+            "check:indeterminate:not(:backdrop)",
+        )
+        self.assert_rule_group(dict.fromkeys(group, {"transition": "none"}))
+        # The parser stores a comma group's members individually, so the
+        # raw sheet pins the one byte-equal stock group: a second rule,
+        # a wrongly split four-rule spelling or a stray state twin dies.
+        sheet = strip_comments(self.css)
+        self.assertEqual(sheet.count(", ".join(group) + " {"), 1)
+        for spelling in group:
+            self.assertEqual(sheet.count(spelling), 1, spelling)
+        self.assertEqual(
+            {s for s in self.selectors if "indeterminate:not(:backdrop)" in s},
+            {"radio:indeterminate:not(:backdrop)",
+             "check:indeterminate:not(:backdrop)"},
+        )
+        self.assertEqual(
+            {s for s in self.selectors if s in group}, set(group)
+        )
+        # One landed tail group holds the rule last: a later append
+        # keeps it behind every landed spelling it follows today.
+        tail = self.selectors.index(
+            "infobar > revealer > box label:link"
+        )
+        for spelling in group:
+            self.assertGreater(
+                self.selectors.index(spelling), tail, spelling
+            )
+
     def test_menubar_titles(self):
         self.assert_menubar_titles("menubar > menuitem")
 

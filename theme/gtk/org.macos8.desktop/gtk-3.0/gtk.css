@@ -5737,3 +5737,46 @@ placesview .server-list-button > image {
 placesview .server-list-button:checked > image {
   transition: none;
 }
+
+/* A check box's or radio's mark — the tick or dot the pressed and
+   checked states flip between — animates its flip in stock: the
+   checked and mixed marks restore their orientation through a 400ms
+   ease that no collected reference surface has. No collected
+   reference screenshot in `macos8.6-screenshots/` shows a GTK check
+   box's or radio's mark (the standing GTK-scope adaptation premise),
+   so the landed no-transition policy stands in (the landed
+   `button:backdrop` groups restate stock's 200ms backdrop ease as
+   `transition: none`, pinned by the
+   `button.flat:hover:active` and backdrop assertions in
+   tests/test_gtk_theme_controls.py, erasing only the animation while
+   state values stay inherited per-property). Recorded 2026-11-09.
+   Fresh probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares the stock arms at its lines 1185
+   `radio:not(:indeterminate):not(:checked):active:not(:backdrop)
+   { -gtk-icon-transform: scale(0); }`, 1187
+   `check:not(:indeterminate):not(:checked):active:not(:backdrop)
+   { -gtk-icon-transform: translate(6px, -3px) rotate(-45deg) scaleY(0.2)
+   rotate(45deg) scaleX(0); }`, 1189 `radio:active, check:active
+   { -gtk-icon-transform: scale(0, 1); }`, 1191
+   `radio:checked:not(:backdrop), radio:indeterminate:not(:backdrop),
+   check:checked:not(:backdrop), check:indeterminate:not(:backdrop)
+   { -gtk-icon-transform: unset; transition: 400ms; }` and 1193 the
+   menu-exempt twin `menu menuitem radio:checked:not(:backdrop), …
+   { transition: none; }`; the toolkit's dark-twin resource
+   gtk-contained-dark.css declares the identical checked and menu arms
+   at lines 1175 and 1177. Stock's own menu twin shows the toolkit
+   already exempts menu rows, and menu rows keep that exemption: they
+   carry no transition statement here either way. The rule below erases
+   only the animation, spelling a byte-equal stock twin so later
+   user-sheet source order wins the equal-specificity tie; the pressed
+   scale and translate arms, the active arm and the checked
+   `-gtk-icon-transform: unset` restore stay stock per-property, so the
+   mark jumps between unchecked-pressed, checked, mixed and at-rest
+   looks instantly while retaining stock's pressed previews, and no
+   transform, colour or geometry declaration is added. Declaration
+   checks do not establish rendered pixels. */
+
+radio:checked:not(:backdrop), radio:indeterminate:not(:backdrop), check:checked:not(:backdrop), check:indeterminate:not(:backdrop) {
+  transition: none;
+}
