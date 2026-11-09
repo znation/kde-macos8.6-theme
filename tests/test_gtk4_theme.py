@@ -4869,6 +4869,7 @@ for radio in (False, True):
 
     def test_scale_disabled_filter(self):
         self.assert_rule("scale:disabled", {"filter": "none"})
+        self.assertEqual(self.rules["scale:disabled"], {"filter": "none"})
 
     def test_scale_disabled_parent_shadow(self):
         self.assert_rule("scale:disabled > trough > slider", {"box-shadow": "none"})
