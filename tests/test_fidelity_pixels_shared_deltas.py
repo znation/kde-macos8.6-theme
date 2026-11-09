@@ -18,6 +18,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
 from tools import fidelity  # noqa: E402
+from tools import fidelity_pixels  # noqa: E402
 from tools.fidelity_pixels import (  # noqa: E402
     channel_counts,
     channel_deltas,
@@ -158,18 +159,30 @@ class TestCliSingleDeltasPass(FidelityCliTestCase):
         """A run requesting four pixel reports computes one delta pass."""
         candidate, reference = self._pair()
         derivations: list[tuple[int, int]] = []
+        rederivations: list[tuple[int, int]] = []
         real = fidelity.channel_deltas
 
         def counting(candidate_image, reference_image):
             derivations.append((candidate_image.width, candidate_image.height))
             return real(candidate_image, reference_image)
 
+        def counting_rederivations(candidate_image, reference_image):
+            rederivations.append((candidate_image.width, candidate_image.height))
+            return real(candidate_image, reference_image)
+
         args = ("--worst-pixels", "1", "--channel-counts", "--channel-maxima",
                 "--delta-histogram", "--tolerance", "9")
-        with mock.patch.object(fidelity, "channel_deltas", counting):
+        # The CLI's own derivation goes through ``fidelity.channel_deltas``;
+        # a report falling back to its own derivation goes through
+        # ``fidelity_pixels.channel_deltas`` via ``_resolved_deltas``, so the
+        # count must show one pass at the CLI site and none at the reports'.
+        with (mock.patch.object(fidelity, "channel_deltas", counting),
+              mock.patch.object(fidelity_pixels, "channel_deltas",
+                                counting_rederivations)):
             result = self._run_png_pair(candidate, reference, *args)
         self._assert_fail(result)
         self.assertEqual(derivations, [(4, 3)])
+        self.assertEqual(rederivations, [])
 
     def test_default_run_derives_no_deltas(self):
         """A run without a pixel report computes no delta pass."""
