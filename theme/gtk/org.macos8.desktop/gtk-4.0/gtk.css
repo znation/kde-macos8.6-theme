@@ -5266,3 +5266,45 @@ spinbutton > image.right,
 entry > image.right {
   margin-left: 6px;
 }
+
+/* A password entry's Caps Lock indicator — the `caps-lock-indicator`
+   image child GTK stacks inside a password field — carries no collected
+   reference screenshot, so the landed entry-image family's black ink and
+   full-strength opacity stand in per the standing GTK-scope adaptation
+   premise, reusing the same two values the landed family restates on
+   every embedded icon. Recorded 2026-11-09. A display-less introspection
+   probe this run built a `Gtk.PasswordEntry` and walked every child:
+   exactly two, its `Text` node and an `Image` carrying the
+   `caps-lock-indicator` class, so the landed `entry > image` element
+   family reaches the node but loses both its answers on stock's
+   two-class specificity. Each tier paints its own look (both probed the
+   same day): the toolkit theme resource
+   `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` at
+   `/org/gtk/libgtk/theme/Default/Default-light.css` line 170 declares
+   `spinbutton.vertical > text.password image.caps-lock-indicator,
+   spinbutton.password:not(.vertical) image.caps-lock-indicator,
+   entry.password image.caps-lock-indicator { color: <the resource's
+   own greige tint, named here rather than quoted>; }`, and the platform
+   style library's compiled base stylesheet (the toolkit's clients load
+   it alongside the theme resource; who ships it and at which resource
+   line the records docs/invariants.md keeps) declares at line 819 the
+   twin `spinbutton.password image.caps-lock-indicator,
+   entry.password image.caps-lock-indicator { opacity: 30%; }`. The two
+   rules below restate these arms in stock line order, each spelling
+   byte-equal to its stock twin so later user-sheet source order wins
+   the equal-specificity tie: the colour rule declares the landed black,
+   and the opacity rule restates the dim arm at full strength. Neither
+   resource names the indicator family with :backdrop, so no backdrop
+   twin is restated, and the node has no hover or active arms, so none
+   are restated. Declaration checks do not establish rendered pixels. */
+
+spinbutton.vertical > text.password image.caps-lock-indicator,
+spinbutton.password:not(.vertical) image.caps-lock-indicator,
+entry.password image.caps-lock-indicator {
+  color: #000000;
+}
+
+spinbutton.password image.caps-lock-indicator,
+entry.password image.caps-lock-indicator {
+  opacity: 1;
+}

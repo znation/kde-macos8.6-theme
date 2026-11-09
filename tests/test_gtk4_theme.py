@@ -2449,6 +2449,63 @@ for radio in (False, True):
             ),
         )
 
+    def test_caps_lock_indicator(self):
+        # The landed entry recipe never names the `caps-lock-indicator`
+        # image child GTK stacks inside a password entry, so the two toolkit
+        # tiers paint their own look on it even though the landed `entry >
+        # image` family reaches the node: each stock arm carries the extra
+        # `password` classes that out-specify the landed element pair, so
+        # the toolkit's tint and the base tier's 30% dim stay in force.
+        # The sheet tail restates both stock arms byte-equal: the
+        # indicator takes the landed field's black ink (the family's own
+        # pinned source) at the landed button:hover erase precedent's full
+        # strength, so later user-sheet source order wins every
+        # equal-specificity tie under either cascade reading.
+        for selector in (
+            "spinbutton.vertical > text.password image.caps-lock-indicator",
+            "spinbutton.password:not(.vertical) image.caps-lock-indicator",
+        ):
+            self.assert_rule(selector, {"color": BLACK})
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+        self.assert_rule("spinbutton.password image.caps-lock-indicator", {"opacity": "1"})
+        self.assertEqual(
+            self.selectors.count("spinbutton.password image.caps-lock-indicator"),
+            1,
+        )
+        # The `entry.password image.caps-lock-indicator` spelling merges
+        # one declaration from both restated rules on one key, like the
+        # landed `entry > image` merge keys: the colour rule's landed
+        # black and the opacity rule's full strength, asserted with
+        # occurrence count two.
+        self.assert_rule(
+            "entry.password image.caps-lock-indicator",
+            {"color": BLACK, "opacity": "1"},
+        )
+        self.assertEqual(
+            self.selectors.count("entry.password image.caps-lock-indicator"), 2
+        )
+        # No other selector names the token: the family sweep kills a
+        # renamed, dropped or stray spelling, a second colour or opacity
+        # rule, a hover or active twin, or a restored stock value alike.
+        self.assertEqual(
+            {s for s in self.rules if "caps-lock-indicator" in s},
+            {
+                "spinbutton.vertical > text.password image.caps-lock-indicator",
+                "spinbutton.password:not(.vertical) image.caps-lock-indicator",
+                "spinbutton.password image.caps-lock-indicator",
+                "entry.password image.caps-lock-indicator",
+            },
+        )
+        # The restated pair holds the entry-image family tail, not a
+        # detached sheet head: the colour arm sits after the landed
+        # margin twin that ends the family and its own comment group.
+        self.assertGreater(
+            self.selectors.index(
+                "spinbutton.vertical > text.password image.caps-lock-indicator"
+            ),
+            self.selectors.index("spinbutton > image.right"),
+        )
+
     def test_treeview_entry_fields(self):
         # The landed entry recipe governs the stock treeview-embedded entry
         # family too: the sheet restates the three stock grouped arms with
