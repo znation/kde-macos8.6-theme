@@ -118,10 +118,13 @@ def merge_durations(path: str, recorded: dict[str, float],
 def save_durations(path: str, durations: dict[str, float]) -> None:
     """Atomically write one run's durations; an OSError reaches the caller.
 
-    Callers pass only the modules that ran this run, so the file holds no
-    stale entries for removed modules and cannot grow without bound.
-    Concurrent ``make check`` runs on one host race benignly: the last
-    completion writes last, and each write is a whole file.
+    Callers pass this run's recorded durations merged over the cache's other
+    entries and pruned to the current tree, so the file holds no entries for
+    removed modules and cannot grow beyond the tree. Concurrent ``make
+    check`` runs on one host race best-effort: each writer merges only what
+    it loaded at its own save time, so a run finishing after a concurrent
+    run's save can drop that run's just-recorded durations, and each write
+    is a whole file.
     """
     payload = {
         "version": _CACHE_VERSION,
