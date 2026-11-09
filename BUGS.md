@@ -214,6 +214,10 @@ The post-merge review of commit `064efd1f0563a9902ad072df26ba8e3f8b1abea2` (Pain
 
 The post-merge review of commit `4b284034b4ef77ca4b60d63a219c172df5ba4db8` (Refuse a DESTDIR, XDG_DATA_HOME or HOME carrying a recipe-shell metacharacter at make level) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 787a809a never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `787a809a70ca20a8b050d86a7b18134bd7828e34` (Rename the four word-swapped test modules to mirror the tool modules they cover) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
