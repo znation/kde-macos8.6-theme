@@ -415,6 +415,16 @@ class TestSessionScript(unittest.TestCase):
         self.assertIn('kill "$client"', script)
         self.assertIn('wait "$client"', script)
         self.assertIn("exit $status", script)
+        # A client that ignores SIGTERM must not hold the session past its
+        # capture; the bounded wait escalates to SIGKILL before reaping.
+        self.assertIn("waited=0; ", script)
+        self.assertIn('kill -9 "$client"', script)
+        self.assertLess(
+            script.index('kill "$client"'), script.index('kill -9 "$client"')
+        )
+        self.assertLess(
+            script.index('kill -9 "$client"'), script.index('wait "$client"')
+        )
         # Reap the killed child before exiting; the wait's status must not
         # replace the capture status saved above.
         self.assertLess(
