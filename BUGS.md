@@ -258,6 +258,10 @@ The post-merge review of commit `6bebcd4352ce9767dce088c8c572f9a15ce1dfeb` (Test
 
 The post-merge review of commit `e2b655ac04aa763d491d13940a55203621b83bf3` (Add a focused outline for horizontal GTK 3 spin buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 1e1e9f68 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `1e1e9f68124871ba2b0e1e4ac5b12631b2c91648` (Add an explicit focus outline to GTK 3 notebook tabs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
