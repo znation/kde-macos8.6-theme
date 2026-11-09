@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401
+from support.theme_install import write_file
 from tools.gtk_selection import (
     GTK_ID,
     installed_sheet,
@@ -41,8 +42,7 @@ class TestInstalledSheets(unittest.TestCase):
             expected = {}
             for version in ("gtk-3.0", "gtk-4.0"):
                 path = installed_sheet(data_home, version)
-                path.parent.mkdir(parents=True)
-                path.write_text("/* sheet */", encoding="utf-8")
+                write_file(path, "/* sheet */")
                 expected[version] = path
 
             self.assertEqual(installed_sheets(data_home), expected)
@@ -51,8 +51,7 @@ class TestInstalledSheets(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             data_home = Path(directory)
             gtk4 = installed_sheet(data_home, "gtk-4.0")
-            gtk4.parent.mkdir(parents=True)
-            gtk4.write_text("/* sheet */", encoding="utf-8")
+            write_file(gtk4, "/* sheet */")
             errors = io.StringIO()
 
             with contextlib.redirect_stderr(errors):
@@ -89,8 +88,7 @@ class TestRemoveSelection(unittest.TestCase):
     def write_our_css(self) -> Path:
         """Create the marker-led user CSS ``remove`` deletes."""
         path = self.config / "gtk-4.0" / "gtk.css"
-        path.parent.mkdir(parents=True)
-        path.write_text(f"{GTK4_CSS_MARKER}\n@import url('sheet');\n", encoding="utf-8")
+        write_file(path, f"{GTK4_CSS_MARKER}\n@import url('sheet');\n")
         return path
 
     def run_remove(self) -> tuple[int, str]:
@@ -117,10 +115,7 @@ class TestRemoveSelection(unittest.TestCase):
         # config directory; the directory read as None is the same shape.
         self.write_our_css()
         gtk3 = settings_path(self.config, "gtk-3.0")
-        gtk3.parent.mkdir(parents=True)
-        gtk3.write_text(
-            self.our_settings("gtk-font-name=Lato 10"), encoding="utf-8"
-        )
+        write_file(gtk3, self.our_settings("gtk-font-name=Lato 10"))
         status, stderr = self.run_remove()
         self.assertEqual(0, status, stderr)
         self.assertNotIn("org.macos8.desktop", gtk3.read_text(encoding="utf-8"))
@@ -137,10 +132,7 @@ class TestRemoveSelection(unittest.TestCase):
         self.write_our_css()
         for name in ("gtk-3.0", "gtk-4.0"):
             path = settings_path(self.config, name)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                self.our_settings("gtk-font-name=Lato 10"), encoding="utf-8"
-            )
+            write_file(path, self.our_settings("gtk-font-name=Lato 10"))
         status, stderr = self.run_remove()
         self.assertEqual(0, status, stderr)
         before = {

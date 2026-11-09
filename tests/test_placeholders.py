@@ -26,6 +26,7 @@ from support import snippet_child
 from support.error_assertions import assert_escapes_escape_character
 from support.fifo_fixtures import assert_fifo_read_refused
 from support.repo_root import ROOT
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import containment as tools_containment
 
@@ -50,14 +51,12 @@ class TestHelpers(unittest.TestCase):
     """Pin the marker/register readers on a synthetic theme root."""
 
     def _write_marker(self, root, rel, text):
-        path = root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
+        write_file(
+            root / rel,
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">\n'
             f"  <!-- {TOKEN} {text} -->\n"
             "</svg>\n",
-            encoding="utf-8",
         )
 
     def _write_register(self, root, entries):
@@ -111,8 +110,7 @@ class TestHelpers(unittest.TestCase):
         expected = {}
         for rel, template in cases.items():
             path = tmp / "theme" / rel
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(template.format(token=TOKEN) + "\n", encoding="utf-8")
+            write_file(path, template.format(token=TOKEN) + "\n")
             # Comment formats return text to the comment terminator; JSON
             # markers return the string value without JSON quoting.
             expected[os.path.join("theme", rel)] = (

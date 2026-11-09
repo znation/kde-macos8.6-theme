@@ -22,6 +22,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import kvantum_selection
 
@@ -111,8 +112,7 @@ class RemoveKvantumCase(unittest.TestCase):
 
     def write(self, text, path=None):
         path = path if path is not None else self.kvconfig
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        write_file(path, text)
 
     def read_bytes(self):
         return self.kvconfig.read_bytes()

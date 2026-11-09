@@ -20,6 +20,7 @@ from pathlib import Path
 
 from support import containment
 from support.repo_root import ROOT
+from support.theme_install import write_file
 
 
 def _parseable_lines(handle):
@@ -79,12 +80,11 @@ def write(config_home, text):
     KDE reads the user's selection from ``$XDG_CONFIG_HOME/kdeglobals`` and
     from ``$HOME/.config/kdeglobals``, so a test that seeds a selection writes
     this one file. The parent directory is created when missing, and the text
-    is written verbatim as UTF-8. Returns the written path.
+    is written verbatim as UTF-8. Returns the written path. The staging
+    write itself is :func:`support.theme_install.write_file`; this wrapper
+    only fixes the one file name the seeding callers share.
     """
-    path = Path(config_home) / "kdeglobals"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-    return path
+    return write_file(Path(config_home) / "kdeglobals", text)
 
 
 def read(path):

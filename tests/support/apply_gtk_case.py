@@ -65,8 +65,7 @@ class ApplyGtkTestCase(unittest.TestCase):
         """Write the installed sheet for each *versions* (both by default)."""
         for version in versions or ("gtk-3.0", "gtk-4.0"):
             sheet = self.data / "themes" / apply_gtk.GTK_ID / version / "gtk.css"
-            sheet.parent.mkdir(parents=True, exist_ok=True)
-            sheet.write_text("/* installed sheet */\n", encoding="utf-8")
+            self.write(sheet, "/* installed sheet */\n")
 
     def settings(self, version):
         return self.config / version / "settings.ini"

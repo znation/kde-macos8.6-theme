@@ -17,6 +17,7 @@ from support import invariants
 from support.invariants import REGISTER, Row, cross_check, parse_rows
 from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import containment as containment_impl
 
@@ -74,15 +75,10 @@ class TestHelpers(unittest.TestCase):
         )
 
     def _write(self, rel, text):
-        path = self.root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        return write_file(self.root / rel, text)
 
     def _register(self, text):
-        path = self.root / "docs" / "invariants.md"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-        return str(path)
+        return str(self._write("docs/invariants.md", text))
 
     def _table(self, rows):
         lines = ["| Guarantee | Test | Provenance exception |", "| --- | --- | --- |"]

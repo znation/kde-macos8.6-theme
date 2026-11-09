@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 
 from support.repo_root import ROOT
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from support.unused_imports import unused_imports
 
@@ -30,9 +31,7 @@ class TestNoUnusedImports(unittest.TestCase):
         )
 
     def _write(self, root: Path, relative: str, text: str) -> None:
-        path = root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        write_file(root / relative, text)
 
     def _findings(self, case, files: dict[str, str]) -> list[str]:
         root = make_tmp_dir(case)

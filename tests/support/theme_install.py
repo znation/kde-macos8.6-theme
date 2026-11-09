@@ -72,12 +72,22 @@ def write_file(path, body):
     test_install_firefox.py and test_firefox_profile.py bind ``_write`` as an
     import alias, ApplyGtkTestCase.write and test_gtk_install._write delegate
     their bodies here, and test_gtk_user_files.py's two ``css()`` helpers call
-    it directly. Deliberately left: ApplyGtkTestCase.write_bytes writes raw
-    bytes, not UTF-8 text, and the kdedefaults suites' one-line direct
-    ``write_file`` call sites are already shared, not duplicated. Still
-    unconverted next-run material is the mkdir-then-write_text family in
-    support/kde_config.py, support/checker_scratch.py, test_invariants.py,
-    test_no_unused_imports.py and test_remove_kvantum.py.
+    it directly, test_invariants.py's ``_write``/``_register``,
+    test_no_unused_imports.py's ``_write``, test_remove_kvantum.py's
+    ``write`` and ApplyGtkTestCase.install_sheet delegate to it,
+    support/kde_config.py's ``write`` (the ``kdeglobals`` seeder) fixes only
+    its file name over it, and test_gtk_selection.py and
+    test_placeholders.py stage their fixtures with direct ``write_file``
+    calls. Deliberately left: ApplyGtkTestCase.write_bytes and the
+    containment-refusal fixtures write raw bytes, not UTF-8 text,
+    support/checker_scratch.py's ``_write`` adds containment and recording
+    around its write, the kdedefaults suites' one-line direct ``write_file``
+    call sites are already shared, not duplicated, test_invariants.py's
+    ``test_cross_check_rejects_a_non_utf8_register`` writes\ reads bytes
+    that must not survive a UTF-8 decode, and
+    tools/check_references_selftest.py stages inline in ``tools`` rather
+    than importing test support. The mkdir-only fixtures that prepare a
+    symlink or unreadable path (which write nothing) stay direct too.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:
