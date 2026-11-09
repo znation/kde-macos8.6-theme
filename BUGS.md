@@ -1650,6 +1650,10 @@ The post-merge review of commit `268bf2f4d5c269a9294ce09c2551b1da7f976d01` (Add 
 
 The post-merge review of commit `43813c6554c49b8ec278afb70275584328524d2c` (Cover nonempty generator input in the Xcursor writer) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 5bd3eee3 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `5bd3eee38ae124773cfe53f7d32815444e1d1018` (Extract ordinary sampler pixel reports into a focused module) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
