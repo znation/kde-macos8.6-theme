@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 57acd489 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `57acd4892fd2327ac31860fea97231006a5fa9e9` (PLANS.md: remove the duplicated notes-paper plan entry under Planned) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no-defect. Read the commit's full diff on main and re-verified its claims against the current tree: `grep -n '^### '` over PLANS.md `## Planned` shows exactly one desktoptheme notes-paper entry and no duplicate (the Firefox prefs-panes plan sits archived under PLANS-DONE.md `## Done`, so the gate cannot reread it as new); the commit also carried the feature work its revision had bundled — the about:preferences `:root`/`.subcategory` rules in `theme/firefox/org.macos8.desktop/chrome/userContent.css`, their tests in `tests/test_firefox_content_theme.py` and the matching `docs/invariants.md` row updates — and those shipped tests pass on the current tree (`make check CHECK_TESTS=test_firefox_content_theme`: OK). The commit message's "nothing outside the backlog file changed in this run" sentence understates the bundled Firefox changes, but the changes themselves are sound and tested; no defect in the merged state.
+
+**Validation gap:** none — there was no failure to reproduce: the review aborted before it could name one, and the settled state is confirmed by the PLANS.md heading grep plus the shipped Firefox content-theme tests passing in the project's check.
+
 ### post-merge review of 37894f9d never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `37894f9dd3c0bcdce5d54cfa5df9e6060f4f25e0` (Move the register-checker helpers into tests/support/) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
