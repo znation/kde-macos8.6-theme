@@ -5230,13 +5230,13 @@ assistant .sidebar label.highlight {
    row image.sidebar-icon and its opacity twins are the landed
    entry-image and image:disabled icon-ink records'; the pale
    separator.sidebar:backdrop twin never shows, per the active=frontmost
-   model and the landed button:backdrop keep-the-landed-face policy;
-   separator.sidebar.selection-mode and .selection-mode
-   separator.sidebar keep the etched face: no collected reference
-   shows a selection-mode sidebar separator, so the 2026-11-09
-   libgtk-3 resource probe's blue state maps to the landed
-   separator.sidebar and separator.horizontal etched dark half.
-   Declaration checks do not establish rendered pixels.
+   model and the landed button:backdrop keep-the-landed-face policy.
+   No reference screenshot shows a selection-mode sidebar separator;
+   libgtk-3 3.24.49's 2026-11-09 resource probe gives both selection-mode
+   spellings a blue face. They reuse the etched dark half from the landed
+   base separator.sidebar and separator.horizontal records, adapting the
+   toolkit face without claiming a sampled pixel. Declaration checks do
+   not establish rendered pixels.
    Restated 2026-11-08 by the feature role. */
 stacksidebar.sidebar:dir(ltr) list, stacksidebar.sidebar.left list, stacksidebar.sidebar.left:dir(rtl) list, .sidebar:not(separator):dir(ltr), .sidebar:not(separator).left {
   border-right: 1px solid #888888;
