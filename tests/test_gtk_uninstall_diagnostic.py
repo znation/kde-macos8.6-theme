@@ -20,6 +20,7 @@ import os
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import uninstall_config, uninstall_diagnostics
@@ -59,10 +60,6 @@ def write_settings(config, name, body):
         handle.write(body)
     return path
 
-
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
 
 
 class TestGtkSettingsLatch(unittest.TestCase):

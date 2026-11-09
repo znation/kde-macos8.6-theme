@@ -21,23 +21,13 @@ import os
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes, write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
 LNF_ID = "org.macos8.desktop"
 
 
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
-
-
-def write_file(path, body):
-    """Write *body* at *path*, creating the kdedefaults directory as needed."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
-    return path
 
 
 def splash_rule(path):
@@ -61,15 +51,8 @@ def package_rule(path):
     )
 
 
-class TestKdedefaultsUninstallDiagnostic(unittest.TestCase):
+class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the defaults-layer resets when the ids are ours."""
-
-    def uninstall_with_config(self, tmp, config, env=None):
-        return theme_install.uninstall_recipe(
-            tmp,
-            extra=(),
-            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
-        )
 
     def defaults_paths(self, config):
         return (

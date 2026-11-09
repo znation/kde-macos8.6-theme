@@ -131,14 +131,7 @@ class TestReaderFifo(unittest.TestCase):
         self.assertIsNone(uninstall_config.read_text(fifo))
 
 
-class TestRecipeCap(unittest.TestCase):
-    def uninstall_with_config(self, tmp, config):
-        return theme_install.uninstall_recipe(
-            tmp,
-            extra=(),
-            env=dict(os.environ, XDG_CONFIG_HOME=config),
-        )
-
+class TestRecipeCap(theme_install.UninstallRecipeTestCase):
     def test_a_config_at_the_cap_still_warns(self):
         cap = uninstall_config._MAX_CONFIG_BYTES
         tmp = str(make_tmp_dir(self))

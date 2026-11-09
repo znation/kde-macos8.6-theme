@@ -25,6 +25,7 @@ import os
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes, write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -61,29 +62,14 @@ def BUTTON_RULE(path):
     )
 
 
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
-
 
 def write_kwinrc(config, body):
     """Write *body* as `<config>/kwinrc`; return its path."""
-    path = os.path.join(config, "kwinrc")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
-    return path
+    return write_file(os.path.join(config, "kwinrc"), body)
 
 
-class TestKwinrcAuroraeUninstallDiagnostic(unittest.TestCase):
+class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the two-key reset when both keys are ours."""
-
-    def uninstall_with_config(self, tmp, config, env=None):
-        return theme_install.uninstall_recipe(
-            tmp,
-            extra=(),
-            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
-        )
 
     def test_warns_and_names_the_reset_for_kept_keys(self):
         tmp = str(make_tmp_dir(self))

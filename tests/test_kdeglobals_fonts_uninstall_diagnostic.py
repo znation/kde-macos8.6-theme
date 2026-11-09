@@ -20,6 +20,7 @@ import os
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes, write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -43,18 +44,10 @@ COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
 ICON_THEME_ID = "org.macos8.desktop"
 
 
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
-
 
 def write_selection(config, body):
     """Write *body* as `<config>/kdeglobals`; return its path."""
-    path = os.path.join(config, "kdeglobals")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
-    return path
+    return write_file(os.path.join(config, "kdeglobals"), body)
 
 
 def rule_for(path, section, key, value):
@@ -72,15 +65,8 @@ def reset_for(section, key):
     return "kdeglobals --group " + section + " --key " + key + " --delete"
 
 
-class TestKdeglobalsFontsUninstallDiagnostic(unittest.TestCase):
+class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the five Lato resets when the selections are ours."""
-
-    def uninstall_with_config(self, tmp, config, env=None):
-        return theme_install.uninstall_recipe(
-            tmp,
-            extra=(),
-            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
-        )
 
     def assert_warns(self, result, path, *indexed):
         """Every staged key warns with its own line, no other key's line."""

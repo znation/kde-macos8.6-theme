@@ -16,6 +16,7 @@ import tempfile
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -34,10 +35,6 @@ def write_selection(config, body):
         handle.write(body)
     return path
 
-
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
 
 
 class TestMakeTarget(unittest.TestCase):
@@ -70,13 +67,8 @@ class TestMakeTarget(unittest.TestCase):
         )
 
 
-class TestUninstallDiagnostic(unittest.TestCase):
+class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the reset when the selection still names ours."""
-
-    def uninstall_with_config(self, tmp, config):
-        return theme_install.uninstall_recipe(
-            tmp, extra=(), env=dict(os.environ, XDG_CONFIG_HOME=config)
-        )
 
     def test_warns_and_names_the_reset_for_a_kept_selection(self):
         tmp = str(make_tmp_dir(self))

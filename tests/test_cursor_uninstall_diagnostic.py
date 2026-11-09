@@ -15,6 +15,7 @@ import os
 import unittest
 
 from support import theme_install
+from support.theme_install import read_bytes, write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -22,18 +23,10 @@ CURSOR_ID = "org.macos8.desktop"
 RESET = "plasma-apply-cursortheme breeze_cursors"
 
 
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
-
 
 def write_selection(config, body):
     """Write *body* as `<config>/kcminputrc`; return its path."""
-    path = os.path.join(config, "kcminputrc")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
-    return path
+    return write_file(os.path.join(config, "kcminputrc"), body)
 
 
 def rule_for(path, prefix="uninstall: the pointer selection"):
@@ -45,15 +38,8 @@ def rule_for(path, prefix="uninstall: the pointer selection"):
     )
 
 
-class TestCursorUninstallDiagnostic(unittest.TestCase):
+class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the pointer reset when the selection is ours."""
-
-    def uninstall_with_config(self, tmp, config, env=None):
-        return theme_install.uninstall_recipe(
-            tmp,
-            extra=(),
-            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
-        )
 
     def test_warns_and_names_the_reset_for_a_kept_selection(self):
         tmp = str(make_tmp_dir(self))

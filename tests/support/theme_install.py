@@ -16,6 +16,7 @@ import contextlib
 import os
 import shutil
 import tempfile
+import unittest
 
 from support import containment
 from support import process_runner
@@ -49,6 +50,26 @@ def make_env(*names):
     for name in (*names, "MAKEFLAGS"):
         env.pop(name, None)
     return env
+
+
+def read_bytes(path):
+    """Read *path* as bytes; the uninstall suites assert a file's exact contents."""
+    with open(path, "rb") as handle:
+        return handle.read()
+
+
+def write_file(path, body):
+    """Write *body* at *path*, creating its parent directory as needed.
+
+    *body* may be ``str`` (encoded here as UTF-8) or ``bytes`` (written as
+    is). The uninstall suites stage a config file's contents under the test's
+    config home before running the recipe, and later assert the file came
+    back unchanged.
+    """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
+    return path
 
 
 def run_make(args, env=None):
@@ -122,6 +143,24 @@ def uninstall_recipe(destdir, extra=(), env=None):
     environment, for a test that supplies its own `XDG_CONFIG_HOME`.
     """
     return _run("_uninstall", destdir, extra, env)
+
+
+class UninstallRecipeTestCase(unittest.TestCase):
+    """Base for the `make _uninstall` diagnostic suites.
+
+    Their shared step is `uninstall_with_config`: run the recipe rooted at
+    *tmp* with *XDG_CONFIG_HOME* pointing at *config*, unless the case passes
+    its own *env*, for the fallback-path suites that must leave the variable
+    unset (or relative). The suites otherwise differ in the file they read
+    and in the diagnostic wording each one is the contract for.
+    """
+
+    def uninstall_with_config(self, tmp, config, env=None):
+        return uninstall_recipe(
+            tmp,
+            extra=(),
+            env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
+        )
 
 
 def installed_template(case, packages):

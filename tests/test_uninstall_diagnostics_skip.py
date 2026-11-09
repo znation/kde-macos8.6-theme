@@ -27,6 +27,7 @@ import unittest
 
 from support import repo_root
 from support import theme_install
+from support.theme_install import write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -40,13 +41,6 @@ def widget_style_rule(path):
         "in defaults ([KDE] widgetStyle=kvantum) is still in " + path
     )
 
-
-def write_file(path, body):
-    """Write *body* at *path*, creating parent directories as needed."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8"))
-    return path
 
 
 def scan_stub(case):

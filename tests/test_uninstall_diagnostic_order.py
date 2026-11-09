@@ -21,6 +21,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
+from support.theme_install import read_bytes, write_file
 from support.tmp_dir import make_tmp_dir
 from tools import uninstall_diagnostics
 
@@ -54,13 +55,6 @@ ORDER = (
 
 OURS = "org.macos8.desktop"
 
-
-def write_file(path, body):
-    """Write *body* at *path*, creating parent directories as needed."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body.encode("utf-8") if isinstance(body, str) else body)
-    return path
 
 
 def stage_every_surface(config):
@@ -105,10 +99,6 @@ def stage_every_surface(config):
         ),
     )
 
-
-def read_bytes(path):
-    with open(path, "rb") as handle:
-        return handle.read()
 
 
 # The recipe's flag spellings, each with a distinct sentinel value so a test
