@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of a44691d4 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `a44691d436e063ebd6a9d21d8a68aa7f49e09391` (Give GTK 4 linked groups one shared black border between members in the Platinum sheet) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 7923474a never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `7923474a2cd53d3c75f1efaf851ed5d6331e1f65` (Add `THEME_ROOT` to the Makefile's parse-time refusal of shell-metacharacter make inputs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

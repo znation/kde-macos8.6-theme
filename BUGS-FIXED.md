@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of a44691d4 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `a44691d436e063ebd6a9d21d8a68aa7f49e09391` (Give GTK 4 linked groups one shared black border between members in the Platinum sheet) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff and confirmed every landed piece at HEAD — the GTK 4 linked-group strip and `:last-child` restore groups and the two guard rules live in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` (lines 2467 onward, since extended by later commits with the four wrapped-container member spellings), the provenance-header sentence sits before the header's closing `*/` (lines 126-129), and the three tests `test_linked_members_strip_their_trailing_border`, `test_linked_last_member_restores_the_border` and `test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines` are in `tests/test_gtk4_theme.py` (lines 5327-5371), with the matching invariants row at `docs/invariants.md` line 403. Found nothing wrong to fix: the strip/restore/guard mechanism matches the recording in the commit message and the later extensions trace to their own follow-up commits. Ran the three tests in isolation (OK) and the project's full `make check` after verifying, exit 0.
+
+**Validation gap:** none — the existing suite's three declaration tests reproduce every rule the commit added, and the full check covered the rest of the tree.
+
 ### post-merge review of 8c3bfb18 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `8c3bfb186a59f2e16c074f888bac7240de54341e` (Land the GTK 3 linked-group shared-border plan and retire its stale Planned queue) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
