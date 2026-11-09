@@ -630,6 +630,9 @@ TELEMETRY_SELECTORS = (
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
 
 
+_content_fixture = None
+
+
 class FirefoxContentTestCase(CommentHeaderAssertions, unittest.TestCase):
     """Shared fixture for the content page modules testing ``userContent.css``.
 
@@ -638,14 +641,24 @@ class FirefoxContentTestCase(CommentHeaderAssertions, unittest.TestCase):
     names which.
     The inherited :meth:`CommentHeaderAssertions.assert_header_names` serves
     the provenance tests.
+
+    Because every derived class reads the same shipped sheet, the read and
+    the ``@-moz-document`` split are memoized per worker process in
+    ``_content_fixture`` after the first ``setUpClass``: classes that run
+    in the same module share one read and split and parse only their own
+    body. The fixture tuple must stay read-only -- no test may assign into
+    ``cls.text`` or ``cls.bodies``.
     """
 
     AT_RULE_URL: str
 
     @classmethod
     def setUpClass(cls):
-        cls.text = containment.read_text(SHEET, ROOT, encoding="utf-8")
-        cls.bodies = at_rule_bodies(cls.text)
+        global _content_fixture
+        if _content_fixture is None:
+            text = containment.read_text(SHEET, ROOT, encoding="utf-8")
+            _content_fixture = text, at_rule_bodies(text)
+        cls.text, cls.bodies = _content_fixture
         cls.colours, cls.rules, cls.selectors = parse_css(
             cls.bodies.get(cls.AT_RULE_URL, ""), source=SHEET_PATH
         )

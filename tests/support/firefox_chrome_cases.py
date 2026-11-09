@@ -665,6 +665,9 @@ REQUIRED_RULES[
 }
 
 
+_chrome_fixture = None
+
+
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase
 ):
@@ -672,15 +675,25 @@ class FirefoxChromeTestCase(
 
     The ``CommentHeaderAssertions`` mixin serves the section modules'
     header-provenance tests.
+
+    Because every derived class reads the same shipped sheet, the read and
+    parse are memoized per worker process in ``_chrome_fixture`` after the
+    first ``setUpClass``: classes that run in the same module share the
+    one read and parse instead of re-deriving them per class. The fixture
+    tuple must stay read-only -- no test may assign into ``cls.text``,
+    ``cls.readme`` or the parsed mappings.
     """
 
     @classmethod
     def setUpClass(cls):
-        cls.text = containment.read_text(SHEET, ROOT, encoding="utf-8")
-        cls.readme = containment.read_text(README, ROOT, encoding="utf-8")
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.text, source=SHEET_PATH
-        )
+        global _chrome_fixture
+        if _chrome_fixture is None:
+            text = containment.read_text(SHEET, ROOT, encoding="utf-8")
+            readme = containment.read_text(README, ROOT, encoding="utf-8")
+            colours, rules, selectors = parse_css(text, source=SHEET_PATH)
+            _chrome_fixture = (text, readme, colours, rules, selectors)
+        (cls.text, cls.readme,
+         cls.colours, cls.rules, cls.selectors) = _chrome_fixture
 
     def assert_arms_match_required(self, arms):
         """Assert each selector in *arms* equals its REQUIRED_RULES entry.
