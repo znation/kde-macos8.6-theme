@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 064efd1f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `064efd1f0563a9902ad072df26ba8e3f8b1abea2` (Paint about:preferences XUL radios as the Platinum face and dot) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: audited the commit's diff against the live tree and found nothing wrong. The two userContent.css rules survive verbatim — the unchecked `#mainPrefPane radio:not([disabled]) .radio-check` white face with the 1px black circular ring and the `[selected]` data-URI dot, both `!important`, inside the `about:preferences` block, the dot's black written `rgb(0, 0, 0)` so `TestFirefoxContentTheme::test_palette_is_exact` keeps its exact literal set, with the provenance header comment travelling in the same block. The five `TestFirefoxPreferencesRadioTheme` tests survive intact after the test-module reorganisation into `tests/test_firefox_content_preferences.py` (sheet recipe, pane scoping, pinned palette, dot URI pinning the checkmarks.svg `radiobutton` circle, provenance header), and the invariants row stands at docs/invariants.md. Running the committing tests on the live tree with `make check CHECK_PATTERN='test_firefox_content_preferences.py'` passes with no FAILED line.
+
+**Validation gap:** none — the suite's own `TestFirefoxPreferencesRadioTheme` declaration checks plus `test_palette_is_exact` reproduced and confirmed every claim the diff makes.
+
 ### post-merge review of 243b57ce never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `243b57ceada718117f4b649f9dc672c81f80450c` (Add AugAssign `__all__` tests to the unused-import scanner suite) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
