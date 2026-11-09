@@ -1358,6 +1358,10 @@ The post-merge review of commit `a8c0a2ca00b0d41602d67f605953201bdddf4ada` (Comp
 
 The post-merge review of commit `59c97ffa42817d063cfd419b6de59e71e764c912` (Add horizontal and vertical scanline color runs to the reference sampler) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a38632ce never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `a38632ceb93f015a05fd02f36152f4261b8ffcde` (Align PNG decoder input annotations with accepted types) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
