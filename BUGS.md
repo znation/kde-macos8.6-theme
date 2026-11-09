@@ -634,6 +634,10 @@ The post-merge review of commit `2ff27a2ac4f6a338d20a118089055c4f33ab672e` (Reje
 
 The post-merge review of commit `31417352ad62a8bfeb555110818441733462b539` (Clear text and icon shadows from all GTK 3 add-color states) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of f0e90fe9 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `f0e90fe9f3f1a415f0d933c64102f4c9fdd1f6bb` (Reject boolean versions in the parallel check cache) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
