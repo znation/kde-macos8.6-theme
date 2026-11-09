@@ -5,6 +5,11 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of a7ebee69 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+No defect: the commit's split is intact and its claims hold in the current tree — the modules were since renamed (`test_gtk_apply.py` → `tests/test_apply_gtk.py`, fault and lock arms → `tests/test_apply_gtk_errors.py` and `tests/test_apply_gtk_locks.py`, shared fixture → `tests/support/apply_gtk_case.py` keeping the required `ApplyGtkTestCase` name), and no stale `test_gtk_apply`/`gtk_apply_case` reference remains in tests/ or tools/; docs/invariants.md rows 360–362 and tests/support/validation_gaps.py point at the current names, and all three renamed modules pass together.
+**Validation gap:** none — the suite covered the split itself; only the post-merge verdict was missing.
+
 ### post-merge review of 07818902 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `07818902d67a2c08ee786523758d08611bb82956` (Revise the clock.svg plan: fix SVG counts, hand-cap geometry, hint-id names) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
