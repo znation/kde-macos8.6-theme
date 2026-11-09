@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import json
 
+if __package__:
+    from tools.sample_report_common import report_context
+else:  # run directly: python3 tools/sample.py
+    from sample_report_common import report_context
+
 
 def _hex(rgb: tuple[int, int, int]) -> str:
     return "#{:02X}{:02X}{:02X}".format(*rgb)
-
-
-def region_from_args(args) -> dict:
-    """Return the region the report's args define, as the {"x", "y", "width", "height"}
-    dict every sample report result and JSON document carries. Four call sites: the pixels,
-    runs, histogram and find-color-search report handlers."""
-    return {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
 
 
 def print_region_line(args) -> None:
@@ -66,11 +64,9 @@ def _pixel_records(args, image):
 
 def report_pixels(args, image, width: int, height: int, header: str) -> None:
     """Print the ordinary single-pixel or rectangle report."""
-    region = region_from_args(args)
     if args.json:
         pixels = list(_pixel_records(args, image))
-        print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
-            "region": region, "pixels": pixels}, ensure_ascii=True))
+        print(json.dumps({**report_context(args, width, height), "pixels": pixels}, ensure_ascii=True))
         return
     if args.width == 1 and args.height == 1:
         pixel = next(_pixel_records(args, image))

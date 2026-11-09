@@ -5,12 +5,14 @@ from __future__ import annotations
 import json
 
 if __package__:
+    from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
-        _hex, _region_alpha, _region_pixels, print_region_line, region_from_args,
+        _hex, _region_alpha, _region_pixels, print_region_line,
     )
 else:  # run directly: python3 tools/sample.py
+    from sample_report_common import report_context
     from sample_report_pixels import (
-        _hex, _region_alpha, _region_pixels, print_region_line, region_from_args,
+        _hex, _region_alpha, _region_pixels, print_region_line,
     )
 
 
@@ -32,7 +34,7 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
 
 
 def _runs_result(args, image, width: int, height: int) -> dict:
-    region = region_from_args(args)
+    context = report_context(args, width, height)
     axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
     selected_colors = set(args.run_colors) if args.run_colors else None
     excluded_colors = set(args.excluded_run_colors) if args.excluded_run_colors else set()
@@ -73,8 +75,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
                 omitted_runs += 1
             else:
                 runs.append(run)
-    result = {"image": args.image, "image_width": width, "image_height": height,
-        "region": region, "axis": axis, "runs": [
+    result = {**context, "axis": axis, "runs": [
             {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
         ]}
     if run_count is not None:

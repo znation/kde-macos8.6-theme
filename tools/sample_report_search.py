@@ -5,15 +5,17 @@ from __future__ import annotations
 import json
 
 if __package__:
+    from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
         _compact_json, _hex, _positioned_region_pixels, _region_alpha,
-        print_region_line, region_from_args,
+        print_region_line,
     )
     from tools.sample_match_runs import _MatchRuns
 else:  # run directly: python3 tools/sample.py
+    from sample_report_common import report_context
     from sample_report_pixels import (
         _compact_json, _hex, _positioned_region_pixels, _region_alpha,
-        print_region_line, region_from_args,
+        print_region_line,
     )
     from sample_match_runs import _MatchRuns
 
@@ -135,14 +137,12 @@ def _search_match(args, image) -> dict:
 
 def report_search(args, image, width: int, height: int, header: str) -> None:
     """Print the find-color report: the region's match for the requested color, as JSON or plain text."""
-    region = region_from_args(args)
     match = _search_match(args, image)
     count = match["count"]
     bounds = match["bounds"]
     color_hex = match["hex"]
     if args.json:
-        print(json.dumps({"image": args.image, "image_width": width, "image_height": height,
-            "region": region, "match": match}, ensure_ascii=True))
+        print(json.dumps({**report_context(args, width, height), "match": match}, ensure_ascii=True))
         return
     print(header)
     print_region_line(args)

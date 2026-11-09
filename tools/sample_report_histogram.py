@@ -7,14 +7,16 @@ from collections import Counter
 from heapq import nsmallest
 
 if __package__:
+    from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
         _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
-        print_region_line, region_from_args,
+        print_region_line,
     )
 else:  # run directly: python3 tools/sample.py
+    from sample_report_common import report_context
     from sample_report_pixels import (
         _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
-        print_region_line, region_from_args,
+        print_region_line,
     )
 
 
@@ -97,7 +99,8 @@ def _scanline_color_counts(args, image):
 
 def _histogram_result(args, image, width: int, height: int) -> dict:
     """Assemble the complete histogram report without printing or mutating args."""
-    region = region_from_args(args)
+    context = report_context(args, width, height)
+    region = context["region"]
     if args.alpha:
         pixels = zip(_region_pixels(image, args.x, args.y, args.width, args.height),
                      _region_alpha(image, args.x, args.y, args.width, args.height))
@@ -152,8 +155,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
         for color, count in colors:
             running += count
             cumulative_fractions[color] = running / denominator
-    result = {"image": args.image, "image_width": width, "image_height": height,
-        "region": region, "colors": [
+    result = {**context, "colors": [
             {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
              **({"alpha": color[3]} if args.alpha else {}),
              **({"fraction": count / denominator} if args.color_fractions else {}),
