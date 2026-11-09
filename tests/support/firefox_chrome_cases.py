@@ -74,6 +74,39 @@ BUTTON_REFERENCES = (
     "tests/test_desktoptheme_button_reference.py::TestButtonReference",
 )
 
+# The declaration recipes the sheet restates across its themed controls:
+# a raised push button draws the panel face on a black keyline with the
+# button bevel, its hover and pressed arms flush to the selection ink
+# with no shadow, and a themed field draws the white face on a black
+# keyline with the pressed inset. BUTTON_FACE is required by 18 rules,
+# BUTTON_HOVER by 31 (the Page Info deck's eight button arms and eight
+# hover arms through the comprehension loops, and the library's hovered
+# and pressed column headers through the HEADER_HOVER alias below), and
+# FIELD_FACE by 18; the field rules that layer the browser skin's
+# ``appearance: none`` over the recipe spread FIELD_FACE under that one
+# declaration. The section suites compare rule text against the table
+# and never mutate an entry; the tooltip, urlbar and viewGroup radio
+# variants (different faces or a flat white field) stay spelled out.
+BUTTON_FACE = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"{BUTTON_BEVEL} !important",
+}
+BUTTON_HOVER = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": "none !important",
+}
+FIELD_FACE = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+
 REQUIRED_RULES = {
     "tooltip": {
         "appearance": "none !important",
@@ -145,42 +178,14 @@ REQUIRED_RULES = {
         "background-color": f"{SELECTION} !important",
         "color": f"{BLACK} !important",
     },
-    "#downloadsPanel .downloadsPanelFooterButton:not([disabled])": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#downloadsPanel .downloadButton:not([disabled])": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#downloadsPanel .footer-button:not([disabled])": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#downloadsPanel .downloadsPanelFooterButton:not([disabled]):hover": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#downloadsPanel .downloadButton:not([disabled]):hover": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#downloadsPanel .footer-button:not([disabled]):hover": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#downloadsPanel .downloadsPanelFooterButton:not([disabled])": BUTTON_FACE,
+    "#downloadsPanel .downloadButton:not([disabled])": BUTTON_FACE,
+    "#downloadsPanel .footer-button:not([disabled])": BUTTON_FACE,
+    "#downloadsPanel .downloadsPanelFooterButton:not([disabled]):hover": (
+        BUTTON_HOVER
+    ),
+    "#downloadsPanel .downloadButton:not([disabled]):hover": BUTTON_HOVER,
+    "#downloadsPanel .footer-button:not([disabled]):hover": BUTTON_HOVER,
     ".tab-background": {
         "background-color": f"{FACE} !important",
         "border": f"1px solid {BLACK} !important",
@@ -294,19 +299,13 @@ REQUIRED_RULES = {
     (
         "#allTabsMenu-allTabsView .all-tabs-item[selected]"
         " > .all-tabs-button"
-    ): {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    ): BUTTON_HOVER,
     "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton)": {
         "border-radius": "0 !important",
     },
-    "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
     "#widget-overflow .subviewbutton:not(.panel-header .subviewbutton)": {
         "border-radius": "0 !important",
     },
@@ -316,83 +315,47 @@ REQUIRED_RULES = {
     (
         "#widget-overflow .subviewbutton:not(.panel-header .subviewbutton)"
         ":hover:not([disabled])"
-    ): {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    ): BUTTON_HOVER,
     (
         "#widget-overflow .widget-overflow-list .toolbarbutton-1"
         ":hover:not([disabled])"
-    ): {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    ): BUTTON_HOVER,
     "#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions)": {
         "border-radius": "0 !important",
     },
-    "#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions):hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions):hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
     "#unified-extensions-panel .unified-extensions-item-menu-button:hover": {
         "box-shadow": "none !important",
     },
     "#identity-popup .subviewbutton:not(.panel-header .subviewbutton)": {
         "border-radius": "0 !important",
     },
-    "#identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
     "#protections-popup .subviewbutton:not(.panel-header .subviewbutton)": {
         "border-radius": "0 !important",
     },
-    "#protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
+    "#protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled])": (
+        BUTTON_HOVER
+    ),
     "#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton)": {
         "border-radius": "0 !important",
     },
-    "#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#permission-popup .permission-popup-permission-remove-button": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#permission-popup .permission-popup-permission-remove-button:hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#permission-popup-menulist": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#permission-popup-menulist:hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
+    "#permission-popup .permission-popup-permission-remove-button": BUTTON_FACE,
+    "#permission-popup .permission-popup-permission-remove-button:hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
+    "#permission-popup-menulist": BUTTON_FACE,
+    "#permission-popup-menulist:hover:not([disabled])": BUTTON_HOVER,
     "#notification-popup .popup-notification-primary-button": {
         "--button-background-color-primary": f"{FACE} !important",
         "--button-background-color-primary-hover": f"{SELECTION} !important",
@@ -421,77 +384,23 @@ REQUIRED_RULES = {
         "background-color": f"{FACE} !important",
         "border-top": f"1px solid {BLACK} !important",
     },
-    "findbar .findbar-textbox:not([status=\"notfound\"]):not([flash=\"true\"]):not(:focus)": {
-        "background-color": f"{WHITE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"inset 1px 1px {GREY} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_namePicker": {
-        "background-color": f"{WHITE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"inset 1px 1px {GREY} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_locationField": {
-        "background-color": f"{WHITE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"inset 1px 1px {GREY} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_tagsField": {
-        "background-color": f"{WHITE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"inset 1px 1px {GREY} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_keywordField": {
-        "background-color": f"{WHITE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"inset 1px 1px {GREY} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_folderMenuList": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#editBookmarkPanel #editBookmarkPanelDoneButton": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#editBookmarkPanel #editBookmarkPanelRemoveButton": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    },
-    "#editBookmarkPanel #editBMPanel_folderMenuList:hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#editBookmarkPanel #editBookmarkPanelDoneButton:hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
-    "#editBookmarkPanel #editBookmarkPanelRemoveButton:hover:not([disabled])": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    },
+    "findbar .findbar-textbox:not([status=\"notfound\"]):not([flash=\"true\"]):not(:focus)": (
+        FIELD_FACE
+    ),
+    "#editBookmarkPanel #editBMPanel_namePicker": FIELD_FACE,
+    "#editBookmarkPanel #editBMPanel_locationField": FIELD_FACE,
+    "#editBookmarkPanel #editBMPanel_tagsField": FIELD_FACE,
+    "#editBookmarkPanel #editBMPanel_keywordField": FIELD_FACE,
+    "#editBookmarkPanel #editBMPanel_folderMenuList": BUTTON_FACE,
+    "#editBookmarkPanel #editBookmarkPanelDoneButton": BUTTON_FACE,
+    "#editBookmarkPanel #editBookmarkPanelRemoveButton": BUTTON_FACE,
+    "#editBookmarkPanel #editBMPanel_folderMenuList:hover:not([disabled])": BUTTON_HOVER,
+    "#editBookmarkPanel #editBookmarkPanelDoneButton:hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
+    "#editBookmarkPanel #editBookmarkPanelRemoveButton:hover:not([disabled])": (
+        BUTTON_HOVER
+    ),
     "#topBar": {
         "background-color": f"{FACE} !important",
         "border-bottom": f"1px solid {ETCH_DARK} !important",
@@ -531,56 +440,30 @@ PAGE_INFO_CONTROL_IDS = (
 )
 
 REQUIRED_RULES.update({
-    f"#mainDeck {control}:not([disabled])": {
-        "background-color": f"{FACE} !important",
-        "color": f"{BLACK} !important",
-        "border": f"1px solid {BLACK} !important",
-        "border-radius": "0 !important",
-        "box-shadow": f"{BUTTON_BEVEL} !important",
-    }
+    f"#mainDeck {control}:not([disabled])": BUTTON_FACE
     for control in PAGE_INFO_CONTROL_IDS
 })
 REQUIRED_RULES.update({
-    f"#mainDeck {control}:not([disabled]):hover": {
-        "background-color": f"{SELECTION} !important",
-        "color": f"{BLACK} !important",
-        "box-shadow": "none !important",
-    }
+    f"#mainDeck {control}:not([disabled]):hover": BUTTON_HOVER
     for control in PAGE_INFO_CONTROL_IDS
 })
 
 # The Page Info window's display fields: one rule recolours every input in
 # the deck, which pageInfo.xhtml defines readonly, with no hover or focus
 # variant (a focused readonly field keeps Firefox's focus ring).
-REQUIRED_RULES["#mainDeck input"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
+REQUIRED_RULES["#mainDeck input"] = FIELD_FACE
 
 # The Page Info media panel's preview pane: the Platinum sunken field
 # (see the header's provenance paragraph), a static preview surface with
 # no hover or focus variant.
-REQUIRED_RULES["#imagecontainerbox"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
+REQUIRED_RULES["#imagecontainerbox"] = FIELD_FACE
 
 # The Page Info permissions panel's permission list: the Platinum sunken
 # list field (see the header's provenance paragraph), with the native
 # listbox frame dropped and a hovered row keeping the field's face.
 REQUIRED_RULES["#permList"] = {
     "appearance": "none !important",
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
+    **FIELD_FACE,
 }
 REQUIRED_RULES["#permList .permission:hover"] = {
     "background-color": "transparent !important",
@@ -592,13 +475,7 @@ REQUIRED_RULES["#permList .permission:hover"] = {
 # over the field, a flat #CCCCFF selected row and the broken image rows
 # keeping their italic graytext. No appearance declaration: the trees are
 # painted with plain declarations.
-REQUIRED_RULES["#metatree"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
+REQUIRED_RULES["#metatree"] = FIELD_FACE
 REQUIRED_RULES["#imagetree"] = REQUIRED_RULES["#metatree"]
 for _tree in ("metatree", "imagetree"):
     REQUIRED_RULES[
@@ -643,13 +520,7 @@ REQUIRED_RULES["#securityPanel > groupbox > label.header"] = {
 # floated back onto the field face; a single-column tree (#placesList)
 # draws no multicol odd stripe, so the stripe rule is written only
 # against tree#placeContent.
-REQUIRED_RULES["#placesList"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
+REQUIRED_RULES["#placesList"] = FIELD_FACE
 REQUIRED_RULES["#placeContent"] = REQUIRED_RULES["#placesList"]
 for _tree in ("placesList", "placeContent"):
     REQUIRED_RULES[
@@ -689,11 +560,8 @@ HEADER_FACE = {
     "box-shadow":
         f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW} !important",
 }
-HEADER_HOVER = {
-    "background-color": f"{SELECTION} !important",
-    "color": f"{BLACK} !important",
-    "box-shadow": "none !important",
-}
+# The hovered and pressed header arms take the shared BUTTON_HOVER flush.
+HEADER_HOVER = BUTTON_HOVER
 for _header_arm in (
     "treecols#placeContentColumns > treecol",
     "treecols#placeContentColumns .tree-columnpicker-button",
@@ -734,11 +602,7 @@ REQUIRED_RULES["menubar#placesMenu > menu[open]"] = {
 # rather than aliased.
 REQUIRED_RULES["#placesViewsBox richlistbox#downloadsListBox"] = {
     "appearance": "none !important",
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
+    **FIELD_FACE,
 }
 REQUIRED_RULES[
     "#placesViewsBox richlistbox#downloadsListBox > richlistitem"
@@ -757,81 +621,35 @@ REQUIRED_RULES[
 # Firefox's paint (see the header's provenance paragraph).
 REQUIRED_RULES[
     "toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled])"
-] = {
-    "background-color": f"{FACE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"{BUTTON_BEVEL} !important",
-}
+] = BUTTON_FACE
 REQUIRED_RULES[
     "toolbar#placesToolbar toolbarbutton#clearDownloadsButton"
     ":not([disabled]):hover"
-] = {
-    "background-color": f"{SELECTION} !important",
-    "color": f"{BLACK} !important",
-    "box-shadow": "none !important",
-}
+] = BUTTON_HOVER
 
 # The Library details pane's four bookmark fields: the byte-recipes of
 # the landed #editBookmarkPanel field entries (see the header's
 # provenance paragraph), spelled explicitly with the shared palette
 # constants rather than aliased.
-REQUIRED_RULES["#detailsPane #editBMPanel_namePicker"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
-REQUIRED_RULES["#detailsPane #editBMPanel_locationField"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
-REQUIRED_RULES["#detailsPane #editBMPanel_tagsField"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
-REQUIRED_RULES["#detailsPane #editBMPanel_keywordField"] = {
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
-}
+REQUIRED_RULES["#detailsPane #editBMPanel_namePicker"] = FIELD_FACE
+REQUIRED_RULES["#detailsPane #editBMPanel_locationField"] = FIELD_FACE
+REQUIRED_RULES["#detailsPane #editBMPanel_tagsField"] = FIELD_FACE
+REQUIRED_RULES["#detailsPane #editBMPanel_keywordField"] = FIELD_FACE
 
 # The details pane's folder dropdown: the byte-recipes of the landed
 # #editBookmarkPanel folder menulist entries; disabled ones keep
 # Firefox's paint.
-REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList"] = {
-    "background-color": f"{FACE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"{BUTTON_BEVEL} !important",
-}
-REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList:hover:not([disabled])"] = {
-    "background-color": f"{SELECTION} !important",
-    "color": f"{BLACK} !important",
-    "box-shadow": "none !important",
-}
+REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList"] = BUTTON_FACE
+REQUIRED_RULES[
+    "#detailsPane #editBMPanel_folderMenuList:hover:not([disabled])"
+] = BUTTON_HOVER
 
 # The details pane's tag selector: the landed #placesList mapping plus
 # the appearance: none the browser skin needs, with square rows and the
 # landed downloads selected-row byte-recipe.
 REQUIRED_RULES["#detailsPane richlistbox#editBMPanel_tagsSelector"] = {
     "appearance": "none !important",
-    "background-color": f"{WHITE} !important",
-    "color": f"{BLACK} !important",
-    "border": f"1px solid {BLACK} !important",
-    "border-radius": "0 !important",
-    "box-shadow": f"inset 1px 1px {GREY} !important",
+    **FIELD_FACE,
 }
 REQUIRED_RULES[
     "#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem"
