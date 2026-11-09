@@ -59,6 +59,11 @@ class TestCiWorkflow(unittest.TestCase):
         # (?s) lets the pattern cross the shell line continuations.
         self.assertRegex(workflow, r"(?s)apt-get install.*kwin-wayland")
         self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
+        # The applet render opens org.kde.plasma.calculator, which the runner
+        # image does not preinstall; the package must arrive with the tools.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*plasma-widgets-addons"
+        )
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
         # Ubuntu 26.04 publishes the screenshot package as `kde-spectacle`;
         # 24.04 publishes `spectacle`. The install must follow the name its
@@ -87,7 +92,8 @@ class TestCiWorkflow(unittest.TestCase):
             r"command -v plasma-apply-colorscheme >/dev/null && \\\s*"
             r"command -v spectacle >/dev/null && \\\s*"
             r"command -v kdialog >/dev/null && \\\s*"
-            r"command -v zenity >/dev/null; then",
+            r"command -v zenity >/dev/null && \\\s*"
+            r"has_calculator_applet; then",
         )
 
     def test_every_use_pins_a_full_commit_sha(self):

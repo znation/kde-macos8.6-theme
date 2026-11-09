@@ -43,25 +43,35 @@ jobs:
       - name: Install the Plasma render tools
         run: |
           set -e
+          # Ubuntu 26.04 ships org.kde.plasma.calculator as a Plasma applet
+          # plugin; 24.04 ships it as a package directory. Either satisfies
+          # the applet render, which opens the applet by id.
+          has_calculator_applet() {
+            [ -e /usr/share/plasma/plasmoids/org.kde.plasma.calculator/metadata.json ] || \
+              compgen -G '/usr/lib/*/qt6/plugins/plasma/applets/org.kde.plasma.calculator.so' >/dev/null
+          }
           if command -v dbus-run-session >/dev/null && \
              command -v kwin_wayland >/dev/null && \
              command -v plasmawindowed >/dev/null && \
              command -v plasma-apply-colorscheme >/dev/null && \
              command -v spectacle >/dev/null && \
              command -v kdialog >/dev/null && \
-             command -v zenity >/dev/null; then
+             command -v zenity >/dev/null && \
+             has_calculator_applet; then
             : # The render tools are already available in this runner.
           else
             sudo apt-get update
-            # The names below are grounded on the Ubuntu runners' release (all
-            # five packages record 200 on launchpad.net/ubuntu/noble/amd64/):
+            # The names below are grounded on the Ubuntu runners' release
+            # (noble records each on launchpad.net/ubuntu/noble/amd64/):
             # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
             # `plasma-workspace` both plasmawindowed and
-            # plasma-apply-colorscheme, and `spectacle` is the screenshot
-            # tool; `kdialog` provides the dialog render's three kdialog
-            # clients and `zenity` the GTK 4 dialog render's client.
+            # plasma-apply-colorscheme, and `plasma-widgets-addons` the
+            # org.kde.plasma.calculator applet the applet render opens;
+            # `kdialog` provides the dialog render's three kdialog clients and
+            # `zenity` the GTK 4 dialog render's client.
             sudo apt-get install -y --no-install-recommends \
-              dbus kwin-wayland plasma-workspace kdialog zenity
+              dbus kwin-wayland plasma-workspace plasma-widgets-addons \
+              kdialog zenity
             # Ubuntu 26.04 (the release `ubuntu-latest` moved to) renamed
             # the screenshot package from `spectacle` to `kde-spectacle`;
             # the installed binary stayed `/usr/bin/spectacle`. Select the
@@ -85,5 +95,10 @@ jobs:
             command -v "$tool" >/dev/null \
               || { echo "render tool missing after install: $tool" >&2; exit 1; }
           done
+          # The applet render opens org.kde.plasma.calculator; without it the
+          # client never paints and the render times out instead of failing
+          # at the install step that was meant to provide it.
+          has_calculator_applet \
+            || { echo "calculator applet missing after install" >&2; exit 1; }
       - run: make check
       - run: make check-references
