@@ -12,6 +12,17 @@ else:  # imported by a directly run CLI
     from png import Image
 
 
+def _pixel_differs(
+    candidate_rgb: bytes, reference_rgb: bytes,
+    candidate_alpha: bytes | None, reference_alpha: bytes | None,
+    index: int, tolerance: int,
+) -> bool:
+    """Whether one raw RGBA pixel exceeds *tolerance* in any channel."""
+    return max(_absolute_deltas(
+        candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
+    )) > tolerance
+
+
 def difference_columns(candidate: Image, reference: Image, tolerance: int) -> list[int]:
     """Count over-tolerance pixels in each column of equally sized images."""
     return _difference_axis_counts(candidate, reference, tolerance, vertical=True)
@@ -35,9 +46,9 @@ def _difference_axis_counts(
         count = 0
         for offset in range(scanline_length):
             index = offset * width + scanline if vertical else scanline * width + offset
-            count += max(_absolute_deltas(
-                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-            )) > tolerance
+            count += _pixel_differs(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index, tolerance
+            )
         counts.append(count)
     return counts
 
@@ -56,8 +67,9 @@ def _difference_axis_bounds(
         first = last = None
         for offset in range(scanline_length):
             index = offset * width + scanline if vertical else scanline * width + offset
-            differing = max(_absolute_deltas(candidate_rgb, reference_rgb,
-                                              candidate_alpha, reference_alpha, index)) > tolerance
+            differing = _pixel_differs(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index, tolerance
+            )
             if differing and first is None:
                 first = offset
             if differing:
@@ -97,9 +109,9 @@ def _iter_difference_axis_runs(
         for offset in range(scanline_length):
             x, y = (scanline, offset) if vertical else (offset, scanline)
             index = y * width + x
-            differing = max(_absolute_deltas(
-                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index
-            )) > tolerance
+            differing = _pixel_differs(
+                candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index, tolerance
+            )
             if differing and start is None:
                 start = offset
             elif not differing and start is not None:
@@ -161,8 +173,9 @@ def difference_centroid(candidate: Image, reference: Image, tolerance: int) -> d
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
     count = sum_x = sum_y = 0
     for index in range(width * height):
-        if max(_absolute_deltas(candidate_rgb, reference_rgb, candidate_alpha,
-                                reference_alpha, index)) > tolerance:
+        if _pixel_differs(
+            candidate_rgb, reference_rgb, candidate_alpha, reference_alpha, index, tolerance
+        ):
             count += 1
             sum_x += index % width
             sum_y += index // width
