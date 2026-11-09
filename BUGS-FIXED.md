@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 86d18b48 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `86d18b48ffae886baa78caf6e85ccde71c36c19b` (Drop the bare `from . import name` scanner registration as untrue) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. `git show 86d18b48` (drop the unused-import scanner's bare `from . import name` registration) checked against the live tree: `tests/support/unused_imports.py` registers each `ImportFrom` through `_resolved_module()` with no extra bare-form key, so a bare `from . import thing` adds only `("pkg", "thing")` and cannot keep `pkg/thing.py`'s own import alive; both regression tests from the commit still exist (`test_a_package_facade_re_export_keeps_the_submodule_import`, `test_a_bare_relative_import_does_not_bless_the_submodules_import`) and pass on the live tree; the `no-fake` ledger entry `unused-imports-facade-reexport` survived the later packaging split of `tests/support/validation_gaps.py` into `tests/support/validation_gaps/`; the later reviewer merge `725c8d42f` did not remove the commit's registration.
+
+**Validation gap:** none — the already-landed regression tests reproduced and confirmed the behavior, so no confirmation step was missing.
+
 ### post-merge review of 8b9a994e never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `8b9a994ea69a16ca70a09c7f193e96e5a3e051c4` (Paint about:preferences XUL check boxes as Platinum squares; fix PLANS.md) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
