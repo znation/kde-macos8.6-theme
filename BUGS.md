@@ -1998,6 +1998,10 @@ The post-merge review of commit `37f3df166f1069b6a95d37372310290ef689761a` (Esca
 
 The post-merge review of commit `ec9b973e17d47ddb5f4418a36cb0b5d1067370c2` (Add an optional longest horizontal match run summary) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 3b6e4152 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `3b6e41522d21aea95c0142665e3f41c8e5c14472` (Replace assignment expressions with explicit scan control flow) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
