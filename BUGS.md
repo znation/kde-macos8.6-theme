@@ -110,6 +110,10 @@ The post-merge review of commit `37c08ac30c9e3986f43d107fe153fce38fa6982d` (Move
 
 The post-merge review of commit `ee83d1d60f978a60fd36fdd28e03dfdfcdf7a13e` (Add tests/test_file_lock.py pinning the shared flock's retry and release arms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 9c34d34a never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `9c34d34a806d8d30396dd4f28aeae390b280daf2` (Share the Aurorae box inactive-flattening rule in one aurorae_fixtures helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
