@@ -1736,6 +1736,83 @@ progressbar > trough:disabled, scale > trough:disabled {
   border-color: #000000;
 }
 
+/* 2026-11-09: a meter inside a selected GTK 4 view row keeps the landed
+   trough and thumb rims. No collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK meter inside a selected row (the GTK
+   scope's standing adaptation premise), so the kept values are the landed
+   rim recipes this sheet already pins: the trough's 1px solid #000000 rim
+   (the `scale > trough` and `progressbar > trough` groups), the thumb's
+   #000000 rim (`scale > trough > slider`) and the disabled thumb's flat
+   #999999 rim (`scale > trough > slider:disabled`) — the same per-state
+   value split the landed GTK 3 meter-state record applied when stock's
+   selected-row comma group reached two landed values. The toolkit
+   resource /org/gtk/libgtk/theme/Default/Default-light.css (extracted
+   with `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) arms with
+   `outline-color: <the stock translucent white selection outline ink>`
+   and `border-color: <the stock accent-deep rim ink>` on line 1085's
+   selected-row comma group over `progressbar > trough`,
+   `scale > trough > fill` and `scale > trough`; it arms `progressbar >
+   trough > progress` and `scale > trough > highlight` with
+   `border-color: <the stock accent-deep rim ink>` on line 1095; and it
+   arms both thumb states with `border-color: <the stock accent-deep rim
+   ink>` on line 1133's `scale > trough > slider` comma group, disabled
+   first and enabled second. The dark twin resource carries the identical
+   three arms at lines 1073, 1083 and 1121 (every line in this region
+   shifted -12) with its own translucent white and accent-deep inks; the
+   desktop integration library's base.css resource (probe paths, resource
+   paths and versions recorded verbatim in docs/invariants.md) declares
+   no `row:selected` meter arm at all, and the toolkit grep behind this
+   restatement is exhaustive in both resources: these three arms plus the
+   landed `row:selected button` remarks' button, flat-list and backdrop
+   arms are the whole selected-row inventory the toolkits paint, the
+   remaining `row:selected` spellings landing on non-meter nodes. Each
+   appended selector is the exact stock twin and sits later in source
+   order, so under the lower-sheet reading it wins the per-property tie
+   at stock's own specificity; under the replacement reading these rules
+   are the only holders of the spellings, none of which the shipped sheet
+   parses today, and the standing `row:selected button` groups carry
+   neither a trough nor a slider token. The restatement splits stock's
+   comma groups by landed value, the landed GTK 3 record's own precedent:
+   one group cannot carry the landed disabled thumb's flat grey rim and
+   the enabled thumb's black rim, and a comma group shares its
+   declarations across every member, so the thumb states are restated as
+   two single-spelling rules (the disabled thumb's grey rim first, the
+   enabled thumb's black rim after) — the disabled spelling
+   out-specifies the bare thumb spelling, so a selected disabled thumb
+   keeps the grey rim while an enabled thumb takes the black one — while
+   the trough arm's two landed states (plain and disabled) share the
+   black rim and stay merged on the comma group. Exclusions, each with its
+   per-property reason: stock's trough comma group carries
+   `scale > trough > fill` — the landed `scale > trough > fill,
+   scale > trough > highlight` group declares `border: 0`, so a
+   border-colour member over the fill repaints nothing, the reason the
+   landed GTK 3 meter-state record excluded its same-shaped fill
+   members; stock's whole progress/highlight comma group claims only that
+   same border member — the landed `progressbar > trough > progress` and
+   fill/highlight groups declare `border: 0`, so nothing repaints and no
+   restate is quoted; the trough comma group's `outline-color` member —
+   the stock selected-row outline ink stays per the landed selection
+   policy ("the stock selected-row outline colour stays unrestated", the
+   stance the landed dropdown selection comment records), an outline
+   paints only under focus and no landed selection surface restates one;
+   and no `.osd` selected-row meter arm exists in either resource, so
+   none is answered here. Declaration, count and order checks do not
+   establish rendered pixels. */
+
+row:selected progressbar > trough,
+row:selected scale > trough {
+  border-color: #000000;
+}
+
+row:selected scale > trough > slider:disabled {
+  border-color: #999999;
+}
+
+row:selected scale > trough > slider {
+  border-color: #000000;
+}
+
 /* No reference shows a disabled GTK progress bar; keep its opaque palette. (2026-10-29) */
 progressbar:disabled {
   filter: none;
