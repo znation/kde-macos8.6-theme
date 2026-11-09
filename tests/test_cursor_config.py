@@ -3,10 +3,12 @@
 ``TestCursorThemeSetting`` in the apply-cursor suite already pins the
 reader's parsing contract directly: only the ``[Mouse]`` section counts,
 comment lines hold no value, surrounding whitespace is trimmed, a BOM is
-stripped, and a non-UTF-8 file, a directory or a FIFO reads as no setting.
-This module holds the two behaviors that suite never exercises: a missing
-``kcminputrc`` reads as no setting, and a later ``cursorTheme`` line
-overrides an earlier one.
+stripped, and a non-UTF-8 file or a directory reads as no setting. A FIFO
+at the path is pinned indirectly there by
+``TestRemove.test_a_fifo_kcminputrc_does_not_block_removal``, which shows
+the removal still finishes with the FIFO in place. This module holds the
+two behaviors that suite never exercises: a missing ``kcminputrc`` reads
+as no setting, and a later ``cursorTheme`` line overrides an earlier one.
 """
 
 from __future__ import annotations
