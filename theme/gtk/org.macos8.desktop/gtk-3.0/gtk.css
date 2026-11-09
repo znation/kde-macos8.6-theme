@@ -1123,6 +1123,87 @@ progressbar progress:disabled {
   background-color: #999999;
 }
 
+/* The landed plain meter `progressbar trough`, `progressbar progress` and
+   `progressbar progress:disabled` groups pin the landed #EEEEEE trough,
+   the landed #CCCCFF fill and the disabled grey but cannot reach the
+   toolkit's class-armed and corner-armed statements around them. No
+   collected reference screenshot in macos8.6-screenshots/ shows a plain
+   GTK meter's thickness, a meter fill in a selected or disabled context
+   (the landed state records keep those faces already), a meter fill's
+   leading end, the trough's square corners or the scale's focus ring
+   (the GTK scope's standing adaptation premise), so every answer below
+   reuses a landed value: the landed trough recipe's 10px minimums and
+   the landed fill recipe's zero margin, the landed square-corner policy,
+   and the landed 2026-11-04 `scale:focus` record as the focus-shape
+   source. The installed GTK 3 theme resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource
+   extract`) declares the out-reaching arms at its resource lines 1441
+   and 1443 (the orientation-minimum pair), 1445 and 1447 (the fill
+   side-margins), and 1453/1455/1457/1459 under the base line-1451
+   `progressbar progress` corner arm; the dark-twin resource
+   gtk-contained-dark.css carries the same arms with every line shifted
+   by -16 for this region. Each restated pair below quotes its stock
+   spelling byte-equal with the landed value per member, so later
+   user-sheet source order wins each equal-specificity tie; every
+   spelling is new to this sheet. Arms that stay out of the restatement,
+   with reasons: the orientation-minimum arms' two comma-group fill
+   members — a minimum floor over a fill whose natural allocation already
+   spans the trough, and the landed `progressbar progress` recipe
+   declares no minimum at all, so there is no landed value to restate
+   per-property; the base line-1451 corner arm — equal specificity with
+   the landed `progressbar progress` group's square radius, which wins
+   the per-property source-order tie, so nothing repaints; the
+   line-1467 trough-empty fill erase arm — erases the fill node only
+   while the trough holds a zero fraction, where the landed fill paints
+   nothing visible in a zero-width allocation; the line-1439 node arm
+   carrying the percentage label's smaller size, tabular figures and a
+   translucent ink — the meter label's own ink and typography, answered
+   by the landed label-ink record above; the resource's line-1226 scale
+   node arm declaring the node's own padding and minimum size —
+   allocation that spaces the landed trough, whose landed trough and
+   slider groups declare their own sizes; the resource's line-1228
+   `scale fill, scale highlight` margin arm — equal specificity with the
+   landed same-spelling group's zero margin, which wins the
+   per-property source-order tie, so nothing repaints; the fine-tuned
+   container padding and minimum arms at lines 1232 and 1234 —
+   allocation-only geometry for the held-modifier state the landed
+   theme never answered, its own geometric candidate; and the line-1236
+   fine-tuned slider margin arm — already answered by the landed marks
+   record's own negative-margin restate. Declaration checks do not
+   establish rendered pixels. */
+
+progressbar.horizontal trough {
+  min-height: 10px;
+}
+
+progressbar.vertical trough {
+  min-width: 10px;
+}
+
+progressbar.horizontal progress {
+  margin: 0;
+}
+
+progressbar.vertical progress {
+  margin: 0;
+}
+
+progressbar progress.left {
+  border-radius: 0;
+}
+
+progressbar progress.right {
+  border-radius: 0;
+}
+
+progressbar progress.top {
+  border-radius: 0;
+}
+
+progressbar progress.bottom {
+  border-radius: 0;
+}
+
 entry progress {
   background-color: transparent;
   background-image: none;
@@ -1263,6 +1344,20 @@ scale trough {
   box-shadow: inset 1px 1px #999999;
   min-height: 6px;
   min-width: 6px;
+  /* 2026-11-09: the toolkit resource gtk-contained.css in
+     /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource
+     extract`) declares a rounded outward-offset focus shape
+     (`-gtk-outline-radius: 5px`, `outline-offset: 2px`) on the trough
+     itself, the focus-geometry node stock names, at its resource line
+     1240; this group carries the landed `scale:focus` record's dotted
+     black zero-offset zero-radius shape on the node stock reaches, so
+     the trough keeps the landed square focus geometry either way — if
+     the toolkit in fact paints the ring through the scale node, the
+     landed `scale:focus` group already covers it and this extension is
+     inert, both nodes carrying the landed values. */
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
 }
 
 scale fill, scale highlight {

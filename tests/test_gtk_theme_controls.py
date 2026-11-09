@@ -78,6 +78,68 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             disabled="progressbar progress:disabled",
         )
 
+    def test_meter_geometry(self):
+        """A meter's class-armed and corner-armed geometry keeps the landed values,
+        and the scale trough carries the landed scale:focus focus shape."""
+        self.assert_rule_group(
+            {
+                "progressbar.horizontal trough": {"min-height": "10px"},
+                "progressbar.vertical trough": {"min-width": "10px"},
+                "progressbar.horizontal progress": {"margin": "0"},
+                "progressbar.vertical progress": {"margin": "0"},
+                "progressbar progress.left": {"border-radius": "0"},
+                "progressbar progress.right": {"border-radius": "0"},
+                "progressbar progress.top": {"border-radius": "0"},
+                "progressbar progress.bottom": {"border-radius": "0"},
+            }
+        )
+        self.assert_rule(
+            "scale trough",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        self.assertEqual(self.selectors.count("scale trough"), 1)
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith(("progressbar.horizontal", "progressbar.vertical"))
+            },
+            {
+                "progressbar.horizontal trough",
+                "progressbar.vertical trough",
+                "progressbar.horizontal progress",
+                "progressbar.vertical progress",
+            },
+        )
+        self.assertEqual(
+            {s for s in self.selectors if s.startswith("progressbar progress.")},
+            {
+                "progressbar progress.left",
+                "progressbar progress.right",
+                "progressbar progress.top",
+                "progressbar progress.bottom",
+            },
+        )
+        top = self.css.index("progressbar progress:disabled {")
+        bottom = self.css.index("entry progress {")
+        for spelling in (
+            "progressbar.horizontal trough",
+            "progressbar.vertical trough",
+            "progressbar.horizontal progress",
+            "progressbar.vertical progress",
+            "progressbar progress.left",
+            "progressbar progress.right",
+            "progressbar progress.top",
+            "progressbar progress.bottom",
+        ):
+            position = self.css.index(spelling + " {")
+            self.assertGreater(position, top, spelling)
+            self.assertLess(position, bottom, spelling)
+
     def test_treeview_progress_bar(self):
         """A treeview row's progress cell restates the landed meter recipe."""
         plain_fill = {
