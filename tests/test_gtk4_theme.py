@@ -4493,6 +4493,55 @@ for radio in (False, True):
             {"background-color": GREY},
         )
 
+    def test_disabled_meter_trough_faces(self):
+        """A disabled meter keeps the landed trough face and rim.
+
+        Stock's disabled trough arm (libgtk-4 light resource line 1083, dark
+        twin line 1071) carries a pale face and a per-appearance rim ink and
+        the `:disabled` pseudo-class raises it above the landed plain groups,
+        so the restated group repeats the landed #EEEEEE face and #000000
+        rim at stock's specificity and wins the per-property tie by later
+        user-sheet source order under lower-sheet riding; the replacement
+        reading keeps the landed plain groups already governing these
+        spellings.
+        """
+        expected = {"background-color": TROUGH, "border-color": BLACK}
+        self.assert_rule_group(
+            {
+                "progressbar > trough:disabled": dict(expected),
+                "scale > trough:disabled": dict(expected),
+            }
+        )
+        # The restated colours sit after the landed grey disabled face, and
+        # the landed opaque disabled policy still follows them, so the
+        # source-order tie and the filter policy both hold on the raw sheet.
+        self.assert_rule_after(
+            "progressbar > trough:disabled",
+            "progressbar > trough > progress:disabled",
+        )
+        self.assert_rule_after(
+            "progressbar:disabled",
+            "scale > trough:disabled",
+        )
+        allowed = {
+            "progressbar > trough:disabled",
+            "scale > trough:disabled",
+            ".osd progressbar > trough:disabled",
+            ".osd scale > trough:disabled",
+        }
+        trough_disabled = [s for s in self.selectors if "trough:disabled" in s]
+        for selector in trough_disabled:
+            self.assertIn(selector, allowed, selector)
+        self.assertEqual(
+            len([s for s in trough_disabled if not s.startswith(".osd")]),
+            2,
+            trough_disabled,
+        )
+        for member in ("scale > trough > fill:disabled", "scale > trough > highlight:disabled"):
+            for selector in self.selectors:
+                if not selector.startswith(".osd"):
+                    self.assertNotIn(member, selector, selector)
+
     def test_entry_progress(self):
         self.assert_rule("entry > progress > trough > progress", ENTRY_PROGRESS_GTK4)
         self.assert_rule("entry > progress > trough", {"min-height": "2px"})
