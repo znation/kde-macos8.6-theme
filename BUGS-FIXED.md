@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 0ae727c4 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `0ae727c4d8ead6b2dcd25a37a57f7cd5df7a36d1` (Sort the unused-import scanner's findings by path, line and name as its docstring documents) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. `git show 0ae727c4` (sort the scanner's findings by path, line, name) checked against the live tree: `tests/support/unused_imports.py` builds `(relative_path, node.lineno, name)` tuples and returns `sorted(findings)` mapped back to `path:line: unused import name` strings, matching the docstring's "sorted by path, then line" promise (the name is only a within-line tiebreaker); the comment's premise holds — `_scan_module` collects a module's imports through `ast.walk` (BFS), so a block-nested import really would trail later top-level ones unsorted; sorting whole-path string-wise preserves the sorted file-walk order the docstring cites. The commit's regression test `test_findings_are_sorted_by_path_then_line` still exists and, with all of `test_no_unused_imports`, passes on the live tree.
+
+**Validation gap:** none — the commit's own ordering regression test reproduced and confirmed the behavior, so no confirmation step was missing.
+
 ### post-merge review of 86d18b48 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `86d18b48ffae886baa78caf6e85ccde71c36c19b` (Drop the bare `from . import name` scanner registration as untrue) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
