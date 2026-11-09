@@ -85,6 +85,12 @@ class Session:
                 # aborts in QGuiApplication and D-Bus retries it in a
                 # core-dump loop.
                 WAYLAND_DISPLAY=SOCKET,
+                # KWin 6.6 refuses ScreenShot2 calls from a process it cannot
+                # map to a desktop-file identity. This throwaway compositor
+                # and its private bus have no such identity to offer, so the
+                # capture is refused before Spectacle can write the PNG.
+                # Disable the check only for this scratch session.
+                KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
                 HOME=str(home),
