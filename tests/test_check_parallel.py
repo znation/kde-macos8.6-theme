@@ -749,6 +749,11 @@ class TestCoordinator(unittest.TestCase):
         assert_succeeded(self, result)
         self.assertNotIn("\x1b", result.stdout)
         self.assertIn(r"before\u001b[2Jafter", result.stdout)
+        # The worker's output spans several lines that stay lines: a log
+        # escaped without its real line breaks would fold the section into
+        # one blob of `\u000a` escapes instead of a readable traceback.
+        self.assertNotIn(r"\u000a", result.stdout)
+        self.assertIn("Ran 1 test in", result.stdout)
 
     def test_a_timeout_kills_the_workers_whole_process_group(self):
         # The fixture records its spawned child's pid, sleeps past the
