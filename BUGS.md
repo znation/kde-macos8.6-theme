@@ -3206,7 +3206,32 @@ The post-merge review of commit `9dd07beb32cd5a3b8a03fa1fa5d8ae9452cf4e1c` (Add 
 
 The post-merge review of commit `ed3452b6c48d4efc9ef5c45e73f1efd765d5826d` (Add a focused outline for GTK 3 radio buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
-### the render tests' KWin session cannot allocate its capture buffers under the workflow's llvmpipe env (found by the ci role 2026-11-09)
+## Won't fix
+
+### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
+
+**Won't fix 2026-11-02 by the director role — user accepted the refusal**
+
+Covered by the project-wide SIGKILL decision in PRINCIPLES.md (directed by the user
+2026-11-02). Partial publication and leftover backups after SIGKILL are accepted limitations;
+roles should use that standing decision when triaging equivalent reports.
+
+`tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
+with separate replacements. Its rollback runs only when Python catches an exception; if the
+process receives `SIGKILL` after one replacement, later files retain their old contents while
+the first file contains the new selection, and its hidden hard-link backup remains. The GTK
+selection is then partly applied despite the caller never completing.
+
+Reproduce by staging different contents for two existing settings files, running `commit`, and
+delivering `SIGKILL` after the first `os.replace` returns but before the second begins. The first
+target contains new bytes, the second retains old bytes, and a `.backup` sibling remains. Recovery
+would require a durable transaction record or another crash-consistent publication design;
+in-process exception rollback cannot run after `SIGKILL`, and automatic recovery could overwrite
+user edits made after the interrupted commit.
+
+## Fixed
+
+### the render tests' KWin session cannot allocate its capture buffers under the workflow's llvmpipe env (found by the ci role 2026-11-09) — fixed 2026-11-09 by the feature role
 
 `make check` at main's tip `3a380abe20b939b96004b32fd07ddc3e5d9bf49f` fails `tests/test_render_surface.py` with 32 errors and 5 failures: every KWin virtual render session (`tools/render_session.py`: plain `kwin_wayland --virtual`) fails with `KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied`, so the session produces no capture and the tests that read the rendered PNG get `cannot read ... dialog.png: [Errno 2] No such file or directory`.
 
@@ -3233,27 +3258,7 @@ Worked output from the reproduce run:
       KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied
       render-session: client reaped
 
-## Won't fix
+Fix: the settled change removes the `MESA_LOADER_DRIVER_OVERRIDE: llvmpipe` line from `.github/workflows/ci.yml`'s check job env and keeps only `LIBGL_ALWAYS_SOFTWARE: '1'`, which alone forces a software EGL driver for the nested KWin virtual session; the reproduce contrast above was re-run with the override stripped (`QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check CHECK_TESTS=test_render_surface`) and the module completes with no KMS dumb-buffer error, the capture gates skipping with the software-renderer reason. The absence is pinned by `tests/test_ci_workflow.py::TestCiWorkflow::test_workflow_runs_the_suite_on_the_headless_qt_platform`'s new `assertNotRegex` assertions on both `MESA_LOADER_DRIVER_OVERRIDE:` and `GALLIUM_DRIVER:` assignments, and `docs/invariants.md`'s two `## tooling` rows reword the forced-llvmpipe wording and record the local contrast's provenance. The fix is filed as the plan entry "CI workflow: drop the forced llvmpipe driver override the KWin render sessions cannot survive on a GPU host", done 2026-11-09 by the feature role (archived under PLANS-DONE.md).
 
-### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
+**Validation gap:** runner-side — the local reproduce contrast is settled, but the hosted runner's virtual session under the remaining env (`LIBGL_ALWAYS_SOFTWARE=1` alone) was never observed (the hosted run `18ded7fe` failed at the install step before any test); it stays unobserved until the next hosted run that reaches the suite, as recorded in the workflow comment and the invariants row's provenance cell.
 
-**Won't fix 2026-11-02 by the director role — user accepted the refusal**
-
-Covered by the project-wide SIGKILL decision in PRINCIPLES.md (directed by the user
-2026-11-02). Partial publication and leftover backups after SIGKILL are accepted limitations;
-roles should use that standing decision when triaging equivalent reports.
-
-`tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
-with separate replacements. Its rollback runs only when Python catches an exception; if the
-process receives `SIGKILL` after one replacement, later files retain their old contents while
-the first file contains the new selection, and its hidden hard-link backup remains. The GTK
-selection is then partly applied despite the caller never completing.
-
-Reproduce by staging different contents for two existing settings files, running `commit`, and
-delivering `SIGKILL` after the first `os.replace` returns but before the second begins. The first
-target contains new bytes, the second retains old bytes, and a `.backup` sibling remains. Recovery
-would require a durable transaction record or another crash-consistent publication design;
-in-process exception rollback cannot run after `SIGKILL`, and automatic recovery could overwrite
-user edits made after the interrupted commit.
-
-## Fixed
