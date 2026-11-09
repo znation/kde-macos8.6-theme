@@ -1630,6 +1630,97 @@ progressbar {
   color: #000000;
 }
 
+/* A view row's progress cell — the meter GTK paints inside a columnview
+ * or treeview row's cell node — keeps the landed meter's faces here,
+ * 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a treeview or columnview progress cell, so
+ * the cell meters are platform-required and answer to the landed GTK 3
+ * treeview progress-cell record's faces — the landed meter's lavender
+ * fill, the landed trough face with its black rim and sunken bevel,
+ * black cell text either way, and a selected or backdropped selection
+ * keeping the white fill and black text — the one-landed-face-set policy
+ * answering light and dark alike, with the landed white selected-cell
+ * fill (not the stock selected accent-over-fill choice) standing, per
+ * the stance the landed selected-row face records apply. The landed
+ * meter groups' child-combinator spellings reach no cell's internal
+ * paint, so the restatement below owns the cell family in its own record
+ * beside the landed groups it neighbours. The installed GTK 4 theme
+ * resource Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * (extracted with `gresource`) declares the cell family's five arms at
+ * its resource lines 702 (the bare cell meter: a foreign white cell ink
+ * over the foreign accent fill, the same fill again as a fill image, and
+ * nothing extruded as a shadow), 704 (the selected cell: the foreign
+ * accent ink over a foreign white paper fill image), 706 (the selected
+ * backdropped cell: the foreign accent ink over the foreign pale
+ * paper), 708 (the cell trough: the stock diluted grey face) and 710
+ * (the selected cell troughs: the stock translucent white face); the
+ * dark-twin resource Default-dark.css declares the same family at its
+ * lines 694–702, every line shifted by −8, its bare cell arm dropping
+ * the ink member, its selected cell arm adding a foreign inset shadow
+ * over the foreign paper choice and its selected backdrop settling on
+ * the foreign deep paper, so the landed faces answer dark too; the
+ * integration library's `base.css` resource (probe path recorded in
+ * docs/invariants.md) rides the bare trough (a colour-mix translucent
+ * face), the bare meter (nothing extruded) and its selected member (the
+ * integration accent variables) at its lines 708/710/712 beside two
+ * print-dialog twin spellings — the integration-only print-dialog tree
+ * arms the toolkit resource never declares (grepped before recording;
+ * left with whichever resource rides the sheet, not restated here).
+ * No `:disabled` arm at all: the toolkit resource declares none in its
+ * cell family, and the integration resource's disabled view arms speak
+ * for the view node, not the cells. No size declaration follows: stock's
+ * cell family declares no minimum at all, cell size is the view's own
+ * allocation, and the landed bare meter groups keep owning the plain
+ * meter's minimums (the landed GTK 3 record's same exclusion). Each of
+ * the five rules below restates one stock comma-group spelling keyed per
+ * member and wins the per-property equal-specificity tie by later
+ * user-sheet source order; trough members not the stock face colour are
+ * fills the stock arm never spoke of, carried byte-equal from the landed
+ * trough face recipe the child-combinator spelling keeps for the plain
+ * bar. Declaration checks do not establish rendered pixels. */
+
+columnview.view.progressbar,
+treeview.view.progressbar {
+  color: #000000;
+  background-color: #CCCCFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+columnview.view.progressbar:selected:focus,
+columnview.view.progressbar:selected,
+treeview.view.progressbar:selected:focus,
+treeview.view.progressbar:selected {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+columnview.view.progressbar:selected:focus:backdrop,
+columnview.view.progressbar:selected:backdrop,
+treeview.view.progressbar:selected:focus:backdrop,
+treeview.view.progressbar:selected:backdrop {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+columnview.view.trough,
+treeview.view.trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+}
+
+columnview.view.trough:selected:focus,
+columnview.view.trough:selected,
+treeview.view.trough:selected:focus,
+treeview.view.trough:selected {
+  background-color: #EEEEEE;
+}
+
 progressbar > trough {
   background-color: #EEEEEE;
   background-image: none;

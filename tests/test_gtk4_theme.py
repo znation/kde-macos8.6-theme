@@ -3892,6 +3892,85 @@ for radio in (False, True):
         )
         self.assert_rule_after("progressbar > trough {", "progressbar {")
 
+    def test_treeview_progress_cell_faces(self):
+        """A view row's progress cell keeps the landed meter faces."""
+        selected_cell = (
+            "columnview.view.progressbar:selected:focus",
+            "columnview.view.progressbar:selected",
+            "treeview.view.progressbar:selected:focus",
+            "treeview.view.progressbar:selected",
+        )
+        selected_backdrop_cell = (
+            "columnview.view.progressbar:selected:focus:backdrop",
+            "columnview.view.progressbar:selected:backdrop",
+            "treeview.view.progressbar:selected:focus:backdrop",
+            "treeview.view.progressbar:selected:backdrop",
+        )
+        selected_cell_trough = (
+            "columnview.view.trough:selected:focus",
+            "columnview.view.trough:selected",
+            "treeview.view.trough:selected:focus",
+            "treeview.view.trough:selected",
+        )
+        expected = {
+            "columnview.view.progressbar": {
+                "color": BLACK,
+                "background-color": SELECTION,
+                "background-image": "none",
+                "box-shadow": "none",
+            },
+            "treeview.view.progressbar": {
+                "color": BLACK,
+                "background-color": SELECTION,
+                "background-image": "none",
+                "box-shadow": "none",
+            },
+            "columnview.view.trough": {
+                "background-color": TROUGH,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+            },
+            "treeview.view.trough": {
+                "background-color": TROUGH,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+            },
+        }
+        for selector in selected_cell + selected_backdrop_cell:
+            expected[selector] = {
+                "color": BLACK,
+                "background-color": WHITE,
+                "background-image": "none",
+            }
+        for selector in selected_cell_trough:
+            expected[selector] = {"background-color": TROUGH}
+        self.assert_rule_group(expected)
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith(("columnview.view", "treeview.view"))
+                and ("progressbar" in s or "trough" in s)
+            },
+            set(expected),
+        )
+        self.assertNotIn("min-height", self.rules["columnview.view.trough"])
+        self.assertNotIn("min-height", self.rules["treeview.view.trough"])
+        self.assertNotIn("min-width", self.rules["columnview.view.trough"])
+        self.assertNotIn("min-width", self.rules["treeview.view.trough"])
+        self.assertGreater(
+            self.selectors.index("columnview.view.progressbar"),
+            self.selectors.index("progressbar"),
+        )
+        self.assertLess(
+            self.selectors.index("treeview.view.trough"),
+            self.selectors.index("progressbar > trough"),
+        )
+
     def test_progressbar_osd_trough_paint(self):
         selector = "progressbar.osd > trough"
         expected = {
