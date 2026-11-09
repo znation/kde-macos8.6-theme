@@ -258,6 +258,10 @@ The post-merge review of commit `c1325a54c20a2aae1d9efaac0251fa9934a1c7ec` (Spli
 
 The post-merge review of commit `37a806fc8fb732d5f3391e73321fe4e672315d29` (Skip symlinked package directories during test discovery) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 6bebcd43 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `6bebcd4352ce9767dce088c8c572f9a15ce1dfeb` (Test signal cleanup when worker startup raises unexpectedly) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
