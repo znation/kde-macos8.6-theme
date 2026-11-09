@@ -92,9 +92,11 @@ def _test_marker_step(byte: int, state: int, dots: int) -> tuple[int, int, bool]
     """Consume one byte of the verbose test-start marker scan.
 
     Return the next ``(state, dots)`` pair and whether the byte completed
-    the ``) `` plus three-dot marker. A newline forgets a partial match so
-    a closing parenthesis or dots in ordinary text never carry over to a
-    later line.
+    the ``) `` plus three-dot marker. A newline forgets the partial dot run
+    and returns to the paren seek, so dots left at one line's end never
+    complete against a later line's whitespace; the whitespace after ``)``
+    may itself be a newline, so the dots of the following line can still
+    complete the marker.
     """
     if state == _MARKER_SEEKS_PAREN:
         if byte == ord(")"):

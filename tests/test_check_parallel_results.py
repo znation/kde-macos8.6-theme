@@ -145,8 +145,15 @@ class TestTestMarkerStep(unittest.TestCase):
         self.assertIsNone(self._scan("test_x (pkg.Cls) .... ok"))
 
     def test_a_newline_forgets_partial_dots(self):
-        # A newline inside the dot count resets the scan, so the dots of a
-        # later line cannot complete the previous line's marker.
+        # A newline inside the dot count forgets the partial run and drops
+        # the scan back to the paren seek, so dots left on one line can no
+        # longer be completed by a later line's whitespace.
+        state, dots, completed = _test_marker_step(
+            ord("\n"), _MARKER_COUNTS_DOTS, 2
+        )
+        self.assertEqual(state, _MARKER_SEEKS_PAREN)
+        self.assertEqual(dots, 0)
+        self.assertFalse(completed)
         self.assertIsNone(self._scan("test_x (pkg.Cls) ..\nok"))
 
     def test_stray_byte_after_the_space_returns_to_the_paren_seek(self):
