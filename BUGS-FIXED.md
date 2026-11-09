@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 4710a8fc never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `4710a8fc84723d375e1852c27f9da11417bda88c` (Treat `__all__.extend`/`append` re-exports as entry sources in the unused-import scanner) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. The commit's diff was read against the live tree: the `__all__`-growing-call allowance in `tests/support/unused_imports.py` is intact and only fires on `append`/`extend`/`insert` calls on the bare name `__all__` (assignments and augmented assignments unchanged); all three scanner fixtures the commit added live in `tests/test_no_unused_imports.py` (`test_an_all_extend_call_re_exports_the_import`, `test_an_all_append_call_re_exports_the_import`, `test_an_all_remove_call_keeps_the_flag`) and the module passes (36 tests, OK); the `unused-imports-all-extend-call` no-fake ledger record survived the `tests/support/validation_gaps/` package split and points at that test; `docs/invariants.md` line for the unused-import guarantee names the widened allowance. A scratch synthetic tree reproduced the commit's claimed behavior on main today: `__all__.extend(["os"])` keeps the import, while `__all__.remove("os")` and a bare `os = None` write both still flag.
+
+**Validation gap:** none — the scanner's fixture suite and the repo-wide tree-clean assertion fail loudly on a stale allowance.
+
 ### post-merge review of 787a809a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `787a809a70ca20a8b050d86a7b18134bd7828e34` (Rename the four word-swapped test modules to mirror the tool modules they cover) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
