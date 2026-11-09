@@ -30,7 +30,12 @@ from .records import Reproduction
 # fixed 2026-11-04: showing the erasure needed a live KWin hover on an
 # unfocused window, diagnosed against the installed AuroraeButton.qml state
 # logic; the nothing-shipped ``inactive-center`` slices the fix ships are
-# pinned offline by the button fixture's test. A new record must name an
+# pinned offline by the button fixture's test. Plus the render-session capture-buffer denial fixed 2026-11-09
+# (originally tagged the bespoke ``runner-side``; re-tagged in the same
+# change that pinned the archive's tag vocabulary): the workflow's
+# forced-llvmpipe env was never observed on the hosted runner, and its
+# bound is pinned offline by the test that refuses driver-name overrides
+# in the workflow env. A new record must name an
 # offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
@@ -89,6 +94,12 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "::test_draws_the_combo_arrow_cell_1_to_1",
     ),
     Reproduction(
+        "render-session-capture-buffer-denial",
+        ("KWin session cannot allocate its capture buffers",),
+        "tests/test_ci_workflow.py::TestCiWorkflow"
+        "::test_workflow_runs_the_suite_on_the_headless_qt_platform",
+    ),
+    Reproduction(
         "aurorae-hover-press-erasure",
         ("Hovering or pressing an unfocused window",),
         "tests/test_aurorae_buttons.py::TestButtons"
@@ -105,4 +116,4 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 11
+REAL_RUN_NEEDED_BASELINE = 12

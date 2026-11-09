@@ -203,6 +203,64 @@ class TestReproductionLookup(unittest.TestCase):
         self.assertIs(validation_gaps.reproduction_for(record), entry)
 
 
+HEADER_TAGS = frozenset(
+    {
+        "none",
+        "no-repro",
+        "no-fake",
+        "real-run-needed",
+        "no-observability",
+        "slow-check",
+        "unclear-invariant",
+    }
+)
+"""The seven validation-gap tags this file's header contract names.
+
+The ledger modules treat ``LEDGERS``' six tags as complete and reserve
+``none`` for records the existing suite reproduces, so any other tag in an
+archive is a bespoke tag that borrows no ledger and evades every cap.
+"""
+
+
+class TestArchiveVocabulary(unittest.TestCase):
+    """Pin the archived records to the header's seven tags.
+
+    ``read_gaps``' matchers accept any lowercase tag word, so a record whose
+    tag is not one of the seven header tags sails past every ledger entry
+    match, every baseline and every tally: a bespoke tag ships with no
+    reproduction and no bounded count. This test reads the shipped archives
+    themselves, so a foreign tag fails here in the commit that adds it, and
+    a re-tag (or an extended ledger with a named entry) must land in the
+    same change.
+    """
+
+    def test_every_archived_record_carries_a_header_tag(self):
+        foreign = [
+            (record.source, record.line, record.tag)
+            for archive in ("BUGS.md", "BUGS-FIXED.md")
+            for record in validation_gaps.read_gaps(ROOT / archive)
+            if record.tag not in HEADER_TAGS
+        ]
+        self.assertFalse(
+            foreign,
+            "archived validation-gap records carry tags outside the "
+            "header's seven (expected "
+            + ", ".join(sorted(HEADER_TAGS))
+            + "): found "
+            + ", ".join("%s:%d %r" % beyond for beyond in foreign)
+            + "; re-tag to the closest header tag in the same change",
+        )
+
+    def test_the_ledgers_cover_every_header_tag_but_none(self):
+        # `none` is a header tag for records the existing suite reproduces,
+        # so it needs no ledger; every other header tag must have one, so
+        # the ledger modules cannot drift from the tag contract.
+        self.assertEqual(
+            frozenset(validation_gaps.LEDGERS),
+            HEADER_TAGS - {"none"},
+        )
+
+
 class TestNoObservabilityLedger(_LedgerMixin, unittest.TestCase):
     tag = "no-observability"
     missing_advice = "add a test-side reproduction for the new failure"
