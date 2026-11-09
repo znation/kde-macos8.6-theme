@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 2f8f7f05 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `2f8f7f056a00a4b5480e31613eb065fc8a869013` (Share Firefox chrome provenance bundles as two FirefoxChrome constants) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Validation gap:** none — the moved suites themselves confirm it; nothing was missing.
+
+**Fix:** settled as no-defect. Read the diff on main and checked the settled tree: `VIEWITEM_REFERENCES` (2 entries) and `BUTTON_REFERENCES` (3 entries) exist in `tests/support/firefox_chrome_cases.py` with accurate per-suite call-site counts in their comments; the 16 unpack sites (12 viewitem, 4 button) each replace the identical literal strings one-for-one (confirmed against the diff's deleted/readded lines), so every rendered provenance header stays byte-identical; the three headers' referenced test IDs (`TestViewItem`, `TestButton`, `TestButtonReference`) still exist in the desktoptheme test files; and the five affected suites (`test_firefox_theme_shell`, `_page_info`, `_panels`, `_popups`, `_library`) all pass under `make check`. The untouched literal leftovers (library suite, popups' button pair) remain as the commit's RISK describes.
+
 ### post-merge review of ee71c614 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `ee71c6147138acf6165958ea383081d1e48fd575` (Fix unused-import scanner's re-export pass to match the imported name, not its alias) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
