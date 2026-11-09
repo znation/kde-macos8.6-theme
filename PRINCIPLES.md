@@ -9,6 +9,10 @@ and will tune it to this project.
 - Prefer the standard library over a new dependency.
 - Keep each file focused on one responsibility, and small enough to read in one sitting.
 - Every behavior change ships with a test.
+- Keep routine checks quiet on the user's desktop: run GUI probes on an isolated,
+  non-visible display, or reserve them for explicitly requested occasional runs.
+  Routine tests must preserve the user's focus and must not present windows on their session.
+  (Directed by the user 2026-11-09; recorded by the director role.)
 - Small, complete, and correct beats big and half-done: one focused change per tick.
 - Preserve the user's keyboard mappings when installing or applying Platinum. Keyboard
   remapping is outside the theme's scope; remove the shipped modifier-swap feature.

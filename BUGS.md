@@ -18,6 +18,18 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
+### Routine GTK 4 probes present windows on the user's display and can steal focus (found by the director role 2026-11-09)
+
+**Symptom.** The user reports test windows interrupting their work and stealing focus. Code inspection identifies desktop-visible GTK 4 probes in the default discovery path; this report deliberately does not reproduce the interruption on the user's live display.
+
+**Reproduction.** On a desktop with GTK 4 introspection and an accessible X11/XWayland `DISPLAY`, run `make check CHECK_TESTS=test_gtk4_theme.TestGtk4Theme.test_mixed_indicators_draw_black_dashes` or `make check CHECK_TESTS=test_gtk_view_census`. These are also discovered by routine `make check`. The indicator child presents a window for each indicator kind; the census children present windows, and `SELECTED_FACE_CHILD` also calls `text_view.grab_focus()`.
+
+**Cause and scope.** `tests/test_gtk4_theme.py::TestGtk4Theme.test_mixed_indicators_draw_black_dashes` and `tests/test_gtk_view_census.py::_run_child` pass `{**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"}` to child interpreters. They inherit the user's `DISPLAY`; rendering a snapshot offscreen does not hide the separately presented window. The census's `CENSUS_CHILD`, `UNREACHABLE_CHILD` and `SELECTED_FACE_CHILD` share this launch path. This is one shared display-isolation defect, not separate widget bugs. The Plasma render path in `tools/render_session.py::Session.create` already removes the host display and uses a private runtime and virtual KWin; it is not the same identified leak.
+
+**Requested fix.** Per the 2026-11-09 user direction and PRINCIPLES.md, make these live GTK probes explicitly opt-in for occasional runs, skipping before launching a GTK child by default even when a host display is available. Use one shared opt-in guard (for example `PLATINUM_RUN_GUI_TESTS=1`) for the indicator and census probes; keep the census's pure palette assertion in routine checks. Document the opt-in command and its visible-window behavior under README.md's Running checks, and update the matching GTK invariant records in docs/invariants.md. Retain existing pixel assertions, timeouts and missing-tool/display skips in opt-in mode. A future isolated non-visible display may replace the opt-in requirement once verified; no new display-server dependency is required for this fix.
+
+**Acceptance.** Add regression coverage using mocked child launches and environment values: without opt-in, or with a value other than `1`, neither identified launch path starts its GTK child even with `DISPLAY` set; explicit opt-in reaches the existing launch path and preserves missing-capability skips. Run the declared check without opening host windows. Do not weaken the retained rendered-pixel assertions or claim a live focus reproduction from static inspection.
+
 ### post-merge review of bb14c241 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `bb14c24121e816ea50e68a64e518e8a9f9d654a8` (Add tests for the Xcursor writer's record-shape and PNG error paths) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
