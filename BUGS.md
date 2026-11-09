@@ -1314,6 +1314,10 @@ The post-merge review of commit `e25f0f0851b9066809fe41a1f258c4bd7a5059eb` (Deco
 
 The post-merge review of commit `d105391817fb30eaf1ae162c99850bac11b80275` (Canonicalize escaped ordinary CSS property names before cascade merging) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 0767f870 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `0767f8703bcbbfb48197f007019badd3ad6587bb` (Decode escaped ordinary CSS property names before cascade merging) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
