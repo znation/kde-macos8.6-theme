@@ -1266,6 +1266,10 @@ The post-merge review of commit `84b7e1cc888cf6e43684d12720d80a3477d24a71` (reco
 
 The post-merge review of commit `4954de1cd42da40820cfab10680ff6d699d589c1` (Preserve semicolons inside square bracket values in the shared stylesheet parser) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2985d79d never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `2985d79d8ecc5a0941494e2d89fd9bc0b8347130` (Ignore `@define-color` text inside stylesheet rule blocks) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
