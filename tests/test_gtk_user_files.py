@@ -262,26 +262,37 @@ class TestUserCssBackup(unittest.TestCase):
         # The open and the exclusive create succeeded, so a write failure
         # must close the descriptor, discard the partial sibling and refuse
         # naming the stylesheet and the backup; the source stays untouched.
+        # The handle emulates a real written wrapper, whose context manager
+        # closes the descriptor on exit, so the tracking pins that close.
         path = self.css("original\n")
         backup = path.with_name("gtk.css.bak")
 
         class FailingHandle:
+            def __init__(self, descriptor):
+                self.descriptor = descriptor
+
             def __enter__(self):
                 return self
 
             def __exit__(self, *args):
+                os.close(self.descriptor)
                 return False
 
             def write(self, data):
                 raise OSError(errno.ENOSPC, "simulated write failure")
 
-        with mock.patch.object(
-            os, "fdopen", return_value=FailingHandle()
-        ):
-            with self.assertRaises(gtk_user_files.ConfigError) as caught:
-                gtk_user_files.user_css_backup(path)
+        def failing_handle(descriptor, *args, **keywords):
+            return FailingHandle(descriptor)
+
+        with tracking_closes() as closed:
+            with mock.patch.object(os, "fdopen", side_effect=failing_handle):
+                with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                    gtk_user_files.user_css_backup(path)
         self.assertIn(f"cannot back up {path} to {backup}", str(caught.exception))
         self.assertIn("simulated write failure", str(caught.exception))
+        self.assertEqual(2, len(closed))
+        with self.assertRaises(OSError):
+            os.fstat(closed[1])
         self.assertFalse(backup.exists())
         self.assertEqual(b"original\n", path.read_bytes())
 
