@@ -54,6 +54,7 @@ class TestReplayDeferred(unittest.TestCase):
         # a Ctrl-C, even though the earlier signal is what stopped it.
         cases = (
             ([signal.SIGHUP, signal.SIGTERM], SystemExit, 128 + signal.SIGHUP),
+            ([signal.SIGTERM, signal.SIGINT], SystemExit, 128 + signal.SIGTERM),
             ([signal.SIGINT, signal.SIGTERM], KeyboardInterrupt, None),
         )
         for deferred, expected, code in cases:
