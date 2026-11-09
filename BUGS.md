@@ -38,6 +38,10 @@ The post-merge review of commit `75b43ff89d8f25b4e7ee4e234dfc619f17d04a27` (Alig
 
 The post-merge review of commit `ea5a840df355a7e130bb4c709cb12e8d00108fb2` (Test the shared Xcursor validation branches through the RGBA writer) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 65c4594a never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `65c4594a242f5f847fb44345e1b325be52c1b3cf` (Document the GTK glyph assets' provenance with header comments) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
