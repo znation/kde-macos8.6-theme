@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 6d3e4ac9 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `6d3e4ac986708de6cb4d2667391599905877d92f` (Pin the Kvantum check indicator to the 14x14 canvas via %General check_size=14) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix.** Read the commit's diff on main and checked each piece against the current tree: the `[%General]` `check_size=14` pin in `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` is present with its provenance comment; `tests/support/kvantum_config_spec.py` pins `check_size: "14"` under `VALUE_KEYS["%General"]`; `tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference::test_config_draws_the_indicator_at_the_canvas_size` derives the canvas side from the shipped SVG (14 = `SHIPPED_SIZE`) and asserts the resolved config value matches; `tests/support/validation_gaps.py` carries the `check-box-indicator-resample` real-run reproduction with `REAL_RUN_NEEDED_BASELINE` raised to 6; and `docs/invariants.md` carries the rendered-indicator guarantee row with its Kvantum 1.1.4 provenance. Nothing to fix: the commit landed correctly. Re-ran both touched test modules (`tests.test_kvantum_checkbox_reference`, `tests.test_kvantum_config`) — all tests pass.
+
+**Validation gap:** none — the landing's own suite pins every facet this settlement checked; nothing was missing.
+
 ### post-merge review of 9abbd3d7 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `9abbd3d758e1b8bc3498199e4c601915b84b2c62` (Pin the check log-cap's breakless-window and CRLF branches) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

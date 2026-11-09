@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 6d3e4ac9 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `6d3e4ac986708de6cb4d2667391599905877d92f` (Pin the Kvantum check indicator to the 14x14 canvas via %General check_size=14) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 7af5d4d2 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `7af5d4d2a66d5ac1ae3e518d7904e0acc2639fbd` (Paint GTK 3's stock OSD overlay containers with the landed infobar band) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
