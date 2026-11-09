@@ -4124,9 +4124,9 @@ for radio in (False, True):
                 )
 
     def test_progressbar_disabled_filter(self):
-        self.assert_rule("progressbar:disabled", {"filter": "none"})
-        self.assert_rule(
-            "progressbar > trough > progress:disabled",
+        self.assertEqual(self.rules["progressbar:disabled"], {"filter": "none"})
+        self.assertEqual(
+            self.rules["progressbar > trough > progress:disabled"],
             {"background-color": GREY},
         )
 
