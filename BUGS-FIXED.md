@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of bb14c241 never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
+
+**Fix:** Reviewed the commit's added rejection cases against `tools/xcursor.py`: malformed records are wrapped in an indexed `ValueError`, decode errors are translated from `PngError` into an indexed `ValueError`, and mutable byte buffers are accepted as documented. The tests assert these behaviors and independently compare output for `bytes` and `bytearray`.
+
+**Validation gap:** none — the project check documented for the commit exercised the new cases, and source review confirmed their expected branches and contracts.
+
 ### post-merge review of 0231c1e1 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `0231c1e17a623723c07a8b079c2b70d63f369fe8` (Flatten snippet_child._collect's four-deep nesting with guards) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
