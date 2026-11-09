@@ -2218,6 +2218,45 @@ statusbar {
   box-shadow: inset 0 -1px #FFFFFF;
 }
 
+/* 2026-11-09: an emoji picker's own two strips draw stock's greige rims
+   around the picker's band of sections: the search strip above them paints
+   a bottom rim and the section toolbar beneath them paints a top rim. No
+   collected reference screenshot shows a GTK emoji picker, so both rims
+   take the landed inks. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css in the GTK 4 library,
+   libgtk-4 4.18.6, probed with gresource 2026-11-09: a 1940-line resource)
+   declares on line 1823 `.emoji-searchbar { padding: 6px; border-spacing:
+   6px; border-bottom: 1px solid <the stock warm-grey rim ink, recorded
+   verbatim in docs/invariants.md>; }` and on line 1825 `.emoji-toolbar {
+   padding: 6px; border-spacing: 6px; border-top: 1px solid <the same rim
+   ink>; }`; the integration library's base.css resource (probe path
+   recorded in docs/invariants.md, re-extracted 2026-11-09: a 2622-line
+   resource) declares padding-only twins with no ink of its own. A
+   display-less introspection probe 2026-11-09 building Gtk.EmojiChooser()
+   and walking every child shows the picker's tree: the popover carries the
+   picker class, and the vertical box's first member is a horizontal box
+   wrapping the search entry directly, so no landed band rule reaches the
+   strip, and the section toolbar is the picked flat image buttons, already
+   landed elsewhere. No landed record answers either strip class: this
+   sheet's landed band group answers the searchbar-family band box, the
+   popover face group answers the popover shell, the completion-row and
+   cell records answer other nodes, and neither strip spelling appears
+   anywhere in the sheet. The search strip's bottom rim takes the landed
+   etched band edge and the toolbar's top rim takes the landed dark
+   separator ink as a flat rim, mirroring the landing's bottom rim by
+   symmetry across the strip; stock's `padding` and `border-spacing` twins
+   stay inherited per-property, and :backdrop stays out of scope. Both
+   arms are quoted in docs/invariants.md. Declaration checks do not
+   establish rendered pixels. */
+.emoji-searchbar {
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+
+.emoji-toolbar {
+  border-top: 1px solid #888888;
+}
+
 /* A file chooser's path bar draws its breadcrumb buttons — the folder toggles,
    the slider arrows and the Other Locations button alike — as the landed tab
    recipe, the current folder's checked tab included; :backdrop stays out of

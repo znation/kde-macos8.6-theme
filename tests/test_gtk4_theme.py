@@ -1726,6 +1726,58 @@ for radio in (False, True):
     def test_status_bar(self):
         self.assert_infobar(("statusbar",))
 
+    def test_emoji_strip_rims(self):
+        # An emoji picker's own strips draw stock's greige rims around the
+        # picker's band of sections: the search strip paints a bottom rim
+        # and the section toolbar paints a top rim. No collected reference
+        # screenshot shows a GTK emoji picker, so the bottom rim joins the
+        # landed etched band and the top rim takes the landed dark
+        # separator ink as a flat rim (2026-11-09).
+        searchbar = ".emoji-searchbar"
+        toolbar = ".emoji-toolbar"
+        expected = {
+            "border-bottom": f"1px solid {ETCH_DARK}",
+            "box-shadow": f"inset 0 -1px {WHITE}",
+        }
+        self.assert_rule(searchbar, expected)
+        self.assertEqual(self.rules[searchbar], expected)
+        self.assertEqual(self.selectors.count(searchbar), 1)
+        self.assert_rule(toolbar, {"border-top": f"1px solid {ETCH_DARK}"})
+        self.assertEqual(self.selectors.count(toolbar), 1)
+        for prop in ("border-bottom", "box-shadow"):
+            self.assertEqual(
+                self.rules[searchbar][prop],
+                self.rules["infobar > revealer > box"][prop],
+            )
+        self.assertEqual(
+            self.rules[toolbar]["border-top"],
+            f"1px solid {self.rules['popover separator']['background-color']}",
+        )
+        # The spellings are new to the sheet, so a stray member, colour,
+        # padding or second rule shows up in the sweep.
+        self.assertEqual(
+            {s for s in self.rules if "emoji-searchbar" in s},
+            {searchbar},
+        )
+        self.assertEqual(
+            {s for s in self.rules if "emoji-toolbar" in s},
+            {toolbar},
+        )
+        # Both strips sit beside the landed statusbar band group, ahead of
+        # the landed path-bar group.
+        for selector in (searchbar, toolbar):
+            with self.subTest(selector=selector):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("statusbar"),
+                )
+                self.assertLess(
+                    self.selectors.index(selector),
+                    self.selectors.index(
+                        "pathbar > scrolledwindow > viewport > box > button"
+                    ),
+                )
+
     def test_dropdown_searchbar_rim(self):
         # A dropdown's or combobox's searchable list popover draws the
         # search strip's own stock rim beneath the band edge the strip's
