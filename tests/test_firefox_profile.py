@@ -301,6 +301,13 @@ class TestProfileResolution(FirefoxProfileTestCase):
         self.assertIn("elsewhere", str(caught.exception))
         self.assertIn("not absolute", str(caught.exception))
 
+    def test_absolute_installs_default_ignores_the_firefox_root(self):
+        _write(
+            self.firefox_root / "installs.ini",
+            f"[Install1234]\nDefault={self.profile}\n",
+        )
+        self.assertEqual(self.profile, self.resolve())
+
     def test_relative_profile_path_cannot_escape_the_firefox_root(self):
         outside = self.root / "outside"
         outside.mkdir()

@@ -67,7 +67,8 @@ def _candidate(
 
     The path is relative to *root* unless the section sets ``IsRelative=0``.
     ``installs.ini`` names its default under ``Default`` while a
-    ``profiles.ini`` profile names its directory under ``Path``.
+    ``profiles.ini`` profile names its directory under ``Path``. An absolute
+    ``installs.ini`` default needs no ``IsRelative`` flag.
     """
     value = section.get(key, fallback="").strip()
     if not value:
@@ -77,7 +78,8 @@ def _candidate(
             f"invalid NUL byte in Firefox profile path {value!r}"
         )
     path = Path(value)
-    is_relative = section.get("IsRelative", fallback="1").strip()
+    fallback = "0" if key == "Default" and path.is_absolute() else "1"
+    is_relative = section.get("IsRelative", fallback=fallback).strip()
     if is_relative not in {"0", "1"}:
         raise ConfigError(
             f"invalid IsRelative value {is_relative!r} for Firefox profile path {value!r}; expected 0 or 1"
