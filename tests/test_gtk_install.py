@@ -476,6 +476,32 @@ class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
                     f"the uninstall recipe disagreed with the ini: {text!r}",
                 )
 
+    def test_warns_for_every_settings_line_ending(self):
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        ini = os.path.join(config, "gtk-3.0", "settings.ini")
+        for ending in ("\r", "\r\n", "\v", "\f", "\x1c", "\x1d", "\x1e",
+                       "\x85", "\u2028", "\u2029"):
+            with self.subTest(ending=repr(ending)):
+                original = self._write(
+                    ini, f"[Settings]{ending}gtk-theme-name=org.macos8.desktop{ending}"
+                ).encode("utf-8")
+                removed = self._uninstall(tmp, config=config)
+                assert_succeeded(self, removed)
+                self.assertIn("a GTK selection still names", removed.stderr)
+                with open(ini, "rb") as handle:
+                    self.assertEqual(original, handle.read())
+
+    def test_does_not_warn_for_a_marker_below_foreign_css(self):
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        css = os.path.join(config, "gtk-4.0", "gtk.css")
+        original = self._write(css, f"/* foreign CSS */\n{GTK4_CSS_MARKER}\n")
+        removed = self._uninstall(tmp, config=config)
+        assert_succeeded(self, removed)
+        self.assertNotIn("a GTK selection still names", removed.stderr)
+        self.assertEqual(original, self._read(css))
+
     def test_warns_at_the_xdg_default_when_config_home_is_unset(self):
         # The apply path resolves `$XDG_CONFIG_HOME` the XDG way: an empty or
         # relative value falls back to `<HOME>/.config`. The recipe must warn
