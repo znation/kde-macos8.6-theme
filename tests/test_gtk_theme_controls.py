@@ -1148,6 +1148,37 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         self.assertEqual((width, style, color), ("1px", "dotted", BLACK))
         self.assertEqual(self.rules["scale trough"]["border-radius"], "0")
 
+    def test_scale_plain_container_geometry(self):
+        """A plain (non-fine-tuned) scale's container keeps stock's geometry.
+
+        The restatement stands directly after the fine-tune radius group
+        and directly before the fine-tuned container record, so the plain
+        node keeps stock's 10px transverse minimums and its 12px push-out
+        padding in both orientations under either loading reading; assert
+        the spelling once, whole-driven, family-clean and in record order.
+        """
+        self.assert_rule_group(
+            {
+                "scale": {
+                    "min-height": "10px",
+                    "min-width": "10px",
+                    "padding": "12px",
+                }
+            }
+        )
+        # Family sweep: no state twin, no rename and no split spelling (the
+        # landed scale trough, fill/highlight and slider spellings fail the
+        # equality and stay out).
+        self.assertEqual({s for s in self.selectors if s == "scale"}, {"scale"})
+        # Order pins: the container block sits after the fine-tune radius
+        # group and the fine-tuned container record follows it, mirroring
+        # stock's plain-before-fine-tuned order. The two-operand pins ride
+        # first raw-text occurrence; the landed fine-tuned record's comment
+        # quotes these spellings, which is why the second pin holds only
+        # once this record's own rule exists.
+        self.assert_rule_after("scale {", "scale.fine-tune trough {")
+        self.assert_rule_after("scale.fine-tune.horizontal {", "scale {")
+
     def test_scale_fine_tune_container_geometry(self):
         """A fine-tuned scale's container keeps the toolkit's stock geometry.
 
