@@ -442,6 +442,10 @@ The post-merge review of commit `cdcef5fe7a4669c5599117b056d7dd3c5b91bd55` (Add 
 
 The post-merge review of commit `d8a0d3af6e1c89bc17b5bd3149ea9dff4339691f` (Render gate now byte-compares a rendered Kvantum widget (checkbox dialog)) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 321bded6 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `321bded65997275202db39c2ba822891039d17b0` (Refuse double-quote-breaker metacharacters in CHECK_TESTS/CHECK_PARALLEL at make parse time) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
