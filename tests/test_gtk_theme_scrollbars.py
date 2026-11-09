@@ -81,6 +81,43 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, expected)
 
+    def test_scrollbar_thumb_state_faces(self):
+        """The thumb keeps the landed face through hover, drag and disabled.
+
+        Stock repaints the thumb in three states whose arms each carry one
+        more pseudo-class than the landed bare group, so each restated rule
+        spells its stock twin byte-equal and wins the equal-specificity tie
+        by later user-sheet source order, declaring only the landed face.
+        """
+        self.assert_rule_group(
+            {
+                "scrollbar slider:hover": {"background-color": FACE},
+                "scrollbar slider:hover:active": {"background-color": FACE},
+                "scrollbar slider:disabled": {"background-color": FACE},
+            }
+        )
+        self.assertEqual(
+            {
+                s
+                for s in self.selectors
+                if s.startswith("scrollbar slider")
+                and (":hover" in s or ":disabled" in s)
+            },
+            {
+                "scrollbar slider:hover",
+                "scrollbar slider:hover:active",
+                "scrollbar slider:disabled",
+            },
+        )
+        self.assertGreater(
+            self.selectors.index("scrollbar slider:hover"),
+            self.selectors.index("scrollbar slider"),
+        )
+        self.assertLess(
+            self.selectors.index("scrollbar slider:hover"),
+            self.selectors.index("scrollbar:not(.overlay-indicator) slider"),
+        )
+
     def test_overlay_scrollbar_thumb_minimum(self):
         self.assert_rule(
             "scrollbar.overlay-indicator slider",

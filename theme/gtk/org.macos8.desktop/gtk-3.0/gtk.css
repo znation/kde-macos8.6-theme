@@ -920,6 +920,44 @@ scrollbar slider {
   transition: none;
 }
 
+/* A scrollbar's thumb repaints through the toolkit's own hover, drag and
+   disabled arms the moment the pointer enters, drags or the control is
+   made insensitive, and no collected reference surface has those faces:
+   no collected reference screenshot in `macos8.6-screenshots/` shows a
+   GTK scrollbar in any of these states (the standing GTK-scope adaptation
+   premise), so each answer restates the landed base thumb face this
+   sheet's bare `scrollbar slider` rule pins (FACE, asserted in
+   tests/test_gtk_theme_scrollbars.py) — the same policy the landed GTK 4
+   state-face groups apply at the same nodes. Recorded 2026-11-09. Fresh
+   probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 997 `scrollbar slider:hover { background-color:
+   …; }`, line 999 `scrollbar slider:hover:active { background-color: …;
+   }` and line 1003 `scrollbar slider:disabled { background-color:
+   transparent; }`; the toolkit's dark-twin resource gtk-contained-dark.css
+   declares the identical three arms at lines 989, 991 and 995. Each
+   stock arm carries one more pseudo-class than the landed bare group and
+   declares only a background colour, so each rule below spells its stock
+   twin byte-equal — winning the equal-specificity tie by later user-sheet
+   source order — and declares only the landed face, leaving the bare
+   arm's bevel, border and flat fill governing every other property.
+   Foreign colour values stay out of the sheet per its palette convention;
+   the verbatim stock values live in the docs/invariants.md row. No
+   transition, geometry, margin, backdrop or overlay-state declaration is
+   added: the backdrop pair is the landed unfocused-window record and the
+   bare arm's motion is erased inside the landed bare group above. */
+scrollbar slider:hover {
+  background-color: #DDDDDD;
+}
+
+scrollbar slider:hover:active {
+  background-color: #DDDDDD;
+}
+
+scrollbar slider:disabled {
+  background-color: #DDDDDD;
+}
+
 /* No GTK thumb minimum-length policy appears in the reference set; reuse the overlay square minimum from its 16px band minus both 1px borders. */
 scrollbar:not(.overlay-indicator) slider {
   min-width: 12px;
