@@ -578,6 +578,10 @@ The post-merge review of commit `b61bbb952faff130b1edda99ab99660f8eea4578` (Clea
 
 The post-merge review of commit `6224d8032cfec7e5f133e0ddd66cc384449b642a` (Map Qt’s GenericFrame to the reference sunken field) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of b2b43ffc never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `b2b43ffcf3f56703d2c5e0c280b39c10d5de48aa` (Add the GTK 3 color chooser’s black border across all four states) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
