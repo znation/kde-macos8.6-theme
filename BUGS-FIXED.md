@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 273bb60a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `273bb60ae3842c349afc18e6f7dd0666af2704a9` (Hand DESTDIR to the apply refusals via `export` + `$$DESTDIR`, not expansion) never reached a verdict.
+
+**Fix:** settled as no-defect. Re-read the commit diff and re-verified every claim against the current tree, which has moved on since Oct 27: the per-target refusals are now factored into one shared `refuse_destdir` macro (Makefile line ~419) that reads `$$DESTDIR` from the exported value and names it verbatim in the diagnostic; `export DESTDIR` still sits near the Makefile top; the macro covers all four apply targets (`apply`, `apply-plasma`, `apply-gtk`, `apply-cursor` — confirmed by grep), so every caller-chosen staging value reaches the refusal as an environment read, never as make expansion. An outside-the-suite probe with a hostile `"; touch <canary>"` value ran no injected command (scratch dir stayed empty); the tree additionally refuses any metacharacter-carrying DESTDIR at make parse time (`refuse_unsafe_value`, Makefile line ~139, DESTDIR in the guarded list), a later hardening that makes the canary doubly unreachable. The canary tests the commit added survive in `tests/test_apply_theme.py::TestMakeApply::test_a_hostile_DESTDIR_value_is_refused_without_running_its_shell` and the `tests/support/apply_target_cases.py` mixin used by `TestMakeApplyGtk` and `TestMakeApplyCursor` (reworded by that hardening to expect the parse-time refusal; both they and the plain nonempty-DESTDIR refusal tests pass). No tool reads DESTDIR from the child environment except `tools/render_session.py`, which drops it along with WAYLAND_DISPLAY/DISPLAY/MAKEFLAGS before spawning the session — grep over `tools/` confirms it is the only match.
+
+**Validation gap:** none — the commit's own canary tests reproduce and confirm the injection refusal; only the verdict was missing.
+
 ### post-merge review of 9ea1e0e5 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Settled as no-defect. The commit only adds a test pinning read_gaps' prose-wins-over-bullet precedence, and the current tree matches its claims: the pinned test `test_a_prose_line_with_a_trailing_bullet_tag_is_read_once_as_prose` exists in tests/test_validation_gaps.py, and the scanner (now the package at tests/support/validation_gaps/reader.py, not the single tests/support/validation_gaps.py file the diff names) matches PROSE_GAP first and `continue`s past the BULLET_GAP search, so a hybrid prose-plus-bullet line yields exactly one prose record with the prose tag. `python3 -m unittest test_validation_gaps` run from tests/ passes.
