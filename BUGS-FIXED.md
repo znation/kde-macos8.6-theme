@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 6ed8830f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `6ed8830f4906d3b9038ec267337365f5174cd132` (Repaint GTK 4 drag-and-drop drop states with the #CCCCFF selection fill) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: nothing wrong to fix. On the landed tree all three dnd groups reach gtk-4.0/gtk.css unchanged (lines 1398, 1402 and 1410): the icon-view drop border, the three row-drop-target band arms and the nine header `button.dnd` arms (with the six state variants) all declare the pinned `#CCCCFF` selection with black ink, and tests/test_gtk4_theme.py still pins them with the four recorded tests (`test_iconview_drop_border`, `test_row_drop_borders`, `test_header_drop_indicator`, `test_row_drop_directional_arms_undeclared`), which run green against the sheet. No landed rule overrides them: the sheet's other header-button arms (`> header > button`, `:hover`, `:active`, `:last-child`, the sort-indicator spellings) name no `.dnd` token and lose the specificity count, so a dragged-over header button keeps the selection fill. The stock provenance remains recorded in the docs/invariants.md row the commit added.
+
+**Validation gap:** none — the four landed dnd tests reproduce and confirm the sheet's drop-state rules, so the review's only open question, whether the landed commit's claims still hold on main, was answered by running them.
+
 ### post-merge review of 2c379b28 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `2c379b28758fb69d225d658c58bc98acf727d6bc` (Refuse control bytes in CHECK_TESTS and CHECK_PARALLEL at make parse time, unecheod) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
