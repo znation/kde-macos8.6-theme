@@ -37,7 +37,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 | Select the GTK theme alone | Python 3.10 or newer, the package-install utilities above, and writable data and config homes. Run `make apply-gtk`; restart GTK applications. See [Installing](#installing) for selection and backup details. |
 | Select the cursor theme alone | Python 3.10 or newer, the package-install utilities above, and `plasma-apply-cursortheme` on `PATH`. Run `make apply-cursor`; aggregate `make apply` skips cursor selection with a note when that tool is missing. See [Installing](#installing) for details. |
 | Install Firefox sheets alone | Python 3.10 or newer and an existing writable Firefox profile, found automatically or specified as `FIREFOX_PROFILE=/absolute/profile`. Run `make install-firefox`; aggregate `make apply` skips this step with a note when it finds no profile. See [Installing](#installing) for profile selection and restart details. |
-| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead. |
+| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead. The default applet render also needs the `org.kde.plasma.calculator` applet (Debian packages it in `plasma-widgets-addons`); missing, the capture never paints and the render times out instead of failing at a tool check. See [Rendering a candidate](#rendering-a-candidate). |
 | Run optional GTK 4 probes | Xvfb, `xvfb-run`, `xauth`, and Python GTK 4 introspection bindings. See [Running checks](#running-checks) for isolated commands. |
 | Materialize reference images | Git LFS; run `git lfs install` and `git lfs pull`. See [Validating the reference set](#validating-the-reference-set). |
 
@@ -505,7 +505,9 @@ the references, see [Fidelity checking](#fidelity-checking).
 `make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and
-`spectacle` and exits 2 naming the first missing tool; a `make` or `dbus-run-session`
+`spectacle` and exits 2 naming the first missing tool; the calculator captures also need the
+`org.kde.plasma.calculator` applet installed (Debian packages it in `plasma-widgets-addons`),
+which no tool check verifies — without it the window never paints and the capture times out. A `make` or `dbus-run-session`
 that exists but cannot be started is reported the same way, as is a scratch session
 directory that cannot be created. It
 installs into a scratch data home and leaves your own Plasma configuration alone. The
