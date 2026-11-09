@@ -64,6 +64,11 @@ class TestCiWorkflow(unittest.TestCase):
         self.assertRegex(
             workflow, r"(?s)apt-get install.*plasma-widgets-addons"
         )
+        # The GPU-less runner needs Mesa's software EGL driver for KWin's
+        # virtual backend.
+        self.assertRegex(
+            workflow, r"(?s)apt-get install.*libgl1-mesa-dri"
+        )
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
         # Ubuntu 26.04 publishes the screenshot package as `kde-spectacle`;
         # 24.04 publishes `spectacle`. The install must follow the name its
@@ -131,6 +136,12 @@ class TestCiWorkflow(unittest.TestCase):
             workflow,
             r"(?m)^\s+QT_QPA_PLATFORM: offscreen$",
             "the check job must select a headless Qt platform",
+        )
+        # KWin's virtual backend still needs an EGL driver; the runner has no
+        # GPU, and Mesa otherwise tries Zink and fails before the session paints.
+        self.assertRegex(workflow, r"(?m)^\s+LIBGL_ALWAYS_SOFTWARE: '1'$")
+        self.assertRegex(
+            workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE: llvmpipe$"
         )
 
     def test_workflow_pins_the_python_development_version(self):

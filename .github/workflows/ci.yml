@@ -17,6 +17,10 @@ jobs:
       # render session overrides this to `wayland` for its own clients, so
       # the nested KWin session still gets a Wayland client.
       QT_QPA_PLATFORM: offscreen
+      # The runner has no GPU; KWin's virtual backend otherwise tries Zink,
+      # finds no Vulkan driver and cannot create its EGL screen.
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
     strategy:
       fail-fast: false
       matrix:
@@ -65,13 +69,15 @@ jobs:
             # (noble records each on launchpad.net/ubuntu/noble/amd64/):
             # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
             # `plasma-workspace` both plasmawindowed and
-            # plasma-apply-colorscheme, and `plasma-widgets-addons` the
-            # org.kde.plasma.calculator applet the applet render opens;
-            # `kdialog` provides the dialog render's three kdialog clients and
-            # `zenity` the GTK 4 dialog render's client.
+            # plasma-apply-colorscheme, `plasma-widgets-addons` the
+            # org.kde.plasma.calculator applet the applet render opens, and
+            # `libgl1-mesa-dri` the llvmpipe EGL driver the virtual KWin
+            # session needs on the GPU-less runner; `kdialog` provides the
+            # dialog render's three kdialog clients and `zenity` the GTK 4
+            # dialog render's client.
             sudo apt-get install -y --no-install-recommends \
               dbus kwin-wayland plasma-workspace plasma-widgets-addons \
-              kdialog zenity
+              libgl1-mesa-dri kdialog zenity
             # Ubuntu 26.04 (the release `ubuntu-latest` moved to) renamed
             # the screenshot package from `spectacle` to `kde-spectacle`;
             # the installed binary stayed `/usr/bin/spectacle`. Select the
