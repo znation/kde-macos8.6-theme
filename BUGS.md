@@ -2370,6 +2370,10 @@ The post-merge review of commit `e0f0676288ea0305bf61c82497e9a631e9e995cd` (Incl
 
 The post-merge review of commit `8ab6051e8741075f62b4b89f0317107f9d003292` (Restate stock GTK 4 editable-label and cell-editing arms with the landed recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 84e0455b never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `84e0455bad73185f0ea8cecae27b4ff9e5b3463c` (Restate the GTK 4 dropdown/combobox popover list rows with the landed row recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
