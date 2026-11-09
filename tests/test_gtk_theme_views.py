@@ -779,12 +779,19 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
              "toolbar.inline-toolbar toolbutton:only-child > button.flat"},
         )
         self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
+        # 2026-11-09: the four marked-scale fine-tune arms also name the
+        # token and are pinned with the marked-scale thumbs by
+        # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms.
         self.assertEqual(
             {s for s in self.rules if "fine-tune" in s},
             {
                 "scale.fine-tune fill",
                 "scale.fine-tune highlight",
                 "scale.fine-tune trough",
+                "scale.horizontal.marks-before:not(.marks-after).fine-tune slider",
+                "scale.horizontal.marks-after:not(.marks-before).fine-tune slider",
+                "scale.vertical.marks-before:not(.marks-after).fine-tune slider",
+                "scale.vertical.marks-after:not(.marks-before).fine-tune slider",
             },
         )
         self.assertEqual(

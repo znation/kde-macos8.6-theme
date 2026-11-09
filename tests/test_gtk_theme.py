@@ -25,6 +25,7 @@ from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,
+    SCALE_THUMB,
     DISABLED_TEXT,
     ETCH_DARK,
     LINK,
@@ -930,6 +931,52 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 self.assertEqual(
                     self.rules[selector], {"border-style": "none", "box-shadow": "none"}
                 )
+
+    def test_marked_scale_thumb_arms(self):
+        """One-sided marked scales restated to the plain thumb recipe."""
+        faces = {
+            "scale.horizontal.marks-before:not(.marks-after) slider": {
+                "min-width": "12px",
+                "min-height": "16px",
+            },
+            "scale.horizontal.marks-after:not(.marks-before) slider": {
+                "min-width": "12px",
+                "min-height": "16px",
+            },
+            "scale.vertical.marks-before:not(.marks-after) slider": {
+                "min-width": "16px",
+                "min-height": "12px",
+            },
+            "scale.vertical.marks-after:not(.marks-before) slider": {
+                "min-width": "16px",
+                "min-height": "12px",
+            },
+        }
+        expected = {}
+        for base, minima in faces.items():
+            raised = {**SCALE_THUMB, "margin": "-5px", **minima}
+            greyed = {
+                "background-color": FACE,
+                "border": f"1px solid {GREY}",
+                "box-shadow": "none",
+                "margin": "-5px",
+                **minima,
+            }
+            expected.update(
+                {
+                    base: raised,
+                    f"{base}:hover": raised,
+                    f"{base}:active": raised,
+                    f"{base}:disabled": greyed,
+                    f"{base}:backdrop": greyed,
+                    f"{base}:backdrop:disabled": greyed,
+                    base.replace(" slider", ".fine-tune slider"): {"margin": "-5px"},
+                }
+            )
+        self.assert_rule_group(expected)
+        self.assertEqual(
+            {s for s in self.selectors if "marks-" in s}, set(expected)
+        )
 
 
 if __name__ == "__main__":

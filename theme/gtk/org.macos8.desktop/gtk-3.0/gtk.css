@@ -5347,3 +5347,156 @@ placessidebar row:drop(active):not(:disabled):selected {
   color: #000000;
   background-color: #CCCCFF;
 }
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a marked
+   GTK scale (the GTK scope's standing adaptation premise); a GtkScale node
+   carrying one-sided value marks (marks-before or marks-after, never both)
+   paints the toolkit's raster has-marks slide arrows instead of this
+   theme's axis-aligned rectangular thumb, because every marked arm stacks
+   heavier claims than the landed plain thumb record's spelling can outbid.
+   The compiled toolkit stylesheet (2055 lines, probed fresh 2026-11-09
+   with gresource extract; the library path lives in docs/invariants.md)
+   gives the four one-sided families -- horizontal marks-before, horizontal
+   marks-after, vertical marks-before, vertical marks-after -- six state
+   arms each (plain, hover, active, disabled, backdrop and
+   backdrop+disabled), every arm claiming margin: -10px with a -14px
+   margin-top or margin-bottom (horizontal) or margin-left or margin-right
+   (vertical) side twin, border-style: none, border-radius: 0,
+   background-color: transparent, background-image: a -gtk-scaled source
+   naming assets/slider-<axis>-scale-has-marks-<side><state>.png with a 2x
+   twin, the orientation minima (horizontal min-width: 22px and
+   min-height: 26px; vertical swapped to min-width: 26px and min-height:
+   22px), background-position and background-repeat: no-repeat, and
+   box-shadow: none. Each family adds one .fine-tune slider arm claiming
+   margin: -7px with a -11px side twin. The landed GTK 4 marked blocks (the
+   scale.marks-before:not(.marks-after) > trough > slider transform, bevel
+   and disabled-shadow groups in the gtk-4.0 sheet) are the cross-toolkit
+   precedent for the axis-aligned-rectangular-thumb policy, so each combo
+   is restated here in stock order at byte-equal stock-twin spellings that
+   win the equal-specificity per-longhand ties by later user-sheet source
+   order: base, hover and active arms take the landed plain thumb face and
+   the landed orientation minima (horizontal min-width: 12px and
+   min-height: 16px, vertical swapped); disabled, backdrop and
+   backdrop+disabled arms the landed disabled thumb face; each family's
+   fine-tune arm the landed -5px margin, replacing stock's -7px plus side
+   twin. Stock's background-position and background-repeat claims are not
+   restated: they are inert under the restated background-image: none.
+   Exclusions with reasons: the resource declares no marks-before.marks-
+   after both-marks arm and no radius-bearing marked arm (grep of the same
+   resource), and the bare scale.fine-tune slider arm claims margin: -6px
+   only, a geometry-only claim mixing into no art that the landed
+   fine-tune-radius record already frames as left stock. Statement checks
+   do not establish rendered pixels. Restated 2026-11-09 by the feature
+   role. */
+
+scale.horizontal.marks-before:not(.marks-after) slider,
+scale.horizontal.marks-before:not(.marks-after) slider:hover,
+scale.horizontal.marks-before:not(.marks-after) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-before:not(.marks-after) slider:disabled,
+scale.horizontal.marks-before:not(.marks-after) slider:backdrop,
+scale.horizontal.marks-before:not(.marks-after) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-before:not(.marks-after).fine-tune slider {
+  margin: -5px;
+}
+
+scale.horizontal.marks-after:not(.marks-before) slider,
+scale.horizontal.marks-after:not(.marks-before) slider:hover,
+scale.horizontal.marks-after:not(.marks-before) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-after:not(.marks-before) slider:disabled,
+scale.horizontal.marks-after:not(.marks-before) slider:backdrop,
+scale.horizontal.marks-after:not(.marks-before) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-after:not(.marks-before).fine-tune slider {
+  margin: -5px;
+}
+
+scale.vertical.marks-before:not(.marks-after) slider,
+scale.vertical.marks-before:not(.marks-after) slider:hover,
+scale.vertical.marks-before:not(.marks-after) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-before:not(.marks-after) slider:disabled,
+scale.vertical.marks-before:not(.marks-after) slider:backdrop,
+scale.vertical.marks-before:not(.marks-after) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-before:not(.marks-after).fine-tune slider {
+  margin: -5px;
+}
+
+scale.vertical.marks-after:not(.marks-before) slider,
+scale.vertical.marks-after:not(.marks-before) slider:hover,
+scale.vertical.marks-after:not(.marks-before) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-after:not(.marks-before) slider:disabled,
+scale.vertical.marks-after:not(.marks-before) slider:backdrop,
+scale.vertical.marks-after:not(.marks-before) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-after:not(.marks-before).fine-tune slider {
+  margin: -5px;
+}
