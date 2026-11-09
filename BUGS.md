@@ -822,6 +822,10 @@ The post-merge review of commit `11684e994f1362a9041ef89d7f5f175907ac6e28` (Plan
 
 The post-merge review of commit `b7e6eb8c21f6e211c01e08e43cd89bd9c667de82` (Declare the Platinum content-view field and hover clearances in both GTK sheets) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of be9235b9 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `be9235b9b504867fb0e6e266fe2f1aca90d07f8c` (Landed the GTK 4 plain suggested-action button plan (Planned 8-23 → Done)) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
