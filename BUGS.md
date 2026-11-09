@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 4c097fb2 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `4c097fb2c34df6879ad6d63e1ef2915f449c18d6` (Paint Firefox Library places trees as the Platinum list field) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 8b9a994e never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `8b9a994ea69a16ca70a09c7f193e96e5a3e051c4` (Paint about:preferences XUL check boxes as Platinum squares; fix PLANS.md) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
