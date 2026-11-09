@@ -1250,6 +1250,10 @@ The post-merge review of commit `575fe051dc8f643dceb9c9dd6c0aca64f3e995fb` (Rest
 
 The post-merge review of commit `767e83a9b974fd09a4c2d7a9ccfe8b06e36627ce` (Preserve escaped trailing whitespace in parsed stylesheet values) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 63133b7c never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `63133b7cc3d6985c5f35cc1121e1f1a005f957d2` (Reject FIFO replacements when reading command failure logs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
