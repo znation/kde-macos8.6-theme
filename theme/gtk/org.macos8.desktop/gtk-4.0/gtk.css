@@ -1914,7 +1914,7 @@ switch:checked:active {
 }
 
 switch:disabled {
-  /* No reference shows a disabled GTK switch; preserve the Platinum palette. */
+  /* 2026-10-29: no reference shows a disabled GTK switch; preserve the Platinum palette. */
   filter: none;
   border-color: #999999;
 }
