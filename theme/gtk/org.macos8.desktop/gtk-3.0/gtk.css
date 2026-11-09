@@ -1302,12 +1302,19 @@ infobar > revealer > box {
   box-shadow: inset 0 -1px #FFFFFF;
 }
 
-/* A search bar and an action bar draw the menu-bar band: the #DDDDDD face,
-   black text and the etched bottom rule. The search entry keeps the entry
-   field and the close and action buttons keep the button paint; :backdrop
-   stays out of scope. */
+/* A search bar, an action bar or a location bar draws the menu-bar band: the
+   #DDDDDD face, black text and the etched bottom rule. The search entry keeps
+   the entry field and the close and action buttons keep the button paint;
+   stock's tighter band padding and window-dragging stay inherited
+   per-property, and :backdrop stays out of scope. Stock (libgtk-3's
+   compiled default resource) groups the location strip with the search-bar
+   band box in four arms, painting a greige face and rim; no collected
+   reference screenshot shows a GTK location strip in — the standing
+   GTK-scope adaptation premise — so the strip joins the landed band family
+   here instead. */
 searchbar > revealer > box,
-actionbar > revealer > box {
+actionbar > revealer > box,
+.location-bar {
   background-color: #DDDDDD;
   color: #000000;
   border-bottom: 1px solid #888888;

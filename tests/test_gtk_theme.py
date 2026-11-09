@@ -938,6 +938,17 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
     def test_search_bar(self):
         self.assert_infobar(("searchbar > revealer > box",))
 
+    def test_location_bar(self):
+        self.assert_infobar((".location-bar",))
+        self.assertEqual(self.selectors.count(".location-bar"), 1)
+        self.assertEqual(
+            {s for s in self.rules if "location-bar" in s}, {".location-bar"}
+        )
+        self.assertLess(
+            self.css.index(".location-bar"),
+            self.css.index("statusbar {"),
+        )
+
     def test_action_bar(self):
         self.assert_infobar(("actionbar > revealer > box",))
 
