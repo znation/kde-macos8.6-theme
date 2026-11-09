@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of b5528367 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `b55283673f4e43a3d318127107a1fe99cd1b6161` (Guard COLOR_SCHEME and keep it out of the id-derivation shell string) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: no defect. Re-read the commit's diff on main and verified every piece against the live tree: the parse-time guard now refuses a shell metacharacter in `COLOR_SCHEME`, `COLOR_SCHEME_NAME` and `COLOR_SCHEME_ID` (Makefile `refuse_unsafe_value` list, since extended with more variables and control-byte refusals), the id derivation still passes the basename to its shell through the exported environment (`name="$$COLOR_SCHEME_NAME"`) and resolves an apostrophe-carrying override correctly (`COLOR_SCHEME="theme/x.z'.colors"` yields `COLOR_SCHEME_ID=x`), a dry-run `make -n uninstall` with the commit's own apostrophe canary value creates no file, the tests moved into `tests/test_make_refusals.py` (`TestShellUnsafeColorScheme`, `TestShellUnsafeColorSchemeName`) and pass in the suite, and docs/invariants.md row ~693 pins the whole guarantee.
+
+**Validation gap:** none — the commit's own canary refusal, the surviving derivation and the moved test classes were all re-verified against the live tree.
+
 ### post-merge review of a1dbce37 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `a1dbce3771c394be8536a65c6b330dd97975c1fc` (Paint preferences panes' fields and menulists Platinum (plan part 8)) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. Settled as no defect.
