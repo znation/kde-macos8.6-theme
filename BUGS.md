@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 1ce49353 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `1ce4935304196e3f57c18295409fe3ac337f05a1` (Pin reproduction_for's no-borrow refusal and any-marker matching in test_validation_gaps) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 43c0fe7a never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `43c0fe7a03a8b59bc8b4ec11460dd2a1d77183d7` (Ship widgets/timer.svg with tested Timer LCD digits, registered) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
@@ -3257,4 +3253,3 @@ Worked output from the reproduce run:
 Fix: the settled change removes the `MESA_LOADER_DRIVER_OVERRIDE: llvmpipe` line from `.github/workflows/ci.yml`'s check job env and keeps only `LIBGL_ALWAYS_SOFTWARE: '1'`, which alone forces a software EGL driver for the nested KWin virtual session; the reproduce contrast above was re-run with the override stripped (`QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check CHECK_TESTS=test_render_surface`) and the module completes with no KMS dumb-buffer error, the capture gates skipping with the software-renderer reason. The absence is pinned by `tests/test_ci_workflow.py::TestCiWorkflow::test_workflow_runs_the_suite_on_the_headless_qt_platform`'s new `assertNotRegex` assertions on both `MESA_LOADER_DRIVER_OVERRIDE:` and `GALLIUM_DRIVER:` assignments, and `docs/invariants.md`'s two `## tooling` rows reword the forced-llvmpipe wording and record the local contrast's provenance. The fix is filed as the plan entry "CI workflow: drop the forced llvmpipe driver override the KWin render sessions cannot survive on a GPU host", done 2026-11-09 by the feature role (archived under PLANS-DONE.md).
 
 **Validation gap:** runner-side — the local reproduce contrast is settled, but the hosted runner's virtual session under the remaining env (`LIBGL_ALWAYS_SOFTWARE=1` alone) was never observed (the hosted run `18ded7fe` failed at the install step before any test); it stays unobserved until the next hosted run that reaches the suite, as recorded in the workflow comment and the invariants row's provenance cell.
-
