@@ -982,6 +982,10 @@ The post-merge review of commit `8ea3c3cbc62ff16f2406d8f9a73a9e75af664cd6` (Rest
 
 The post-merge review of commit `ab63aaa57980eb4dace70725ddc0551a862f3e75` (Test the coordinator’s best-effort duration-cache failure) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2ee1b695 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `2ee1b6954eff8df872a4485af9584324c0a12d1c` (Preserve GTK 4 inline link colours across interaction states) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
