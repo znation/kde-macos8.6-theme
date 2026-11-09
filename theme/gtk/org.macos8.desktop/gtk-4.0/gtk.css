@@ -5286,8 +5286,8 @@ entry > image.right {
    entry.password image.caps-lock-indicator { color: <the resource's
    own greige tint, named here rather than quoted>; }`, and the platform
    style library's compiled base stylesheet (the toolkit's clients load
-   it alongside the theme resource; who ships it and at which resource
-   line the records docs/invariants.md keeps) declares at line 819 the
+   it alongside the theme resource; its provenance and resource line
+   are recorded in docs/invariants.md) declares at line 819 the
    twin `spinbutton.password image.caps-lock-indicator,
    entry.password image.caps-lock-indicator { opacity: 30%; }`. The two
    rules below restate these arms in stock line order, each spelling
