@@ -249,7 +249,7 @@ background),
 where `PlasmaComponents.ToolTip` looks for it) and
 `dialogs/background.svg` (the raised grey Platinum window body
 `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup` draw, replacing Breeze's
-translucent rounded rectangle). The window decoration ships
+translucent rounded rectangle). The package carries no art for the twelve legacy default-theme widget names (`analog_meter`, `bar_meter_vertical`, `branding`, `calendar`, `configuration-icons`, `dragger`, `glowbar`, `media-delegate`, `monitor`, `picker`, `plot-background` and `scrollwidget`), so those elements keep the stock default theme's art: no installed Plasma 6 shell, plasmoid or desktop QML requests one of these names as a widgets/<stem>.svg path (probed 2026-11-09), and the guarded list is pinned by `tests/test_desktoptheme_legacy.py` and the `## desktoptheme` row in `docs/invariants.md`. The window decoration ships
 `metadata.json` and `metadata.desktop` (the KPackage and KWin-discovery
 metadata), `org.macos8.desktoprc` (the Aurorae layout: a 22px title bar, 6px
 side and bottom borders, and 13x13 close and collapse widgets, each a 12x12 box plus its 1px white highlight, and a 21x13 zoom widget: its box plus the stripe-free gap to its left and the flat spacing to its right), `decoration.svg` (the
