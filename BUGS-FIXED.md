@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 37c08ac3 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `37c08ac30c9e3986f43d107fe153fce38fa6982d` (Move the GTK 3 pixel tests into child interpreters so the suite process never imports gi) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no-defect. Read the commit's full diff on main and re-verified its claims against the current tree: every `import gi` grep hit under tests/ and tools/ sits inside a string constant (the `-c` child programs of tests/test_gtk_theme.py, tests/test_gtk_theme_controls.py, tests/test_gtk_view_census.py and tests/test_gtk4_theme.py, and the literals of tests/test_no_gtk_introspection.py), so no module imports GTK introspection in-process; the AST detector `tests/test_no_gtk_introspection.py` is present and grew since the commit, and its module passes (`make check CHECK_TESTS=test_no_gtk_introspection`: OK, 7 tests); the ported GTK 3 pixel suite passes (`make check CHECK_TESTS=test_gtk_theme`: OK, 70 tests) with its two child-interpreter programs line-for-line mirrors of the prior in-process bodies per the diff; and the commit's docs/invariants.md row for the no-in-suite-gi invariant is present.
+
+**Validation gap:** none — there was no failure to reproduce: the review aborted before it could name one, and the settled state is confirmed by the child-vs-in-process grep plus the detector and GTK 3 pixel suites passing in the project's check.
+
 ### post-merge review of 57acd489 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `57acd4892fd2327ac31860fea97231006a5fa9e9` (PLANS.md: remove the duplicated notes-paper plan entry under Planned) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
