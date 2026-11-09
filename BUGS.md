@@ -86,6 +86,10 @@ The post-merge review of commit `39b3984f6ee0f273eef64a513c05da673c96d884` (Shar
 
 The post-merge review of commit `6a3d99ab7017249f508cb37e06acba288507b057` (Ship the `mdi` window-button art for the QMdiSubWindow title band) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 0491add1 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `0491add1e13bbaf23532b4746958ab1a4a8a3e69` (Fix two broken test references in userChrome.css's provenance comments) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
