@@ -291,7 +291,10 @@ class TestIndex(unittest.TestCase):
         )
 
     def test_placeholder_register_matches_the_icon_art(self):
-        # Every shipped SVG illustration is a tracked placeholder.
+        # Tracked placeholder art and its register stay in agreement: every
+        # shipped icon carrying a `PLACEHOLDER:` marker has a row, every row
+        # names a marked shipped icon, and the tracked set never silently
+        # empties. Icons without a marker ship untracked.
         register = _read_icon_text(PLACEHOLDERS)
         registered = {icon for icon in SHIPPED_ICONS if _icon_path(icon) in register}
         marked = set()
