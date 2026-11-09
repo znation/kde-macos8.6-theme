@@ -1630,9 +1630,11 @@ match deterministically, and the new test pins them.
 
 **Symptom.** `tests/support/selector_matching.py`'s `matches` returns True for
 `[title=""]` against an element whose `title` is `"x"`, and against any element carrying
-a `title` attribute; a browser matches only an empty `title`. A scope test written against
-such a selector would pass its `assertFalse` for a non-empty value and let an over-broad
-sheet rule through. No selector in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`
+a `title` attribute; a browser matches only an empty `title`. For this selector, a scope
+test's `assertFalse` would fail incorrectly for a non-empty value. Inside
+`:not([title=""])`, the false match is inverted: a non-empty title incorrectly fails to
+match, potentially letting an over-broad sheet rule pass a scope test's `assertFalse`.
+No selector in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`
 uses an empty quoted attribute value (grep), so no shipped assertion is mis-evaluated today;
 the gap is latent.
 
