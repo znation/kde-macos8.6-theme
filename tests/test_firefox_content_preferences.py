@@ -153,6 +153,8 @@ class TestFirefoxPreferencesNavTheme(FirefoxContentTestCase):
                 "#mainPrefPane",
             )
         )
+
+
 class TestFirefoxPreferencesSearchTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
@@ -192,6 +194,8 @@ class TestFirefoxPreferencesSearchTheme(FirefoxContentTestCase):
                 "platform colour adaptation 2026-10-27",
             )
         )
+
+
 class TestFirefoxPreferencesPushButtonsTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
@@ -246,6 +250,8 @@ class TestFirefoxPreferencesPushButtonsTheme(FirefoxContentTestCase):
                 "2026-10-27",
             )
         )
+
+
 class TestFirefoxPreferencesCheckboxTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
@@ -309,6 +315,8 @@ class TestFirefoxPreferencesCheckboxTheme(FirefoxContentTestCase):
                 "platform colour adaptation 2026-10-27",
             )
         )
+
+
 class TestFirefoxPreferencesRadioTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
@@ -385,6 +393,8 @@ class TestFirefoxPreferencesRadioTheme(FirefoxContentTestCase):
                 "platform colour adaptation 2026-10-27",
             )
         )
+
+
 class TestFirefoxPreferencesFieldsTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
