@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 759593cd never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Settled as no-defect. Read the commit's diff on main and verified every claim in the current tree: the about:preferences search-field rule (`moz-input-search#searchInput` setting only the five `--input-text-*`/`--icon-color` custom properties with `!important`) is present in `theme/firefox/org.macos8.desktop/chrome/userContent.css` inside the existing `@-moz-document url("about:preferences")` block; the suite lives on since the merge in `tests/support/firefox_content_cases.py` (`SEARCH`/`REQUIRED_PREFERENCES_RULES`, same five token declarations in order) with the four `TestFirefoxPreferencesSearchTheme` tests in `tests/test_firefox_content_preferences.py`; and the matching `docs/invariants.md` firefox row names the current test module. The later surface-button infill (`#mainPrefPane button` rules) after the search rule in the same block is later merges' work, not this commit's. `tests/test_firefox_content_preferences.py` and `tests/test_firefox_content_theme.py` pass.
+
+**Validation gap:** none — the existing suite (rule exact-set, token-scoping, provenance and palette tests) reproduces and confirms everything the commit claimed.
+
 ### post-merge review of a7ebee69 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 No defect: the commit's split is intact and its claims hold in the current tree — the modules were since renamed (`test_gtk_apply.py` → `tests/test_apply_gtk.py`, fault and lock arms → `tests/test_apply_gtk_errors.py` and `tests/test_apply_gtk_locks.py`, shared fixture → `tests/support/apply_gtk_case.py` keeping the required `ApplyGtkTestCase` name), and no stale `test_gtk_apply`/`gtk_apply_case` reference remains in tests/ or tools/; docs/invariants.md rows 360–362 and tests/support/validation_gaps.py point at the current names, and all three renamed modules pass together.
