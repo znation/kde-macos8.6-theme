@@ -2417,7 +2417,7 @@ scale.horizontal.fine-tune > marks indicator {
    allocation; the vertical fine-tune trough and slider margin arms (the
    integration library's base 1962 `0px -3px` trough margin and 1964
    `-8px -5px` slider margin) — answered above by the landed `margin: 0`
-   trough-spacing group and below by the landed `-5px` thumb-margin
+   trough-spacing group and above by the landed `-5px` thumb-margin
    group; and the has-marks slider arms (light 1189 onward) alongside
    the integration library's marks-before and marks-after zero-padding
    container arms (base 1972 `padding-left: 0` and 1976
