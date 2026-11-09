@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 1e1e9f68 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+**Fix.** Settled as landed-OK on main. The commit's declaration lives verbatim at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:417` (`notebook > header > tabs > tab:focus` carrying the `1px dotted #000000` outline, zero offset and `-gtk-outline-radius: 0` reusing `button:focus`, per the provenance comment); after the suite's later reorganization the test stays at `tests/test_gtk_theme.py::TestGtkTheme::test_notebook_tab_focus_outline` and was rewritten onto the shared `tests/support/gtk_rule_cases.py::assert_dotted_focus_outline` helper, which pins those literal declarations and the copy from the `button:focus` anchor; the gtk row in `docs/invariants.md` is unchanged and still names that test path. Focused `make check CHECK_PATTERN='test_gtk_theme.py'` reported OK for the module, and the full check passed. Nothing renders differently than the declaration claims, so there is nothing to fix.
+
+**Validation gap:** none — the commit's own declaration test reproduces and holds the rule on main (rewritten onto the shared focus-outline helper during later reorganization), and the focused `make check CHECK_PATTERN='test_gtk_theme.py'` run passed on the live tree.
+
 ### post-merge review of e2b655ac never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 **Fix.** Settled as landed-OK on main. The commit's declaration lives verbatim at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css:307` (`spinbutton:focus:not(.vertical)` with the 1px dotted black outline, zero offset and `-gtk-outline-radius: 0` reusing `button:focus`, per the provenance comment); the test survived the suite's later reorganization and moved to `tests/test_gtk_theme_controls.py::TestGtkThemeControls::test_horizontal_spinbutton_focus_outline` on the shared `assert_dotted_focus_outline` helper, and the invariant row in `docs/invariants.md` was retargeted to that moved path; a later commit added a `spinbutton.vertical:focus` twin with the same declarations. Focused `make check CHECK_PATTERN='test_gtk_theme*.py'` reported OK for every module, and the full check passed. Nothing renders differently than the declaration claims, so there is nothing to fix.
