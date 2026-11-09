@@ -1351,10 +1351,17 @@ scale trough {
      itself, the focus-geometry node stock names, at its resource line
      1240; this group carries the landed `scale:focus` record's dotted
      black zero-offset zero-radius shape on the node stock reaches, so
-     the trough keeps the landed square focus geometry either way — if
-     the toolkit in fact paints the ring through the scale node, the
-     landed `scale:focus` group already covers it and this extension is
-     inert, both nodes carrying the landed values. */
+     the plain trough keeps the landed square focus geometry. Stock's
+     fine-tune radius arm at resource line 1238
+     (`scale.fine-tune fill, scale.fine-tune highlight,
+     scale.fine-tune trough` carries `-gtk-outline-radius: 7px`) still
+     out-specifies this spelling while the scale holds the fine-tune
+     state, the stock fine-tune focus geometry the landed 2026-11-04
+     radius record deliberately keeps (it squares only that arm's
+     `border-radius`); and if the toolkit in fact paints the ring
+     through the scale node, the landed `scale:focus` group already
+     covers it and this extension is inert, both nodes carrying the
+     landed values. */
   outline: 1px dotted #000000;
   outline-offset: 0;
   -gtk-outline-radius: 0;
