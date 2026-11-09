@@ -15,18 +15,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Message text, message ordering, missing/unreadable-file behavior, caps, and direct-script and package CLI behavior remain unchanged. The parity test continues to exercise the moved reader and its special GTK latch behavior. Tests still cover each diagnostic; grep across source, tests, and Markdown finds no stale old module paths or moved function references. `make check` passes after the final edit.
 
-### Reference-pixel sampler: bound retained horizontal match intervals while paging (planned 2026-11-09 by the plan role)
-
-**Goal and grounding.** Make `--max-match-runs N` bound horizontal interval storage as well as output. `tools/sample_match_runs.py::_MatchRuns._close_run` currently appends each horizontal interval, then `tools/sample_report_search.py::_search_match` filters and slices the completed list. The finished cap and offset plans explicitly left segmentation memory unbounded. This improvement is independent of the waiting uninstall refactor and the pending isolated-display documentation.
-
-**Approach and files.** Pass horizontal length cutoffs, cap and offset from `_search_match` into `_MatchRuns`; at interval completion, update unfiltered count/longest summaries, count eligible intervals after both cutoffs, and retain only the requested page. Compute omitted intervals from eligible total minus retained length, removing the report's duplicate horizontal filtering/slicing. Preserve uncapped output and constructor defaults for existing callers. Keep vertical collection unchanged: it has a separate ordering problem and is outside this task. Touch those two production files, add `tests/test_sample_match_runs_storage.py`, extend `tests/test_sample_match_runs_offset.py` as needed, and update the horizontal memory statement in README.md and the corresponding tooling row in docs/invariants.md. No new flags or dependencies.
-
-**Acceptance criteria.**
-
-- For a 9x2 crop at absolute origin (2,1), matching relative columns {0,2,3,5,6,7} then {0,1,2,3,8}, minimum length 2, offset 1 and cap 1 emit only `{x:7,y:1,length:3}`, with 2 omitted eligible intervals. Full match count is 11, unfiltered run count is 5 and longest run is `{x:2,y:2,length:4}`. JSON and text retain their existing fields and ordering; uncapped, tolerance, exact-alpha and simultaneous vertical diagnostics retain their existing contracts.
-- A deterministic collector test feeds many separated horizontal matches, inspects retained records during observation and after the final flush, and observes no more than N page records for cap N even with an offset larger than N. The eligible total includes skipped and trailing runs. An offset beyond the eligible total, contradictory length cutoffs and no matches return empty pages with correct omitted counts. This test must fail if completed intervals are accumulated before slicing; avoid timing or process-wide memory thresholds.
-- Existing horizontal cap, offset, length-filter and summary tests pass. Documentation promises bounded horizontal retained interval storage only when capped, without claiming bounded image decoding or vertical interval storage. Run `make check` with DISPLAY and WAYLAND_DISPLAY removed and GUI opt-in unset after the final edit.
-
 ## Done
 
 ### Platinum GTK 4 overlay scrollbar thumbs: retain the ordinary minimum breadth (planned 2026-10-29 by the plan role; independent of the queued ordinary trough margin plan) — done 2026-10-29 by the feature role

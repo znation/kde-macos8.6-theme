@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-pixel sampler: bound retained horizontal match intervals while paging (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
+
+**Goal and grounding.** Make `--max-match-runs N` bound horizontal interval storage as well as output. `tools/sample_match_runs.py::_MatchRuns._close_run` previously appended each horizontal interval before `_search_match` filtered and sliced the completed list.
+
+**Approach and files.** Pass horizontal length cutoffs, cap and offset into `_MatchRuns`; at interval completion, update unfiltered count/longest summaries, count eligible intervals after both cutoffs, and retain only the requested page. Compute omitted intervals from eligible total minus retained length. Preserve uncapped output and constructor defaults; keep vertical collection unchanged. Implemented in `tools/sample_match_runs.py`, `tools/sample_report_search.py`, `tests/test_sample_match_runs_storage.py`, `README.md`, and `docs/invariants.md`.
+
+**Acceptance criteria.** Capped collection retains at most N horizontal intervals while preserving page order, eligible totals, existing summary behavior and uncapped results. Documentation limits the storage claim to capped horizontal collection and does not claim bounded image decoding or vertical interval storage. `make check` passes after the final edit.
+
 ### Document isolated X11 runs for the optional GTK 4 probes (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal and grounding.** Resolve the steward's 2026-11-09 Running-checks drift above: give contributors a concrete way to run the optional GTK probes without presenting windows in their desktop session. `README.md` currently gives bare `PLATINUM_RUN_GUI_TESTS=1 make check` examples. `tests/test_gtk_view_census.py::_run_child` and `tests/test_gtk4_theme.py::TestGtk4Theme.test_mixed_indicators_draw_black_dashes` explicitly launch their children with `GDK_BACKEND=x11` and `GSK_RENDERER=cairo`; `tests/support/gui_tests.py::require_gui_opt_in` supplies the existing opt-in. The archived routine-probe fix added that guard and desktop instructions, not an isolated-display recipe. This documentation task is independent of the waiting uninstall refactor and pending emoji implementation.

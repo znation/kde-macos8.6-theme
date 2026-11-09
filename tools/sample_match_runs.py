@@ -7,12 +7,17 @@ class _MatchRuns:
     def __init__(self, x: int, y: int, width: int, height: int,
                  *, horizontal: bool, vertical: bool, summarize: bool = False,
                  collect_runs: bool = True, summarize_columns: bool = False,
-                 collect_column_runs: bool = True) -> None:
+                 collect_column_runs: bool = True, min_run_length: int | None = None,
+                 max_run_length: int | None = None, run_limit: int | None = None,
+                 run_offset: int = 0) -> None:
         self.x, self.y = x, y
         self.right, self.bottom = x + width, y + height
         self.horizontal, self.vertical = horizontal, vertical
         self.summarize = summarize
         self.collect_runs = collect_runs
+        self.min_run_length, self.max_run_length = min_run_length, max_run_length
+        self.run_limit, self.run_offset = run_limit, run_offset
+        self.eligible_run_count = 0
         self.summarize_columns = summarize_columns
         self.collect_column_runs = collect_column_runs
         self.runs = []
@@ -48,8 +53,14 @@ class _MatchRuns:
         if not self.summarize or self.longest_run is None or length > self.longest_run["length"]:
             if self.summarize:
                 self.longest_run = run
-        if self.collect_runs:
-            self.runs.append(run)
+        eligible = ((self.min_run_length is None or length >= self.min_run_length) and
+                    (self.max_run_length is None or length <= self.max_run_length))
+        if self.collect_runs and eligible:
+            index = self.eligible_run_count
+            self.eligible_run_count += 1
+            if index >= self.run_offset and (self.run_limit is None or
+                                              len(self.runs) < self.run_limit):
+                self.runs.append(run)
         self.run_start = self.run_y = None
 
     def _end_column(self, x: int, y: int) -> None:

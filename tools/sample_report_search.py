@@ -46,6 +46,10 @@ def _search_match(args, image) -> dict:
                   args.longest_match_column_run),
         summarize=args.longest_match_run,
         collect_runs=args.match_runs,
+        min_run_length=args.min_match_run_length,
+        max_run_length=args.max_match_run_length,
+        run_limit=getattr(args, "max_match_runs", None),
+        run_offset=getattr(args, "match_run_offset", None) or 0,
         summarize_columns=args.longest_match_column_run,
         collect_column_runs=args.match_column_runs)
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
@@ -76,19 +80,10 @@ def _search_match(args, image) -> dict:
             min_x, min_y = min(min_x, x), min(min_y, y)
             max_x, max_y = max(max_x, x), max(max_y, y)
     matched_runs, matched_column_runs = intervals.finish()
-    if args.min_match_run_length is not None:
-        matched_runs = [run for run in matched_runs
-                        if run["length"] >= args.min_match_run_length]
-    if args.max_match_run_length is not None:
-        matched_runs = [run for run in matched_runs
-                        if run["length"] <= args.max_match_run_length]
     omitted_runs = None
     run_offset = getattr(args, "match_run_offset", None)
     if getattr(args, "max_match_runs", None) is not None:
-        eligible_count = len(matched_runs)
-        offset = run_offset or 0
-        matched_runs = matched_runs[offset:offset + args.max_match_runs]
-        omitted_runs = eligible_count - len(matched_runs)
+        omitted_runs = intervals.eligible_run_count - len(matched_runs)
     if args.min_match_column_run_length is not None:
         matched_column_runs = [run for run in matched_column_runs
                                if run["length"] >= args.min_match_column_run_length]

@@ -992,7 +992,9 @@ and text prints `matching run offset: K` immediately before the list. The omitte
 count in `match.omitted_runs` includes skipped and trailing eligible intervals;
 text prints `omitted matching runs: N` immediately after the interval list,
 including zero. Match counts and longest-run summaries still use the full search.
-The cap and offset limit output; segmentation still retains the complete list.
+When a cap is supplied, completed intervals are filtered and paged as they are
+collected, so retained horizontal interval storage is bounded by the cap.
+Without a cap, matching intervals are retained as before.
 Omitting the offset adds no `match.run_offset` field or text line.
 
 Add `--match-column-runs` with `--find-color` to report maximal contiguous
