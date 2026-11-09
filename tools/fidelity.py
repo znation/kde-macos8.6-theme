@@ -53,7 +53,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.fidelity_geometry import FidelityError, crop
     from tools.fidelity_metrics import compare
-    from tools.fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from tools.fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
     from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from tools.fidelity_reports import (
         budget_verdict,
@@ -70,7 +70,7 @@ else:  # run directly: python3 tools/fidelity.py
     from diagnostics import report_error
     from fidelity_geometry import FidelityError, crop
     from fidelity_metrics import compare
-    from fidelity_pixels import worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
     from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from fidelity_reports import (
         budget_verdict,
@@ -118,8 +118,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
-        worst = (worst_pixels(candidate, reference, args.tolerance, args.worst_pixels,
-                               offset=args.worst_pixel_offset or 0)
+        # One channel-delta pass serves every pixel report the run
+        # requested: it derives each pixel's per-channel deltas once and each
+        # report reads the same strings. Any requested pixel option turns it
+        # on; the default output, which reads none of them, pays nothing.
+        wants_deltas = (args.worst_pixels is not None or args.channel_counts
+                        or args.channel_maxima
+                        or args.delta_histogram or args.delta_percentiles)
+        deltas = channel_deltas(candidate, reference) if wants_deltas else None
+        worst = (worst_pixels(candidate, reference, args.tolerance,
+                              args.worst_pixels,
+                              offset=args.worst_pixel_offset or 0,
+                              deltas=deltas)
                  if args.worst_pixels is not None else None)
         # The optional records' source positions are report data, so they are
         # translated beside the rendering, not next to the scan.
@@ -127,10 +137,12 @@ def main(argv: list[str] | None = None) -> int:
             worst = locate_worst_pixels(worst, args.candidate_crop, args.crop)
         # The per-channel count scan only runs when it was asked for: it adds
         # a whole-image pass, so the default output must not pay for it.
-        channels = (channel_counts(candidate, reference, args.tolerance)
+        channels = (channel_counts(candidate, reference, args.tolerance,
+                                   deltas=deltas)
                     if args.channel_counts else None)
         bias = channel_bias(candidate, reference) if args.channel_bias else None
-        maxima = channel_maxima(candidate, reference) if args.channel_maxima else None
+        maxima = (channel_maxima(candidate, reference, deltas=deltas)
+                  if args.channel_maxima else None)
         # One flags pass serves every spatial report the run requested: it
         # derives each pixel's differing flag once and each scanline report
         # reads the same string. Any requested spatial option turns it on;
@@ -199,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
         centroid = (difference_centroid(candidate, reference, args.tolerance,
                                         flags=flags)
                     if args.difference_centroid else None)
-        histogram = (delta_histogram(candidate, reference)
+        histogram = (delta_histogram(candidate, reference, deltas=deltas)
                      if args.delta_histogram or args.delta_percentiles else None)
         explanation = (explain_worst_pixel(candidate, reference, metrics,
                                              args.candidate_crop, args.crop)
