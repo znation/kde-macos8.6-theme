@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 1555c1c2 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `1555c1c261debc86fcb890bf4806353af6e5c7c7` (Remove the stray, unreferenced `adwaita3.css` from the repo root) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: the landed state verifies at HEAD. `git show 1555c1c2` on main is a pure deletion — 2055 lines removed from the single file `adwaita3.css` at the repo root, nothing else touched. The file is absent from the worktree (`test -e adwaita3.css` fails), and a case-insensitive tree grep (`grep -RIni adwaita3 .` excluding `.git`) matches nothing that consumes or expects the file: the only hits are this BUGS.md record itself and a historical narrative line in BUGS-FIXED.md recording the removal's provenance — no Makefile target, test, tool or doc references it. The stock Adwaita resource is regenerated from the installed libgtk-3.so by past runs, so no evidence file is needed. Nothing wrong found to fix.
+
+**Validation gap:** none — the settled commit's own `make check` plus today's tree grep confirm the removal left no dangling references.
+
 ### post-merge review of 2843fac7 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `2843fac7ecb8824d3dbc79e408ef0ac86593d736` (Remove the dead private wrapper `_link_target` from tools/apply_cursor.py) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
