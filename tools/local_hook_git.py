@@ -13,6 +13,17 @@ from pathlib import Path
 
 COMMAND_TIMEOUT = 30.0
 
+# These variables override Git's repository discovery. The hook installer
+# must operate on the checkout at its working directory, not an inherited
+# repository selected by its caller's environment.
+_REPOSITORY_OVERRIDE_ENV = {
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_COMMON_DIR",
+    "GIT_CEILING_DIRECTORIES",
+    "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+}
+
 
 class LocalHookError(Exception):
     """A git invocation or filesystem condition the tool reports and refuses."""
@@ -44,8 +55,12 @@ def _git(*args: str) -> str:
             # Git's config injection variables can override core.hooksPath.
             # Since install writes to the path Git reports, accepting those
             # variables would let the caller redirect the hook publication.
-            env={key: value for key, value in os.environ.items()
-                 if not key.startswith("GIT_CONFIG_")},
+            env={
+                key: value
+                for key, value in os.environ.items()
+                if not key.startswith("GIT_CONFIG_")
+                and key not in _REPOSITORY_OVERRIDE_ENV
+            },
             capture_output=True,
             text=True,
             errors="surrogateescape",
