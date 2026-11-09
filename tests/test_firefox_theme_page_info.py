@@ -289,7 +289,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "browser", "mediaBrowser", parent=theimagecontainer
         )
         broken_container = element(
-            "hbox", "brokenimagecontainer", parent=theimagecontainer
+            "hbox", "brokenimagecontainer", parent=container
         )
         broken_image = element(
             "image", "brokenimage", parent=broken_container
