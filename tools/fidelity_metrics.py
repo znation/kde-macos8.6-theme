@@ -93,7 +93,8 @@ def over_table(tolerance: int) -> bytes:
     return table
 
 
-def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
+def compare(candidate: Image, reference: Image, tolerance: int = 0,
+            deltas: list[bytes] | None = None) -> Metrics:
     """Compare a candidate image against a reference image.
 
     Both must be the same size; ``tolerance`` is a per-channel delta in the
@@ -102,6 +103,15 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     metric silently reads zero) and below 0 every pixel does.  The command
     line rejects both as usage errors; this is the same bound for a caller
     that uses the comparison directly.
+
+    The keyword-only *deltas* parameter shares the per-channel
+    absolute-delta byte strings that :func:`tools.fidelity_pixels.channel_deltas`
+    derives, so a run that also wants the pixels or spatial reports pays one
+    derivation instead of this function's own identical pass. ``None`` (the
+    default) keeps deriving them here, the behavior a caller driving only
+    the comparison keeps. The shared list carries the computed alpha string
+    exactly when this derivation would (both opaque sides omit it), so every
+    metric reads the same strings either way.
     """
     if not is_plain_int(tolerance) or not 0 <= tolerance <= 255:
         raise FidelityError(
@@ -125,34 +135,40 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     pixels = candidate.width * candidate.height
     alpha_a, alpha_b = candidate.alpha, reference.alpha
     compare_alpha = alpha_a is not None or alpha_b is not None
-    if compare_alpha:
-        # An Image without an alpha plane is fully opaque; representing it as
-        # 255 lets an RGB reference be compared against an RGBA candidate.
-        opaque = bytes([255]) * pixels
-        alpha_a = opaque if alpha_a is None else alpha_a
-        alpha_b = opaque if alpha_b is None else alpha_b
-    # Compare one channel at a time: a strided slice picks a channel,
-    # ``abs_diff`` turns it into that channel's absolute deltas as a byte
-    # string, and integer sums feed the metrics.  The equivalent per-byte
-    # Python loop dominated runtime on screenshot-sized inputs (tens of
-    # millions of bytes).  The list is ordered R, G, B, then A when compared.
-    deltas = [
-        abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
-    ]
-    # A rendered surface and a reference screenshot are usually both fully
-    # opaque (an RGB PNG decodes to an all-255 alpha plane), so their alpha
-    # deltas are zero everywhere: ``alpha_a.count(255) == pixels`` proves a
-    # plane opaque in one C-speed scan, and skipping the appended
-    # ``abs_diff`` pass leaves every alpha-fed metric reading the zero
-    # contribution the plane would have produced. ``alpha_checked`` records
-    # whether the deltas carry a computed alpha channel.
-    alpha_checked = False
-    if compare_alpha:
-        if alpha_a.count(255) == pixels and alpha_b.count(255) == pixels:
-            alpha_checked = False
-        else:
-            deltas.append(abs_diff(alpha_a, alpha_b))
-            alpha_checked = True
+    if deltas is None:
+        if compare_alpha:
+            # An Image without an alpha plane is fully opaque; representing it as
+            # 255 lets an RGB reference be compared against an RGBA candidate.
+            opaque = bytes([255]) * pixels
+            alpha_a = opaque if alpha_a is None else alpha_a
+            alpha_b = opaque if alpha_b is None else alpha_b
+        # Compare one channel at a time: a strided slice picks a channel,
+        # ``abs_diff`` turns it into that channel's absolute deltas as a byte
+        # string, and integer sums feed the metrics.  The equivalent per-byte
+        # Python loop dominated runtime on screenshot-sized inputs (tens of
+        # millions of bytes).  The list is ordered R, G, B, then A when compared.
+        deltas = [
+            abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
+        ]
+        # A rendered surface and a reference screenshot are usually both fully
+        # opaque (an RGB PNG decodes to an all-255 alpha plane), so their alpha
+        # deltas are zero everywhere: ``alpha_a.count(255) == pixels`` proves a
+        # plane opaque in one C-speed scan, and skipping the appended
+        # ``abs_diff`` pass leaves every alpha-fed metric reading the zero
+        # contribution the plane would have produced. ``alpha_checked`` records
+        # whether the deltas carry a computed alpha channel.
+        alpha_checked = False
+        if compare_alpha:
+            if alpha_a.count(255) == pixels and alpha_b.count(255) == pixels:
+                alpha_checked = False
+            else:
+                deltas.append(abs_diff(alpha_a, alpha_b))
+                alpha_checked = True
+    else:
+        # The shared list was derived with the same substitution and
+        # opaque-plane skip, so the presence of the fourth string records
+        # whether a computed alpha channel joined the deltas.
+        alpha_checked = len(deltas) == 4
     # The compared alpha channel keeps its aggregate slot either way, so the
     # mean and RMSE still divide by four channels when alpha is compared.
     if alpha_checked:

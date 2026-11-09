@@ -117,7 +117,6 @@ def main(argv: list[str] | None = None) -> int:
             candidate = crop(candidate, *args.candidate_crop)
         if args.crop is not None:
             reference = crop(reference, *args.crop)
-        metrics = compare(candidate, reference, tolerance=args.tolerance)
         wants_flags = (
             args.difference_rows or args.difference_columns
             or args.difference_row_bounds or args.difference_column_bounds
@@ -126,15 +125,19 @@ def main(argv: list[str] | None = None) -> int:
             or args.difference_column_run_count
             or args.longest_difference_column_run or args.difference_centroid
         )
-        # One channel-delta pass serves every pixel report and the flag
-        # scan for the spatial reports: it derives each pixel's per-channel
-        # deltas once and both families' inputs read the same strings. Any
-        # requested pixel or spatial option turns it on; the default output,
-        # which reads none of them, pays nothing.
+        # One channel-delta pass serves the metrics comparison and every
+        # pixel report plus the flag scan for the spatial reports: it derives
+        # each pixel's per-channel deltas once and ``compare`` -- which would
+        # otherwise build the same list a second time -- reads the same
+        # strings. Any requested pixel or spatial option turns it on; the
+        # default output, which reads none of them and only the metrics,
+        # pays nothing.
         wants_deltas = (wants_flags or args.worst_pixels is not None
                         or args.channel_counts or args.channel_maxima
                         or args.delta_histogram or args.delta_percentiles)
         deltas = channel_deltas(candidate, reference) if wants_deltas else None
+        metrics = compare(candidate, reference, tolerance=args.tolerance,
+                          deltas=deltas)
         worst = (worst_pixels(candidate, reference, args.tolerance,
                               args.worst_pixels,
                               offset=args.worst_pixel_offset or 0,
