@@ -338,6 +338,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         )
         for selector in selectors:
             self.assert_rule(selector, {"transition": "none"})
+            # Exact-dict, not the per-property subset: a stray rotation,
+            # transform, colour or geometry declaration on either twin
+            # must fail, per the entry's guarantee.
+            self.assertEqual(self.rules[selector], {"transition": "none"}, selector)
             self.assertEqual(self.selectors.count(selector), 1, selector)
         # The element-level family is exactly these two stock arms: the
         # sweep kills a renamed spelling, a stray state twin or a second
