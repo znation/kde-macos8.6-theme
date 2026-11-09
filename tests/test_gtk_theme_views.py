@@ -738,12 +738,12 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                     )
 
     def test_inline_toolbar_keycap_finetune_emoji_corners(self):
-        """Pin the inline-toolbar, keycap, fine-tune trough and emoji hover corners.
+        """Pin inline-toolbar, keycap, fine-tune trough and emoji corners.
 
         The four appended groups rest stock's inline-toolbar container,
         shortcut keycap, fine-tuned scale trough family and emoji-picker
-        hover radius arms at zero; nothing else in the sheet names any of
-        the four tokens.
+        hover radius arms at zero; the emoji section labels also have explicit
+        opacity arms tested with their own declarations.
         """
         selectors = (
             ".inline-toolbar",
@@ -760,7 +760,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 self.assert_rule(selector, {"border-radius": "0"})
         # The four tokens have no landed or unrelated neighbours: the landed
         # keycap corner record is the GTK 4 `shortcut > .keycap` spelling,
-        # and the suite's other emoji sweeps name GTK 4 spellings only.
+        # and the emoji-label rules are the only additional emoji selectors.
         # 2026-11-04: the linked-field end-corner record restates six more
         # linked arm members naming the inline-toolbar token — the three
         # `.inline-toolbar button…` end members and the three
@@ -789,8 +789,21 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         )
         self.assertEqual(
             {s for s in self.rules if "emoji" in s},
-            {"popover.emoji-picker .emoji :hover"},
+            {
+                "popover.emoji-picker .emoji :hover",
+                "button.emoji-section label",
+                "button.emoji-section:hover label",
+            },
         )
+        for selector in (
+            "button.emoji-section label",
+            "button.emoji-section:hover label",
+        ):
+            with self.subTest(selector=selector, after="modelbutton.flat"):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("modelbutton.flat"),
+                )
         # Source order: every appended spelling sits after the landed
         # modelbutton restatement near the sheet tail, so the byte-equal
         # stock twins win the equal-specificity ties under the lower-sheet

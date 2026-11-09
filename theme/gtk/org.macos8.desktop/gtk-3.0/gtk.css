@@ -3849,6 +3849,14 @@ modelbutton.flat,
   border-radius: 0;
 }
 
+/* No reference screenshot shows GTK emoji section labels. The installed GTK 3
+   theme resource gives them opacity: 0.55 at rest and 0.775 on hover
+   (probed 2026-11-09); like subtitles and dim labels, remove the extra
+   transparency layer while retaining the inherited label colour. */
+button.emoji-section label, button.emoji-section:hover label {
+  opacity: 1;
+}
+
 scrollbar.overlay-indicator:not(.dragging):not(.hovering) button {
   border-radius: 0;
 }

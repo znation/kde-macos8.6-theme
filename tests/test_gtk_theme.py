@@ -296,6 +296,17 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         expected = {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}
         self.assert_rule_group(dict.fromkeys(selectors, expected))
 
+    def test_emoji_section_label_opacity(self):
+        selectors = (
+            "button.emoji-section label",
+            "button.emoji-section:hover label",
+        )
+        self.assert_rule_group(dict.fromkeys(selectors, {"opacity": "1"}))
+        self.assertEqual(
+            {selector for selector in self.rules if "emoji-section" in selector},
+            set(selectors),
+        )
+
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
 
