@@ -19,8 +19,9 @@ menu-separator, menu-bar-title, frame, tree-header, expander-arrow,
 submenu-arrow, text-selection, view-background, disabled-text, rubberband
 and title-button assertions take
 the suite's own selectors; the spinner assertion takes the rotation
-transform instead, and the standalone separators and paned handles are
-spelled alike in both, so their assertions take none.
+transform instead, the color-swatch assertion takes the suite's overlay
+relationship, and the standalone separators and paned handles are spelled
+alike in both, so their assertions take none.
 """
 
 from __future__ import annotations
@@ -145,9 +146,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     expander-arrow, submenu-arrow, text-selection, view-background,
     disabled-text, rubberband and title-button assertions take the suite's
     own selectors; :meth:`assert_spinner` takes the rotation transform
-    instead, and the standalone separators and paned handles are spelled
-    alike in both, so ``assert_separators`` and ``assert_paned_handles``
-    take none.
+    instead, :meth:`assert_color_swatch_corners` takes the suite's overlay
+    relationship, and the standalone separators and paned handles are
+    spelled alike in both, so ``assert_separators`` and
+    ``assert_paned_handles`` take none.
     """
 
     @classmethod
