@@ -1280,8 +1280,8 @@ fails on the tool-free workflow and passes after the install step lands.
 
 `tests/support/selector_matching.py`'s `_ATTRIBUTE` regex matched an unquoted
 attribute value with ``(?:[^\]\s\"'\\]|\\.)+``: each whitespace ended the
-value, so a hex escape's one-whitespace terminator (`CSS` requires it after
-more than one escape digit when a non-hex digit follows) sat between the value
+value, so a hex escape's optional whitespace terminator (needed to separate
+fewer than six escape digits from a following hex digit) sat between the value
 group and the trailing `\]`, the attribute syntax no longer parsed and the
 selector matched no element — while the quoted form of the same escape
 (`[title="a\22 b"]`) already matched. Before the fix,
