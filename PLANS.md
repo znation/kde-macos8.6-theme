@@ -5,8 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-**Drift (found by the steward role 2026-11-09):** The `Running checks` section in `README.md` still tells users to run the GTK 4 indicator and view-census probes visibly on their desktop. Revise those instructions to match the 2026-11-09 principle: probes must use an isolated, non-visible display, or be explicitly requested without presenting windows in the user's session. Keep the routine-check skip guidance and update the documented commands to the supported isolated-display path.
-
 ### Uninstall selection diagnostics: split the oversized dispatcher by config surface (planned 2026-11-09 by the organize role)
 
 **Goal.** Reduce the 508-line `tools/uninstall_diagnostics.py` outlier and make each selection family's checks readable without changing the diagnostics, their order, or parsing. The production Python median is 136 lines; `diagnostics()` alone spans roughly lines 203–472 and owns unrelated live selections and defaults-layer selections in one dispatcher.
@@ -16,18 +14,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Cost removed.** Today a single large `diagnostics()` function interleaves live settings with the defaults layer, while the same module also owns CLI parsing, bounded file reads, and INI scanning. That makes a change to one selection family require navigating a long function and obscures the boundary between active and fallback config state.
 
 **Acceptance criteria.** Message text, message ordering, missing/unreadable-file behavior, caps, and direct-script and package CLI behavior remain unchanged. The parity test continues to exercise the moved reader and its special GTK latch behavior. Tests still cover each diagnostic; grep across source, tests, and Markdown finds no stale old module paths or moved function references. `make check` passes after the final edit.
-
-### Document isolated X11 runs for the optional GTK 4 probes (planned 2026-11-09 by the plan role)
-
-**Goal and grounding.** Resolve the steward's 2026-11-09 Running-checks drift above: give contributors a concrete way to run the optional GTK probes without presenting windows in their desktop session. `README.md` currently gives bare `PLATINUM_RUN_GUI_TESTS=1 make check` examples. `tests/test_gtk_view_census.py::_run_child` and `tests/test_gtk4_theme.py::TestGtk4Theme.test_mixed_indicators_draw_black_dashes` explicitly launch their children with `GDK_BACKEND=x11` and `GSK_RENDERER=cairo`; `tests/support/gui_tests.py::require_gui_opt_in` supplies the existing opt-in. The archived routine-probe fix added that guard and desktop instructions, not an isolated-display recipe. This documentation task is independent of the waiting uninstall refactor and pending emoji implementation.
-
-**Approach and files.** Edit only `README.md`, in Prerequisites and Running checks. Name the optional prerequisites Xvfb, `xvfb-run`, `xauth`, and Python GTK 4 introspection bindings. Replace both bare opt-in commands with `env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=<existing selector>`, retaining the two existing selectors verbatim. Explain that `xvfb-run -a` allocates and cleans up a separate virtual X server and that unsetting the inherited display variables before starting it prevents using the desktop display. Keep routine skip guidance and explain that missing GTK bindings can still cause a capability skip; opting in alone does not demonstrate that the probes ran. Remove the addressed drift paragraph from PLANS.md when completing this entry. No runner, guard, dependency installation, or theme changes belong in this task.
-
-**Acceptance criteria.**
-
-- Running checks documents both existing optional probe selections under the isolated command prefix, with no bare desktop opt-in example left in that section; the ordinary full-check command and routine skip explanation remain available.
-- A contributor can identify the virtual-display and GTK prerequisites and distinguish a capability skip from an executed probe. The instructions make no promise that a skipped probe validates rendered pixels.
-- Validate the documented shell argument order with temporary stub executables: start with populated DISPLAY and WAYLAND_DISPLAY, have the xvfb-run stub verify both are absent and set a synthetic DISPLAY, and have the make stub observe that synthetic display, the opt-in value and each intended CHECK_TESTS selector. This validation must launch no GUI. If prerequisites are already available, a real probe run may use the documented isolated command; otherwise record that it was not exercised. Run `make check` with DISPLAY and WAYLAND_DISPLAY removed after the final edit.
 
 ## Done
 

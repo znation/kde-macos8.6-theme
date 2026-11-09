@@ -38,6 +38,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 | Select the cursor theme alone | Python 3.10 or newer, the package-install utilities above, and `plasma-apply-cursortheme` on `PATH`. Run `make apply-cursor`; aggregate `make apply` skips cursor selection with a note when that tool is missing. See [Installing](#installing) for details. |
 | Install Firefox sheets alone | Python 3.10 or newer and an existing writable Firefox profile, found automatically or specified as `FIREFOX_PROFILE=/absolute/profile`. Run `make install-firefox`; aggregate `make apply` skips this step with a note when it finds no profile. See [Installing](#installing) for profile selection and restart details. |
 | Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead. |
+| Run optional GTK 4 probes | Xvfb, `xvfb-run`, `xauth`, and Python GTK 4 introspection bindings. See [Running checks](#running-checks) for isolated commands. |
 | Materialize reference images | Git LFS; run `git lfs install` and `git lfs pull`. See [Validating the reference set](#validating-the-reference-set). |
 
 ## Navigation
@@ -1457,10 +1458,18 @@ replace the full check.
 | One test class | `make check CHECK_TESTS=test_colorscheme.TestAnchors` |
 | Serial discovery | `make check CHECK_PARALLEL=0` |
 
-The GTK 4 indicator and view-census probes present visible windows. They skip during routine
-checks; run them deliberately on a desktop only when visible test windows are acceptable, with
-`PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_theme.TestGtk4Theme.test_mixed_indicators_draw_black_dashes`
-or `PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk_view_census`.
+The GTK 4 indicator and view-census probes skip during routine checks. To opt in without using
+your desktop display, run either probe under Xvfb:
+
+```sh
+env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_theme.TestGtk4Theme.test_mixed_indicators_draw_black_dashes
+env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk_view_census
+```
+
+`xvfb-run -a` allocates and cleans up a separate virtual X server. Unsetting inherited
+`DISPLAY` and `WAYLAND_DISPLAY` before starting it prevents these commands from selecting the
+desktop display. Missing GTK 4 introspection bindings can still cause a probe to skip for lack of
+capability; setting the opt-in variable alone does not mean the probe ran.
 
 Reference image validation is separate: see [Validating the reference set](#validating-the-reference-set)
 for `make check-references` and its Git LFS materialization requirement.
