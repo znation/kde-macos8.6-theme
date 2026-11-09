@@ -25,6 +25,9 @@ assertion's failure message lists every offender with its location.
 from __future__ import annotations
 
 import ast
+import io
+import re
+import tokenize
 from pathlib import Path
 
 _SCANNED_DIRS = ("tools", "tests")
@@ -77,7 +80,11 @@ def _alias_names(node: ast.Import | ast.ImportFrom) -> list[str]:
 def _noqa_marked(lines: list[str], node: ast.stmt) -> bool:
     """Return whether the statement's lines carry a ``# noqa`` comment."""
     span = lines[node.lineno - 1 : (node.end_lineno or node.lineno)]
-    return any("noqa" in line for line in span)
+    return any(
+        token.type == tokenize.COMMENT
+        and re.match(r"#\s*noqa\b", token.string)
+        for token in tokenize.generate_tokens(io.StringIO("\n".join(span)).readline)
+    )
 
 
 def _scan_module(

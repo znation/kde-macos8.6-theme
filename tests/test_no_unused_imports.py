@@ -63,6 +63,12 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_overwriting_an_import_does_not_read_it(self):
+        findings = self._findings(
+            self, {"pkg/mod.py": "import os\nos = None\n"}
+        )
+        self.assertEqual(findings, ["pkg/mod.py:1: unused import os"])
+
     def test_a_noqa_marked_import_is_kept(self):
         findings = self._findings(
             self, {"pkg/mod.py": "import os  # noqa: F401  (side effect)\n"}
@@ -81,6 +87,16 @@ class TestNoUnusedImports(unittest.TestCase):
             },
         )
         self.assertEqual(findings, [])
+
+    def test_noqa_in_a_module_name_or_prose_does_not_suppress(self):
+        findings = self._findings(
+            self,
+            {"pkg/mod.py": "import noqa_helper\nimport os  # no noqa needed\n"},
+        )
+        self.assertEqual(findings, [
+            "pkg/mod.py:1: unused import noqa_helper",
+            "pkg/mod.py:2: unused import os",
+        ])
 
     def test_the_annotations_future_import_is_kept(self):
         findings = self._findings(
@@ -434,6 +450,36 @@ class TestNoUnusedImports(unittest.TestCase):
             {
                 "pkg/__init__.py": "from os import sep\n",
                 "pkg/mod.py": "value = 1\n",
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_aliased_consumer_keeps_the_source_name(self):
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": "from os import sep\n",
+                "pkg/user.py": "from pkg.mod import sep as separator\nvalue = separator\n",
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_a_consumer_alias_does_not_keep_an_unrelated_import(self):
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": "from os import sep\nseparator = 1\n",
+                "pkg/user.py": "from pkg.mod import separator as sep\nvalue = sep\n",
+            },
+        )
+        self.assertEqual(findings, ["pkg/mod.py:1: unused import sep"])
+
+    def test_a_package_facade_keeps_its_source_import(self):
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": "from os import sep\n",
+                "pkg/__init__.py": "from pkg.mod import sep\n",
             },
         )
         self.assertEqual(findings, [])
