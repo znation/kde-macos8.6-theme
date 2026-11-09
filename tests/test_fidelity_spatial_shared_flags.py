@@ -15,7 +15,6 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
-from support.png_fixtures import make_png  # noqa: E402
 from tools import fidelity  # noqa: E402
 from tools.fidelity_metrics import compare  # noqa: E402
 from tools.fidelity_spatial import (  # noqa: E402
@@ -132,23 +131,9 @@ class TestSharedFlags(unittest.TestCase):
 class TestCliSingleFlagsPass(FidelityCliTestCase):
     """One comparison run derives the shared flags pass once."""
 
-    # One 4x3 pair: the (0, 0) red byte reads delta 10 and the (2, 1) blue
-    # byte reads delta 30, both strictly beyond tolerance 9.
-    CANDIDATE_ROWS = [
-        bytes([10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        bytes([0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0]),
-        bytes(12),
-    ]
-
-    def _pair(self):
-        return (
-            make_png(4, 3, self.CANDIDATE_ROWS),
-            make_png(4, 3, [bytes(12)] * 3),
-        )
-
     def test_spatial_bundle_derives_flags_once(self):
         """A run requesting three spatial reports computes one flag pass."""
-        candidate, reference = self._pair()
+        candidate, reference = self._delta_pair()
         derivations: list[tuple[int, int, int]] = []
         real = fidelity.differing_flags
 
@@ -169,7 +154,7 @@ class TestCliSingleFlagsPass(FidelityCliTestCase):
 
     def test_default_run_derives_no_flags(self):
         """A run without a spatial report computes no flag pass."""
-        candidate, reference = self._pair()
+        candidate, reference = self._delta_pair()
         with mock.patch.object(
             fidelity, "differing_flags", side_effect=AssertionError
         ):

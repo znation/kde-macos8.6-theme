@@ -32,6 +32,29 @@ class FidelityCliTestCase(CliTestCase):
     MAIN = staticmethod(fidelity.main)
     PROGRAM = "fidelity"
 
+    # One 4x3 candidate-and-blank pair the shared-delta/flags CLI suites
+    # drive: the (0, 0) red byte reads delta 10 and the (2, 1) blue byte
+    # reads delta 30, both strictly beyond tolerance 9.
+    DELTA_PAIR_ROWS = [
+        bytes([10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        bytes([0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0]),
+        bytes(12),
+    ]
+
+    def _delta_pair(self) -> tuple[bytes, bytes]:
+        """Return PNG bytes for the shared 4x3 delta pair.
+
+        The candidate carries two over-tolerance bytes (the ``(0, 0)`` red
+        10 and the ``(2, 1)`` blue 30) on an all-zero reference, so every
+        derived run claims a FAIL. Four CLI suites drive exactly this pair:
+        test_fidelity_flags_shared_deltas, test_fidelity_metrics_shared_deltas,
+        test_fidelity_pixels_shared_deltas and test_fidelity_spatial_shared_flags.
+        """
+        return (
+            make_png(4, 3, self.DELTA_PAIR_ROWS),
+            make_png(4, 3, [bytes(12)] * 3),
+        )
+
     def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 3x3 candidate and a one-pixel-altered copy of it.
 
