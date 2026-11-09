@@ -25,11 +25,11 @@ from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,
-    SCALE_THUMB,
     DISABLED_TEXT,
     ETCH_DARK,
     LINK,
     VISITED_LINK,
+    SCALE_THUMB,
 )
 from support.platinum_palette import (
     BLACK,
