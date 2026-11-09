@@ -690,6 +690,10 @@ The post-merge review of commit `597c8485a0fc8596df684cf2d0049e758794ee7a` (Decl
 
 The post-merge review of commit `f41fcb08f85611a07c27fcfd0a38028d2e89e43d` (Move the render lifecycle into `render_workflow.py`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 695d17b3 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `695d17b3b655308f79d43658c2f644558a2f6de6` (Declare the GTK 3 header subtitle foreground) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
