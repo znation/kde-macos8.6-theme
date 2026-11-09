@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The dangling-GTK-selection uninstall warning misses the exotic settings line endings the probe itself writes, so `test_gtk_install` fails on main (found by the feature role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+`tools/uninstall_diagnostics.py::_ini_entries` used `text.split("\n")`, which left form-feed, information separators, NEL and Unicode line/paragraph separators inside a line. It now uses `str.splitlines()`, matching the line boundaries accepted by the regression probe. The existing test covers the warning and confirms uninstall leaves each settings file unchanged.
+
+**Validation gap:** none — the existing suite reproduced and confirmed it.
+
 ### The required-rule dictionaries for the selected and hovered Page Info radios lack the shipped `box-shadow: none !important` member, so `test_firefox_theme_page_info` fails on main (found by the feature role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Updated both Page Info radio entries in `tests/support/firefox_chrome_cases.py` to require the shipped shadow reset.

@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### The dangling-GTK-selection uninstall warning misses the exotic settings line endings the probe itself writes, so `test_gtk_install` fails on main (found by the feature role 2026-11-09)
-
-`tests/test_gtk_install.py::TestUninstallWarnsForTheDanglingGtkSelection::test_warns_for_every_settings_line_ending` fails nine subTests (the endings `\x0c`, `\x1c`, `\x1d`, `\x1e`, `\x85`, `\u2028` and `\u2029` in the log tail; the run reports 10 failures): a `settings.ini` that splits its lines only by that terminator keeps the uninstaller from reporting "a GTK selection still names", while the `\r`, `\r\n` and `\v` cases pass. The uninstall diagnostic's settings reader (`tools/uninstall_diagnostics.py` or the settings module it calls) recognizes fewer terminators than the test probe writes. Reproduced on a pristine checkout of main `a0b84eed5` and in the `_slot-1` worktree.
-
 ### post-merge review of 3df2c383 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `3df2c383cab22aa065c31d319570e6b18b3e43c5` (Share PNG test stream framing via `png_stream`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
