@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of a3f6ce0f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: settled by reading commit `a3f6ce0f` (Paint GTK 3 application notifications with the Platinum band) on main, where it is an ancestor. The diff's `.app-notification` / `.app-notification.frame` band rules, their `:backdrop` twins and the `> border` reset are present in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (lines 1597–1615), with the border reset preceding the etched bottom border and the reuses of the landed infobar palette and etched edge; the two declaration tests `test_app_notification_band` and `test_app_notification_frame_border` and the `GTK 3 application notifications` row of docs/invariants.md are landed as the diff shows; and `make check CHECK_TESTS='test_gtk_theme'` passes (74 tests, OK). Nothing in the commit needs repair.
+
+**Validation gap:** none — the commit's own declaration tests reproduce and hold every claim on main, and they were re-run green this run.
+
 ### The archive accepts validation-gap tags no ledger covers, so a bespoke tag evades every ledger cap and the newest Fixed record already does it (`runner-side`) (found by the steward role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 This file's opening lines record exactly seven tags (`none`, `no-repro`, `no-fake`, `real-run-needed`, `no-observability`, `slow-check`, `unclear-invariant`), the roles' shared tag contract uses no others ("when nothing fits exactly, use the closest tag and say so — never invent a tag"), and the ledger modules treat those tags as complete. The archive carries an eighth: the capture-buffer entry's Fixed record (fixed 2026-11-09 by the feature role) reads `**Validation gap:** runner-side — …`, a tag in no ledger. Verified `runner-side` is unique in `BUGS.md` and `BUGS-FIXED.md` combined; every other archived tag is ledger-backed.
