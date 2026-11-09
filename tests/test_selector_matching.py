@@ -108,6 +108,18 @@ class TestSelectorMatching(unittest.TestCase):
                 {**target, "parent": disabled_inner},
             )
         )
+
+    def test_negated_attribute_value_is_not_pseudo_class_syntax(self):
+        target = element("box", ("a",))
+        for value in ("urn:example", ":focus-within", ":is(.b)"):
+            with self.subTest(value=value):
+                # An absent attribute cannot match, regardless of its value.
+                self.assertTrue(matches(f'.a:not([title="{value}"])', target))
+                # Masking attribute data must still reject real pseudo-classes.
+                self.assertFalse(
+                    matches(f'.a:not([title="{value}"]:focus-within)', target)
+                )
+
     def test_supported_hover_negation_still_matches_and_excludes(self):
         searchbar = element("searchbar", element_id="searchbar")
         self.assertTrue(matches("#searchbar:not(:hover)", searchbar))
