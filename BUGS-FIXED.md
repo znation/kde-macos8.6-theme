@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 477a7f05 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `477a7f05df172946b1cadf3bdf94ba9c5bc4226b` (Refuse a CHECK_TESTS spec naming no tests/&lt;module&gt;.py with a Makefile guard diagnostic) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and re-verified its behavior at tip. The diff adds only a Makefile guard segment to `require_check_tests` and four tests in `tests/test_make_check.py::TestCheckPattern`; the guard splits the whitespace-stripped CHECK_TESTS value into specs, takes each spec's module component (the text before the first `.`), refuses with exit 2 naming every spec with no `tests/<module>.py` file, and leaves valid specs untouched. Later commits layered a charset check onto the same line without touching this segment. Reproduced the documented refusal (`make check CHECK_TESTS=test_no_such_mod` prints `check: CHECK_TESTS must name test modules in tests/, but these specs name no tests/<module>.py file: test_no_such_mod` and exits 2) and ran the commit's four tests through `make check` — all OK. No defect found.
+
+**Validation gap:** none — the commit's own four-test regression suite reproduced and confirmed the guard's behavior; nothing was missing.
+
 ### post-merge review of 43c0fe7a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `43c0fe7a03a8b59bc8b4ec11460dd2a1d77183d7` (Ship widgets/timer.svg with tested Timer LCD digits, registered) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
