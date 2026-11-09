@@ -668,6 +668,16 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
         self.assertNotIn("-gtk-icon-effect", self.rules["button"])
 
+    def test_sidebar_button_image_opacity(self):
+        self.assert_rule_group(
+            {
+                "button.sidebar-button:not(:hover):not(:active) > image": {
+                    "opacity": "1"
+                },
+                "button.sidebar-button:backdrop > image": {"opacity": "1"},
+            }
+        )
+
     def test_round_button_face_corners(self):
         # The five class-qualified stock arms sit later in source order than
         # the landed unclassed `button`, window-control and `scrollbar button`
@@ -709,7 +719,14 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # `row:selected` and own colours only.
         for token, expected in (
             ("button.circular", {"button.circular"}),
-            ("button.sidebar-button", {"button.sidebar-button"}),
+            (
+                "button.sidebar-button",
+                {
+                    "button.sidebar-button",
+                    "button.sidebar-button:not(:hover):not(:active) > image",
+                    "button.sidebar-button:backdrop > image",
+                },
+            ),
             ("modelbutton.flat", {"modelbutton.flat"}),
             ("menuitem.button.flat", {".menuitem.button.flat"}),
         ):

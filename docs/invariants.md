@@ -526,6 +526,8 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Clarification to the preceding sidebar seam row: its entry-image opacity exclusion refers to embedded entry icons. The separate GTK 3 `row image.sidebar-icon` arm restates stock's 0.7 opacity as `1`, preserving sidebar artwork independently of entry-icon ink and `image:disabled` effects. | `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_sidebar_row_geometry` | No collected reference screenshot shows a GTK sidebar row icon. The 2026-11-09 `gresource extract /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 /org/gtk/libgtk/theme/Adwaita/gtk-contained.css` probe supplies the stock 0.7 value; full opacity follows the landed GTK 4 embedded-entry-icon adaptation, preserving artwork without a toolkit veil. This platform adaptation is not a sampled reference value. Declaration tests do not establish rendered pixels. |
 
+| GTK 3 places-sidebar navigation-button images keep full authored opacity at rest and under backdrop through the two exact toolkit selector arms; this image-specific restatement supersedes the earlier round-button row's statement that their opacity stays inherited. | `tests/test_gtk_theme.py::TestGtkTheme::test_sidebar_button_image_opacity`, `tests/test_gtk_theme.py::TestGtkTheme::test_round_button_face_corners` | No collected reference screenshot shows places-sidebar navigation-button images. The 2026-11-09 probe of the GTK 3 toolkit resource found stock opacity 0.7; full opacity follows the landed GTK 4 embedded-entry-icon adaptation and preserves artwork without a toolkit veil. This platform value is not sampled; declaration tests do not establish rendered pixels. |
+
 ## icons
 
 | Guarantee | Test | Provenance exception |

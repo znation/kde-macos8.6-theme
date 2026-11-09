@@ -3811,8 +3811,8 @@ label:link:visited:selected:disabled:backdrop:active {
    the button's 26px square box, 3px vertical margins and zero padding
    inside the landed places rows against upstream libgtk geometry drift —
    under the probed library it is inert and changes no rendered surface.
-   Left stock on purpose: the `> image` opacity arms on the next stock
-   line, `button.circular`'s and the other four faces' own geometry, and
+   The `> image` opacity arms are restated below. Left stock on purpose:
+   `button.circular`'s and the other four faces' own geometry, and
    every state arm of these spellings carrying no geometry here.
    Declaration checks do not establish rendered pixels. */
 button.circular {
@@ -3828,6 +3828,16 @@ button.sidebar-button {
   margin-top: 3px;
   margin-bottom: 3px;
   padding: 0;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows places-
+   sidebar navigation-button images. The GTK 3 toolkit resource gives those
+   images 0.7 opacity at rest and under backdrop; full opacity follows the
+   landed GTK 4 embedded-entry-icon adaptation, preserving authored artwork
+   without an extra toolkit veil. This platform value is not sampled. */
+button.sidebar-button:not(:hover):not(:active) > image,
+button.sidebar-button:backdrop > image {
+  opacity: 1;
 }
 
 button.titlebutton:not(.appmenu) {
