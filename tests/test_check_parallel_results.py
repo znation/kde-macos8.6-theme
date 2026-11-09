@@ -11,8 +11,12 @@ from pathlib import Path
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.check_parallel_results import (
     _LOG_TAIL_BYTES,
+    _MARKER_COUNTS_DOTS,
+    _MARKER_SEEKS_PAREN,
+    _MARKER_SEEKS_SPACE,
     _bounded_log_text,
     _print_results,
+    _test_marker_step,
 )
 
 
@@ -115,6 +119,45 @@ class TestPrintResults(unittest.TestCase):
             output.getvalue(),
         )
         self.assertIn("check: 1 module, 1 module failed", output.getvalue())
+
+
+class TestTestMarkerStep(unittest.TestCase):
+    """Pin the verbose test-start marker's per-byte transitions."""
+
+    @staticmethod
+    def _scan(text: str) -> int | None:
+        """Return the 0-based byte index where the marker completes."""
+        state = _MARKER_SEEKS_PAREN
+        dots = 0
+        for index, char in enumerate(text.encode("utf-8")):
+            state, dots, completed = _test_marker_step(char, state, dots)
+            if completed:
+                return index
+        return None
+
+    def test_marker_completes_on_the_space_after_three_dots(self):
+        self.assertEqual(self._scan("test_x (pkg.Cls) ... ok"), 20)
+
+    def test_two_dots_do_not_complete_the_marker(self):
+        self.assertIsNone(self._scan("test_x (pkg.Cls) .. ok"))
+
+    def test_four_dots_then_a_space_do_not_complete_the_marker(self):
+        self.assertIsNone(self._scan("test_x (pkg.Cls) .... ok"))
+
+    def test_a_newline_forgets_partial_dots(self):
+        # A newline inside the dot count resets the scan, so the dots of a
+        # later line cannot complete the previous line's marker.
+        self.assertIsNone(self._scan("test_x (pkg.Cls) ..\nok"))
+
+    def test_stray_byte_after_the_space_returns_to_the_paren_seek(self):
+        # A stray byte where the whitespace after the id was expected drops
+        # the scan back to the paren seek, and the marker's space after a
+        # full dot count completes it one byte at a time.
+        state, _, completed = _test_marker_step(ord("x"), _MARKER_SEEKS_SPACE, 0)
+        self.assertEqual(state, _MARKER_SEEKS_PAREN)
+        self.assertFalse(completed)
+        state, _, completed = _test_marker_step(ord(" "), _MARKER_COUNTS_DOTS, 3)
+        self.assertTrue(completed)
 
 
 if __name__ == "__main__":

@@ -80,39 +80,60 @@ def _bounded_log_text(path: str) -> str:
     return "\n".join(escape_controls(line) for line in lines)
 
 
+# unittest's verbose runner prints each test as ``test_x (pkg.Cls) ... ok``.
+# The scan below looks for the ``)`` closing the test id, the whitespace after
+# it, and the three dots of the ``...`` suffix; the states follow that order.
+_MARKER_SEEKS_PAREN = 0
+_MARKER_SEEKS_SPACE = 1
+_MARKER_COUNTS_DOTS = 2
+
+
+def _test_marker_step(byte: int, state: int, dots: int) -> tuple[int, int, bool]:
+    """Consume one byte of the verbose test-start marker scan.
+
+    Return the next ``(state, dots)`` pair and whether the byte completed
+    the ``) `` plus three-dot marker. A newline forgets a partial match so
+    a closing parenthesis or dots in ordinary text never carry over to a
+    later line.
+    """
+    if state == _MARKER_SEEKS_PAREN:
+        if byte == ord(")"):
+            return _MARKER_SEEKS_SPACE, dots, False
+        return _MARKER_SEEKS_PAREN, dots, False
+    if state == _MARKER_SEEKS_SPACE:
+        if byte in b" \t\r\n\v\f":
+            return _MARKER_COUNTS_DOTS, 0, False
+        if byte == ord(")"):
+            return _MARKER_SEEKS_SPACE, dots, False
+        return _MARKER_SEEKS_PAREN, dots, False
+    # _MARKER_COUNTS_DOTS: inside the test line, after the id's whitespace.
+    if byte in b"\r\n":
+        return _MARKER_SEEKS_PAREN, 0, False
+    if byte == ord("."):
+        return _MARKER_COUNTS_DOTS, dots + 1, False
+    if dots == 3 and byte in b" \t\v\f":
+        return _MARKER_COUNTS_DOTS, dots, True
+    return _MARKER_COUNTS_DOTS, 0, False
+
+
 def _log_has_started_test(path: str) -> bool:
     """Find unittest's verbose test-start marker without loading the log.
 
     The log is opened through the shared regular-file reader: the bounded
     tail read above can see a log as a regular file, and a replacement that
     turns it into a FIFO before this scan would block plain ``open()`` on a
-    pipe with no writer, stalling the whole run's result report.
+    pipe with no writer, stalling the whole run's result report. The byte
+    transitions live in ``_test_marker_step``; this loop only feeds bytes
+    and stops at the first completed marker.
     """
-    state = 0
+    state = _MARKER_SEEKS_PAREN
     dots = 0
     with open_regular_binary(path) as log:
         while chunk := log.read(8192):
             for byte in chunk:
-                if state == 0:
-                    if byte == ord(")"):
-                        state = 1
-                elif state == 1:
-                    if byte in b" \t\r\n\v\f":
-                        state = 2
-                        dots = 0
-                    elif byte == ord(")"):
-                        state = 1
-                    else:
-                        state = 0
-                elif byte in b"\r\n":
-                    state = 0
-                    dots = 0
-                elif byte == ord("."):
-                    dots += 1
-                elif dots == 3 and byte in b" \t\v\f":
+                state, dots, completed = _test_marker_step(byte, state, dots)
+                if completed:
                     return True
-                else:
-                    dots = 0
     return False
 
 
