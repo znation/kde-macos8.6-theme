@@ -1292,6 +1292,7 @@ switch {
 switch:checked {
   background-color: #FFFFFF;
   background-image: none;
+  border-color: #000000;
 }
 
 /* GTK 3 has no reference switch-focus surface; reuse the dotted black
@@ -1303,6 +1304,7 @@ switch:focus {
 }
 
 switch:disabled {
+  background-color: #EEEEEE;
   border-color: #999999;
 }
 
@@ -1315,6 +1317,7 @@ switch slider {
   margin: -1px;
   min-width: 12px;
   min-height: 16px;
+  transition: none;
 }
 
 switch:disabled slider {
@@ -1325,6 +1328,105 @@ switch:disabled slider {
 
 switch image {
   color: transparent;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+   switch in any state (the GTK scope's standing adaptation premise), so
+   the toolkit's eleven state, backdrop and selected-row switch arms are
+   restated against the landed switch recipe of this same sheet — the flat
+   #EEEEEE track, the white checked field, the square #DDDDDD thumb with
+   its raised inset 1px 1px #FFFFFF, inset -1px -1px #999999 bevel, pinned
+   as the SWITCH_* constants in tests/support/gtk_theme_spec.py — and the
+   landed `row:selected button` record. The toolkit resource
+   (gtk-contained.css inside libgtk-3, probed with gresource on
+   2026-11-09, libgtk-3 3.24.49, the 2055-line resource) declares, and the
+   landed groups above answer only in part: a `switch:disabled` pale
+   prohib face (line 1058), a `switch:backdrop` greige face with a 200ms
+   ease-out fade (line 1060), a `switch:backdrop:checked` accent fill
+   (line 1062), a `switch:backdrop:disabled` arm (line 1064), a
+   `switch:hover slider` greige rim with a white gradient and drop shadows
+   (line 1070), a `switch:checked > slider` accent rim (line 1072), a
+   `switch:backdrop slider` pale image with a fade and a flat inset
+   (line 1076), a `switch:backdrop:checked > slider` accent rim
+   (line 1078), a `switch:backdrop:disabled slider` arm (line 1080) and
+   the three selected-row arms `row:selected switch` (line 1082),
+   `row:selected switch:backdrop` (line 1084) and `row:selected switch >
+   slider:checked, row:selected switch > slider` (line 1086); the
+   dark-twin resource gtk-contained-dark.css declares the same family
+   with its own palette at lines 1046-1072. Each selector below is the
+   exact stock spelling and sits later in source order, so it wins every
+   tie; every restated value is the landed recipe above. The three landed
+   groups above are amended to hold the recipe through the states: the
+   checked track's black border, the disabled track's flat face and the
+   base knob's motion (stock's base knob declares a 200ms ease, so every
+   knob repaint animates; the landed GTK 4 sheet disables inherited switch
+   motion with the same dated-comment policy, and the hover and backdrop
+   knob arms restate the same motion cut because their stock arms repaint
+   the same node). Exclusions: no `color`, `text-shadow` or
+   `-gtk-icon-shadow` restate — the `switch image` glyphs are transparent
+   and the landed recipe owns no ink member for the switch family, so
+   stock's own greys and resets keep those properties; no `headerbar
+   switch` margin arm — stock geometry of a landed surface; and stock's
+   own `row:selected switch` box-shadow: none member already matches the
+   landed base track, so it is not redeclared. Declaration checks do not
+   establish rendered pixels. */
+
+switch:hover slider {
+  border-color: #000000;
+  background-image: none;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  transition: none;
+}
+
+switch:checked > slider {
+  border-color: #000000;
+}
+
+switch:backdrop {
+  background-color: #EEEEEE;
+  border-color: #000000;
+  transition: none;
+}
+
+switch:backdrop:checked {
+  background-color: #FFFFFF;
+  border-color: #000000;
+}
+
+switch:backdrop:disabled {
+  background-color: #EEEEEE;
+  border-color: #999999;
+}
+
+switch:backdrop slider {
+  border-color: #000000;
+  background-image: none;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  transition: none;
+}
+
+switch:backdrop:checked > slider {
+  border-color: #000000;
+}
+
+switch:backdrop:disabled slider {
+  border-color: #999999;
+  background-image: none;
+  box-shadow: none;
+  transition: none;
+}
+
+row:selected switch {
+  border-color: #000000;
+}
+
+row:selected switch:backdrop {
+  border-color: #000000;
+}
+
+row:selected switch > slider:checked,
+row:selected switch > slider {
+  border-color: #000000;
 }
 
 toolbar, menubar {
