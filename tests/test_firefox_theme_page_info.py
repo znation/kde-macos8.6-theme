@@ -447,8 +447,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         ))
 
     def test_page_info_media_preview_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's Page Info media preview",
             "#imagecontainerbox",
             "widgets/lineedit.svg",
@@ -465,9 +464,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "no hover, focus or selected variant",
             "platform colour adaptation 2026-10-26",
             "Declaration checks do not establish rendered pixels",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
     def test_page_info_permission_list_paint_is_scoped_to_page_info(self):
         perm_rules = [
