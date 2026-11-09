@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9cec3cca never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `9cec3ccada22331cc378d4a505a4952f57e2f638` (Share the Firefox test suite's write/unlink-failure fixtures as case helpers) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. The commit added `fail_unlink_to` beside `fail_write_to` in `tests/support/firefox_profile_case.py` (the unlink twin with the same `Path(path) == target` comparison and pass-through `*args`/`**kwargs` as the inline closures it replaced) and converted three `test_firefox_install.py` sites to the shared helpers; none of the converted tests' assertions needs the closure's OSError wording — each pins only the tool's own `cannot write`/`cannot restore`/`cannot remove <path>` stderr messages and file outcomes (checked by reading the converted sites). The four inline closures the commit deliberately left are in the live tree still — three counted/publish-then-raise `flaky_write` copies in `tests/test_install_firefox.py` (the file was later renamed) and one unrelated `write_bytes_atomically` signature site in `tests/test_make_cursors.py` — each with behavior `fail_write_to` cannot express. The Firefox suites (`test_install_firefox`, `test_firefox_profile`, 102 tests) pass on the live tree.
+
+**Validation gap:** none — the pass-through and remaining-closures claims were re-derived from the live tree and the suites were rerun; the original review's only gap was that it never ran.
+
 ### post-merge review of 0ae727c4 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `0ae727c4d8ead6b2dcd25a37a57f7cd5df7a36d1` (Sort the unused-import scanner's findings by path, line and name as its docstring documents) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
