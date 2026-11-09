@@ -230,6 +230,20 @@ class TestSelectorMatching(unittest.TestCase):
                 self.assertTrue(_selector_is_supported(selector))
                 self.assertTrue(matches(selector, target))
 
+    def test_quoted_attribute_value_cannot_fall_back_to_unquoted_syntax(self):
+        for value in ('"ab"x', "'ab'x"):
+            selector = f"[title={value}]"
+            with self.subTest(selector=selector):
+                self.assertFalse(
+                    matches(selector, element("box", attrs={"title": value}))
+                )
+                self.assertFalse(matches(f":not({selector})", element("box")))
+        for selector in ('[title="ab"]', "[title='ab']", "[title=ab]"):
+            with self.subTest(selector=selector):
+                self.assertTrue(
+                    matches(selector, element("box", attrs={"title": "ab"}))
+                )
+
     def test_attribute_value_containing_a_class_is_matched_literally(self):
         # The dot is part of the quoted value, not a class the element needs.
         target = element("box", attrs={"title": "a.b"})
