@@ -2409,7 +2409,7 @@ scale > value, scale.horizontal > marks, scale.vertical > marks {
    (toolkit light 1113 -3px and 1115 -6px, and the integration library's
    base 1926 -3px 0px and 1928 -5px -8px for this orientation) —
    answered above by the landed `margin: 0` trough-spacing group and
-   below by the landed `-5px` thumb-margin group; and the has-marks
+   above by the landed `-5px` thumb-margin group; and the has-marks
    slider arms (light 1189 onward) alongside the integration library's
    marks-before and marks-after zero-padding container arms (base 1936
    `padding-top: 0` and 1940 `padding-bottom: 0`) — the landed
