@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 144131fd never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `144131fdd29d45e711c58140dde54c311e13cc2c` (Complete and record original artwork placeholder tracking) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no defect. Commit `144131fd` is merged on main (`git merge-base --is-ancestor` holds) and its work is in the live tree, since reorganized: the done entry sits at `PLANS-DONE.md:8057` with the plan removed from `PLANS.md`; the shipped SVG artwork under `theme/icons/org.macos8.desktop` and the splash logo all carry `<!-- PLACEHOLDER: … -->` markers with matching PLACEHOLDERS.md rows (splash logo row at `PLACEHOLDERS.md:18`); the invariants row the diff added names the tracked tests at `docs/invariants.md:725` (`tests/test_splash_logo.py::TestLogo::test_logo_is_tracked_as_a_placeholder`, `tests/test_placeholders.py`); and the validation-gap mapping change survives in `tests/support/validation_gaps/unclear_invariant.py:268`, where the `icon-placeholder-art` unclear-invariant entry now needles `icon theme` and names `tests/test_icon_theme.py::TestIndex::test_placeholder_register_matches_the_icon_art` (the implicit string concat there yields the intended full dotted test id). The underlying behavior is green: `make check CHECK_PATTERN='test_icon_theme.py'` (19 tests OK, includes the register-matches-icon-art test), `CHECK_PATTERN='test_splash_logo.py'` (3 tests OK, includes `test_logo_is_tracked_as_a_placeholder`) and `CHECK_PATTERN='test_placeholders.py'` (23 tests OK, the parser and duplicate-row refusals all pass). Nothing in the commit's scope is wrong on main, so there was nothing to fix.
+
+**Validation gap:** none — the focused icon-theme, splash-logo and placeholder module runs reproduced and confirmed the landing of the placeholder tracking.
+
 ### post-merge review of 0caac668 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `0caac66850897b63f8bf7e33c1971902c94ec097` (Escape control characters in parallel-check diagnostics) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

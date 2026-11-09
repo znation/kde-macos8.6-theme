@@ -18,11 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-
-### post-merge review of 144131fd never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `144131fdd29d45e711c58140dde54c311e13cc2c` (Complete and record original artwork placeholder tracking) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of c1325a54 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `c1325a54c20a2aae1d9efaac0251fa9934a1c7ec` (Split the parallel check coordinator by responsibility) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
