@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 6bebcd43 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+**Fix.** The commit's work is landed-OK on main. Its test `TestSpawnDefenses.test_an_unexpected_popen_error_restores_deferred_signals` survived the later refactor that moved signal deferral out of `tools/check_parallel_workers.py::_spawn` into `tools/process_group.py::_popen_deferred`: in the live tree the test mocks `process_group._defer_signals` (side effect yields the termination-then-interrupt previous-handlers lists), `process_group._restore_termination` and `process_group._replay_deferred`, and asserts that an unexpected `Popen` error takes the deferred-spawn except path restoring termination then interruption and replaying the empty deferred list before re-raising. That is exactly what `tools/process_group.py::_popen_deferred` does on `BaseException` (restore the termination handlers, restore the interrupt handlers, replay the deferrals, re-raise), and `_spawn` converts only `OSError` to its `_NeverStarted` path, so the mocked `RuntimeError` propagates to the test. `git merge-base --is-ancestor 6bebcd43 main` confirms the commit is on main; the review never reached a verdict, so this entry settles it: the commit's landed state checks out.
+
+**Validation gap:** none — the focused test_check_parallel*.py check run reproduces the defended behavior offline against the refactored helpers and passes.
+
 ### post-merge review of 37a806fc never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `37a806fc8fb732d5f3391e73321fe4e672315d29` (Skip symlinked package directories during test discovery) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
