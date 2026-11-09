@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       # The runner has no display, and plasma-apply-colorscheme /
@@ -79,7 +79,7 @@ jobs:
               dbus kwin-wayland plasma-workspace plasma-widgets-addons \
               libgl1-mesa-dri libtesseract5 tesseract-ocr-eng \
               kdialog zenity
-            # Ubuntu 26.04 (the release `ubuntu-latest` moved to) renamed
+            # Ubuntu 26.04 (which `ubuntu-latest` moved to) renamed
             # the screenshot package from `spectacle` to `kde-spectacle`;
             # the installed binary stayed `/usr/bin/spectacle`. Select the
             # name the runner's index provides so the 24.04 and 26.04

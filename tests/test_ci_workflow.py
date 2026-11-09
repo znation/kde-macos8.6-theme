@@ -159,6 +159,14 @@ class TestCiWorkflow(unittest.TestCase):
             workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE: llvmpipe$"
         )
 
+    def test_workflow_pins_the_runner_image(self):
+        workflow = self.read_workflow()
+        # The package names and the Plasma version the render gates were
+        # built on are the 24.04 image's; ubuntu-latest moved to 26.04 and
+        # its KWin does not answer ScreenShot2 under software rendering.
+        self.assertRegex(workflow, r"(?m)^\s+runs-on: ubuntu-24\.04$")
+        self.assertNotRegex(workflow, r"(?m)^\s+runs-on: ubuntu-latest$")
+
     def test_workflow_pins_the_python_development_version(self):
         workflow = self.read_workflow()
         matrix = re.search(
