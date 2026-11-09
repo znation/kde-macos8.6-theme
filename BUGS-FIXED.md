@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 37894f9d never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `37894f9dd3c0bcdce5d54cfa5df9e6060f4f25e0` (Move the register-checker helpers into tests/support/) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: settled as no-defect. Read the commit's full diff on main and re-verified its claims against the current tree: no live `from invariants`/`from placeholders` import remains anywhere under `tests/`; both register checkers import and parse at their new `support.` paths (`tests/support/invariants.py`, `tests/support/placeholders.py`); the only old-path strings left are the ledger `Reproduction` markers (`tests/support/validation_gaps/no_observability.py:67`, `no_fake.py:174` and `:186`) and the synthetic one-line-bullet fixture (`tests/test_validation_gaps.py:55`) that quote the BUGS-FIXED.md archive headings (e.g. its lines 3199 and 3225) byte-for-byte as history, exactly as the commit's self-check argued; and the shared-guard READERS list, the Makefile comment, the suite-discovery docstring and the README/PLANS/invariants/PLACEHOLDERS mentions were all updated consistently.
+
+**Validation gap:** none — there was no failure to reproduce: the review aborted before it could name one, and the settled commit's claims are confirmed by a tree-wide grep plus direct imports of both moved checkers at their new paths.
+
 ### post-merge review of c7957cd9 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `c7957cd902ff2ed142a22ea29941118bd207d3dd` (Escape the reference checker's printed problem list for the terminal) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
