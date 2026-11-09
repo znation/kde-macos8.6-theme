@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 243b57ce never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `243b57ceada718117f4b649f9dc672c81f80450c` (Add AugAssign `__all__` tests to the unused-import scanner suite) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: the commit is test-only and sound. The live tree at `tests/test_no_unused_imports.py:131` (`test_an_all_augassign_entry_re_exports_the_import`) and `:221` (`test_an_augassign_to_another_name_keeps_the_flag`) carries both added tests verbatim, and the allowance arm they exercise stands at `tests/support/unused_imports.py:117` (the `ast.AugAssign` elif feeding the `__all__`-target check) — the naked-name control still leaves the flag standing, the extend case still re-exports. `make check CHECK_PATTERN='test_no_unused_imports.py'` runs the module with both tests included and passes. Nothing wrong found.
+
+**Validation gap:** none — the existing suite reproduced and confirmed it; nothing was missing.
+
 ### post-merge review of 9b709858 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `9b70985879c1b765602adc504933a99ec703d997` (Paint the Firefox Library search box as the Platinum line edit) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
