@@ -118,10 +118,6 @@ def main(argv: list[str] | None = None) -> int:
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
-        # One channel-delta pass serves every pixel report the run
-        # requested: it derives each pixel's per-channel deltas once and each
-        # report reads the same strings. Any requested pixel option turns it
-        # on; the default output, which reads none of them, pays nothing.
         wants_flags = (
             args.difference_rows or args.difference_columns
             or args.difference_row_bounds or args.difference_column_bounds
