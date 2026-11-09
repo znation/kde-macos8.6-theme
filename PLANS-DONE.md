@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Uninstall selection diagnostics: split the oversized dispatcher by config surface (planned 2026-11-09 by the organize role) — done 2026-11-09 by the feature role
+
+**Goal.** Reduce the 508-line `tools/uninstall_diagnostics.py` outlier and make each selection family's checks readable without changing the diagnostics, their order, or parsing. The production Python median is 136 lines; `diagnostics()` alone spans roughly lines 203–472 and owns unrelated live selections and defaults-layer selections in one dispatcher.
+
+**Target structure and files.** Keep `tools/uninstall_diagnostics.py` as the CLI and ordered coordinator. Move the parser state and helpers (`config_home`, bounded `read_text`, `read_selected_values`, `latched_match`, `_flat_text`, and constants) into `tools/uninstall_config.py`, updating the parity corpus declaration in `tests/support/kde_ini_corpus.py` and `tests/test_kde_ini_parity.py` so the extracted scanner remains directly covered. Move live-config handlers (kdeglobals, GTK settings/CSS, Kvantum, plasmarc, kcminputrc, kwinrc) into `tools/uninstall_live_diagnostics.py`; move defaults-layer handlers (ksplashrc, package, and kdedefaults mirrors) into `tools/uninstall_defaults_diagnostics.py`. Each handler accepts the config root and the ids it needs and returns messages; the coordinator calls them in the existing recipe order and retains `_font_diagnostics` with the KDE handler. Update every import and path reference in tests and docs.
+
+**Cost removed.** Today a single large `diagnostics()` function interleaves live settings with the defaults layer, while the same module also owns CLI parsing, bounded file reads, and INI scanning. That makes a change to one selection family require navigating a long function and obscures the boundary between active and fallback config state.
+
+**Acceptance criteria.** Message text, message ordering, missing/unreadable-file behavior, caps, and direct-script and package CLI behavior remain unchanged. The parity test continues to exercise the moved reader and its special GTK latch behavior. Tests still cover each diagnostic; grep across source, tests, and Markdown finds no stale old module paths or moved function references. `make check` passes after the final edit.
+
 ### Reference-pixel sampler: bound retained horizontal match intervals while paging (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal and grounding.** Make `--max-match-runs N` bound horizontal interval storage as well as output. `tools/sample_match_runs.py::_MatchRuns._close_run` previously appended each horizontal interval before `_search_match` filtered and sliced the completed list.

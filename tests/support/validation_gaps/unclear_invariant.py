@@ -27,7 +27,7 @@ UnclearInvariant = namedtuple(
 KDE_INI_GUARANTEE = (
     "The three KDE INI readers (`support.kde_config.read`, "
     "`theme_defaults.defaults_groups` and the uninstall diagnostics reader "
-    "(`tools.uninstall_diagnostics.py`)) "
+    "(`tools.uninstall_config.py`)) "
     "agree on one shared corpus's `[General] ColorScheme` selection: `=` is "
     "the only key/value delimiter (a colon-delimited line is ignored), each "
     "line is trimmed, section and key names are case-sensitive, the last "

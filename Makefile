@@ -838,9 +838,12 @@ _uninstall:
 # (`ksplashrc`, `package`, `kdeglobals`, `kwinrc`, `plasmarc`). The
 # diagnostics are warnings only -- none may edit the user's config files,
 # which the recipes above own; the readers share one scanner in
-# tools/uninstall_diagnostics.py, which resolves the config home the way this
+# tools/uninstall_config.py, which resolves the config home the way this
 # recipe did (`XDG_CONFIG_HOME` absolute, else `$HOME/.config`) and keeps the
-# read rules the corpus in tests/support/kde_ini_corpus.py pins. The scan of
+# read rules the corpus in tests/support/kde_ini_corpus.py pins; the handlers
+# for one config surface each live in tools/uninstall_live_diagnostics.py and
+# tools/uninstall_defaults_diagnostics.py, so tools/uninstall_diagnostics.py
+# only owns the CLI and the ordered calls. The scan of
 # one shell spawned one extra child per diagnostic before; the module is one
 # child and a diagnostic failure is still never uninstall's failure.
 	@$(PYTHON) tools/uninstall_diagnostics.py --scheme-id "$(COLOR_SCHEME_ID)" --icon-id "$(ICON_THEME_ID)" --kvantum-id "$(KVANTUM_ID)" --gtk-id "$(GTK_ID)" --desktop-id "$(DTHEME_ID)" --lnf-id "$(LNF_ID)" --aurorae-id "$(AURORAE_ID)" --css-marker "$(GTK_USER_CSS_MARKER)" || true

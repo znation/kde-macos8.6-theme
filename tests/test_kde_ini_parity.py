@@ -2,7 +2,7 @@
 
 The theme tests read KDE INI with `support.kde_config.read`, the global
 theme's `contents/defaults` with `tools.theme_defaults.defaults_groups`, and
-`make uninstall` reads `kdeglobals` through `tools.uninstall_diagnostics.py`. Each reader used to
+`make uninstall` reads `kdeglobals` through `tools.uninstall_config.py`. Each reader used to
 learn a quirk on its own, so a rule fixed in one was not checked in the other
 two. This module feeds the shared corpus in `support.kde_ini_corpus` through
 every reader and asserts they resolve the same selection, except that

@@ -17,7 +17,7 @@ import unittest
 from support import theme_install
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
-from tools import containment, uninstall_diagnostics
+from tools import containment, uninstall_config, uninstall_diagnostics
 
 STYLE_RESET = "kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete"
 STYLE_RULE_TAIL = (
@@ -59,20 +59,20 @@ class TestReaderCap(unittest.TestCase):
     def read_case(self, body):
         tmp = str(make_tmp_dir(self))
         path = write_bytes(os.path.join(tmp, "config", "kdeglobals"), body)
-        return tmp, path, uninstall_diagnostics.read_text(path)
+        return tmp, path, uninstall_config.read_text(path)
 
     def test_a_config_at_the_cap_is_read_whole(self):
-        cap = uninstall_diagnostics._MAX_CONFIG_BYTES
+        cap = uninstall_config._MAX_CONFIG_BYTES
         _tmp, _path, text = self.read_case(kdeglobals_bytes(cap, False))
         self.assertEqual(len(text), cap)
 
     def test_a_config_one_byte_past_the_cap_is_left_unread(self):
-        cap = uninstall_diagnostics._MAX_CONFIG_BYTES
+        cap = uninstall_config._MAX_CONFIG_BYTES
         _tmp, _path, text = self.read_case(kdeglobals_bytes(cap, True))
         self.assertIsNone(text)
 
     def test_an_over_cap_file_keeps_every_byte_it_had(self):
-        cap = uninstall_diagnostics._MAX_CONFIG_BYTES
+        cap = uninstall_config._MAX_CONFIG_BYTES
         tmp, path, _text = self.read_case(kdeglobals_bytes(cap, True))
         self.assertEqual(
             os.path.getsize(path), len(kdeglobals_bytes(cap, True))
@@ -108,7 +108,7 @@ class TestReaderFifo(unittest.TestCase):
 
         with mock.patch.object(os.path, "isfile", return_value=True), \
                 mock.patch.object(
-                    uninstall_diagnostics, "open", create=True,
+                    uninstall_config, "open", create=True,
                     return_value=io.BytesIO(body),
                 ), \
                 mock.patch.object(
@@ -116,7 +116,7 @@ class TestReaderFifo(unittest.TestCase):
                 ):
             # A reader that opens the pipe and reads its held bytes does not
             # refuse the swap: it answers with selections instead of None.
-            self.assertIsNone(uninstall_diagnostics.read_text(fifo))
+            self.assertIsNone(uninstall_config.read_text(fifo))
 
     def test_a_fifo_at_the_path_is_silent_without_a_swap(self):
         # Calibration: an unswapped FIFO stays silent either way -- the
@@ -128,7 +128,7 @@ class TestReaderFifo(unittest.TestCase):
         fifo = os.path.join(tmp, "config", "kdeglobals")
         os.makedirs(os.path.dirname(fifo), exist_ok=True)
         os.mkfifo(fifo)
-        self.assertIsNone(uninstall_diagnostics.read_text(fifo))
+        self.assertIsNone(uninstall_config.read_text(fifo))
 
 
 class TestRecipeCap(unittest.TestCase):
@@ -140,7 +140,7 @@ class TestRecipeCap(unittest.TestCase):
         )
 
     def test_a_config_at_the_cap_still_warns(self):
-        cap = uninstall_diagnostics._MAX_CONFIG_BYTES
+        cap = uninstall_config._MAX_CONFIG_BYTES
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_bytes(
@@ -158,7 +158,7 @@ class TestRecipeCap(unittest.TestCase):
             self.assertEqual(original, handle.read())
 
     def test_an_over_cap_config_stays_silent_and_the_recipe_succeeds(self):
-        cap = uninstall_diagnostics._MAX_CONFIG_BYTES
+        cap = uninstall_config._MAX_CONFIG_BYTES
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_bytes(
@@ -190,7 +190,7 @@ class TestGtkMarkerSharesTheCap(unittest.TestCase):
         # The trailing newline is one of the cap's bytes: the file stays at
         # exactly _MAX_CONFIG_BYTES and must be read and named.
         unit = "x" * (
-            uninstall_diagnostics._MAX_CONFIG_BYTES - len(CSS_MARKER) - 1
+            uninstall_config._MAX_CONFIG_BYTES - len(CSS_MARKER) - 1
         )
         messages = self.messages_for((CSS_MARKER + unit + "\n").encode("utf-8"))
         self.assertEqual(len([m for m in messages if "gtk.css" in m]), 1)
@@ -198,7 +198,7 @@ class TestGtkMarkerSharesTheCap(unittest.TestCase):
     def test_a_marker_css_past_the_cap_is_not_reported(self):
         # One byte past the cap, the reader leaves the marker unseen.
         unit = "x" * (
-            uninstall_diagnostics._MAX_CONFIG_BYTES - len(CSS_MARKER)
+            uninstall_config._MAX_CONFIG_BYTES - len(CSS_MARKER)
         )
         messages = self.messages_for((CSS_MARKER + unit + "\n").encode("utf-8"))
         self.assertEqual([m for m in messages if "gtk.css" in m], [])

@@ -11,8 +11,9 @@ earlier one of ours, and `tools/gtk_settings.py::-remove_theme_name` deletes
 those duplicate-key spellings too. The ini lookup rule the module's other
 diagnostics share is last-value-wins (``tests/support/kde_ini_corpus.py``
 pins it); the latch is the GTK diagnostic's own contract, pinned here
-through ``tools/uninstall_diagnostics.py``'s ``diagnostics`` and through
-`_uninstall` itself, without editing any file.
+through ``tools/uninstall_diagnostics.py``'s ``diagnostics``, through
+``tools/uninstall_config.py``'s ``latched_match`` and through ``_uninstall``
+itself, without editing any file.
 """
 
 import os
@@ -21,7 +22,7 @@ import unittest
 from support import theme_install
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
-from tools import uninstall_diagnostics
+from tools import uninstall_config, uninstall_diagnostics
 
 CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
 GTK_ID = "org.macos8.desktop"
@@ -73,7 +74,7 @@ class TestGtkSettingsLatch(unittest.TestCase):
         # so reusing it here would go silent on ours first, foreign last --
         # the spelling a hand-edit or a foreign selector leaves behind.
         self.assertTrue(
-            uninstall_diagnostics.latched_match(
+            uninstall_config.latched_match(
                 f"[Settings]\n{OURS}\n{FOREIGN}\n",
                 "Settings",
                 "gtk-theme-name",
@@ -86,7 +87,7 @@ class TestGtkSettingsLatch(unittest.TestCase):
         # lines set `found`, so our line in the earlier section keeps the
         # file marked even when `[Other]` carries the foreign value.
         self.assertTrue(
-            uninstall_diagnostics.latched_match(
+            uninstall_config.latched_match(
                 f"[Settings]\n{OURS}\n[Other]\n{FOREIGN}\n",
                 "Settings",
                 "gtk-theme-name",
@@ -96,12 +97,12 @@ class TestGtkSettingsLatch(unittest.TestCase):
 
     def test_a_foreign_section_or_value_alone_never_latches(self):
         self.assertFalse(
-            uninstall_diagnostics.latched_match(
+            uninstall_config.latched_match(
                 f"[Other]\n{OURS}\n", "Settings", "gtk-theme-name", GTK_ID
             )
         )
         self.assertFalse(
-            uninstall_diagnostics.latched_match(
+            uninstall_config.latched_match(
                 f"[Settings]\n{FOREIGN}\n", "Settings", "gtk-theme-name", GTK_ID
             )
         )
