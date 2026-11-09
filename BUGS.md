@@ -270,6 +270,10 @@ The post-merge review of commit `97f6c248fedb4d32d3ac0bcbc5d84c4df4ac09a7` (Add 
 
 The post-merge review of commit `dd5937a3252314dce97d0a87ef7d46bbfe172c5b` (Add a GTK 3 focus outline for flow-box children) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 9f35b16a never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `9f35b16a4ebad0f8b7ce052d9d142c027c2d2a29` (Add an explicit focus outline to GTK 3 expander titles) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
