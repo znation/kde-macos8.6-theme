@@ -278,6 +278,10 @@ The post-merge review of commit `572fb8c022f925bf7fca2ff209da2f3f7bdf5d53` (Fix 
 
 The post-merge review of commit `a3f6ce0f0b094a6f10310e21b2447730d767725b` (Paint GTK 3 application notifications with the Platinum band) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 0caac668 never reached a verdict (found by the review role 2026-11-09)
+
+The post-merge review of commit `0caac66850897b63f8bf7e33c1971902c94ec097` (Escape control characters in parallel-check diagnostics) never reached a verdict: fix did not merge: merge_conflict. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
