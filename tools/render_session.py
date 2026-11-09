@@ -91,6 +91,12 @@ class Session:
                 # capture is refused before Spectacle can write the PNG.
                 # Disable the check only for this scratch session.
                 KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
+                # Spectacle constructs its Wayland video platform even for a
+                # still capture; that path binds KWin's screencast interface
+                # and starts PipeWire, which the headless runner does not run.
+                # A still render has no video platform, so force Spectacle's
+                # null one (its documented testing override) in this session.
+                SPECTACLE_VIDEO_PLATFORM="VideoPlatformNull",
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
                 HOME=str(home),

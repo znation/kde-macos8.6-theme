@@ -314,6 +314,16 @@ class TestSessionSetup(unittest.TestCase):
                 session.environment["KWIN_SCREENSHOT_NO_PERMISSION_CHECKS"],
             )
 
+    def test_environment_forces_spectacles_null_video_platform(self):
+        # Spectacle would otherwise build its Wayland video platform even for
+        # a still capture and wait on a nonexistent PipeWire/screencast
+        # service before the capture starts.
+        with render_session.Session.create() as session:
+            self.assertEqual(
+                "VideoPlatformNull",
+                session.environment["SPECTACLE_VIDEO_PLATFORM"],
+            )
+
     def test_environment_drops_the_callers_session(self):
         ambient = {
             "WAYLAND_DISPLAY": "wl",
