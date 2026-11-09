@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of cfcbc183 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `cfcbc183c5e182284b601dc81238c2a2f50edf4a` (Clear the stock GTK 3 scroll overshoot glows in the Platinum sheet) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: every landed piece of the commit verifies at HEAD. The commit's plan (Platinum GTK 3 scroll areas: clear the stock overshoot edge glows) is archived at PLANS-DONE.md line 7161 with its "— done 2026-10-30 by the feature role" stamp. The delivered rule stands: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` lines 1028–1041 hold the one grouped rule listing the eight stock overshoot arm selectors (`scrolledwindow overshoot.top`/`.bottom`/`.left`/`.right` and their `:backdrop` versions) verbatim declaring `background-image: none`. The commit wrote its two tests into `tests/test_gtk_theme.py`; a later merge moved them intact to `tests/test_gtk_theme_scrollbars.py::TestGtkThemeScrollbars::test_overshoot_glows_cleared` and `...::test_overshoot_backdrop_glows_cleared`, and `docs/invariants.md` line 406 names both at the moved path with the eight-arm inventory, its gresource-extraction provenance and the broadway runtime probe. Both tests pass in this worktree under `make check CHECK_TESTS=test_gtk_theme_scrollbars.TestGtkThemeScrollbars` (the run reaches both overshoot tests, prints OK and no FAILED/ERROR line). Nothing wrong found to fix.
+
+**Validation gap:** none — the archive record, sheet rule, pinning tests and invariants row all covered the commit's landing; verifying them needed no new repro.
+
 ### post-merge review of 64cd32e1 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `64cd32e1d6ea2719862f5ac0ab15da0f65bbcbaf` (Record an unopenable worker log in check_parallel instead of a traceback) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

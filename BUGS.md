@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of cfcbc183 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `cfcbc183c5e182284b601dc81238c2a2f50edf4a` (Clear the stock GTK 3 scroll overshoot glows in the Platinum sheet) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 31561db0 never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `31561db0f51dd3b83b6c022494d8d6d2003207b3` (Share one helper for each GTK 4 scale-anchored focus assertion) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
