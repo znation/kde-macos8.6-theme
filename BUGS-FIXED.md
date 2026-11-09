@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 65c4594a never reached a verdict — fixed 2026-11-09 by the bugfix role (found by the review role 2026-11-09)
+
+Reviewed commit `65c4594a242f5f847fb44345e1b325be52c1b3cf`: its four SVG comments accurately describe the assets and their geometry tests; corrected the up-arrow comment's broken test reference. The SVG changes are comments only.
+
+**Validation gap:** none — the review was a source inspection and found a documentation-only typo; no runtime behavior was involved.
+
 ### post-merge review of ea5a840d never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 Fix: Reviewed the added `write_rgba_cursor` cases against the shared frame validator and the parallel PNG-writer rejection tests. The RGBA tests cover named payload/type, record length, each numeric field's name and representative type or range failures; the byte-buffer length remains covered by its existing test. The diff correctly pins the shared validation behavior through the RGBA entry point.
