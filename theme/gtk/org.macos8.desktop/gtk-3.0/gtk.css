@@ -1419,7 +1419,8 @@ infobar > revealer > box {
    #DDDDDD face, black text and the etched bottom rule. The search entry keeps
    the entry field and the close and action buttons keep the button paint;
    stock's tighter band padding and window-dragging stay inherited
-   per-property, and :backdrop stays out of scope. Stock (libgtk-3's
+   per-property, and the dated backdrop record below keeps the band face
+   in an unfocused window. Stock (libgtk-3's
    compiled default resource) groups the location strip with the search-bar
    band box in four arms, painting a greige face and rim; no collected
    reference screenshot shows a GTK location strip — the standing GTK-scope
@@ -1432,6 +1433,43 @@ actionbar > revealer > box,
   color: #000000;
   border-bottom: 1px solid #888888;
   box-shadow: inset 0 -1px #FFFFFF;
+}
+
+/* 2026-11-09: the band keeps its landed face in an unfocused window. No
+   collected reference screenshot shows a GTK search bar, location strip,
+   action bar or inline toolbar in an unfocused window — the standing
+   GTK-scope adaptation premise — so the values restate the landed band
+   recipe (the landed infobar band, INFOBAR in
+   tests/support/gtk_theme_spec.py). Stock's own backdrop arms were probed
+   2026-11-09 with `gresource extract` against the toolkit resource
+   (gtk-contained.css inside libgtk-3; the full resource path is recorded in
+   docs/invariants.md): line 580 groups `.inline-toolbar:backdrop,
+   searchbar > revealer > box:backdrop, .location-bar:backdrop` and line
+   1518 arms `actionbar > revealer > box:backdrop`, each repainting the band
+   to stock's greige face and warm-grey rim ink (both literals elided here
+   per the palette convention; the verbatim values live in
+   docs/invariants.md), erasing the landed inset highlight with
+   `box-shadow: none` and fading the flip through a 200ms ease-out; the
+   resource's dark twin declares the identical-shaped arms. Each stock
+   backdrop arm out-specifies the landed band group's own member by one
+   pseudo-class, so the selectors below spell their stock twins byte-equal
+   and win every tie by later user-sheet source order. The record declares
+   only the four properties stock's arms touch. Exclusions: no
+   `.inline-toolbar:backdrop` spelling — the landed inline-toolbar record
+   keeps stock's own face in focused and unfocused windows alike, squaring
+   only the corners; no `color` restate — stock's backdrop arms set none;
+   no geometry, padding or margin value. `border-bottom-color` rather than
+   `border-color`: stock's actionbar arm keeps the bar's own 1px top rim
+   and the landed face speaks only for the bottom rule, so a blanket
+   recolour would flip the unfocused top rim the focused window shows at
+   stock grey. Declaration checks do not establish rendered pixels. */
+searchbar > revealer > box:backdrop,
+.location-bar:backdrop,
+actionbar > revealer > box:backdrop {
+  background-color: #DDDDDD;
+  border-bottom-color: #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+  transition: none;
 }
 
 /* A status bar draws the menu-bar band: the #DDDDDD face, black text and the

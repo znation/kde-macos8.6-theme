@@ -1773,6 +1773,36 @@ for radio in (False, True):
     def test_action_bar(self):
         self.assert_infobar(("actionbar > revealer > box",))
 
+    def test_search_bar_backdrop(self):
+        # An unfocused window keeps the landed band face (2026-11-09): the
+        # backdrop record spells its stock twin byte-equal and wins the tie
+        # by later user-sheet source order.
+        declarations = {
+            "background-color": FACE,
+            "border-bottom-color": ETCH_DARK,
+            "box-shadow": f"inset 0 -1px {WHITE}",
+            "transition": "none",
+        }
+        self.assert_rule_group(
+            {"searchbar > revealer > box:backdrop": declarations}
+        )
+        self.assertEqual(
+            {s for s in self.rules if s.startswith("searchbar") and ":backdrop" in s},
+            {"searchbar > revealer > box:backdrop"},
+        )
+        # Stock GTK 4 declares neither an action-bar backdrop arm nor a
+        # location strip, so no such spelling belongs here.
+        self.assertNotIn("actionbar > revealer > box:backdrop", self.rules)
+        self.assertFalse([s for s in self.rules if "location-bar" in s])
+        self.assertGreater(
+            self.css.index("searchbar > revealer > box:backdrop"),
+            self.css.index("actionbar > revealer > box {"),
+        )
+        self.assertLess(
+            self.css.index("searchbar > revealer > box:backdrop"),
+            self.css.index("statusbar {"),
+        )
+
     def test_status_bar(self):
         self.assert_infobar(("statusbar",))
 
