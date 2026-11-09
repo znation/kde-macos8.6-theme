@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of b1d277b1 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `b1d277b110f890c900d0ee2660f50400218bf3f7` (Add and document the GTK 3 icon-view focus outline) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main and checked the landed state at HEAD — the GTK 3 sheet still carries the dated comment and the `iconview:focus` rule restating exactly `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0` right after the `treeview.view:focus` block and before the flow-box block; the pin now lives at `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_iconview_focus_outline` via the shared `assert_dotted_focus_outline` helper (anchored to `button:focus`), which I ran and watched pass; `tests/test_gtk_theme_views.py::test_iconview_selected_arms` still finds `iconview:focus` among landed selectors; the docs/invariants.md row restates the rule, the button:focus recipe reuse, the Adwaita dashed-default provenance and the declaration-only scope. Nothing in the commit or anything since it landed is wrong.
+
+**Validation gap:** none — the statement is a settled review verdict, not a changed behavior, and the existing suite pins the rule it reviews.
+
 ### an unfounded `_None yet._` placeholder claims PLANS.md `## Planned` holds no entries (found by the bugfix role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 `make check` at main's tip `81921233143640c758cd3651a4b3aba129214fb7` fails `tests/test_backlog_placeholders.py` with two failures, both reporting `('## Planned',)` as an unfounded placeholder: the plan commit `b3e9ea01d` appended the GTK 3 scale marked-node geometry entry to `## Planned` without deleting the section's `_None yet._` claim (it sat at main's PLANS.md:8, directly above the new entry at line 10), and both `test_no_placeholder_claims_a_section_that_holds_an_entry` and `test_plans_sections_placeholders_match_their_entries` pin that a placeholder may only claim a genuinely empty section.
