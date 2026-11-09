@@ -114,7 +114,7 @@ def _ini_entries(text: str) -> Iterator[tuple[str | None, str, str]]:
     """
     section: str | None = None
     first = True
-    for raw in text.split("\n"):
+    for raw in text.splitlines():
         if first:
             first = False
             if raw.startswith(_BOM):
@@ -311,7 +311,8 @@ def diagnostics(
     # get finds it in the decoded text byte-for-byte; a shared-cap reader
     # cannot read this path while skipping the cap the ini reads have.
     css_text = read_text(css)
-    if css_text is not None and css_marker in css_text:
+    css_first_line = css_text.splitlines()[0] if css_text else ""
+    if css_first_line.removeprefix(_BOM).startswith(css_marker):
         chosen = f"{chosen} {css}"
     if chosen:
         messages.append(
