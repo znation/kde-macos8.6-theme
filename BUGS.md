@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### post-merge review of 3b60be19 never reached a verdict (found by the review role 2026-11-09)
-
-The post-merge review of commit `3b60be196d52dcb66b4197f45591bbb511822cbb` (Refuse shell metacharacters in CHECK_PATTERN and INSTALL_PACKAGES at make level) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 8ac91c5b never reached a verdict (found by the review role 2026-11-09)
 
 The post-merge review of commit `8ac91c5b605d34271c716f50501bfef72fa2229f` (Clear stock GTK 4 undershoot and overshoot bands in the Platinum gtk.css) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

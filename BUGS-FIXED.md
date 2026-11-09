@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 3b60be19 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+Fix: reviewed the commit's landing at HEAD. The Makefile carries both make-level refusals: the CHECK_PATTERN guard sits in the shared `refuse_unsafe_value` list at `Makefile:142` (since extended with `COLOR_SCHEME_NAME`, `CHECK_TESTS` and `CHECK_PARALLEL`) and its separate apostrophe refusal for the single-quoted `-p '$(strip $(CHECK_PATTERN))'` recipe words at `Makefile:150` and `Makefile:488`/`Makefile:490`; the INSTALL_PACKAGES guards sit at `Makefile:212` (control bytes) and `Makefile:213` (shell metacharacters at its unquoted `set -- $(INSTALL_PACKAGES)` position at `Makefile:327`), still checking a caller's value before `INSTALL_PACKAGES ?=` at `Makefile:319` defines the default. The commit's test classes landed intact after migrating between test files (`tests/test_theme_install.py` → `tests/test_make_refusals.py:606` and `tests/test_make_refusals.py:678`); docs/invariants.md row 698 names both variables, both refusal sets and both test classes, so no doc gap is left. Running the named classes passes, and a live probe of both vectors (`make check CHECK_PATTERN='testX"; touch <canary>; echo "'`, `make install INSTALL_PACKAGES='noop; echo'`) refuses at make level with the diagnostics naming the variables and leaves no canary file.
+
+**Validation gap:** none — the existing suite reproduced and confirmed it; nothing was missing.
+
 ### post-merge review of 7923474a never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `7923474a2cd53d3c75f1efaf851ed5d6331e1f65` (Add `THEME_ROOT` to the Makefile's parse-time refusal of shell-metacharacter make inputs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
