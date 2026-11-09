@@ -159,6 +159,13 @@ class TestCiWorkflow(unittest.TestCase):
             workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE: llvmpipe$"
         )
 
+    def test_workflow_pins_the_runner_image(self):
+        workflow = self.read_workflow()
+        # The package names the install step selects are 26.04's; the
+        # moving ubuntu-latest label must not decide the environment.
+        self.assertRegex(workflow, r"(?m)^\s+runs-on: ubuntu-26\.04$")
+        self.assertNotRegex(workflow, r"(?m)^\s+runs-on: ubuntu-latest$")
+
     def test_workflow_pins_the_python_development_version(self):
         workflow = self.read_workflow()
         matrix = re.search(
