@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 2843fac7 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `2843fac7ecb8824d3dbc79e408ef0ac86593d736` (Remove the dead private wrapper `_link_target` from tools/apply_cursor.py) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: read the commit's diff on main — a pure 5-line deletion of the private wrapper `_link_target` from tools/apply_cursor.py — and verified it removed nothing in use. A tree-wide grep over tools, tests, docs and the Makefile for `_link_target` matches nothing outside this BUGS.md record, so the wrapper truly had zero callers; tools/apply_cursor.py still imports `cursor_link` and retains `CURSOR_THEME`/`CursorError` plus the `_require_installed` and `_install_link` neighbors above the removed block, and tools/cursor_link.py still defines `link_target` (line 32) with `install_link` and `remove_link` — the callers the commit's WHY names — unchanged. Nothing was wrong; the commit lands as reviewed, verdict reached today by reading the diff instead.
+
+**Validation gap:** none — the existing suite covers apply_cursor.py; the review itself was only blocked, not the verification.
+
 ### post-merge review of 514cfd13 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `514cfd137f072b8df4777047d7917807e8c46174` (Extend the GTK 4 linked-group strip to menubutton, colorbutton, fontbutton and tabbutton members) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:09 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
