@@ -122,8 +122,21 @@ def main(argv: list[str] | None = None) -> int:
         # requested: it derives each pixel's per-channel deltas once and each
         # report reads the same strings. Any requested pixel option turns it
         # on; the default output, which reads none of them, pays nothing.
-        wants_deltas = (args.worst_pixels is not None or args.channel_counts
-                        or args.channel_maxima
+        wants_flags = (
+            args.difference_rows or args.difference_columns
+            or args.difference_row_bounds or args.difference_column_bounds
+            or args.difference_runs or args.difference_run_count
+            or args.longest_difference_run or args.difference_column_runs
+            or args.difference_column_run_count
+            or args.longest_difference_column_run or args.difference_centroid
+        )
+        # One channel-delta pass serves every pixel report and the flag
+        # scan for the spatial reports: it derives each pixel's per-channel
+        # deltas once and both families' inputs read the same strings. Any
+        # requested pixel or spatial option turns it on; the default output,
+        # which reads none of them, pays nothing.
+        wants_deltas = (wants_flags or args.worst_pixels is not None
+                        or args.channel_counts or args.channel_maxima
                         or args.delta_histogram or args.delta_percentiles)
         deltas = channel_deltas(candidate, reference) if wants_deltas else None
         worst = (worst_pixels(candidate, reference, args.tolerance,
@@ -144,18 +157,13 @@ def main(argv: list[str] | None = None) -> int:
         maxima = (channel_maxima(candidate, reference, deltas=deltas)
                   if args.channel_maxima else None)
         # One flags pass serves every spatial report the run requested: it
-        # derives each pixel's differing flag once and each scanline report
-        # reads the same string. Any requested spatial option turns it on;
-        # the default output, which reads none of them, pays nothing.
-        wants_flags = (
-            args.difference_rows or args.difference_columns
-            or args.difference_row_bounds or args.difference_column_bounds
-            or args.difference_runs or args.difference_run_count
-            or args.longest_difference_run or args.difference_column_runs
-            or args.difference_column_run_count
-            or args.longest_difference_column_run or args.difference_centroid
-        )
-        flags = (differing_flags(candidate, reference, args.tolerance)
+        # consumes the shared channel-delta list derived above -- spatial
+        # and pixel families read the same per-channel strings -- and each
+        # scanline report reads the same string. Any requested spatial
+        # option turns it on; the default output, which reads none of them,
+        # pays nothing.
+        flags = (differing_flags(candidate, reference, args.tolerance,
+                                 deltas=deltas)
                  if wants_flags else None)
         rows = (difference_rows(candidate, reference, args.tolerance, flags=flags)
                 if args.difference_rows else None)

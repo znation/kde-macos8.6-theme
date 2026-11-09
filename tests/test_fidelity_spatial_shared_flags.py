@@ -152,13 +152,13 @@ class TestCliSingleFlagsPass(FidelityCliTestCase):
         derivations: list[tuple[int, int, int]] = []
         real = fidelity.differing_flags
 
-        def counting(candidate_image, reference_image, tolerance):
+        def counting(candidate_image, reference_image, tolerance, **kwargs):
             derivations.append((
                 candidate_image.width,
                 candidate_image.height,
                 tolerance,
             ))
-            return real(candidate_image, reference_image, tolerance)
+            return real(candidate_image, reference_image, tolerance, **kwargs)
 
         args = ("--difference-rows", "--difference-runs", "--difference-centroid",
                 "--tolerance", "9")

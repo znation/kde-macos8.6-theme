@@ -2,12 +2,13 @@
 
 Every scan derives one 0/1 flag byte per pixel with the byte-level
 arithmetic :func:`tools.fidelity_metrics.compare` uses for its
-differing metric -- strided channel slices through
-``tools.byte_lanes.abs_diff``, each translated to a flag byte by a
-tolerance table, and the per-pixel channel flags ORed as one big
-integer -- instead of re-deriving per-pixel RGBA deltas in Python,
-which dominated a screenshot-sized spatial report.  Each scanline
-result then reads the returned row-major flag string through C-speed
+differing metric -- the shared per-channel absolute-delta byte strings
+:func:`tools.fidelity_pixels.channel_deltas` returns, each translated
+to a flag byte by a tolerance table, and the per-pixel channel flags
+ORed as one big integer -- instead of re-deriving per-pixel RGBA
+deltas in Python, which dominated a screenshot-sized spatial report.
+Each scanline result then reads the returned row-major flag string
+through C-speed
 ``bytes`` operations: ``count`` for axis counts, ``find``/``rfind``
 for bounds, and a compiled ``\\x01+`` run regex for interval runs; a
 column scanline is one strided ``flags[x::width]`` slice.
@@ -19,51 +20,47 @@ import re
 from collections.abc import Iterable, Iterator
 
 if __package__:
-    from tools.byte_lanes import abs_diff
     from tools.fidelity_metrics import over_table
+    from tools.fidelity_pixels import channel_deltas
     from tools.png import Image
 else:  # imported as the top-level package by a directly run CLI
-    from byte_lanes import abs_diff
     from fidelity_metrics import over_table
+    from fidelity_pixels import channel_deltas
     from png import Image
 
 _RUN = re.compile(b"\x01+")
 
 
-def differing_flags(candidate: Image, reference: Image, tolerance: int) -> bytes:
+def differing_flags(
+    candidate: Image, reference: Image, tolerance: int,
+    *, deltas: list[bytes] | None = None,
+) -> bytes:
     """Return one 0/1 flag byte per pixel, row-major.
 
     A pixel's flag is 1 when its maximum raw RGBA delta strictly exceeds
     *tolerance*: RGB deltas are read straight from the packed planes,
     including beneath transparency, and a missing alpha plane counts every
     pixel as opaque 255 -- the same union the CLI's ``compare`` call
-    computes. This is the module's only pass over the image planes; every
-    scanline report reads the flag string it returns.
+    computes. The derivation reads the shared per-channel absolute-delta
+    byte strings :func:`tools.fidelity_pixels.channel_deltas` returns --
+    the same list the pixel reports read -- translates each channel to a
+    flag byte through *tolerance*'s table, and ORs the channel flags per
+    pixel as one big integer.
 
-    The scan interface takes this string through the optional keyword-only
-    *flags* parameter: a run that requests several spatial reports computes
-    the pass once, up front, and hands the result to each call. Passing
-    ``None`` (the default) derives the string here, so every one-function
-    caller keeps the behaviour it had.
+    The scan interface takes the channel-delta list through the optional
+    keyword-only *deltas* parameter: a run that requests spatial and pixel
+    reports together computes that pass once, up front, and hands the same
+    list to this derivation and each pixel report. Passing ``None`` (the
+    default) derives the list here, so every one-function caller keeps the
+    behaviour it had.
     """
     width, height = candidate.width, candidate.height
-    pixels = width * height
-    pa, pb = candidate.rgb, reference.rgb
-    deltas = [abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)]
-    alpha_a, alpha_b = candidate.alpha, reference.alpha
-    if alpha_a is not None or alpha_b is not None:
-        if alpha_a is None or alpha_b is None:
-            # An Image without an alpha plane is fully opaque; representing it
-            # as 255 lets an RGB image be compared against an RGBA one.
-            opaque = bytes([255]) * pixels
-            alpha_a = opaque if alpha_a is None else alpha_a
-            alpha_b = opaque if alpha_b is None else alpha_b
-        deltas.append(abs_diff(alpha_a, alpha_b))
+    deltas = channel_deltas(candidate, reference) if deltas is None else deltas
     table = over_table(tolerance)
     flags = 0
     for delta in deltas:
         flags |= int.from_bytes(delta.translate(table), "little")
-    return flags.to_bytes(pixels, "little")
+    return flags.to_bytes(width * height, "little")
 
 
 def difference_rows(
