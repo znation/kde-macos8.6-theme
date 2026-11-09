@@ -62,7 +62,7 @@ def write_file(path, body):
     """Write *body* at *path*, creating its parent directory as needed.
 
     *body* may be ``str`` (encoded here as UTF-8) or ``bytes`` (written as
-    is). This is the one copy of the read-dirs-then-create-parent staging
+    is). This is the shared copy of the read-dirs-then-create-parent staging
     write: the recipe suites stage config-file contents under the test's
     config home with :func:`write_config_file`, the Firefox suites stage
     profile files through their local ``_write``/``write`` bindings, and the
@@ -83,11 +83,17 @@ def write_file(path, body):
     support/checker_scratch.py's ``_write`` adds containment and recording
     around its write, the kdedefaults suites' one-line direct ``write_file``
     call sites are already shared, not duplicated, test_invariants.py's
-    ``test_cross_check_rejects_a_non_utf8_register`` writes\ reads bytes
+    ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and
     tools/check_references_selftest.py stages inline in ``tools`` rather
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
+    Still unconverted next-run material is the further mkdir-then-write_text
+    staging family in tests/test_gtk_staging.py, tests/test_apply_cursor.py,
+    tests/test_apply_gtk_errors.py, tests/test_install_firefox.py (the
+    ``user.js`` fixture), tests/test_firefox_profile.py,
+    tests/test_local_hook.py (``write_fake_make``), tests/test_make_cursors.py,
+    tests/test_svg_case.py, and support/symlink_fixtures.py's content staging.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:

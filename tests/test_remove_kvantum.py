@@ -217,8 +217,7 @@ class TestSelectionRemoval(RemoveKvantumCase):
 
     def test_a_regular_file_at_the_kvantum_directory_path_is_refused(self):
         directory = self.config / "Kvantum"
-        self.config.mkdir(parents=True, exist_ok=True)
-        directory.write_text("theme=KvBreezeDark\n", encoding="utf-8")
+        write_file(directory, "theme=KvBreezeDark\n")
 
         result = self.run_tool()
 

@@ -83,8 +83,7 @@ class TestHelpers(unittest.TestCase):
     def test_markers_omits_text_without_the_token(self):
         tmp = make_tmp_dir(self)
         path = tmp / "theme" / "index.theme"
-        path.parent.mkdir(parents=True)
-        path.write_text("[Icon Theme]\nName=x\n", encoding="utf-8")
+        write_file(path, "[Icon Theme]\nName=x\n")
         self.assertEqual(markers(tmp), {})
 
     def test_markers_finds_markers_in_every_text_format_the_theme_ships(self):

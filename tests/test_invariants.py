@@ -418,9 +418,7 @@ class TestHelpers(unittest.TestCase):
         # rename) makes `os.listdir` raise `FileNotFoundError`, naming neither
         # the checker nor the directory.
         root = make_tmp_dir(self)
-        register = root / "docs" / "invariants.md"
-        register.parent.mkdir(parents=True)
-        register.write_text("## aurorae\n", encoding="utf-8")
+        register = write_file(root / "docs" / "invariants.md", "## aurorae\n")
         with self.assertRaisesRegex(AssertionError, "cannot be listed"):
             cross_check(str(root), str(register))
 
@@ -604,13 +602,12 @@ class TestHelpers(unittest.TestCase):
         # tree the register is meant to cover.
         base = make_tmp_dir(self)
         outside = base / "outside"
-        outside.mkdir()
-        (outside / self.MODULE).write_text(
+        write_file(
+            outside / self.MODULE,
             "import unittest\n\n\n"
             "class TestFake(unittest.TestCase):\n"
             "    def test_ok(self):\n"
             "        pass\n",
-            encoding="utf-8",
         )
         repo = base / "repo"
         (repo / "theme" / "aurorae").mkdir(parents=True)
@@ -618,12 +615,12 @@ class TestHelpers(unittest.TestCase):
         register.parent.mkdir(parents=True)
         for path in (str(outside / self.MODULE), f"../outside/{self.MODULE}"):
             with self.subTest(path=path):
-                register.write_text(
+                write_file(
+                    register,
                     "# Invariants\n\n## aurorae\n\n"
                     + self._table([("The thing holds.", f"{path}::TestFake")])
                     + "\n## tooling\n\n"
                     + self._table([("The gate holds.", f"{path}::TestFake::test_ok")]),
-                    encoding="utf-8",
                 )
                 with self.assertRaisesRegex(AssertionError, "outside the repository"):
                     cross_check(repo, str(register))
