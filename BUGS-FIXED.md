@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 4b284034 never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+The post-merge review of commit `4b284034b4ef77ca4b60d63a219c172df5ba4db8` (Refuse a DESTDIR, XDG_DATA_HOME or HOME carrying a recipe-shell metacharacter at make level) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Fix: reviewed the commit's diff against the live tree and found it sound, with the guard since extended (it now also covers `FLOCK_TIMEOUT`, `FIREFOX_PROFILE`, `CHECK_PATTERN` and the other recipe-word variables, per docs/invariants.md:692) and its tests reorganised, not lost — `TestShellUnsafeInstallPaths` now lives in `tests/test_make_refusals.py`. Read the guard in `Makefile` (`shell_unsafe_chars`/`shell_unsafe_in`/`metachar_refusal`, Makefile:77-103) and confirmed its rationale: those values are expanded into double-quoted recipe words where exactly a double quote, `$`, a backtick and a backslash are shell syntax, while spaces and apostrophes stay inert. Ran `make check CHECK_PATTERN='test_make_refusals.py'` (rc=0) and reproduced the commit's manual claim at main's tip: a hostile `"; touch canary; "` `DESTDIR` is refused at parse with rc=2, the diagnostic names the variable, the offending character and the value, and no canary file is created.
+
+**Validation gap:** none — the reorganised suite (`tests/test_make_refusals.py::TestShellUnsafeInstallPaths`) and a manual hostile-`DESTDIR` run reproduced and confirmed the behaviour.
+
 ### post-merge review of 064efd1f never reached a verdict (found by the review role 2026-11-09) — fixed 2026-11-09 by the bugfix role
 
 The post-merge review of commit `064efd1f0563a9902ad072df26ba8e3f8b1abea2` (Paint about:preferences XUL radios as the Platinum face and dot) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 2:24 AM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
