@@ -172,6 +172,23 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
                 self.assertIn(package_rule(path), result.stderr)
                 self.assertEqual(original, read_bytes(path))
 
+    def test_warns_for_a_bom_prefixed_package_file(self):
+        # _flat_text strips only the first line's byte-order mark, so a
+        # BOM-prefixed flat package name still trims back to ours: the flat
+        # scanner warns exactly as it does without the mark.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_file(
+            os.path.join(config, "kdedefaults", "package"), "\ufeff" + LNF_ID
+        )
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(package_rule(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
     # -- silent shapes -------------------------------------------------------
 
     def test_silent_without_a_kdedefaults_directory(self):
@@ -276,6 +293,26 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
 
                 assert_succeeded(self, result)
                 self.assertNotIn(package_rule(self.defaults_paths(config)[1]), result.stderr)
+
+    def test_silent_when_marker_bytes_reach_the_package_name(self):
+        # Only a byte-order mark leading the first line is stripped; one on a
+        # later line, or right behind the id, is a real byte of the flat
+        # name, as the awk scanner treated it, so the joined text breaks the
+        # match and the diagnostic stays silent. Nothing is edited either way.
+        for body in (LNF_ID + "\n\ufeff", "\n\ufeff" + LNF_ID + "\n", "\n" + LNF_ID + "\ufeff"):
+            with self.subTest(body=body):
+                tmp = str(make_tmp_dir(self))
+                config = os.path.join(tmp, "config")
+                path = write_file(
+                    os.path.join(config, "kdedefaults", "package"), body
+                )
+                original = read_bytes(path)
+
+                result = self.uninstall_with_config(tmp, config)
+
+                assert_succeeded(self, result)
+                self.assertNotIn(package_rule(path), result.stderr)
+                self.assertEqual(original, read_bytes(path))
 
     # -- config home resolution ----------------------------------------------
 
