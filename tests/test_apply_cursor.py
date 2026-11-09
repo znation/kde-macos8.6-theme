@@ -453,6 +453,39 @@ class TestRemove(CursorCase):
         assert_succeeded(self, self.run_tool("--remove"))
         assert_succeeded(self, self.run_tool("--remove"))
 
+    def test_a_missing_data_home_still_removes_our_link(self):
+        # make uninstall clears the whole data home before the removal runs,
+        # so the last thing the removal sees can be a data home that is gone.
+        # cursor_workflow.remove stats the data home only to learn whether a
+        # directory flock is even available: an absent home means no lock, and
+        # the removal must still take its own link down (a run that instead
+        # locked unconditionally would fail at os.open's O_DIRECTORY flag).
+        self.make_our_link()
+        self.assertFalse(self.data.exists())
+
+        result = self.run_tool("--remove")
+
+        assert_succeeded(self, result)
+        self.assertNotIn("cannot lock", result.stderr)
+        self.assertNotIn("cannot inspect", result.stderr)
+        self.assertFalse(os.path.lexists(self.link))
+        self.assertTrue((self.home / ".icons").is_dir())
+
+    def test_a_non_directory_data_home_still_removes_our_link(self):
+        # A stray regular file at the data-home path carries no directory
+        # inode to flock; attempting the lock would fail os.open's
+        # O_DIRECTORY check, so the non-directory state must skip the lock
+        # and still remove the link instead of printing a refusal.
+        self.make_our_link()
+        self.data.write_text("stray\n", encoding="utf-8")
+
+        result = self.run_tool("--remove")
+
+        assert_succeeded(self, result)
+        self.assertNotIn("cannot lock", result.stderr)
+        self.assertFalse(os.path.lexists(self.link))
+        self.assertTrue((self.home / ".icons").is_dir())
+
     def test_removal_leaves_a_foreign_symlink_dir_and_file(self):
         for kind in ("symlink", "directory", "file"):
             with self.subTest(kind=kind):
