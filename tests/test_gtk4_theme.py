@@ -3945,6 +3945,59 @@ for radio in (False, True):
             {name: base[name] for name in expected},
         )
 
+    def test_headerbar_meter_faces(self):
+        """A meter embedded in the title band keeps the landed faces.
+
+        Stock's one headerbar-descended meter arm repaints troughs and
+        scale fills inside a headerbar with the stock band face; the
+        sheet restates the arm's spellings split by landed value so a
+        headerbar progress bar or scale keeps the landed `#EEEEEE`
+        trough face and the landed transparent fill and highlight
+        faces under either loading reading. The whole-dict reads kill
+        a stock band value, a dropped or added spelling, a merged
+        single group carrying one value and any value drift; the
+        occurrence sweep kills a stray twin or per-state split; the
+        order pin fixes the block between the landed fill/highlight
+        and hover/active highlight groups.
+        """
+        trough_expected = {"background-color": TROUGH}
+        fill_expected = {"background-color": "transparent"}
+        self.assert_rule_group(
+            {
+                "headerbar progressbar > trough": trough_expected,
+                "headerbar scale > trough": trough_expected,
+                "headerbar scale > trough > fill": fill_expected,
+                "headerbar scale > trough > highlight": fill_expected,
+            }
+        )
+        # The whole-sheet sweep: no other headerbar-descended trough,
+        # progressbar or scale spelling parses anywhere in the sheet.
+        def headerbar_meter_selector(selector):
+            tokens = set(selector.replace(">", " ").split())
+            return "headerbar" in tokens and tokens & {
+                "trough",
+                "progressbar",
+                "scale",
+            }
+
+        self.assertEqual(
+            {s for s in self.selectors if headerbar_meter_selector(s)},
+            {
+                "headerbar progressbar > trough",
+                "headerbar scale > trough",
+                "headerbar scale > trough > fill",
+                "headerbar scale > trough > highlight",
+            },
+        )
+        self.assert_rule_after(
+            "headerbar progressbar > trough, headerbar scale > trough {",
+            "scale > trough > fill, scale > trough > highlight {",
+        )
+        self.assert_rule_after(
+            "scale:hover > trough > highlight, scale:active > trough > highlight {",
+            "headerbar scale > trough > fill, headerbar scale > trough > highlight {",
+        )
+
     def test_osd_container_bands(self):
         selectors = (
             ".osd .scale-popup",

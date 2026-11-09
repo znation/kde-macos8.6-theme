@@ -1885,6 +1885,63 @@ scale > trough > fill, scale > trough > highlight {
   margin: 0;
 }
 
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+ * meter widget inside a headerbar, so a progress bar or scale under
+ * the title band keeps the landed meter faces this sheet already
+ * pins. The toolkit resource declares one headerbar-descended meter
+ * arm anywhere (probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css and
+ * gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-dark.css): light line 1081
+ * declares `headerbar progressbar > trough, headerbar scale > trough
+ * > fill, headerbar scale > trough { background-color: <greige>; }`
+ * and the dark twin carries the identical spelling at line 1069 with
+ * stock's near-black face value (every line in this region shifted
+ * -12), repainting troughs and scale fills inside the title band. The
+ * desktop integration library declares no headerbar-descended meter
+ * arm, and the GTK 3 resource declares none at all, so no GTK 3
+ * change rides along — names and paths recorded in
+ * docs/invariants.md. The restate below splits stock's comma group by
+ * landed value and sits later, so under either loading reading — a
+ * theme selection replacing the stock sheet entirely, where the
+ * restate is the only holder of the spellings, or the stock
+ * declarations riding as a lower sheet, where the restate wins the
+ * per-property tie at equal specificity — meters inside the title
+ * band keep the landed `#EEEEEE` trough face and the landed
+ * transparent fill and highlight faces, the value sources the
+ * `scale > trough`/`progressbar > trough` groups and the
+ * `scale > trough > fill, scale > trough > highlight` group above
+ * pin. Stock's arm claims only `background-color`, so the landed
+ * trough border, etch, radius and minimums stay governed
+ * per-property. Exclusions with per-property reasons: the disabled
+ * trough face arm (light 1083, dark 1071) is stock's own
+ * higher-specificity state repaint on the same spellings and its own
+ * separate face-state candidate — this sheet already answers the
+ * disabled progress member and the `scale:disabled` and
+ * `progressbar:disabled` filter groups; the two selected-row meter
+ * outline and border arms (light 1085 and 1095, dark twins shifted
+ * -12) are selected-row ink, not headerbar meters, and their outline
+ * and border members are separate ink candidates; the four `.osd`
+ * meter arms (light 1087, 1089, 1097 and 1099, dark twins shifted
+ * -12) are answered by the landed `.osd` block; the disabled
+ * highlight arm (light 1093, dark 1081) declares stock's own
+ * transparent answer that ties the landed transparent fill on that
+ * state's spelling, so nothing repaints; and the bare
+ * `scale > trough` outline arm (light 1103), the focus-visible
+ * outline arm (light 1105) and the outline-motion arm (light 1107,
+ * dark twins shifted -12) are the landed scale-focus groups' focus
+ * keys and the landed bare `scale` restate's motion riders. Declared
+ * 2026-11-09 by the feature role. */
+
+headerbar progressbar > trough, headerbar scale > trough {
+  background-color: #EEEEEE;
+}
+
+headerbar scale > trough > fill, headerbar scale > trough > highlight {
+  background-color: transparent;
+}
+
 /* 2026-10-29: no GTK scale interaction reference; keep the highlight transparent. */
 scale:hover > trough > highlight, scale:active > trough > highlight {
   background-image: none;
