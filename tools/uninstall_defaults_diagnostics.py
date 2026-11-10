@@ -14,18 +14,19 @@ from __future__ import annotations
 import os
 
 if __package__:
-    from tools.uninstall_config import _flat_text, read_selected_values, read_text
+    from tools.uninstall_config import (
+        _flat_text,
+        read_selected_values_at,
+        read_text,
+    )
 else:  # imported from a directly run tool
-    from uninstall_config import _flat_text, read_selected_values, read_text
+    from uninstall_config import _flat_text, read_selected_values_at, read_text
 
 
 def ksplashrc_messages(config_home: str, lnf_id: str) -> list[str]:
     """The splash selection the look-and-feel apply left in defaults."""
     path = os.path.join(config_home, "kdedefaults", "ksplashrc")
-    text = read_text(path)
-    if text is None:
-        return []
-    splash = read_selected_values(text, {"KSplash": ("Theme",)})
+    splash = read_selected_values_at(path, {"KSplash": ("Theme",)})
     if splash.get(("KSplash", "Theme")) == lnf_id:
         return [
             "uninstall: the splash selection the look-and-feel apply"
@@ -55,11 +56,8 @@ def package_messages(config_home: str, lnf_id: str) -> list[str]:
 def kdedefaults_kdeglobals_messages(config_home: str, icon_theme_id: str) -> list[str]:
     """The ``kdedefaults/kdeglobals`` mirror's style and icon selections."""
     path = os.path.join(config_home, "kdedefaults", "kdeglobals")
-    text = read_text(path)
-    if text is None:
-        return []
-    defaults = read_selected_values(
-        text, {"KDE": ("widgetStyle",), "Icons": ("Theme",)}
+    defaults = read_selected_values_at(
+        path, {"KDE": ("widgetStyle",), "Icons": ("Theme",)}
     )
     messages: list[str] = []
     if defaults.get(("KDE", "widgetStyle")) == "kvantum":
@@ -87,11 +85,8 @@ def kdedefaults_kdeglobals_messages(config_home: str, icon_theme_id: str) -> lis
 def kdedefaults_kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
     """The ``kdedefaults/kwinrc`` mirror's aurorae decoration selection."""
     path = os.path.join(config_home, "kdedefaults", "kwinrc")
-    text = read_text(path)
-    if text is None:
-        return []
-    defaults = read_selected_values(
-        text, {"org.kde.kdecoration2": ("library", "theme")}
+    defaults = read_selected_values_at(
+        path, {"org.kde.kdecoration2": ("library", "theme")}
     )
     if defaults.get(("org.kde.kdecoration2", "library")) == (
         "org.kde.kwin.aurorae"
@@ -116,10 +111,7 @@ def kdedefaults_kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
 def kdedefaults_plasmarc_messages(config_home: str, dtheme_id: str) -> list[str]:
     """The ``kdedefaults/plasmarc`` mirror's desktop theme selection."""
     path = os.path.join(config_home, "kdedefaults", "plasmarc")
-    text = read_text(path)
-    if text is None:
-        return []
-    defaults = read_selected_values(text, {"Theme": ("name",)})
+    defaults = read_selected_values_at(path, {"Theme": ("name",)})
     if defaults.get(("Theme", "name")) == dtheme_id:
         return [
             "uninstall: the desktop theme selection the look-and-feel"

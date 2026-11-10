@@ -141,6 +141,14 @@ def read_selected_values(
     return values
 
 
+def read_selected_values_at(
+    path: str, wanted: dict[str, tuple[str, ...]]
+) -> dict[tuple[str, str], str]:
+    """Read and select INI values at *path*, returning empty when unavailable."""
+    text = read_text(path)
+    return read_selected_values(text, wanted) if text is not None else {}
+
+
 def latched_match(text: str, section: str, key: str, expected: str) -> bool:
     """Report whether any ``[section] key=<expected>`` line stands.
 

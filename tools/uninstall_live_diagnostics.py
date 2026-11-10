@@ -17,14 +17,14 @@ if __package__:
     from tools.uninstall_config import (
         _BOM,
         latched_match,
-        read_selected_values,
+        read_selected_values_at,
         read_text,
     )
 else:  # imported from a directly run tool
     from uninstall_config import (
         _BOM,
         latched_match,
-        read_selected_values,
+        read_selected_values_at,
         read_text,
     )
 
@@ -82,11 +82,8 @@ def kdeglobals_messages(
 ) -> list[str]:
     """The live ``kdeglobals`` selections: scheme, style engine, fonts, LnF."""
     path = os.path.join(config_home, "kdeglobals")
-    text = read_text(path)
-    if text is None:
-        return []
-    kde = read_selected_values(
-        text,
+    kde = read_selected_values_at(
+        path,
         {
             "General": (
                 "ColorScheme",
@@ -173,10 +170,7 @@ def gtk_messages(config_home: str, gtk_id: str, css_marker: str) -> list[str]:
 def kvantum_messages(config_home: str, kvantum_id: str) -> list[str]:
     """The Kvantum theme named in the live kvconfig."""
     path = os.path.join(config_home, "Kvantum", "kvantum.kvconfig")
-    text = read_text(path)
-    if text is None:
-        return []
-    kvantum = read_selected_values(text, {"General": ("theme",)})
+    kvantum = read_selected_values_at(path, {"General": ("theme",)})
     if kvantum.get(("General", "theme")) == kvantum_id:
         return [
             f"uninstall: the Kvantum selection still names {kvantum_id}"
@@ -190,10 +184,7 @@ def kvantum_messages(config_home: str, kvantum_id: str) -> list[str]:
 def plasmarc_messages(config_home: str, dtheme_id: str) -> list[str]:
     """The desktop theme named in the live plasmarc."""
     path = os.path.join(config_home, "plasmarc")
-    text = read_text(path)
-    if text is None:
-        return []
-    desktop = read_selected_values(text, {"Theme": ("name",)})
+    desktop = read_selected_values_at(path, {"Theme": ("name",)})
     if desktop.get(("Theme", "name")) == dtheme_id:
         return [
             "uninstall: the desktop theme selection still names"
@@ -207,10 +198,7 @@ def plasmarc_messages(config_home: str, dtheme_id: str) -> list[str]:
 def kcminputrc_messages(config_home: str, icon_theme_id: str) -> list[str]:
     """The pointer theme named in the live kcminputrc."""
     path = os.path.join(config_home, "kcminputrc")
-    text = read_text(path)
-    if text is None:
-        return []
-    mouse = read_selected_values(text, {"Mouse": ("cursorTheme",)})
+    mouse = read_selected_values_at(path, {"Mouse": ("cursorTheme",)})
     if mouse.get(("Mouse", "cursorTheme")) == icon_theme_id:
         return [
             "uninstall: the pointer selection still names"
@@ -225,11 +213,8 @@ def kcminputrc_messages(config_home: str, icon_theme_id: str) -> list[str]:
 def kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
     """The live kwinrc decoration keys: button layout and aurorae theme."""
     path = os.path.join(config_home, "kwinrc")
-    text = read_text(path)
-    if text is None:
-        return []
-    deco = read_selected_values(
-        text,
+    deco = read_selected_values_at(
+        path,
         {"org.kde.kdecoration2": ("ButtonsOnLeft", "ButtonsOnRight", "library", "theme")},
     )
     messages: list[str] = []
