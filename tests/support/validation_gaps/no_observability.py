@@ -13,7 +13,7 @@ from .records import Reproduction
 
 # The number of ``no-observability`` records the archive held when the ledger
 # landed. A new record must be retired with a test instead of raising this.
-NO_OBSERVABILITY_BASELINE = 26
+NO_OBSERVABILITY_BASELINE = 27
 
 NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
@@ -101,5 +101,11 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
         ("negative `--run-offset` paging index",),
         "tests/test_sample_option_validation.py::TestSampleOptionValidation"
         "::test_offset_options_reject_negative_values_before_image_reads",
+    ),
+    Reproduction(
+        "dialog-gate-count-prose",
+        ("the dialog-gate count prose",),
+        "tests/test_dialog_gate_count_prose.py::TestDialogGateCountProse"
+        "::test_the_count_words_match_the_counts_derived_from_the_gate_classes",
     ),
 )

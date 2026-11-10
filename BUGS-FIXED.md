@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The landed --color-dialog gate left the dialog-gate count prose in one test comment, one docstring and the two paired invariants rows saying nine dialog gates and eight kdialog modes (found by the bugfix role 2026-11-10) — fixed 2026-11-10 by the bugfix role
+
+The color-dialog render gate landed in 534650a1d with the shared skip guard already covering its `TestColorDialogRender` (the gate list in `tests/test_render_surface.py` derives nothing from these words), but only some of the prose that counts the gates was updated along with it: `tests/test_render_surface.py`'s skip-guard comment and docstring still read "kdialog for the eight kdialog modes", `tests/test_ci_workflow.py`'s comment still read "the nine dialog gates" listing nine gate classes without `TestColorDialogRender`, and `docs/invariants.md`'s skip-guard row and software-renderer row still read "The nine dialog render gates ... kdialog for the eight kdialog modes" — while the sibling prose in the same lines had already moved to "the ten dialog gates" and "the nine kdialog modes". A reader trusting either stale surface would under-report the dialog surfaces the skip guard covers.
+
+Reproduce by grepping the count prose: `grep -n 'eight kdialog\|nine dialog' tests/test_ci_workflow.py docs/invariants.md tests/test_render_surface.py` shows the stale words beside fresh ones. The new derived guard `tests/test_dialog_gate_count_prose.py` counts the live `Test...DialogRender` gate classes in `tests/test_render_surface.py` and fails on all four stale prose sites before the fix (failures 9≠10 and 8≠9) and passes after.
+
+**Validation gap:** no-observability — the stale counts sat in comments, a docstring and doc prose that no test read, so the drift produced no failure and was found only by a manual grep; the new count guard now fails on any count word that lags the live gate classes.
+
 ### The Makefile render-mode parity test never pins the literal-argv `--lineedit-dialog` branch (found by the bugfix role 2026-11-10)
 
 `tests/test_render_make.py::TestRenderMake::test_default_and_explicit_modes_pass_literal_argv`
