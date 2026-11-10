@@ -36,13 +36,13 @@ def _section_name(line: str) -> str | None:
     return None
 
 
-def _key_name(line: str) -> str | None:
-    """Return the key name of a ``key=value`` line, else ``None``."""
+def _key_value(line: str) -> tuple[str, str] | None:
+    """Return the trimmed key and value of an assignment, else ``None``."""
     stripped = line.strip()
     if not stripped or stripped[0] in "#;":
         return None
-    name, separator, _ = stripped.partition("=")
-    return name.strip() if separator else None
+    name, separator, value = stripped.partition("=")
+    return (name.strip(), value.strip()) if separator else None
 
 
 def _split_bom(text: str) -> tuple[bool, str]:
@@ -119,11 +119,10 @@ def remove_key_from_section(
             focused = name
             kept.append((content, ending))
             continue
-        if focused == section and _key_name(content) == key:
-            found = content.split("=", 1)[1].strip()
-            if found == value:
-                removed = True
-                continue
+        assignment = _key_value(content)
+        if focused == section and assignment == (key, value):
+            removed = True
+            continue
         kept.append((content, ending))
     if not removed:
         return text, False
@@ -158,7 +157,10 @@ def set_theme_name(text: str, value: str) -> str:
             if name == "Settings" and header is None:
                 header = index
             continue
-        if section == "Settings" and _key_name(content) == "gtk-theme-name":
+        assignment = _key_value(content)
+        if section == "Settings" and assignment is not None and (
+            assignment[0] == "gtk-theme-name"
+        ):
             last_key = index
     assignment = f"gtk-theme-name={value}"
     if last_key is not None:
