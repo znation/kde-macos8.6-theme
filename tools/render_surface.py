@@ -15,8 +15,8 @@ Usage::
 
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
-        [--checkbox-dialog | --combobox-dialog | --menu-dialog
-        | --gtk-dialog]
+        [--checkbox-dialog | --combobox-dialog | --lineedit-dialog
+        | --menu-dialog | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -135,6 +135,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--lineedit-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog input box whose line edit the Kvantum engine "
+            "draws with the theme's sunken-field art, and capture it at the "
+            "480x360 size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--menu-dialog",
         action="store_true",
         help=(
@@ -185,6 +194,7 @@ def main(argv: list[str] | None = None) -> int:
         for flag, given in (
             ("--checkbox-dialog", args.checkbox_dialog),
             ("--combobox-dialog", args.combobox_dialog),
+            ("--lineedit-dialog", args.lineedit_dialog),
             ("--menu-dialog", args.menu_dialog),
             ("--gtk-dialog", args.gtk_dialog),
         )
@@ -227,7 +237,8 @@ def main(argv: list[str] | None = None) -> int:
     # Each dialog flag requires its own client by name, so the first missing
     # tool the diagnostic names is the client the requested mode opens.
     kdialog_flags = (
-        args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
+        args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
+        or args.menu_dialog
     )
     dialog_clients: tuple[str, ...] = ()
     if kdialog_flags:

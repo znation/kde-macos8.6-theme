@@ -33,6 +33,7 @@ from tools.render_clients import (
     checkbox_dialog_client,
     combobox_dialog_client,
     gtk_dialog_client,
+    lineedit_dialog_client,
     menu_dialog_client,
 )  # noqa: E402
 
@@ -76,6 +77,54 @@ class TestArguments(unittest.TestCase):
         args = workflow.call_args.args[0]
         self.assertEqual(1.25, args.settle)
         self.assertEqual(33.0, args.timeout)
+
+    def test_cli_delegates_the_lineedit_dialog_capture_size(self):
+        # A plain --lineedit-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--lineedit-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_lineedit_dialog(self):
+        # The dialog render opens its own kdialog client; a plasmoid id
+        # combined with it has no window to open it in.
+        self.assert_usage_error(
+            "out.png", "--lineedit-dialog", "--applet", "x"
+        )
+
+    def test_rejects_a_capture_size_with_the_lineedit_dialog(self):
+        # The gate byte-compares the dialog capture at 480x360; any other
+        # size makes the pinned crops wrong before the render runs.
+        self.assert_usage_error(
+            "out.png", "--lineedit-dialog", "--height", "240"
+        )
+
+    def test_rejects_two_dialog_modes_names_the_lineedit_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a lineedit mode
+        # flag missing from that list would print a refusal without its name.
+        for left, right in (
+            ("--lineedit-dialog", "--checkbox-dialog"),
+            ("--lineedit-dialog", "--menu-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_lineedit_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--lineedit-dialog")
+        )
 
     def test_cli_delegates_the_menu_dialog_capture_size(self):
         # A plain --menu-dialog run captures at the 480x360 the widget gate
@@ -554,6 +603,29 @@ class TestSessionCommand(unittest.TestCase):
             self.assertEqual(
                 list(combobox_dialog_client(None)),
                 words[-len(combobox_dialog_client(None)) :],
+            )
+
+    def test_carries_the_lineedit_dialog_client_words(self):
+        with self._dialog_command(lineedit_dialog_client) as (session, command):
+            # The input box's prompt travels as one quoted word despite its
+            # space, and no initial value follows it: the empty field keeps
+            # the caret at the field's left padding, which the gate's crop
+            # stays clear of.
+            self.assertEqual(
+                [
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--inputbox",
+                    "Choose a name:",
+                ],
+                list(lineedit_dialog_client(session)),
+            )
+            self.assertIn("'Choose a name:'", command.argv[-1])
+            words = shlex.split(command.argv[-1])
+            self.assertEqual(
+                list(lineedit_dialog_client(session)),
+                words[len(words) - len(lineedit_dialog_client(session)) :],
             )
 
     def test_gtk_dialog_client_opens_a_zenity_text_entry(self):

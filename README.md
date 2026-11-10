@@ -496,20 +496,21 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the four widget dialogs:
+Capture the default calculator or one of the five widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
 make render RENDER_MODE=gtk-dialog RENDER_OUTPUT=gtk.png
 python3 tools/render_surface.py checkbox.png --checkbox-dialog
 python3 tools/render_surface.py combobox.png --combobox-dialog
+python3 tools/render_surface.py lineedit.png --lineedit-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
 python3 tools/render_surface.py gtk.png --gtk-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
-set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `menu-dialog` or
-`gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
+set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
+`menu-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
@@ -548,13 +549,17 @@ it the same way, for the combo arrow gate
 captured at the same 480x360 size; the item-view gate
 (`tests/test_render_surface.py::TestMenuDialogRender`) byte-compares the item view's
 rendered border runs, its white interior and the current-item focus ring there.
+`--lineedit-dialog` opens a `kdialog` input box whose empty line edit the engine sinks
+with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
+(`tests/test_render_surface.py::TestLineInputDialogRender`) pins the field's sunken bevel
+right of the caret and the OK button's push-button frame there.
 `--gtk-dialog` opens a zenity text-entry dialog: zenity is a GTK 4 client, so with no
 theme-name CSS switch it wears the theme through the selection the render publishes into the
 scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The four dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The five dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -698,8 +703,8 @@ pushes and pull requests, on Python 3.13 with a checkout with Git LFS images
 materialized; the Makefile's targets still require Python 3.10 or newer at run
 time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
-`plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox and
-combobox dialog renders open, and the `zenity` client its GTK dialog render opens, so
+`plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox, combobox, line-edit and
+menu dialog renders open, and the `zenity` client its GTK dialog render opens, so
 `make check` reaches the rendered-pixel gates, including both dialog renders. Their
 software-renderer guard still skips captures in the workflow environment; installed tools
 are prerequisites, not proof that rendered pixels were compared. See [Running checks](#running-checks)
@@ -1264,8 +1269,8 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the four dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
-require `kdialog` for checkbox, combo box and menu or `zenity` for GTK. Direct Python commands
+the five dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+require `kdialog` for checkbox, combo box, line edit and menu or `zenity` for GTK. Direct Python commands
 remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
 non-default `--applet`:
 
@@ -1273,6 +1278,7 @@ non-default `--applet`:
 | --- | --- | --- |
 | Checkbox dialog | `python3 tools/render_surface.py --checkbox-dialog checkbox.png` | 480x360 |
 | Combo box dialog | `python3 tools/render_surface.py --combobox-dialog combobox.png` | 480x360 |
+| Line edit dialog | `python3 tools/render_surface.py --lineedit-dialog lineedit.png` | 480x360 |
 | Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
 | GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
 
@@ -1536,10 +1542,11 @@ window and byte-compares the title-bar strip (candidate `30,0,80,22` against ref
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
 region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
-`::TestComboboxDialogRender`, `::TestMenuDialogRender` and `::TestGtkDialogRender`) open a
-`kdialog` warning box, chooser and menu list and a `zenity` GTK 4 entry dialog and
-byte-compare the engine-drawn check box cell with the shipped `checkbox-*` canvas, the
-engine-drawn combo arrow with the shipped `comboarrow-normal` slice and the engine-drawn item
+`::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender` and
+`::TestGtkDialogRender`) open a `kdialog` warning box, chooser, input box and menu list and a
+`zenity` GTK 4 entry dialog and byte-compare the engine-drawn check box cell with the shipped
+`checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal` slice,
+the engine-drawn line edit with the shipped sunken-field arrangement and the engine-drawn item
 view frame with the shipped `GenericFrame` art. The GTK 4 dialog gate byte-compares the rendered
 entry-field cell with its shipped art and pins the rendered action-button row, Cancel button and
 CSD shell edge; it also checks capture-level invariants.

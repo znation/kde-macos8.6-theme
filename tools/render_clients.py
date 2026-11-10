@@ -63,6 +63,18 @@ def gtk_dialog_client(_session: Session) -> tuple[str, ...]:
     return ("zenity", "--title", "Test", "--entry", "--text", "Choose a name:")
 
 
+def lineedit_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the line-edit field gate renders.
+
+    A ``kdialog`` input box with a real empty ``QLineEdit``: the engine draws
+    its sunken field through this theme's ``[LineEdit]`` art, the pixels the
+    widget gate byte-compares. The empty field keeps the caret at the
+    field's left padding, so the pinned crop right of the caret carries no
+    caret byte.
+    """
+    return ("kdialog", "--title", "Test", "--inputbox", "Choose a name:")
+
+
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")

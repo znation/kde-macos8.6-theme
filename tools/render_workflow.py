@@ -15,6 +15,7 @@ if __package__:
         checkbox_dialog_client,
         combobox_dialog_client,
         gtk_dialog_client,
+        lineedit_dialog_client,
         menu_dialog_client,
     )
     from tools.render_session import Session, session_command
@@ -37,6 +38,7 @@ else:  # run directly from render_surface.py
         checkbox_dialog_client,
         combobox_dialog_client,
         gtk_dialog_client,
+        lineedit_dialog_client,
         menu_dialog_client,
     )
     from render_session import Session, session_command
@@ -84,8 +86,8 @@ def render(args: argparse.Namespace) -> int:
             return report_error(TOOL, f"cannot link {path}: {problem}")
 
         dialog = (
-            args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
-            or args.gtk_dialog
+            args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
+            or args.menu_dialog or args.gtk_dialog
         )
         try:
             write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
@@ -96,6 +98,8 @@ def render(args: argparse.Namespace) -> int:
             client = list(checkbox_dialog_client(session))
         elif args.combobox_dialog:
             client = list(combobox_dialog_client(session))
+        elif args.lineedit_dialog:
+            client = list(lineedit_dialog_client(session))
         elif args.menu_dialog:
             client = list(menu_dialog_client(session))
         elif args.gtk_dialog:
