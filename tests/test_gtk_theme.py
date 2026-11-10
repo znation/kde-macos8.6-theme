@@ -1038,6 +1038,20 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                     self.rules[selector], {"border-style": "none", "box-shadow": "none"}
                 )
 
+    def test_osd_button_states_follow_backdrop(self):
+        # These pairs tie on specificity. When both states match, the
+        # interactive state must win: checked/active keeps the inverted
+        # bevel, and disabled keeps its grey label in an inactive window.
+        for root in ("button.osd", ".app-notification button",
+                     "popover.background.touch-selection button",
+                     "popover.background.magnifier button", ".osd button"):
+            for state in ("hover", "active", "checked", "disabled"):
+                with self.subTest(root=root, state=state):
+                    self.assertLess(
+                        self.selectors.index(root + ":backdrop"),
+                        self.selectors.index(root + ":" + state),
+                    )
+
     def test_marked_scale_thumb_arms(self):
         """One-sided marked scales restated to the plain thumb recipe."""
         faces = {
