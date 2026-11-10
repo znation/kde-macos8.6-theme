@@ -104,6 +104,14 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### README navigation: consolidate the two workflow indexes (planned 2026-11-09 by the plan role)
+
+**Goal.** Give readers one introductory workflow index. README.md currently has a `## Contents` list before Prerequisites and a `## Navigation` list between Prerequisites and Installing; the latter repeats workflow destinations already present in Contents. The archived navigation entries added those lists separately; neither describes consolidating them. This is independent of the pending software-renderer coverage explanation.
+
+**Approach and files.** Edit README.md only: remove the `## Navigation` heading and its list, retaining `## Contents` in its current position and retaining its Prerequisites and Running checks links alongside the other workflow links. Preserve incoming `#navigation` links with an explicit `<a id="navigation"></a>` immediately before `## Contents`. Keep the brief/status blocks, destination sections and workflow prose intact. No new dependency, generated index or production code change is needed. `tests/test_readme_links.py::TestReadmeLinks.test_local_links_resolve` already checks the retained Markdown fragment destinations; its `local_link_errors` helper intentionally handles ATX destinations rather than HTML anchors, so verify the compatibility anchor directly without expanding that helper for this documentation edit.
+
+**Acceptance criteria.** Before Prerequisites, readers see one Contents list with the current destinations in document order; after the prerequisite table they reach Installing without a second workflow list. The retained Markdown links resolve under the existing local-link check. A `#navigation` link reaches the Contents position via the explicit anchor. Review the diff for preservation of the brief/status blocks and workflow instructions, check the anchor placement, and run `make check` after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
