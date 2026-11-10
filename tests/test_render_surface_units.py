@@ -12,6 +12,7 @@ dialog argv recipes in ``tools/render_clients.py``.
 from __future__ import annotations
 
 import contextlib
+import io
 import os
 import re
 import shlex
@@ -43,6 +44,9 @@ from tools.render_clients import (
     slider_dialog_client,
     textbox_dialog_client,
 )  # noqa: E402
+from tools.gtk_selection import ConfigError as _ConfigError  # noqa: E402
+from tools.gtk_selection import installed_sheet  # noqa: E402
+from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 class TestCapturePaintCheck(unittest.TestCase):
@@ -1151,6 +1155,64 @@ class TestSessionThemeSources(unittest.TestCase):
                 with self.assertRaisesRegex(OSError, "disk full"):
                     render_setup.write_kvantum_selection(session)
             self.assertEqual("previous selection\n", target.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def stage_installed_sheets(session, versions):
+        """Stage the installed GTK *versions*' sheets in *session*'s data home."""
+        for version in versions:
+            sheet = installed_sheet(session.data, version)
+            sheet.parent.mkdir(parents=True, exist_ok=True)
+            sheet.write_text("", encoding="utf-8")
+
+    def test_install_gtk_selection_publishes_both_settings_and_the_user_css(
+        self,
+    ):
+        # The lone --gtk-dialog pipeline test stubs this function, so without
+        # a direct drive a swapped sheet path, a dropped settings version or
+        # a Kvantum-facing theme id in the published CSS would reach the
+        # scratch session unobserved and fail only in the slow real render.
+        with render_session.Session.create() as session:
+            self.stage_installed_sheets(session, ("gtk-4.0", "gtk-3.0"))
+
+            render_setup.install_gtk_selection(session)
+
+            for version in ("gtk-4.0", "gtk-3.0"):
+                with self.subTest(version=version):
+                    settings = (
+                        session.config / version / "settings.ini"
+                    ).read_text(encoding="utf-8")
+                    self.assertIn("gtk-theme-name=org.macos8.desktop", settings)
+            css = (session.config / "gtk-4.0" / "gtk.css").read_text(
+                encoding="utf-8"
+            )
+            expected_sheet = installed_sheet(session.data, "gtk-4.0")
+            self.assertEqual(
+                f'{GTK4_CSS_MARKER}\n@import url("{expected_sheet.as_uri()}");\n',
+                css,
+                "the user CSS must be marker-led and import the gtk-4.0 sheet",
+            )
+
+    def test_install_gtk_selection_raises_naming_a_missing_sheet(self):
+        # `installed_sheets` reports the first missing sheet and returns None,
+        # which this function must turn into the `--gtk-dialog` workflow's
+        # ConfigError so `main` reports the failure and removes the scratch
+        # session instead of starting an unthemed zenity client.
+        with render_session.Session.create() as session:
+            # Only gtk-3.0 is present, so the report must name gtk-4.0,
+            # the version `installed_sheets` checks first.
+            self.stage_installed_sheets(session, ("gtk-3.0",))
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                with self.assertRaises(_ConfigError) as caught:
+                    render_setup.install_gtk_selection(session)
+            self.assertIn(
+                "installed gtk-4.0 sheet is missing", stderr.getvalue()
+            )
+            self.assertEqual(
+                "the scratch install left a GTK sheet missing; the zenity "
+                "client would start unthemed",
+                str(caught.exception),
+            )
 
     def test_the_session_selection_names_the_theme_id_the_cli_pins(self):
         # The session's Kvantum selection and `make apply`'s best-effort
