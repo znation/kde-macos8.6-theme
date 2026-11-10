@@ -155,6 +155,9 @@ def render(args: argparse.Namespace) -> int:
             )
         try:
             publish(session.surface, output)
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
+            # ValueError names a non-regular capture source (the open guard's
+            # FIFO or device refusal), so it joins the OSError copy failures
+            # as a reported failed render rather than a traceback.
             return report_failure(TOOL, f"cannot write {output}: {exc}")
         return 0

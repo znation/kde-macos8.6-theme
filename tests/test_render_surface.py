@@ -827,6 +827,32 @@ class TestFailurePaths(StubTools):
             status, stderr = call_main(render_surface.main, str(output))
         self.assertEqual(1, status)
         self.assertIn("cannot write", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertEqual(b"previous good render", output.read_bytes())
+        self.assertEqual([], self.hidden_files())
+        self.assert_scratch_removed()
+
+    def test_a_fifo_refusal_is_reported_as_a_failed_render(self):
+        # The open guard refuses a non-regular capture source with ValueError,
+        # not OSError; the CLI must still report it as a failed render with
+        # its own diagnostic instead of tracebacking out of the exit contract.
+        self.stub_capture()
+        output = self.root / "out.png"
+        output.write_bytes(b"previous good render")
+
+        with mock.patch.object(
+            render_workflow,
+            "publish",
+            side_effect=ValueError(
+                f"{self.root / 'surface.png'} cannot be read: "
+                "not a regular file; refusing to open it"
+            ),
+        ):
+            status, stderr = call_main(render_surface.main, str(output))
+        self.assertEqual(1, status)
+        self.assertIn("cannot write", stderr)
+        self.assertIn("not a regular file", stderr)
+        self.assertNotIn("Traceback", stderr)
         self.assertEqual(b"previous good render", output.read_bytes())
         self.assertEqual([], self.hidden_files())
         self.assert_scratch_removed()
