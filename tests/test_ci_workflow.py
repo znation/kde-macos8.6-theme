@@ -144,12 +144,24 @@ class TestCiWorkflow(unittest.TestCase):
 
     def test_workflow_runs_the_suite_on_the_headless_qt_platform(self):
         workflow = self.read_workflow()
+        check_job = re.search(
+            r"(?ms)^  check:\n(?P<body>.*?)(?=^  [^\s].*:\s*$|\Z)",
+            workflow,
+        )
+        self.assertIsNotNone(check_job, "workflow has no check job")
+        job_body = check_job.group("body")
+        job_env = re.search(
+            r"(?ms)^    env:\n(?P<body>(?:^      .*\n|^\s*\n)*)",
+            job_body,
+        )
+        self.assertIsNotNone(job_env, "check job has no job-level environment")
+        env = job_env.group("body")
         # The runner has no display; plasma-apply-colorscheme and
         # plasma-apply-desktoptheme abort when Qt's xcb plugin cannot connect.
         # The render session pins its own clients back to `wayland`.
         self.assertRegex(
-            workflow,
-            r"(?m)^\s+QT_QPA_PLATFORM: offscreen$",
+            env,
+            r"(?m)^      QT_QPA_PLATFORM: offscreen$",
             "the check job must select a headless Qt platform",
         )
         # KWin's virtual backend still needs an EGL driver; the runner has no
@@ -160,12 +172,12 @@ class TestCiWorkflow(unittest.TestCase):
         # hosted 18ded7fe run failed at the install step before any test)
         # breaks KWin's virtual session on a real-GPU host with a KMS
         # dumb-buffer permission denial. No driver name is pinned.
-        self.assertRegex(workflow, r"(?m)^\s+LIBGL_ALWAYS_SOFTWARE: '1'$")
+        self.assertRegex(env, r"(?m)^      LIBGL_ALWAYS_SOFTWARE: '1'$")
         self.assertNotRegex(
-            workflow, r"(?m)^\s+MESA_LOADER_DRIVER_OVERRIDE:"
+            env, r"(?m)^      MESA_LOADER_DRIVER_OVERRIDE:"
         )
         self.assertNotRegex(
-            workflow, r"(?m)^\s+GALLIUM_DRIVER:"
+            env, r"(?m)^      GALLIUM_DRIVER:"
         )
 
     def test_workflow_pins_the_runner_image(self):
