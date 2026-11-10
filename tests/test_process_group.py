@@ -278,6 +278,54 @@ class TestRunLogged(unittest.TestCase):
         for wait_timeout in timeouts:
             self.assertIsNotNone(wait_timeout)
 
+    def test_a_termination_signal_during_a_failed_start_is_replayed(self):
+        # _popen_deferred's cleanup for a failing Popen restores the handlers
+        # and then replays whatever the deferral recorded before the start
+        # error is raised. A SIGTERM that arrives while the start is failing
+        # must therefore unwind the caller with the shell's 128 + SIGTERM
+        # status, not with the OSError the caller reports as "cannot run
+        # ...": the run was terminated, and the exit status has to say so.
+        # Dropping the replay from that cleanup would turn a terminated start
+        # into a start-failure diagnostic instead.
+        def popen_then_signal_then_fail(*args, **kwargs):
+            os.kill(os.getpid(), signal.SIGTERM)
+            raise FileNotFoundError("not-startable")
+
+        with mock.patch.object(
+            process_group.subprocess,
+            "Popen",
+            side_effect=popen_then_signal_then_fail,
+        ):
+            with self.assertRaises(SystemExit) as caught:
+                with process_group.exit_on_termination():
+                    process_group.run_logged(
+                        ["not-startable"],
+                        dict(os.environ),
+                        self.log,
+                        30,
+                        self.root,
+                    )
+        self.assertEqual(128 + signal.SIGTERM, caught.exception.code)
+
+    def test_a_failed_start_restores_the_default_interrupt_handler(self):
+        # The deferral swaps SIGINT's default handler for the recording one
+        # around every start, including one whose Popen raises. The except
+        # arm must restore it: a dropped restore would leave the recording
+        # handler installed, so a later Ctrl-C would be appended to a list
+        # nobody replays instead of raising KeyboardInterrupt.
+        with mock.patch.object(
+            process_group.subprocess,
+            "Popen",
+            side_effect=FileNotFoundError("not-startable"),
+        ):
+            with self.assertRaises(FileNotFoundError):
+                process_group.run_logged(
+                    ["not-startable"], dict(os.environ), self.log, 30, self.root
+                )
+        self.assertIs(
+            signal.default_int_handler, signal.getsignal(signal.SIGINT)
+        )
+
 
 class TestRunLoggedSplit(unittest.TestCase):
     """The split-output variant of the logged supervisor.
