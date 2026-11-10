@@ -1,11 +1,15 @@
 """The prose that counts the dialog gates must track the shipped gates.
 
-Three prose surfaces count the dialog render gates in words -- ``docs/
-invariants.md``'s skip-guard and software-renderer rows and the comment in
-``tests/test_ci_workflow.py`` that motivates the workflow's tool installs --
-and the same surfaces count the kdialog modes. When a dialog gate lands
-(as the color gate did), those words must move with it: a count that lags
-the code quietly under-reports the gates the shared skip guard covers.
+Four prose surfaces count the dialog render gates in words -- ``docs/
+invariants.md``'s skip-guard and software-renderer rows, the comment in
+``tests/test_ci_workflow.py`` that motivates the workflow's tool installs,
+and the skip-guard comment and gate-scaffold docstrings in
+``tests/test_render_surface.py`` itself -- and the same surfaces count the
+kdialog modes. When a dialog gate lands (as the color gate did), those
+words must move with it: a count that lags the code quietly under-reports
+the gates the shared skip guard covers. The shift to the color gate left
+``tests/test_render_surface.py``'s own comment and docstring stale, so the
+defining file is scanned beside the surfaces that describe it.
 The expected counts derive from the live ``Test...DialogRender`` gate
 classes in ``tests/test_render_surface.py``, never from the prose, so the
 two cannot drift in opposite directions.
@@ -62,7 +66,11 @@ class TestDialogGateCountProse(unittest.TestCase):
             (_DIALOG_GATE_COUNT, len(gates)),
             (_KDIALOG_MODE_COUNT, kdialog_modes),
         ):
-            for name in ("docs/invariants.md", "tests/test_ci_workflow.py"):
+            for name in (
+                "docs/invariants.md",
+                "tests/test_ci_workflow.py",
+                "tests/test_render_surface.py",
+            ):
                 for word in pattern.findall(read(name)):
                     with self.subTest(file=name, word=word):
                         if word in _NON_NUMERIC:
