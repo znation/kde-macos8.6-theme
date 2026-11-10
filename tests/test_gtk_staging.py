@@ -417,6 +417,68 @@ class TestCommit(StagingCase):
             self.assertFalse(staging.exists())
 
 
+    def test_a_directory_target_is_refused_and_the_earlier_write_is_restored(
+        self,
+    ):
+        # A target that became a directory since it was selected (a dotfile
+        # manager's redirect, say) must be refused rather than replaced:
+        # linking over it would either fail with a bare errno or destroy a
+        # directory the user owns. The commit reports it by name and rolls
+        # back the target the commit already replaced.
+        good = self.root / "gtk-3.0" / "settings.ini"
+        blocked = self.root / "gtk-4.0" / "settings.ini"
+        good.parent.mkdir(parents=True)
+        good.write_bytes(b"old good\n")
+        blocked.mkdir(parents=True)
+        # A directory target cannot be staged (stage_all refuses it before
+        # the commit ever runs), so a commit reaches this branch through a
+        # pair like the caller's own: target plus an existing `.staging`.
+        blocked_staging = self.staging_of(blocked)
+        blocked_staging.write_bytes(b"new blocked\n")
+        staged = stage_all([(good, "new good\n")])
+        staged.append((blocked, blocked_staging))
+
+        with self.assertRaises(ConfigError) as caught:
+            commit(staged)
+
+        self.assertIn(f"cannot write {blocked}", str(caught.exception))
+        self.assertIn(f"is a directory: {blocked}", str(caught.exception))
+        self.assertTrue(blocked.is_dir())
+        self.assertEqual(b"old good\n", good.read_bytes())
+        self.assertEqual([], self.backups_of(good))
+        self.assertEqual([], self.backups_of(blocked))
+        for _, staging in staged:
+            self.assertFalse(staging.exists())
+
+    def test_removal_of_a_directory_target_and_a_created_file_rolls_back(
+        self,
+    ):
+        # The removal half carries the same refusal, with the removal
+        # wording: the removal that already ran (one step earlier) is
+        # un-done when the directory removal is refused, and a file the
+        # commit replaced before that must go away again just the same.
+        replaced = self.root / "gtk-3.0" / "settings.ini"
+        removable = self.root / "gtk-4.0" / "gtk.css"
+        blocked = self.root / "gtk-4.0" / "launchers"
+        removable.parent.mkdir(parents=True)
+        replaced.parent.mkdir(parents=True)
+        removable.write_bytes(b"keep me\n")
+        blocked.mkdir(parents=True)
+        staged = stage_all([(replaced, "new\n")])
+
+        with self.assertRaises(ConfigError) as caught:
+            commit(staged, removals=[removable, blocked])
+
+        self.assertIn(f"cannot remove {blocked}", str(caught.exception))
+        self.assertIn(f"is a directory: {blocked}", str(caught.exception))
+        self.assertTrue(blocked.is_dir())
+        self.assertEqual(b"keep me\n", removable.read_bytes())
+        self.assertEqual([], self.backups_of(removable))
+        self.assertFalse(replaced.exists())
+        for _, sibling in staged:
+            self.assertFalse(sibling.exists())
+
+
 class TestDiscard(StagingCase):
     def test_removes_a_staged_file(self):
         target = self.root / "settings.ini"
