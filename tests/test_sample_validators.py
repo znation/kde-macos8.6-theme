@@ -81,6 +81,11 @@ class TestSampleValidators(unittest.TestCase):
             ):
                 parser(value)
 
+    def test_max_color_fraction_accepts_inclusive_bounds_and_fraction(self):
+        self.assertEqual(validators.max_color_fraction("0"), 0.0)
+        self.assertEqual(validators.max_color_fraction("0.25"), 0.25)
+        self.assertEqual(validators.max_color_fraction("1"), 1.0)
+
     def test_nonnegative_offset_factory_uses_its_option_and_rejects_negatives(self):
         run_offset = validators.nonnegative_offset("--run-offset")
         match_offset = validators.nonnegative_offset("--match-run-offset")
