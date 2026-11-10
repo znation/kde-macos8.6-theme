@@ -115,10 +115,55 @@ class TestOtherImageFormat(unittest.TestCase):
 
 
 
+class TestImageStreamFormat(unittest.TestCase):
+    """The per-format names a truncation diagnostic reads from the head."""
+
+    def test_names_each_raster_format_with_its_diagnostic_label(self):
+        # tools.reference_validation compares the name against "WebP" and
+        # looks "PNG", "JPEG" and "GIF" up in its _FORMAT_TERMINATIONS
+        # wording, so these exact strings are the contract, not a spelling
+        # choice: a renamed branch would fall into the wrong diagnostic.
+        self.assertEqual(image_format.image_stream_format(PNG), "PNG")
+        self.assertEqual(image_format.image_stream_format(JPEG), "JPEG")
+        self.assertEqual(image_format.image_stream_format(GIF87A), "GIF")
+        self.assertEqual(image_format.image_stream_format(GIF89A), "GIF")
+        self.assertEqual(image_format.image_stream_format(WEBP), "WebP")
+
+    def test_accepts_bytearray_signatures(self):
+        # The type is signed ``bytes | bytearray`` like the other detectors;
+        # in particular is_complete's stream must not depend on whether the
+        # caller read the head into a mutable buffer.
+        for data, expected in ((PNG, "PNG"), (JPEG, "JPEG"),
+                               (GIF87A, "GIF"), (WEBP, "WebP")):
+            with self.subTest(expected=expected):
+                self.assertEqual(image_format.image_stream_format(bytearray(data)),
+                                 expected)
+
+    def test_returns_none_without_a_known_signature(self):
+        # Only the leading bytes decide, never the payload: a RIFF container
+        # whose fourcc is not WEBP (say WAVE) and short input name nothing.
+        for name, data in (("html", b"<!DOCTYPE html>\n"),
+                           ("empty", b""),
+                           ("short riff", b"RIFF"),
+                           ("non-webp riff", b"RIFF\x24\x00\x00\x00WAVEfmt ")):
+            with self.subTest(input=name):
+                self.assertIsNone(image_format.image_stream_format(data))
+
+
 class TestRejectsNonBytesInput(unittest.TestCase):
     def test_each_detector_rejects_non_bytes_with_valueerror(self):
+        # is_complete rejects a non-byte head and a non-byte tail alike.
+        def complete_head(bad):
+            image_format.is_complete(bad, b"\xff\xd9", 1)
+
+        def complete_tail(bad):
+            head = image_format.PNG_MAGIC + b"\x00" * 8
+            image_format.is_complete(head, bad, len(head))
+
         for func in (image_format.is_webp, image_format.is_image,
-                     image_format.other_image_format):
+                     image_format.other_image_format,
+                     image_format.image_stream_format,
+                     complete_head, complete_tail):
             for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
                 with self.subTest(func=func.__name__, bad=bad):
                     with self.assertRaises(ValueError) as ctx:
