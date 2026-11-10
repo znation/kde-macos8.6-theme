@@ -691,6 +691,75 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         self.assertTrue((root / "tool.log").exists())
 
 
+class TestReconfigureKwin(unittest.TestCase):
+    """Direct coverage of ``theme_apply_optional.reconfigure_kwin``.
+
+    The orchestrator path above only reaches the function's missing-tool
+    arrow (both qdbus binaries absent), so the branch that runs a found
+    qdbus never executes in the suite: its pinned ``org.kde.KWin`` reconfigure
+    argv, its qdbus6-over-qdbus preference, its ``KWin reconfigure`` label and
+    its note-on-failure policy are believed, not checked, until a stub qdbus
+    runs. These tests narrow PATH to stub scripts; each stub prints a marker
+    (or the reconfigure argv it received) to stdout, which ``run_logged``
+    captures in the scratch ``qdbus.log``.
+    """
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="reconfigure-kwin-test-"))
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+
+    def _stub(self, name, body):
+        stub = self.bin / name
+        stub.write_text(f"#!/bin/sh\n{body}\n", encoding="utf-8")
+        stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
+        return stub
+
+    def _run(self):
+        stderr = io.StringIO()
+        with mock.patch.dict(os.environ, {"PATH": str(self.bin)}, clear=False):
+            with contextlib.redirect_stderr(stderr):
+                status = theme_apply_optional.reconfigure_kwin(
+                    self.root, {"PATH": str(self.bin)}, 60.0
+                )
+        return status, stderr.getvalue()
+
+    def test_a_found_qdbus6_receives_the_kwin_reconfigure_argv(self):
+        self._stub("qdbus6", 'echo "$@"')
+        status, text = self._run()
+        self.assertEqual(0, status)
+        self.assertEqual("org.kde.KWin /KWin reconfigure\n",
+                         (self.root / "qdbus.log").read_text(encoding="utf-8"))
+        self.assertEqual("", text)
+
+    def test_qdbus6_is_preferred_over_qdbus(self):
+        self._stub("qdbus6", "echo picked:qdbus6")
+        self._stub("qdbus", "echo picked:qdbus")
+        status, _ = self._run()
+        self.assertEqual(0, status)
+        self.assertEqual("picked:qdbus6\n",
+                         (self.root / "qdbus.log").read_text(encoding="utf-8"))
+
+    def test_only_the_qdbus_fallback_still_reaches_kwin(self):
+        self._stub("qdbus", 'echo "$@"')
+        status, text = self._run()
+        self.assertEqual(0, status)
+        self.assertEqual("org.kde.KWin /KWin reconfigure\n",
+                         (self.root / "qdbus.log").read_text(encoding="utf-8"))
+        self.assertEqual("", text)
+
+    def test_a_failing_reconfigure_is_a_note_though_the_status_stays_0(self):
+        self._stub("qdbus6", "exit 3")
+        status, text = self._run()
+        self.assertEqual(0, status)
+        self.assertIn(
+            "apply_theme: note: KWin reconfigure exited 3; KWin reloads the "
+            "decoration on its next start",
+            text,
+        )
+
+
 class TestMakeApply(unittest.TestCase):
     def test_a_hostile_DESTDIR_value_is_refused_without_running_its_shell(self):
         """Refuse a DESTDIR carrying shell quoting without executing it.
