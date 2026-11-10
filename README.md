@@ -816,7 +816,10 @@ and region sizes for the surface you are measuring. Coordinates are absolute ima
 `--width` and `--height` set the sampled region starting at that coordinate, and both default
 to 1. The reference PNGs are stored with Git LFS; materialize them as described in
 [Validating the reference set](#validating-the-reference-set). Run `python3 tools/sample.py --help`
-for the complete option list.
+for the complete option list. JPEG reference screenshots are readable directly: the sampler
+decodes a JPEG input once with ImageMagick's `convert` into a private temporary PNG and
+samples it like any PNG, while `--alpha` and `--match-alpha` need a PNG input because JPEG
+carries no alpha channel.
 
 | Task | Command | Result |
 | --- | --- | --- |

@@ -1,15 +1,18 @@
-"""Sample RGB pixels and regions from reference PNG files."""
+"""Sample RGB pixels and regions from reference screenshots."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
 import stat
 import sys
+import tempfile
 
 if __package__:
     from tools.containment import resolves_within
     from tools.diagnostics import report_error
+    from tools.jpeg_convert import JPEG_MAGIC, convert_jpeg, is_jpeg
     from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
     from tools.sample_arguments import build_parser, option_error, region_error
@@ -18,11 +21,63 @@ if __package__:
 else:  # run directly: python3 tools/sample.py
     from containment import resolves_within
     from diagnostics import report_error
+    from jpeg_convert import JPEG_MAGIC, convert_jpeg, is_jpeg
     from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
     from sample_arguments import build_parser, option_error, region_error
     from sample_reports import report
     from terminal import escape_controls
+
+
+def _read_entire(fd: int) -> bytes:
+    """Read the open regular file *fd* whole through its stable handle.
+
+    The bytes come off the same handle the sniffer sniffed, so a concurrent
+    directory swap cannot supply different bytes to the conversion.
+    """
+    chunks: list[bytes] = []
+    position = 0
+    while True:
+        chunk = os.pread(fd, 1 << 20, position)
+        if not chunk:
+            return b"".join(chunks)
+        chunks.append(chunk)
+        position += len(chunk)
+
+
+def _sample_jpeg(args, fd: int) -> int:
+    """Decode a JPEG input into a private temporary PNG and sample it.
+
+    The conversion writes into a private temporary directory, never the
+    input's own, so the user's tree is untouched and no planted path is
+    followed. Every failure reports the path the operator gave, and a decode
+    failure's message is scrubbed of the temporary path the way the
+    ``/proc/self/fd`` rewrite above carries the operator's name instead of
+    the stable handle's.
+    """
+    directory = tempfile.mkdtemp(prefix="sample-jpeg-")
+    temp_png = Path(directory) / "decoded.png"
+    try:
+        problem = convert_jpeg(_read_entire(fd), temp_png)
+        if problem is not None:
+            return report_error(
+                "sample", f"cannot decode {args.image}: {problem}"
+            )
+        try:
+            width, height = read_png_size(str(temp_png))
+            message = region_error(args, width, height)
+            if message is not None:
+                return report_error("sample", message)
+            image = read_png(str(temp_png), max_rows=args.y + args.height)
+        except PngError as exc:
+            return report_error(
+                "sample", str(exc).replace(str(temp_png), args.image)
+            )
+    finally:
+        shutil.rmtree(directory, ignore_errors=True)
+    header = f"image: {escape_controls(args.image)}  {width}x{height}"
+    report(args, image, width, height, header)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -56,6 +111,22 @@ def main(argv: list[str] | None = None) -> int:
                 )
             if not stat.S_ISREG(os.fstat(fd).st_mode):
                 return report_error("sample", f"cannot read {args.image}: not a regular file")
+            # Sniff the bytes on the already-open stable handle, so a
+            # concurrent symlink swap cannot change what is decoded.
+            if is_jpeg(os.pread(fd, len(JPEG_MAGIC), 0)):
+                # A JPEG carries no alpha channel to sample or match, so
+                # these refusals fire before any conversion runs.
+                if args.alpha:
+                    return report_error(
+                        "sample",
+                        "--alpha requires a PNG input: a JPEG image carries no alpha channel",
+                    )
+                if args.match_alpha is not None:
+                    return report_error(
+                        "sample",
+                        "--match-alpha requires a PNG input: a JPEG image carries no alpha channel",
+                    )
+                return _sample_jpeg(args, fd)
             width, height = read_png_size(opened_path)
             message = region_error(args, width, height)
             if message is not None:

@@ -182,6 +182,7 @@ def run_logged_split(
     stderr_log: Path,
     timeout: float,
     cwd: Path,
+    stdin_bytes: bytes | None = None,
 ) -> int | None:
     """Run *argv* logging stdout and stderr to separate files; None = timeout.
 
@@ -192,17 +193,31 @@ def run_logged_split(
     supervision: stdin is closed, the whole process group is killed on the
     way out, and the bounded reap cannot stall past the timeout. A command
     that cannot be started raises the ``OSError`` for the caller to report.
+
+    Callers that feed the command bytes on stdin pass *stdin_bytes* (written
+    by a daemon thread and closed when written, so a child that stops reading
+    cannot stall the timeout past the kill); the default keeps stdin closed
+    exactly as before.
     """
     with stdout_log.open("wb") as out, stderr_log.open("wb") as err:
         process, deferred = _popen_deferred(
             argv,
             cwd=cwd,
             env=env,
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.PIPE if stdin_bytes is not None else subprocess.DEVNULL,
             stdout=out,
             stderr=err,
             start_new_session=True,
         )
+        writer = (
+            threading.Thread(
+                target=_feed_stdin, args=(process.stdin, stdin_bytes), daemon=True
+            )
+            if stdin_bytes is not None
+            else None
+        )
+        if writer is not None:
+            writer.start()
         try:
             _replay_deferred(deferred)
             return process.wait(timeout=timeout)
@@ -211,6 +226,27 @@ def run_logged_split(
         finally:
             _kill_group(process)
             _reap(process)
+            if writer is not None:
+                writer.join(_REAP_TIMEOUT)
+
+
+def _feed_stdin(sink, data: bytes) -> None:
+    """Write *data* into *sink* and close it, swallowing a gone reader.
+
+    Runs in a daemon thread so a child that stops reading (or dies early)
+    cannot block the supervised wait past its timeout. The whole group is
+    already being killed by the caller's cleanup, and the write then fails
+    with a broken pipe the run's outcome does not care about.
+    """
+    try:
+        sink.write(data)
+    except (BrokenPipeError, OSError):
+        pass
+    finally:
+        try:
+            sink.close()
+        except (BrokenPipeError, OSError):
+            pass
 
 
 @contextlib.contextmanager

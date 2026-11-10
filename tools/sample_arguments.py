@@ -143,7 +143,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Print a reference screenshot pixel's RGB and hex value.",
         epilog="exit status: 0 on success, 2 usage or read error",
     )
-    parser.add_argument("image", help="reference image (PNG)")
+    parser.add_argument("image", help="reference image (PNG, or JPEG decoded with ImageMagick)")
     parser.add_argument("x", type=lambda value: plain_number(value, "x", "integer", "an", int), help="pixel column")
     parser.add_argument("y", type=lambda value: plain_number(value, "y", "integer", "an", int), help="pixel row")
     parser.add_argument("--width", type=positive_int("--width"), default=1, metavar="W", help="pixels to sample to the right of x (default 1)")
