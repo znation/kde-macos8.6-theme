@@ -19,6 +19,7 @@ if __package__:
         menu_dialog_client,
         progressbar_dialog_client,
         slider_dialog_client,
+        textbox_dialog_client,
     )
     from tools.render_session import Session, session_command
     from tools.render_setup import (
@@ -44,6 +45,7 @@ else:  # run directly from render_surface.py
         menu_dialog_client,
         progressbar_dialog_client,
         slider_dialog_client,
+        textbox_dialog_client,
     )
     from render_session import Session, session_command
     from render_setup import (
@@ -92,7 +94,7 @@ def render(args: argparse.Namespace) -> int:
         dialog = (
             args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
             or args.menu_dialog or args.progressbar_dialog
-            or args.slider_dialog or args.gtk_dialog
+            or args.slider_dialog or args.textbox_dialog or args.gtk_dialog
         )
         try:
             write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
@@ -111,6 +113,8 @@ def render(args: argparse.Namespace) -> int:
             client = list(progressbar_dialog_client(session))
         elif args.slider_dialog:
             client = list(slider_dialog_client(session))
+        elif args.textbox_dialog:
+            client = list(textbox_dialog_client(session))
         elif args.gtk_dialog:
             client = list(gtk_dialog_client(session))
         else:

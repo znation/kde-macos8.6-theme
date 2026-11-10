@@ -124,6 +124,37 @@ def slider_dialog_client(_session: Session) -> tuple[str, ...]:
     )
 
 
+def textbox_dialog_client(session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the scrollbar dialog gate renders.
+
+    A ``kdialog`` text box over a fresh plain-text scratch file under the
+    session root the render's context manager removes: the text view is a
+    real ``QTextEdit`` with a vertical ``QScrollBar``, and the engine draws
+    the bar through this theme's ``[Scrollbar]``/``[ScrollbarSlider]``/
+    ``[ScrollbarGroove]`` sections, the pixels the widget gate byte-compares.
+    At value zero the scrollbar rests, so no hover, press or focus byte
+    enters any crop: value zero disables the up arrow (its triangle paints
+    the disabled #999999 ``arrow`` tint, the same disabled tint the pinned
+    ``comboarrow-*`` disabled families draw) while the down arrow stays
+    enabled in the normal #000000 state.
+
+    The file holds 40 numbered lines: on this host (2026-11-10) that count
+    keeps the at-rest handle tall enough (its interior spans its full 13px
+    ``grip`` indicator inside the 2px ``scrollbarslider`` frame margins)
+    and still leaves a trough band below the handle, while no line wraps
+    (so no horizontal scrollbar enters the capture) and at least one full
+    line scrolls out of view.
+    """
+    textbox_file = session.root / "textbox.txt"
+    textbox_file.write_text(
+        "".join(
+            f"Line {number:02d} fills the text box for the scroll gate.\n"
+            for number in range(1, 41)
+        )
+    )
+    return ("kdialog", "--title", "Test", "--textbox", str(textbox_file))
+
+
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")

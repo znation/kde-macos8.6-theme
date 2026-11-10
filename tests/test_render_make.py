@@ -41,7 +41,9 @@ class TestRenderMake(unittest.TestCase):
             ("checkbox-dialog", ["--checkbox-dialog"]),
             ("combobox-dialog", ["--combobox-dialog"]),
             ("menu-dialog", ["--menu-dialog"]),
+            ("progressbar-dialog", ["--progressbar-dialog"]),
             ("slider-dialog", ["--slider-dialog"]),
+            ("textbox-dialog", ["--textbox-dialog"]),
             ("gtk-dialog", ["--gtk-dialog"]),
         )
         for mode, flags in modes:

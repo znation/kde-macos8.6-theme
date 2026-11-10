@@ -17,7 +17,7 @@ Usage::
         [--height H] [--settle SECONDS] [--timeout SECONDS]
         [--checkbox-dialog | --combobox-dialog | --lineedit-dialog
         | --menu-dialog | --progressbar-dialog | --slider-dialog
-        | --gtk-dialog]
+        | --textbox-dialog | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -172,6 +172,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--textbox-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog text box whose vertical scrollbar the Kvantum "
+            "engine draws with the theme's scrollbar art, and capture it at "
+            "the 480x360 size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--gtk-dialog",
         action="store_true",
         help=(
@@ -217,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             ("--menu-dialog", args.menu_dialog),
             ("--progressbar-dialog", args.progressbar_dialog),
             ("--slider-dialog", args.slider_dialog),
+            ("--textbox-dialog", args.textbox_dialog),
             ("--gtk-dialog", args.gtk_dialog),
         )
         if given
@@ -260,6 +270,7 @@ def main(argv: list[str] | None = None) -> int:
     kdialog_flags = (
         args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
         or args.menu_dialog or args.progressbar_dialog or args.slider_dialog
+        or args.textbox_dialog
     )
     dialog_clients: tuple[str, ...] = ()
     if kdialog_flags:
