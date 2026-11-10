@@ -123,9 +123,26 @@ class TestCache(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_an_oversize_cache_is_ignored(self):
-        path = make_tmp_dir(self) / "cache.json"
-        path.write_bytes(b" " * (check_parallel_order._MAX_CACHE_BYTES + 1))
-        self.assertEqual({}, check_parallel_order.load_durations(str(path)))
+        # The cap must fall on its boundary: a well-formed cache padded to
+        # exactly the limit still loads, and the same record one byte longer
+        # is refused. Padding both with whitespace around the same JSON makes
+        # the pair distinguish the cap from an unlucky payload: an uncapped
+        # read, or an off-by-one cap in either direction, would load the record
+        # on the over-limit side and the {} assertion there would fail.
+        record = json.dumps(
+            {"version": 1, "durations": {"test_ok": 0.5}},
+            sort_keys=True, separators=(",", ":"),
+        ).encode("ascii")
+        limit = check_parallel_order._MAX_CACHE_BYTES
+        at_limit = make_tmp_dir(self) / "cache.json"
+        at_limit.write_bytes(record.ljust(limit))
+        self.assertEqual(
+            {"test_ok": 0.5},
+            check_parallel_order.load_durations(str(at_limit)))
+        one_byte_over = make_tmp_dir(self) / "cache.json"
+        one_byte_over.write_bytes(record.ljust(limit + 1))
+        self.assertEqual(
+            {}, check_parallel_order.load_durations(str(one_byte_over)))
 
     def test_non_numeric_or_invalid_entries_are_ignored(self):
         path = str(make_tmp_dir(self) / "cache.json")
