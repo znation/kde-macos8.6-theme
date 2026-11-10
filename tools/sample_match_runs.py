@@ -3,6 +3,50 @@
 from __future__ import annotations
 
 
+class _RunPage:
+    """Count every closed run and retain the requested page of eligible ones.
+
+    ``add`` counts the closed run; a run whose length is inside the
+    eligibility bounds takes the next eligible index, and only runs from the
+    requested page (index >= ``run_offset``, at most ``run_limit``) are
+    kept. ``collect=False`` stops retention while still counting eligible
+    runs, so ``omitted_runs`` stays computed against the eligible total.
+
+    Two call sites apply these identical rules: ``_MatchRuns._close_run``'s
+    horizontal page and ``_ColumnRuns._close``'s column-major page. The
+    callers expose the page's counts as properties and alias the retained
+    list as ``runs``, keeping the attributes their consumers read unchanged.
+    """
+
+    def __init__(self, *, min_run_length: int | None = None,
+                 max_run_length: int | None = None,
+                 run_offset: int = 0, run_limit: int | None = None,
+                 collect: bool = True) -> None:
+        self.min_run_length = min_run_length
+        self.max_run_length = max_run_length
+        self.run_offset = run_offset
+        self.run_limit = run_limit
+        self.collect = collect
+        self.eligible_run_count = 0
+        self.run_count = 0
+        self.retained: list[dict] = []
+
+    def _eligible(self, length: int) -> bool:
+        return ((self.min_run_length is None or length >= self.min_run_length) and
+                (self.max_run_length is None or length <= self.max_run_length))
+
+    def add(self, run: dict) -> None:
+        """Count the closed *run* and retain it when it is on the page."""
+        self.run_count += 1
+        if not self._eligible(run["length"]):
+            return
+        index = self.eligible_run_count
+        self.eligible_run_count += 1
+        if self.collect and index >= self.run_offset and (
+                self.run_limit is None or len(self.retained) < self.run_limit):
+            self.retained.append(run)
+
+
 class _MatchRuns:
     def __init__(self, x: int, y: int, width: int, height: int,
                  *, horizontal: bool, vertical: bool, summarize: bool = False,
@@ -14,20 +58,29 @@ class _MatchRuns:
         self.right, self.bottom = x + width, y + height
         self.horizontal, self.vertical = horizontal, vertical
         self.summarize = summarize
-        self.collect_runs = collect_runs
-        self.min_run_length, self.max_run_length = min_run_length, max_run_length
-        self.run_limit, self.run_offset = run_limit, run_offset
-        self.eligible_run_count = 0
         self.summarize_columns = summarize_columns
         self.collect_column_runs = collect_column_runs
-        self.runs = []
-        self.run_count = 0
+        self.runs_page = _RunPage(min_run_length=min_run_length,
+                                  max_run_length=max_run_length,
+                                  run_offset=run_offset, run_limit=run_limit,
+                                  collect=collect_runs)
+        # The page owns the counts and the retained runs; aliases keep the
+        # attributes read by sample_report_search and the storage tests.
+        self.runs = self.runs_page.retained
+        self.run_start = self.run_y = None
         self.longest_run = None
         self.longest_column_run = None
         self.column_runs = []
         self.column_run_count = 0
-        self.run_start = self.run_y = None
         self.column_starts = {}
+
+    @property
+    def run_count(self) -> int:
+        return self.runs_page.run_count
+
+    @property
+    def eligible_run_count(self) -> int:
+        return self.runs_page.eligible_run_count
 
     def observe(self, x: int, y: int, matches: bool) -> None:
         if self.horizontal and self.run_start is not None and y != self.run_y:
@@ -48,19 +101,11 @@ class _MatchRuns:
         self._close_run(self.right - self.run_start)
 
     def _close_run(self, length: int) -> None:
-        self.run_count += 1
         run = {"x": self.run_start, "y": self.run_y, "length": length}
         if not self.summarize or self.longest_run is None or length > self.longest_run["length"]:
             if self.summarize:
                 self.longest_run = run
-        eligible = ((self.min_run_length is None or length >= self.min_run_length) and
-                    (self.max_run_length is None or length <= self.max_run_length))
-        if self.collect_runs and eligible:
-            index = self.eligible_run_count
-            self.eligible_run_count += 1
-            if index >= self.run_offset and (self.run_limit is None or
-                                              len(self.runs) < self.run_limit):
-                self.runs.append(run)
+        self.runs_page.add(run)
         self.run_start = self.run_y = None
 
     def _end_column(self, x: int, y: int) -> None:
@@ -91,10 +136,9 @@ class _MatchRuns:
 
 class _ColumnRuns:
     """Collect vertical match intervals for a capped column-run page over a
-    column-major scan: eligibility mirrors _MatchRuns' horizontal pattern, the
-    active interval closes at every column boundary and the bottom edge, the
-    eligible total is kept separately from the retained page, and only the
-    requested page of eligible intervals is retained."""
+    column-major scan: the active interval closes at every column boundary
+    and the bottom edge, and counting, eligibility and the retained page are
+    the shared `_RunPage` rules."""
 
     def __init__(self, x: int, y: int, width: int, height: int, *,
                  min_run_length: int | None = None,
@@ -102,12 +146,19 @@ class _ColumnRuns:
                  run_limit: int | None = None, run_offset: int = 0) -> None:
         self.x, self.y = x, y
         self.bottom = y + height
-        self.min_run_length, self.max_run_length = min_run_length, max_run_length
-        self.run_limit, self.run_offset = run_limit, run_offset
-        self.run_count = 0
-        self.eligible_run_count = 0
-        self.runs: list[dict] = []
+        self.runs_page = _RunPage(min_run_length=min_run_length,
+                                  max_run_length=max_run_length,
+                                  run_offset=run_offset, run_limit=run_limit)
+        self.runs = self.runs_page.retained
         self.start_x = self.start_y = None
+
+    @property
+    def run_count(self) -> int:
+        return self.runs_page.run_count
+
+    @property
+    def eligible_run_count(self) -> int:
+        return self.runs_page.eligible_run_count
 
     def observe(self, x: int, y: int, matches: bool) -> None:
         if self.start_x is not None and x != self.start_x:
@@ -118,16 +169,8 @@ class _ColumnRuns:
             self._close(y - self.start_y)
 
     def _close(self, length: int) -> None:
-        self.run_count += 1
-        run = {"x": self.start_x, "y": self.start_y, "length": length}
-        eligible = ((self.min_run_length is None or length >= self.min_run_length) and
-                    (self.max_run_length is None or length <= self.max_run_length))
-        if eligible:
-            index = self.eligible_run_count
-            self.eligible_run_count += 1
-            if index >= self.run_offset and (self.run_limit is None or
-                                             len(self.runs) < self.run_limit):
-                self.runs.append(run)
+        self.runs_page.add(
+            {"x": self.start_x, "y": self.start_y, "length": length})
         self.start_x = self.start_y = None
 
     def finish(self) -> list[dict]:
