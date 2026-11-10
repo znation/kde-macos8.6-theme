@@ -16,7 +16,8 @@ Usage::
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
         [--checkbox-dialog | --combobox-dialog | --lineedit-dialog
-        | --menu-dialog | --slider-dialog | --gtk-dialog]
+        | --menu-dialog | --progressbar-dialog | --slider-dialog
+        | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -153,6 +154,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--progressbar-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog progress meter whose at-rest trough the Kvantum "
+            "engine draws with the theme's progress art, and capture it at "
+            "the 480x360 size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--slider-dialog",
         action="store_true",
         help=(
@@ -205,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
             ("--combobox-dialog", args.combobox_dialog),
             ("--lineedit-dialog", args.lineedit_dialog),
             ("--menu-dialog", args.menu_dialog),
+            ("--progressbar-dialog", args.progressbar_dialog),
             ("--slider-dialog", args.slider_dialog),
             ("--gtk-dialog", args.gtk_dialog),
         )
@@ -248,7 +259,7 @@ def main(argv: list[str] | None = None) -> int:
     # tool the diagnostic names is the client the requested mode opens.
     kdialog_flags = (
         args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-        or args.menu_dialog or args.slider_dialog
+        or args.menu_dialog or args.progressbar_dialog or args.slider_dialog
     )
     dialog_clients: tuple[str, ...] = ()
     if kdialog_flags:

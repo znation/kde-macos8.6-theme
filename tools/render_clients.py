@@ -75,6 +75,33 @@ def lineedit_dialog_client(_session: Session) -> tuple[str, ...]:
     return ("kdialog", "--title", "Test", "--inputbox", "Choose a name:")
 
 
+def progressbar_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the progressbar trough gate renders.
+
+    A progress meter with a real at-rest ``QProgressBar`` at value zero:
+    the engine draws its trough frame through this theme's
+    ``[Progressbar]`` ``progress`` element (a 2px frame margin), the pixels
+    the widget gate byte-compares. The meter never moves -- only its D-Bus
+    interface drives it, and this client calls none of it -- so no striped
+    ``progress-pattern`` tile and no busy animation enters any crop. The
+    session script kills the client after the capture, so the D-Bus
+    reference kdialog prints never receives a call.
+
+    The client is the helper daemon ``kdialog`` itself execs for a
+    ``--progressbar`` dialog, not ``kdialog``: measured on this host
+    (kdialog 25.04.0, 2026-11-10), a ``kdialog --progressbar`` launcher
+    prints the D-Bus reference and exits within the first second, so the
+    shared session script's liveness check would fail the render after the
+    settle and the dialog would outlive its killed launcher.
+    ``kdialog_progress_helper`` runs the same dialog itself and survives
+    the settle (verified 2026-11-10, alive at 1 s and 8 s offscreen), so
+    the liveness check sees it and the session script still ends it after
+    the capture. It is installed with ``kdialog``, so the CLI's missing-
+    tool check names ``kdialog`` as before.
+    """
+    return ("kdialog_progress_helper", "--title", "Test", "--progressbar", "Working:")
+
+
 def slider_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the Qt client argv the slider thumb and trough gate renders.
 

@@ -230,6 +230,32 @@ SLIDER_DIALOG_THUMB_CROP = (146, 178, 16, 16)
 # so no thumb, label-glyph or foreign-border byte enters the crop. Measured
 # on the same agreeing pair as the thumb.
 SLIDER_DIALOG_TROUGH = (162, 182, 171, 8)
+# The rendered Kvantum progress meter in the progressbar dialog: the
+# helper-client `kdialog_progress_helper` opens an at-rest QProgressBar at
+# value zero, whose trough the engine stretches over the theme's `progress`
+# element art in the raised arrangement: the 1px #000000 outline with the
+# #FFFFFF top/left bevel arms, the #999999 bottom/right bevel arms and the
+# flat #DDDDDD face, inside the `[Progressbar]` section's 2px frame margins.
+# The trough occupies (146,172)..(333,195), measured on two consecutive
+# 480x360 `--progressbar-dialog` captures on this host (kdialog 25.04.0,
+# 2026-11-10) whose two runs agreed byte for byte under `cmp`. The meter
+# never moves -- only its D-Bus interface drives it, and the render session
+# calls none of it -- so no striped progress-pattern tile and no busy
+# animation enters any crop, and a progress meter has no caret: no
+# phase-dependent column to steer around.
+PROGRESSBAR_DIALOG_TROUGH = (146, 172, 188, 24)
+# The trough's face interior band: rows clear of every frame row (the arms
+# end at the face's row 174 above 193) and of the "Working:" label glyphs
+# (rows 153..163, above the trough), so the whole band must stay the flat
+# #DDDDDD face. An off-by-one row slips a bevel-arm or window-face byte in
+# and fails; a glyph or a filled value band inside the face fails too.
+PROGRESSBAR_DIALOG_FACE_CROP = (200, 174, 120, 20)
+# Narrow bands over the trough's edges: each band spans one #DDDDDD window
+# face row, the outline row/column and the bevel arm inside it, so a lost
+# outline row, a swapped arm colour or an off-by-one edge fails.
+PROGRESSBAR_DIALOG_TOP_BAND = (200, 171, 121, 4)
+PROGRESSBAR_DIALOG_BOTTOM_BAND = (200, 193, 121, 4)
+PROGRESSBAR_DIALOG_LEFT_BAND = (144, 178, 5, 8)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1095,12 +1121,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The six dialog gates skip wherever their render CLI would refuse on a tool.
+    """The seven dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the five kdialog modes, zenity for the
-    GTK mode), and the six dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the six kdialog modes, zenity for the
+    GTK mode), and the seven dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1164,6 +1190,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestComboboxDialogRender,
             TestLineInputDialogRender,
             TestMenuDialogRender,
+            TestProgressbarDialogRender,
             TestSliderDialogRender,
             TestGtkDialogRender,
         ):
@@ -1194,6 +1221,7 @@ class _Renders:
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
+        ("progressbar", ("--progressbar-dialog",), "dialog.png"),
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
     )
@@ -1260,7 +1288,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the six dialog render gates share.
+    """Test scaffolding the seven dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1334,12 +1362,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the six dialog render gates share.
+    """Return the skip guard the seven dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
     missing-tool diagnostic when one is absent: kdialog for the five
-    kdialog modes, zenity for the GTK mode), so the six dialog gates skip
+    kdialog modes, zenity for the GTK mode), so the seven dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -1735,6 +1763,99 @@ class TestSliderDialogRender(_DialogGate, unittest.TestCase):
                         for dx in range(width)
                     ],
                 )
+
+
+@_dialog_gate_guard()
+class TestProgressbarDialogRender(_DialogGate, unittest.TestCase):
+    """The progress dialog's meter keeps its engine-drawn trough frame.
+
+    The progressbar dialog opens a real at-rest ``QProgressBar`` (the
+    ``kdialog --progressbar`` dialog, rendered through the helper daemon
+    ``kdialog_progress_helper`` that kdialog itself execs for it -- the
+    launcher prints the D-Bus reference and exits, so the shared session
+    script's liveness check would fail it after the settle) whose trough
+    the engine stretches over this theme's ``[Progressbar]`` ``progress``
+    element with the section's 2px frame margins. No collected reference
+    screenshot shows a dialog with a meter, so the comparison surfaces are
+    the shipped art recipe: the raised arrangement the Kvantum reference
+    suite pins by id -- the 1px #000000 outer outline with the #FFFFFF
+    top/left bevel arms, the #999999 bottom/right bevel arms and the flat
+    #DDDDDD face. Value zero keeps the meter in its resting state, so no
+    striped ``progress-pattern`` tile, no value fill and no busy animation
+    enter any crop, and a progress meter has no caret: no phase-dependent
+    column to steer around. Measured on two consecutive full
+    ``--progressbar-dialog`` captures on this host (2026-11-10) that agree
+    byte for byte under ``cmp``.
+    """
+
+    KIND = "progressbar"
+
+    def assert_band(self, rect, rows):
+        """Pin every cell of *rect* at the per-row colours *rows*.
+
+        A blended bevel arm, a lost outline row, a swapped arm colour or a
+        one-pixel crop slip shows up here immediately.
+        """
+        image = self.candidate_image()
+        x, y, width, height = rect
+        for row in range(height):
+            with self.subTest(row=y + row):
+                self.assertEqual(
+                    rows[row],
+                    [
+                        hex_colour(pixel_at(image, x + dx, y + row))
+                        for dx in range(width)
+                    ],
+                )
+
+    def test_keeps_the_trough_face_interior_flat_at_rest(self):
+        # The rows between the arms run clear of the outline rows and of
+        # the label glyphs (which sit above the trough), so every byte
+        # must be the flat #DDDDDD face: a striped progress-pattern tile,
+        # a value fill or a glyph byte fails row by row.
+        x, y, width, height = PROGRESSBAR_DIALOG_FACE_CROP
+        self.assert_band(
+            PROGRESSBAR_DIALOG_FACE_CROP,
+            [["#DDDDDD"] * width for _ in range(height)],
+        )
+
+    def test_pins_the_top_edge_outline_and_its_white_bevel_arm(self):
+        # One window-face row, the 1px #000000 outline and the #FFFFFF
+        # top bevel arm inside it, then the face -- the raised
+        # arrangement the progress element art draws.
+        self.assert_band(
+            PROGRESSBAR_DIALOG_TOP_BAND,
+            (
+                ["#DDDDDD"] * 121,
+                ["#000000"] * 121,
+                ["#FFFFFF"] * 121,
+                ["#DDDDDD"] * 121,
+            ),
+        )
+
+    def test_pins_the_left_edge_outline_and_its_white_bevel_arm(self):
+        # Two window-face columns, the 1px #000000 outline column and the
+        # #FFFFFF left bevel arm inside it, then the face, over eight
+        # face rows clear of every horizontal band.
+        arm_row = ["#DDDDDD", "#DDDDDD", "#000000", "#FFFFFF", "#DDDDDD"]
+        self.assert_band(
+            PROGRESSBAR_DIALOG_LEFT_BAND,
+            tuple(arm_row for _ in range(8)),
+        )
+
+    def test_pins_the_bottom_edge_outline_and_its_shadow_bevel_arm(self):
+        # The face row, the #999999 bottom bevel arm inside the 1px
+        # #000000 outline, and the window face below it -- swapping the
+        # highlight and shadow arms fails both this pin and the top one.
+        self.assert_band(
+            PROGRESSBAR_DIALOG_BOTTOM_BAND,
+            (
+                ["#DDDDDD"] * 121,
+                ["#999999"] * 121,
+                ["#000000"] * 121,
+                ["#DDDDDD"] * 121,
+            ),
+        )
 
 
 @_dialog_gate_guard()
