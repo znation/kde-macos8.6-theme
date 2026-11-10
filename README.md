@@ -452,8 +452,9 @@ character (its value list is expanded unquoted) is refused outright, before any 
 diagnostic naming the variable and the value, while a space stays legal in either; the
 validators of `CHECK_TESTS` and `CHECK_PARALLEL` paste the value into their own double-quoted
 guard words first, so a value of either carrying a double quote, `$`, a backtick or a backslash
-is refused by the same shared guard, before any recipe runs and unechoed; a value carrying a
-control byte (0x01-0x1f or 0x7f, tab and newline excepted) is refused the same way, since the
+is refused by the same shared guard before any recipe runs, with a diagnostic naming the
+variable and value; a value carrying a control byte (0x01-0x1f or 0x7f, tab and newline
+excepted) is refused without echoing the value, since the
 validators echo a refused value's bounds from the shell-copied argument and a byte like 0x1b
 would otherwise reach the terminal raw. The wider shell punctuation — a semicolon, an apostrophe,
 a pipe and the like — stays inert inside the guards' double quotes and is still refused at run
