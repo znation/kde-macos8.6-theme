@@ -104,18 +104,20 @@ def worst_pixels(
     width, height = candidate.width, candidate.height
     area = width * height
     selection_size = min(offset + limit, area)
-    maximum = _maximum_deltas(candidate, reference, deltas) if selection_size else None
+    if not selection_size:
+        return []
+
+    maximum = _maximum_deltas(candidate, reference, deltas)
     selected: list[tuple[int, int]] = []
-    if selection_size:
-        for value in range(255, tolerance, -1):
-            position = maximum.find(value)
-            while position >= 0:
-                selected.append((value, position))
-                if len(selected) == selection_size:
-                    break
-                position = maximum.find(value, position + 1)
+    for value in range(255, tolerance, -1):
+        position = maximum.find(value)
+        while position >= 0:
+            selected.append((value, position))
             if len(selected) == selection_size:
                 break
+            position = maximum.find(value, position + 1)
+        if len(selected) == selection_size:
+            break
 
     candidate_rgb, reference_rgb = candidate.rgb, reference.rgb
     candidate_alpha, reference_alpha = candidate.alpha, reference.alpha
