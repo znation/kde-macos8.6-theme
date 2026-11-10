@@ -85,6 +85,17 @@ class Session:
                 # aborts in QGuiApplication and D-Bus retries it in a
                 # core-dump loop.
                 WAYLAND_DISPLAY=SOCKET,
+                QT_QPA_PLATFORM="offscreen",
+                # The private bus hands this environment to every service it
+                # D-Bus-activates, and those services must not try to open
+                # WAYLAND_DISPLAY=SOCKET: while the nested KWin socket is not
+                # yet listening (or after KWin exits) an activating Qt service
+                # such as xdg-desktop-portal-kde aborts in QGuiApplication and
+                # the bus re-activates it in a coredump loop. Pin the whole
+                # nested bus subtree to a display-free platform here; the
+                # session script below overrides it to "wayland" for the
+                # clients that must draw on the nested compositor, and KWin
+                # itself selects its virtual backend from --virtual.
                 # KWin 6.6 refuses ScreenShot2 calls from a process it cannot
                 # map to a desktop-file identity. This throwaway compositor
                 # and its private bus have no such identity to offer, so the

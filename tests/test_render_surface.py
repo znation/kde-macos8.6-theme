@@ -1053,6 +1053,46 @@ class TestFailurePaths(StubTools):
             "the caller's XDG_CONFIG_DIRS leaked into the render session",
         )
 
+    def test_session_pins_the_nested_bus_to_a_display_free_qt_platform(self):
+        # The private bus hands the session environment to every service it
+        # D-Bus-activates. A GUI service activated while WAYLAND_DISPLAY
+        # points at the nested KWin socket (not yet listening, or gone
+        # because the nested KWin exited) aborts in QGuiApplication and the
+        # bus re-activates it in a coredump loop. The session therefore pins
+        # the whole bus subtree to a display-free Qt platform, overriding a
+        # caller's ambient value, and only the session script (the clients
+        # that must draw on the nested compositor) sets wayland back.
+        record = self.root / "qt-platform"
+        self.stub(
+            "dbus-run-session",
+            f'printf "%s" "$QT_QPA_PLATFORM" > "{record}"',
+        )
+        with mock.patch.dict(
+            os.environ, {"QT_QPA_PLATFORM": "wayland"}
+        ):
+            self.run_main()
+        self.assertEqual(
+            "offscreen",
+            record.read_text(encoding="utf-8"),
+            "the caller's QT_QPA_PLATFORM leaked into the render session, or the "
+            "activated services were left free to open the nested Wayland socket",
+        )
+
+    def test_session_script_keeps_the_clients_on_the_nested_compositor_platform(self):
+        # The nested bus's display-free QT_QPA_PLATFORM applies to the
+        # session script too, so the script itself must re-pin the clients to
+        # the nested compositor's wayland socket: without the override a
+        # client would never align its platform with the wayland socket the
+        # script's own comment says it needs.
+        script = render_session.session_script()
+        self.assertIn(
+            "export QT_QPA_PLATFORM=wayland; ",
+            script,
+            "the session script no longer re-pins the client to the nested "
+            "compositor's wayland platform, while the session subtree is pinned "
+            "to a display-free one",
+        )
+
     def test_install_ignores_a_destdir_from_the_environment(self):
         record = self.root / "make-env"
         self.stub("make", f'echo "[$DESTDIR] $*" > "{record}"')

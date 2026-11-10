@@ -35,7 +35,13 @@ from .records import Reproduction
 # change that pinned the archive's tag vocabulary): the workflow's
 # forced-llvmpipe env was never observed on the hosted runner, and its
 # bound is pinned offline by the test that refuses driver-name overrides
-# in the workflow env. A new record must name an
+# in the workflow env. Plus the nested-session portal crash loop fixed
+# 2026-11-10: the window between the private bus opening and the nested KWin
+# socket serving could only be observed in a real render against the host's
+# coredump journal, and the bound (the activated portal must never try to
+# open the nested Wayland socket) is pinned offline by the session-
+# environment test that pins the bus subtree to a display-free Qt platform.
+# A new record must name an
 # offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
@@ -111,9 +117,14 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_aurorae_ui_qml.py::TestHitSurfaces"
         "::test_aurorae_button_gates_the_subclass_item",
     ),
+    Reproduction(
+        "nested-session-portal-crash-loop",
+        ("crash-loop xdg-desktop-portal-kde with SIGABRT",),
+        "tests/test_render_surface.py::TestFailurePaths"
+        "::test_session_pins_the_nested_bus_to_a_display_free_qt_platform",
+    ),
 )
 
-# The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 12
+REAL_RUN_NEEDED_BASELINE = 13
