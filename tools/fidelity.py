@@ -188,17 +188,29 @@ def main(argv: list[str] | None = None) -> int:
         else:
             runs = (difference_runs(candidate, reference, args.tolerance, flags=flags)
                     if args.difference_runs else None)
+        # Every report value below reads the capped run page's precomputed
+        # total or longest pick when paging is active, else the page it
+        # already holds, else a full scan it pays for only when no page ran.
         if args.difference_run_count:
-            run_count = (run_total if capped_runs else len(runs) if runs is not None else
-                         difference_run_count(candidate, reference, args.tolerance,
-                                              flags=flags))
+            if capped_runs:
+                run_count = run_total
+            elif runs is not None:
+                run_count = len(runs)
+            else:
+                run_count = difference_run_count(candidate, reference,
+                                                 args.tolerance, flags=flags)
         else:
             run_count = None
         longest_run = None
         if args.longest_difference_run:
-            longest_run = (capped_longest if capped_runs else select_longest_run(runs) if runs is not None else
-                           longest_difference_run(candidate, reference, args.tolerance,
-                                                  flags=flags))
+            if capped_runs:
+                longest_run = capped_longest
+            elif runs is not None:
+                longest_run = select_longest_run(runs)
+            else:
+                longest_run = longest_difference_run(candidate, reference,
+                                                     args.tolerance,
+                                                     flags=flags)
         if runs is not None and not capped_runs:
             runs, omitted_runs = _filter_run_report(
                 runs, args.min_difference_run_length,
@@ -223,20 +235,28 @@ def main(argv: list[str] | None = None) -> int:
                                                   flags=flags)
                            if args.difference_column_runs else None)
         if args.difference_column_run_count:
-            column_run_count = (column_run_total if capped_column_runs else
-                                len(column_runs) if column_runs is not None else
-                                difference_column_run_count(candidate, reference,
-                                                            args.tolerance,
-                                                            flags=flags))
+            if capped_column_runs:
+                column_run_count = column_run_total
+            elif column_runs is not None:
+                column_run_count = len(column_runs)
+            else:
+                column_run_count = difference_column_run_count(candidate,
+                                                                reference,
+                                                                args.tolerance,
+                                                                flags=flags)
         else:
             column_run_count = None
         longest_column_run = None
         if args.longest_difference_column_run:
-            longest_column_run = (capped_longest_column if capped_column_runs else
-                                  select_longest_run(column_runs) if column_runs is not None else
-                                  longest_difference_column_run(candidate, reference,
-                                                                args.tolerance,
-                                                                flags=flags))
+            if capped_column_runs:
+                longest_column_run = capped_longest_column
+            elif column_runs is not None:
+                longest_column_run = select_longest_run(column_runs)
+            else:
+                longest_column_run = longest_difference_column_run(candidate,
+                                                                    reference,
+                                                                    args.tolerance,
+                                                                    flags=flags)
         if column_runs is not None and not capped_column_runs:
             column_runs, omitted_column_runs = _filter_run_report(
                 column_runs, args.min_difference_column_run_length,
