@@ -55,6 +55,29 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 
 ## Installing
 
+### Quick start
+
+See [Prerequisites](#prerequisites) for requirements. Choose one route:
+
+```sh
+make install
+```
+
+This copies the theme files without selecting them. To install and select Platinum for the
+running user, use the alternative below. It changes user settings and may replace personal GTK 4
+CSS after backing it up; [restoring personal GTK 4 CSS](#restoring-personal-gtk-4-css) explains
+how. Existing panels are preserved; applying the optional desktop layout is a separate choice.
+
+```sh
+make apply
+```
+
+Restart GTK applications and Firefox to pick up their styles; the splash changes at the next
+login. For GTK alone, use `make apply-gtk`. See [Removing the theme](#removing-the-theme) to
+undo the installation.
+
+### Installation details
+
 `make install` copies every data-home artifact into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
