@@ -709,9 +709,11 @@ time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
 `plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox and
 combobox dialog renders open, and the `zenity` client its GTK dialog render opens, so
-`make check` runs the rendered-pixel gate,
-both dialog renders included, there too. Run those same commands locally for
-parity with the workflow's check steps.
+`make check` reaches the rendered-pixel gates, including both dialog renders. Their
+software-renderer guard still skips captures in the workflow environment; installed tools
+are prerequisites, not proof that rendered pixels were compared. See [Running checks](#running-checks)
+for the guard conditions and GPU-host guidance. Run those same commands locally for parity
+with the workflow's check steps.
 
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
@@ -1264,7 +1266,8 @@ compare a region rather than assuming a full capture matches a reference screens
 
 ### Comparing a region
 
-The documented calculator title-strip gate compares these corresponding 80x22 rectangles:
+When render tools are available and the software-renderer guard does not trigger, the
+calculator title-strip gate compares these corresponding 80x22 rectangles:
 
 ```sh
 python3 tools/fidelity.py calculator.png macos8.6-screenshots/aboutsystem_betawiki.png --candidate-crop 30,0,80,22 --crop 30,25,80,22
@@ -1488,6 +1491,15 @@ replace the full check.
 | Matching test modules | `make check CHECK_PATTERN='test_colorscheme*.py'` |
 | One test class | `make check CHECK_TESTS=test_colorscheme.TestAnchors` |
 | Serial discovery | `make check CHECK_PARALLEL=0` |
+
+The hosted check job sets `LIBGL_ALWAYS_SOFTWARE=1`, so its render capture gates skip even
+when their tools are installed. A green check with those skips does not establish rendered-pixel
+equality. The guard is environment-based, not a KWin-version probe: it triggers when
+`LIBGL_ALWAYS_SOFTWARE=1`, or when `MESA_LOADER_DRIVER_OVERRIDE` or `GALLIUM_DRIVER` contains
+`llvmpipe`, `softpipe`, `swrast` or `zink` (case-insensitive). The skip reason cites a fix in
+KWin 6.8, but upgrading KWin alone does not bypass this guard. To exercise the capture gates,
+use a GPU-backed host with the documented render tools and without software-forcing variables.
+The isolated headless rendering commands remain available under [Rendering a candidate](#rendering-a-candidate).
 
 The GTK 4 indicator and view-census probes skip during routine checks. To opt in without using
 your desktop display, run either probe under Xvfb:
