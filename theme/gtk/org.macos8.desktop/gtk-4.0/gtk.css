@@ -3594,18 +3594,36 @@ popover.magnifier > contents {
    so the scale popup is a platform adaptation like the restated GTK 3
    counterpart. The toolkit resource's rounded scale-popup button arms —
    the borderless flat-button arm and the translucent-dark hover arm — are
-   restated with the landed square push-button treatment: the flat arm
-   reuses the landed button border and the hover face reuses the landed
-   button:hover face. Stock selectors probed from Default-light.css in
-   libgtk-4 4.18.6 with gresource on 2026-10-31. */
+   restated with the landed square push-button treatment. Unlike the GTK 3
+   counterpart, this sheet has no restated `.osd button.flat` family, and
+   the stock `.osd button`/`button.flat` arms claim a transparent face and
+   border and no bevel at (0,2,1)/(0,1,1), outranking the landed base
+   `button` group's (0,0,1) face, border and bevel — so each arm restates
+   the landed plain push-button recipe itself (the base `button`
+   dictionary the suite's landed button case pins). Stock selectors probed
+   from Default-light.css in libgtk-4 4.18.6 with gresource on 2026-10-31. */
 .osd .scale-popup button.flat {
-  border-style: solid;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
 }
 
 .scale-popup button:hover {
   background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
   border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
 }
 
 /* Adaptation 2026-10-31: no collected reference screenshot shows a GTK message

@@ -3389,8 +3389,37 @@ for radio in (False, True):
         )
 
     def test_scale_popup_buttons(self):
-        """Clear the stock rounded scale-popup button overrides."""
-        self.assert_scale_popup_buttons()
+        """Clear the stock rounded scale-popup button overrides.
+
+        No collected reference screenshot shows a GTK scale popup, so the
+        sheet restates the toolkit resource's stock arms (probed from
+        Default-light.css in libgtk-4 4.18.6) with the landed plain
+        push-button recipe (the base ``button`` dictionary pinned by
+        ``support.gtk_rule_cases.py::GtkSheetRuleCases::test_button``).
+        The recipe is restated in full at each arm because this sheet has
+        no restated ``.osd button.flat`` family: the stock
+        ``.osd button``/``button.flat`` arms claim a transparent face and
+        border and no bevel at (0,2,1)/(0,1,1), outranking the landed
+        base ``button`` group's (0,0,1) face, border and bevel.
+        """
+        recipe = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        self.assertEqual(self.rules[".osd .scale-popup button.flat"], recipe)
+        self.assertEqual(self.rules[".scale-popup button:hover"], recipe)
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "scale-popup" in selector and "button" in selector},
+            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
+        )
 
     def test_video_osd_image_corners(self):
         self.assertEqual(

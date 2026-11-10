@@ -531,15 +531,17 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         )
 
     def assert_scale_popup_buttons(self):
-        """Assert both scale-popup button pins against this sheet's rules.
+        """Assert the GTK 3 OSD suite's scale-popup button pins here.
 
-        The GTK 4 control suite and the GTK 3 OSD suite carry the same
-        two ``scale-popup`` button pins on their own sheets: the flat
-        pop-up member squared with a solid border, the hover member armed
-        with the landed ``FACE`` and a square radius, and the member
-        inventory naming those two ``scale-popup`` button spellings and
-        nothing else. Each suite resolves to this body through its own
-        one-line named wrapper.
+        The GTK 3 OSD suite carries the sheet's two ``scale-popup``
+        button pins: the flat pop-up member squared with a solid border,
+        the hover member armed with the landed ``FACE`` and a square
+        radius, and the member inventory naming those two
+        ``scale-popup`` button spellings and nothing else. (The GTK 4
+        suite's own case restates the full push-button recipe at each
+        arm, because the GTK 4 sheet has no restated ``.osd
+        button.flat`` family, so its pins live inline there.) The suite
+        resolves to this body through its one-line named wrapper.
         """
         self.assertEqual(
             self.rules[".osd .scale-popup button.flat"],
