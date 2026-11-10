@@ -16,8 +16,8 @@ Usage::
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
         [--checkbox-dialog | --combobox-dialog | --lineedit-dialog
-        | --menu-dialog | --progressbar-dialog | --slider-dialog
-        | --textbox-dialog | --gtk-dialog]
+        | --menu-dialog | --calendar-dialog | --progressbar-dialog
+        | --slider-dialog | --textbox-dialog | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command

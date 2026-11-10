@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import contextlib
 import os
+import re
 import shlex
 import stat
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -509,6 +511,25 @@ class TestArguments(unittest.TestCase):
         # would leave the mode unusable by anyone reading the CLI.
         _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
         self.assertIn("--calendar-dialog", stdout)
+
+    def test_usage_docstring_names_every_dialog_mode_the_parser_defines(self):
+        # The module docstring's Usage block is the CLI contract a reader
+        # sees before any --help run: a dialog mode registered in the
+        # argument parser must appear there, and no stale name may outlive
+        # its removal. The calendar gate updated the Makefile, argparse,
+        # README and invariants for --calendar-dialog but left this block
+        # listing its siblings without it.
+        source = Path(render_surface.__file__).read_text()
+        parser_modes = sorted(set(re.findall(r"--(?:[a-z]+-)+dialog", source)))
+        docstring_modes = sorted(
+            set(re.findall(r"--(?:[a-z]+-)+dialog", render_surface.__doc__ or ""))
+        )
+        self.assertEqual(
+            parser_modes,
+            docstring_modes,
+            "render_surface's usage docstring must name exactly the dialog "
+            "modes its argument parser defines",
+        )
 
     def test_the_checkbox_dialog_requires_kdialog(self):
         # The default applet render cannot need every tool the dialog mode

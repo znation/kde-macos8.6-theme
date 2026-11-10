@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The render CLI's usage docstring omits the landed --calendar-dialog mode (found by the bugfix role 2026-11-10) — fixed 2026-11-10 by the bugfix role
+
+`tools/render_surface.py`'s module docstring Usage block — the CLI contract a
+reader sees before any `--help` run — listed its sibling dialog modes
+without `--calendar-dialog`, even though the calendar render-gate commit
+(93a227df0) registered the flag in the argument parser and updated the
+Makefile, argparse help, README and invariants around it. Nobody reading the
+docstring learns the calendar mode exists.
+
+Reproduce by comparing the two lists: the argument parser defines nine
+run-dialog flags — `--checkbox-dialog`, `--combobox-dialog`,
+`--lineedit-dialog`, `--menu-dialog`, `--calendar-dialog`,
+`--progressbar-dialog`, `--slider-dialog`, `--textbox-dialog` and
+`--gtk-dialog` — while the docstring named eight, with no
+`--calendar-dialog` among them. Fixed by adding the flag to the Usage block and by a
+regression test (`tests/test_render_surface_units.py::TestArguments`
+`test_usage_docstring_names_every_dialog_mode_the_parser_defines`) that
+extracts both sets from the source and demands exact equality, so a future
+gate that wires Makefile/README but skips the docstring (or outlives its
+removal) fails immediately.
+
+**Validation gap:** none — the new source-parsing regression test reproduced
+the drift before the fix (parser modes minus docstring modes named
+`--calendar-dialog`) and passed after it; the existing suite pinned argparse
+help but nothing pinned the docstring, so the gap was one missing guard, not
+a missing repro.
+
 ### The render CLI suite ran no slider-dialog missing-kdialog test because a copy-pasted def shadowed the name it was filed under (found by the dedupe role 2026-11-10) — fixed 2026-11-10 by the dedupe role
 
 `tests/test_render_surface_units.py::TestArguments` defined
