@@ -1344,14 +1344,26 @@ class _Renders:
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
     completed = False
+    failure: BaseException | None = None
 
     @classmethod
     def ensure(cls, kind):
         """Finish all renders once and return *kind*'s result."""
         if not cls.completed:
             cls.completed = True
-            cls._run_all()
+            # The sweep joins before the renders start: all scratch
+            # directories may already exist by the time a render fails, and
+            # a failed run must still remove them at interpreter exit.
             atexit.register(cls._remove_directories)
+            try:
+                cls._run_all()
+            except Exception as error:
+                cls.failure = error
+                raise
+        if cls.failure is not None:
+            # The sibling gate re-raises the failed run's error instead of a
+            # KeyError about a result the failed run never recorded.
+            raise cls.failure
         return cls.results[kind]
 
     @classmethod
