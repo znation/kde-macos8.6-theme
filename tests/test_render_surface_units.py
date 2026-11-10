@@ -518,9 +518,19 @@ class TestSessionCommand(unittest.TestCase):
     def test_carries_the_checkbox_dialog_client_words(self):
         with self._dialog_command(checkbox_dialog_client) as (session, command):
             # The dontagain config file lands in the scratch config home, so
-            # the client never writes the caller's configuration.
-            self.assertIn(
-                f"{session.config / 'kde-dontagain'}:widgets", command.argv[-1]
+            # the client never writes the caller's configuration. Recovering
+            # the shell words also pins the warning, prompt and flag order.
+            self.assertEqual(
+                (
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--warningyesno",
+                    "Delete?",
+                    "--dontagain",
+                    f"{session.config / 'kde-dontagain'}:widgets",
+                ),
+                tuple(shlex.split(command.argv[-1])[-7:]),
             )
 
     def test_carries_the_combobox_dialog_client_words(self):
