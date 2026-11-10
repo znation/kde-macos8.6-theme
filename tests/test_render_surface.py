@@ -1095,6 +1095,14 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             os.environ.pop("LIBGL_ALWAYS_SOFTWARE", None)
             self.assertIsNone(software_renderer_skip_reason())
 
+    def test_the_skip_guard_covers_a_case_insensitive_gallium_driver(self):
+        with mock.patch.dict(
+            os.environ, {"GALLIUM_DRIVER": "SoFtPiPe"}, clear=True
+        ):
+            self.assertEqual(
+                SOFTWARE_RENDER_SKIP_REASON, software_renderer_skip_reason()
+            )
+
     def test_all_dialog_gates_skip_only_when_a_tool_is_absent(self):
         tools = DIALOG_REAL_TOOLS
         expected = software_renderer_skip_reason() is not None or not all(
