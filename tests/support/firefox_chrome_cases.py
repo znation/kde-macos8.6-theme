@@ -720,6 +720,23 @@ class FirefoxChromeTestCase(
         """Assert that *selector* declares only *property_name*."""
         self.assertEqual(set(self.rules[selector]), {property_name})
 
+    def assert_rule_names_scoped_to(self, token, expected):
+        """Assert the rules whose selector names *token* are just *expected*.
+
+        The Firefox chrome suites use this sweep to pin a block of rules
+        to one UI region: every selector name carrying *token* must
+        appear in *expected* (any set-able collection) and nothing
+        outside it may match. Twenty-one call sites across the popup,
+        panel, shell and library suites replace the identical three-line
+        ``assertEqual`` sweep. Compound predicates -- multi-token,
+        ``startswith``-anchored or exclusion conditions -- and the sorted
+        or list-form variants keep their bespoke sweeps.
+        """
+        self.assertEqual(
+            {name for name in self.rules if token in name},
+            set(expected),
+        )
+
     def assert_token_scoped_to(self, token, expected=()):
         """Assert the rules whose declarations carry *token* are just *expected*.
 

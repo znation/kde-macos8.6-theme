@@ -524,8 +524,8 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
 
         # The sheet's whole set of downloadsListBox-naming rules is
         # exactly the landed #downloadsPanel arms plus this section's.
-        self.assertEqual(
-            {name for name in self.rules if "downloadsListBox" in name},
+        self.assert_rule_names_scoped_to(
+            "downloadsListBox",
             {
                 "#downloadsPanel #downloadsListBox > richlistitem",
                 "#downloadsPanel #downloadsListBox > richlistitem"
@@ -564,13 +564,12 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
         # The sheet's whole set of clearDownloadsButton-naming rules is
         # exactly this section's, and the whole set of placesToolbar-
         # naming rules is exactly the landed band rule plus them.
-        self.assertEqual(
-            {name for name in self.rules
-             if "clearDownloadsButton" in name},
+        self.assert_rule_names_scoped_to(
+            "clearDownloadsButton",
             set(CLEAR_BUTTON_RULES),
         )
-        self.assertEqual(
-            {name for name in self.rules if "placesToolbar" in name},
+        self.assert_rule_names_scoped_to(
+            "placesToolbar",
             {"toolbar#placesToolbar", *CLEAR_BUTTON_RULES},
         )
 
@@ -768,17 +767,14 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
         # this section's nine arms, and the whole set of editBMPanel-
         # naming rules is exactly them plus the landed ten
         # #editBookmarkPanel-prefixed bookmark editor's arms.
-        self.assertEqual(
-            {name for name in self.rules if "detailsPane" in name},
-            set(DETAILS_RULES),
-        )
+        self.assert_rule_names_scoped_to("detailsPane", set(DETAILS_RULES))
         # The sheet's whole set of editBMPanel-naming rules is exactly
         # this section's nine arms plus the landed six that name the
         # bookmark editor's field ids and folder menulist; the Done/
         # Remove buttons' names carry editBookmarkPanel but not
         # editBMPanel, and the panels suite pins their ten-rule set.
-        self.assertEqual(
-            {name for name in self.rules if "editBMPanel" in name},
+        self.assert_rule_names_scoped_to(
+            "editBMPanel",
             {
                 "#editBookmarkPanel #editBMPanel_namePicker",
                 "#editBookmarkPanel #editBMPanel_locationField",
@@ -790,8 +786,8 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
                 *DETAILS_RULES,
             },
         )
-        self.assertEqual(
-            {name for name in self.rules if "editBookmark" in name},
+        self.assert_rule_names_scoped_to(
+            "editBookmark",
             {
                 "#editBookmarkPanel #editBookmarkPanelDoneButton",
                 "#editBookmarkPanel #editBookmarkPanelRemoveButton",

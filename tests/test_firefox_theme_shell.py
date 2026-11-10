@@ -92,14 +92,11 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             "#urlbar:not([focused], [open]) > .urlbar-background",
             "#searchbar-new:not([focused], [open]) > .urlbar-background",
         }
-        self.assertEqual(
-            {name for name in self.rules if "urlbar-background" in name},
-            field_selectors,
-        )
+        self.assert_rule_names_scoped_to("urlbar-background", field_selectors)
         for selector in field_selectors:
             self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
-        self.assertEqual(
-            {name for name in self.rules if "searchbar" in name},
+        self.assert_rule_names_scoped_to(
+            "searchbar",
             {
                 "#searchbar:not(:focus-within)",
                 "#searchbar-new:not([focused], [open]) > .urlbar-background",
@@ -114,8 +111,8 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             ":not([selected]):not([multiselected])"
         )
         selected = ".tabbrowser-tab:is([selected], [multiselected]) .tab-background"
-        self.assertEqual(
-            {name for name in self.rules if "tab-background" in name},
+        self.assert_rule_names_scoped_to(
+            "tab-background",
             {
                 ".tab-background",
                 selected,
@@ -151,10 +148,7 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
                     and "[multiselected]" not in name):
                 with self.subTest(selected_only=name):
                     self.assertNotIn("background-color", self.rules[name])
-        self.assertEqual(
-            {name for name in self.rules if "multiselected" in name},
-            {selected, hover},
-        )
+        self.assert_rule_names_scoped_to("multiselected", {selected, hover})
 
     def test_menubar_title_geometry_matches_the_menubaritem_margins(self):
         selector = "#toolbar-menubar menubar > menu"
@@ -214,10 +208,7 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
         )
 
     def test_sidebar_frame_is_scoped_to_the_box_and_header(self):
-        self.assertEqual(
-            {name for name in self.rules if "sidebar" in name},
-            {"#sidebar-box", "#sidebar-header"},
-        )
+        self.assert_rule_names_scoped_to("sidebar", {"#sidebar-box", "#sidebar-header"})
         for selector in ("#sidebar-box", "#sidebar-header"):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
@@ -235,10 +226,7 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             'findbar .findbar-textbox:not([status="notfound"])'
             ':not([flash="true"]):not(:focus)'
         )
-        self.assertEqual(
-            {name for name in self.rules if "findbar-textbox" in name},
-            {selector},
-        )
+        self.assert_rule_names_scoped_to("findbar-textbox", {selector})
         self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
         self.assertEqual(self.rules["findbar"], REQUIRED_RULES["findbar"])
 

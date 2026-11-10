@@ -25,10 +25,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
             ":not(.panel-header .subviewbutton)"
         )
         hover = radius + ":hover:not([disabled])"
-        self.assertEqual(
-            {name for name in self.rules if "identity-popup" in name},
-            {radius, hover},
-        )
+        self.assert_rule_names_scoped_to("identity-popup", {radius, hover})
         for selector in (radius, hover):
             with self.subTest(selector=selector):
                 self.assertTrue(selector.startswith("#identity-popup"))
@@ -138,10 +135,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
             "#protections-popup-show-report-stack:hover > "
             ".protections-popup-footer-button:not([disabled])"
         )
-        self.assertEqual(
-            {name for name in self.rules if "protections-popup" in name},
-            {radius, hover, stack_hover},
-        )
+        self.assert_rule_names_scoped_to("protections-popup", {radius, hover, stack_hover})
         for selector in (radius, hover):
             with self.subTest(selector=selector):
                 self.assertTrue(selector.startswith("#protections-popup"))
@@ -296,10 +290,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
             ":not(.panel-header .subviewbutton)"
         )
         hover = radius + ":hover:not([disabled])"
-        self.assertEqual(
-            {name for name in self.rules if "trustpanel-popup" in name},
-            {radius, hover},
-        )
+        self.assert_rule_names_scoped_to("trustpanel-popup", {radius, hover})
         for selector in (radius, hover):
             with self.subTest(selector=selector):
                 self.assertTrue(selector.startswith("#trustpanel-popup"))
@@ -414,10 +405,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
         menulist = "#permission-popup-menulist"
         menulist_hover = menulist + ":hover:not([disabled])"
         selectors = (button, button_hover, menulist, menulist_hover)
-        self.assertEqual(
-            {name for name in self.rules if "permission-popup" in name},
-            set(selectors),
-        )
+        self.assert_rule_names_scoped_to("permission-popup", set(selectors))
         for selector in selectors:
             with self.subTest(selector=selector):
                 self.assertTrue(selector.startswith("#permission-popup"))
@@ -537,10 +525,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
 
     def test_notification_popup_primary_button_paint_is_scoped_to_the_notification_popup(self):
         primary = "#notification-popup .popup-notification-primary-button"
-        self.assertEqual(
-            {name for name in self.rules if "notification-popup" in name},
-            {primary},
-        )
+        self.assert_rule_names_scoped_to("notification-popup", {primary})
         self.assertEqual(self.rules[primary], REQUIRED_RULES[primary])
         self.assertEqual(
             {name for name, declarations in self.rules.items()

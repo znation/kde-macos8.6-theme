@@ -226,10 +226,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
     def test_app_menu_row_paint_is_scoped_to_the_app_menu(self):
         radius = "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton)"
         hover = radius + ":hover:not([disabled])"
-        self.assertEqual(
-            {name for name in self.rules if "appMenu" in name},
-            {radius, hover},
-        )
+        self.assert_rule_names_scoped_to("appMenu", {radius, hover})
         self.assert_rules_match_required((radius, hover))
         for selector in (radius, hover):
             self.assertTrue(selector.startswith(radius))
@@ -303,10 +300,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             radius_rows[0] + ":hover:not([disabled])",
             radius_rows[1] + ":hover:not([disabled])",
         )
-        self.assertEqual(
-            {name for name in self.rules if "widget-overflow" in name},
-            set(radius_rows + hover_rows),
-        )
+        self.assert_rule_names_scoped_to("widget-overflow", set(radius_rows + hover_rows))
         self.assert_rules_match_required(radius_rows + hover_rows)
         for selector in radius_rows + hover_rows:
             self.assertTrue(selector.startswith("#widget-overflow"))
@@ -395,10 +389,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             ".unified-extensions-item-menu-button:hover"
         )
         selectors = (radius, hover, gear_hover)
-        self.assertEqual(
-            {name for name in self.rules if "unified-extensions" in name},
-            set(selectors),
-        )
+        self.assert_rule_names_scoped_to("unified-extensions", set(selectors))
         self.assert_rules_match_required(selectors)
         for selector in selectors:
             self.assertTrue(selector.startswith("#unified-extensions-panel"))
@@ -524,10 +515,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             for selector in normal_selectors
         )
         selectors = field_selectors + normal_selectors + hover_selectors
-        self.assertEqual(
-            {name for name in self.rules if "editBookmark" in name},
-            set(selectors),
-        )
+        self.assert_rule_names_scoped_to("editBookmark", set(selectors))
         self.assert_rules_match_required(selectors)
         for selector in field_selectors + normal_selectors:
             self.assertNotIn(":hover", selector)
