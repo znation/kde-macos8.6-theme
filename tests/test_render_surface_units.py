@@ -538,7 +538,23 @@ class TestSessionCommand(unittest.TestCase):
             # The chooser's items travel as separate positional words of the
             # in-session script, so a space inside one cannot become shell
             # syntax.
-            self.assertIn("'Macintosh HD'", command.argv[-1])
+            self.assertEqual(
+                [
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--combobox",
+                    "Choose a disk:",
+                    "Macintosh HD",
+                    "Zip Disk",
+                ],
+                list(combobox_dialog_client(None)),
+            )
+            words = shlex.split(command.argv[-1])
+            self.assertEqual(
+                list(combobox_dialog_client(None)),
+                words[-len(combobox_dialog_client(None)) :],
+            )
 
     def test_gtk_dialog_client_opens_a_zenity_text_entry(self):
         self.assertEqual(
