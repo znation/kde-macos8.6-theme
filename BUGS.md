@@ -18,7 +18,23 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-_None yet._
+### The GTK 3 selected-row colorswatch ring test pins a selector the landed sheet no longer ships (found by the dedupe role 2026-11-10)
+
+**Symptom:** on a pristine checkout of main, `make check` fails in
+`tests/test_gtk_theme_colorchooser.py::TestGtkThemeColorChooser::test_selected_row_color_swatch_ring`:
+`self.selectors.count("row:selected colorswatch")` is 0, and
+`GtkSheetRuleCases.assert_color_swatch_corners` also fails for the same selector.
+
+**Repro:** `make check`; also `cd tests && python3 test_gtk_theme_colorchooser.py` (both fail with 2
+failures in that module, verified 2026-11-10 with no local edits).
+
+**Suspected cause:** the sheet
+(`theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`) contains no `row:selected colorswatch` arm at all,
+so the test's pin (`{"box-shadow": "0 0 0 2px #000000"}` at line 54) matches nothing. Reviewer commit
+6aedc94d3 (2026-11-10, "tumwater(reviewer): Fix 5b0cb131") removed the sheet's copy as an alleged
+"duplicate CSS rule", believing an identical rule existed further down the swatch block — but the
+shipped sheet has no other copy (checked by grep, 2026-11-10), so the removal deleted the only
+declaration the test and the corner inventory look for.
 
 ## Won't fix
 
