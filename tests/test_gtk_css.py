@@ -14,7 +14,43 @@ from __future__ import annotations
 import time
 import unittest
 
-from support.gtk_css import _define_color_matches, parse_css, strip_comments
+from support.gtk_css import (
+    _define_color_matches,
+    inline_link_state_selectors,
+    parse_css,
+    strip_comments,
+)
+
+
+class TestInlineLinkStateSelectors(unittest.TestCase):
+    def test_expands_each_root_over_base_hover_and_active_in_root_order(self):
+        self.assertEqual(
+            inline_link_state_selectors(("a:link", "a:visited")),
+            (
+                "a:link",
+                "a:link:hover",
+                "a:link:active",
+                "a:visited",
+                "a:visited:hover",
+                "a:visited:active",
+            ),
+        )
+
+    def test_state_and_prefix_wrap_every_root(self):
+        # An empty state must still append the suffixes: the GTK 4 suite
+        # relies on its roots already carrying the state, so a helper that
+        # dropped the suffixes when *state* is empty would silently
+        # un-pind the base-state rules there.
+        self.assertEqual(
+            inline_link_state_selectors(
+                ("a:link",), state=":backdrop", prefix=":selected "
+            ),
+            (
+                ":selected a:link:backdrop",
+                ":selected a:link:backdrop:hover",
+                ":selected a:link:backdrop:active",
+            ),
+        )
 
 
 class TestStripComments(unittest.TestCase):

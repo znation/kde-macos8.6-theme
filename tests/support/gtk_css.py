@@ -563,3 +563,21 @@ def parse_css(text, source=None):
                     selector_rules[name] = value
                     priorities[name] = important
     return definitions, rules, selectors
+
+
+def inline_link_state_selectors(roots, state="", prefix=""):
+    """Expand inline-link selectors across base, hover and active states.
+
+    Each root of *roots* is kept in order and becomes ``prefix + root
+    + state + suffix`` for the base, ``:hover`` and ``:active`` suffixes.
+    The GTK 3 and GTK 4 inline-link suites' root-built selector sets go
+    through this helper: the GTK 4 suite passes the state inside its
+    roots and leaves *state* untouched, the GTK 3 suite passes the focus
+    or backdrop state separately and prefixes the ancestor ``:selected``
+    forms with ``":selected "``.
+    """
+    return tuple(
+        prefix + root + state + suffix
+        for root in roots
+        for suffix in ("", ":hover", ":active")
+    )

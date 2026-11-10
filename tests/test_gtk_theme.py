@@ -53,6 +53,11 @@ THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
 INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
+# Every inline-link rule expands these roots over the base, hover and
+# active states; the inline-link tests below all pin rules for that
+# expansion via support.gtk_css.inline_link_state_selectors.
+LINK_ROOTS = ("label:link", "label:visited", "label:link:visited")
+
 
 class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
     CSS_PATH = CSS
@@ -369,10 +374,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_selected_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            root + ":selected:not(:disabled):not(:backdrop)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":selected:not(:disabled):not(:backdrop)"
         )
         self.assert_selected_link_rules(
             selectors,
@@ -385,10 +388,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_disabled_selected_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            root + ":selected:disabled:not(:backdrop)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":selected:disabled:not(:backdrop)"
         )
         self.assert_disabled_text(selectors)
         self.assert_selected_link_rules(
@@ -401,10 +402,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_selected_ancestor_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            ":selected " + root + ":not(:disabled):not(:backdrop)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":not(:disabled):not(:backdrop)", prefix=":selected "
         )
         self.assert_selected_link_rules(
             selectors,
@@ -417,10 +416,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_disabled_selected_ancestor_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            ":selected " + root + ":disabled:not(:backdrop)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":disabled:not(:backdrop)", prefix=":selected "
         )
         self.assert_disabled_text(selectors)
         self.assert_selected_link_rules(
@@ -433,10 +430,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_selected_backdrop_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            root + ":selected:backdrop:not(:disabled)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":selected:backdrop:not(:disabled)"
         )
         self.assert_selected_link_rules(
             selectors,
@@ -448,10 +443,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_disabled_selected_backdrop_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            root + ":selected:disabled:backdrop" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":selected:disabled:backdrop"
         )
         self.assert_disabled_text(selectors)
         for selector in selectors:
@@ -466,10 +459,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_selected_ancestor_backdrop_inline_link_foregrounds(self):
-        roots = ("label:link", "label:visited", "label:link:visited")
-        selectors = tuple(
-            ":selected " + root + ":backdrop:not(:disabled)" + suffix
-            for root in roots for suffix in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":backdrop:not(:disabled)", prefix=":selected "
         )
         self.assert_selected_link_rules(
             selectors,
@@ -483,10 +474,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_disabled_selected_ancestor_backdrop_inline_link_foregrounds(self):
-        selectors = tuple(
-            f":selected label:{link}:disabled:backdrop{interaction}"
-            for link in ("link", "visited", "link:visited")
-            for interaction in ("", ":hover", ":active")
+        selectors = gtk_css.inline_link_state_selectors(
+            LINK_ROOTS, state=":disabled:backdrop", prefix=":selected "
         )
         self.assert_disabled_text(selectors)
         for selector in selectors:
