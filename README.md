@@ -753,7 +753,8 @@ materialized; the Makefile's targets still require Python 3.10 or newer at run
 time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
 `plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox, combobox, line-edit, menu,
-progressbar, slider, textbox and calendar dialog renders open, and the `zenity` client its GTK
+calendar, color, progressbar, slider and textbox dialog renders open, and the `zenity` client its
+GTK
 dialog render opens, so `make check` reaches the rendered-pixel gates, including the kdialog and
 GTK dialog renders. Their
 software-renderer guard still skips captures in the workflow environment; installed tools
@@ -1599,15 +1600,15 @@ window and byte-compares the title-bar strip (candidate `30,0,80,22` against ref
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
 region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
-`::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender` and
-`::TestGtkDialogRender`) open a `kdialog` warning box, chooser, input box, menu list
-and calendar and a
-`zenity` GTK 4 entry dialog and byte-compare the engine-drawn check box cell with the shipped
-`checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal` slice,
-the engine-drawn line edit with the shipped sunken-field arrangement and the engine-drawn item
-view frame with the shipped `GenericFrame` art. The GTK 4 dialog gate byte-compares the rendered
-entry-field cell with its shipped art and pins the rendered action-button row, Cancel button and
-CSD shell edge; it also checks capture-level invariants.
+`::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
+`::TestCalendarDialogRender`, `::TestColorDialogRender`, `::TestSliderDialogRender`,
+`::TestTextboxDialogRender`, `::TestProgressbarDialogRender` and `::TestGtkDialogRender`)
+open a `kdialog` warning box, chooser, input box, menu list, calendar, color picker, slider,
+progress meter and text box and a `zenity` GTK 4 entry dialog, and byte-compare the
+engine-drawn widget each opens with the shipped art described under
+[Rendering a candidate](#rendering-a-candidate). The GTK 4 dialog gate also pins the
+rendered action-button row, Cancel button and CSD shell edge; the gates also check capture-level
+invariants.
 
 ## Running checks
 
