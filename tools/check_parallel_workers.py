@@ -89,7 +89,7 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
         with _open_log(log_path) as note:
             note.write(f"check: the worker could not be started: {exc}\n".encode())
     return _Worker(module, log_path, process,
-                   started + timeout, started)
+                   time.monotonic() + timeout, started)
 
 
 def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,

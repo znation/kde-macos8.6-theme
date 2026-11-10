@@ -92,6 +92,7 @@ class TestCache(unittest.TestCase):
 
     def test_a_missing_or_malformed_cache_loads_nothing(self):
         for contents in (
+            "[" * 2000 + "]" * 2000,
             "", "not json", "[1, 2]", '{"version": 1}', "{}",
             '{"version": true, "durations": {"test_ok": 0.5}}',
         ):
@@ -140,6 +141,7 @@ class TestCache(unittest.TestCase):
                     # are not measured wall durations and must not affect
                     # the worker queue order.
                     "test_bool": True,
+                    "test_huge": 10**400,
                 }},
                 sink,
             )
@@ -236,6 +238,19 @@ class TestDurationsRecorded(unittest.TestCase):
         )
         return statuses, durations
 
+    def test_spawn_time_is_recorded_without_shortening_the_timeout(self):
+        log = str(make_tmp_dir(self) / "worker.log")
+        with (
+            mock.patch.object(check_parallel_workers.time, "monotonic",
+                              side_effect=[100.0, 105.0]),
+            mock.patch.object(check_parallel_workers.subprocess, "Popen"),
+        ):
+            worker = check_parallel_workers._spawn(
+                "test_ok", [sys.executable], ".", log, 30,
+            )
+        self.assertEqual(100.0, worker.started)
+        self.assertEqual(135.0, worker.deadline)
+
     def test_each_finished_module_records_its_elapsed_wall(self):
         # The recorded value covers the module's own run (the fixture sleeps
         # 0.3s) plus its spawn, which is the worker time the next run's
@@ -290,6 +305,17 @@ class TestDurationsRecorded(unittest.TestCase):
         self.assertEqual({"test_slow": None}, statuses)
         self.assertGreaterEqual(durations["test_slow"], 0.1)
         self.assertLess(durations["test_slow"], 5)
+
+    def test_a_timed_out_module_records_its_elapsed_wall(self):
+        tests_dir = str(make_tmp_dir(self))
+        log = os.path.join(tests_dir, "slow.log")
+        durations = {}
+        statuses = check_parallel_workers._supervise(
+            ["0.3"], [sys.executable, "-c", "import time, sys; time.sleep(float(sys.argv[1]))"],
+            tests_dir, {"0.3": log}, 0.05, 1, durations=durations,
+        )
+        self.assertEqual({"0.3": None}, statuses)
+        self.assertGreaterEqual(durations["0.3"], 0.05)
 
     def test_a_never_started_module_records_nothing(self):
         # The unopenable-log case records the module as never started; with
@@ -388,6 +414,16 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
         self.assertEqual(
             {"test_aaa_ok", "test_zzz_ok"}, set(record["durations"]),
         )
+
+    def test_an_unwritable_cache_does_not_change_the_verdict(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        cache_dir = make_tmp_dir(self) / "not-a-directory"
+        cache_dir.write_text("blocked", encoding="utf-8")
+        with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(cache_dir)}):
+            result = self._run("--tests-dir", tests_dir)
+        assert_succeeded(self, result)
+        self.assertEqual(1, result.stderr.count("could not record module durations"))
+        self.assertEqual("blocked", cache_dir.read_text(encoding="utf-8"))
 
     def test_a_run_rewrites_the_cache_with_its_own_modules(self):
         # The save drops entries whose modules left the tree -- a renamed
