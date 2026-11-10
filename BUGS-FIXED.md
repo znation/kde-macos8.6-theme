@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The GTK CSS suite ran only the second of two same-named `test_escaped_trailing_value_whitespace_is_preserved` defs (found by the coverage role 2026-11-10) — fixed 2026-11-10 by the coverage role
+
+`tests/test_gtk_css.py::TestRuleBlockSemantics` defined `test_escaped_trailing_value_whitespace_is_preserved`
+twice: `767e83a9b` (2026-11-01) added the first definition and `84b7e1cc8` (2026-11-01, later the same
+day) added a second with the same name into the same class, so the first was shadowed at import
+time and never executed for nine days while `make check` stayed green. A repeated `def` in one
+class silently replaces the earlier one — the same shadowing shape the dedupe role removed from
+`TestGtk4Theme::test_dim_label_foreground` on 2026-11-09.
+
+The dead definition still passed when run directly, so it was lost to the shadow rather than
+outdated. It covered two cases the surviving definition never runs: a two-backslash trailing run
+(`token\\   ;` keeps both backslashes; the survivor loops slash counts (1, 3) only) and the plain
+unescaped-trailing-whitespace collapse (`token   ; color: red;` and `token   }` reduce the value to
+`token`, the trimming half of the invariant row the test shares). The fix deletes the shadowed
+definition and folds both cases into the surviving one — slash counts (1, 2, 3), plus an explicit
+unescaped-collapse loop — so one test now covers both halves of `docs/invariants.md:346` and the
+row's named test reads unchanged.
+**Validation gap:** none — a per-class duplicate-`def` scan over `tests/test*.py` reproduces the
+shadowing, and running the shadowed definition under a temporary distinct name showed it green;
+no other test module defines a same-class duplicate.
+
 ### The GTK 3 sheet lost the selected-row swatch ring rule the colorchooser suite pins (found by the plan role 2026-11-10) — fixed 2026-11-10 by the bugfix role
 
 `python3 tests/test_gtk_theme_colorchooser.py` fails two tests: `test_color_swatch_corners`

@@ -403,22 +403,6 @@ class TestRuleBlockSemantics(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertEqual(parse_css(text), ({}, rules, selectors))
 
-    def test_escaped_trailing_value_whitespace_is_preserved(self):
-        cases = (
-            (r"token\ ; color: red;", r"token\ ", {"color": "red"}),
-            ("token\\\t; color: red;", "token\\\t", {"color": "red"}),
-            (r"token\ }", r"token\ ", {}),
-            ("token\\\t}", "token\\\t", {}),
-            (r"token\   ; color: red;", r"token\ ", {"color": "red"}),
-            (r"token\\   ; color: red;", r"token\\", {"color": "red"}),
-            ("token   ; color: red;", "token", {"color": "red"}),
-        )
-        for body, expected_value, following in cases:
-            with self.subTest(body=body):
-                _, rules, selectors = parse_css("a { --sample: " + body + " }")
-                self.assertEqual(selectors, ["a"])
-                self.assertEqual(rules["a"], {"--sample": expected_value, **following})
-
     def test_a_later_block_replaces_an_earlier_declaration(self):
         # parse_css documents the cascade: a repeated selector keeps every
         # declaration, with the later block's declaration replacing an earlier
@@ -694,13 +678,27 @@ class TestRuleBlockSemantics(unittest.TestCase):
         )
 
     def test_escaped_trailing_value_whitespace_is_preserved(self):
+        # Unescaped trailing whitespace is trimmed: only an escaped run keeps
+        # its trailing CSS whitespace, whatever the following declaration is.
+        for suffix in ("; color: red;", ""):
+            with self.subTest(suffix=suffix):
+                declarations = parse_css(f"a {{ --sample: token   {suffix}}}")[1]["a"]
+                expected = {"--sample": "token"}
+                if suffix:
+                    expected["color"] = "red"
+                self.assertEqual(declarations, expected)
+
         for whitespace in (" ", "\t"):
-            for slash_count in (1, 3):
+            for slash_count in (1, 2, 3):
                 with self.subTest(whitespace=repr(whitespace), slashes=slash_count):
                     value = "token" + "\\" * slash_count + whitespace
                     for suffix in ("; color: red;", ""):
                         source = f"a {{ --value: {value}   {suffix}}}"
-                        expected = "token" + "\\" * slash_count + whitespace
+                        # A pair of backslashes escapes a literal backslash, so
+                        # the trailing whitespace escapes only after an odd
+                        # run; an even run leaves it unescaped and trimmed.
+                        escaped = slash_count % 2
+                        expected = "token" + "\\" * slash_count + (whitespace if escaped else "")
                         declarations = parse_css(source)[1]["a"]
                         self.assertEqual(declarations["--value"], expected)
                         if suffix:
