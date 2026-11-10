@@ -2158,6 +2158,7 @@ class TestArrowGlyphs(unittest.TestCase):
             found = children_named(tree.getroot(), "path")
             self.assertEqual(len(found), 1)
             paths.append((found[0].get("d"), found[0].get("fill")))
+        self.assertEqual(paths[0], paths[1])
 
 
 if __name__ == "__main__":

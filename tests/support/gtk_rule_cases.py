@@ -817,6 +817,17 @@ class GtkSharedControlCases(GtkSheetRuleCases):
 
         self.assert_tab_faces()
 
+    def test_tab_states(self):
+        """Assert the plain tabs' TAB_STATES faces under their named pointer.
+
+        The suite's invariant rows cite the named share case
+        ``tests/support/gtk_rule_cases.py::GtkSharedControlCases::test_tab_states``;
+        the assertion body itself lives in :meth:`assert_tab_faces`, so the
+        named case and the stack-switcher/path-bar forms share one recipe and
+        stay byte-identical in assertion.
+        """
+        self.assert_tab_faces()
+
     def assert_separator_label_foreground(self):
         """Assert the separator label's opaque inactive grey, once per suite.
 
