@@ -5,6 +5,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### README render coverage: explain the software-renderer skip (planned 2026-11-09 by the plan role)
+
+**Goal.** Let contributors distinguish a successful check from exercised rendered-pixel coverage. README's Validating the reference set currently says the CI tool installation makes the rendered-pixel gates run, while the workflow sets `LIBGL_ALWAYS_SOFTWARE=1` and the gates skip under that setting.
+
+**Approach and files.** Edit README.md only, outside the brief. Correct the CI paragraph under Validating the reference set and qualify the render-gate summary under Fidelity checking: installed tools are prerequisites, while the software-renderer guard can still skip captures. Add a short explanation under Running checks that the hosted check job forces software GL and therefore skips these capture gates; a green check with those skips does not establish rendered-pixel equality. Explain that the current guard is environment-based, not a KWin-version probe: `LIBGL_ALWAYS_SOFTWARE=1`, or a case-insensitive `llvmpipe`, `softpipe`, `swrast` or `zink` in `MESA_LOADER_DRIVER_OVERRIDE` or `GALLIUM_DRIVER`, triggers it. The skip reason cites a fix in KWin 6.8, but upgrading alone does not remove this guard. Recommend a GPU-backed host with the documented tools and without software-forcing variables for exercising captures; keep the existing isolated headless rendering route and GTK Xvfb instructions. Do not prescribe unsetting variables as a way to give a GPU-less runner hardware rendering. This is a documentation change with no new tests or runtime changes.
+
+**Grounding.** Inspected `tests/test_render_surface.py::software_renderer_skip_reason`, `SOFTWARE_RENDERER_DRIVERS`, `SOFTWARE_RENDER_SKIP_REASON`, the `TestRender` decorators and `_dialog_gate_guard`, plus `.github/workflows/ci.yml`'s check-job environment and the tooling skip row in `docs/invariants.md`. These are evidence anchors, not files to edit. The finished workflow-driver plan removed a driver override and updated invariants, explicitly leaving README alone; the older README dialog-gate plan corrected gate names, not software-renderer coverage.
+
+**Acceptance criteria.** A reader of Validating the reference set learns that CI runs the check commands but skips rendered-pixel gates under its software-forcing environment. The Fidelity checking summary makes capture coverage conditional on tool availability and the renderer guard. Running checks explains the triggering variables, the current lack of version detection, and how to exercise captures on a suitable GPU host without opening windows on the desktop. Existing capture commands, gate-class references and GTK Xvfb examples remain usable. Review the prose against the named guard and workflow; `make check` passes after the final edit.
+
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
