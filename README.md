@@ -535,6 +535,7 @@ two captures differ instead of silently passing. A wholly
 black capture — the screen before the window has painted — is refused with a diagnostic
 naming the settle wait rather than published as a render. A failed install, render or
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
+For help diagnosing a failed capture, see [Troubleshooting a render](#troubleshooting-a-render).
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
 (`kdialog` must be on `PATH` in the kdialog dialog modes) and captures it as a 480x360 PNG
@@ -1253,6 +1254,22 @@ python3 tools/render_surface.py --settle 12 --timeout 120 calculator.png
 A longer wait does not guarantee a successful capture. Compare the candidate with the relevant
 reference surface using the [fidelity checker](#fidelity-checking); use its crop options to
 compare a region rather than assuming a full capture matches a reference screenshot.
+
+### Troubleshooting a render
+
+| Symptom | Check and next action |
+| --- | --- |
+| The diagnostic names a missing or unstartable executable. | Repair that executable or its `PATH` entry, then rerun the same command. The first missing required tool is named; a present but unstartable `make` or `dbus-run-session` is also diagnosed. |
+| The capture is entirely black. | The window did not paint before capture. Check whether the paint needs more time and increase `--settle`; use the [slower-paint example](#capturing-a-candidate), with `--timeout` longer than `--settle`. A longer wait does not guarantee a capture. |
+| The render timed out. | Check [Prerequisites](#prerequisites), including whether the `org.kde.plasma.calculator` applet is installed for a calculator capture; its absence can leave the window unpainted, but a timeout alone does not diagnose it. Increase `--timeout` only as needed, and keep it longer than `--settle`. |
+| The render session exits nonzero. | Inspect the diagnostic's printed session log tail for the failing command. The log is in a temporary scratch directory and is removed with the session, so it is not a persistent report. |
+
+Direct `python3 tools/render_surface.py` invocations return 2 for usage or preflight errors
+(including missing tools and invalid timeout settings), and 1 for workflow failures. GNU Make
+reports its own recipe-failure status for `make render`. Failure diagnostics include a bounded
+log tail when a log is available. The software-renderer skip described in
+[Running checks](#running-checks) applies to the automated pixel gates; it is separate from a
+direct render failure.
 
 ### Comparing a region
 
