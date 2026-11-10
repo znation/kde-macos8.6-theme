@@ -14,6 +14,7 @@ if __package__:
     from tools.render_clients import (
         checkbox_dialog_client,
         combobox_dialog_client,
+        color_dialog_client,
         gtk_dialog_client,
         lineedit_dialog_client,
         menu_dialog_client,
@@ -41,6 +42,7 @@ else:  # run directly from render_surface.py
     from render_clients import (
         checkbox_dialog_client,
         combobox_dialog_client,
+        color_dialog_client,
         gtk_dialog_client,
         lineedit_dialog_client,
         menu_dialog_client,
@@ -95,8 +97,9 @@ def render(args: argparse.Namespace) -> int:
 
         dialog = (
             args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-            or args.menu_dialog or args.calendar_dialog or args.progressbar_dialog
-            or args.slider_dialog or args.textbox_dialog or args.gtk_dialog
+            or args.menu_dialog or args.calendar_dialog or args.color_dialog
+            or args.progressbar_dialog or args.slider_dialog
+            or args.textbox_dialog or args.gtk_dialog
         )
         try:
             write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
@@ -113,6 +116,8 @@ def render(args: argparse.Namespace) -> int:
             client = list(menu_dialog_client(session))
         elif args.calendar_dialog:
             client = list(calendar_dialog_client(session))
+        elif args.color_dialog:
+            client = list(color_dialog_client(session))
         elif args.progressbar_dialog:
             client = list(progressbar_dialog_client(session))
         elif args.slider_dialog:

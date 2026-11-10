@@ -342,6 +342,30 @@ CALENDAR_RED_INK = (
     (136, 223), (136, 224), (124, 226), (125, 226), (126, 226), (127, 226),
     (128, 226),
 )
+# The color dialog's pinned bands, measured on two consecutive full
+# `tools/render_surface.py --color-dialog` runs on 2026-11-10 whose two
+# 480x360 captures agreed byte for byte under `cmp` (see
+# TestColorDialogRender for what each band pins).
+COLOR_WINDOW_FACE = (100, 200, 120, 9)
+# The basic-color grid's first row at its deepest pass: the #000000 lead
+# cell and its #AA0000 neighbour, both the grid's constant fills, with
+# the #DDDDDD gap columns between the cells.
+BASIC_SWATCH_ROW = (17, 57, 46, 6)
+# A band over one sunken value field's left edge and face interior, rows
+# the field's spin box text never reaches: two face columns, the #999999
+# top/left shadow column, the 1px #000000 outline column, the #FFFFFF
+# face run and four face columns to the right of the field.
+SUNKEN_VALUE_FIELD_BAND = (330, 212, 40, 4)
+# The dialog's left push button in the default-button row: the landed
+# raised recipe (see TestColorDialogRender) at the 82x24 button size the
+# other dialog gates pin.
+PUSH_BUTTON = (301, 324, 82, 24)
+# The button's full-height label-free left cell: the outline row, the
+# white bevel top arm, the bevel column over the #DDDDDD face and the
+# #AAAAAA shadow arm, then the bottom outline row.
+PUSH_BUTTON_CELL = (302, 324, 5, 24)
+# Label-free face rows for the frame pin beside the cell band.
+PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1233,12 +1257,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The nine dialog gates skip wherever their render CLI would refuse on a tool.
+    """The ten dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the eight kdialog modes, zenity for the
-    GTK mode), and the nine dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the nine kdialog modes, zenity for the
+    GTK mode), and the ten dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1303,6 +1327,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestLineInputDialogRender,
             TestMenuDialogRender,
             TestCalendarDialogRender,
+            TestColorDialogRender,
             TestProgressbarDialogRender,
             TestSliderDialogRender,
             TestTextboxDialogRender,
@@ -1336,6 +1361,7 @@ class _Renders:
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
         ("calendar", ("--calendar-dialog",), "dialog.png"),
+        ("color", ("--color-dialog",), "dialog.png"),
         ("progressbar", ("--progressbar-dialog",), "dialog.png"),
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
@@ -1416,7 +1442,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the nine dialog render gates share.
+    """Test scaffolding the ten dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1509,12 +1535,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the nine dialog render gates share.
+    """Return the skip guard the ten dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
     missing-tool diagnostic when one is absent: kdialog for the eight
-    kdialog modes, zenity for the GTK mode), so the nine dialog gates skip
+    kdialog modes, zenity for the GTK mode), so the ten dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -1989,6 +2015,105 @@ class TestCalendarDialogRender(_DialogGate, unittest.TestCase):
                     ["#FFFFFF"] * 47,
                     [hex_colour(pixel_at(image, x, row)) for x in range(114, 161)],
                 )
+
+
+@_dialog_gate_guard()
+class TestColorDialogRender(_DialogGate, unittest.TestCase):
+    """The color dialog's swatches, value fields and push buttons are the theme's.
+
+    The color dialog opens kdialog's ``--getcolor`` picker, whose window
+    face, basic-color swatch grid, sunken value fields and push buttons
+    the engine draws with the theme's colorscheme palette entries
+    ([Colors:Window] and [Colors:Button] the landed art's bevel and
+    shadow arms serve): the raised push-button recipe's outline and bevel
+    arrangement comes from the shipped button art, the flat face and
+    shadow arms from the palette, just as the line-edit gate's field and
+    button pins compare. The swatch cells' fills are the grid's own
+    constants (the #000000 lead and the #AA0000 neighbour of its first
+    row), not palette inks. No collected reference screenshot shows a
+    dialog color picker, so the comparison values are the shipped art
+    recipe and palette entries above over the measured 480x360 geometry,
+    re-derived on 2026-11-10 from two consecutive full captures that
+    agreed byte for byte under ``cmp``.
+
+    The dialog shows no clock-dependent content -- no date and no
+    clock-driven selection can enter any crop -- so it needs no date or
+    default pin. The pinned bands sit clear of the gradient selector's
+    dithered rows and of every glyph row: with only flat cells of one
+    colour per row, a stray glyph row, a one-pixel crop slip, a lost
+    shadow or outline row, a swapped arm colour or a resampled, recoloured
+    or dropped swatch fill fails row by row or pixel by pixel.
+    """
+
+    KIND = "color"
+
+    def test_draws_the_flat_window_face(self):
+        """Pin the window-color face crop with no other ink inside."""
+        image = self.candidate_image()
+        x0, y0, width, height = COLOR_WINDOW_FACE
+        for row in range(height):
+            with self.subTest(row=y0 + row):
+                self.assertEqual(
+                    ["#DDDDDD"] * width,
+                    [
+                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
+                        for dx in range(width)
+                    ],
+                )
+
+    def test_draws_the_basic_swatch_row(self):
+        """Pin the grid's #000000 lead cell and its #AA0000 neighbour."""
+        expected_row = [
+            *["#000000"] * 18,
+            *["#DDDDDD"] * 10,
+            *["#AA0000"] * 18,
+        ]
+        self.assert_band(BASIC_SWATCH_ROW, [expected_row] * BASIC_SWATCH_ROW[3])
+
+    def test_draws_the_sunken_value_field(self):
+        """Pin the field's shadow, outline, face and window-face gap."""
+        expected_row = [
+            *["#DDDDDD"] * 2,
+            "#999999",
+            "#000000",
+            *["#FFFFFF"] * 32,
+            *["#DDDDDD"] * 4,
+        ]
+        self.assert_band(
+            SUNKEN_VALUE_FIELD_BAND, [expected_row] * SUNKEN_VALUE_FIELD_BAND[3]
+        )
+
+    def test_draws_the_push_button_frame_and_cell(self):
+        """Pin the raised push-button recipe over the full-height cell."""
+        self.assert_raised_frame(PUSH_BUTTON, flat_rows=PUSH_BUTTON_FLAT_ROWS)
+        face_row = [
+            "#FFFFFF",
+            *["#DDDDDD"] * 4,
+        ]
+        arm_row = [
+            "#FFFFFF",
+            *["#AAAAAA"] * 4,
+        ]
+        rows = (
+            [["#000000"] * 5]
+            + [["#FFFFFF"] * 5]
+            + [face_row] * 20
+            + [arm_row]
+            + [["#000000"] * 5]
+        )
+        self.assert_band(PUSH_BUTTON_CELL, rows)
+
+    def test_draws_the_push_button_face_at_the_landed_recipe(self):
+        # The raised recipe's flat face must reach the whole label-free
+        # row: a rounded stock face, a duplicated or shifted bevel arm or
+        # a recoloured face fails on the row's columns.
+        image = self.candidate_image()
+        x, y, width, height = PUSH_BUTTON
+        self.assertEqual(
+            ["#DDDDDD"] * (width - 4),
+            [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))
+             for dx in range(width - 4)],
+        )
 
 
 @_dialog_gate_guard()

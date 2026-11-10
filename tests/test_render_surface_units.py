@@ -34,6 +34,7 @@ from tools import (
 from tools.render_clients import (
     calendar_dialog_client,
     checkbox_dialog_client,
+    color_dialog_client,
     combobox_dialog_client,
     gtk_dialog_client,
     lineedit_dialog_client,
@@ -531,6 +532,64 @@ class TestArguments(unittest.TestCase):
             "modes its argument parser defines",
         )
 
+    def test_cli_delegates_the_color_dialog_capture_size(self):
+        # A plain --color-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--color-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_color_dialog(self):
+        # The color mode opens its own kdialog client; a plasmoid id
+        # combined with it would silently draw nothing.
+        self.assertIn(
+            "--color-dialog",
+            self.assert_usage_error("out.png", "--color-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_color_dialog(self):
+        # The gate byte-compares the color capture at 480x360; any other
+        # size moves the dialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--color-dialog", "--width", "320"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_color_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a color mode
+        # flag missing from that list would print a refusal without its
+        # name.
+        for left, right in (
+            ("--color-dialog", "--checkbox-dialog"),
+            ("--color-dialog", "--gtk-dialog"),
+            ("--calendar-dialog", "--color-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_color_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--color-dialog")
+        )
+
+    def test_the_help_text_names_the_color_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--color-dialog", stdout)
+
     def test_the_checkbox_dialog_requires_kdialog(self):
         # The default applet render cannot need every tool the dialog mode
         # needs, so the dialog requirement is refused per mode: with kdialog
@@ -949,6 +1008,20 @@ class TestSessionCommand(unittest.TestCase):
                     "--dateformat",
                     "yyyy-MM-dd",
                 ],
+                client,
+            )
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
+            self.assertEqual(client, shlex.split(command.argv[-1])[-len(client) :])
+
+    def test_carries_the_color_dialog_client_words(self):
+        with self._dialog_command(color_dialog_client) as (session, command):
+            # The prompt name travels as its own quoted word of the in-session
+            # script. The dialog shows no clock-dependent content -- no date
+            # and no clock-driven selection can enter any capture -- so the
+            # client carries no default pin.
+            client = list(color_dialog_client(session))
+            self.assertEqual(
+                ["kdialog", "--title", "Test", "--getcolor"],
                 client,
             )
             self.assertTrue(command.argv[-1].endswith(shlex.join(client)))

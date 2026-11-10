@@ -175,3 +175,16 @@ def calendar_dialog_client(_session: Session) -> tuple[str, ...]:
         "kdialog", "--title", "Test", "--calendar", "Calendar:",
         "--default", "1970-01-07", "--dateformat", "yyyy-MM-dd",
     )
+
+
+def color_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the color dialog whose widgets the engine palette paints.
+
+    ``--getcolor`` opens KDE's color dialog: the engine draws its basic-color
+    swatch grid, sunken value fields and push buttons with this theme's
+    colorscheme palette and shipped art, the pixels the widget gate
+    byte-compares. The dialog shows no clock-dependent content -- no date,
+    no today marker and no clock-driven selection can enter any band -- so
+    the capture needs no date or default pin.
+    """
+    return ("kdialog", "--title", "Test", "--getcolor")
