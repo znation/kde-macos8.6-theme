@@ -154,6 +154,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--calendar-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog calendar whose day table the Kvantum engine "
+            "paints with the theme's colorscheme palette, and capture it at "
+            "the 480x360 size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--progressbar-dialog",
         action="store_true",
         help=(
@@ -224,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
             ("--combobox-dialog", args.combobox_dialog),
             ("--lineedit-dialog", args.lineedit_dialog),
             ("--menu-dialog", args.menu_dialog),
+            ("--calendar-dialog", args.calendar_dialog),
             ("--progressbar-dialog", args.progressbar_dialog),
             ("--slider-dialog", args.slider_dialog),
             ("--textbox-dialog", args.textbox_dialog),
@@ -269,7 +279,8 @@ def main(argv: list[str] | None = None) -> int:
     # tool the diagnostic names is the client the requested mode opens.
     kdialog_flags = (
         args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-        or args.menu_dialog or args.progressbar_dialog or args.slider_dialog
+        or args.menu_dialog or args.calendar_dialog
+        or args.progressbar_dialog or args.slider_dialog
         or args.textbox_dialog
     )
     dialog_clients: tuple[str, ...] = ()

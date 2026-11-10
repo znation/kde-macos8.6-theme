@@ -30,6 +30,7 @@ from tools import (
     theme_apply_optional,
 )  # noqa: E402
 from tools.render_clients import (
+    calendar_dialog_client,
     checkbox_dialog_client,
     combobox_dialog_client,
     gtk_dialog_client,
@@ -452,6 +453,63 @@ class TestArguments(unittest.TestCase):
             self, render_surface.main, tools, ("out.png", "--menu-dialog")
         )
 
+    def test_cli_delegates_the_calendar_dialog_capture_size(self):
+        # A plain --calendar-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--calendar-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_calendar_dialog(self):
+        # The calendar mode opens its own kdialog client; a plasmoid id
+        # combined with it would silently draw nothing.
+        self.assertIn(
+            "--calendar-dialog",
+            self.assert_usage_error("out.png", "--calendar-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_calendar_dialog(self):
+        # The gate byte-compares the calendar capture at 480x360; any other
+        # size moves the dialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--calendar-dialog", "--height", "240"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_calendar_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a calendar mode
+        # flag missing from that list would print a refusal without its
+        # name.
+        for left, right in (
+            ("--calendar-dialog", "--checkbox-dialog"),
+            ("--calendar-dialog", "--gtk-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_calendar_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--calendar-dialog")
+        )
+
+    def test_the_help_text_names_the_calendar_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--calendar-dialog", stdout)
+
     def test_the_checkbox_dialog_requires_kdialog(self):
         # The default applet render cannot need every tool the dialog mode
         # needs, so the dialog requirement is refused per mode: with kdialog
@@ -847,6 +905,32 @@ class TestSessionCommand(unittest.TestCase):
             # And shell word-splitting of the script's arguments -- what the
             # script's `"$@"` hands the helper -- recovers exactly that
             # argv, so the colon-tailed prompt is still its own word.
+            self.assertEqual(client, shlex.split(command.argv[-1])[-len(client) :])
+
+    def test_carries_the_calendar_dialog_client_words(self):
+        with self._dialog_command(calendar_dialog_client) as (_, command):
+            # The calendar's prompt, pinned default date and date format
+            # travel as separate quoted words of the in-session script. The
+            # pinned date is load-bearing: without --dateformat kdialog
+            # ignores --default and opens today's month, with it the view
+            # never contains today's date and the gate's bands stay
+            # clock-independent.
+            client = list(calendar_dialog_client(None))
+            self.assertEqual(
+                [
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--calendar",
+                    "Calendar:",
+                    "--default",
+                    "1970-01-07",
+                    "--dateformat",
+                    "yyyy-MM-dd",
+                ],
+                client,
+            )
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
             self.assertEqual(client, shlex.split(command.argv[-1])[-len(client) :])
 
     def test_carries_the_menu_dialog_client_words(self):

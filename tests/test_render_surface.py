@@ -300,6 +300,48 @@ TEXTBOX_DIALOG_DOWN_ARROW_BAND = (352, 255, 16, 14)
 # recorded in the gate class comment), so the whole band must stay the
 # flat #EEEEEE `slider` interior face with no outline byte inside.
 TEXTBOX_DIALOG_TROUGH_CROP = (354, 170, 12, 16)
+# The calendar dialog's pinned bands, measured on two consecutive full
+# `tools/render_surface.py --calendar-dialog` runs on 2026-11-10 whose two
+# 480x360 captures agreed byte for byte under `cmp` (see
+# TestCalendarDialogRender for what each band pins).
+CALENDAR_WINDOW_FACE = (110, 68, 250, 8)
+CALENDAR_SELECTED_CELL = (222, 157, 35, 18)
+CALENDAR_WEEKDAY_FACE_ROWS = (140, 141, 152, 153, 154, 155)
+# The selected day's digit renders anti-aliased over the #CCCCFF fill: the
+# five #000000 pixels are its hinted core and the rest are the blend tones
+# the engine paints around it, so the cell asserts the fill except this map.
+CALENDAR_CELL_DIGIT_INK = {
+    (236, 161): "#2A2A35", (237, 161): "#000000", (238, 161): "#000000",
+    (239, 161): "#000000", (240, 161): "#000000", (241, 161): "#000000",
+    (242, 161): "#62627B", (236, 162): "#BCBCEB", (237, 162): "#B2B2DF",
+    (238, 162): "#B2B2DF", (239, 162): "#B2B2DF", (240, 162): "#ADADD8",
+    (241, 162): "#121216", (242, 162): "#9A9AC0", (240, 163): "#7A7A99",
+    (241, 163): "#2B2B36", (239, 164): "#CACAFC", (240, 164): "#1C1C23",
+    (241, 164): "#8A8AAC", (239, 165): "#8686A7", (240, 165): "#1E1E25",
+    (241, 165): "#CACAFD", (239, 166): "#26262F", (240, 166): "#7B7B9A",
+    (238, 167): "#9292B6", (239, 167): "#131318", (240, 167): "#C6C6F8",
+    (238, 168): "#31313D", (239, 168): "#6C6C87", (237, 169): "#9D9DC4",
+    (238, 169): "#0A0A0D", (239, 169): "#C0C0F0", (237, 170): "#3D3D4C",
+    (238, 170): "#66667F",
+}
+# The white-face weekday-letter row's hinted ink cores: the leading columns'
+# letters core at the palette's ForegroundInactive gray, the trailing ones at
+# full-strength black (see TestCalendarDialogRender).
+CALENDAR_WEEKDAY_GRAY_INK = (
+    (136, 144), (201, 144), (133, 146), (134, 146), (209, 146), (209, 147),
+    (310, 149), (124, 151), (125, 151), (126, 151), (127, 151), (128, 151),
+    (161, 151), (162, 151), (163, 151), (164, 151), (165, 151),
+)
+CALENDAR_WEEKDAY_BLACK_INK = (
+    (350, 144), (310, 151), (311, 151), (312, 151), (313, 151), (314, 151),
+)
+# The leftmost day column's Sunday digits' hinted red cores (#800000, darker
+# than the nearest palette entry -- see TestCalendarDialogRender).
+CALENDAR_RED_INK = (
+    (136, 200), (133, 202), (134, 202), (133, 217), (134, 217), (135, 217),
+    (136, 223), (136, 224), (124, 226), (125, 226), (126, 226), (127, 226),
+    (128, 226),
+)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1060,7 +1102,7 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
 # skip condition away from the condition the render CLI refuses on: each
-# dialog flag requires its own client by name (kdialog for the seven kdialog
+# dialog flag requires its own client by name (kdialog for the eight kdialog
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
@@ -1191,12 +1233,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The eight dialog gates skip wherever their render CLI would refuse on a tool.
+    """The nine dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the seven kdialog modes, zenity for the
-    GTK mode), and the eight dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the eight kdialog modes, zenity for the
+    GTK mode), and the nine dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1260,6 +1302,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestComboboxDialogRender,
             TestLineInputDialogRender,
             TestMenuDialogRender,
+            TestCalendarDialogRender,
             TestProgressbarDialogRender,
             TestSliderDialogRender,
             TestTextboxDialogRender,
@@ -1292,6 +1335,7 @@ class _Renders:
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
+        ("calendar", ("--calendar-dialog",), "dialog.png"),
         ("progressbar", ("--progressbar-dialog",), "dialog.png"),
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
@@ -1360,7 +1404,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the eight dialog render gates share.
+    """Test scaffolding the nine dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1453,12 +1497,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the eight dialog render gates share.
+    """Return the skip guard the nine dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the five
-    kdialog modes, zenity for the GTK mode), so the eight dialog gates skip
+    missing-tool diagnostic when one is absent: kdialog for the eight
+    kdialog modes, zenity for the GTK mode), so the nine dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -1804,6 +1848,135 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         for point in ((114, 120), (200, 120), (365, 272)):
             with self.subTest(point=point):
                 self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
+
+
+@_dialog_gate_guard()
+class TestCalendarDialogRender(_DialogGate, unittest.TestCase):
+    """The calendar dialog's day table keeps its palette-painted faces.
+
+    The calendar dialog opens a real month view (kdialog's ``--calendar``
+    pinned to January 1970 through ``--default 1970-01-07`` with the
+    load-bearing ``--dateformat``: without it kdialog ignores ``--default``
+    and opens today's month, with it the view never contains today's date,
+    so no today marker, no clock-driven selection and no month-by-month
+    layout drift can enter any crop). The day table's faces come from the
+    theme's colorscheme palette -- the #DDDDDD window face ([Colors:Window]
+    ``BackgroundNormal``), the white day-table face ([Colors:View]
+    ``BackgroundNormal``), the #CCCCFF selected-day fill ([Colors:Selection]
+    ``BackgroundNormal``), the weekday letter cores over the white face
+    (the leading columns' cores at [Colors:View] ``ForegroundInactive``
+    #888888, the trailing columns' at full-strength black -- the measured
+    blend is the contract and the invariants row records the mixed inks)
+    and the leftmost day column's red Sunday digits (nearest palette entry
+    [Colors:View] ``ForegroundNegative``; the measured #800000 ink is
+    darker, and the discrepancy is recorded rather than the band widened).
+    No collected reference screenshot shows a dialog calendar, so the
+    comparison values are the measured palette inks over the measured
+    480x360 geometry, re-derived on 2026-11-10 from two consecutive full
+    captures that agreed byte for byte under ``cmp`` (the crops above).
+    """
+
+    KIND = "calendar"
+
+    def test_draws_the_flat_window_face(self):
+        """Pin the window-color face crop with no other ink inside.
+
+        The rows are flat #DDDDDD column to column, so a stray glyph row, a
+        title-bar bleed or a repaint of the chrome above the day table
+        fails row by row.
+        """
+        image = self.candidate_image()
+        x0, y0, width, height = CALENDAR_WINDOW_FACE
+        for row in range(height):
+            with self.subTest(row=y0 + row):
+                self.assertEqual(
+                    ["#DDDDDD"] * width,
+                    [
+                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
+                        for dx in range(width)
+                    ],
+                )
+
+    def test_draws_the_selected_day_cell(self):
+        """Pin the #CCCCFF selection fill, its digit ink and the white face.
+
+        A re-mapped selection ink, a shifted selection rect or a dropped
+        selection fill fails pixel by pixel; the digit ink pins the
+        selected day's hinted glyphs (the #000000 cores and the blend
+        tones the engine paints around them) so a recoloured or moved
+        digit fails too, and the white strips beside the fill pin the day
+        table's white face on both sides.
+        """
+        image = self.candidate_image()
+        x0, y0, width, height = CALENDAR_SELECTED_CELL
+        expected = {
+            (x0 + column, y0 + row): CALENDAR_CELL_DIGIT_INK.get(
+                (x0 + column, y0 + row), "#CCCCFF"
+            )
+            for row in range(height)
+            for column in range(width)
+        }
+        actual = {
+            (x0 + column, y0 + row): hex_colour(
+                pixel_at(image, x0 + column, y0 + row)
+            )
+            for row in range(height)
+            for column in range(width)
+        }
+        self.assertEqual(expected, actual)
+        # The white day-table face reaches both sides of the selection fill.
+        for row in range(y0, y0 + height):
+            with self.subTest(row=row):
+                self.assertEqual(
+                    ["#FFFFFF"] * (x0 - 214),
+                    [hex_colour(pixel_at(image, x, row)) for x in range(214, x0)],
+                )
+                self.assertEqual(
+                    ["#FFFFFF"] * 7,
+                    [hex_colour(pixel_at(image, x, row))
+                     for x in range(x0 + width, x0 + width + 7)],
+                )
+
+    def test_draws_the_weekday_letter_inks_over_the_white_face(self):
+        """Pin the weekday-letter row's measured inks over the white face.
+
+        The flat white rows above and below the letters pin the face
+        itself, and the hinted ink cores pin the letters: a full-strength
+        or palette-text ink in the leading columns, a dropped letter tint
+        or a shifted letter row fails on the pinned cores.
+        """
+        image = self.candidate_image()
+        for row in CALENDAR_WEEKDAY_FACE_ROWS:
+            with self.subTest(row=row):
+                self.assertEqual(
+                    ["#FFFFFF"] * 252,
+                    [hex_colour(pixel_at(image, x, row)) for x in range(114, 366)],
+                )
+        for point in CALENDAR_WEEKDAY_GRAY_INK:
+            with self.subTest(point=point):
+                self.assert_pixel(*point, "#888888")
+        for point in CALENDAR_WEEKDAY_BLACK_INK:
+            with self.subTest(point=point):
+                self.assert_pixel(*point, "#000000")
+
+    def test_draws_the_leftmost_day_column_s_red_digits(self):
+        """Pin the leftmost day column's red digit cores over the white face.
+
+        The #800000 cores are the measured blend the engine paints from
+        the palette's negative-red role; a dropped day tint, a recoloured
+        ink or a shifted day column fails on the pinned pixels, and the
+        glyph-free white rows beside the digits pin the column's face.
+        """
+        image = self.candidate_image()
+        for point in CALENDAR_RED_INK:
+            with self.subTest(point=point):
+                self.assert_pixel(*point, "#800000")
+        for row in (176, 177, 178, 190, 227, 228):
+            with self.subTest(row=row):
+                self.assertEqual(
+                    ["#FFFFFF"] * 47,
+                    [hex_colour(pixel_at(image, x, row)) for x in range(114, 161)],
+                )
 
 
 @_dialog_gate_guard()

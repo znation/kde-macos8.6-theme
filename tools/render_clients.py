@@ -158,3 +158,20 @@ def textbox_dialog_client(session: Session) -> tuple[str, ...]:
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
+
+
+def calendar_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the calendar dialog whose date table the engine palette paints.
+
+    ``--dateformat`` is load-bearing: without it ``--default``'s date is
+    ignored and the dialog opens today's month with today selected, while
+    with it the default applies in either option order. The pinned default
+    (1970-01-07, a Wednesday in January 1970) keeps every gate band
+    clock-independent forever: the view never contains today's date, so no
+    today marker, no clock-driven selection and no month-by-month layout
+    drift can enter any crop.
+    """
+    return (
+        "kdialog", "--title", "Test", "--calendar", "Calendar:",
+        "--default", "1970-01-07", "--dateformat", "yyyy-MM-dd",
+    )

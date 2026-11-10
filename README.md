@@ -496,7 +496,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the eight widget dialogs:
+Capture the default calculator or one of the nine widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -505,6 +505,7 @@ python3 tools/render_surface.py checkbox.png --checkbox-dialog
 python3 tools/render_surface.py combobox.png --combobox-dialog
 python3 tools/render_surface.py lineedit.png --lineedit-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
+python3 tools/render_surface.py calendar.png --calendar-dialog
 python3 tools/render_surface.py progressbar.png --progressbar-dialog
 python3 tools/render_surface.py slider.png --slider-dialog
 python3 tools/render_surface.py textbox.png --textbox-dialog
@@ -513,7 +514,7 @@ python3 tools/render_surface.py gtk.png --gtk-dialog
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
-`menu-dialog`, `progressbar-dialog`, `slider-dialog`, `textbox-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
+`menu-dialog`, `calendar-dialog`, `progressbar-dialog`, `slider-dialog`, `textbox-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
@@ -552,6 +553,12 @@ it the same way, for the combo arrow gate
 captured at the same 480x360 size; the item-view gate
 (`tests/test_render_surface.py::TestMenuDialogRender`) byte-compares the item view's
 rendered border runs, its white interior and the current-item focus ring there.
+`--calendar-dialog` opens a `kdialog` calendar pinned to January 1970 (`--default
+1970-01-07` with the load-bearing `--dateformat`: without it kdialog ignores `--default`
+and opens today's month), captured at the same 480x360 size; the calendar gate
+(`tests/test_render_surface.py::TestCalendarDialogRender`) pins the flat window face,
+the white day-table face with the weekday-letter inks, the selected day's `#CCCCFF`
+fill and digit ink, and the leftmost day column's red day digits there.
 `--lineedit-dialog` opens a `kdialog` input box whose empty line edit the engine sinks
 with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
 (`tests/test_render_surface.py::TestLineInputDialogRender`) pins the field's sunken bevel
@@ -580,7 +587,7 @@ scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@i
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The eight dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The nine dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -725,9 +732,9 @@ materialized; the Makefile's targets still require Python 3.10 or newer at run
 time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
 `plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox, combobox, line-edit, menu,
-progressbar, slider and textbox dialog renders open, and the `zenity` client its GTK dialog
-render opens, so `make check` reaches the rendered-pixel gates, including the kdialog and GTK
-dialog renders. Their
+progressbar, slider, textbox and calendar dialog renders open, and the `zenity` client its GTK
+dialog render opens, so `make check` reaches the rendered-pixel gates, including the kdialog and
+GTK dialog renders. Their
 software-renderer guard still skips captures in the workflow environment; installed tools
 are prerequisites, not proof that rendered pixels were compared. See [Running checks](#running-checks)
 for the guard conditions and GPU-host guidance. Run those same commands locally for parity
@@ -1291,9 +1298,9 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the eight dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
-require `kdialog` for checkbox, combo box, line edit, menu, progress meter, slider and text box
-or `zenity` for GTK. Direct Python commands
+the nine dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+require `kdialog` for checkbox, combo box, line edit, menu, calendar, progress meter, slider and
+text box or `zenity` for GTK. Direct Python commands
 remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
 non-default `--applet`:
 
@@ -1303,6 +1310,7 @@ non-default `--applet`:
 | Combo box dialog | `python3 tools/render_surface.py --combobox-dialog combobox.png` | 480x360 |
 | Line edit dialog | `python3 tools/render_surface.py --lineedit-dialog lineedit.png` | 480x360 |
 | Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
+| Calendar dialog | `python3 tools/render_surface.py --calendar-dialog calendar.png` | 480x360 |
 | Progress bar dialog | `python3 tools/render_surface.py --progressbar-dialog progressbar.png` | 480x360 |
 | Slider dialog | `python3 tools/render_surface.py --slider-dialog slider.png` | 480x360 |
 | Text box dialog | `python3 tools/render_surface.py --textbox-dialog textbox.png` | 480x360 |
@@ -1569,7 +1577,8 @@ window and byte-compares the title-bar strip (candidate `30,0,80,22` against ref
 region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender` and
-`::TestGtkDialogRender`) open a `kdialog` warning box, chooser, input box and menu list and a
+`::TestGtkDialogRender`) open a `kdialog` warning box, chooser, input box, menu list
+and calendar and a
 `zenity` GTK 4 entry dialog and byte-compare the engine-drawn check box cell with the shipped
 `checkbox-*` canvas, the engine-drawn combo arrow with the shipped `comboarrow-normal` slice,
 the engine-drawn line edit with the shipped sunken-field arrangement and the engine-drawn item
