@@ -210,6 +210,26 @@ LINEEDIT_DIALOG_OK_BUTTON = (167, 199, 82, 24)
 # the headerbar windowcontrols button.close recipe renders no pixels in
 # this capture; its live pixels remain covered by declaration checks.
 WINDOW_SHELL_EDGE_CROP = (91, 48, 3, 12)
+# The rendered Kvantum slider thumb in the slider dialog: kdialog's
+# `--slider` opens an at-rest QSlider at value zero, its thumb resting at
+# the trough's left end, drawn by the engine with the theme's
+# `slidercursor-normal` art in its native 16x16 cell and shipped raised
+# arrangement on the 480x360 capture, measured on two consecutive
+# `tools/render_surface.py --slider-dialog` runs on this host (2026-11-10)
+# whose two 480x360 captures agreed byte for byte under `cmp`; a third run
+# in the same batch reproduced them byte for byte. The engine draws the
+# thumb at the art's native size, so the `.kvconfig` needed no steering key
+# and nothing re-derived the fixture: the shipped art is never resampled.
+SLIDER_DIALOG_THUMB_CROP = (146, 178, 16, 16)
+# The trough band right of the thumb, (162,182)..(332,189): the 1px #000000
+# boundary rows above and below the flat #EEEEEE interior face the `[Slider]`
+# section's interior `slider` element draws (the shipped comment names the
+# desktop theme's shared trough face). The band's columns sit right of the
+# thumb's right outline column (x=161) and left of the dialog group box's
+# right border column (x=333), and its rows sit between the boundary rows,
+# so no thumb, label-glyph or foreign-border byte enters the crop. Measured
+# on the same agreeing pair as the thumb.
+SLIDER_DIALOG_TROUGH = (162, 182, 171, 8)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1083,12 +1103,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The five dialog gates skip wherever their render CLI would refuse on a tool.
+    """The six dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the four kdialog modes, zenity for the
-    GTK mode), and the five dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the five kdialog modes, zenity for the
+    GTK mode), and the six dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1152,6 +1172,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestComboboxDialogRender,
             TestLineInputDialogRender,
             TestMenuDialogRender,
+            TestSliderDialogRender,
             TestGtkDialogRender,
         ):
             with self.subTest(gate=gate.__name__):
@@ -1181,6 +1202,7 @@ class _Renders:
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
+        ("slider", ("--slider-dialog",), "dialog.png"),
         ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
     )
     directories: dict[str, str] = {}
@@ -1246,7 +1268,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the five dialog render gates share.
+    """Test scaffolding the six dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1320,12 +1342,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the five dialog render gates share.
+    """Return the skip guard the six dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the four
-    kdialog modes, zenity for the GTK mode), so the five dialog gates skip
+    missing-tool diagnostic when one is absent: kdialog for the five
+    kdialog modes, zenity for the GTK mode), so the six dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -1671,6 +1693,56 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         for point in ((114, 120), (200, 120), (365, 272)):
             with self.subTest(point=point):
                 self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
+
+
+@_dialog_gate_guard()
+class TestSliderDialogRender(_DialogGate, unittest.TestCase):
+    """The slider dialog's thumb and trough keep their engine-drawn art.
+
+    The slider dialog opens a real at-rest ``QSlider`` (kdialog's
+    ``--slider`` at value zero) whose trough the engine draws with this
+    theme's ``[Slider]`` ``slider`` art and whose thumb rests at the
+    trough's left end as the theme's ``slidercursor`` raised arrangement;
+    no collected reference screenshot shows a dialog with a slider, so the
+    comparison surfaces are the shipped art recipe. No pixel gate watched a
+    rendered slider, so a ``slidercursor`` art change, a ``[Slider]`` trough
+    change or a resampled thumb would have shipped green. Value zero keeps
+    the thumb in its resting state, so no pressed or hover byte enters any
+    crop, and a slider has no caret: two consecutive captures are
+    byte-identical with no phase-dependent column to steer around.
+    """
+
+    KIND = "slider"
+
+    def test_draws_the_thumb_cell_1_to_1(self):
+        # The candidate cell bytes come straight from the render (see
+        # _DialogGate.assert_cell_matches): a resampled, recoloured or
+        # sunken thumb shows up here immediately.
+        self.assert_cell_matches("slidercursor-normal", SLIDER_DIALOG_THUMB_CROP)
+
+    def test_draws_the_trough_face_between_its_boundary_rows(self):
+        """Pin the flat trough face and the 1px #000000 boundary rows.
+
+        The rows between the boundary rows are flat #EEEEEE col to col, so
+        a groove bevel arm, a filled value band or a glyph byte inside the
+        face fails row by row; the boundary rows are all #000000, so a
+        swapped arm colour or a lost outline row fails.
+        """
+        image = self.candidate_image()
+        x, y, width, height = SLIDER_DIALOG_TROUGH
+        for row in range(height):
+            if row in (0, height - 1):
+                expected = ["#000000"] * width
+            else:
+                expected = ["#EEEEEE"] * width
+            with self.subTest(row=y + row):
+                self.assertEqual(
+                    expected,
+                    [
+                        hex_colour(pixel_at(image, x + dx, y + row))
+                        for dx in range(width)
+                    ],
+                )
 
 
 @_dialog_gate_guard()

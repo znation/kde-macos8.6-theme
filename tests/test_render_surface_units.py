@@ -35,6 +35,7 @@ from tools.render_clients import (
     gtk_dialog_client,
     lineedit_dialog_client,
     menu_dialog_client,
+    slider_dialog_client,
 )  # noqa: E402
 
 
@@ -210,6 +211,57 @@ class TestArguments(unittest.TestCase):
 
     def test_requires_an_output_path(self):
         self.assert_usage_error()
+
+    def test_cli_delegates_the_slider_dialog_capture_size(self):
+        # A plain --slider-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--slider-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_slider_dialog(self):
+        # The slider mode opens its own kdialog client; a plasmoid id
+        # combined with it has no window to open it in.
+        self.assertIn(
+            "--slider-dialog",
+            self.assert_usage_error("out.png", "--slider-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_slider_dialog(self):
+        # The gate byte-compares the slider capture at 480x360; any other
+        # size moves the dialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--slider-dialog", "--width", "320"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_slider_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a slider mode
+        # flag missing from that list would print a refusal without its
+        # name.
+        for left, right in (
+            ("--slider-dialog", "--checkbox-dialog"),
+            ("--slider-dialog", "--gtk-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_slider_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--slider-dialog")
+        )
 
     def test_rejects_an_applet_with_the_checkbox_dialog(self):
         # The dialog render opens its own kdialog client; a plasmoid id
@@ -634,6 +686,33 @@ class TestSessionCommand(unittest.TestCase):
             gtk_dialog_client(None),
         )
 
+
+    def test_carries_the_slider_dialog_client_words(self):
+        with self._dialog_command(slider_dialog_client) as (_, command):
+            # The slider's prompt, minimum, maximum and step travel as
+            # separate quoted words of the in-session script, so a space in
+            # the prompt cannot become shell syntax. Value zero rests the
+            # thumb at the trough's left end in its resting state.
+            client = list(slider_dialog_client(None))
+            self.assertEqual(
+                [
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--slider",
+                    "Brightness:",
+                    "0",
+                    "100",
+                    "10",
+                ],
+                client,
+            )
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
+            # And shell word-splitting of the script's arguments -- what the
+            # script's `"$@"` hands kdialog -- recovers exactly that argv, so
+            # each number is still its own word (the prompt carries no space,
+            # so shlex quotes nothing).
+            self.assertEqual(client, shlex.split(command.argv[-1])[-len(client) :])
 
     def test_carries_the_menu_dialog_client_words(self):
         with self._dialog_command(menu_dialog_client) as (session, command):

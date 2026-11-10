@@ -75,6 +75,28 @@ def lineedit_dialog_client(_session: Session) -> tuple[str, ...]:
     return ("kdialog", "--title", "Test", "--inputbox", "Choose a name:")
 
 
+def slider_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the slider thumb and trough gate renders.
+
+    A ``kdialog`` slider with a real at-rest ``QSlider`` at value zero: the
+    engine draws the trough through this theme's ``[Slider]`` ``slider``
+    element and the thumb at the trough's left end through the
+    ``[SliderCursor]`` ``slidercursor`` art, the pixels the widget gate
+    byte-compares. Value zero keeps the thumb in its resting state, so no
+    pressed or hover byte enters any crop.
+    """
+    return (
+        "kdialog",
+        "--title",
+        "Test",
+        "--slider",
+        "Brightness:",
+        "0",
+        "100",
+        "10",
+    )
+
+
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")

@@ -496,7 +496,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the five widget dialogs:
+Capture the default calculator or one of the six widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -505,12 +505,13 @@ python3 tools/render_surface.py checkbox.png --checkbox-dialog
 python3 tools/render_surface.py combobox.png --combobox-dialog
 python3 tools/render_surface.py lineedit.png --lineedit-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
+python3 tools/render_surface.py slider.png --slider-dialog
 python3 tools/render_surface.py gtk.png --gtk-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
-`menu-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
+`menu-dialog`, `slider-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
@@ -553,13 +554,18 @@ rendered border runs, its white interior and the current-item focus ring there.
 with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
 (`tests/test_render_surface.py::TestLineInputDialogRender`) pins the field's sunken bevel
 right of the caret and the OK button's push-button frame there.
+`--slider-dialog` opens a `kdialog` slider whose at-rest thumb the engine draws with the
+theme's `slidercursor` art at the trough's left end and whose trough the engine paints flat
+through the theme's `slider` interior art, captured at the same 480x360 size; the slider gate
+(`tests/test_render_surface.py::TestSliderDialogRender`) byte-compares the thumb cell 1:1 with
+the shipped art and pins the trough's flat face between its 1px black boundary rows there.
 `--gtk-dialog` opens a zenity text-entry dialog: zenity is a GTK 4 client, so with no
 theme-name CSS switch it wears the theme through the selection the render publishes into the
 scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The five dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The six dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -1269,8 +1275,8 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the five dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
-require `kdialog` for checkbox, combo box, line edit and menu or `zenity` for GTK. Direct Python commands
+the six dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+require `kdialog` for checkbox, combo box, line edit, menu and slider or `zenity` for GTK. Direct Python commands
 remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
 non-default `--applet`:
 
@@ -1280,6 +1286,7 @@ non-default `--applet`:
 | Combo box dialog | `python3 tools/render_surface.py --combobox-dialog combobox.png` | 480x360 |
 | Line edit dialog | `python3 tools/render_surface.py --lineedit-dialog lineedit.png` | 480x360 |
 | Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
+| Slider dialog | `python3 tools/render_surface.py --slider-dialog slider.png` | 480x360 |
 | GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
 
 The calculator capture defaults to 320x240. Dialog captures need `kdialog` on `PATH` in the
