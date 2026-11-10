@@ -6383,9 +6383,10 @@ text-shadow: none; -gtk-icon-shadow: none;`. Declaring each arm at its own
 stock selectors keeps every stock spell-out at an equal-specificity tie the
 user sheet wins by order, so Default-theme and libadwaita applications both
 see the band. The `border: 0` plus the `border-bottom` clears stock's faint
-white popover borders; `.toolbar.osd`'s stock `padding` survives because the
-restated arm declares no padding (13px in the Default resource, 12px in
-libadwaita — record both in the provenance comment). Touch no landed rule:
+white popover borders; A separate `.toolbar.osd` rule explicitly declares the Default resource's
+`padding: 13px`, since the standalone sheet does not load stock CSS
+(libadwaita uses 12px). The test includes this declaration in that arm's
+expected dictionary. Touch no landed rule:
 not the landed popover/toast block, `video image.osd`, the two
 `progressbar.osd` troughs, `.osd switch:checked`, the infobar, banner,
 searchbar/actionbar and menu-bar rules, and leave libadwaita's
@@ -6411,7 +6412,7 @@ container arm can appear untested. (3) In `docs/invariants.md`, in the `##
 gtk` table, append one row: the guarantee — every stock GTK 4 OSD overlay
 container named above draws the landed menu-bar band (opaque `#DDDDDD` face,
 black text, the `#888888` etched bottom edge) instead of the toolkit's dark
-translucent bubbles, under whatever toolkit loads, with the retained stock
+translucent bubbles, under whatever toolkit loads, with explicit Default-resource
 `toolbar.osd` padding — with the test column naming
 `tests/test_gtk4_theme.py::TestGtk4Theme::test_osd_container_bands` and the
 landed OSD tests it must not disturb (`...::test_video_osd_image_corners`,
@@ -6428,7 +6429,7 @@ register.
 
 **Acceptance criteria.** The GTK 4 sheet ends with the one grouped
 twenty-one-selector rule whose complete parsed dictionaries are exactly the
-band nine; changing any of the twenty-one selectors, deleting the rule,
+band nine (plus explicit `padding: 13px` on `.toolbar.osd`); changing any of the twenty-one selectors, deleting the rule,
 dropping a shadow-clear declaration or leaving stock's faint white popover
 border or dark translucent face fails `test_osd_container_bands`;
 `test_video_osd_image_corners`, `test_progressbar_osd_trough_paint`,

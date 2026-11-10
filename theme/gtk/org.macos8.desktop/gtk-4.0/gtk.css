@@ -3207,9 +3207,8 @@ pathbar > scrolledwindow > viewport > box.linked > button:not(:last-child) {
  * style library's base.css resource (both paths and probes recorded in
  * docs/invariants.md), probed with gresource 2026-10-30; each arm is
  * restated at its own stock selectors so the sheet wins the
- * equal-specificity tie by order against both toolkits. The .toolbar.osd
- * stock padding (13px in the Default resource, 12px in the platform style
- * library) survives because no arm declares padding.
+ * equal-specificity tie by order against both toolkits. The standalone sheet explicitly uses the Default resource
+ * toolbar padding of 13px; the platform style library uses 12px.
  * Declaration checks do not establish rendered pixels.
  * Recorded 2026-10-30 by the feature role. */
 .osd .scale-popup,
@@ -6173,4 +6172,9 @@ placesview .server-list-button:checked > image {
 
 row.expander image.expander-row-arrow {
   transition: none;
+}
+
+/* Retain the Default toolbar inset even when no stock sheet is loaded. */
+.toolbar.osd {
+  padding: 13px;
 }

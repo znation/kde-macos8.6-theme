@@ -4115,7 +4115,11 @@ for radio in (False, True):
         }
         for selector in selectors:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected)
+                self.assertEqual(
+                    self.rules[selector],
+                    {**expected, "padding": "13px"}
+                    if selector == ".toolbar.osd" else expected,
+                )
                 infobar = self.rules["infobar > revealer > box"]
                 for prop in INFOBAR:
                     self.assertEqual(self.rules[selector][prop], infobar[prop])
