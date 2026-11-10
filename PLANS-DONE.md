@@ -5469,14 +5469,6 @@ Append one row to the `## gtk` invariants table in `docs/invariants.md` naming t
 
 **Goal.** Give an ordinary color swatch inside a selected GTK 3 list row a black selection ring consistent with the sheet's frame edging, retaining the toolkit's indicator geometry and chosen swatch color.
 
-**Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares `row:selected colorswatch { box-shadow: 0 0 0 2px #ffffff; }`. No collected reference shows this GTK selected-row swatch surface: black reuses the sheet's `frame > border` color, and the ring geometry comes from the installed toolkit resource, as a platform adaptation.
-
-**Implemented.** Added the GTK 3 selected-row rule beside the swatch rules, extended the strict corner inventory with its exact declaration, and added a test that checks the ring color against the frame-border token while retaining the color-button shadow reset. Added the GTK invariant row. The change covers CSS declarations, not rendered pixels.
-
-### Platinum GTK 3 selected-row swatches: use a black selection ring (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
-
-**Goal.** Give an ordinary color swatch inside a selected GTK 3 list row a black selection ring consistent with the sheet's frame edging, retaining the toolkit's indicator geometry and chosen swatch color.
-
 **Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares `row:selected colorswatch { box-shadow: 0 0 0 2px #ffffff; }`. Selector searches found no corresponding rule in the shipped GTK 3 sheet and no selected-row swatch ring plan in this queue or `PLANS-DONE.md`. The landed overlay-border, hover-shadow, drop-target and focus-outline work addresses other selectors. No collected reference shows this GTK selected-row swatch surface: black reuses the sheet's `frame > border` color, and the ring geometry comes from the installed toolkit resource, as a platform adaptation.
 
 **Approach and files (completed).**
