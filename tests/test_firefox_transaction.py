@@ -231,5 +231,60 @@ class TestPublishInstall(unittest.TestCase):
             self.assertEqual(b"previous chrome", sheet.read_bytes())
 
 
+    def test_an_unreadable_published_user_js_collects_its_refusal_into_the_error(
+        self,
+    ):
+        # The user.js restore reads the path first: it must see the published
+        # text before it removes or rewrites anything. A concurrent program
+        # clobbering the file with non-UTF-8 bytes after the failed publication
+        # write took effect makes that read refuse with "cannot read"
+        # (invalid UTF-8), not remove a file the operator could inspect. The
+        # refusal joins the report as its own record instead of masking the
+        # publication failure or aborting the rollback: the previous sheets
+        # are already written back when the message arrives, the publication
+        # failure leads the records, the read refusal follows, and the original
+        # failure stays the cause.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            user_js = root / "user.js"
+            sheet.write_bytes(b"previous chrome")
+
+            real_write_text = firefox_transaction.write_profile_text
+            state = {"failed": False}
+
+            def publish_then_clobber(path: Path, published: str) -> None:
+                if path == user_js and not state["failed"]:
+                    real_write_text(path, published)
+                    state["failed"] = True
+                    path.write_bytes(b"\xff\xfe")
+                    raise OSError("simulated publication failure")
+                real_write_text(path, published)
+
+            with mock.patch.object(
+                firefox_transaction, "write_profile_text", publish_then_clobber
+            ):
+                with self.assertRaises(
+                    firefox_transaction.ConfigError
+                ) as caught:
+                    firefox_transaction.publish_install(
+                        ((sheet, b"new chrome", "previous chrome"),),
+                        user_js,
+                        None,
+                        "published preferences\n",
+                    )
+
+            message = str(caught.exception)
+            self.assertTrue(
+                message.startswith("simulated publication failure; "), message
+            )
+            self.assertIn(f"cannot read {user_js}", message)
+            self.assertTrue(isinstance(caught.exception.__cause__, OSError))
+            # The rollback finished: the sheet carries its previous text while
+            # the unloaded read leaves the clobbered bytes in place.
+            self.assertEqual(b"previous chrome", sheet.read_bytes())
+            self.assertEqual(b"\xff\xfe", user_js.read_bytes())
+
+
 if __name__ == "__main__":
     unittest.main()
