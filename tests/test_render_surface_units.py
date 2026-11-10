@@ -267,6 +267,18 @@ class TestArguments(unittest.TestCase):
                 self.assertIn(left, stderr)
                 self.assertIn(right, stderr)
 
+    def test_the_multi_mode_refusal_wording_holds_for_three_modes(self):
+        # Any count over one is refused; the wording must hold when three
+        # or more dialog flags arrive together, where "not both" would be
+        # false about the number it refuses.
+        stderr = self.assert_usage_error(
+            "out.png", "--checkbox-dialog", "--slider-dialog", "--gtk-dialog"
+        )
+        self.assertIn("not more than one", stderr)
+        self.assertNotIn("not both", stderr)
+        for flag in ("--checkbox-dialog", "--slider-dialog", "--gtk-dialog"):
+            self.assertIn(flag, stderr)
+
     def test_the_slider_dialog_requires_kdialog(self):
         # With kdialog absent the CLI names it instead of starting a session.
         tools = render_surface.REQUIRED_TOOLS + ("kdialog",)

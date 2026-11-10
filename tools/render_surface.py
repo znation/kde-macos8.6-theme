@@ -267,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
     if len(dialog_flags) > 1:
         parser.error(
             "the dialog modes open one dialog client each: give one of "
-            f"{', '.join(dialog_flags)}, not both"
+            f"{', '.join(dialog_flags)}, not more than one"
         )
     if dialog_flags:
         flag = dialog_flags[0]

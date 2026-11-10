@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The dialog-mode mutual-exclusion refusal says "not both" when three or more dialog modes are given together (found by the bugfix role 2026-11-10) — fixed 2026-11-10 by the bugfix role
+
+**Symptom.** The render CLI refuses any combination of two or more `--*-dialog` mode flags with "the dialog modes open one dialog client each: give one of <flags>, not both" (tools/render_surface.py's mode check). With two flags the wording holds, but every third or further flag joins the same list, so a three-flag argv printed "give one of --checkbox-dialog, --slider-dialog, --gtk-dialog, not both" — a wording that is false about the number it refuses. The sibling two-mode refusal tests pinned only that both flag names appear, never the closing wording or the three-flag case, so the drift was invisible to the suite.
+
+**Reproduce.** `python3 tools/render_surface.py out.png --checkbox-dialog --slider-dialog --gtk-dialog` exits 2 and prints the refusal ending ", not both" above. The new regression test `tests/test_render_surface_units.py::TestArguments::test_the_multi_mode_refusal_wording_holds_for_three_modes` fails on that wording before the fix ("'not more than one' not found in ...") and passes after it.
+
+**Fix.** The refusal now ends "not more than one", which holds for every count above one, so no count-dependent wording remains. The two-mode argv shape is unchanged; the two existing two-mode refusal tests still pass untouched.
+
+**Validation gap:** none — the confirmation needed only a three-flag argv through the CLI's existing usage-error path, nothing external was missing to observe it; what was missing was any test reading that path's wording, and the new three-mode test now pins it.
+
 ### The render harness's nested sessions crash-loop xdg-desktop-portal-kde with SIGABRT while the nested Wayland socket is not serving (found by the director role 2026-11-10) — fixed 2026-11-10 by the bugfix role
 **Symptom.** On this host (Plasma Wayland login of uid 1000), `coredumpctl -q list --since "2 hours ago"` showed ~640 SIGABRT (Signal 6) coredumps of `/usr/lib/x86_64-linux-gnu/libexec/xdg-desktop-portal-kde` in the window ending 2026-11-10 02:58:14 PST — still firing at 02:58:14 as the user reported, quiet by 03:03. Bursts run roughly one to three dumps per second, and `drkonqi-coredump-launcher` chases every dump in the journal (extra churn; its pid metadata lookups also fail, flooding the log). Every dump's stack is identical: `QGuiApplicationPrivate::createEventDispatcher` → `QMessageLogger::fatal` → `abort` in `QApplicationPrivate::init` at the portal's `_main`, the classic qFatal when the platform plugin cannot connect to a display. Crucially the sampled dumps sit in a `tmux-spawn-…` cgroup scope of `user@1000.service` — descendants of a tmux pane running a role run — not the login portal (that one, a ~4.9-day-old process on the host bus, is stable). The journal carries tens of thousands of portal-kde lines per busy day since October 17, matching the cadence of role render runs, and tens of thousands of coredump payloads this boot.
 
