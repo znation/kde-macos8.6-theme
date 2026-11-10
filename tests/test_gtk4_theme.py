@@ -3985,6 +3985,7 @@ for radio in (False, True):
                 "color": BLACK,
                 "background-color": WHITE,
                 "background-image": "none",
+                "box-shadow": "none",
             }
         for selector in selected_cell_trough:
             expected[selector] = {"background-color": TROUGH}

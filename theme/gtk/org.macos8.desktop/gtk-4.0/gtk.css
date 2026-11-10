@@ -1710,7 +1710,8 @@ progressbar {
  * meter's minimums (the landed GTK 3 record's same exclusion). Each of
  * the five rules below restates one stock comma-group spelling keyed per
  * member and wins the per-property equal-specificity tie by later
- * user-sheet source order; trough members not the stock face colour are
+ * user-sheet source order. Selected rules explicitly clear the dark
+ * selected arm's inset shadow at matching specificity; trough members not the stock face colour are
  * fills the stock arm never spoke of, carried byte-equal from the landed
  * trough face recipe the child-combinator spelling keeps for the plain
  * bar. Declaration checks do not establish rendered pixels. */
@@ -1730,6 +1731,7 @@ treeview.view.progressbar:selected {
   color: #000000;
   background-color: #FFFFFF;
   background-image: none;
+  box-shadow: none;
 }
 
 columnview.view.progressbar:selected:focus:backdrop,
@@ -1739,6 +1741,7 @@ treeview.view.progressbar:selected:backdrop {
   color: #000000;
   background-color: #FFFFFF;
   background-image: none;
+  box-shadow: none;
 }
 
 columnview.view.trough,
