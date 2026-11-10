@@ -5,18 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### README installation quick start: put the install-or-apply choice first (planned 2026-11-09 by the plan role)
-
-Needs review 2026-11-09 by feature: plan defect — README.md already contains the specified Quick start and Installation details sections on main at c655d00f8; the planned deliverable is present.
-
-**Goal and grounding.** Give a new Platinum user a short, copyable route before Installing's long package-path reference. README.md currently opens Installing with destination validation and an artifact inventory; its prerequisites table distinguishes tasks but supplies no installation walkthrough. Searches of Planned and finished quick-start/installation-guide headings found no entry covering this walkthrough. The archived prerequisites, navigation and removal guides cover setup requirements, section links and removal respectively. This documentation task is independent of the waiting GTK 4 disabled-text-view plan.
-
-**Approach and files.** Edit README.md only, outside its brief and status markers. Immediately after `## Installing`, add `### Quick start` with a link to Prerequisites, two explicitly alternative command blocks, and a short explanation: `make install` copies packages without selecting them; `make apply` installs and selects Platinum for the running user, including the aggregate GTK, cursor and Firefox steps. Explain before the apply command that it changes user settings, preserves existing panels, and can replace personal GTK 4 CSS after creating a backup. Link the backup explanation to Restoring personal GTK 4 CSS. After the commands, state that GTK applications and Firefox need restarting and the splash changes at the next login; link Removing the theme for cleanup. Mention the existing standalone `make apply-gtk` route in one sentence for users choosing just GTK. Follow this compact introduction with `### Installation details` over the existing package-path narrative, retaining the existing detailed subsections. Keep this to roughly 30 added lines; no new commands, dependencies or generated documentation.
-
-The command semantics are grounded in Makefile's `apply`, `install` and `apply-gtk` recipes and `tools/apply_theme.py`'s documented panel-preserving invocation; these are evidence anchors, not implementation files. Existing `tests/test_readme_commands.py::TestReadmeCommands` and `tests/test_make_help.py::TestHelp.test_readme_names_every_public_target` cover referenced command names. This changes documentation, not runtime behavior or an invariant, so no new prose-pinning test or invariant row is needed.
-
-**Acceptance criteria.** On opening Installing, a reader can copy either a files-only installation or an installation that selects the theme, without first reading the artifact inventory or running both commands. The apply instructions disclose the settings and GTK CSS effects before the command, distinguish preserved panels from the separately requested desktop layout, and identify restart/login requirements. The prerequisite, GTK CSS restoration and removal links resolve to existing headings. The detailed package paths and existing command explanations remain available beneath Installation details. Review these statements against the named recipes and helper documentation, and run `make check` after the final edit.
-
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
