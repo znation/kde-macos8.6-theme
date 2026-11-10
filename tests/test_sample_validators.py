@@ -86,6 +86,29 @@ class TestSampleValidators(unittest.TestCase):
         self.assertEqual(validators.max_color_fraction("0.25"), 0.25)
         self.assertEqual(validators.max_color_fraction("1"), 1.0)
 
+    def test_color_offset_accepts_zero_and_a_plain_count(self):
+        # Zero is a legal offset (start at the first ranked color); a
+        # comparison that slipped to "<= 0" would refuse it, and the CLI-level
+        # histogram paging tests never pass zero because an accepted-but-zero
+        # offset is indistinguishable from the option being absent.
+        self.assertEqual(validators.color_offset("0"), 0)
+        self.assertEqual(validators.color_offset("42"), 42)
+
+    def test_an_rgb_rejection_names_the_expected_shape(self):
+        # The message is parsed by no other program, but it is the option's
+        # own contract line: pin it so a loosened pattern (e.g. re.match instead
+        # of re.fullmatch) or a mangled wording shows up as a test failure.
+        with self.assertRaisesRegex(
+            argparse.ArgumentTypeError,
+            r"^expected six hexadecimal digits, optionally prefixed by #"
+            r": '12345g'$",
+        ):
+            validators.rgb_argument("12345g")
+
+    def test_rgb_argument_accepts_six_digits_without_the_hash(self):
+        # The prefix is optional: 0xA1B2C3 named bare.
+        self.assertEqual(validators.rgb_argument("A1B2c3"), (161, 178, 195))
+
     def test_nonnegative_offset_factory_uses_its_option_and_rejects_negatives(self):
         run_offset = validators.nonnegative_offset("--run-offset")
         match_offset = validators.nonnegative_offset("--match-run-offset")
