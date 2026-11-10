@@ -594,7 +594,7 @@ class TestFailurePaths(StubTools):
             str(themes), "File exists",
         )
 
-    def test_a_failed_kvatum_selection_write_exits_1_and_removes_scratch(self):
+    def test_a_failed_kvantum_selection_write_exits_1_and_removes_scratch(self):
         # A dialog render selects the Kvantum theme in the scratch config
         # home before the session starts; without the name the engine falls
         # back to its compiled-in default and the gate would silently compare
