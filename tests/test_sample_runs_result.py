@@ -86,6 +86,24 @@ class TestSampleRunsResult(TestCase):
             {"x": 0, "y": 2, "length": 1, "rgb": [1, 2, 3], "alpha": 0, "hex": "#010203"},
         ])
 
+    def test_rectangle_defaults_to_vertical_scanlines(self):
+        args = build_parser().parse_args([
+            "fixture.png", "0", "0", "--width", "2", "--height", "2", "--runs", "--json",
+        ])
+        image = SimpleNamespace(
+            width=2,
+            rgb=bytes((1, 2, 3, 9, 8, 7, 1, 2, 3, 9, 8, 7)),
+            alpha=None,
+        )
+
+        result = _runs_result(args, image, 2, 2)
+
+        self.assertEqual(result["axis"], "vertical")
+        self.assertEqual(result["runs"], [
+            {"x": 0, "y": 0, "length": 2, "rgb": [1, 2, 3], "hex": "#010203"},
+            {"x": 1, "y": 0, "length": 2, "rgb": [9, 8, 7], "hex": "#090807"},
+        ])
+
 
 if __name__ == "__main__":
     import unittest
