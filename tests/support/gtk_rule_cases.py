@@ -612,6 +612,24 @@ class GtkSharedControlCases(GtkSheetRuleCases):
     classes subclass :class:`GtkSheetRuleCases` directly.
     """
 
+    def assert_infobar_message_type_ban(self, selectors=None):
+        """Assert no swept ``infobar`` selector names a message type.
+
+        *selectors* defaults to this sheet's full selector inventory so
+        both GTK sheets' ``test_infobar`` cases sweep everything; call
+        sites may pass a narrower family instead to restate the ban over
+        its own members. The ban covers infobar selectors alone because
+        the restated entry colour-class twins carry ``.warning``/
+        ``.error`` spellings, and only ``infobar``-containing selectors
+        name no message type.
+        """
+        if selectors is None:
+            selectors = self.selectors
+        for message_type in (".info", ".question", ".warning", ".error"):
+            for selector in selectors:
+                if "infobar" in selector:
+                    self.assertNotIn(message_type, selector, message_type)
+
     def test_headerbar(self):
         for selector in ("headerbar", ".titlebar"):
             self.assert_rule(

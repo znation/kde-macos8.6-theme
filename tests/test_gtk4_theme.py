@@ -1555,13 +1555,9 @@ for radio in (False, True):
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
-        # The restated entry colour-class twins carry .warning/.error
-        # spellings, so the ban covers infobar selectors alone: no
-        # infobar-family rule names a message type.
-        for message_type in (".info", ".question", ".warning", ".error"):
-            for selector in self.selectors:
-                if "infobar" in selector:
-                    self.assertNotIn(message_type, selector, message_type)
+        # No infobar-family rule names a message type; the ban's provenance
+        # lives on the shared sweep helper.
+        self.assert_infobar_message_type_ban()
 
     # The 2026-11-09 face extension gives the corner pair the whole landed
     # `button.flat` face recipe beside the radius, so the exact-dict checks
@@ -1689,10 +1685,7 @@ for radio in (False, True):
         # The landed message-type ban already reads every infobar carrier
         # through test_infobar; restate it over the family's own members so
         # a future edit cannot add a type token inside this group.
-        for message_type in (".info", ".question", ".warning", ".error"):
-            for selector in expected:
-                if "infobar" in selector:
-                    self.assertNotIn(message_type, selector, message_type)
+        self.assert_infobar_message_type_ban(expected)
 
     def test_banner_surface(self):
         selectors = {

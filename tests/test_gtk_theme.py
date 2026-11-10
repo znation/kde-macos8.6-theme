@@ -799,14 +799,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
-        # The restated entry colour-class twins carry .warning/.error
-        # spellings, so the ban covers infobar selectors alone: no
-        # infobar-family rule names a message type. (Mirrors the landed
-        # GTK 4 suite's infobar ban, which scopes the same way.)
-        for message_type in (".info", ".question", ".warning", ".error"):
-            for selector in self.selectors:
-                if "infobar" in selector:
-                    self.assertNotIn(message_type, selector, message_type)
+        # No infobar-family rule names a message type; the ban's provenance
+        # lives on the shared sweep helper.
+        self.assert_infobar_message_type_ban()
 
     def test_infobar_button_family(self):
         """The bar's typed stock button, selection and link arms restated.
