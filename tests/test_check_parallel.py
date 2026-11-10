@@ -335,6 +335,36 @@ class TestCoordinator(unittest.TestCase):
         self.assertNotIn("line one\r", text)
         self.assertNotIn("\u000d", text)
 
+    def test_finished_worker_hands_off_within_ten_milliseconds(self):
+        # Virtual time excludes scheduler/spawn noise. Instant workers make
+        # the coordinator's own sleep the only source of hand-off delay.
+        now = 0.0
+        starts = []
+
+        def sleep(seconds):
+            nonlocal now
+            now += seconds
+
+        def spawn(module, argv, cwd, log_path, timeout):
+            starts.append(now)
+            process = mock.Mock()
+            process.poll.return_value = 0
+            return check_parallel_workers._Worker(
+                module, log_path, process, now + timeout
+            )
+
+        with mock.patch.object(check_parallel_workers, "_spawn", side_effect=spawn), \
+                mock.patch.object(check_parallel_workers.time, "sleep", side_effect=sleep), \
+                mock.patch.object(check_parallel_workers.time, "monotonic", side_effect=lambda: now):
+            statuses = check_parallel_workers._supervise(
+                ["first", "second"], [], ".",
+                {"first": "first.log", "second": "second.log"}, 60, 1,
+            )
+
+        self.assertEqual({"first": 0, "second": 0}, statuses)
+        self.assertEqual(2, len(starts))
+        self.assertLessEqual(starts[1] - starts[0], 0.010)
+
     def test_every_module_runs_and_output_is_ordered(self):
         # Both modules pass; the coordinator prints one section per module
         # in discovery order even though the alphabetically later module
