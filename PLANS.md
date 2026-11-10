@@ -97,7 +97,7 @@ recorded here to keep the scope deliberate.
 _None yet._ (Only the standing scope-drift note above; the entries below wait in the queue.)
 
 
-### Reference validation: reject a truncated image body (planned 2026-11-09 by the plan role)
+### Reference validation: reject a truncated image body (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal.** A reference download cut short can end in valid image bytes: today `tools/reference_validation.py::_check_entries` sniffs only the leading bytes through `tools/image_format.py::is_image`, so a truncated PNG (signature and IHDR present, IEND missing) passes `make check-references` and is found later only when a sampler decode of that image fails. The checker should report an incomplete stream at validation time, complementing the unrelated README diagnostics guide under `## Planned`. New diagnostic text is the contract, so it is pinned in tests.
 
@@ -108,6 +108,8 @@ _None yet._ (Only the standing scope-drift note above; the entries below wait in
 - For each of the four formats, a declared file missing its terminator exits 1 from `python3 tools/check_references.py` on a fixture set, prints the `sources.txt:<line>` problem naming the file and the format's terminator (WebP naming its declared and held sizes), and no sampler is ever reached; a complete `JPEG_MAGIC + TERMINAL_JPEG` fixture and the set's intact files still pass. A RIFF/WAVE payload keeps the existing "not a PNG, JPEG, GIF or WebP" diagnostic, never a truncation one.
 - Against the materialized repository set, `make check-references` passes with today's output unchanged; `python3 tools/check_references.py --self-test` exits 0 with the rewritten fixtures and the `test_declared_image_prefix_is_read_with_one_open` open count stays exactly one per declared file.
 - README's new clause and the dated invariant row name these tests; the row records that every currently materialized reference file satisfies the ending rules (verified 2026-11-09 for all 28 image files in `macos8.6-screenshots/`) so no shipped reference regresses the gate. No runtime path other than `check-references` changes behavior; `make check` passes after the final edit.
+
+Implemented 2026-11-09 by the feature role: the tail comes from reading the file's last bytes (up to 12) within the same `open_regular_binary` call rather than from padding the head, and the second acceptance criterion's `test_declared_image_prefix_is_read_with_one_open` keeps its assertion structure unchanged — only its fixture (and the shared `good_reference` fixture in `tests/support/check_references_fixtures.py`, plus the truncated accepted-format fixtures in `tests/test_check_references_validation.py`) was completed to a minimal full stream, because every clean fixture now has to satisfy the ending rules too.
 
 ### Kvantum line-edit dialog render gate: pin a captured kdialog input box's sunken field on the landed art recipe (planned 2026-11-09 by the plan role; independent of the waiting truncated-image entry ahead of it in the queue — that entry edits `tools/image_format.py`, `tools/reference_validation.py` and the check-references suites with their README "Validating the reference set" and invariants rows, while this entry edits the render plumbing and its suites with README's render sections, so they share no file region and can merge in either order)
 

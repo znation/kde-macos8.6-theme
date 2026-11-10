@@ -17,7 +17,7 @@ import unittest.mock
 from pathlib import Path
 
 from support.repo_root import ROOT
-from tools.image_format import PNG_MAGIC
+from tools.image_format import PNG_MAGIC, TERMINAL_PNG
 
 CHECKER = os.path.join(ROOT, "tools", "check_references.py")
 
@@ -76,15 +76,15 @@ def reference_set(module, sources, files=()):
 def good_reference(module):
     """Yield a reference directory holding one consistent declared image.
 
-    ``sources.txt`` names ``good.png`` and the directory holds a file whose
-    bytes begin with ``PNG_MAGIC``, so the checker reports no problem
-    for it. Tests that drive one specific failure against a known-good set
-    start from this directory.
+    ``sources.txt`` names ``good.png`` and the directory holds a complete
+    minimal PNG stream (signature plus its IEND terminator), so the checker
+    reports no problem for it, ending rules included. Tests that drive one
+    specific failure against a known-good set start from this directory.
     """
     with reference_set(
         module,
         "good.png | https://example.test/g.png | label\n",
-        {"good.png": PNG_MAGIC},
+        {"good.png": PNG_MAGIC + TERMINAL_PNG},
     ) as root:
         yield root
 

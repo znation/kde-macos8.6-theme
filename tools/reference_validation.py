@@ -18,6 +18,7 @@ validation cases (``tests/test_check_references_io.py`` and
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 if __package__:
@@ -26,7 +27,12 @@ if __package__:
         require_within_repo,
         resolves_within,
     )
-    from tools.image_format import LFS_POINTER_MAGIC, is_image
+    from tools.image_format import (
+        image_stream_format,
+        is_complete,
+        is_image,
+        LFS_POINTER_MAGIC,
+    )
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
     from tools.reference_sources import (
@@ -36,7 +42,12 @@ if __package__:
     )
 else:  # imported from a directly run tool
     from containment import open_regular_binary, require_within_repo, resolves_within
-    from image_format import LFS_POINTER_MAGIC, is_image
+    from image_format import (
+        image_stream_format,
+        is_complete,
+        is_image,
+        LFS_POINTER_MAGIC,
+    )
     from repo_root import ROOT
     from terminal import escape_controls
     from reference_sources import (
@@ -47,6 +58,19 @@ else:  # imported from a directly run tool
 
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 
+# Trailing bytes the declared-entry check reads for a stream's terminator.
+# The longest format terminator is PNG's 12-byte IEND chunk; WebP needs only
+# the head's declared size and the file length.
+_TAIL_BYTES = 12
+
+# How each named format's complete stream ends, for the truncation
+# diagnostic. WebP is phrased from its declared and held sizes instead.
+_FORMAT_TERMINATIONS = {
+    "PNG": "ends without the PNG IEND trailer",
+    "JPEG": "ends without the JPEG EOI marker",
+    "GIF": "ends without the GIF trailer byte",
+}
+
 
 def _image_prefix(path: Path) -> bytes:
     """Read enough leading bytes to check both LFS and image signatures.
@@ -56,6 +80,41 @@ def _image_prefix(path: Path) -> bytes:
     """
     with open_regular_binary(path) as handle:
         return handle.read(max(len(LFS_POINTER_MAGIC), 12))
+
+
+def _image_head_and_tail(path: Path) -> tuple[bytes, bytes, int]:
+    """Read a declared image's leading and trailing bytes in one open.
+
+    The same open already reads the head the LFS-pointer and image-signature
+    checks use; the tail carries a stream's terminator, so the completeness
+    check needs no second open per declared file. When the file is shorter
+    than the tail window the tail is simply the bytes actually present, and
+    :func:`tools.image_format.is_complete` refuses them for every format
+    whose complete stream is at least that long.
+    """
+    with open_regular_binary(path) as handle:
+        head = handle.read(max(len(LFS_POINTER_MAGIC), _TAIL_BYTES))
+        handle.seek(0, os.SEEK_END)
+        size = handle.tell()
+        handle.seek(max(size - _TAIL_BYTES, 0))
+        return head, handle.read(_TAIL_BYTES), size
+
+
+def _incomplete_stream_suffix(head: bytes, tail: bytes, size: int) -> str:
+    """Return the diagnostic naming how the stream *head* identifies ends short."""
+    stream = image_stream_format(head)
+    if stream == "WebP":
+        # The diagnostic names the declared RIFF field itself, the way it is
+        # written in the container; is_complete adds the 8-byte RIFF header.
+        declared = int.from_bytes(head[4:8], "little")
+        return (
+            f"declares {declared} RIFF bytes but holds {size}; "
+            "it may be a truncated download"
+        )
+    return (
+        f"{_FORMAT_TERMINATIONS[stream]}; "
+        "it may be a truncated download"
+    )
 
 
 def _undeclared_image_problem(path: Path) -> str:
@@ -84,16 +143,24 @@ def _check_entries(
             problems.append((lineno, f"{sources}:{lineno}: {filename!r} does not exist in {directory}/"))
             continue
         try:
-            prefix = _image_prefix(image)
-            if prefix.startswith(LFS_POINTER_MAGIC):
+            head, tail, size = _image_head_and_tail(image)
+            if head.startswith(LFS_POINTER_MAGIC):
                 problems.append(
                     (lineno, f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
                      "run `git lfs install && git lfs pull` to fetch the image")
                 )
-            elif not is_image(prefix):
+            elif not is_image(head):
+                # The unrecognized-payload diagnostic outranks a truncation
+                # one: without a known format there is no ending to judge.
                 problems.append(
                     (lineno, f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
                      "it may be an HTML error page or a truncated download")
+                )
+            elif not is_complete(head, tail, size):
+                problems.append(
+                    (lineno,
+                     f"{sources}:{lineno}: {filename!r} "
+                     f"{_incomplete_stream_suffix(head, tail, size)}")
                 )
         except (OSError, ValueError) as exc:
             problems.append((lineno, f"{sources}:{lineno}: {filename!r} could not be read: {exc}"))

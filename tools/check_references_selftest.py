@@ -16,9 +16,17 @@ from pathlib import Path
 from typing import Callable
 
 try:
-    from tools.image_format import JPEG_MAGIC, PNG_MAGIC
+    from tools.image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_JPEG, TERMINAL_PNG
 except ImportError:  # imported from a directly run tool
-    from image_format import JPEG_MAGIC, PNG_MAGIC
+    from image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_JPEG, TERMINAL_PNG
+
+# Complete minimal stream bodies: a leading signature plus its format's
+# terminator, so a fixture that must misbehave has to fail on some other
+# check instead of tripping the ending rules every real image satisfies.
+PNG_IMAGE = PNG_MAGIC + TERMINAL_PNG
+JPEG_IMAGE = JPEG_MAGIC + TERMINAL_JPEG
+GIF_IMAGE = b"GIF89a" + b";"
+WEBP_IMAGE = b"RIFF" + (4).to_bytes(4, "little") + b"WEBP"
 
 
 def problems_match(problems: list[str], expected: list[str]) -> bool:
@@ -51,53 +59,53 @@ def run_self_test(
         #  one substring per problem the checker must report -- exactly that many,
         #  each matched by a distinct problem)
         ("clean", "good.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
-         [("good.png", PNG_MAGIC)], None),
+         [("good.png", PNG_IMAGE)], None),
         # An editor-added UTF-8 BOM is invisible: stripping it keeps the first
         # entry readable instead of folding the BOM into its filename.
         ("utf-8 BOM before the first entry",
          "\ufeffgood.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
-         [("good.png", PNG_MAGIC)], None),
+         [("good.png", PNG_IMAGE)], None),
         # U+2028 is a Unicode line separator, not a newline: a label that
         # contains one must stay on its own line instead of splitting into a
         # phantom second entry.
         ("label containing U+2028 stays one line",
          "good.png | https://example.test/g.png | Mac OS 8.6\u2028retail\n",
-         [("good.png", PNG_MAGIC)], None),
-        ("missing sources file", None, [("good.png", PNG_MAGIC)],
+         [("good.png", PNG_IMAGE)], None),
+        ("missing sources file", None, [("good.png", PNG_IMAGE)],
          ["missing sources file"]),
         ("comments and blank lines",
          "# provenance\n\ngood.png | https://example.test/x | l\n# trailing note\n",
-         [("good.png", PNG_MAGIC)], None),
+         [("good.png", PNG_IMAGE)], None),
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
          ["ghost.png"]),
         # A rejected entry never registers the filename, so the image on disk is
         # reported a second time as undeclared; the self-test pins that cascade.
         ("url with no scheme", "bad.png | example.test/b.png | label\n",
-         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
+         [("bad.png", PNG_IMAGE)], ["absolute URL", "bad.png: image has no entry"]),
         ("url with a malformed scheme", "bad.png | ht!tp://example.test/b.png | label\n",
-         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
+         [("bad.png", PNG_IMAGE)], ["absolute URL", "bad.png: image has no entry"]),
         # The scheme is valid, so the diagnostic must name the whitespace, not
         # the scheme, or it sends the reader after the wrong thing.
         ("url with raw whitespace", "bad.png | https://example.test/a b.png | label\n",
-         [("bad.png", PNG_MAGIC)],
+         [("bad.png", PNG_IMAGE)],
          ["whitespace or control", "bad.png: image has no entry"]),
         ("url with a control character",
          "bad.png | https://example.test/a\x01b.png | label\n",
-         [("bad.png", PNG_MAGIC)],
+         [("bad.png", PNG_IMAGE)],
          ["whitespace or control", "bad.png: image has no entry"]),
         # An empty authority (``https:///b.png``) names no host, so the citation
         # points nowhere; only file:// may legitimately omit it.
         ("url with an empty authority", "bad.png | https:///b.png | label\n",
-         [("bad.png", PNG_MAGIC)],
+         [("bad.png", PNG_IMAGE)],
          ["must name a host", "bad.png: image has no entry"]),
         # An authority can be non-empty yet still name no host: ``user@`` is
         # userinfo and ``:8080`` is a port, each with an empty host.
         ("url with an authority but no host",
          "bad.png | https://user@/b.png | label\n",
-         [("bad.png", PNG_MAGIC)],
+         [("bad.png", PNG_IMAGE)],
          ["must name a host", "bad.png: image has no entry"]),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
-         [("sub/good.png", PNG_MAGIC)], ["bare filename"]),
+         [("sub/good.png", PNG_IMAGE)], ["bare filename"]),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], ["extra.png"]),
         # No image extension, but the bytes are a PNG: the scan must read the
         # content, not trust the name, or this file drops out of provenance.
@@ -105,14 +113,14 @@ def run_self_test(
         ("undeclared jpeg misnamed as data", "",
          [("shot.bin", JPEG_MAGIC)], ["shot.bin"]),
         ("too few fields", "bad.png | https://example.test/b.png\n",
-         [("bad.png", PNG_MAGIC)],
+         [("bad.png", PNG_IMAGE)],
          ["expected 3 fields", "bad.png: image has no entry"]),
-        ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)],
+        ("empty field", "bad.png |  | label\n", [("bad.png", PNG_IMAGE)],
          ["empty field", "bad.png: image has no entry"]),
         ("duplicate",
          "dup.png | https://example.test/x | l\n"
          "dup.png | https://example.test/x | l\n",
-         [("dup.png", PNG_MAGIC)], ["duplicate"]),
+         [("dup.png", PNG_IMAGE)], ["duplicate"]),
         ("lfs pointer", "stub.png | https://example.test/x | l\n",
          [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
                        b"oid sha256:deadbeef\nsize 12345\n")],
@@ -121,7 +129,21 @@ def run_self_test(
          [("fake.png", b"<!DOCTYPE html>\n<html>404 Not Found</html>\n")],
          ["not a PNG, JPEG, GIF or WebP image"]),
         ("webp with jpg name", "shot.jpg | https://example.test/x | l\n",
-         [("shot.jpg", b"RIFF\x24\x00\x00\x00WEBPVP8 ")], None),
+         [("shot.jpg", WEBP_IMAGE)], None),
+        # A stream cut short can end in valid image bytes when the signature
+        # survives: the ending rules must catch each one at validation time.
+        ("truncated png", "cut.png | https://example.test/x | l\n",
+         [("cut.png", PNG_MAGIC)],
+         ["ends without the PNG IEND trailer; it may be a truncated download"]),
+        ("truncated jpeg", "cut.jpg | https://example.test/x | l\n",
+         [("cut.jpg", JPEG_MAGIC)],
+         ["ends without the JPEG EOI marker"]),
+        ("truncated gif", "cut.gif | https://example.test/x | l\n",
+         [("cut.gif", b"GIF89a")],
+         ["ends without the GIF trailer byte"]),
+        ("truncated webp", "cut.webp | https://example.test/x | l\n",
+         [("cut.webp", b"RIFF" + (64).to_bytes(4, "little") + b"WEBP")],
+         ["declares 64 RIFF bytes but holds 12; it may be a truncated download"]),
     ]
 
     failed = False
