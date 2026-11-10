@@ -5455,16 +5455,6 @@ Append one row to the `## gtk` invariants table in `docs/invariants.md` naming t
 
 **Goal.** Give GTK 4 secondary labels carrying `.dim-label` an explicit Platinum muted foreground.
 
-**Grounding.** The installed `/org/gnome/Adwaita/styles/base.css` resource in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` includes `.dim-label` in a group declaring opacity. No reference screenshot shows GTK secondary labels; reuse the existing disabled-text `#888888` at full opacity as a platform adaptation.
-
-**Approach and files.** Added the `.dim-label` rule with `color: #888888; opacity: 1;` in the GTK 4 sheet, a declaration test using `DISABLED_TEXT`, and an invariant recording the adaptation provenance and declaration-only coverage.
-
-**Acceptance criteria.** The test checks the inactive-text colour, full opacity and a single selector occurrence. Existing disabled-text assertions remain in place. Subtitle, placeholder, `.dimmed`, GTK 3, geometry and artwork remain outside this change.
-
-### Platinum GTK 4 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
-
-**Goal.** Give GTK 4 secondary labels carrying `.dim-label` an explicit Platinum muted foreground.
-
 **Grounding.** Searches of the GTK 4 sheet, its tests and the finished-plan archive found no `.dim-label` treatment. The GTK 3 secondary-label entry under Done explicitly excludes GTK 4; this is its independently mergeable counterpart. The installed `/org/gnome/Adwaita/styles/base.css` resource in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, extracted with `gresource` on 2026-10-31, includes `.dim-label` in a group declaring `opacity: var(--dim-opacity)`. The standalone sheet does not import that resource. No reference screenshot shows GTK secondary labels; reuse the existing disabled-text `#888888` at full opacity as a platform adaptation rather than introducing a composited palette value.
 
 **Approach and files.** Beside the disabled-text group in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate `.dim-label` rule declaring exactly `color: #888888; opacity: 1;`. Add a dated comment naming the missing reference surface, the installed resource's selector provenance and the reuse of the inactive-text palette. In `tests/test_gtk4_theme.py`, import `DISABLED_TEXT` from `support.gtk_theme_spec` and add `TestGtk4Theme.test_dim_label_foreground`: call `self.assert_disabled_text((".dim-label",))`, assert the exact declaration dictionary `{**DISABLED_TEXT, "opacity": "1"}`, and assert the selector occurs once. The existing `GtkSheetRuleCases.assert_disabled_text` checks the colour against the scheme; retain the existing reference-anchor coverage rather than adding a new colour. Add one row under `## gtk` in `docs/invariants.md` naming this test and stating the adaptation provenance and declaration-only coverage.
