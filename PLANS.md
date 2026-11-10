@@ -94,16 +94,8 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### README reference validation: map diagnostics to corrective actions (planned 2026-11-09 by the plan role)
+_None yet._ (Only the standing scope-drift note above; no plan entries remain planned.)
 
-**Goal.** Help contributors repair a failed `make check-references` without confusing missing LFS images with broken provenance. The existing validation section lists rejected inputs but gives no diagnostic-to-action guide. This is independent of the waiting render-failure guide and the pending vertical-storage change.
-
-**Approach and files.** Edit README.md only: append a compact troubleshooting table within `## Validating the reference set`, before Sampling reference pixels. Ground the rows in `tools/reference_validation.py::_check_entries`, `_check_undeclared` and `check_references`, `tools/reference_sources.py::parse_sources`, and `tools/check_references.py::main`; these are evidence anchors, not implementation targets. Cover an unmaterialized LFS pointer, a declared file missing on disk, an image without an entry, malformed/duplicate entries or source URLs, and unrecognized image bytes. Explain the three-field `filename | source URL | version label` record, including bare filenames and evidence-based labels; link to Reference screenshots rather than duplicating its retail/beta policy. Distinguish the checker's signature inspection from full image decoding or provenance verification, and the fixture-only self-test from validation of the working reference directory. Keep existing commands and CI guidance.
-
-**Acceptance criteria.**
-- A reader with an LFS-pointer diagnostic finds `git lfs install` and `git lfs pull`, followed by `make check-references`; a missing-file diagnostic instead prompts checking the checkout and the declared filename. The guide does not suggest deleting provenance to silence a missing-file error.
-- A reader with an undeclared image can find the record format and the need for a supported version label and source URL; malformed and duplicate entries direct them to the reported record line. An unrecognized-image diagnostic directs them to inspect the download for an HTML error response or truncation and obtain the intended reference again, rather than changing its extension.
-- The guide states that a successful signature check does not establish complete decodability, retail authenticity, or pixel fidelity, and that `--self-test` exercises fixtures rather than validating the repository images. It distinguishes direct checker statuses (0 success, 1 reference problems, 2 unrecognized arguments) from Make's recipe-failure status. Its internal links resolve, and its actions do not alter the running desktop. Review against the named code and existing self-test fixtures, then run `make check` after the final edit. This documentation-only task introduces no runtime behavior or new invariant.
 
 ## Done
 

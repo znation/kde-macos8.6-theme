@@ -716,6 +716,39 @@ naming no host, or a malformed path, query or fragment, except for a `file://` U
 `make check-references` runs the self-test and then the repository check; it needs the Git LFS
 images materialized, so it stays separate from `make check`.
 
+### Troubleshooting the reference set
+
+Each problem is printed on its own line. A record problem names its line as
+`macos8.6-screenshots/sources.txt:<line>`; a file problem names the image instead.
+Map a diagnostic to its next action:
+
+| Diagnostic | Cause and next action |
+| --- | --- |
+| `... is an unmaterialized Git LFS pointer ...` | The file holds an LFS pointer, not the image bytes. Run `git lfs install` and `git lfs pull`, then `make check-references` again. |
+| `... does not exist in .../macos8.6-screenshots/` | A declared file is absent — an incomplete checkout or a wrong filename in the record. Check the checkout, and compare the declared filename against the file on disk; fix the record only if the filename is genuinely wrong. Do not delete the provenance record to silence this: the record is the attribution trail for the set. |
+| `image has no entry in sources.txt` | A file in the reference directory has no provenance record. Add one line for it: `filename \| source URL \| version label`. The filename is a bare name inside `macos8.6-screenshots/` (no path), the URL cites where the image came from, and the label is the evidence-based version string — see [Reference screenshots](#reference-screenshots) for the retail/beta labelling policy rather than restating it here. |
+| `expected 3 fields ...`, `empty field in entry`, `duplicate entry for ...`, `source URL ...` | The record line is malformed, duplicate, or cites a URL that is not a well-formed absolute URL. Fix the record line the diagnostic names; it prints `sources.txt:<line>`, and a duplicate names the line of the first entry too. |
+| `... is not a PNG, JPEG, GIF or WebP image; it may be an HTML error page or a truncated download` | The file's leading bytes match no known image signature. Inspect the download for an HTML error response or truncation and obtain the intended reference again; changing the file's extension does not change its bytes. |
+| `... points outside .../ (a symlink escape)` | A symlink in the reference set leads outside the reference directory, or the reference directory itself resolves outside the repository. Replace the symlink with the real file or directory it should name. |
+
+A file that cannot be read at all — a read error, a non-UTF-8 `sources.txt`, a `sources.txt`
+over the 1 MiB record limit, or a missing `sources.txt` — is reported directly; restore the
+file it names.
+
+The checker inspects signatures, not pixels: a pass means the bytes match a known image
+format and every record line parses. It does not establish that an image decodes completely,
+that a retail-labelled image is authentic, or that any pixel matches — those are the
+[sampling](#sampling-reference-pixels) and [fidelity](#fidelity-checking) gates' work, on the
+evidence each image actually carries. `--self-test` exercises the checker against its built-in
+fixtures; it validates the checker, not the repository images. Run it alone or through
+`make check-references`, which follows it with the repository check.
+
+Exit statuses differ between callers. Direct `python3 tools/check_references.py` returns 0 when
+the check or self-test passes (and for `--help`), 1 when the reference set has problems or a
+self-test case misbehaves, and 2 for an unrecognized argument. GNU Make reports its own
+recipe-failure status for `make check-references`; the checker's problem lines above appear in
+the recipe's output either way.
+
 ## Sampling reference pixels
 
 ### Choosing a sampling mode
