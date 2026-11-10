@@ -2,8 +2,8 @@
 
 The callers' suites pin umask handling and descriptor cleanup; these pin the
 helper's own contract: an explicit mode wins over the umask, the temporary
-sibling's name prefix is configurable, and a failing fill leaves the previous
-file intact with no temporary sibling behind.
+sibling's name prefix is configurable, a failing fill or rename leaves the
+previous file intact with no temporary sibling behind.
 """
 
 from __future__ import annotations
@@ -63,6 +63,42 @@ class TestWriteAtomically(unittest.TestCase):
             atomic_write.write_atomically(self.target, fill)
         self.assertEqual(b"old", self.target.read_bytes())
         self.assertEqual([self.target], list(self.directory.iterdir()))
+
+    def test_a_failing_rename_keeps_the_previous_file_and_leaves_no_sibling(self):
+        """A rename that fails raises with the previous file still in place.
+
+        The rename is the last step that can fail; the cleanup it shares
+        with the fill-failure path must also run for it, so a broken
+        rename never strands a ``.target.txt-*.tmp`` sibling beside the
+        target or destroys the previous contents.
+        """
+        failure = OSError("rename failed")
+        self.target.write_bytes(b"old")
+        with mock.patch.object(atomic_write.os, "replace", side_effect=failure):
+            with self.assertRaises(OSError) as caught:
+                atomic_write.write_atomically(
+                    self.target, lambda handle: handle.write(b"x")
+                )
+        self.assertIs(failure, caught.exception)
+        self.assertEqual(b"old", self.target.read_bytes())
+        self.assertEqual([self.target], list(self.directory.iterdir()))
+
+    def test_a_directory_target_refuses_the_replace_and_leaves_no_sibling(self):
+        """Renaming the sibling over an existing directory fails cleanly.
+
+        ``os.replace`` refuses to put a regular file over a directory
+        (EISDIR); the helper must propagate that failure with the
+        temporary sibling removed and the directory untouched.
+        """
+        target = self.directory / "target.txt"
+        target.mkdir()
+        inner = target / "kept"
+        inner.write_bytes(b"inside")
+
+        with self.assertRaises(IsADirectoryError):
+            atomic_write.write_atomically(target, lambda handle: handle.write(b"x"))
+        self.assertEqual(b"inside", inner.read_bytes())
+        self.assertEqual([target], list(self.directory.iterdir()))
 
     def test_keyboard_interrupt_also_removes_the_sibling(self):
         def fill(handle):
