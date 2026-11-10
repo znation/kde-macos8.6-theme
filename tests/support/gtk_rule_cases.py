@@ -530,6 +530,31 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             },
         )
 
+    def assert_scale_popup_buttons(self):
+        """Assert both scale-popup button pins against this sheet's rules.
+
+        The GTK 4 control suite and the GTK 3 OSD suite carry the same
+        two ``scale-popup`` button pins on their own sheets: the flat
+        pop-up member squared with a solid border, the hover member armed
+        with the landed ``FACE`` and a square radius, and the member
+        inventory naming those two ``scale-popup`` button spellings and
+        nothing else. Each suite resolves to this body through its own
+        one-line named wrapper.
+        """
+        self.assertEqual(
+            self.rules[".osd .scale-popup button.flat"],
+            {"border-style": "solid", "border-radius": "0"},
+        )
+        self.assertEqual(
+            self.rules[".scale-popup button:hover"],
+            {"background-color": FACE, "border-radius": "0"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "scale-popup" in selector and "button" in selector},
+            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
+        )
+
     def assert_switch(self, slider, disabled_slider, glyph):
         """Assert the shared switch spec against this sheet's selectors."""
         self.assert_rule("switch", SWITCH_TRACK)

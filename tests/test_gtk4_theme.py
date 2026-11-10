@@ -3416,19 +3416,7 @@ for radio in (False, True):
 
     def test_scale_popup_buttons(self):
         """Clear the stock rounded scale-popup button overrides."""
-        self.assertEqual(
-            self.rules[".osd .scale-popup button.flat"],
-            {"border-style": "solid", "border-radius": "0"},
-        )
-        self.assertEqual(
-            self.rules[".scale-popup button:hover"],
-            {"background-color": FACE, "border-radius": "0"},
-        )
-        self.assertEqual(
-            {selector for selector in self.rules
-             if "scale-popup" in selector and "button" in selector},
-            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
-        )
+        self.assert_scale_popup_buttons()
 
     def test_video_osd_image_corners(self):
         self.assertEqual(

@@ -367,19 +367,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
     def test_scale_popup_buttons(self):
         """Clear the stock rounded scale-popup button overrides."""
-        self.assertEqual(
-            self.rules[".osd .scale-popup button.flat"],
-            {"border-style": "solid", "border-radius": "0"},
-        )
-        self.assertEqual(
-            self.rules[".scale-popup button:hover"],
-            {"background-color": FACE, "border-radius": "0"},
-        )
-        self.assertEqual(
-            {selector for selector in self.rules
-             if "scale-popup" in selector and "button" in selector},
-            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
-        )
+        self.assert_scale_popup_buttons()
 
     def test_osd_button(self):
         """Pin the 37 restated stock OSD push-button arms.
