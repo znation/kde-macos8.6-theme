@@ -724,9 +724,10 @@ pushes and pull requests, on Python 3.13 with a checkout with Git LFS images
 materialized; the Makefile's targets still require Python 3.10 or newer at run
 time. Its check job also installs the render gate's five Plasma tools
 (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
-`plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox, combobox, line-edit and
-menu dialog renders open, and the `zenity` client its GTK dialog render opens, so
-`make check` reaches the rendered-pixel gates, including both dialog renders. Their
+`plasma-apply-colorscheme`), the `kdialog` client the gate's checkbox, combobox, line-edit, menu,
+progressbar, slider and textbox dialog renders open, and the `zenity` client its GTK dialog
+render opens, so `make check` reaches the rendered-pixel gates, including the kdialog and GTK
+dialog renders. Their
 software-renderer guard still skips captures in the workflow environment; installed tools
 are prerequisites, not proof that rendered pixels were compared. See [Running checks](#running-checks)
 for the guard conditions and GPU-host guidance. Run those same commands locally for parity

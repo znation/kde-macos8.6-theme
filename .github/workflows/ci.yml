@@ -80,7 +80,7 @@ jobs:
             # org.kde.plasma.calculator applet the applet render opens, and
             # `libgl1-mesa-dri` the llvmpipe EGL driver the virtual KWin
             # session needs on the GPU-less runner; `kdialog` provides the
-            # dialog render's three kdialog clients and `zenity` the GTK 4
+            # dialog render's seven kdialog clients and `zenity` the GTK 4
             # dialog render's client.
             sudo apt-get install -y --no-install-recommends \
               dbus kwin-wayland plasma-workspace plasma-widgets-addons \
