@@ -27,9 +27,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
+from support.flock_fixtures import hold_directory_flock
 from tools.file_lock import (
     POLL_SECONDS,
     exclusive_flock,
+    installed_data_lock,
     parent_dir_lock,
 )
 
@@ -217,6 +219,93 @@ class TestParentDirLock(unittest.TestCase):
             ):
                 pass
         self.assertIn(f"cannot create {blocked}", str(caught.exception))
+
+
+class TestInstalledDataLock(unittest.TestCase):
+    """The data-home wrapper the Makefile's ``flock "$(DATA_HOME)"`` pairs with.
+
+    ``make install``/``uninstall`` run their whole recipe under an exclusive
+    flock over the data home (``run_locked`` in the Makefile), and the apply
+    and selection tools re-check their installed files while this wrapper
+    holds the same inode. The wording of *holder* is the tool-side half of
+    the pairing: it must name install/uninstall, the way the Makefile's own
+    timeout diagnostic names ``another install or uninstall``.
+    """
+
+    def setUp(self):
+        self.data_home = tmp_dir.make_tmp_dir(self)
+
+    def test_an_install_or_uninstall_holder_is_named_in_the_refusal(self):
+        """A holder on the data home refuses the wrapper, naming the holder.
+
+        Contention is against the data home's own inode -- the one
+        ``flock "$(DATA_HOME)"`` takes -- not the parent directory, so a
+        swap of either argument would let an apply run overlap an uninstall.
+        """
+        hold_directory_flock(self, self.data_home)
+        with self.assertRaisesRegex(
+            LockRefused,
+            r"gave up after 0s waiting for another install or uninstall to"
+            r" finish with " + str(self.data_home),
+        ):
+            with installed_data_lock(
+                self.data_home,
+                "for the theme apply",
+                0.0,
+                error=LockRefused,
+            ):
+                pass
+
+    def test_the_body_holds_the_data_home_inode_and_releases_it_afterward(self):
+        """The body runs under the lock, blocks a fresh holder, then releases.
+
+        The reverse direction of the pairing: while the wrapper holds the
+        data home, an install or uninstall contending the way the Makefile
+        does (a non-blocking flock on the directory) is refused, and once
+        the body ends the directory is lockable again.
+        """
+        body_ran = False
+        with installed_data_lock(
+            self.data_home,
+            "for the theme apply",
+            10.0,
+            error=LockRefused,
+        ):
+            body_ran = True
+            holder = open_directory(self.data_home)
+            try:
+                with self.assertRaises(OSError):
+                    fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            finally:
+                os.close(holder)
+        self.assertTrue(body_ran, "the wrapper did not run its body")
+        descriptor = open_directory(self.data_home)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        finally:
+            os.close(descriptor)
+
+    def test_a_missing_data_home_is_refused_not_created(self):
+        """A data home that does not exist yet raises *error*, not a mkdir.
+
+        The Makefile creates the data home before taking the lock and the
+        apply tools check their installed files before locking, so the
+        wrapper locking a directory it just created would serialize nothing
+        and leave a stray ``.local/share`` behind.
+        """
+        missing = self.data_home / "absent" / "share"
+        with self.assertRaisesRegex(
+            LockRefused,
+            "cannot lock " + str(missing) + " for the theme apply",
+        ):
+            with installed_data_lock(
+                missing,
+                "for the theme apply",
+                10.0,
+                error=LockRefused,
+            ):
+                pass
+        self.assertFalse(missing.exists(), "the wrapper created the data home")
 
 
 if __name__ == "__main__":
