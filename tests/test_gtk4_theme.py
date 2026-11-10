@@ -914,6 +914,23 @@ for radio in (False, True):
                     self.rules["button:focus:focus-visible"]["outline-color"],
                 )
 
+    def assert_scale_anchored_focus_outline(self, selectors):
+        """Assert each of *selectors* occurs once and states the black focus
+        outline the scale focus anchor states.
+
+        The view-child, residual and card focus tests share this
+        per-selector cell; each keeps its own family scan because each
+        scans a different token.
+        """
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+                self.assertEqual(
+                    self.rules[selector]["outline-color"],
+                    self.rules[SCALE_FOCUS]["outline-color"],
+                )
+                self.assertEqual(self.selectors.count(selector), 1)
+
     def assert_scale_slider_transition(self, selector):
         """Assert *selector* keeps the no-transition the scale slider keeps."""
         self.assert_rule(selector, {"transition": "none"})
@@ -2365,9 +2382,6 @@ for radio in (False, True):
         # No other error or warning selector exists in the sheet: the
         # family scan kills renamed, dropped and stray class spellings
         # alike (including the stock '> selection' arms, out of scope).
-        # No other error or warning selector exists in the sheet: the
-        # family scan kills renamed, dropped and stray class spellings
-        # alike (including the stock '> selection' arms, out of scope).
         # The landed `label.error` label colour-class twins share the
         # `.error` spelling, so the scan covers them too.
         self.assertEqual(
@@ -3094,16 +3108,7 @@ for radio in (False, True):
             "flowbox > flowboxchild:focus:focus-visible",
             "gridview > child:focus:focus-visible",
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["scale:focus:focus-visible > trough > slider"][
-                        "outline-color"
-                    ],
-                )
-                self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_scale_anchored_focus_outline(selectors)
         self.assertEqual(self.selectors.count("iconview"), 1)
         self.assert_rule("iconview", {"transition": "none"})
         self.assertEqual(
@@ -3132,16 +3137,7 @@ for radio in (False, True):
             "plane:focus:focus-visible",
             "shortcut:focus:focus-visible",
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["scale:focus:focus-visible > trough > slider"][
-                        "outline-color"
-                    ],
-                )
-                self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_scale_anchored_focus_outline(selectors)
         # The landed calendar label arm sits under ``calendar``, the link
         # state arms carry no focus twin, and the label selection arm is a
         # ``:focus-within`` selection rule, so matching ``:focus-visible``
@@ -3165,16 +3161,7 @@ for radio in (False, True):
             "button.card:focus:focus-visible",
             ".card:focus:focus-visible",
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, {"outline-color": BLACK})
-                self.assertEqual(
-                    self.rules[selector]["outline-color"],
-                    self.rules["scale:focus:focus-visible > trough > slider"][
-                        "outline-color"
-                    ],
-                )
-                self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_scale_anchored_focus_outline(selectors)
         # The landed tabgrid card arm ends with ``.card``, not
         # ``:focus-visible``, so the two ``:focus-visible``-ending card
         # spellings pin exactly the two stock twins and reject renames,
