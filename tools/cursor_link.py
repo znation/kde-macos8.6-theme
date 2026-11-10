@@ -45,7 +45,11 @@ def symlink_target(path: Path) -> str | None:
 
 
 def install_link(home: Path, theme: Path) -> None:
-    """Create our Xcursor link, refusing to replace a foreign path."""
+    """Create our Xcursor link, refusing to replace a foreign path.
+
+    A symlinked ``~/.icons`` directory is refused outright: following it
+    would create the theme link outside ``HOME``.
+    """
     icons = home / ".icons"
     target = link_target(home)
     if icons.is_symlink():
