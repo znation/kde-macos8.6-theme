@@ -20,6 +20,10 @@ import os
 import unittest
 
 from support import theme_install
+from support.config_home_cases import (
+    assert_home_fallback,
+    assert_no_config_home,
+)
 from support.theme_install import (
     assert_make_n_uninstall_parses,
     read_bytes,
@@ -312,46 +316,26 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         # Like the existing diagnostics, the guard ignores an unset
         # XDG_CONFIG_HOME and reads `$HOME/.config`.
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_selection(config, "[WM]\nactiveFont=Lato,10\n")
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-
-        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path, "WM", "activeFont", FONT_VALUE), result.stderr)
-        self.assertEqual(read_bytes(path), read_bytes(path))
+        assert_home_fallback(
+            self,
+            lambda config: write_selection(config, "[WM]\nactiveFont=Lato,10\n"),
+            lambda path: rule_for(path, "WM", "activeFont", FONT_VALUE),
+        )
 
     def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_selection(config, "[General]\nsmallestReadableFont=Lato,8\n")
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-        env["XDG_CONFIG_HOME"] = "relative/config"
-
-        result = theme_install.uninstall_recipe(str(make_tmp_dir(self)), extra=(), env=env)
-
-        assert_succeeded(self, result)
-        self.assertIn(
-            rule_for(path, "General", "smallestReadableFont", SMALL_VALUE),
-            result.stderr,
+        assert_home_fallback(
+            self,
+            lambda config: write_selection(
+                config, "[General]\nsmallestReadableFont=Lato,8\n"
+            ),
+            lambda path: rule_for(path, "General", "smallestReadableFont", SMALL_VALUE),
+            relative=True,
         )
-        self.assertEqual(read_bytes(path), read_bytes(path))
 
     def test_without_a_config_home_nothing_is_checked(self):
         # With neither an absolute XDG_CONFIG_HOME nor an absolute HOME there
         # is no config home to read, so the diagnostics must be skipped.
-        tmp = str(make_tmp_dir(self))
-        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
-
-        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
-
-        assert_succeeded(self, result)
+        result = assert_no_config_home(self)
         for section, key, _ in KEYS:
             self.assertNotIn(reset_for(section, key), result.stderr)
 

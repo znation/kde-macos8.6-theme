@@ -22,6 +22,10 @@ import os
 import unittest
 
 from support import theme_install
+from support.config_home_cases import (
+    assert_home_fallback,
+    assert_no_config_home,
+)
 from support.theme_install import (
     assert_make_n_uninstall_parses,
     read_bytes,
@@ -532,48 +536,33 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
     # -- config home resolution ----------------------------------------------
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_file(
-            os.path.join(config, "kdedefaults", "kdeglobals"),
-            "[KDE]\nwidgetStyle=kvantum\n",
+        assert_home_fallback(
+            self,
+            lambda config: write_file(
+                os.path.join(config, "kdedefaults", "kdeglobals"),
+                "[KDE]\nwidgetStyle=kvantum\n",
+            ),
+            widget_rule,
         )
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-
-        result = run_uninstall(tmp, config, env=env)
-
-        assert_succeeded(self, result)
-        self.assertIn(widget_rule(path), result.stderr)
 
     def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_file(
-            os.path.join(config, "kdedefaults", "plasmarc"),
-            "[Theme]\nname=" + LNF_ID + "\n",
+        assert_home_fallback(
+            self,
+            lambda config: write_file(
+                os.path.join(config, "kdedefaults", "plasmarc"),
+                "[Theme]\nname=" + LNF_ID + "\n",
+            ),
+            mirror_plasmarc_rule,
+            relative=True,
         )
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-        env["XDG_CONFIG_HOME"] = "relative/config"
-
-        result = run_uninstall(tmp, config, env=env)
-
-        assert_succeeded(self, result)
-        self.assertIn(mirror_plasmarc_rule(path), result.stderr)
 
     def test_without_a_config_home_nothing_is_checked(self):
-        tmp = str(make_tmp_dir(self))
-        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
-
-        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("kdedefaults/kdeglobals", result.stderr)
-        self.assertNotIn("kdedefaults/kwinrc", result.stderr)
-        self.assertNotIn("kdedefaults/plasmarc", result.stderr)
+        assert_no_config_home(
+            self,
+            "kdedefaults/kdeglobals",
+            "kdedefaults/kwinrc",
+            "kdedefaults/plasmarc",
+        )
 
     # -- one run with the landed diagnostics ---------------------------------
 

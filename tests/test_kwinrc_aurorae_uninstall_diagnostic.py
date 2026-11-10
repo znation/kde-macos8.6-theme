@@ -25,6 +25,10 @@ import os
 import unittest
 
 from support import theme_install
+from support.config_home_cases import (
+    assert_home_fallback,
+    assert_no_config_home,
+)
 from support.theme_install import (
     assert_make_n_uninstall_parses,
     read_bytes,
@@ -361,66 +365,28 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         # Like the other diagnostics, the guard ignores an unset or
         # relative XDG_CONFIG_HOME and reads `$HOME/.config`.
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_kwinrc(
-            config,
-            "[" + REMOVAL_GROUP + "]\n"
-            + LIBRARY_KEY
-            + "="
-            + AURORAE_LIBRARY
-            + "\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+        assert_home_fallback(
+            self,
+            lambda config: write_kwinrc(
+                config,
+                "[" + REMOVAL_GROUP + "]\n" + LIBRARY_KEY + "=" + AURORAE_LIBRARY + "\n" + THEME_KEY + "=" + AURORAE_THEME + "\n",
+            ),
+            rule_for,
         )
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-
-        result = theme_install.uninstall_recipe(
-            str(make_tmp_dir(self)), extra=(), env=env
-        )
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
 
     def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
-        tmp = str(make_tmp_dir(self))
-        home = os.path.join(tmp, "home")
-        config = os.path.join(home, ".config")
-        path = write_kwinrc(
-            config,
-            "[" + REMOVAL_GROUP + "]\n"
-            + LIBRARY_KEY
-            + "="
-            + AURORAE_LIBRARY
-            + "\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+        assert_home_fallback(
+            self,
+            lambda config: write_kwinrc(
+                config,
+                "[" + REMOVAL_GROUP + "]\n" + LIBRARY_KEY + "=" + AURORAE_LIBRARY + "\n" + THEME_KEY + "=" + AURORAE_THEME + "\n",
+            ),
+            rule_for,
+            relative=True,
         )
-        env = theme_install.make_env("XDG_CONFIG_HOME")
-        env["HOME"] = home
-        env["XDG_CONFIG_HOME"] = "relative/config"
-
-        result = theme_install.uninstall_recipe(
-            str(make_tmp_dir(self)), extra=(), env=env
-        )
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
 
     def test_without_a_config_home_nothing_is_checked(self):
-        tmp = str(make_tmp_dir(self))
-        env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
-
-        result = theme_install.uninstall_recipe(tmp, extra=(), env=env)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_no_config_home(self, "window-decoration")
 
     def test_both_kwinrc_diagnostics_share_one_run_in_recipe_order(self):
         tmp = str(make_tmp_dir(self))

@@ -12,11 +12,11 @@ must not change.
 from __future__ import annotations
 
 import os
-import tempfile
 import unittest
 
 from support import theme_install
 from support.theme_install import read_bytes, write_config_file
+from support.config_home_cases import assert_home_fallback
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -122,18 +122,13 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         self.assertIn(RESET, result.stderr)
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
-        with tempfile.TemporaryDirectory() as home:
-            config = os.path.join(home, ".config")
-            write_selection(config, "[General]\ntheme=" + KVANTUM_ID + "\n")
-            env = theme_install.make_env("XDG_CONFIG_HOME")
-            env["HOME"] = home
-
-            result = theme_install.uninstall_recipe(
-                str(make_tmp_dir(self)), extra=(), env=env
-            )
-
-            assert_succeeded(self, result)
-            self.assertIn(RESET, result.stderr)
+        assert_home_fallback(
+            self,
+            lambda config: write_selection(
+                config, "[General]\ntheme=" + KVANTUM_ID + "\n"
+            ),
+            lambda path: RESET,
+        )
 
     def test_silent_when_there_is_no_kvconfig(self):
         tmp = str(make_tmp_dir(self))
