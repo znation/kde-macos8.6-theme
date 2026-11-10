@@ -42,6 +42,7 @@ from tools.render_clients import (
     lineedit_dialog_client,
     menu_dialog_client,
     progressbar_dialog_client,
+    radio_dialog_client,
     slider_dialog_client,
     textbox_dialog_client,
 )  # noqa: E402
@@ -472,6 +473,63 @@ class TestArguments(unittest.TestCase):
         assert_missing_tool_named(
             self, render_surface.main, tools, ("out.png", "--menu-dialog")
         )
+
+    def test_cli_delegates_the_radiolist_dialog_capture_size(self):
+        # A plain --radiolist-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--radiolist-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_radiolist_dialog(self):
+        # The radio-list mode opens its own kdialog client; a plasmoid id
+        # combined with it has no window to open it in.
+        self.assertIn(
+            "--radiolist-dialog",
+            self.assert_usage_error("out.png", "--radiolist-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_radiolist_dialog(self):
+        # The gate byte-compares the radio-list capture at 480x360; any
+        # other size moves the KDialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--radiolist-dialog", "--height", "240"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_radiolist_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a radio-list
+        # mode flag missing from that list would print a refusal without
+        # its name.
+        for left, right in (
+            ("--radiolist-dialog", "--checkbox-dialog"),
+            ("--radiolist-dialog", "--menu-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_radiolist_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--radiolist-dialog")
+        )
+
+    def test_the_help_text_names_the_radiolist_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--radiolist-dialog", stdout)
 
     def test_cli_delegates_the_calendar_dialog_capture_size(self):
         # A plain --calendar-dialog run captures at the 480x360 the widget
@@ -1136,6 +1194,22 @@ class TestSessionCommand(unittest.TestCase):
             # And shell word-splitting of the script's arguments -- what the
             # script's `"$@"` hands kdialog -- recovers exactly that argv, so
             # each menu item and its tag is still a separate word.
+            words = shlex.split(command.argv[-1])
+            self.assertEqual(client, words[len(words) - len(client) :])
+
+    def test_carries_the_radiolist_dialog_client_words(self):
+        with self._dialog_command(radio_dialog_client) as (session, command):
+            # The whole client suffix serializes exactly as built, with the
+            # prompt kept as one quoted word despite its space. The ``on``
+            # status pins the checked item as a fixed default, so the
+            # selection never depends on clock, network or input.
+            client = list(radio_dialog_client(session))
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
+            self.assertIn("'Pick an item:'", command.argv[-1])
+            # And shell word-splitting of the script's arguments -- what the
+            # script's `"$@"` hands kdialog -- recovers exactly that argv,
+            # so each radio item's tag, label and status is still a separate
+            # word.
             words = shlex.split(command.argv[-1])
             self.assertEqual(client, words[len(words) - len(client) :])
 

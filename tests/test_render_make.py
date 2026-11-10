@@ -42,6 +42,7 @@ class TestRenderMake(unittest.TestCase):
             ("combobox-dialog", ["--combobox-dialog"]),
             ("lineedit-dialog", ["--lineedit-dialog"]),
             ("menu-dialog", ["--menu-dialog"]),
+            ("radiolist-dialog", ["--radiolist-dialog"]),
             ("calendar-dialog", ["--calendar-dialog"]),
             ("color-dialog", ["--color-dialog"]),
             ("icon-dialog", ["--icon-dialog"]),

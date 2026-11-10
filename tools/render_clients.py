@@ -160,6 +160,22 @@ def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
 
 
+def radio_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the radio list whose radio indicators the engine draws.
+
+    ``--radiolist`` opens KDE's radio-list chooser: the engine draws the
+    sunken list field, the selected row's selection band and the checked
+    and unchecked radio indicators with this theme's palette and shipped
+    ``radio`` art. The ``on`` status pins the checked item as a fixed
+    default, so the selection never depends on clock, network or input,
+    and the capture needs no date or default pin.
+    """
+    return (
+        "kdialog", "--title", "Test", "--radiolist", "Pick an item:",
+        "a", "Alpha", "on", "b", "Beta", "off", "c", "Gamma", "off",
+    )
+
+
 def icon_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the icon chooser whose fields the engine palette paints.
 

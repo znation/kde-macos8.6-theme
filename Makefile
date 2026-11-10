@@ -525,7 +525,7 @@ help:
 	@echo "  CHECK_PARALLEL=n    parallel worker count for check (default: one per core); 0 runs the modules serially"
 	@echo "  PYTHON=path         Python 3.10+ interpreter for every target that runs Python (default python3)"
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
-	@echo "  RENDER_MODE=name   render surface: calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog (default calculator)"
+	@echo "  RENDER_MODE=name   render surface: calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog (default calculator)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
@@ -555,13 +555,14 @@ RENDER_MODE ?= calculator
 render:
 	@$(call require_python_ready,render)
 	@set -f; set -- $${RENDER_MODE-calculator}; \
-	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; esac; \
+	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; esac; \
 	case "$$1" in \
 	  calculator) set -- ;; \
 	  checkbox-dialog) set -- --checkbox-dialog ;; \
 	  combobox-dialog) set -- --combobox-dialog ;; \
 	  lineedit-dialog) set -- --lineedit-dialog ;; \
 	  menu-dialog) set -- --menu-dialog ;; \
+  radiolist-dialog) set -- --radiolist-dialog ;; \
 	  calendar-dialog) set -- --calendar-dialog ;; \
   color-dialog) set -- --color-dialog ;; \
 	  icon-dialog) set -- --icon-dialog ;; \
@@ -569,7 +570,7 @@ render:
 	  slider-dialog) set -- --slider-dialog ;; \
 	  textbox-dialog) set -- --textbox-dialog ;; \
 	  gtk-dialog) set -- --gtk-dialog ;; \
-	  *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; \
+	  *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; \
 	esac; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"
 

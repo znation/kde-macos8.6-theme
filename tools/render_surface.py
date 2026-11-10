@@ -17,6 +17,7 @@ Usage::
         [--height H] [--settle SECONDS] [--timeout SECONDS]
         [--checkbox-dialog | --combobox-dialog | --color-dialog
         | --icon-dialog | --lineedit-dialog | --menu-dialog
+        | --radiolist-dialog
         | --calendar-dialog | --progressbar-dialog | --slider-dialog
         | --textbox-dialog | --gtk-dialog]
 
@@ -155,6 +156,17 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--radiolist-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog radio list whose sunken list field, selected- "
+            "row selection band and checked and unchecked radio indicators "
+            "the Kvantum engine draws with the theme's palette and radio "
+            "art, and capture it at the 480x360 size the widget gate "
+            "byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--calendar-dialog",
         action="store_true",
         help=(
@@ -254,6 +266,7 @@ def main(argv: list[str] | None = None) -> int:
             ("--combobox-dialog", args.combobox_dialog),
             ("--lineedit-dialog", args.lineedit_dialog),
             ("--menu-dialog", args.menu_dialog),
+            ("--radiolist-dialog", args.radiolist_dialog),
             ("--calendar-dialog", args.calendar_dialog),
             ("--color-dialog", args.color_dialog),
             ("--icon-dialog", args.icon_dialog),
@@ -302,9 +315,9 @@ def main(argv: list[str] | None = None) -> int:
     # tool the diagnostic names is the client the requested mode opens.
     kdialog_flags = (
         args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-        or args.menu_dialog or args.calendar_dialog or args.color_dialog
-        or args.icon_dialog or args.progressbar_dialog or args.slider_dialog
-        or args.textbox_dialog
+        or args.menu_dialog or args.radiolist_dialog or args.calendar_dialog
+        or args.color_dialog or args.icon_dialog or args.progressbar_dialog
+        or args.slider_dialog or args.textbox_dialog
     )
     dialog_clients: tuple[str, ...] = ()
     if kdialog_flags:
