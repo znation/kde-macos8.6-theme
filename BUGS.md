@@ -18,26 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### The GTK 3 sheet lost the selected-row swatch ring rule the colorchooser suite pins (found by the plan role 2026-11-10)
-
-`python3 tests/test_gtk_theme_colorchooser.py` fails two tests: `test_color_swatch_corners`
-and `test_selected_row_color_swatch_ring` (`AssertionError: 1 != 0` — the sheet holds zero
-`row:selected colorswatch` selectors where the suite pins exactly one with
-`box-shadow: 0 0 0 2px ` the sheet's black frame-border ink). The declared `make check` is
-red on the tree the pending slider-dialog merge builds from, so that merge's check cannot pass
-today. Reproduce from any tree that carries commit `6aedc94d3` by running the module; no other
-dialog of the sheet is involved.
-
-Suspected cause: `6aedc94d3` (tumwater(reviewer) 2026-11-10) deduplicated the ring declaration
-and deleted the `row:selected colorswatch` rule and its 2026-10-31 provenance comment from
-`theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (the hunk around the landed
-`button.color colorswatch:only-child` block, near `colorswatch overlay:hover`), stating a
-second identical copy "further down the swatch block" survived — the surviving copy does not
-exist in the committed sheet, so the rule vanished instead of collapsing to one copy. A fix
-restores one rule plus one dated provenance comment (re-deriving the comment's date or keeping
-the 2026-10-31 one) and leaves both tests reading unchanged; whether the sheet text that
-re-lands comes from `git show 5b0cb131c` or the pre-`6aedc94d3` state, exactly one rule and
-exactly one `docs/invariants.md` selected-row ring row must remain.
+_None yet._
 
 ## Won't fix
 
