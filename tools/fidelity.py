@@ -54,7 +54,7 @@ if __package__:
     from tools.fidelity_geometry import FidelityError, crop
     from tools.fidelity_metrics import compare
     from tools.fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, iter_difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from tools.fidelity_run_page import collect_run_page
     from tools.fidelity_reports import (
         budget_verdict,
@@ -72,7 +72,7 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_geometry import FidelityError, crop
     from fidelity_metrics import compare
     from fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, iter_difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
     from fidelity_run_page import collect_run_page
     from fidelity_reports import (
         budget_verdict,
@@ -204,11 +204,27 @@ def main(argv: list[str] | None = None) -> int:
                 runs, args.min_difference_run_length,
                 args.max_difference_run_length, args.max_difference_runs,
                 args.difference_run_offset or 0)
-        column_runs = (difference_column_runs(candidate, reference, args.tolerance,
-                                              flags=flags)
-                       if args.difference_column_runs else None)
+        capped_column_runs = (args.difference_column_runs
+                              and args.max_difference_column_runs is not None)
+        column_run_total = None
+        capped_longest_column = None
+        omitted_column_runs = None
+        if capped_column_runs:
+            (column_runs, omitted_column_runs, column_run_total,
+             capped_longest_column) = collect_run_page(
+                iter_difference_column_runs(candidate, reference, args.tolerance,
+                                             flags=flags),
+                args.min_difference_column_run_length,
+                args.max_difference_column_run_length,
+                args.difference_column_run_offset or 0,
+                args.max_difference_column_runs)
+        else:
+            column_runs = (difference_column_runs(candidate, reference, args.tolerance,
+                                                  flags=flags)
+                           if args.difference_column_runs else None)
         if args.difference_column_run_count:
-            column_run_count = (len(column_runs) if column_runs is not None else
+            column_run_count = (column_run_total if capped_column_runs else
+                                len(column_runs) if column_runs is not None else
                                 difference_column_run_count(candidate, reference,
                                                             args.tolerance,
                                                             flags=flags))
@@ -216,12 +232,12 @@ def main(argv: list[str] | None = None) -> int:
             column_run_count = None
         longest_column_run = None
         if args.longest_difference_column_run:
-            longest_column_run = (select_longest_run(column_runs) if column_runs is not None else
+            longest_column_run = (capped_longest_column if capped_column_runs else
+                                  select_longest_run(column_runs) if column_runs is not None else
                                   longest_difference_column_run(candidate, reference,
                                                                 args.tolerance,
                                                                 flags=flags))
-        omitted_column_runs = None
-        if column_runs is not None:
+        if column_runs is not None and not capped_column_runs:
             column_runs, omitted_column_runs = _filter_run_report(
                 column_runs, args.min_difference_column_run_length,
                 args.max_difference_column_run_length, args.max_difference_column_runs,

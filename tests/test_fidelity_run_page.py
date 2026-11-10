@@ -57,6 +57,19 @@ class TestCollectRunPage(unittest.TestCase):
         self.assertEqual((omitted, total, longest["x"]), (4998, 5000, 6))
         self.assertLessEqual(TrackedRun.peak, 5)
 
+    def test_column_major_records_page_with_full_summaries(self):
+        intervals = [
+            {"x": 0, "y": 0, "length": 1},
+            {"x": 0, "y": 2, "length": 2},
+            {"x": 0, "y": 5, "length": 3},
+            {"x": 1, "y": 0, "length": 4},
+            {"x": 1, "y": 8, "length": 1},
+        ]
+        self.assertEqual(collect_run_page(iter(intervals), 2, 3, 1, 1), (
+            [{"x": 0, "y": 5, "length": 3}], 1, 5,
+            {"x": 1, "y": 0, "length": 4},
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

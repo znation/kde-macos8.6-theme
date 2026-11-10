@@ -222,6 +222,15 @@ def iter_difference_runs(
     )
 
 
+def iter_difference_column_runs(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> Iterator[dict[str, int]]:
+    """Yield vertical mismatch runs in column-major order."""
+    return _iter_difference_axis_runs(
+        candidate, reference, tolerance, vertical=True, flags=flags
+    )
+
+
 def difference_run_count(
     candidate: Image, reference: Image, tolerance: int, *, flags=None
 ) -> int:

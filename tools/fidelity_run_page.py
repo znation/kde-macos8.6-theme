@@ -1,4 +1,4 @@
-"""Bounded collection for paged horizontal fidelity interval reports."""
+"""Bounded collection for paged fidelity interval reports."""
 
 from __future__ import annotations
 

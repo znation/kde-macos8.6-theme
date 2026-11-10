@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity vertical reports: bound capped interval storage (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
+
+**Goal.** Bound retained vertical interval records for capped column-run reports, including with a large offset.
+
+**Approach and files.** Added a vertical iterator and streamed capped collection through the existing page collector; uncapped list and count-only behavior remain. Added deterministic tracked-record coverage at the CLI boundary and collector tests, and updated README.md and docs/invariants.md to describe the interval bound and its image-memory limit.
+
+**Acceptance criteria.** Capped vertical reports retain the requested page and first longest interval while full unfiltered counts, longest summaries, metrics, and verdicts remain complete. Existing ordering, length filters, offsets, crop-relative coordinates, and simultaneous horizontal/vertical reports remain covered by the fidelity CLI tests. `make check` passes.
+
 ### README compatibility links: check the explicit navigation anchor (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal.** Protect the incoming `#navigation` fragment retained by the finished navigation-consolidation plan. README.md has `<a id="navigation"></a>` before Contents, but `tests/test_readme_links.py::local_link_errors` recognizes ATX headings only and `TestReadmeLinks.test_local_links_resolve` has no incoming-link assertion. The archived local-link plan covers heading destinations, and the consolidation plan explicitly leaves HTML anchors to manual verification. This adds automated coverage and is independent of the waiting horizontal interval-storage work.

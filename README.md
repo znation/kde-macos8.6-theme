@@ -1436,14 +1436,15 @@ an empty list. Segmentation, metrics and longest-column summaries use the comple
 Pass `--max-difference-column-runs N` to report only the first N eligible vertical intervals in
 column-major order after both length filters. JSON adds `omitted_difference_column_runs`, and text
 prints `omitted difference column runs: N` immediately after the vertical list, including zero.
-Run counts, longest-column summaries, metrics and verdict still use the full mismatch data. The
-cap limits output only: segmentation still builds the full run list. Omitting the option adds no
-report field or line.
+Run counts, longest-column summaries, metrics and verdict still use the full mismatch data. With
+a cap, the scan retains the requested page and first longest interval; count and longest summaries
+share that scan. This bounds vertical interval records, not image buffers. Without a cap, the full
+run list is retained. Omitting the option adds no report field or line.
 Pass `--difference-column-run-offset K` with that cap to skip K eligible vertical intervals after
 both length filters, in global column-major order. JSON adds `difference_column_run_offset`, and
 text prints `difference column run offset: K` immediately before the vertical list. The omitted
-count includes skipped intervals and eligible intervals beyond the page. Paging limits output;
-segmentation still builds the full vertical run list.
+count includes skipped intervals and eligible intervals beyond the page. Capped paging retains
+the requested page and first longest interval rather than the full vertical run list.
 Add `--difference-column-run-count` to report the number of maximal vertical mismatch runs as
 `difference_column_run_count` in JSON or `difference column run count: N` in text. It counts
 unfiltered segments, so length cutoffs affect the optional run list but not the scalar. Combined

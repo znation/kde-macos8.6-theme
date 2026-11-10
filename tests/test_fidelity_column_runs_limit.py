@@ -49,6 +49,37 @@ class TestColumnRunsLimit(FidelityCliTestCase):
             self.assertEqual(actual["longest_difference_column_run"], full["longest_difference_column_run"])
             self.assertEqual(actual["metrics"], full["metrics"])
 
+    def test_capped_cli_consumes_one_shot_vertical_stream_with_bounded_retention(self):
+        candidate, reference = self._pair()
+        class TrackedRun(dict):
+            live = peak = 0
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                type(self).live += 1
+                type(self).peak = max(type(self).peak, type(self).live)
+            def __del__(self):
+                type(self).live -= 1
+        def stream(*args, **kwargs):
+            for i in range(5000):
+                yield TrackedRun(x=i, y=0, length=(i % 7) + 1)
+        TrackedRun.live = TrackedRun.peak = 0
+        with mock.patch.object(fidelity, "iter_difference_column_runs", side_effect=stream):
+            result = self._run_png_pair(
+                candidate, reference, "--difference-column-runs",
+                "--difference-column-run-count", "--longest-difference-column-run",
+                "--max-difference-column-runs", "2",
+                "--difference-column-run-offset", "4990", "--json")
+        report = json.loads(result.stdout)
+        self.assertEqual(report["difference_column_runs"], [
+            {"x": 4990, "y": 0, "length": 7},
+            {"x": 4991, "y": 0, "length": 1},
+        ])
+        self.assertEqual(report["omitted_difference_column_runs"], 4998)
+        self.assertEqual(report["difference_column_run_count"], 5000)
+        self.assertEqual(report["longest_difference_column_run"],
+                         {"x": 6, "y": 0, "length": 7})
+        self.assertLessEqual(TrackedRun.peak, 5)
+
     def test_zero_omissions_text_empty_images_and_independent_horizontal_cap(self):
         candidate, reference = self._pair()
         uncapped = json.loads(self._run_png_pair(candidate, reference,
