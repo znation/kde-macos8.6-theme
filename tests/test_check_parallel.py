@@ -206,8 +206,10 @@ class TestCoordinator(unittest.TestCase):
         ):
             result = self._run("--tests-dir", tests_dir)
         self.assertEqual(2, result.returncode)
-        self.assertIn("check: error: cannot list ", result.stderr)
-        self.assertIn("Permission denied", result.stderr)
+        self.assertEqual(
+            f"check: error: cannot list {unreadable}: [Errno 13] Permission denied\n",
+            result.stderr,
+        )
         self.assertEqual("", result.stdout)
 
     def test_missing_worker_status_reports_did_not_finish_and_keeps_log(self):
@@ -350,7 +352,7 @@ class TestCoordinator(unittest.TestCase):
             process = mock.Mock()
             process.poll.return_value = 0
             return check_parallel_workers._Worker(
-                module, log_path, process, now + timeout
+                module, log_path, process, now + timeout, now
             )
 
         with mock.patch.object(check_parallel_workers, "_spawn", side_effect=spawn), \
