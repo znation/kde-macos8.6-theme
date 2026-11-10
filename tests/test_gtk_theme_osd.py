@@ -247,8 +247,8 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ``button.osd`` minimums and the stock ``.osd .scale-popup
             button.flat`` pointer arm is restated by its dedicated test;
             the restated blocks
-        keep the stock arm order, so the active/checked arm keeps
-        stock's sheet-order win over the hover arm.
+        put disabled after backdrop so inactive insensitive labels stay
+        grey; active/checked keeps stock's sheet-order win over hover.
         """
         recipe = {
             "background-color": FACE,
@@ -309,6 +309,20 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             for selector in selectors:
                 with self.subTest(selector=selector):
                     self.assertEqual(self.rules[selector], declarations)
+        # Equal-specificity disabled and backdrop arms must keep grey text.
+        for family in (
+            ".app-notification button.flat",
+            "popover.background.touch-selection button.flat",
+            "popover.background.magnifier button.flat",
+            ".osd button.flat",
+        ):
+            candidates = {family + ":disabled", family + ":backdrop"}
+            colour = None
+            for selector in self.selectors:
+                if selector in candidates:
+                    colour = self.rules[selector]["color"]
+            with self.subTest(disabled_backdrop=family):
+                self.assertEqual(colour, ETCH_DARK)
         self.assertEqual(
             # "button" and "flat" as bare tokens: the shipped sheet's only
             # button.flat spellings are these 24 restated arms plus the

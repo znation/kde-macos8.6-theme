@@ -2691,8 +2691,9 @@ popover.background.magnifier button:disabled,
    the stock `.osd .scale-popup button.flat` pointer arm
    (`border-style: none; border-radius: 5px`, a (0,3,1) spelling) now
    has a dedicated square-border restatement after this block. The five restated blocks keep the stock comma-list
-   spellings in the stock arm order — base, `:hover`, `:disabled`,
-   `:backdrop`, `:active`/`:checked` last — so each appends after its
+   spellings with base, `:hover`, `:backdrop`, `:disabled`,
+   `:active`/`:checked` last — disabled follows backdrop so insensitive
+   labels stay grey in inactive windows. Each appends after its
    stock twin at equal specificity, pre-empts exactly the stock arms
    it restates, and the active/checked block keeps stock's sheet-order
    win over the hover block for a pressed hovered flat button; the
@@ -2734,20 +2735,6 @@ popover.background.magnifier button.flat:hover, .osd button.flat:hover {
   -gtk-icon-shadow: none;
 }
 
-.app-notification button.flat:disabled,
-popover.background.touch-selection button.flat:disabled,
-popover.background.magnifier button.flat:disabled,
-.osd button.flat:disabled {
-  background-color: #DDDDDD;
-  background-image: none;
-  border: 1px solid #000000;
-  border-radius: 0;
-  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
-  color: #888888;
-  text-shadow: none;
-  -gtk-icon-shadow: none;
-}
-
 .app-notification button.flat:backdrop,
 popover.background.touch-selection button.flat:backdrop,
 popover.background.magnifier button.flat:backdrop,
@@ -2759,6 +2746,20 @@ popover.background.magnifier button.flat:backdrop,
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
   color: #000000;
   outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button.flat:disabled,
+popover.background.touch-selection button.flat:disabled,
+popover.background.magnifier button.flat:disabled,
+.osd button.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
   text-shadow: none;
   -gtk-icon-shadow: none;
 }
