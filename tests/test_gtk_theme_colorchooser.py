@@ -23,17 +23,31 @@ from support.repo_root import ROOT
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
+ADD_COLOR_OVERLAYS = (
+    "colorswatch#add-color-button overlay",
+    "colorswatch#add-color-button overlay:hover",
+    "colorswatch#add-color-button overlay:backdrop",
+    "colorswatch#add-color-button overlay:backdrop:hover",
+)
+
 
 class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
 
+    def assert_add_color_overlays(self, declarations):
+        """Assert every add-color overlay selector carries *declarations*.
+
+        The sheet restates the four add-color overlay selectors together
+        wherever a property is barred, so this module pins them in one
+        pass: the seven ``assert_rule`` loops below route through here,
+        and the corners pin keys its declaration dictionary from the
+        ``ADD_COLOR_OVERLAYS`` constant directly.
+        """
+        for selector in ADD_COLOR_OVERLAYS:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, declarations)
+
     def test_color_swatch_corners(self):
-        selectors = (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        )
         self.assert_color_swatch_corners(
             " overlay",
             {
@@ -48,7 +62,7 @@ class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
                         "text-shadow": "none",
                         "-gtk-icon-shadow": "none",
                     }
-                    for selector in selectors
+                    for selector in ADD_COLOR_OVERLAYS
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
                 "row:selected colorswatch": {"box-shadow": f"0 0 0 2px {BLACK}"},
@@ -122,30 +136,14 @@ class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_add_color_border_colors(self):
-        selectors = (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector]["border-color"], BLACK)
+        self.assert_add_color_overlays({"border-color": BLACK})
         self.assertEqual(
-            self.rules[selectors[0]]["border-color"],
+            self.rules[ADD_COLOR_OVERLAYS[0]]["border-color"],
             self.rules["frame > border"]["border"].split()[-1],
         )
 
     def test_add_color_outline_colors(self):
-        selectors = (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, {"outline-color": BLACK})
+        self.assert_add_color_overlays({"outline-color": BLACK})
         self.assertEqual(
             BLACK, self.rules["colorswatch.light"]["outline-color"]
         )
@@ -187,28 +185,16 @@ class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_add_color_background_images(self):
-        for selector in (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        ):
-            self.assert_rule(
-                selector, {"background-image": "none", "box-shadow": "none", "color": BLACK}
-            )
+        self.assert_add_color_overlays(
+            {"background-image": "none", "box-shadow": "none", "color": BLACK}
+        )
         self.assertEqual(
             self.rules["colorswatch#add-color-button overlay"]["background-image"],
             self.rules["button"]["background-image"],
         )
 
     def test_add_color_background_colors(self):
-        for selector in (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        ):
-            self.assert_rule(selector, {"background-color": FACE})
+        self.assert_add_color_overlays({"background-color": FACE})
         self.assertEqual(
             self.rules["colorswatch#add-color-button overlay"]["background-color"],
             self.rules["button"]["background-color"],
@@ -220,36 +206,19 @@ class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_add_color_box_shadows(self):
-        for selector in (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        ):
-            self.assert_rule(selector, {"box-shadow": "none"})
+        self.assert_add_color_overlays({"box-shadow": "none"})
 
     def test_add_color_label_shadows(self):
-        expected = {"text-shadow": "none", "-gtk-icon-shadow": "none"}
-        for selector in (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
-        ):
-            with self.subTest(selector=selector):
-                self.assert_rule(selector, expected)
+        self.assert_add_color_overlays(
+            {"text-shadow": "none", "-gtk-icon-shadow": "none"}
+        )
 
     def test_add_color_foregrounds(self):
-        selectors = (
-            "colorswatch#add-color-button overlay",
-            "colorswatch#add-color-button overlay:hover",
-            "colorswatch#add-color-button overlay:backdrop",
-            "colorswatch#add-color-button overlay:backdrop:hover",
+        self.assert_add_color_overlays({"color": BLACK})
+        self.assertEqual(
+            self.rules[ADD_COLOR_OVERLAYS[0]]["color"],
+            self.rules["window"]["color"],
         )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector]["color"], BLACK)
-        self.assertEqual(self.rules[selectors[0]]["color"], self.rules["window"]["color"])
 
 
 if __name__ == "__main__":
