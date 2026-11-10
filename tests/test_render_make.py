@@ -40,6 +40,7 @@ class TestRenderMake(unittest.TestCase):
             ("calculator", []),
             ("checkbox-dialog", ["--checkbox-dialog"]),
             ("combobox-dialog", ["--combobox-dialog"]),
+            ("lineedit-dialog", ["--lineedit-dialog"]),
             ("menu-dialog", ["--menu-dialog"]),
             ("calendar-dialog", ["--calendar-dialog"]),
             ("color-dialog", ["--color-dialog"]),

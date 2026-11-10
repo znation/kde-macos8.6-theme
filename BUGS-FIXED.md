@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The Makefile render-mode parity test never pins the literal-argv `--lineedit-dialog` branch (found by the bugfix role 2026-11-10)
+
+`tests/test_render_make.py::TestRenderMake::test_default_and_explicit_modes_pass_literal_argv`
+pins one literal-argv row per `RENDER_MODE` the `render` target's `case` maps — the default,
+`calculator` and eight of the nine dialog modes (checkbox, combobox, menu, calendar,
+progressbar, slider, textbox, gtk) — but the ninth, `lineedit-dialog`, never got a row when its
+gate landed. A mistyped branch therefore ships with the whole module green: shown by
+temporarily mapping the branch to `--menu-dialog`, after which `tests.test_render_make` still
+passed while `make render RENDER_MODE=lineedit-dialog` would capture the wrong dialog.
+Behavior on this host is fine; the gap is the unguarded branch.
+
+Fix: add the ("lineedit-dialog", ["--lineedit-dialog"]) row beside its siblings; re-running the
+mistyped contrast shows the new row failing on it and the restored Makefile passing.
+
+**Validation gap:** none — a deterministic mutation contrast reproduces and confirms the gap
+(mistyping the branch keeps the suite green before the fix; the new row fails on the mistyped
+Makefile and passes on the restored one), so nothing was missing.
+
 ### The render CLI's usage docstring omits the landed --calendar-dialog mode (found by the bugfix role 2026-11-10) — fixed 2026-11-10 by the bugfix role
 
 `tools/render_surface.py`'s module docstring Usage block — the CLI contract a
