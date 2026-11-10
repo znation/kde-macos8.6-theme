@@ -257,6 +257,13 @@ class TestArguments(unittest.TestCase):
                 self.assertIn(left, stderr)
                 self.assertIn(right, stderr)
 
+    def test_the_slider_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--slider-dialog")
+        )
+
     def test_cli_delegates_the_progressbar_dialog_capture_size(self):
         # A plain --progressbar-dialog run captures at the 480x360 the widget
         # gate byte-compares, not the applet's 320x240 default.
@@ -308,13 +315,6 @@ class TestArguments(unittest.TestCase):
         tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
         assert_missing_tool_named(
             self, render_surface.main, tools, ("out.png", "--progressbar-dialog")
-        )
-
-    def test_rejects_an_applet_with_the_checkbox_dialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--slider-dialog")
         )
 
     def test_rejects_an_applet_with_the_checkbox_dialog(self):

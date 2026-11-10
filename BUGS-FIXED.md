@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The render CLI suite ran no slider-dialog missing-kdialog test because a copy-pasted def shadowed the name it was filed under (found by the dedupe role 2026-11-10) — fixed 2026-11-10 by the dedupe role
+
+`tests/test_render_surface_units.py::TestArguments` defined
+`test_rejects_an_applet_with_the_checkbox_dialog` twice: the first definition (a copy-paste of the
+per-mode requires-kdialog recipe) asserted `--slider-dialog`'s missing-tool naming but carried the
+checkbox name, and the second definition — the real applet-refusal test — replaced it at import
+time, so the first never executed. Every other kdialog dialog mode (lineedit, progressbar,
+combobox, menu, checkbox) has a `test_the_<mode>_dialog_requires_kdialog` test; the slider mode's
+coverage existed only inside the shadowed, misnamed def, so the suite ran no assertion that
+`render_surface.main(("out.png", "--slider-dialog"))` names kdialog when it is absent, while
+`tools/render_surface.py`'s `kdialog_flags` branch does require kdialog for that mode.
+
+The fix deletes the shadowed definition and restores its body under the correct name,
+`test_the_slider_dialog_requires_kdialog`, placed with the slider group — completing the per-mode
+family without changing any production code.
+**Validation gap:** none — a per-class duplicate-`def` scan over `tests/test*.py` reproduces the
+shadowing, and the renamed test passes against the current CLI.
+
 ### The GTK CSS suite ran only the second of two same-named `test_escaped_trailing_value_whitespace_is_preserved` defs (found by the coverage role 2026-11-10) — fixed 2026-11-10 by the coverage role
 
 `tests/test_gtk_css.py::TestRuleBlockSemantics` defined `test_escaped_trailing_value_whitespace_is_preserved`
