@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity horizontal reports: bound capped interval storage (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
+
+**Goal.** Make `--difference-runs --max-difference-runs N` retain a bounded page of horizontal intervals, including with a large offset. `tools/fidelity_spatial.py::difference_runs` currently materializes the iterator before `tools/fidelity.py::main` applies `_filter_run_report`. The finished horizontal cap and paging plans explicitly limited output rather than segmentation storage. This improvement is independent of README navigation; vertical collection is a separate future task.
+
+**Approach and files.** Add a focused `tools/fidelity_run_page.py` module whose collector consumes an interval iterable once, counts unfiltered intervals, selects the first longest interval before filtering, counts eligible intervals after inclusive minimum/maximum lengths, and retains only the offset/cap page. Return the page, eligible-minus-emitted omitted count, unfiltered count and longest record. Expose a horizontal iterator wrapper in `tools/fidelity_spatial.py` over `_iter_difference_axis_runs`; preserve the existing list-returning API. In `tools/fidelity.py::main`, use the collector on the capped horizontal path and take requested count/longest summaries from its full-stream results. Keep `_filter_run_report` for uncapped horizontal and existing vertical reports. Support direct-script and package imports. Add `tests/test_fidelity_run_page.py` and extend `tests/test_fidelity_difference_runs_limit.py`; revise the horizontal storage statements in README.md and docs/invariants.md (including the count/longest sharing wording). No flags or dependencies are added. This bounds retained interval records, not decoded images, channel deltas or mismatch flags.
+
+**Acceptance criteria.**
+- For horizontal intervals `(0,0,1)`, `(2,0,2)`, `(5,0,3)`, `(0,1,4)`, `(8,1,1)`, minimum length 2, maximum length 3, offset 1 and cap 1 emit only `(5,0,3)`, omit 1 eligible interval, report unfiltered count 5 and longest `(0,1,4)`. Offset beyond the eligible end emits an empty page with omitted count 2. Conflicting cutoffs yield an empty page with omitted count 0 while count and longest remain 5 and `(0,1,4)`. Empty input gives count 0 and longest null; equal longest lengths choose the earliest interval.
+- A one-shot generated iterable containing many intervals, with an offset near its end and cap 2, is exhausted for accurate totals while at most the two page records plus a constant number of working/longest records remain live. Use deterministic live-record tracking in the collector test rather than timing or a machine-dependent memory threshold; eager materialization or retention of skipped records must fail it.
+- CLI JSON and text retain existing fields, ordering, crop-relative coordinates, omitted counts, tolerance/alpha semantics and verdicts for capped reports. Requested count and longest still describe unfiltered input even when the longest is outside the page. Cover an uncapped comparison and simultaneous vertical diagnostics to guard the branch boundary; existing cap/offset tests remain green. Documentation states the horizontal interval-storage limit without extending it to vertical intervals or image buffers. Run `make check` after the final edit.
+
+SUMMARY: Bound storage for capped horizontal fidelity interval reports
+WHY: Capped reports now collect only the requested page while preserving full-stream totals. The backlog placeholder also falsely claimed that the planned section was empty.
+RISK: Horizontal capped report paging could omit or miscount intervals; inspect `tools/fidelity_run_page.py` and its tests. Backlog placeholder detection lives in `tests/test_backlog_placeholders.py`.
+VERIFIED: Before the edit, `make check` reproduced the stale-placeholder assertion; the XDG-home module completed successfully.
+Objection 1: done
+Objection 2: unchanged-by-design because the named XDG fallback test passed and this change does not alter fallback resolution.
+Objection 3: unchanged-by-design because the named XDG refusal test passed and this change does not alter refusal diagnostics.
+Objection 4: unchanged-by-design because the named config-home diagnostics test passed and this change does not alter those diagnostics.
+Objection 5: unchanged-by-design because the named shell-quoting test passed and this change does not alter shell quoting.
+Objection 6: unchanged-by-design because the named empty-value test passed and this change does not alter XDG empty-value handling.
+
 ### README navigation: consolidate the two workflow indexes (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal.** Give readers one introductory workflow index. README.md currently has a `## Contents` list before Prerequisites and a `## Navigation` list between Prerequisites and Installing; the latter repeats workflow destinations already present in Contents. The archived navigation entries added those lists separately; neither describes consolidating them. This is independent of the pending software-renderer coverage explanation.

@@ -54,7 +54,8 @@ if __package__:
     from tools.fidelity_geometry import FidelityError, crop
     from tools.fidelity_metrics import compare
     from tools.fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from tools.fidelity_run_page import collect_run_page
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -71,7 +72,8 @@ else:  # run directly: python3 tools/fidelity.py
     from fidelity_geometry import FidelityError, crop
     from fidelity_metrics import compare
     from fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
+    from fidelity_run_page import collect_run_page
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -174,21 +176,30 @@ def main(argv: list[str] | None = None) -> int:
         column_bounds = (difference_column_bounds(candidate, reference, args.tolerance,
                                                   flags=flags)
                          if args.difference_column_bounds else None)
-        runs = (difference_runs(candidate, reference, args.tolerance, flags=flags)
-                if args.difference_runs else None)
+        capped_runs = args.difference_runs and args.max_difference_runs is not None
+        run_total = None
+        capped_longest = None
+        omitted_runs = None
+        if capped_runs:
+            runs, omitted_runs, run_total, capped_longest = collect_run_page(
+                iter_difference_runs(candidate, reference, args.tolerance, flags=flags),
+                args.min_difference_run_length, args.max_difference_run_length,
+                args.difference_run_offset or 0, args.max_difference_runs)
+        else:
+            runs = (difference_runs(candidate, reference, args.tolerance, flags=flags)
+                    if args.difference_runs else None)
         if args.difference_run_count:
-            run_count = (len(runs) if runs is not None else
+            run_count = (run_total if capped_runs else len(runs) if runs is not None else
                          difference_run_count(candidate, reference, args.tolerance,
                                               flags=flags))
         else:
             run_count = None
         longest_run = None
         if args.longest_difference_run:
-            longest_run = (select_longest_run(runs) if runs is not None else
+            longest_run = (capped_longest if capped_runs else select_longest_run(runs) if runs is not None else
                            longest_difference_run(candidate, reference, args.tolerance,
                                                   flags=flags))
-        omitted_runs = None
-        if runs is not None:
+        if runs is not None and not capped_runs:
             runs, omitted_runs = _filter_run_report(
                 runs, args.min_difference_run_length,
                 args.max_difference_run_length, args.max_difference_runs,

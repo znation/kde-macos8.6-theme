@@ -213,6 +213,15 @@ def difference_runs(
     ))
 
 
+def iter_difference_runs(
+    candidate: Image, reference: Image, tolerance: int, *, flags=None
+) -> Iterator[dict[str, int]]:
+    """Yield horizontal mismatch runs in row-major order."""
+    return _iter_difference_axis_runs(
+        candidate, reference, tolerance, vertical=False, flags=flags
+    )
+
+
 def difference_run_count(
     candidate: Image, reference: Image, tolerance: int, *, flags=None
 ) -> int:

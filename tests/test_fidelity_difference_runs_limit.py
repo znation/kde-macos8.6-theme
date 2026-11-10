@@ -57,6 +57,15 @@ class TestDifferenceRunsLimit(FidelityCliTestCase):
         self.assertEqual(conflict["metrics"], limited["metrics"])
         self.assertEqual(conflict["passed"], limited["passed"])
 
+        paged = json.loads(self._run_png_pair(
+            candidate, reference, *base, "--min-difference-run-length", "2",
+            "--max-difference-run-length", "3", "--difference-run-offset", "1",
+            "--max-difference-runs", "1").stdout)
+        self.assertEqual(paged["difference_runs"], [full_runs[2]])
+        self.assertEqual(paged["omitted_difference_runs"], 1)
+        self.assertEqual(paged["difference_run_count"], 5)
+        self.assertEqual(paged["longest_difference_run"], full_runs[3])
+
     def test_json_text_crop_and_no_option_schema(self):
         candidate, reference = self._pair()
         expected = [
