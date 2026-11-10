@@ -137,13 +137,7 @@ class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
         self.assert_rule_group(dict.fromkeys(selectors, expected))
 
     def test_separator_label_foreground(self):
-        selector = "label.separator"
-        self.assert_disabled_text((selector,))
-        self.assertEqual(
-            self.rules[selector],
-            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
-        )
-        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_separator_label_foreground()
 
     def test_placeholder_foreground(self):
         selectors = (

@@ -242,13 +242,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         self.assert_disabled_text(("label:disabled", "entry:disabled", "spinbutton:disabled"))
 
     def test_separator_label_foreground(self):
-        selector = "label.separator"
-        self.assert_disabled_text((selector,))
-        self.assertEqual(
-            self.rules[selector],
-            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
-        )
-        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_separator_label_foreground()
 
     def test_dim_label_foreground(self):
         selector = ".dim-label"

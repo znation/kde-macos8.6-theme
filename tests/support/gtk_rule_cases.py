@@ -771,3 +771,20 @@ class GtkSharedControlCases(GtkSheetRuleCases):
             self.assert_rule(selector, ROW_SELECTED)
 
         self.assert_tab_faces()
+
+    def assert_separator_label_foreground(self):
+        """Assert the separator label's opaque inactive grey, once per suite.
+
+        Both control suites carry the same ``label.separator`` pin (an
+        opaque ``DISABLED_TEXT`` grey with no text shadow, one spelling)
+        against their own sheets; the two wrappers live in the suites so
+        each keeps its named invariant pointer, and this is where the
+        assertion body itself lives.
+        """
+        selector = "label.separator"
+        self.assert_disabled_text((selector,))
+        self.assertEqual(
+            self.rules[selector],
+            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
+        )
+        self.assertEqual(self.selectors.count(selector), 1)
