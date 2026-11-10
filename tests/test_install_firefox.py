@@ -82,8 +82,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue(profile_link.is_symlink())
         self.assertEqual(self.profile, profile_link.readlink())
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertEqual(foreign.encode("utf-8"), self.user_js_path().read_bytes())
 
     def test_install_copies_the_sheets_byte_for_byte_and_adds_one_block(self):
@@ -115,8 +114,7 @@ class TestInstall(FirefoxProfileTestCase):
         result = self.run_tool("--optional")
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("no Firefox profile found; skipping", result.stdout)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
     def test_optional_install_uses_a_discovered_profile(self):
         profile = self.firefox_root / "Profiles" / "active.default"
@@ -304,9 +302,7 @@ class TestInstall(FirefoxProfileTestCase):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot create {self.sheet_path().parent}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_js_write_is_reported_by_path(self):
         # A write failure must name the file that failed and stop the install.
@@ -320,9 +316,7 @@ class TestInstall(FirefoxProfileTestCase):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_js_write_restores_both_previous_sheets(self):
         # A repeat install over earlier sheets of ours must not replace them
@@ -344,7 +338,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
         self.assertEqual(previous, _read(self.sheet_path()))
         self.assertEqual(previous_content, _read(self.content_sheet_path()))
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.user_js_path())
 
     def test_a_failed_user_js_write_keeps_a_block_that_was_already_installed(self):
         # A repeat install over an outdated sheet rewrites a user.js that
@@ -394,7 +388,7 @@ class TestInstall(FirefoxProfileTestCase):
             containment.read_bytes(SHEET_PATH, repo_root.ROOT),
             self.sheet_path().read_bytes(),
         )
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.user_js_path())
 
     def test_an_interrupt_during_the_user_js_write_restores_the_previous_sheet(self):
         # An interrupt is not a ConfigError, but it must roll the published
@@ -410,8 +404,7 @@ class TestInstall(FirefoxProfileTestCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertEqual(previous, _read(self.sheet_path()))
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.content_sheet_path(), self.user_js_path())
 
     def test_an_interrupt_after_the_user_js_write_takes_effect_restores_it(self):
         # The user.js write can publish the preference block and then raise
@@ -429,7 +422,7 @@ class TestInstall(FirefoxProfileTestCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertEqual(previous_sheet, _read(self.sheet_path()))
-        self.assertFalse(self.content_sheet_path().exists())
+        self.assert_profile_absent(self.content_sheet_path())
         self.assertEqual(previous_js, _read(self.user_js_path()))
 
     def test_an_interrupt_after_a_created_user_js_is_published_removes_it(self):
@@ -443,9 +436,7 @@ class TestInstall(FirefoxProfileTestCase):
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_js_restore_is_reported_with_the_original_error(self):
         # The user.js write publishes and then raises, and putting the
@@ -486,9 +477,7 @@ class TestInstall(FirefoxProfileTestCase):
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_new_sheet_restore_is_reported_with_the_original_error(self):
         # A first install has no previous sheet, so its rollback removes the
@@ -510,7 +499,7 @@ class TestInstall(FirefoxProfileTestCase):
             containment.read_bytes(SHEET_PATH, repo_root.ROOT),
             self.sheet_path().read_bytes(),
         )
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.user_js_path())
 
     def test_a_failed_sheet_write_is_reported_by_path(self):
         # _apply publishes userChrome.css before user.js; a failure on that
@@ -525,9 +514,7 @@ class TestInstall(FirefoxProfileTestCase):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_content_write_removes_the_published_user_chrome(self):
         # The content sheet is published after userChrome.css; a failure on
@@ -541,9 +528,7 @@ class TestInstall(FirefoxProfileTestCase):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.content_sheet_path()}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_an_interrupt_after_the_user_content_write_takes_effect_removes_both(self):
         # The content-sheet write can publish its file and then raise before
@@ -556,9 +541,7 @@ class TestInstall(FirefoxProfileTestCase):
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_missing_shipped_sheet_is_reported_by_path(self):
         # apply_profile reads the shipped userChrome.css before touching the profile
@@ -570,8 +553,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         sheet = self.root / install_firefox.SHEET
         self.assertIn(f"cannot read {sheet}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
     def test_a_shipped_sheet_that_is_a_directory_is_reported_by_path(self):
         # The shared regular-file reader refuses a directory with a
@@ -583,8 +565,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot read {sheet}", result.stderr)
         self.assertIn("not a regular file", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
     def test_an_oversize_user_chrome_is_refused_by_name(self):
         # The existing sheet is read only to compare its first line, so a
@@ -604,7 +585,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(
             firefox_user_files.MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
         )
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(self.user_js_path())
 
     def test_an_oversize_user_js_is_refused_by_name(self):
         # user.js goes through the same reader, so its read is bounded too;
@@ -616,7 +597,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode, result.stderr)
         self.assertIn(str(path), result.stderr)
         self.assertIn("larger than", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
     def test_a_user_chrome_at_the_1_mib_cap_is_accepted(self):
         # One byte past the cap is refused; exactly 1 MiB is the accepted
@@ -650,7 +631,7 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertIn(str(path), result.stderr)
         self.assertIn("1048576-byte limit", result.stderr)
         self.assertEqual(original, path.read_bytes())
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
 
 class TestProfileLock(FirefoxProfileTestCase):
@@ -677,9 +658,7 @@ class TestProfileLock(FirefoxProfileTestCase):
             "waiting for another install-firefox/remove-firefox", result.stderr
         )
         self.assertIn(str(self.profile), result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
-        self.assertFalse(self.user_js_path().exists())
+        self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_remove_times_out_without_clearing_the_install(self):
         installed = self.run_tool("--profile", str(self.profile))
@@ -720,7 +699,7 @@ class TestProfileLock(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot lock {self.profile}", result.stderr)
         self.assertIn("simulated refusal", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
     def test_install_refuses_a_lock_that_fails_for_another_reason(self):
         def refuse_lock(*args, **kwargs):
@@ -734,7 +713,7 @@ class TestProfileLock(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot lock {self.profile}", result.stderr)
         self.assertIn("simulated failure", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
 
 class TestRemove(FirefoxProfileTestCase):
@@ -765,8 +744,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.install()
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertTrue(self.sheet_path().parent.is_dir())
         self.assertEqual("", _read(self.user_js_path()))
         self.assertEqual(
@@ -839,7 +817,7 @@ class TestRemove(FirefoxProfileTestCase):
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
         self.assertEqual(foreign_content, _read(self.content_sheet_path()))
         self.assertEqual("", _read(self.user_js_path()))
 
@@ -853,8 +831,7 @@ class TestRemove(FirefoxProfileTestCase):
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertEqual("", _read(self.user_js_path()))
 
     def test_remove_preserves_dangling_links_and_cleans_the_owned_sibling(self):
@@ -956,7 +933,7 @@ class TestRemove(FirefoxProfileTestCase):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(str(self.user_js_path()), result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
     def test_non_utf8_user_js_is_reported_without_writing_the_sheet(self):
         # The reader decodes user.js as UTF-8 and promises a by-name error for
@@ -968,7 +945,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn("cannot read", result.stderr)
         self.assertIn(str(self.user_js_path()), result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
 
     def test_an_unreadable_profile_file_is_reported_by_name(self):
         # read_profile_text opens every profile file through the shared
@@ -1108,7 +1085,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)
         self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
-        self.assertFalse(self.sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path())
         self.assertEqual(before_content, _read(self.content_sheet_path()))
 
     def test_a_failed_unlink_restores_an_outdated_sheet_reading_it_had(self):
@@ -1230,8 +1207,7 @@ class TestRemove(FirefoxProfileTestCase):
         ):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertFalse(self.sheet_path().exists())
-        self.assertFalse(self.content_sheet_path().exists())
+        self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertEqual(
             firefox_user_js.remove_user_js(before_js), _read(self.user_js_path())
         )

@@ -54,6 +54,23 @@ class FirefoxProfileTestCase(unittest.TestCase):
         """Return the ``user.js`` path inside :attr:`profile`."""
         return self.profile / "user.js"
 
+    def owned_profile_paths(self):
+        """Return the three installer-owned profile paths as a tuple."""
+        return (
+            self.sheet_path(),
+            self.content_sheet_path(),
+            self.user_js_path(),
+        )
+
+    def assert_profile_absent(self, *paths):
+        """Assert none of *paths* exist, naming the first survivor on failure.
+
+        Shared by the installer suites' absence pins; every call site lives
+        in ``tests/test_install_firefox.py``.
+        """
+        for path in paths:
+            self.assertFalse(path.exists(), f"{path} unexpectedly exists")
+
     @staticmethod
     def _owned_user_js_block(newline="\n"):
         """Return the installer-owned preference block with *newline* endings."""
