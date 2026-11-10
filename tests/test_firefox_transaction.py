@@ -182,6 +182,54 @@ class TestPublishInstall(unittest.TestCase):
             self.assertFalse(second.exists())
             self.assertFalse(user_js.exists())
 
+    def test_a_user_js_rollback_refusal_is_collected_into_the_error(self):
+        # A refusal while restoring user.js must join the report, not mask
+        # the publication failure: publish_install wraps the user.js restore
+        # in its own refusal collector, so the rollback finishes (the previous
+        # sheets are already back) and the raise carries the publication
+        # failure first, then the cannot-restore refusal, with the original
+        # failure as its cause.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            user_js = root / "user.js"
+            sheet.write_bytes(b"previous chrome")
+
+            real_write_text = firefox_transaction.write_profile_text
+            state = {"failed": False}
+
+            def publish_then_fail(path: Path, published: str) -> None:
+                if path == user_js and not state["failed"]:
+                    real_write_text(path, published)
+                    state["failed"] = True
+                    raise OSError("simulated publication failure")
+                real_write_text(path, published)
+
+            with mock.patch.object(
+                firefox_transaction, "write_profile_text", publish_then_fail
+            ):
+                with mock.patch.object(
+                    Path, "unlink", side_effect=OSError(EPERM, "simulated refusal")
+                ):
+                    with self.assertRaises(
+                        firefox_transaction.ConfigError
+                    ) as caught:
+                        firefox_transaction.publish_install(
+                            ((sheet, b"new chrome", "previous chrome"),),
+                            user_js,
+                            None,
+                            "published preferences\n",
+                        )
+
+            message = str(caught.exception)
+            self.assertIn("simulated publication failure", message)
+            self.assertIn(f"cannot restore {user_js}", message)
+            self.assertIn("simulated refusal", message)
+            self.assertTrue(isinstance(caught.exception.__cause__, OSError))
+            # The rollback reached the end despite the refusal: the sheet got
+            # its previous text back before the user.js restore was attempted.
+            self.assertEqual(b"previous chrome", sheet.read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()
