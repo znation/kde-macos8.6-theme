@@ -47,28 +47,11 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
         ("\\", "x\\y", "x\\y"),
     )
 
-    def _assert_refused(self, variable, make_value, shown_value, args=()):
-        """Run `install`/`uninstall` with *variable* set and assert refusal.
-
-        *make_value* is the assignment each target receives, *shown_value* the
-        text the diagnostic must echo back verbatim. Both targets are driven
-        because they share the guard.
-        """
-        theme_install.assert_both_targets_refused(
-            self,
-            None,
-            (*args, f"{variable}={make_value}"),
-            (
-                f"{variable} contains a shell metacharacter",
-                shown_value,
-            ),
-        )
-
     def test_a_hostile_DESTDIR_is_refused_without_running_its_shell(self):
         tmp = make_tmp_dir(self)
         canary = tmp / "injected"
         hostile = f'/tmp/x"; touch "{canary}"; echo "'
-        self._assert_refused("DESTDIR", hostile, hostile)
+        theme_install.assert_metacharacter_refused(self, "DESTDIR", hostile, hostile)
         self.assertFalse(canary.exists(), hostile)
         data_home = os.path.join(
             tmp, installed_paths.XDG_DATA_HOME.lstrip("/")
@@ -90,13 +73,16 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
     def test_each_metacharacter_is_refused_in_DESTDIR(self):
         for char, make_value, shown_value in self.HOSTILES:
             with self.subTest(char=char):
-                self._assert_refused("DESTDIR", make_value, shown_value)
+                theme_install.assert_metacharacter_refused(
+                    self, "DESTDIR", make_value, shown_value
+                )
 
     def test_each_metacharacter_is_refused_in_XDG_DATA_HOME(self):
         for char, make_value, shown_value in self.HOSTILES:
             with self.subTest(char=char):
                 tmp = make_tmp_dir(self)
-                self._assert_refused(
+                theme_install.assert_metacharacter_refused(
+                    self,
                     "XDG_DATA_HOME",
                     make_value,
                     shown_value,
@@ -129,7 +115,9 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
         # that guard's own quoting can be escaped.
         for char, make_value, shown_value in self.HOSTILES:
             with self.subTest(char=char):
-                self._assert_refused("FLOCK_TIMEOUT", make_value, shown_value)
+                theme_install.assert_metacharacter_refused(
+                    self, "FLOCK_TIMEOUT", make_value, shown_value
+                )
 
 
 class TestShellUnsafeFirefoxProfile(unittest.TestCase):
@@ -210,28 +198,15 @@ class TestShellUnsafeColorScheme(unittest.TestCase):
     refuses such a value before any recipe of either target.
     """
 
-    def _assert_refused(self, make_value, shown_value):
-        """Run `install`/`uninstall` with *make_value*; both must refuse.
-
-        *shown_value* is the text the diagnostic must echo back verbatim.
-        """
-        theme_install.assert_both_targets_refused(
-            self,
-            None,
-            (f"COLOR_SCHEME={make_value}",),
-            (
-                "COLOR_SCHEME contains a shell metacharacter",
-                shown_value,
-            ),
-        )
-
     def test_each_metacharacter_is_refused_in_COLOR_SCHEME(self):
         # The guard reads each value after make's own expansion, so the same
         # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a `$`
         # arrives doubled in the make argument.
         for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
             with self.subTest(char=char):
-                self._assert_refused(make_value, shown_value)
+                theme_install.assert_metacharacter_refused(
+                    self, "COLOR_SCHEME", make_value, shown_value
+                )
 
     def test_an_apostrophe_cannot_reach_the_id_derivation_shell(self):
         """An apostrophe in `COLOR_SCHEME` cannot breach a quoted shell word.
@@ -319,28 +294,15 @@ class TestShellUnsafeColorSchemeName(unittest.TestCase):
     comes from a command-line assignment or the environment.
     """
 
-    def _assert_refused(self, make_value, shown_value):
-        """Run `install`/`uninstall` with *make_value*; both must refuse.
-
-        *shown_value* is the text the diagnostic must echo back verbatim.
-        """
-        theme_install.assert_both_targets_refused(
-            self,
-            None,
-            (f"COLOR_SCHEME_NAME={make_value}",),
-            (
-                "COLOR_SCHEME_NAME contains a shell metacharacter",
-                shown_value,
-            ),
-        )
-
     def test_each_metacharacter_is_refused_in_COLOR_SCHEME_NAME(self):
         # The guard reads each value after make's own expansion, so the same
         # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a `$`
         # arrives doubled in the make argument.
         for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
             with self.subTest(char=char):
-                self._assert_refused(make_value, shown_value)
+                theme_install.assert_metacharacter_refused(
+                    self, "COLOR_SCHEME_NAME", make_value, shown_value
+                )
 
     def test_a_hostile_override_never_runs_its_shell(self):
         """A double-quote breakout in an override must not run a canary.
@@ -353,7 +315,7 @@ class TestShellUnsafeColorSchemeName(unittest.TestCase):
         tmp = make_tmp_dir(self)
         canary = tmp / "injected"
         hostile = f'x"; touch "{canary}"; echo "'
-        self._assert_refused(hostile, hostile)
+        theme_install.assert_metacharacter_refused(self, "COLOR_SCHEME_NAME", hostile, hostile)
         self.assertFalse(canary.exists(), hostile)
 
     def test_an_escape_byte_in_an_override_is_refused_without_echoing_it(self):
@@ -421,21 +383,6 @@ class TestShellUnsafeThemeRoot(unittest.TestCase):
     double-quoted word and stays legal.
     """
 
-    def _assert_refused(self, make_value, shown_value):
-        """Run `install`/`uninstall` with *make_value*; both must refuse.
-
-        *shown_value* is the text the diagnostic must echo back verbatim.
-        """
-        theme_install.assert_both_targets_refused(
-            self,
-            None,
-            (f"THEME_ROOT={make_value}",),
-            (
-                "THEME_ROOT contains a shell metacharacter",
-                shown_value,
-            ),
-        )
-
     def test_a_hostile_THEME_ROOT_is_refused_without_running_its_shell(self):
         """A double quote in `THEME_ROOT` cannot escape the symlink guard.
 
@@ -470,7 +417,9 @@ class TestShellUnsafeThemeRoot(unittest.TestCase):
         # arrives doubled in the make argument.
         for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
             with self.subTest(char=char):
-                self._assert_refused(make_value, shown_value)
+                theme_install.assert_metacharacter_refused(
+                    self, "THEME_ROOT", make_value, shown_value
+                )
 
     def test_an_escape_byte_in_THEME_ROOT_is_refused_without_echoing_it(self):
         # Control bytes are not shell syntax inside a double-quoted word, but

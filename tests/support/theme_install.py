@@ -151,6 +151,23 @@ def assert_both_targets_refused(case, env, args, expected):
                 case.assertIn(substring, result.stderr)
 
 
+def assert_metacharacter_refused(case, variable, make_value, shown_value, args=()):
+    """Run `install`/`uninstall` with `variable=make_value`; both must refuse.
+
+    The make-level shell-metacharacter guard refuses the value before any
+    recipe of either target runs; its diagnostic names the variable and echoes
+    the value back, so *shown_value* is the post-expansion text the diagnostic
+    must carry verbatim (a `$$` arrives as `$`). *args* appends further make
+    assignments beside the guarded one.
+    """
+    assert_both_targets_refused(
+        case,
+        None,
+        (*args, f"{variable}={make_value}"),
+        (f"{variable} contains a shell metacharacter", shown_value),
+    )
+
+
 def _run(target, destdir, extra=(), env=None):
     return run_make(
         [target, f"DESTDIR={destdir}", f"XDG_DATA_HOME={XDG_DATA_HOME}", *extra],
