@@ -81,6 +81,23 @@ class TestSampleValidators(unittest.TestCase):
             ):
                 parser(value)
 
+    def test_nonnegative_offset_factory_uses_its_option_and_rejects_negatives(self):
+        run_offset = validators.nonnegative_offset("--run-offset")
+        match_offset = validators.nonnegative_offset("--match-run-offset")
+
+        self.assertEqual(run_offset("0"), 0)
+        self.assertEqual(match_offset("999999999999"), 999999999999)
+        with self.assertRaisesRegex(
+            argparse.ArgumentTypeError,
+            r"^--run-offset must be nonnegative: '-1'$",
+        ):
+            run_offset("-1")
+        with self.assertRaisesRegex(
+            argparse.ArgumentTypeError,
+            r"^--match-run-offset must be nonnegative: '-1'$",
+        ):
+            match_offset("-1")
+
 
 if __name__ == "__main__":
     unittest.main()
