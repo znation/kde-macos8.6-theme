@@ -1432,6 +1432,25 @@ class _DialogGate:
             self.assert_pixel(x + 2, row, "#DDDDDD")
             self.assert_pixel(x + width - 3, row, "#DDDDDD")
 
+    def assert_band(self, rect, rows):
+        """Pin every cell of *rect* at the per-row colours *rows*.
+
+        A blended bevel arm, a lost outline row, a swapped arm colour, a
+        resampled grip bar or a one-pixel crop slip shows up here
+        immediately.
+        """
+        image = self.candidate_image()
+        x, y, width, height = rect
+        for row in range(height):
+            with self.subTest(row=y + row):
+                self.assertEqual(
+                    list(rows[row]),
+                    [
+                        hex_colour(pixel_at(image, x + dx, y + row))
+                        for dx in range(width)
+                    ],
+                )
+
 
 def _dialog_gate_guard():
     """Return the skip guard the eight dialog render gates share.
@@ -1874,25 +1893,6 @@ class TestTextboxDialogRender(_DialogGate, unittest.TestCase):
 
     KIND = "textbox"
 
-    def assert_band(self, rect, rows):
-        """Pin every cell of *rect* at the per-row colours *rows*.
-
-        A blended bevel arm, a lost outline row, a swapped arm colour, a
-        resampled grip bar or a one-pixel crop slip shows up here
-        immediately.
-        """
-        image = self.candidate_image()
-        x, y, width, height = rect
-        for row in range(height):
-            with self.subTest(row=y + row):
-                self.assertEqual(
-                    list(rows[row]),
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
-                )
-
     def test_pins_the_handle_top_outline_and_its_white_arm(self):
         # Row 95 the 1px #000000 outline, row 96 the #FFFFFF top bevel arm
         # inside it, row 97 the face -- the raised arrangement the
@@ -2070,24 +2070,6 @@ class TestProgressbarDialogRender(_DialogGate, unittest.TestCase):
     """
 
     KIND = "progressbar"
-
-    def assert_band(self, rect, rows):
-        """Pin every cell of *rect* at the per-row colours *rows*.
-
-        A blended bevel arm, a lost outline row, a swapped arm colour or a
-        one-pixel crop slip shows up here immediately.
-        """
-        image = self.candidate_image()
-        x, y, width, height = rect
-        for row in range(height):
-            with self.subTest(row=y + row):
-                self.assertEqual(
-                    rows[row],
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
-                )
 
     def test_keeps_the_trough_face_interior_flat_at_rest(self):
         # The rows between the arms run clear of the outline rows and of
