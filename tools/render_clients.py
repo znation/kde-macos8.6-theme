@@ -160,6 +160,22 @@ def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
 
 
+def icon_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the icon chooser whose fields the engine palette paints.
+
+    ``--geticon`` opens KDE's icon chooser: the engine draws its top-row
+    search field, sunken icon-list field and push buttons with this theme's
+    colorscheme palette and shipped art, the pixels the widget gate
+    byte-compares. The pinned bands avoid the icon-grid's cells entirely:
+    the grid's picture content is the fallback icon theme's art, not
+    theme-owned, so no band may pin any icon's pixels. The dialog shows no
+    clock-dependent content -- no date, no today marker and no clock-driven
+    selection can enter any band -- so the capture needs no date or default
+    pin.
+    """
+    return ("kdialog", "--title", "Test", "--geticon", "application", "")
+
+
 def calendar_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the calendar dialog whose date table the engine palette paints.
 

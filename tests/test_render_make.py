@@ -44,6 +44,7 @@ class TestRenderMake(unittest.TestCase):
             ("menu-dialog", ["--menu-dialog"]),
             ("calendar-dialog", ["--calendar-dialog"]),
             ("color-dialog", ["--color-dialog"]),
+            ("icon-dialog", ["--icon-dialog"]),
             ("progressbar-dialog", ["--progressbar-dialog"]),
             ("slider-dialog", ["--slider-dialog"]),
             ("textbox-dialog", ["--textbox-dialog"]),

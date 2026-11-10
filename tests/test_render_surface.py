@@ -366,6 +366,32 @@ PUSH_BUTTON = (301, 324, 82, 24)
 PUSH_BUTTON_CELL = (302, 324, 5, 24)
 # Label-free face rows for the frame pin beside the cell band.
 PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
+# The icon dialog's pinned bands, measured on two consecutive full
+# `tools/render_surface.py --icon-dialog` runs on 2026-11-10 whose two
+# 480x360 captures differ only in the search field's blinking caret (16
+# pixels in the one column x=302, rows y=33..48) and agree everywhere
+# else -- every band re-derived from the pair avoids that column and all
+# its rows (see TestIconDialogRender for what each band pins).
+ICON_WINDOW_FACE = (100, 23, 300, 6)
+# A band over the icon-grid field's top edge: the window-face row above,
+# the #999999 shadow-arm row, the 1px #000000 outline row and the white
+# #FFFFFF field face below the outline.
+ICON_GRID_TOP_EDGE = (200, 55, 40, 5)
+# A band over the search field's left edge in caret- and glyph-free rows:
+# the #999999 top/left shadow column and arm over the 1px #000000
+# outline and the white #FFFFFF field face, with the outline's right
+# corner and the outer white arm from the outline's edge on.
+ICON_SEARCH_FIELD_BAND = (294, 29, 174, 4)
+# The dialog's default-button row: the landed raised recipe (see
+# TestIconDialogRender) at the 82x24 button size the other dialog gates
+# pin.
+ICON_PUSH_BUTTON = (301, 324, 82, 24)
+# The button's full-height label-free left cell: the outline row, the
+# white bevel top arm, the bevel column over the #DDDDDD face and the
+# #AAAAAA shadow arm, then the bottom outline row.
+ICON_PUSH_BUTTON_CELL = (302, 324, 5, 24)
+# Label-free face rows for the frame pin beside the cell band.
+ICON_PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
@@ -1126,7 +1152,7 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
 # skip condition away from the condition the render CLI refuses on: each
-# dialog flag requires its own client by name (kdialog for the nine kdialog
+# dialog flag requires its own client by name (kdialog for the ten kdialog
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
@@ -1257,12 +1283,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The ten dialog gates skip wherever their render CLI would refuse on a tool.
+    """The eleven dialog gates skip wherever their render CLI would refuse on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the nine kdialog modes, zenity for the
-    GTK mode), and the ten dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the ten kdialog modes, zenity for the
+    GTK mode), and the eleven dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1328,6 +1354,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestMenuDialogRender,
             TestCalendarDialogRender,
             TestColorDialogRender,
+            TestIconDialogRender,
             TestProgressbarDialogRender,
             TestSliderDialogRender,
             TestTextboxDialogRender,
@@ -1362,6 +1389,7 @@ class _Renders:
         ("menu", ("--menu-dialog",), "dialog.png"),
         ("calendar", ("--calendar-dialog",), "dialog.png"),
         ("color", ("--color-dialog",), "dialog.png"),
+        ("icon", ("--icon-dialog",), "dialog.png"),
         ("progressbar", ("--progressbar-dialog",), "dialog.png"),
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
@@ -1442,7 +1470,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the ten dialog render gates share.
+    """Test scaffolding the eleven dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1535,12 +1563,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the ten dialog render gates share.
+    """Return the skip guard the eleven dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the nine
-    kdialog modes, zenity for the GTK mode), so the ten dialog gates skip
+    missing-tool diagnostic when one is absent: kdialog for the ten
+    kdialog modes, zenity for the GTK mode), so the eleven dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -2109,6 +2137,112 @@ class TestColorDialogRender(_DialogGate, unittest.TestCase):
         # a recoloured face fails on the row's columns.
         image = self.candidate_image()
         x, y, width, height = PUSH_BUTTON
+        self.assertEqual(
+            ["#DDDDDD"] * (width - 4),
+            [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))
+             for dx in range(width - 4)],
+        )
+
+
+@_dialog_gate_guard()
+class TestIconDialogRender(_DialogGate, unittest.TestCase):
+    """The icon dialog's fields and push buttons are the theme's.
+
+    The icon dialog opens kdialog's ``--geticon`` chooser, whose top-row
+    search field, sunken icon-grid field and push buttons the engine
+    draws with the theme's colorscheme palette entries ([Colors:Window]
+    and [Colors:Button] the landed art's bevel and shadow arms serve):
+    the search-field sunken recipe's shadow and outline arrangement comes
+    from the shipped line-edit art, the raised push-button recipe from
+    the shipped button art, the flat faces from the palette, just as the
+    line-edit and color gates' field and button pins compare. The grid's
+    icon cells' picture content is the fallback icon theme's art, not
+    theme-owned: no pin touches an icon-art cell, so the gate fails on a
+    theme change but never on a fallback-icon-set change, and the icon
+    labels' glyph rows sit below every band. No collected reference
+    screenshot shows an icon chooser, so the comparison values are the
+    shipped art recipe and palette entries above over the measured
+    480x360 geometry, re-derived on 2026-11-10 from two consecutive full
+    captures: the pair differs only in the search field's blinking caret
+    (a 16-pixel column at x=302 whose on/off state races the settling
+    captures) and agrees everywhere else, and every band avoids that
+    column. The dialog shows no clock-dependent content -- no date and no
+    clock-driven selection can enter any crop -- so it needs no date or
+    default pin. With only flat cells of one colour per row inside each
+    band, a stray glyph row, a one-pixel crop slip, a lost shadow or
+    outline row, a swapped arm colour or a resampled, recoloured or
+    dropped field face fails row by row or pixel by pixel.
+    """
+
+    KIND = "icon"
+
+    def test_draws_the_flat_window_face(self):
+        """Pin the window-color face crop with no other ink inside."""
+        image = self.candidate_image()
+        x0, y0, width, height = ICON_WINDOW_FACE
+        for row in range(height):
+            with self.subTest(row=y0 + row):
+                self.assertEqual(
+                    ["#DDDDDD"] * width,
+                    [
+                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
+                        for dx in range(width)
+                    ],
+                )
+
+    def test_draws_the_grid_field_top_edge(self):
+        """Pin the outline rule, shadow row and white face at the field's top."""
+        expected_rows = [
+            ["#DDDDDD"] * ICON_GRID_TOP_EDGE[2],
+            ["#999999"] * ICON_GRID_TOP_EDGE[2],
+            ["#000000"] * ICON_GRID_TOP_EDGE[2],
+            ["#FFFFFF"] * ICON_GRID_TOP_EDGE[2],
+            ["#FFFFFF"] * ICON_GRID_TOP_EDGE[2],
+        ]
+        self.assert_band(ICON_GRID_TOP_EDGE, expected_rows)
+
+    def test_draws_the_search_field(self):
+        """Pin the field's shadow arm, outline and white face, caret-free rows."""
+        shadow_arm_row = ["#999999"] * 173 + ["#DDDDDD"]
+        outline_row = ["#999999"] + ["#000000"] * 172 + ["#FFFFFF"]
+        face_row = [
+            "#999999",
+            "#000000",
+            *["#FFFFFF"] * 170,
+            "#000000",
+            "#FFFFFF",
+        ]
+        self.assert_band(
+            ICON_SEARCH_FIELD_BAND,
+            [shadow_arm_row, outline_row, face_row, face_row],
+        )
+
+    def test_draws_the_push_button_frame_and_cell(self):
+        """Pin the raised push-button recipe over the full-height cell."""
+        self.assert_raised_frame(ICON_PUSH_BUTTON, flat_rows=ICON_PUSH_BUTTON_FLAT_ROWS)
+        face_row = [
+            "#FFFFFF",
+            *["#DDDDDD"] * 4,
+        ]
+        arm_row = [
+            "#FFFFFF",
+            *["#AAAAAA"] * 4,
+        ]
+        rows = (
+            [["#000000"] * 5]
+            + [["#FFFFFF"] * 5]
+            + [face_row] * 20
+            + [arm_row]
+            + [["#000000"] * 5]
+        )
+        self.assert_band(ICON_PUSH_BUTTON_CELL, rows)
+
+    def test_draws_the_push_button_face_at_the_landed_recipe(self):
+        # The raised recipe's flat face must reach the whole label-free
+        # row: a rounded stock face, a duplicated or shifted bevel arm or
+        # a recoloured face fails on the row's columns.
+        image = self.candidate_image()
+        x, y, width, height = ICON_PUSH_BUTTON
         self.assertEqual(
             ["#DDDDDD"] * (width - 4),
             [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))

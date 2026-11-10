@@ -496,7 +496,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the ten widget dialogs:
+Capture the default calculator or one of the eleven widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -507,6 +507,7 @@ python3 tools/render_surface.py lineedit.png --lineedit-dialog
 python3 tools/render_surface.py menu.png --menu-dialog
 python3 tools/render_surface.py calendar.png --calendar-dialog
 python3 tools/render_surface.py color.png --color-dialog
+python3 tools/render_surface.py icon.png --icon-dialog
 python3 tools/render_surface.py progressbar.png --progressbar-dialog
 python3 tools/render_surface.py slider.png --slider-dialog
 python3 tools/render_surface.py textbox.png --textbox-dialog
@@ -515,7 +516,7 @@ python3 tools/render_surface.py gtk.png --gtk-dialog
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
-`menu-dialog`, `calendar-dialog`, `color-dialog`, `progressbar-dialog`, `slider-dialog`,
+`menu-dialog`, `calendar-dialog`, `color-dialog`, `icon-dialog`, `progressbar-dialog`, `slider-dialog`,
 `textbox-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
@@ -569,6 +570,16 @@ swatch grid's first row's `#000000` lead cell and its `#AA0000` neighbour with t
 window-face gap between them, the value field's `#999999` shadow over the sunk `#000000`
 outline and `#FFFFFF` face, and a push button's raised frame with its `#DDDDDD` face cell
 there.
+`--icon-dialog` opens a `kdialog` icon chooser whose top-row search field's sunken
+line edit and whose sunken icon-grid field the engine draws with the theme's palette
+and the shipped field art, captured at the same 480x360 size; the icon gate
+(`tests/test_render_surface.py::TestIconDialogRender`) pins the flat window face,
+the icon-grid field's top edge's #999999 shadow row over the sunk `#000000`
+outline and `#FFFFFF` face, the search field's `#999999` shadow arm over its sunk
+outline and `#FFFFFF` face, and a push button's raised frame with its `#DDDDDD`
+face cell there. The grid's icon cells' picture content is the fallback icon
+theme's and stays deliberately unpinned, and the search field's blinking caret
+column sits outside every band.
 `--lineedit-dialog` opens a `kdialog` input box whose empty line edit the engine sinks
 with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
 (`tests/test_render_surface.py::TestLineInputDialogRender`) pins the field's sunken bevel
@@ -597,7 +608,7 @@ scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@i
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The ten dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The eleven dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
@@ -1308,9 +1319,9 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the ten dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
-require `kdialog` for checkbox, combo box, line edit, menu, calendar, color picker, progress
-meter, slider and text box or `zenity` for GTK. Direct Python commands
+the eleven dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+require `kdialog` for checkbox, combo box, line edit, menu, calendar, color picker, icon
+chooser, progress meter, slider and text box or `zenity` for GTK. Direct Python commands
 remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
 non-default `--applet`:
 
@@ -1322,6 +1333,7 @@ non-default `--applet`:
 | Menu dialog | `python3 tools/render_surface.py --menu-dialog menu.png` | 480x360 |
 | Calendar dialog | `python3 tools/render_surface.py --calendar-dialog calendar.png` | 480x360 |
 | Color dialog | `python3 tools/render_surface.py --color-dialog color.png` | 480x360 |
+| Icon dialog | `python3 tools/render_surface.py --icon-dialog icon.png` | 480x360 |
 | Progress bar dialog | `python3 tools/render_surface.py --progressbar-dialog progressbar.png` | 480x360 |
 | Slider dialog | `python3 tools/render_surface.py --slider-dialog slider.png` | 480x360 |
 | Text box dialog | `python3 tools/render_surface.py --textbox-dialog textbox.png` | 480x360 |

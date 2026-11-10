@@ -38,6 +38,7 @@ from tools.render_clients import (
     color_dialog_client,
     combobox_dialog_client,
     gtk_dialog_client,
+    icon_dialog_client,
     lineedit_dialog_client,
     menu_dialog_client,
     progressbar_dialog_client,
@@ -594,6 +595,64 @@ class TestArguments(unittest.TestCase):
         _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
         self.assertIn("--color-dialog", stdout)
 
+    def test_cli_delegates_the_icon_dialog_capture_size(self):
+        # A plain --icon-dialog run captures at the 480x360 the widget
+        # gate byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--icon-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_icon_dialog(self):
+        # The icon mode opens its own kdialog client; a plasmoid id
+        # combined with it would silently draw nothing.
+        self.assertIn(
+            "--icon-dialog",
+            self.assert_usage_error("out.png", "--icon-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_icon_dialog(self):
+        # The gate byte-compares the icon capture at 480x360; any other
+        # size moves the dialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--icon-dialog", "--width", "320"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_icon_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so an icon mode
+        # flag missing from that list would print a refusal without its
+        # name.
+        for left, right in (
+            ("--icon-dialog", "--checkbox-dialog"),
+            ("--icon-dialog", "--gtk-dialog"),
+            ("--color-dialog", "--icon-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_icon_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--icon-dialog")
+        )
+
+    def test_the_help_text_names_the_icon_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--icon-dialog", stdout)
+
     def test_the_checkbox_dialog_requires_kdialog(self):
         # The default applet render cannot need every tool the dialog mode
         # needs, so the dialog requirement is refused per mode: with kdialog
@@ -932,6 +991,30 @@ class TestSessionCommand(unittest.TestCase):
                 list(lineedit_dialog_client(session)),
                 words[len(words) - len(lineedit_dialog_client(session)) :],
             )
+
+    def test_carries_the_icon_dialog_client_words(self):
+        with self._dialog_command(icon_dialog_client) as (_, command):
+            # The icon chooser's category default travels as its own quoted
+            # word: the empty string keeps the chooser on the application
+            # group's default listing, so no chooser-state pin can enter a
+            # capture. shlex quotes nothing, so the words stay script text.
+            client = list(icon_dialog_client(None))
+            self.assertEqual(
+                [
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--geticon",
+                    "application",
+                    "",
+                ],
+                client,
+            )
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
+            # And shell word-splitting of the script's arguments -- what the
+            # script's `$@` hands kdialog -- recovers exactly that argv, so
+            # the empty category word is still its own word.
+            self.assertEqual(client, shlex.split(command.argv[-1])[-len(client) :])
 
     def test_gtk_dialog_client_opens_a_zenity_text_entry(self):
         self.assertEqual(
