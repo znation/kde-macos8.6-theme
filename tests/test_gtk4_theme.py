@@ -542,6 +542,7 @@ for radio in (False, True):
         # so stock would wash each member grey without the group.
         selectors = (
             ".view:disabled",
+            "textview > text:disabled",
             "window.print:not(.ssd-frame) .dialog-action-box:disabled",
             "dialog-host > dialog.view sheet:disabled",
             "window.print:not(.ssd-frame) dialog-host > "

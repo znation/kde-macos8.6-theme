@@ -1,12 +1,8 @@
-"""Record the live GTK 4 view-family class census and the selected view face.
+"""Record GTK 4 view-family class facts and rendered selected/disabled faces.
 
-Two landed selection-surface records (the square-corner group and the flat
-selected-face group in the shipped GTK 4 sheet) and the landed disabled-view
-group hold their ``textview > text`` members out for a runtime class-list
-probe: whether the text view's ``text`` node carries the ``view`` class,
-which decides whether the landed two-class spelling already beats stock's
-element+class spelling. This module records what the probe can and cannot
-answer on GTK 4.18 as installed on this host, and pins the facts it finds.
+The text node cannot be reached by a widget-tree census. This module records
+that historical limitation, the rendered selected face, and the rendered
+disabled field after the disabled-face selector was added.
 
 The census runs GTK 4 child interpreters under the suite's own
 ``GDK_BACKEND=x11`` / ``GSK_RENDERER=cairo`` pattern (see
@@ -54,19 +50,17 @@ Census findings, recorded 2026-11-05 during the probe run:
   owns the face and the landed selection-surface corner records square the
   compound members.
 
-- **Probe 2b (rendered census, disabled view face — recorded, not pinned by
-  a pixel assertion).** The same scroll rendered a ``set_sensitive(False)``
+- **Historical Probe 2b (rendered census, before the white restatement).** The
+  same scroll rendered a ``set_sensitive(False)``
   ``Gtk.TextView`` as a flat single-colour 220x60 frame entirely ``#FAF9F8``
   in every corner: that is the plain-GTK stock resource's disabled view face
   (``Default-light.css`` line 19 group ``.view:disabled, iconview:disabled,
   textview > text:disabled { color: #929595; background-color: #faf9f8; }``,
   quoted in resource order; 60% of ``@window_bg_color #DDDDDD`` over
   ``@view_bg_color #FFFFFF`` would compute ``#EBEBEB`` instead), not the
-  landed white field. The landed disabled-view record owns that answer — its
-  ``tests/test_gtk4_theme.py::TestGtk4Theme::test_disabled_view_face``
-  restatement wins the tie by later source order — so this recorded frame
-  pins no pixel value; an exact pin here would expire with any future field
-  change owned by that record rather than by this census.
+  landed white field. This was the historical finding that motivated the
+  disabled text-node restatement; the isolated probe now pins plain GTK
+  pixels to white. It does not measure libadwaita's later transparent rule.
 """
 
 from __future__ import annotations
@@ -249,6 +243,51 @@ while True:
 window.destroy()
 '''
 
+DISABLED_FACE_CHILD = _CHILD_HEAD + '''
+from pathlib import Path
+Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
+root = Path(sys.argv[1])
+provider = Gtk.CssProvider()
+provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
+    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
+Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
+WIDTH, HEIGHT = 220, 60
+text_view = Gtk.TextView()
+text_view.get_buffer().set_text("Hello World", -1)
+text_view.set_sensitive(False)
+window = Gtk.Window()
+window.set_child(text_view)
+window.present()
+
+def pixels():
+    snapshot = Gtk.Snapshot()
+    Gtk.WidgetPaintable.new(text_view).snapshot(snapshot, WIDTH, HEIGHT)
+    node = snapshot.to_node()
+    renderer = window.get_renderer()
+    if node is None or renderer is None:
+        return None
+    viewport = Graphene.Rect()
+    viewport.init(0, 0, WIDTH, HEIGHT)
+    texture = renderer.render_texture(node, viewport)
+    pixbuf = Gdk.pixbuf_get_from_texture(texture)
+    data, stride = pixbuf.get_pixels(), pixbuf.get_rowstride()
+    channels = pixbuf.get_n_channels()
+    return [tuple(data[y * stride + x * channels:y * stride + x * channels + 3])
+            for x, y in ((0, 0), (219, 0), (0, 59), (219, 59), (110, 55))]
+
+deadline = time.monotonic() + 30
+while True:
+    pending()
+    result = pixels()
+    if result is not None and all(pixel == (255, 255, 255) for pixel in result):
+        print("disabled field pixels %r" % result)
+        break
+    if time.monotonic() >= deadline:
+        raise AssertionError("disabled field did not settle white: %r" % result)
+    time.sleep(0.01)
+window.destroy()
+'''
+
 
 class TestViewClassCensus(unittest.TestCase):
     """Pin the GTK 4.18 view-family class facts the recorded census found."""
@@ -302,6 +341,16 @@ class TestSelectedViewFace(unittest.TestCase):
             "the pinned fill is the palette's #CCCCFF selection constant",
         )
 
+
+class TestDisabledViewFace(unittest.TestCase):
+    """Pin the rendered insensitive text field to the landed white face."""
+
+    def test_disabled_text_field_is_white(self):
+        result = _run_child(DISABLED_FACE_CHILD, THEME_DIR)
+        if result.returncode == 77:
+            self.skipTest("GTK 4 introspection or an X11 display is missing")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("(255, 255, 255)", result.stdout)
 
 class TestGuiProbeGuard(unittest.TestCase):
     def test_host_display_does_not_enable_gui_probes(self):
