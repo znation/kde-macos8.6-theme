@@ -105,6 +105,17 @@ recorded here to keep the scope deliberate.
 - The repository check accepts the current navigation anchor at Contents. Removing it or changing its id fails the incoming-link assertion; moving it below Contents fails the placement assertion. Demonstrate these mutations on in-memory README text, without editing the real README or opening a browser.
 - Run `make check` after the final edit. No network access, GUI probe or new dependency is required; the invariant row names the extended test coverage.
 
+### Fidelity vertical reports: bound capped interval storage (planned 2026-11-09 by the plan role)
+
+**Goal.** Bound retained vertical interval records for `--difference-column-runs --max-difference-column-runs N`, including with a large offset. `tools/fidelity.py::main` currently builds `difference_column_runs` before filtering its page. The archived vertical cap and paging entries cover output limits; the finished horizontal storage entry explicitly leaves vertical collection for separate work. This is independent of the queued README anchor test and pending diagnostic guide.
+
+**Approach and files.** Add `iter_difference_column_runs` in `tools/fidelity_spatial.py`, wrapping `_iter_difference_axis_runs` with `vertical=True`; preserve the existing list-returning API. Mirror the capped horizontal branch in `tools/fidelity.py::main`, feeding that iterator into `tools/fidelity_run_page.py::collect_run_page` and taking requested count/longest summaries from its full-stream results. Keep uncapped and count-only behavior. Update the collector module's horizontal-only description. Extend `tests/test_fidelity_column_runs_limit.py` and `tests/test_fidelity_run_page.py`, and revise README.md's vertical cap/paging storage statements and the matching docs/invariants.md rows. No new flags or dependencies; image buffers and mismatch flags remain outside this interval-record bound.
+
+**Acceptance criteria.**
+- For column-major intervals `(0,0,1)`, `(0,2,2)`, `(0,5,3)`, `(1,0,4)`, `(1,8,1)`, minimum 2, maximum 3, offset 1 and cap 1 emit only `(0,5,3)`, omit 1 eligible interval, report unfiltered count 5 and longest `(1,0,4)`. An offset beyond the end emits an empty page with omitted count 2; conflicting cutoffs emit an empty page with omitted count 0 while the full summaries remain. Empty input reports count 0 and longest null; equal longest lengths choose earliest `(x,y)`.
+- A capped vertical CLI comparison consuming a one-shot stream of many tracked interval records, with a near-end offset and cap 2, exhausts the stream for totals while retaining at most the page plus a constant number of working/longest records. Use deterministic live-record tracking, following `TestCollectRunPage`, at the CLI integration boundary so eager list construction there fails the regression; no timing or machine-dependent memory threshold.
+- JSON and text preserve column-major order, crop-relative positions, omitted counts, tolerance/alpha behavior, metrics and verdicts. Cover requested summaries outside the page, an uncapped comparison, and simultaneous horizontal/vertical pages with distinct caps and offsets. Existing vertical cap/offset tests remain green. Documentation describes bounded vertical interval retention without promising bounded image memory. Run `make check` after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
