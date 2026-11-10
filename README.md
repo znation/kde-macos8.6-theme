@@ -1280,11 +1280,30 @@ python3 tools/fidelity.py calculator.png macos8.6-screenshots/aboutsystem_betawi
 
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 
+### Choosing a diagnostic
+
+Append one of these options to the aligned-crop command above to choose the report that best
+answers your question:
+
+| Need | Additional options | Result |
+| --- | --- | --- |
+| Find the enclosing mismatch rectangle | None; this is the default report | Smallest bounds containing pixels beyond tolerance; unchanged gaps may lie inside. |
+| Inspect the most severe individual mismatches | `--worst-pixels 5 --explain-worst --json` | Ranked pixels with positions, RGBA values and channel differences. |
+| See horizontal mismatch segments | `--difference-runs --max-difference-runs 20 --json` | Capped list of horizontal intervals. |
+| See vertical mismatch segments | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
+| Find row and column concentration | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
+| Attribute mismatches to channels | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
+
+Interval coordinates are relative to the compared crops. See [Diagnostic reference](#diagnostic-reference)
+for details about these reports and their fields.
+
 Reported `x`/`y` positions are relative to the compared crops. `candidate_position` and
 `reference_position` locate each result in the original images; `--explain-worst` gives both
 pixels' RGBA values and their channel differences. A mismatch is a useful report with exit status
 1; status 2 means usage or image reading failed. See the diagnostic reference below for other
 reports.
+
+### Diagnostic reference
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
