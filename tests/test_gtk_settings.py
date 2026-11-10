@@ -97,7 +97,9 @@ class TestSetThemeName(unittest.TestCase):
 
 class TestRejectLineSeparators(unittest.TestCase):
     def test_theme_name_rejects_line_separators(self):
-        for separator in ("\n", "\r", "\v", "\f", "\x1c", "\x85", "\u2028"):
+        for separator in (
+            "\r\n", "\n", "\r", "\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u2029"
+        ):
             with self.subTest(separator=repr(separator)):
                 value = f"safe{separator}gtk-font-name=Injected"
                 with self.assertRaises(ValueError) as raised:
