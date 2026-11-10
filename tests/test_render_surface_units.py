@@ -32,6 +32,7 @@ from tools import (
 from tools.render_clients import (
     checkbox_dialog_client,
     combobox_dialog_client,
+    gtk_dialog_client,
     menu_dialog_client,
 )  # noqa: E402
 
@@ -528,6 +529,12 @@ class TestSessionCommand(unittest.TestCase):
             # in-session script, so a space inside one cannot become shell
             # syntax.
             self.assertIn("'Macintosh HD'", command.argv[-1])
+
+    def test_gtk_dialog_client_opens_a_zenity_text_entry(self):
+        self.assertEqual(
+            ("zenity", "--title", "Test", "--entry", "--text", "Choose a name:"),
+            gtk_dialog_client(None),
+        )
 
 
     def test_carries_the_menu_dialog_client_words(self):
