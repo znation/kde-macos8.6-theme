@@ -6641,3 +6641,9 @@ scrollbar:backdrop {
 scrollbar slider:backdrop {
   background-color: #DDDDDD;
 }
+
+/* The self-class base fill ties the plain disabled selector in specificity;
+   preserve the landed disabled grey explicitly. */
+progressbar.osd progress:disabled {
+  background-color: #999999;
+}

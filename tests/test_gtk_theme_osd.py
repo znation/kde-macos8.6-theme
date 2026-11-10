@@ -786,7 +786,8 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             {selector
              for _, selectors in expected
              for selector in selectors}
-            | {"progressbar.osd trough", "progressbar.osd progress"},
+            | {"progressbar.osd trough", "progressbar.osd progress",
+               "progressbar.osd progress:disabled"},
         )
 
     def test_osd_thin_bar(self):
@@ -818,6 +819,9 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         with self.subTest(selector="progressbar.osd progress"):
             self.assertEqual(self.rules["progressbar.osd progress"],
                              PROGRESSBAR_PROGRESS)
+        # The self-class base arm otherwise overrides the plain disabled grey.
+        self.assertEqual(self.rules["progressbar.osd progress:disabled"],
+                         {"background-color": GREY})
 
     def test_osd_scale_slider(self):
         """Pin the six restated stock OSD scale thumb arms.
