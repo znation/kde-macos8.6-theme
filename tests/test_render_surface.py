@@ -291,12 +291,24 @@ class TestFailurePaths(StubTools):
 
     def test_menu_dialog_launches_its_kdialog_menu_client(self):
         # The menu mode must reach the session as a KDialog menu client (and
-        # therefore use the dialog's Kvantum configuration path), not fall
+        # therefore apply the dialog's Kvantum configuration path), not fall
         # through to the default Plasma calculator applet.
-        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run:
+        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run, \
+                mock.patch.object(render_workflow, "write_session_configs") as configs, \
+                mock.patch.object(render_workflow, "write_kvantum_selection") as selection:
             status, stderr, output = self.run_main("--menu-dialog")
 
         self.assertEqual(1, status)
+
+        # The menu mode takes the dialog path: the dialog's config files (the
+        # global theme's kdeglobals) and the Kvantum selection, not the
+        # applet render's session-only set. The rendered siblings pin this
+        # path too, but only for the checkbox and combobox modes.
+        self.assertEqual(
+            render_setup.CONFIG_FILES + ("kdeglobals",),
+            configs.call_args.kwargs["files"],
+        )
+        selection.assert_called_once_with(configs.call_args.args[0])
         self.assertIn("render session exited 1", stderr)
         argv = run.call_args.args[0]
         self.assertIn("kdialog", argv[-1])
