@@ -5,6 +5,25 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The invariants register names a missing render-gate test (found by the dedupe role 2026-11-09) — fixed 2026-11-09 by the bugfix role
+
+`make check` red on a clean worktree: the kvantum invariants row `docs/invariants.md:596`
+registers `tests/test_render_surface.py::TestMenuDialogRender::test_draws_the_list_field_sunken_border_runs`,
+but no such method exists in that file (it names only `test_draws_the_item_view_frame_and_white_interior`
+under that class). Both `test_invariants_seed_is_valid` and `test_invariants_mutations` in
+`tests/test_checker_mutations.py` fail on it. The open PLANS.md entry "Kvantum line-edit dialog
+render gate" (planned 2026-11-09) describes this gate; the register row was written as if the
+gate had already landed, so the mismatch predates and is unrelated to this run's diff (which
+touches only `tools/sample_match_runs.py`). Fix when the plan's gate lands, or correct the
+register row's test reference to the gate actually shipped.
+
+The register citation was corrected by commit 519ef843c to the gate actually shipped
+(`TestMenuDialogRender::test_item_view_frame_matches_its_measured_border_runs`); no new edit was
+needed. Verified on the 2026-11-09 worktree: `tests/test_checker_mutations` (10 tests) and
+`tests/test_invariants` (46 tests) pass, and the register cross-check reports no errors.
+
+**Validation gap:** none — the two checker tests reproduced and confirmed the stale citation; nothing was missing.
+
 ### the render tests' KWin session cannot allocate its capture buffers under the workflow's llvmpipe env (found by the ci role 2026-11-09) — fixed 2026-11-09 by the feature role
 
 `make check` at main's tip `3a380abe20b939b96004b32fd07ddc3e5d9bf49f` fails `tests/test_render_surface.py` with 32 errors and 5 failures: every KWin virtual render session (`tools/render_session.py`: plain `kwin_wayland --virtual`) fails with `KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied`, so the session produces no capture and the tests that read the rendered PNG get `cannot read ... dialog.png: [Errno 2] No such file or directory`.

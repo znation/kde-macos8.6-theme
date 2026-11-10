@@ -18,17 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### The invariants register names a missing render-gate test (found by the dedupe role 2026-11-09)
-
-`make check` red on a clean worktree: the kvantum invariants row `docs/invariants.md:596`
-registers `tests/test_render_surface.py::TestMenuDialogRender::test_draws_the_list_field_sunken_border_runs`,
-but no such method exists in that file (it names only `test_draws_the_item_view_frame_and_white_interior`
-under that class). Both `test_invariants_seed_is_valid` and `test_invariants_mutations` in
-`tests/test_checker_mutations.py` fail on it. The open PLANS.md entry "Kvantum line-edit dialog
-render gate" (planned 2026-11-09) describes this gate; the register row was written as if the
-gate had already landed, so the mismatch predates and is unrelated to this run's diff (which
-touches only `tools/sample_match_runs.py`). Fix when the plan's gate lands, or correct the
-register row's test reference to the gate actually shipped.
+_None yet._
 
 ## Won't fix
 
