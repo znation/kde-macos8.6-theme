@@ -272,6 +272,20 @@ class StubTools(unittest.TestCase):
         """Assert the scratch parent holds no leftover entries."""
         self.assertEqual([], os.listdir(self.scratch_parent))
 
+    def assert_failed_run(self, status, stderr, output, expected_status, *diagnostics):
+        """Assert a failed render's whole exit contract: the named exit
+        status with only its own diagnostics on stderr (no traceback), no
+        rendered output published and no leftover scratch session.
+
+        Shared by the 18 failure-path tails in :class:`TestFailurePaths`.
+        """
+        self.assertEqual(expected_status, status)
+        for diagnostic in diagnostics:
+            self.assertIn(diagnostic, stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
 
 class TestMissingTool(unittest.TestCase):
     def test_names_the_first_missing_tool_and_exits_2(self):
@@ -330,11 +344,7 @@ class TestFailurePaths(StubTools):
         with mock.patch.dict(os.environ, {"PATH": str(self.bin)}):
             status, stderr, output = self.run_main()
 
-        self.assertEqual(2, status)
-        self.assertIn(diagnostic, stderr)
-        self.assertNotIn("Traceback", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(status, stderr, output, 2, diagnostic)
 
     def test_menu_dialog_launches_its_kdialog_menu_client(self):
         # The menu mode must reach the session as a KDialog menu client (and
@@ -345,8 +355,6 @@ class TestFailurePaths(StubTools):
                 mock.patch.object(render_workflow, "write_kvantum_selection") as selection:
             status, stderr, output = self.run_main("--menu-dialog")
 
-        self.assertEqual(1, status)
-
         # The menu mode takes the dialog path: the dialog's config files (the
         # global theme's kdeglobals) and the Kvantum selection, not the
         # applet render's session-only set. The rendered siblings pin this
@@ -356,14 +364,14 @@ class TestFailurePaths(StubTools):
             configs.call_args.kwargs["files"],
         )
         selection.assert_called_once_with(configs.call_args.args[0])
-        self.assertIn("render session exited 1", stderr)
         argv = run.call_args.args[0]
         self.assertIn("kdialog", argv[-1])
         self.assertIn("--menu", argv[-1])
         self.assertIn("Alpha", argv[-1])
         self.assertNotIn("org.kde.plasma.calculator", argv[-1])
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1, "render session exited 1",
+        )
 
     def test_only_dialog_renders_add_kdeglobals_to_the_session_configs(self):
         # Dialog clients are Qt applications, so the scratch session must
@@ -402,13 +410,11 @@ class TestFailurePaths(StubTools):
         ) as kvantum, mock.patch.object(
             render_workflow, "run_logged", return_value=1
         ):
-            status, _, output = self.run_main("--gtk-dialog")
+            status, stderr, output = self.run_main("--gtk-dialog")
 
-        self.assertEqual(1, status)
+        self.assert_failed_run(status, stderr, output, 1)
         install.assert_called_once()
         kvantum.assert_called_once()
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
 
     def test_a_failed_gtk_selection_install_exits_1_and_removes_scratch(self):
         self.stub("zenity", "exit 0")
@@ -421,13 +427,15 @@ class TestFailurePaths(StubTools):
         ):
             status, stderr, output = self.run_main("--gtk-dialog")
 
-        self.assertEqual(1, status)
-        self.assertIn("cannot install the GTK selection", stderr)
-        self.assertIn("sheet is missing", stderr)
-        self.assertNotIn("Traceback", stderr)
+        self.assert_failed_run(
+            status,
+            stderr,
+            output,
+            1,
+            "cannot install the GTK selection",
+            "sheet is missing",
+        )
         install.assert_called_once()
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
 
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         # The scratch session is created before the install starts. Creating it
@@ -438,21 +446,18 @@ class TestFailurePaths(StubTools):
             tempfile, "mkdtemp", side_effect=OSError("no space left")
         ):
             status, stderr, output = self.run_main()
-        self.assertEqual(2, status)
-        self.assertIn("cannot create a scratch session directory", stderr)
-        self.assertIn("no space left", stderr)
-        self.assertNotIn("Traceback", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 2,
+            "cannot create a scratch session directory", "no space left",
+        )
 
     def test_failed_install_exits_1_and_removes_scratch(self):
         self.stub("make", "echo install exploded; exit 4")
         status, stderr, output = self.run_main()
-        self.assertEqual(1, status)
-        self.assertIn("make install exited 4", stderr)
-        self.assertIn("install exploded", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "make install exited 4", "install exploded",
+        )
 
     def test_an_unrunnable_make_exits_2_and_removes_scratch(self):
         # `which` still finds an executable script whose interpreter is gone,
@@ -494,11 +499,10 @@ class TestFailurePaths(StubTools):
             with self.subTest(label):
                 with mock.patch.object(render_setup, "write_configs", die):
                     status, stderr, output = self.run_main()
-                self.assertEqual(1, status)
-                self.assertIn("render_surface: error:", stderr)
-                self.assertIn("session config", stderr)
-                self.assertFalse(output.exists())
-                self.assert_scratch_removed()
+                self.assert_failed_run(
+                    status, stderr, output, 1,
+                    "render_surface: error:", "session config",
+                )
 
     def test_a_failed_themes_link_exits_2_and_removes_scratch(self):
         # The scratch home's themes link is made after `make install`, at the
@@ -514,13 +518,11 @@ class TestFailurePaths(StubTools):
 
         with mock.patch.object(render_workflow, "link_kvantum_themes", die):
             status, stderr, output = self.run_main()
-        self.assertEqual(2, status)
-        self.assertIn("render_surface: error: cannot link", stderr)
-        self.assertIn(str(themes), stderr)
-        self.assertIn("File exists", stderr)
-        self.assertNotIn("Traceback", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 2,
+            "render_surface: error: cannot link",
+            str(themes), "File exists",
+        )
 
     def test_a_failed_kvatum_selection_write_exits_1_and_removes_scratch(self):
         # A dialog render selects the Kvantum theme in the scratch config
@@ -535,13 +537,12 @@ class TestFailurePaths(StubTools):
 
         with mock.patch.object(render_workflow, "write_kvantum_selection", die):
             status, stderr, output = self.run_main("--menu-dialog")
-        self.assertEqual(1, status)
-        self.assertIn("render_surface: error:", stderr)
-        self.assertIn("cannot write the Kvantum selection", stderr)
-        self.assertIn("No space left on device", stderr)
-        self.assertNotIn("Traceback", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "render_surface: error:",
+            "cannot write the Kvantum selection",
+            "No space left on device",
+        )
 
     def test_install_timeout_exits_1_with_a_timeout_diagnostic(self):
         # A hung `make install` is killed by run_logged, which reports the
@@ -553,26 +554,23 @@ class TestFailurePaths(StubTools):
         # test_timeout_kills_the_session_group_and_exits_1.
         with mock.patch.object(render_setup, "run_logged", return_value=None):
             status, stderr, output = self.run_main()
-        self.assertEqual(1, status)
-        self.assertIn("make install timed out", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1, "make install timed out",
+        )
 
     def test_failed_session_exits_1_and_removes_scratch(self):
         self.stub("dbus-run-session", "echo no display; exit 3")
         status, stderr, output = self.run_main()
-        self.assertEqual(1, status)
-        self.assertIn("render session exited 3", stderr)
-        self.assertIn("no display", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "render session exited 3", "no display",
+        )
 
     def test_session_without_a_capture_exits_1(self):
         status, stderr, output = self.run_main()
-        self.assertEqual(1, status)
-        self.assertIn("not a readable PNG", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1, "not a readable PNG",
+        )
 
     def stub_live_session(self, plasmawindowed_body):
         """Run the real session script under stubs of the tools it starts.
@@ -630,11 +628,10 @@ class TestFailurePaths(StubTools):
         status, stderr, output = self.run_main("--settle", "0")
         if setup_timeout.exists():
             self.fail(crashed_applet_setup_diagnosis(setup_timeout))
-        self.assertEqual(1, status)
-        self.assertIn("render session exited 1", stderr)
-        self.assertIn("plasmawindowed exited before the capture", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "render session exited 1", "plasmawindowed exited before the capture",
+        )
 
     def test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch(self):
         # The offline reproduction of the crashed-applet fixture's expired
@@ -665,11 +662,10 @@ class TestFailurePaths(StubTools):
             'echo start > "$timeout"; exit 1',
         )
         status, stderr, output = self.run_main("--settle", "0")
-        self.assertEqual(1, status)
-        self.assertIn("render session exited 1", stderr)
-        self.assertIn("plasmawindowed exited before the capture", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "render session exited 1", "plasmawindowed exited before the capture",
+        )
         # The forced record names the expired wait, and the diagnosis the
         # shipped crashed-applet fixture builds from it names that wait and
         # its polling budget -- never a bare status mismatch.
@@ -691,11 +687,10 @@ class TestFailurePaths(StubTools):
         self.stub_live_session("exec sleep 60")
         self.stub("spectacle", "echo capture shot down; exit 7")
         status, stderr, output = self.run_main("--settle", "0")
-        self.assertEqual(1, status)
-        self.assertIn("render session exited 7", stderr)
-        self.assertIn("capture shot down", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "render session exited 7", "capture shot down",
+        )
 
     def test_a_capture_of_the_wrong_size_exits_1_and_writes_nothing(self):
         # spectacle can hand back a surface captured at the wrong geometry. The
@@ -703,10 +698,10 @@ class TestFailurePaths(StubTools):
         # size the fidelity comparison never asked to check.
         self.stub_capture()
         status, stderr, output = self.run_main("--width", "64", "--height", "48")
-        self.assertEqual(1, status)
-        self.assertIn("capture is 320x240, expected 64x48", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "capture is 320x240, expected 64x48",
+        )
 
     def test_an_unpainted_capture_exits_1_and_writes_nothing(self):
         # A virtual session that has not painted presents an all-black screen.
@@ -716,12 +711,10 @@ class TestFailurePaths(StubTools):
         # nothing.
         self.stub_capture(fill=0x00)
         status, stderr, output = self.run_main()
-        self.assertEqual(1, status)
-        self.assertIn("capture is entirely black", stderr)
-        self.assertIn("did not paint", stderr)
-        self.assertIn("8s settle", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "capture is entirely black", "did not paint", "8s settle",
+        )
 
     def test_unwritable_output_is_refused_before_installing(self):
         marker = self.root / "make-ran"
@@ -933,10 +926,9 @@ class TestFailurePaths(StubTools):
             status, stderr, output = self.run_main(
                 "--settle", "0", "--timeout", "1"
             )
-            self.assertEqual(1, status)
-            self.assertIn("render timed out after 1s", stderr)
-            self.assertFalse(output.exists())
-            self.assert_scratch_removed()
+            self.assert_failed_run(
+                status, stderr, output, 1, "render timed out after 1s",
+            )
             try:
                 pid = int(pidfile.read_text(encoding="utf-8"))
             except (FileNotFoundError, ValueError):
