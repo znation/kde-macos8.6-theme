@@ -13,19 +13,10 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.popen_signal import gone  # noqa: E402
+from support.popen_signal import kill_tracked  # noqa: E402
+from support.popen_signal import signal_into_popen  # noqa: E402
 from tools import process_group  # noqa: E402
-
-
-def is_gone(pid):
-    """Return True once *pid* no longer exists, waiting up to five seconds."""
-    deadline = time.monotonic() + 5
-    while time.monotonic() < deadline:
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return True
-        time.sleep(0.02)
-    return False
 
 
 class TestKillGroup(unittest.TestCase):
@@ -102,7 +93,7 @@ class TestRunLogged(unittest.TestCase):
         pidfile = self.root / "pid"
         status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
         self.assertEqual(0, status)
-        self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
+        self.assertTrue(gone(int(pidfile.read_text(encoding="utf-8"))))
 
     def test_timeout_returns_none_and_kills_the_group(self):
         # The shell must fork its background sleep and write its pid before
@@ -136,7 +127,7 @@ class TestRunLogged(unittest.TestCase):
             break
         # One attempt may return just under the deadline; allow for it.
         self.assertLess(time.monotonic() - started, 31)
-        self.assertTrue(is_gone(pid))
+        self.assertTrue(gone(pid))
 
     def test_stdin_is_closed(self):
         self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))
@@ -180,26 +171,12 @@ class TestRunLogged(unittest.TestCase):
         running, and this fails unless it is gone by the time the exception
         escapes.
         """
-        real_popen = subprocess.Popen
-        child = {}
-
-        def popen_then_signal(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            child["pid"] = process.pid
-            os.kill(os.getpid(), number)
-            return process
-
-        def kill_child():
-            pid = child.get("pid")
-            if pid is not None:
-                try:
-                    os.kill(pid, signal.SIGKILL)
-                except OSError:
-                    pass
-
-        self.addCleanup(kill_child)
+        tracked = {}
+        self.addCleanup(kill_tracked, tracked)
         with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_signal
+            process_group.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(number, tracked),
         ):
             with self.assertRaises(raises) as caught:
                 with process_group.exit_on_termination():
@@ -210,7 +187,7 @@ class TestRunLogged(unittest.TestCase):
                         30,
                         self.root,
                     )
-        self.assertTrue(is_gone(child["pid"]))
+        self.assertTrue(gone(tracked["pid"]))
         return caught.exception
 
     def test_a_sigterm_while_popen_returns_still_kills_the_child(self):
@@ -242,15 +219,10 @@ class TestRunLogged(unittest.TestCase):
         handler = lambda number, frame: received.append(number)
         old = signal.signal(signal.SIGINT, handler)
         self.addCleanup(signal.signal, signal.SIGINT, old)
-        real_popen = subprocess.Popen
-
-        def popen_then_interrupt(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            os.kill(os.getpid(), signal.SIGINT)
-            return process
-
         with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_interrupt
+            process_group.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(signal.SIGINT),
         ):
             self.assertEqual(0, self.run_sh("exit 0"))
         self.assertEqual([signal.SIGINT], received)
@@ -261,15 +233,10 @@ class TestRunLogged(unittest.TestCase):
         handler = lambda number, frame: received.append(number)
         old = signal.signal(signal.SIGTERM, handler)
         self.addCleanup(signal.signal, signal.SIGTERM, old)
-        real_popen = subprocess.Popen
-
-        def popen_then_terminate(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            os.kill(os.getpid(), signal.SIGTERM)
-            return process
-
         with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_terminate
+            process_group.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(signal.SIGTERM),
         ):
             self.assertEqual(0, self.run_sh("exit 0"))
         self.assertEqual([signal.SIGTERM], received)
@@ -364,7 +331,7 @@ class TestRunLoggedSplit(unittest.TestCase):
         pidfile = self.root / "pid"
         status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
         self.assertEqual(0, status)
-        self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
+        self.assertTrue(gone(int(pidfile.read_text(encoding="utf-8"))))
 
     def test_stdin_is_closed(self):
         self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))

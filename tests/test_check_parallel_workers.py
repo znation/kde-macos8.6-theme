@@ -18,12 +18,14 @@ import os
 import signal
 import subprocess
 import sys
-import time
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support.check_parallel_fixtures import OK_MODULE, _write_module
+from support.popen_signal import gone
+from support.popen_signal import kill_tracked
+from support.popen_signal import signal_into_popen
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 from tools import check_parallel_workers, process_group
@@ -223,27 +225,13 @@ class TestSpawnDefenses(unittest.TestCase):
         Returns the started worker's pid -- kill -0 proves whether the
         deferral machinery killed its group on the way out.
         """
-        real_popen = subprocess.Popen
-        child = {}
-
-        def popen_then_signal(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            child["pid"] = process.pid
-            os.kill(os.getpid(), number)
-            return process
-
-        def kill_child():
-            pid = child.get("pid")
-            if pid is not None:
-                try:
-                    os.kill(pid, signal.SIGKILL)
-                except OSError:
-                    pass
-
-        self.addCleanup(kill_child)
+        tracked = {}
+        self.addCleanup(kill_tracked, tracked)
         log_path = str(make_tmp_dir(self) / "spawn.log")
         with mock.patch.object(
-            check_parallel_workers.subprocess, "Popen", side_effect=popen_then_signal
+            check_parallel_workers.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(number, tracked),
         ):
             with self.assertRaises(raises) as caught:
                 with process_group.exit_on_termination():
@@ -254,7 +242,7 @@ class TestSpawnDefenses(unittest.TestCase):
                         log_path,
                         30,
                     )
-        return child["pid"], caught.exception
+        return tracked["pid"], caught.exception
 
     def test_a_sigterm_while_popen_returns_still_kills_the_worker(self):
         # Without the deferral, exit_on_termination's handler raises
@@ -266,7 +254,7 @@ class TestSpawnDefenses(unittest.TestCase):
             signal.SIGTERM, SystemExit
         )
         self.assertEqual(128 + signal.SIGTERM, exception.code)
-        self.assertTrue(_gone(pid))
+        self.assertTrue(gone(pid))
 
     def test_a_sigint_while_popen_returns_still_kills_the_worker(self):
         # Ctrl-C's default handler raises KeyboardInterrupt at the next
@@ -275,19 +263,8 @@ class TestSpawnDefenses(unittest.TestCase):
         pid, _ = self._spawn_while_popen_signals(
             signal.SIGINT, KeyboardInterrupt
         )
-        self.assertTrue(_gone(pid))
+        self.assertTrue(gone(pid))
 
-
-def _gone(pid):
-    """Return True once *pid* no longer exists, waiting up to five seconds."""
-    deadline = time.monotonic() + 5
-    while time.monotonic() < deadline:
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return True
-        time.sleep(0.02)
-    return False
 
 if __name__ == "__main__":
     unittest.main()
