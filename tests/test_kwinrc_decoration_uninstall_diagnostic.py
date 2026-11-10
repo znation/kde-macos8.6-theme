@@ -20,7 +20,11 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_config_file
+from support.theme_install import (
+    assert_make_n_uninstall_parses,
+    read_bytes,
+    write_config_file,
+)
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from support.kwinrc_uninstall_wording import (
@@ -467,12 +471,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         # The scanner's recipe is pinned by drying the internal recipe
         # directly; the added block must leave the recipe parseable with
         # the two-key reset present in the dried output.
-        result = theme_install.run_make(
-            ["-n", "_uninstall"], env=theme_install.make_env()
-        )
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
-        self.assertIn('--aurorae-id "org.macos8.desktop"', result.stdout)
+        assert_make_n_uninstall_parses(self, '--aurorae-id "org.macos8.desktop"')
 
 
 if __name__ == "__main__":

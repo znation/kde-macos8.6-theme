@@ -20,7 +20,11 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_config_file
+from support.theme_install import (
+    assert_make_n_uninstall_parses,
+    read_bytes,
+    write_config_file,
+)
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -385,11 +389,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_make_n_uninstall_still_parses(self):
         # The internal recipe is pinned by drying it directly, as the other
         # uninstall diagnostic suites do.
-        result = theme_install.run_make(
-            ["-n", "_uninstall"], env=theme_install.make_env()
-        )
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+        assert_make_n_uninstall_parses(self)
 
 
 if __name__ == "__main__":

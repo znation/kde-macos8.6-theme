@@ -18,7 +18,11 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_config_file
+from support.theme_install import (
+    assert_make_n_uninstall_parses,
+    read_bytes,
+    write_config_file,
+)
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from support.kwinrc_uninstall_wording import (
@@ -346,15 +350,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         self.assertEqual(original_kwin, read_bytes(kwin_path))
 
     def test_make_n_uninstall_still_parses(self):
-        # The public `uninstall` target only prints the guards and its nested
-        # locked `make _uninstall` under -n, so the scanner's recipe is pinned
-        # by drying the internal recipe directly.
-        result = theme_install.run_make(
-            ["-n", "_uninstall"], env=theme_install.make_env()
-        )
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("tools/uninstall_diagnostics.py", result.stdout)
-        self.assertIn('--scheme-id "MacOS8"', result.stdout)
+        assert_make_n_uninstall_parses(self, '--scheme-id "MacOS8"')
 
 
 if __name__ == "__main__":

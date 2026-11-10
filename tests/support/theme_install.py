@@ -210,6 +210,24 @@ def uninstall_recipe(destdir, extra=(), env=None):
     return _run("_uninstall", destdir, extra, env)
 
 
+def assert_make_n_uninstall_parses(case, *pins):
+    """Dry `make -n _uninstall` and pin the parse and the recipe's own pins.
+
+    The public `uninstall` target only prints the guards and its nested locked
+    `make _uninstall` under -n, so the scanner's recipe is pinned by drying
+    the internal recipe directly: the run must succeed and its dried output
+    must name `tools/uninstall_diagnostics.py`. Every `_uninstall` diagnostic
+    suite ends with this parse pin; *pins* are the suite's recipe fragments
+    (its diagnostic's `--<mode>-id` argument) the dried output must still
+    carry.
+    """
+    result = run_make(["-n", "_uninstall"], env=make_env())
+    assert_succeeded(case, result)
+    case.assertIn("tools/uninstall_diagnostics.py", result.stdout)
+    for pin in pins:
+        case.assertIn(pin, result.stdout)
+
+
 class UninstallRecipeTestCase(unittest.TestCase):
     """Base for the `make _uninstall` diagnostic suites.
 
