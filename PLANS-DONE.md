@@ -5,6 +5,17 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README compatibility links: check the explicit navigation anchor (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
+
+**Goal.** Protect the incoming `#navigation` fragment retained by the finished navigation-consolidation plan. README.md has `<a id="navigation"></a>` before Contents, but `tests/test_readme_links.py::local_link_errors` recognizes ATX headings only and `TestReadmeLinks.test_local_links_resolve` has no incoming-link assertion. The archived local-link plan covers heading destinations, and the consolidation plan explicitly leaves HTML anchors to manual verification. This adds automated coverage and is independent of the waiting horizontal interval-storage work.
+
+**Approach and files.** Extend `tests/test_readme_links.py::local_link_errors` to recognize standalone empty anchor declarations of the form `<a id="fragment"></a>` outside fenced code, accepting single or double quotes and surrounding whitespace. Keep literal, case-sensitive ids separate from heading-slug allocation so anchor declarations do not change duplicate-heading suffixes. Limit recognition to this small syntax rather than introducing an HTML/Markdown engine. Add fixture cases to `TestReadmeLinks` and a repository assertion that a synthetic incoming `[legacy](#navigation)` link resolves against `read_readme()` and that the navigation anchor immediately precedes `## Contents`, allowing blank lines. Update the existing README local-link tooling row in docs/invariants.md to describe this additional scope. These two files are the implementation; README.md remains an input.
+
+**Acceptance criteria.**
+- A fixture containing `[legacy](#navigation)` and a standalone empty anchor with that id resolves with either quote style, including a forward link. Removing or renaming the id reports `navigation`; an id with different case does not satisfy the link. A declaration appearing only inside a backtick or tilde fence supplies no destination. Existing heading-slug and duplicate-heading fixtures still pass, including when an explicit id equals a heading slug.
+- The repository check accepts the current navigation anchor at Contents. Removing it or changing its id fails the incoming-link assertion; moving it below Contents fails the placement assertion. Demonstrate these mutations on in-memory README text, without editing the real README or opening a browser.
+- Run `make check` after the final edit. No network access, GUI probe or new dependency is required; the invariant row names the extended test coverage.
+
 ### README fidelity diagnostics: add a compact report-selection guide (planned 2026-11-09 by the plan role) — done 2026-11-09 by the feature role
 
 **Goal.** Help contributors choose an actionable mismatch report without reading the long flag reference. The existing Comparing a region recipe demonstrates aligned crops and worst-pixel output; it does not compare the available diagnostic families. This is independent of the waiting navigation-anchor test and pending horizontal storage change.

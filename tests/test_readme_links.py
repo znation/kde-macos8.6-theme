@@ -1,4 +1,4 @@
-"""Check README same-document links against its plain ATX headings."""
+"""Check README same-document links against headings and explicit anchors."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from support.repo_root import ROOT
 
 _HEADING = re.compile(r"^ {0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$")
 _LINK = re.compile(r"\[[^\]]*\]\(#([^\s)]+)\)")
+_ANCHOR = re.compile(r"^\s{0,3}<a\s+id\s*=\s*(['\"])([^'\"]+)\1\s*>\s*</a>\s*$")
 _PUNCTUATION = re.compile(r"[^\w\s-]", re.UNICODE)
 _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
@@ -51,6 +52,9 @@ def local_link_errors(text: str) -> list[str]:
                 suffix += 1
             used.add(slug)
             destinations.add(slug)
+        anchor = _ANCHOR.match(line)
+        if anchor:
+            destinations.add(anchor.group(2))
         links.extend(_LINK.findall(line))
     return [target for target in links if target not in destinations]
 
@@ -96,6 +100,40 @@ class TestReadmeLinks(unittest.TestCase):
 
     def test_unresolved_link_in_empty_document_is_reported(self):
         self.assertEqual(["missing"], local_link_errors("[link](#missing)"))
+
+    def test_explicit_anchors_resolve_forward_links_without_changing_heading_slugs(self):
+        for quote in ('"', "'"):
+            text = f"[legacy](#navigation)\n  <a id={quote}navigation{quote}></a>\n# Navigation\n# Navigation\n[heading](#navigation-1)"
+            self.assertEqual([], local_link_errors(text))
+        self.assertEqual(["navigation"], local_link_errors("[legacy](#navigation)\n<a id='Navigation'></a>"))
+
+    def test_explicit_anchors_inside_fences_are_not_destinations(self):
+        for fence in ("```", "~~~"):
+            text = f"{fence}\n<a id='navigation'></a>\n{fence}\n[legacy](#navigation)"
+            self.assertEqual(["navigation"], local_link_errors(text))
+
+    def test_navigation_anchor_precedes_contents_in_repository_readme(self):
+        readme = read_readme()
+        self.assertEqual([], local_link_errors(readme + "\n[legacy](#navigation)"))
+
+        def navigation_position(text):
+            lines = text.splitlines()
+            anchor = next((i for i, line in enumerate(lines) if _ANCHOR.match(line) and _ANCHOR.match(line).group(2) == "navigation"), None)
+            contents = next((i for i, line in enumerate(lines) if line == "## Contents"), None)
+            return anchor, contents
+
+        anchor, contents = navigation_position(readme)
+        self.assertIsNotNone(anchor)
+        self.assertIsNotNone(contents)
+        self.assertTrue(all(not line.strip() for line in readme.splitlines()[anchor + 1:contents]))
+        self.assertLess(anchor, contents)
+
+        removed = readme.replace('<a id="navigation"></a>', "", 1)
+        renamed = readme.replace('<a id="navigation"></a>', '<a id="other"></a>', 1)
+        moved = readme.replace('<a id="navigation"></a>\n\n## Contents', '## Contents\n\n<a id="navigation"></a>', 1)
+        self.assertIn("navigation", local_link_errors(removed + "\n[legacy](#navigation)"))
+        self.assertIn("navigation", local_link_errors(renamed + "\n[legacy](#navigation)"))
+        self.assertGreater(navigation_position(moved)[0], navigation_position(moved)[1])
 
 
 if __name__ == "__main__":
