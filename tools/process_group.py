@@ -95,6 +95,7 @@ def _replay_deferred(deferred: list[int]) -> None:
 
 
 def _restore_termination(previous: list[tuple[int, object]]) -> None:
+    """Restore the catchable signals' previous handlers and drop the deferral."""
     for number, old in previous:
         signal.signal(number, old)
     previous.clear()

@@ -158,6 +158,7 @@ def _fill_workers(queue: list[str], running: list[_Worker],
 
 def _record_duration(entry: _Worker,
                      durations: dict[str, float] | None) -> None:
+    """Record one started worker's elapsed time under its module key."""
     if durations is None:
         return
     durations[entry.module] = time.monotonic() - entry.started

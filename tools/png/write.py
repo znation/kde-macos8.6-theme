@@ -29,6 +29,7 @@ _MAX_DIMENSION = (1 << 31) - 1
 
 
 def _chunk(ctype: bytes, data: bytes) -> bytes:
+    """Frame one PNG chunk: big-endian length, type, payload and its CRC-32."""
     crc = zlib.crc32(ctype + data) & 0xFFFFFFFF
     return struct.pack(">I", len(data)) + ctype + data + struct.pack(">I", crc)
 

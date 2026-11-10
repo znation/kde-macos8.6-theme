@@ -48,6 +48,18 @@ class _RunPage:
 
 
 class _MatchRuns:
+    """Collect a region's color-match runs for the find-color search.
+
+    ``observe`` feeds it one examined pixel. When *horizontal*, same-match
+    row intervals close at the first non-match, a row change or the right
+    edge and go through ``runs_page`` (the count, eligibility and page rules
+    of ``_RunPage``). When *vertical*, column intervals open at each column's
+    first match and close at its first non-match or the bottom edge; the
+    ``summarize``/``summarize_columns`` flags track the longest run of each
+    kind, and ``collect_column_runs`` gates column-run retention. ``finish``
+    closes both edges and returns the retained horizontal and column runs.
+    """
+
     def __init__(self, x: int, y: int, width: int, height: int,
                  *, horizontal: bool, vertical: bool, summarize: bool = False,
                  collect_runs: bool = True, summarize_columns: bool = False,

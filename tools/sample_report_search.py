@@ -22,6 +22,7 @@ else:  # run directly: python3 tools/sample.py
 
 def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
                         coordinate_key: str, length_key: str) -> None:
+    """Open the bound at *index* on the first match and stretch it to *position*."""
     bound = bounds[index]
     if bound is None:
         bounds[index] = {coordinate_key: coordinate, length_key: 1}
@@ -37,6 +38,10 @@ def _pixel_matches(alphas, rgb, target, tolerance, match_alpha) -> bool:
 
 
 def _search_match(args, image) -> dict:
+    """Assemble the find-color report's match mapping: count and bound the
+    region's matching pixels, tally the requested rows, columns and bounds,
+    and fill the pixel, run, cap and longest-run fields the match options
+    request."""
     target = args.find_color
     tolerance = args.color_tolerance if args.color_tolerance is not None else 0
     capped_columns = getattr(args, "max_match_column_runs", None) is not None

@@ -37,6 +37,9 @@ def _wait_for_flock_error(
     deadline: float,
     error: type[Exception],
 ) -> None:
+    """Handle one ``flock`` errno: raise anything else unpreserved, give up
+    past the deadline, and otherwise sleep before the retry (an EINTR attempt
+    retries without waiting)."""
     if exc.errno not in (errno.EINTR, errno.EACCES, errno.EAGAIN):
         raise error(f"cannot lock {directory} {artifact}: {exc}") from exc
     if time.monotonic() >= deadline:
@@ -56,6 +59,7 @@ def _acquire_flock(
     timeout: float,
     error: type[Exception],
 ) -> None:
+    """Take an exclusive non-blocking ``flock``, retrying until *timeout* runs out."""
     deadline = time.monotonic() + timeout
     while True:
         try:

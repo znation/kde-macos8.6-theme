@@ -85,6 +85,7 @@ def _channel_amount(
 
 
 def _finite_float(value: str, option: str) -> float:
+    """Return a finite float value for *option*, refusing anything else."""
     number = plain_number(value, option, "number", "a", float)
     if not math.isfinite(number):
         raise argparse.ArgumentTypeError(f"{option} must be finite: {value!r}")

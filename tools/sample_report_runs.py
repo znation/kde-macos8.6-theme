@@ -17,6 +17,11 @@ else:  # run directly: python3 tools/sample.py
 
 
 def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: bool = False):
+    """Collect one rectangle's same-color run segments along its single axis:
+    horizontal when the region is one scanline tall, vertical otherwise; each
+    segment carries its start position, length and RGB, plus the alpha value
+    each pixel compares on when *alpha_aware*, so runs do not merge across
+    differing alphas."""
     horizontal = height == 1
     segments = []
     alphas = _region_alpha(image, x, y, width, height) if alpha_aware else None
@@ -34,6 +39,10 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
 
 
 def _runs_result(args, image, width: int, height: int) -> dict:
+    """Assemble one run report's result mapping: scan the rectangle row by row
+    or column by column, keep only the runs the color, length, offset and cap
+    options admit, and fill the requested count, offset, per-scanline and
+    longest-run fields."""
     context = report_context(args, width, height)
     axis = args.run_axis or ("horizontal" if args.height == 1 else "vertical")
     selected_colors = set(args.run_colors) if args.run_colors else None

@@ -11,6 +11,7 @@ else:  # run directly: python3 tools/sample.py
 
 
 def _hex(rgb: tuple[int, int, int]) -> str:
+    """Format one RGB triple as the reports' ``#RRGGBB`` text."""
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 
@@ -28,6 +29,7 @@ def _compact_json(obj) -> str:
 
 
 def _region_pixels(image, x: int, y: int, width: int, height: int):
+    """Yield each RGB pixel in a rectangle, row-major."""
     rgb = image.rgb
     image_width = image.width
     for row in range(y, y + height):
@@ -56,6 +58,8 @@ def _positioned_region_column_pixels(image, x: int, y: int, width: int, height: 
 
 
 def _region_alpha(image, x: int, y: int, width: int, height: int):
+    """Yield each pixel's alpha value in a rectangle, row-major; an image
+    without an alpha channel yields 255."""
     alpha = image.alpha
     for row in range(y, y + height):
         offset = row * image.width + x
