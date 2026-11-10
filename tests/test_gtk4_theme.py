@@ -148,7 +148,7 @@ class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
         self.assert_disabled_text(selectors)
         expected = {**DISABLED_TEXT, "opacity": "1"}
         for selector in selectors:
-            self.assert_rule(selector, expected)
+            self.assertEqual(self.rules[selector], expected)
             self.assertEqual(self.css.count(selector), 1)
 
     def test_dimmed_label_foreground(self):
