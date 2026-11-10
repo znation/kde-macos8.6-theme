@@ -153,6 +153,35 @@ class TestPublishInstall(unittest.TestCase):
                 "concurrent preferences\n", user_js.read_text(encoding="utf-8")
             )
 
+    def test_an_interrupt_mid_publication_rolls_back_and_propagates(self):
+        # The rollback runs on any failure, an interrupt included: publish_install
+        # would otherwise leave sheets the interrupted run already wrote, and no
+        # user.js -- a half-published profile. The interrupt itself must reach the
+        # caller unchanged (a bare re-raise, not a ConfigError wrap).
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "userChrome.css"
+            second = root / "userContent.css"
+            user_js = root / "user.js"
+
+            def interrupt_on_second(path: Path, data: bytes) -> None:
+                if path == second:
+                    raise KeyboardInterrupt
+                firefox_transaction.write_profile_bytes(path, data)
+
+            with self.assertRaises(KeyboardInterrupt):
+                firefox_transaction.publish_install(
+                    ((first, b"new chrome", None), (second, b"new content", None)),
+                    user_js,
+                    None,
+                    "published preferences\n",
+                    write_operation=interrupt_on_second,
+                )
+
+            self.assertFalse(first.exists())
+            self.assertFalse(second.exists())
+            self.assertFalse(user_js.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
