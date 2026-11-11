@@ -29,6 +29,14 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--min-color-fraction requires --histogram"
     if args.max_color_fraction is not None and not args.histogram:
         return "--max-color-fraction requires --histogram"
+    if args.min_color_count is not None and args.max_color_count is not None \
+            and args.min_color_count > args.max_color_count:
+        return (f"--min-color-count must not exceed --max-color-count "
+                f"({args.min_color_count} > {args.max_color_count})")
+    if args.min_color_fraction is not None and args.max_color_fraction is not None \
+            and args.min_color_fraction > args.max_color_fraction:
+        return (f"--min-color-fraction must not exceed --max-color-fraction "
+                f"({args.min_color_fraction} > {args.max_color_fraction})")
     if getattr(args, "exclude_colors", None) and not args.histogram:
         return "--exclude-color requires --histogram"
     if getattr(args, "include_colors", None) and not args.histogram:
@@ -37,6 +45,10 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--min-run-length requires --runs"
     if args.max_run_length is not None and not args.runs:
         return "--max-run-length requires --runs"
+    if args.min_run_length is not None and args.max_run_length is not None \
+            and args.min_run_length > args.max_run_length:
+        return (f"--min-run-length must not exceed --max-run-length "
+                f"({args.min_run_length} > {args.max_run_length})")
     if getattr(args, "max_runs", None) is not None and not args.runs:
         return "--max-runs requires --runs"
     if getattr(args, "run_offset", None) is not None and args.max_runs is None:
@@ -85,6 +97,10 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--min-match-run-length requires --match-runs"
     if args.max_match_run_length is not None and not args.match_runs:
         return "--max-match-run-length requires --match-runs"
+    if args.min_match_run_length is not None and args.max_match_run_length is not None \
+            and args.min_match_run_length > args.max_match_run_length:
+        return (f"--min-match-run-length must not exceed --max-match-run-length "
+                f"({args.min_match_run_length} > {args.max_match_run_length})")
     if getattr(args, "max_match_runs", None) is not None and not args.match_runs:
         return "--max-match-runs requires --match-runs"
     if getattr(args, "match_run_offset", None) is not None and args.max_match_runs is None:
@@ -101,6 +117,11 @@ def option_error(args: argparse.Namespace) -> str | None:
         return "--min-match-column-run-length requires --match-column-runs"
     if args.max_match_column_run_length is not None and not args.match_column_runs:
         return "--max-match-column-run-length requires --match-column-runs"
+    if args.min_match_column_run_length is not None and args.max_match_column_run_length is not None \
+            and args.min_match_column_run_length > args.max_match_column_run_length:
+        return (f"--min-match-column-run-length must not exceed "
+                f"--max-match-column-run-length "
+                f"({args.min_match_column_run_length} > {args.max_match_column_run_length})")
     if getattr(args, "max_match_column_runs", None) is not None and not args.match_column_runs:
         return "--max-match-column-runs requires --match-column-runs"
     if getattr(args, "match_column_run_offset", None) is not None and args.max_match_column_runs is None:

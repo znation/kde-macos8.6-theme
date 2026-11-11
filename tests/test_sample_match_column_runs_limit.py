@@ -51,7 +51,7 @@ class TestSampleMatchColumnRunsLimit(CliTestCase):
              expected_prefix, 1),
             (("--min-match-column-run-length", "2", "--max-match-column-runs", "1"),
              [{"x": 2, "y": 3, "length": 2}], 1),
-            (("--min-match-column-run-length", "3", "--max-match-column-run-length", "2",
+            (("--min-match-column-run-length", "4", "--max-match-column-run-length", "9",
               "--max-match-column-runs", "1"), [], 0),
             (("--max-match-column-runs", "4"), expected_prefix +
              [{"x": 2, "y": 6, "length": 3}, {"x": 3, "y": 9, "length": 1}], 0),

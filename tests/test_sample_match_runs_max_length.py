@@ -30,10 +30,10 @@ class TestSampleMatchRunsMaxLength(CliTestCase):
         generous_result = self._run(*base, "--max-match-run-length", "9")
         both_result = self._run(*base, "--min-match-run-length", "2",
                                 "--max-match-run-length", "2")
-        contradictory = self._run(*base, "--min-match-run-length", "3",
-                                  "--max-match-run-length", "2")
+        empty_window = self._run(*base, "--min-match-run-length", "5",
+                                 "--max-match-run-length", "9")
         for result in (full_result, bounded_result, one_result, generous_result,
-                       both_result, contradictory):
+                       both_result, empty_window):
             self._assert_success(result)
         full = json.loads(full_result.stdout)["match"]
         bounded = json.loads(bounded_result.stdout)["match"]
@@ -51,7 +51,7 @@ class TestSampleMatchRunsMaxLength(CliTestCase):
             self.assertEqual(bounded[key], full[key], key)
         self.assertEqual(json.loads(both_result.stdout)["match"]["runs"],
                          [{"x": 4, "y": 1, "length": 2}])
-        self.assertEqual(json.loads(contradictory.stdout)["match"]["runs"], [])
+        self.assertEqual(json.loads(empty_window.stdout)["match"]["runs"], [])
         empty = self._run(path, "2", "1", "--width", "9", "--height", "2",
                           "--find-color", "ffffff", "--match-runs",
                           "--max-match-run-length", "2", "--json")

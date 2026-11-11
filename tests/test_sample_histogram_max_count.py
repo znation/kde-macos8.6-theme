@@ -41,7 +41,7 @@ class TestSampleHistogramMaximumCount(CliTestCase):
 
         exact = self._run(*base, "--min-color-count", "2", "--max-color-count", "2", "--json")
         self.assertEqual([c["count"] for c in json.loads(exact.stdout)["colors"]], [2, 2])
-        empty = self._run(*base, "--min-color-count", "3", "--max-color-count", "2", "--json")
+        empty = self._run(*base, "--min-color-count", "4", "--max-color-count", "9", "--json")
         self.assertEqual(json.loads(empty.stdout)["colors"], [])
         self.assertEqual(json.loads(empty.stdout)["omitted_pixels"], 8)
 

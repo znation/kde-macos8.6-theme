@@ -70,7 +70,7 @@ class TestSampleRunCount(CliTestCase):
             parsed = json.loads(result.stdout)
             self.assertEqual(parsed["run_count"], 5)
             self.assertEqual([(run["x"], run["y"]) for run in parsed["runs"]], listed)
-        empty = self._run(*common, "--min-run-length", "2", "--max-run-length", "1", "--json")
+        empty = self._run(*common, "--min-run-length", "5", "--max-run-length", "9", "--json")
         self._assert_success(empty)
         self.assertEqual(json.loads(empty.stdout)["run_count"], 5)
         self.assertEqual(json.loads(empty.stdout)["runs"], [])

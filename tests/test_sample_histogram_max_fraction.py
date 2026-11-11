@@ -46,7 +46,7 @@ class TestSampleHistogramMaximumFraction(CliTestCase):
                                         "--max-color-fraction", "0.25", "--json").stdout)
         self.assertEqual([c["count"] for c in combined["colors"]], [2, 2])
         empty = json.loads(self._run(*base, "--min-color-fraction", "0.5",
-                                     "--max-color-fraction", "0.25", "--json").stdout)
+                                     "--max-color-fraction", "1", "--json").stdout)
         self.assertEqual(empty["colors"], [])
         self.assertEqual((empty["total_colors"], empty["omitted_pixels"]), (4, 8))
         zero = json.loads(self._run(*base, "--max-color-fraction", "0", "--json").stdout)

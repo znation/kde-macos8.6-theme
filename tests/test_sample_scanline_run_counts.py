@@ -61,7 +61,7 @@ class TestSampleScanlineRunCounts(CliTestCase):
             parsed = json.loads(result.stdout)
             self.assertEqual(parsed["scanline_run_counts"], [2, 2, 1])
             self.assertEqual([(run["x"], run["y"]) for run in parsed["runs"]], listed)
-        empty = self._run(*common, "--min-run-length", "2", "--max-run-length", "1", "--json")
+        empty = self._run(*common, "--min-run-length", "5", "--max-run-length", "9", "--json")
         self._assert_success(empty)
         self.assertEqual(json.loads(empty.stdout)["scanline_run_counts"], [2, 2, 1])
         self.assertEqual(json.loads(empty.stdout)["runs"], [])

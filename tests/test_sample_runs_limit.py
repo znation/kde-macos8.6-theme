@@ -58,7 +58,7 @@ class TestSampleRunsLimit(CliTestCase):
         self.assertEqual(json.loads(empty.stdout)["omitted_runs"], 0)
         empty_cutoff = self._run(path, "0", "0", "--width", "4", "--height", "2", "--runs",
                                  "--run-axis", "horizontal", "--min-run-length", "4",
-                                 "--max-run-length", "2", "--max-runs", "1", "--json")
+                                 "--max-run-length", "9", "--max-runs", "1", "--json")
         self.assertEqual(json.loads(empty_cutoff.stdout)["omitted_runs"], 0)
 
     def test_alpha_groups_consume_individual_slots(self):

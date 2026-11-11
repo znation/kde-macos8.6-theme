@@ -35,13 +35,13 @@ class TestSampleMatchColumnRunsOffset(CliTestCase):
                             "--max-match-column-runs", "1", "--match-column-run-offset", "1")
         maximum = self._run(*self.base, "--max-match-column-run-length", "2",
                             "--max-match-column-runs", "1", "--match-column-run-offset", "1")
-        conflict = self._run(*self.base, "--min-match-column-run-length", "3",
-                             "--max-match-column-run-length", "2", *common,
-                             "--match-column-run-offset", "0")
+        empty_window = self._run(*self.base, "--min-match-column-run-length", "5",
+                                 "--max-match-column-run-length", "9", *common,
+                                 "--match-column-run-offset", "0")
         absent = self._run(*self.base[:7], "--find-color", "FFFFFF",
                            "--match-column-runs", "--max-match-column-runs", "2",
                            "--match-column-run-offset", "0", "--json")
-        for result in (page, zero, end, minimum, maximum, conflict, absent):
+        for result in (page, zero, end, minimum, maximum, empty_window, absent):
             self._assert_success(result)
         match = json.loads(page.stdout)["match"]
         self.assertEqual(match["column_runs"], [
@@ -59,8 +59,8 @@ class TestSampleMatchColumnRunsOffset(CliTestCase):
         self.assertEqual(json.loads(maximum.stdout)["match"]["column_runs"],
                          [{"x": 2, "y": 3, "length": 2}])
         self.assertEqual(json.loads(maximum.stdout)["match"]["omitted_column_runs"], 2)
-        self.assertEqual((json.loads(conflict.stdout)["match"]["column_runs"],
-                          json.loads(conflict.stdout)["match"]["omitted_column_runs"]), ([], 0))
+        self.assertEqual((json.loads(empty_window.stdout)["match"]["column_runs"],
+                          json.loads(empty_window.stdout)["match"]["omitted_column_runs"]), ([], 0))
         self.assertEqual((json.loads(absent.stdout)["match"]["column_runs"],
                           json.loads(absent.stdout)["match"]["omitted_column_runs"]), ([], 0))
 

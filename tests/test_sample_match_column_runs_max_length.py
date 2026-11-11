@@ -40,10 +40,10 @@ class TestSampleMatchColumnRunsMaxLength(CliTestCase):
         self._assert_success(combined)
         self.assertEqual(json.loads(combined.stdout)["match"]["column_runs"],
                          [{"x": 2, "y": 3, "length": 2}])
-        conflict = self._run(*base, "--min-match-column-run-length", "3",
-                             "--max-match-column-run-length", "2", "--json")
-        self._assert_success(conflict)
-        self.assertEqual(json.loads(conflict.stdout)["match"]["column_runs"], [])
+        beyond = self._run(*base, "--min-match-column-run-length", "4",
+                           "--max-match-column-run-length", "9", "--json")
+        self._assert_success(beyond)
+        self.assertEqual(json.loads(beyond.stdout)["match"]["column_runs"], [])
         text = self._run(*base, "--max-match-column-run-length", "2")
         self._assert_success(text)
         self.assertIn("matching column runs: [{\"x\":2,\"y\":1,\"length\":1}", text.stdout)

@@ -101,6 +101,40 @@ class TestSampleOptionValidation(CliTestCase):
             read.assert_not_called()
             open_image.assert_not_called()
 
+    def test_contradictory_min_max_filter_windows_are_rejected_before_png_reads(self):
+        # A minimum above its maximum keeps no value at all, so a typo'd window
+        # would exit 0 with an empty report, indistinguishable from a genuine
+        # no-match measurement. The five min/max filter pairs are refused
+        # before any image is read; equal bounds stay a legal empty-at-the-edges
+        # window.
+        cases = (
+            (("--histogram", "--min-color-count", "3", "--max-color-count", "2"),
+             "--min-color-count must not exceed --max-color-count (3 > 2)"),
+            (("--histogram", "--min-color-fraction", "0.5", "--max-color-fraction", "0.25"),
+             "--min-color-fraction must not exceed --max-color-fraction (0.5 > 0.25)"),
+            (("--runs", "--min-run-length", "3", "--max-run-length", "2"),
+             "--min-run-length must not exceed --max-run-length (3 > 2)"),
+            (("--find-color", "010203", "--match-runs", "--min-match-run-length", "3",
+              "--max-match-run-length", "2"),
+             "--min-match-run-length must not exceed --max-match-run-length (3 > 2)"),
+            (("--find-color", "010203", "--match-column-runs",
+              "--min-match-column-run-length", "3", "--max-match-column-run-length", "2"),
+             "--min-match-column-run-length must not exceed"
+             " --max-match-column-run-length (3 > 2)"),
+        )
+        for options, diagnostic in cases:
+            with self.subTest(options=options), \
+                    mock.patch.object(sample, "read_png_size") as size, \
+                    mock.patch.object(sample, "read_png") as read, \
+                    mock.patch.object(sample.os, "open") as open_image:
+                result = self._run("unread.png", "0", "0", *options)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.stderr, f"sample: error: {diagnostic}\n")
+            size.assert_not_called()
+            read.assert_not_called()
+            open_image.assert_not_called()
+
     def test_first_compatibility_error_keeps_existing_order(self):
         result = self._run("unread.png", "0", "0", "--match-runs", "--find-color", "010203", "--alpha")
         self.assertEqual(result.returncode, 2)
@@ -127,6 +161,13 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--runs", "--run-color", "010203"),
             ("image.png", "0", "0", "--runs", "--exclude-run-color", "010203"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1", "--max-run-length", "2"),
+            ("image.png", "0", "0", "--histogram", "--min-color-count", "2", "--max-color-count", "2"),
+            ("image.png", "0", "0", "--histogram", "--min-color-fraction", "0.25",
+             "--max-color-fraction", "0.25"),
+            ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
+             "--min-match-run-length", "2", "--max-match-run-length", "2"),
+            ("image.png", "0", "0", "--find-color", "010203", "--match-column-runs",
+             "--min-match-column-run-length", "2", "--max-match-column-run-length", "2"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
              "--min-match-run-length", "1"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",

@@ -30,7 +30,7 @@ class TestSampleRunsMaximumLength(CliTestCase):
         ])
         combined = self._run(*base, "--min-run-length", "2", "--max-run-length", "2", "--json")
         self.assertEqual([r["length"] for r in json.loads(combined.stdout)["runs"]], [2])
-        empty = self._run(*base, "--min-run-length", "3", "--max-run-length", "2", "--json")
+        empty = self._run(*base, "--min-run-length", "4", "--max-run-length", "9", "--json")
         self.assertEqual(json.loads(empty.stdout)["runs"], [])
         text = self._run(*base, "--max-run-length", "2")
         self.assertEqual(text.stdout.splitlines(), [f"image: {path}  9x1", "region (1, 0) 7x1:",
@@ -74,9 +74,9 @@ class TestSampleRunsMaximumLength(CliTestCase):
                          "axis: horizontal", "(7, 1): 1,2,3  #010203  length=1"])
         exact = self._run(*base, "--min-run-length", "2", "--max-run-length", "2", "--json")
         self.assertEqual([run["length"] for run in json.loads(exact.stdout)["runs"]], [2, 2])
-        empty = self._run(*base, "--min-run-length", "3", "--max-run-length", "2", "--json")
+        empty = self._run(*base, "--min-run-length", "4", "--max-run-length", "9", "--json")
         self.assertEqual(json.loads(empty.stdout)["runs"], [])
-        empty_text = self._run(*base, "--min-run-length", "3", "--max-run-length", "2")
+        empty_text = self._run(*base, "--min-run-length", "4", "--max-run-length", "9")
         self.assertEqual(empty_text.stdout.splitlines(), [f"image: {path}  10x3", "region (2, 1) 8x1:", "axis: horizontal"])
 
     def test_vertical_rectangle_alpha_and_omitted_parity(self):

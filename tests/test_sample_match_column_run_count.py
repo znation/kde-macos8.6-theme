@@ -44,7 +44,7 @@ class TestSampleMatchColumnRunCount(CliTestCase):
         for filters, kept in (( ("--min-match-column-run-length", "2"), 2),
                               (("--max-match-column-run-length", "1"), 2),
                               (("--min-match-column-run-length", "3",
-                                "--max-match-column-run-length", "1"), 0)):
+                                "--max-match-column-run-length", "9"), 0)):
             filtered = self._run(*common, "--match-column-runs", *filters, "--json")
             report = json.loads(filtered.stdout)["match"]
             self.assertEqual(report["column_run_count"], 4)

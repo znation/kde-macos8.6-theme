@@ -34,12 +34,12 @@ class TestSampleMatchRunsOffset(CliTestCase):
                             "--match-run-offset", "1")
         maximum = self._run(*self.base, "--max-match-run-length", "2", "--max-match-runs", "1",
                             "--match-run-offset", "1")
-        contradictory = self._run(*self.base, "--min-match-run-length", "3",
-                                  "--max-match-run-length", "2", "--max-match-runs", "2",
-                                  "--match-run-offset", "0")
+        empty_window = self._run(*self.base, "--min-match-run-length", "5",
+                                 "--max-match-run-length", "9", "--max-match-runs", "2",
+                                 "--match-run-offset", "0")
         absent = self._run(*self.base[:-1], "--find-color", "FFFFFF", "--match-runs",
                            "--max-match-runs", "2", "--match-run-offset", "0", "--json")
-        for item in (result, zero, past_end, minimum, maximum, contradictory, absent):
+        for item in (result, zero, past_end, minimum, maximum, empty_window, absent):
             self._assert_success(item)
         match = json.loads(result.stdout)["match"]
         self.assertEqual(match["runs"], [{"x": 7, "y": 1, "length": 3},
@@ -60,7 +60,7 @@ class TestSampleMatchRunsOffset(CliTestCase):
         self.assertEqual(json.loads(maximum.stdout)["match"]["runs"],
                          [{"x": 4, "y": 1, "length": 2}])
         self.assertEqual(json.loads(maximum.stdout)["match"]["omitted_runs"], 2)
-        for empty in (contradictory, absent):
+        for empty in (empty_window, absent):
             empty_match = json.loads(empty.stdout)["match"]
             self.assertEqual((empty_match["runs"], empty_match["omitted_runs"]), ([], 0))
 

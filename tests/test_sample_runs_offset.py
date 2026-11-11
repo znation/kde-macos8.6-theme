@@ -34,12 +34,12 @@ class TestSampleRunsOffset(CliTestCase):
                                         "--json").stdout)
         self.assertEqual([(r["x"], r["y"], r["length"]) for r in excluded["runs"]], [(1, 1, 3)])
         self.assertEqual(excluded["omitted_runs"], 1)
-        contradictory = json.loads(self._run(path, "0", "0", "--width", "4", "--height", "2",
-                                             "--runs", "--run-axis", "horizontal", "--max-runs", "1",
-                                             "--run-offset", "1",
-                                             "--min-run-length", "4", "--max-run-length", "2",
-                                             "--json").stdout)
-        self.assertEqual((contradictory["runs"], contradictory["omitted_runs"]), ([], 0))
+        empty_window = json.loads(self._run(path, "0", "0", "--width", "4", "--height", "2",
+                                            "--runs", "--run-axis", "horizontal", "--max-runs", "1",
+                                            "--run-offset", "1",
+                                            "--min-run-length", "4", "--max-run-length", "9",
+                                            "--json").stdout)
+        self.assertEqual((empty_window["runs"], empty_window["omitted_runs"]), ([], 0))
 
     def test_past_end_empty_text_and_zero_offset(self):
         _, data = rgb_image(2, 1, lambda x, y: (x, 0, 0))

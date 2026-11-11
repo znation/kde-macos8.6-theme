@@ -29,9 +29,9 @@ class TestSampleMatchRunsLimit(CliTestCase):
         full_result = self._run(*base)
         minimum = self._run(*base, "--min-match-run-length", "2", "--max-match-runs", "1")
         maximum = self._run(*base, "--max-match-run-length", "2", "--max-match-runs", "2")
-        contradictory = self._run(*base, "--min-match-run-length", "3",
-                                  "--max-match-run-length", "2", "--max-match-runs", "2")
-        for result in (*results, full_result, minimum, maximum, contradictory):
+        empty_window = self._run(*base, "--min-match-run-length", "5",
+                                 "--max-match-run-length", "9", "--max-match-runs", "2")
+        for result in (*results, full_result, minimum, maximum, empty_window):
             self._assert_success(result)
         reports = [json.loads(result.stdout)["match"] for result in results]
         expected = [
@@ -61,9 +61,9 @@ class TestSampleMatchRunsLimit(CliTestCase):
         max_match = json.loads(maximum.stdout)["match"]
         self.assertEqual(max_match["runs"], expected[:2])
         self.assertEqual(max_match["omitted_runs"], 1)
-        contradiction_match = json.loads(contradictory.stdout)["match"]
-        self.assertEqual(contradiction_match["runs"], [])
-        self.assertEqual(contradiction_match["omitted_runs"], 0)
+        empty_match = json.loads(empty_window.stdout)["match"]
+        self.assertEqual(empty_match["runs"], [])
+        self.assertEqual(empty_match["omitted_runs"], 0)
 
     def test_empty_text_direct_script_and_validation(self):
         _, encoded = rgb_image(2, 1, lambda x, y: (0, 0, 0))
