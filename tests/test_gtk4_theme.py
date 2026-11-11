@@ -1232,6 +1232,7 @@ print("scrollbar pins settled")
             "window.csd": active,
             "window.csd:backdrop": {**backdrop, "transition": "none"},
             "window.csd.popup": active,
+            "window.csd.popup:backdrop": backdrop,
             "window.csd.dialog.message": active,
             "window.csd.dialog.message:backdrop": backdrop,
             "window.maximized": flat,
@@ -1316,6 +1317,39 @@ print("scrollbar pins settled")
             self.selectors.index("window.maximized"),
             self.selectors.index("window.solid-csd:backdrop"),
         )
+
+    def test_csd_window_shell_state_cascade(self):
+        """Resolve overlapping shell arms, including popup/backdrop ties."""
+        cases = [
+            ("window.csd", f"0 0 0 1px {BLACK}"),
+            ("window.csd:backdrop", f"0 0 0 1px {INACTIVE_OUTLINE}"),
+            ("window.csd.popup", f"0 0 0 1px {BLACK}"),
+            ("window.csd.popup:backdrop", f"0 0 0 1px {INACTIVE_OUTLINE}"),
+            ("window.csd.dialog.message:backdrop", f"0 0 0 1px {INACTIVE_OUTLINE}"),
+            ("window.csd.maximized:backdrop", "none"),
+            ("window.csd.fullscreen:backdrop", "none"),
+            ("window.ssd", "none"),
+            ("tooltip.csd", "none"),
+        ]
+        for tiled in ("tiled", "tiled-top", "tiled-left", "tiled-right", "tiled-bottom"):
+            cases.append((f"window.csd.{tiled}:backdrop", f"0 0 0 1px {INACTIVE_OUTLINE}"))
+        for node, expected in cases:
+            with self.subTest(node=node):
+                # This family contains only a type, classes and :backdrop.
+                # CSS ranks class/pseudo-class count before source order.
+                tokens = set(re.findall(r"[.:][\w-]+", node))
+                element = re.match(r"\w+", node).group()
+                candidates = []
+                for order, selector in enumerate(self.selectors):
+                    if not re.fullmatch(r"(?:window|tooltip)(?:[.:][\w-]+)*", selector):
+                        continue
+                    required = set(re.findall(r"[.:][\w-]+", selector))
+                    rule = self.rules[selector]
+                    if (selector.split(".")[0].split(":")[0] == element
+                            and required <= tokens and "box-shadow" in rule):
+                        candidates.append((len(required), order, rule["box-shadow"]))
+                self.assertTrue(candidates)
+                self.assertEqual(max(candidates)[2], expected)
 
     def test_expander_arrows(self):
         self.assert_expander_arrows(

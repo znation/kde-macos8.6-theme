@@ -4557,12 +4557,12 @@ link:visited:selected:disabled:active {
    and ssd arms each carry a shadow arm of their own, while window.solid-csd
    -- the stock shell arm GTK 4 selects for a decorated top level without an
    alpha visual, which no reference screenshot shows -- pads 4px and frames
-   itself with inset #cdc7c2 and white shadows. Every rule below restates
-   the byte-equal stock twin so the later source position wins every
+   itself with inset #cdc7c2 and white shadows. The base rules below restate
+   the stock selectors so the later source position wins every
    equal-specificity tie exactly as the landed restatements do; the
    maximized/fullscreen and tiled :backdrop arms carry their own :backdrop
-   classes, or the window.csd:backdrop arm would itself out-rank them and
-   paint an active outline on an unfocused maximized or tiled window. Stock's
+   classes so they override window.csd:backdrop. Popup and message-dialog
+   backdrop arms override their more specific active shell rules. Stock's
    tiled/maximized radius-zero arms already square those states' corners of
    their own, and the landed window.dialog.message.csd.background group
    already squares the message-dialog body. Stock's window.csd:backdrop
@@ -4582,6 +4582,10 @@ window.csd:backdrop {
 window.csd.popup {
   border-radius: 0;
   box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd.popup:backdrop {
+  box-shadow: 0 0 0 1px #555555;
 }
 
 window.csd.dialog.message {
