@@ -1801,6 +1801,85 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             "spinbutton.vertical:focus", anchor="spinbutton:focus:not(.vertical)"
         )
 
+    def test_horizontal_spinbutton_steppers_share_one_seam(self):
+        self.assert_rule(
+            "spinbutton:not(.vertical) button",
+            {"border-style": "none none none solid"},
+        )
+        self.assert_rule(
+            "spinbutton:not(.vertical) button:dir(rtl)",
+            {"border-style": "none solid none none"},
+        )
+
+    def test_horizontal_spinbutton_steppers_render_one_pixel_seams(self):
+        # The spin button is measured from its own allocation, so the probe
+        # does not hard-code stepper widths: it finds the black columns on
+        # row T+4 and checks that they are the left edge, two non-adjacent
+        # seams and the right edge. Each render gets a fresh offscreen window;
+        # see _run_gtk_child for why this runs in a child.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+
+def render(rtl):
+    window = Gtk.OffscreenWindow()
+    box = Gtk.Box()
+    box.set_border_width(5)
+    spin = Gtk.SpinButton.new_with_range(0, 100, 1)
+    spin.set_can_focus(False)
+    if rtl:
+        spin.set_direction(Gtk.TextDirection.RTL)
+    box.pack_start(spin, False, False, 0)
+    window.add(box)
+    window.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+    alloc = spin.get_allocation()
+    pixbuf = window.get_pixbuf()
+    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+    window.destroy()
+
+    def at(x, y):
+        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+    left, top = alloc.x, alloc.y
+    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+    return at, left, top, right, bottom
+
+BLACK, WHITE, GREY, LIGHT, SHADE = "#000000", "#FFFFFF", "#999999", "#DDDDDD", "#AAAAAA"
+
+def check_field(at, x, top, bottom):
+    got = [at(x, top), at(x, top + 1), at(x, top + 2), at(x, bottom)]
+    assert got == [BLACK, GREY, WHITE, BLACK], got
+
+def check_stepper(at, x, top, bottom):
+    got = [at(x, top), at(x, top + 1), at(x, top + 2), at(x, bottom - 1), at(x, bottom)]
+    assert got == [BLACK, WHITE, LIGHT, SHADE, BLACK], got
+
+for rtl in (False, True):
+    at, left, top, right, bottom = render(rtl)
+    cols = [x for x in range(left, right + 1) if at(x, top + 4) == BLACK]
+    assert len(cols) == 4, (rtl, cols)
+    assert cols[0] == left and cols[3] == right, (rtl, cols, left, right)
+    assert all(b - a > 1 for a, b in zip(cols, cols[1:])), (rtl, cols)
+    if rtl:
+        field, steppers = (cols[2] + cols[3]) // 2, (cols[0] + 3, cols[1] + 3)
+    else:
+        field, steppers = (cols[0] + cols[1]) // 2, (cols[1] + 3, cols[2] + 3)
+    check_field(at, field, top, bottom)
+    for x in steppers:
+        check_stepper(at, x, top, bottom)
+print("horizontal spin button: one 1px black seam per stepper edge in LTR and RTL, with the field and stepper faces unchanged")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
     def test_linked_members_strip_their_trailing_border(self):
         for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
                                 (".linked.vertical", "border-bottom-style")):

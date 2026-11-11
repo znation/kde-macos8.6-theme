@@ -4914,6 +4914,24 @@ spinbutton.vertical button.down {
   border-radius: 0;
 }
 
+/* Horizontal stepper seams, 2026-11-11. The stock toolkit resource
+   gtk-contained.css (inside libgtk-3.so.0, re-extracted with gresource
+   that day) restyles these buttons with `spinbutton:not(.vertical)
+   button { border-style: none none none solid; }` and its :dir(rtl)
+   mirror, which this theme's resource replaces, so the steppers kept
+   the full 1px black button border. Measured that day with a GTK 3
+   offscreen child: every stepper edge that meets the spin button frame
+   or the other stepper painted two black columns. These two rules
+   restore one 1px black line per seam; the .osd groups keep their own
+   full border. */
+spinbutton:not(.vertical) button {
+  border-style: none none none solid;
+}
+
+spinbutton:not(.vertical) button:dir(rtl) {
+  border-style: none solid none none;
+}
+
 /* 2026-11-05: no collected reference screenshot shows a GTK content
    view's selection check in any state — a file- or icon-grid selection
    swatch (the GTK scope's standing adaptation premise) — so the eight
