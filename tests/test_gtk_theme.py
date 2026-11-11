@@ -343,7 +343,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         self.assertGreater(rule, uncommented.index("label:link:disabled, label:visited:disabled {"))
         self.assertGreater(
             rule,
-            uncommented.index("label:link:visited:hover:not(:disabled),"),
+            uncommented.index("label > link:visited:hover:not(:disabled),"),
         )
 
     def test_inline_link_interaction_colours(self):
@@ -385,8 +385,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             selectors,
             (
                 "label:visited, button:visited > label {",
-                "label:link:active:not(:disabled) {",
-                "label:link:visited:active:not(:disabled) {",
+                "label > link:link:active:not(:disabled) {",
+                "label > link:visited:active:not(:disabled) {",
                 "label:link:visited:backdrop:active:not(:disabled) {",
             ),
         )
@@ -413,8 +413,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             selectors,
             (
                 "label:visited, button:visited > label {",
-                "label:link:hover:not(:disabled),",
-                "label:link:visited:hover:not(:disabled),",
+                "label > link:link:hover:not(:disabled),",
+                "label > link:visited:hover:not(:disabled),",
                 "label:link:selected:not(:disabled):not(:backdrop),",
             ),
         )
@@ -471,8 +471,8 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             (
                 "label:link:backdrop:not(:disabled),",
                 "label:link:visited:backdrop:not(:disabled),",
-                "label:link:hover:not(:disabled),",
-                "label:link:visited:hover:not(:disabled),",
+                "label > link:link:hover:not(:disabled),",
+                "label > link:visited:hover:not(:disabled),",
                 "label:link:selected:backdrop:not(:disabled),",
             ),
         )
@@ -520,7 +520,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         visited_rule = uncommented.index(visited[0] + ",")
         self.assertGreater(
             blue_rule,
-            uncommented.index("label:link:visited:active:not(:disabled) {"),
+            uncommented.index("label > link:visited:active:not(:disabled) {"),
         )
         self.assertLess(blue_rule, visited_rule)
 
