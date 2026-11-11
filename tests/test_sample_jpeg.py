@@ -106,6 +106,34 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         )
         self.assertNotIn(str(temp_png), problem)
 
+    def test_flooding_converter_log_is_read_and_quoted_only_to_its_cap(self):
+        flood = 1 << 20  # one MiB of stderr from a failing converter
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def flood_stderr(argv, env, stdout_log, stderr_log, *args, **kwargs):
+                Path(stderr_log).write_text("W" * flood)
+                return 1
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=flood_stderr,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertTrue(problem.startswith("convert exited 1: W"))
+        quoted = problem[len("convert exited 1: "):]
+        self.assertEqual(len(quoted), 4096)
+        self.assertEqual(set(quoted), {"W"})
+
 
 class TestJpegSampler(CliTestCase):
     """The JPEG branch's end-to-end reports, pinned to the fixture's constants."""

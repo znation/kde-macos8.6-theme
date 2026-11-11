@@ -29,6 +29,11 @@ JPEG_MAGIC = bytes((0xFF, 0xD8, 0xFF))
 
 _CONVERT_TIMEOUT = 60.0
 
+# The failure diagnostic quotes at most this many leading bytes of a converter
+# log. The converter can write far more than that to stderr within its timeout,
+# and an unbounded read would load the whole log into memory and print it.
+_MAX_LOG_BYTES = 4096
+
 
 def is_jpeg(head: bytes) -> bool:
     """Return whether the leading bytes *head* start a JPEG stream."""
@@ -101,16 +106,20 @@ def _failed_output(headline: str, temp_png: Path, *logs: Path) -> str:
     A decode failure's own output belongs to the operator, but it can name
     the temporary PNG's path, which tells them nowhere they typed;
     occurrences of the private paths are blanked so the diagnostic names
-    surfaces the user chose, never the scratch file.
+    surfaces the user chose, never the scratch file. At most
+    ``_MAX_LOG_BYTES`` of each log is read, so a converter that floods its
+    log cannot exhaust memory or flood the diagnostic.
     """
     lines: list[str] = []
     for log in logs:
         try:
-            tail = log.read_text(errors="replace").strip()
+            with log.open("rb") as handle:
+                head = handle.read(_MAX_LOG_BYTES)
         except OSError:
-            tail = ""
-        if tail:
-            lines.append(tail)
+            head = b""
+        text = head.decode(errors="replace").strip()
+        if text:
+            lines.append(text)
     message = f"{headline}: {lines[0]}" if lines else headline
     message = re.sub(r"/\S*magick-\S*", "<an ImageMagick temporary>", message)
     return (
