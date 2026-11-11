@@ -1320,6 +1320,9 @@ reference screenshot and reports mean absolute error, per-channel mean absolute 
 differing pixels.
 Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
 surface region of the reference.
+A JPEG candidate or reference is decoded once through ImageMagick's `convert` into a
+private temporary PNG before the comparison, so the reference set's JPEG screenshots are
+comparable directly; other non-PNG formats keep the decode refusal.
 
 ### Capturing a candidate
 
