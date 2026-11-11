@@ -11,6 +11,7 @@ the bound is generous so a slow machine does not flake.
 
 from __future__ import annotations
 
+import itertools
 import time
 import unittest
 
@@ -712,21 +713,21 @@ class TestRuleBlockSemantics(unittest.TestCase):
                     expected["color"] = "red"
                 self.assertEqual(declarations, expected)
 
-        for whitespace in (" ", "\t"):
-            for slash_count in (1, 2, 3):
-                with self.subTest(whitespace=repr(whitespace), slashes=slash_count):
-                    value = "token" + "\\" * slash_count + whitespace
-                    for suffix in ("; color: red;", ""):
-                        source = f"a {{ --value: {value}   {suffix}}}"
-                        # A pair of backslashes escapes a literal backslash, so
-                        # the trailing whitespace escapes only after an odd
-                        # run; an even run leaves it unescaped and trimmed.
-                        escaped = slash_count % 2
-                        expected = "token" + "\\" * slash_count + (whitespace if escaped else "")
-                        declarations = parse_css(source)[1]["a"]
-                        self.assertEqual(declarations["--value"], expected)
-                        if suffix:
-                            self.assertEqual(declarations["color"], "red")
+        for whitespace, slash_count, suffix in itertools.product(
+                (" ", "\t"), (1, 2, 3), ("; color: red;", "")):
+            with self.subTest(whitespace=repr(whitespace), slashes=slash_count,
+                              suffix=suffix):
+                value = "token" + "\\" * slash_count + whitespace
+                source = f"a {{ --value: {value}   {suffix}}}"
+                # A pair of backslashes escapes a literal backslash, so
+                # the trailing whitespace escapes only after an odd
+                # run; an even run leaves it unescaped and trimmed.
+                escaped = slash_count % 2
+                expected = "token" + "\\" * slash_count + (whitespace if escaped else "")
+                declarations = parse_css(source)[1]["a"]
+                self.assertEqual(declarations["--value"], expected)
+                if suffix:
+                    self.assertEqual(declarations["color"], "red")
 
         self.assertEqual(
             parse_css("a { --value: token\\\\ ; }")[1],

@@ -283,10 +283,9 @@ class TestCopies(unittest.TestCase):
             if copy_name == "AuroraeMaximizeButton.qml":
                 # Part 3/3 additionally gates this copy's standalone MouseArea;
                 # its expected text spells that added difference (above).
-                for gated_name, expectation in GATED_COPIES:
-                    if gated_name == copy_name:
-                        with self.subTest(name=copy_name):
-                            self.assertEqual(copy, expectation(engine))
+                expectation = dict(GATED_COPIES)[copy_name]
+                with self.subTest(name=copy_name):
+                    self.assertEqual(copy, expectation(engine))
                 continue
             self.assertEqual(copy, expected)
             self.assertNotIn("auroraeTheme", copy, engine_name)
