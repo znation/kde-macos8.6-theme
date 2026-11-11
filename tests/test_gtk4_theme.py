@@ -3009,7 +3009,6 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             # The selected view-child restatement names the same node.
             # The disabled-selected restatement names it again (2026-10-31).
             "flowbox > flowboxchild:selected",
-            "flowbox > flowboxchild:selected:backdrop",
             "flowbox > flowboxchild:disabled:selected",
             "flowbox > flowboxchild:focus:focus-visible",
             # The rubberband view-specific recipe names this node (2026-11-01).
@@ -3045,19 +3044,15 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
                 "border-radius": "0",
             },
         )
+        # Base selection already covers unfocused windows. An extra backdrop
+        # state would outrank the chooser's base tint and tie stock's disabled
+        # label. Pin its absence as well as the base declarations above.
         for selector in (
             "flowbox > flowboxchild:selected:backdrop",
             "gridview > child:selected:backdrop",
         ):
             with self.subTest(selector=selector):
-                self.assert_rule(
-                    selector,
-                    {
-                        "background-color": SELECTION,
-                        "color": BLACK,
-                        "border-radius": "0",
-                    },
-                )
+                self.assertNotIn(selector, self.rules)
         for selector, alpha in (
             ("filechooser gridview child:selected", "0.15"),
             ("filechooser gridview child:selected:hover", "0.20"),
@@ -3119,7 +3114,6 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             # The selected view-child restatement names the same nodes.
             # The disabled-selected restatement names it again (2026-10-31).
             "gridview > child:selected",
-            "gridview > child:selected:backdrop",
             "gridview > child:disabled:selected",
             # The rubberband view-specific recipe names this node (2026-11-01).
             "gridview > rubberband",

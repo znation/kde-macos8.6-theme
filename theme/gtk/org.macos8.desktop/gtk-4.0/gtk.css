@@ -4137,25 +4137,22 @@ row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):no
    keeps the restated colour invisible until an outline arm draws it. The
    file-chooser tints are declaration-only background recolours and leave
    stock's `color: inherit` governing the label. Stock's wide
-   `:disabled:selected` white-label group keeps governing, so a disabled
+   `:disabled:selected` blue-grey-label group keeps governing, so a disabled
    selected child keeps the stock disabled label (the disabled remainder
    this sheet records for rows drives the same held-out family here;
    2026-10-31: the rows-and-children disabled twins are since restated at
    the sheet tail — the `:disabled:selected` disabled selected rows and
    view children entry — with the landed inactive-text grey; the remainder
-   stays stock). Declaration checks do not establish rendered pixels. */
+   stays stock).
+   The base selected rules also cover backdrop: adding a backdrop state
+   would outrank the file-chooser base tint. Keep the more specific tint
+   and disabled-selected rules governing.
+   Declaration checks do not establish rendered pixels. */
 flowbox > flowboxchild:selected,
 gridview > child:selected {
   background-color: #CCCCFF;
   color: #000000;
   outline-color: #000000;
-  border-radius: 0;
-}
-
-flowbox > flowboxchild:selected:backdrop,
-gridview > child:selected:backdrop {
-  background-color: #CCCCFF;
-  color: #000000;
   border-radius: 0;
 }
 
