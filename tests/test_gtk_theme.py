@@ -541,6 +541,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
         self.assert_disabled_text(selectors)
         for selector in selectors:
+            self.assertEqual(self.rules[selector], DISABLED_TEXT)
             self.assertEqual(self.selectors.count(selector), 1)
         uncommented = gtk_css.strip_comments(self.css)
         disabled_child_rule = uncommented.index(selectors[0] + ",")
