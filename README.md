@@ -1304,7 +1304,8 @@ Exclusion ignores opacity and wins when the same value is also selected with
 
 Pass `--run-count` with `--runs` to add a scalar run total alongside the list:
 JSON gains a top-level `run_count` and text prints `run count: N` immediately
-after the `axis:` line. The count is the complete unfiltered number of scanline
+after the `axis:` line (after the `longest run:` line when `--longest-run` is
+also given). The count is the complete unfiltered number of scanline
 runs each scan produces — counted before `--run-color` selection,
 `--exclude-run-color` and the inclusive length filters, including zero when a
 scan yields none — with runs of different scanlines counted separately and the

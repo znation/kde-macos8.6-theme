@@ -92,6 +92,17 @@ class TestSampleLongestRun(CliTestCase):
         self.assertEqual(json.loads(empty.stdout)["longest_run"], longest)
         self.assertEqual(json.loads(empty.stdout)["runs"], [])
 
+    def test_run_count_line_follows_longest_run_line_when_combined(self):
+        path = self._rows_region()
+        result = self._run(path, "0", "0", "--width", "5", "--height", "4",
+                           "--runs", "--run-axis", "horizontal",
+                           "--longest-run", "--run-count")
+        self._assert_success(result)
+        lines = result.stdout.splitlines()
+        self.assertEqual(lines[3], "longest run: 0,1,5")
+        self.assertEqual(lines[4], "run count: 6")
+        self.assertEqual(lines[5], "(0, 0): 1,2,3  #010203  length=2")
+
     def test_region_relative_offsets_keep_absolute_coordinates(self):
         path = self._offset_rows_region()
         result = self._run(path, "1", "1", "--width", "5", "--height", "4",
