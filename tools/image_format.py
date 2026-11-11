@@ -88,6 +88,10 @@ def is_complete(
     """
     _require_bytes(head, "is_complete")
     _require_bytes(tail, "is_complete")
+    if type(size) is not int or size < 0:
+        raise ValueError(
+            f"is_complete size must be a nonnegative integer: size={size!r}"
+        )
     stream = image_stream_format(head)
     if stream == "PNG":
         return tail[-len(TERMINAL_PNG):] == TERMINAL_PNG

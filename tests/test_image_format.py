@@ -170,5 +170,13 @@ class TestRejectsNonBytesInput(unittest.TestCase):
                         func(bad)
                     self.assertIn(type(bad).__name__, str(ctx.exception))
 
+    def test_is_complete_rejects_invalid_stream_sizes(self):
+        for size in (-1, 1.5, True, "12"):
+            with self.subTest(size=size):
+                with self.assertRaisesRegex(
+                    ValueError, rf"size={size!r}"
+                ):
+                    image_format.is_complete(PNG, b"", size)
+
 if __name__ == "__main__":
     unittest.main()
