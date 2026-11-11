@@ -497,7 +497,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the thirteen widget dialogs:
+Capture the default calculator or one of the fourteen widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -515,12 +515,13 @@ python3 tools/render_surface.py slider.png --slider-dialog
 python3 tools/render_surface.py textbox.png --textbox-dialog
 python3 tools/render_surface.py gtk.png --gtk-dialog
 python3 tools/render_surface.py inactive.png --inactive-dialog
+python3 tools/render_surface.py file.png --file-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
 `menu-dialog`, `radiolist-dialog`, `calendar-dialog`, `color-dialog`, `icon-dialog`, `progressbar-dialog`, `slider-dialog`,
-`textbox-dialog`, `gtk-dialog` or `inactive-dialog` to select a surface. Direct Python commands remain available. The calculator
+`textbox-dialog`, `gtk-dialog`, `inactive-dialog` or `file-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
@@ -620,7 +621,7 @@ scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@i
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The thirteen dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The fourteen dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 `--inactive-dialog` opens two `kdialog` message boxes with two distinct fixed titles and
@@ -630,6 +631,13 @@ captured surface shows the unfocused window — the earlier-spawned one, on the 
 with the inactive decoration art; the inactive gate
 (`tests/test_render_surface.py::TestInactiveDialogRender`) pins that window's outline
 ring, recoloured client edge, flat bar and title ink there.
+`--file-dialog` opens a `kdialog` file chooser (KDE's KIO file dialog) whose places
+sidebar, file list view, toolbar and name-filter surfaces the engine draws with the theme's
+palette and the shipped field and button art, captured at the same 480x360 size; the chooser
+opens on the scratch session's fixed `Documents` directory holding exactly `alpha.txt`,
+`bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. Its surfaces await the
+file-dialog gate, which will pin them in `tests/test_render_surface.py`; the chooser's
+per-file type icons are the fallback icon theme's and stay deliberately unpinned.
 
 ### Staging packages
 
@@ -1345,9 +1353,10 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the thirteen dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+the fourteen dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
 require `kdialog` for checkbox, combo box, line edit, menu, radio list, calendar, color picker, icon
-chooser, progress meter, slider, text box and the two-window inactive pair or `zenity` for GTK.
+chooser, progress meter, slider, text box, the two-window inactive pair and the file chooser or
+`zenity` for GTK.
 Direct Python commands remain available; each dialog flag must be used alone, and dialog captures
 reject `--width`, `--height` and a non-default `--applet`:
 
@@ -1366,6 +1375,7 @@ reject `--width`, `--height` and a non-default `--applet`:
 | Text box dialog | `python3 tools/render_surface.py --textbox-dialog textbox.png` | 480x360 |
 | GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
 | Inactive dialog | `python3 tools/render_surface.py --inactive-dialog inactive.png` | 480x360 |
+| File dialog | `python3 tools/render_surface.py --file-dialog file.png` | 480x360 |
 
 The calculator capture defaults to 320x240. Dialog captures need `kdialog` on `PATH` in the
 kdialog modes and `zenity` in the GTK mode;

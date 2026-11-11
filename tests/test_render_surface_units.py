@@ -41,6 +41,7 @@ from tools.render_clients import (
     checkbox_dialog_client,
     color_dialog_client,
     combobox_dialog_client,
+    file_dialog_client,
     gtk_dialog_client,
     icon_dialog_client,
     inactive_dialog_client,
@@ -827,6 +828,56 @@ class TestArguments(unittest.TestCase):
         _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
         self.assertIn("--inactive-dialog", stdout)
 
+    def test_cli_delegates_the_file_dialog_capture_size(self):
+        # A plain --file-dialog run captures at the 480x360 the widget gate
+        # byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--file-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_file_dialog(self):
+        # The file chooser opens its own kdialog client; a plasmoid id
+        # combined with it has no window to open it in.
+        self.assert_usage_error("out.png", "--file-dialog", "--applet", "x")
+
+    def test_rejects_a_capture_size_with_the_file_dialog(self):
+        # The capture stays at the 480x360 the dialog render publishes.
+        self.assert_usage_error("out.png", "--file-dialog", "--height", "240")
+
+    def test_rejects_two_dialog_modes_names_the_file_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a missing name
+        # would print a refusal without the file-dialog flag in it.
+        for left, right in (
+            ("--file-dialog", "--checkbox-dialog"),
+            ("--file-dialog", "--inactive-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_file_dialog_requires_kdialog(self):
+        # The file chooser is kdialog's --getopenfilename client, so the
+        # mode's client tool is kdialog.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--file-dialog")
+        )
+
+    def test_the_help_text_names_the_file_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--file-dialog", stdout)
+
 
 class TestAppletPreflight(unittest.TestCase):
     """The calculator preflight refuses a missing applet package, before any
@@ -1338,6 +1389,36 @@ class TestSessionCommand(unittest.TestCase):
             self.assertEqual(
                 list(lineedit_dialog_client(session)),
                 words[len(words) - len(lineedit_dialog_client(session)) :],
+            )
+
+    def test_carries_the_file_dialog_client_words(self):
+        with self._dialog_command(file_dialog_client) as (session, command):
+            # The factory seeds the scratch home's Documents directory with
+            # exactly the three fixed empty files the capture lists, so the
+            # chooser opens on a deterministic listing: no caller disk, no
+            # clock and no seventh file can enter a capture.
+            documents = session.home / "Documents"
+            self.assertEqual(
+                ["alpha.txt", "bravo.txt", "delta.rtf"],
+                sorted(path.name for path in documents.iterdir()),
+            )
+            for path in documents.iterdir():
+                self.assertTrue(path.is_file())
+                self.assertEqual(0, path.stat().st_size)
+            self.assertEqual(
+                (
+                    "kdialog",
+                    "--title",
+                    "Test",
+                    "--getopenfilename",
+                    str(documents),
+                ),
+                tuple(file_dialog_client(session)),
+            )
+            words = shlex.split(command.argv[-1])
+            self.assertEqual(
+                list(file_dialog_client(session)),
+                words[len(words) - len(file_dialog_client(session)) :],
             )
 
     def test_carries_the_icon_dialog_client_words(self):

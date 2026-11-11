@@ -19,7 +19,7 @@ Usage::
         | --icon-dialog | --inactive-dialog | --lineedit-dialog
         | --menu-dialog | --radiolist-dialog
         | --calendar-dialog | --progressbar-dialog | --slider-dialog
-        | --textbox-dialog | --gtk-dialog]
+        | --textbox-dialog | --gtk-dialog | --file-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a missing

@@ -18,6 +18,7 @@ try:
         checkbox_dialog_client,
         color_dialog_client,
         combobox_dialog_client,
+        file_dialog_client,
         gtk_dialog_client,
         icon_dialog_client,
         inactive_dialog_client,
@@ -34,6 +35,7 @@ except ImportError:  # imported from a directly run tool
         checkbox_dialog_client,
         color_dialog_client,
         combobox_dialog_client,
+        file_dialog_client,
         gtk_dialog_client,
         icon_dialog_client,
         inactive_dialog_client,
@@ -223,5 +225,17 @@ DIALOG_MODES = (
         inactive_dialog_client,
         "kdialog",
         ("kwinrulesrc",),
+    ),
+    DialogMode(
+        "file_dialog",
+        "--file-dialog",
+        (
+            "open a KDialog file chooser whose places sidebar, file list "
+            "view, toolbar and name-filter surfaces the Kvantum engine draws "
+            "with the theme's palette and art, and capture it at the 480x360 "
+            "size the widget gate byte-compares"
+        ),
+        file_dialog_client,
+        "kdialog",
     ),
 )

@@ -39,6 +39,7 @@ class TestDialogModes(unittest.TestCase):
                 "--gtk-dialog",
                 "--icon-dialog",
                 "--inactive-dialog",
+                "--file-dialog",
             ),
             tuple(mode.flag for mode in render_dialogs.DIALOG_MODES),
         )
@@ -70,6 +71,7 @@ class TestDialogModes(unittest.TestCase):
                 render_clients.gtk_dialog_client,
                 render_clients.icon_dialog_client,
                 inactive_dialog_client,
+                render_clients.file_dialog_client,
             ),
             tuple(mode.client for mode in render_dialogs.DIALOG_MODES),
         )
@@ -79,7 +81,7 @@ class TestDialogModes(unittest.TestCase):
         # installs the GTK selection beside the Kvantum one for the zenity
         # modes, so a swapped tool column would demand kdialog for --gtk-dialog.
         self.assertEqual(
-            ("kdialog",) * 10 + ("zenity", "kdialog", "kdialog"),
+            ("kdialog",) * 10 + ("zenity", "kdialog", "kdialog", "kdialog"),
             tuple(mode.client_tool for mode in render_dialogs.DIALOG_MODES),
         )
         gtk_modes = [

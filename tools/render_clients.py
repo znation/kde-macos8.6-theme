@@ -264,3 +264,31 @@ def inactive_dialog_client(_session: Session) -> tuple[str, ...]:
         ),
         "inactive-dialog-wrapper",
     )
+
+
+def file_dialog_client(session: Session) -> tuple[str, ...]:
+    """Return the file-chooser argv the file-dialog mode renders.
+
+    ``--getopenfilename`` opens KDE's KIO file chooser: the engine draws its
+    places sidebar, file list view, toolbar and name-filter surfaces with
+    this theme's colorscheme palette and shipped art, the pixels the
+    file-dialog gate byte-compares. The chooser opens on a fixed scratch
+    ``Documents`` directory holding exactly three fixed empty files
+    (``alpha.txt``, ``bravo.txt``, ``delta.rtf``): the fresh session home,
+    the fixed filenames and the absence of clock-dependent content keep
+    every capture deterministic, with no directory the caller's disk can
+    vary. The per-file type icons the chooser draws are the fallback icon
+    theme's, not theme-owned, so the gate must keep its crops off icon
+    cells the way ``TestIconDialogRender``'s bands do.
+    """
+    documents = session.home / "Documents"
+    documents.mkdir(exist_ok=True)
+    for name in ("alpha.txt", "bravo.txt", "delta.rtf"):
+        (documents / name).touch()
+    return (
+        "kdialog",
+        "--title",
+        "Test",
+        "--getopenfilename",
+        str(documents),
+    )

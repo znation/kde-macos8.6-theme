@@ -560,7 +560,7 @@ RENDER_OUTPUT ?= render.png
 # literal -- make cannot generate recipe text from a variable at recipe time
 # without an extra interpreter run -- and that test also pins every branch's
 # literal argv, so a mode missing its branch fails there.
-RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog
+RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog
 comma := ,
 empty :=
 space := $(empty) $(empty)
@@ -587,6 +587,7 @@ render:
 	  textbox-dialog) set -- --textbox-dialog ;; \
 	  gtk-dialog) set -- --gtk-dialog ;; \
 	  inactive-dialog) set -- --inactive-dialog ;; \
+	  file-dialog) set -- --file-dialog ;; \
 	  *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; \
 	esac; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"
