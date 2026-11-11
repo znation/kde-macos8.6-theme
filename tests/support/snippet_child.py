@@ -162,6 +162,20 @@ def _drain(open_streams, data):
             open_streams.discard(fd)
 
 
+def _wait_for_streams(open_streams):
+    """Wait up to 5ms for a stream to become readable, or sleep the slice."""
+    if not open_streams:
+        time.sleep(0.005)
+        return
+    try:
+        select.select(tuple(open_streams), (), (), 0.005)
+    except ValueError:
+        # select's fd_set has a smaller descriptor range than read/waitpid.
+        # Preserve collection in a busy parent whose pipes fall outside that
+        # range.
+        time.sleep(0.005)
+
+
 def _collect(pid, out_read, err_read, snippet_argv, timeout):
     """Wait for the child, capture its output and return its `CompletedProcess`.
 
@@ -194,21 +208,12 @@ def _collect(pid, out_read, err_read, snippet_argv, timeout):
         if status is not None and not open_streams:
             break
         if time.monotonic() < deadline:
-            if open_streams:
-                # Wait for a stream to become readable instead of sleeping the
-                # slice out: the slice bound keeps the reap poll interval, but
-                # a chunk that arrives mid-slice (or the EOF a child's exit
-                # closes its pipes with) wakes the select at once, so a fast
-                # child does not pay the full slice before its next drain.
-                try:
-                    select.select(tuple(open_streams), (), (), 0.005)
-                except ValueError:
-                    # select's fd_set has a smaller descriptor range than
-                    # read/waitpid. Preserve collection in a busy parent
-                    # whose pipes fall outside that range.
-                    time.sleep(0.005)
-            else:
-                time.sleep(0.005)
+            # Wait for a stream to become readable instead of sleeping the
+            # slice out: the slice bound keeps the reap poll interval, but
+            # a chunk that arrives mid-slice (or the EOF a child's exit
+            # closes its pipes with) wakes the select at once, so a fast
+            # child does not pay the full slice before its next drain.
+            _wait_for_streams(open_streams)
             continue
         if status is not None:
             # The child has exited and been reaped; only a writer that

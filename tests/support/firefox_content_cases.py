@@ -140,35 +140,45 @@ CONFIG_UNTOUCHED = (
 )
 
 
+def _at_rule_end(text, start):
+    """Return the index just past the ``}`` that closes the body at *start*.
+
+    A quoted string is a token, and a backslash keeps the character after it
+    inside the string, so an escaped quote does not end it early and a quoted
+    ``\"`` or ``\\`` cannot swallow the block's closing brace; braces nest.
+    An unterminated body scans to the end of the text.
+    """
+    depth = 1
+    quote = None
+    escaped = False
+    index = start
+    while index < len(text) and depth:
+        char = text[index]
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+        index += 1
+    return index
+
+
 def at_rule_bodies(text):
     """Return each ``@-moz-document url("...")`` body, keyed by its URL."""
     stripped = strip_comments(text)
     bodies = {}
     for match in AT_RULE.finditer(stripped):
-        depth = 1
-        quote = None
-        escaped = False
-        index = start = match.end()
-        while index < len(stripped) and depth:
-            char = stripped[index]
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                # A backslash keeps the character after it inside the string,
-                # so an escaped quote does not end it early and a quoted
-                # ``\"`` or ``\\`` cannot swallow the block's closing brace.
-                escaped = True
-            elif quote is not None:
-                if char == quote:
-                    quote = None
-            elif char in "\"'":
-                quote = char
-            elif char == "{":
-                depth += 1
-            elif char == "}":
-                depth -= 1
-            index += 1
-        bodies[match.group("url")] = stripped[start : index - 1]
+        start = match.end()
+        end = _at_rule_end(stripped, start)
+        bodies[match.group("url")] = stripped[start : end - 1]
     return bodies
 
 

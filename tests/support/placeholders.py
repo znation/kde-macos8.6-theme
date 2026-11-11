@@ -90,6 +90,24 @@ def _read_text(path, root):
         ) from exc
 
 
+def _json_string_marker(value):
+    """Return the marker in a parsed JSON document's string values, or ``None``.
+
+    Every string value in the document is a candidate, nested to any depth.
+    A document whose strings all lack the token has no marker.
+    """
+    pending = [value]
+    while pending:
+        item = pending.pop()
+        if isinstance(item, dict):
+            pending.extend(item.values())
+        elif isinstance(item, list):
+            pending.extend(item)
+        elif isinstance(item, str) and TOKEN in item:
+            return item.split(TOKEN, 1)[1].strip()
+    return None
+
+
 def _marker_text(path, root):
     """Return the text after the ``PLACEHOLDER:`` token in *path*, or None.
 
@@ -112,16 +130,7 @@ def _marker_text(path, root):
         except json.JSONDecodeError:
             pass
         else:
-            pending = [value]
-            while pending:
-                item = pending.pop()
-                if isinstance(item, dict):
-                    pending.extend(item.values())
-                elif isinstance(item, list):
-                    pending.extend(item)
-                elif isinstance(item, str) and TOKEN in item:
-                    return item.split(TOKEN, 1)[1].strip()
-            return None
+            return _json_string_marker(value)
     for line in text.split("\n"):
         index = line.find(TOKEN)
         if index == -1:

@@ -25,6 +25,39 @@ _CSS_WHITESPACE = " \t\n\r\f"
 _ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
 
 
+def _hex_digits_end(text, index):
+    """Return the index past the hex digits opening at *index*, or ``None``.
+
+    At most six hexadecimal digits are consumed from *index* onward.
+    """
+    end = index
+    while end < len(text) and end - index < 6 and text[end] in "0123456789abcdefABCDEF":
+        end += 1
+    return None if end == index else end
+
+
+def _decode_css_escape(text, index):
+    """Decode the CSS escape whose backslash sits at *index* in *text*.
+
+    Returns ``(decoded, end)``: *decoded* is the escaped character and *end*
+    the index past it, where a hex escape's digits may be followed by the
+    one whitespace character that belongs to the escape (an escaped ``\r\n``
+    pair counts as one). An escape that is not a hex escape decodes the
+    character after the backslash itself. ``None`` stands for a malformed
+    escape: a backslash at the end of the text or one escaping a newline.
+    """
+    index += 1
+    if index == len(text) or text[index] in "\n\r\f":
+        return None
+    digits_end = _hex_digits_end(text, index)
+    if digits_end is None:
+        return text[index], index + 1
+    codepoint = int(text[index:digits_end], 16)
+    decoded = "\ufffd" if (codepoint == 0 or codepoint > 0x10FFFF
+                           or 0xD800 <= codepoint <= 0xDFFF) else chr(codepoint)
+    return decoded, _whitespace_end(text, digits_end)
+
+
 def _important_suffix_matches(suffix):
     """Decode the priority identifier's CSS escapes and compare its spelling."""
     if not suffix.startswith("!"):
@@ -41,27 +74,11 @@ def _important_suffix_matches(suffix):
             decoded.append(char)
             index += 1
             continue
-        index += 1
-        if index == len(suffix) or suffix[index] in "\n\r\f":
+        escape = _decode_css_escape(suffix, index)
+        if escape is None:
             return False
-        if suffix[index] in "0123456789abcdefABCDEF":
-            start = index
-            while (index < len(suffix) and index - start < 6
-                   and suffix[index] in "0123456789abcdefABCDEF"):
-                index += 1
-            codepoint = int(suffix[start:index], 16)
-            if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
-                decoded.append("\ufffd")
-            else:
-                decoded.append(chr(codepoint))
-            if index < len(suffix) and suffix[index] in _CSS_WHITESPACE:
-                if suffix[index] == "\r" and index + 1 < len(suffix) and suffix[index + 1] == "\n":
-                    index += 2
-                else:
-                    index += 1
-            continue
-        decoded.append(suffix[index])
-        index += 1
+        decoded_char, index = escape
+        decoded.append(decoded_char)
     while index < len(suffix) and suffix[index] in _CSS_WHITESPACE:
         index += 1
     return index == len(suffix) and "".join(decoded).translate(_ASCII_LOWER) == "important"
@@ -270,19 +287,16 @@ def _rule_blocks(text):
             bracket_depth += 1
         elif char == "]" and bracket_depth:
             bracket_depth -= 1
-        elif char == "{":
-            if not depth and not bracket_depth:
-                candidate = "".join(buffer)
-                buffer = []
-                selectors = candidate or None
-                continue
-        elif char == "}":
-            if not depth and not bracket_depth:
-                if selectors is not None:
-                    yield selectors, "".join(buffer)
-                selectors = None
-                buffer = []
-                continue
+        elif char == "{" and not depth and not bracket_depth:
+            selectors = "".join(buffer) or None
+            buffer = []
+            continue
+        elif char == "}" and not depth and not bracket_depth:
+            if selectors is not None:
+                yield selectors, "".join(buffer)
+            selectors = None
+            buffer = []
+            continue
         buffer.append(char)
 
 
@@ -381,6 +395,19 @@ def read_theme_text(path):
     return containment.read_text(path, ROOT, encoding="utf-8")
 
 
+def _whitespace_end(text, index):
+    """Return the index past the one whitespace character at *index*, if any.
+
+    A hex escape's digits may be followed by one whitespace character that
+    belongs to the escape; an escaped ``\r\n`` pair counts as one.
+    """
+    if index >= len(text) or text[index] not in _CSS_WHITESPACE:
+        return index
+    if text[index] == "\r" and index + 1 < len(text) and text[index + 1] == "\n":
+        return index + 2
+    return index + 1
+
+
 def _hex_escape_end(text, index):
     """Return the index past the hex escape opening at *index*, or ``None``.
 
@@ -390,17 +417,10 @@ def _hex_escape_end(text, index):
     than one digit is no escape, and the caller then treats the backslash
     by its own rules.
     """
-    end = index + 1
-    while end < len(text) and end - index <= 6 and text[end] in "0123456789abcdefABCDEF":
-        end += 1
-    if end == index + 1:
+    digits_end = _hex_digits_end(text, index + 1)
+    if digits_end is None:
         return None
-    if end < len(text) and text[end] in " \t\n\r\f":
-        if text[end] == "\r" and end + 1 < len(text) and text[end + 1] == "\n":
-            end += 2
-        else:
-            end += 1
-    return end
+    return _whitespace_end(text, digits_end)
 
 
 def _append_text(parts, text, pending_space, chunk):
@@ -494,27 +514,11 @@ def _canonicalize_declaration_name(name):
             decoded.append(char)
             index += 1
             continue
-        index += 1
-        if index == len(name) or name[index] in "\n\r\f":
+        escape = _decode_css_escape(name, index)
+        if escape is None:
             return name
-        if name[index] in "0123456789abcdefABCDEF":
-            start = index
-            while (index < len(name) and index - start < 6
-                   and name[index] in "0123456789abcdefABCDEF"):
-                index += 1
-            codepoint = int(name[start:index], 16)
-            if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
-                decoded.append("\ufffd")
-            else:
-                decoded.append(chr(codepoint))
-            if index < len(name) and name[index] in _CSS_WHITESPACE:
-                if name[index] == "\r" and index + 1 < len(name) and name[index + 1] == "\n":
-                    index += 2
-                else:
-                    index += 1
-            continue
-        decoded.append(name[index])
-        index += 1
+        decoded_char, index = escape
+        decoded.append(decoded_char)
     canonical = "".join(decoded)
     if canonical.startswith("--"):
         return canonical
@@ -537,6 +541,49 @@ def assert_svg_root_first(test, path):
         read_theme_text(path),
         r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
     )
+
+
+def _parsed_declarations(body, label, source):
+    """Return *body*'s ``(name, value, important)`` declarations.
+
+    A malformed declaration -- no unescaped ``:``, or an empty property name
+    or value (except an empty value on a named custom property) -- raises
+    ``ValueError`` instead of being dropped silently. Empty custom-property
+    values are retained as empty strings. A typo in a contributor-supplied
+    sheet names itself rather than surfacing later as a missing key.
+    """
+    declarations = []
+    for chunk in _split_declarations(body):
+        declaration = chunk.strip(' \t\n\r\f')
+        if not declaration:
+            continue
+        split = _split_property_value(chunk)
+        if split is not None:
+            name, value = split
+            name = _canonicalize_declaration_name(_collapse_whitespace(name))
+            value = _collapse_whitespace(value)
+        else:
+            name = value = ""
+        if not name or (not value and not (name.startswith("--") and len(name) > 2)):
+            raise ValueError(
+                f"{source or '<stylesheet>'}: malformed declaration in "
+                f"selector {label!r}: {declaration!r} "
+                "(expected 'property: value')"
+            )
+        declarations.append((name, value, _is_important(value)))
+    return declarations
+
+
+def _store_group_rules(rules, priorities, declarations):
+    """Store *declarations* under one selector, important beating normal.
+
+    Later declarations win ties: an important declaration overwrites a normal
+    one, and a later important one overwrites an earlier important one.
+    """
+    for name, value, important in declarations:
+        if important or not priorities.get(name, False):
+            rules[name] = value
+            priorities[name] = important
 
 
 def parse_css(text, source=None):
@@ -573,26 +620,7 @@ def parse_css(text, source=None):
     selectors = []
     for selector_text, body in _rule_blocks(without_definitions):
         label = _collapse_whitespace(selector_text)
-        declarations = []
-        for chunk in _split_declarations(body):
-            declaration = chunk.strip(' \t\n\r\f')
-            if not declaration:
-                continue
-            split = _split_property_value(chunk)
-            if split is not None:
-                name, value = split
-                name = _collapse_whitespace(name)
-                name = _canonicalize_declaration_name(name)
-                value = _collapse_whitespace(value)
-            else:
-                name = value = ""
-            if not name or (not value and not (name.startswith("--") and len(name) > 2)):
-                raise ValueError(
-                    f"{source or '<stylesheet>'}: malformed declaration in "
-                    f"selector {label!r}: {declaration!r} "
-                    "(expected 'property: value')"
-                )
-            declarations.append((name, value, _is_important(value)))
+        declarations = _parsed_declarations(body, label, source)
         group = [
             _collapse_whitespace(selector)
             for selector in _split_selector_list(selector_text)
@@ -601,10 +629,7 @@ def parse_css(text, source=None):
             selectors.append(selector)
             selector_rules = rules.setdefault(selector, {})
             priorities = rule_priorities.setdefault(selector, {})
-            for name, value, important in declarations:
-                if important or not priorities.get(name, False):
-                    selector_rules[name] = value
-                    priorities[name] = important
+            _store_group_rules(selector_rules, priorities, declarations)
     return definitions, rules, selectors
 
 

@@ -162,11 +162,12 @@ def _attribute_spans(compound):
                 start = index
             depth += 1
         elif char == "]":
-            if depth:
-                depth -= 1
-                if depth == 0 and start is not None:
-                    spans.append((start, index + 1))
-                    start = None
+            if not depth:
+                continue
+            depth -= 1
+            if not depth and start is not None:
+                spans.append((start, index + 1))
+                start = None
     return spans
 
 
@@ -216,6 +217,41 @@ def _blank_spans(compound, spans):
     return "".join(parts)
 
 
+def _not_argument_end(compound, end):
+    """Return the index past the ``)`` closing the ``:not(`` at *end*, or ``None``.
+
+    The scan starts just past the ``:not(``. Parentheses nest and are
+    balanced, so a quoted ``)`` inside the argument does not end it early;
+    quoted text and attribute selectors are tokens there, so a bracket does
+    not group and a quote does not end the argument. ``None`` stands for an
+    unterminated argument.
+    """
+    depth = 1
+    quote = None
+    bracket_depth = 0
+    while end < len(compound) and depth:
+        char = compound[end]
+        if _is_escaped(compound, end):
+            end += 1
+            continue
+        if quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+        elif not bracket_depth:
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+        end += 1
+    return None if depth else end
+
+
 def _not_spans(compound):
     """Return ``(start, end, argument)`` for each ``:not(...)`` in *compound*.
 
@@ -253,31 +289,8 @@ def _not_spans(compound):
             index += 1
             continue
         start = index
-        depth = 1
-        end = index + len(":not(")
-        inner_quote = None
-        inner_bracket = 0
-        while end < len(compound) and depth:
-            char = compound[end]
-            if _is_escaped(compound, end):
-                end += 1
-                continue
-            if inner_quote is not None:
-                if char == inner_quote:
-                    inner_quote = None
-            elif char in "\"'":
-                inner_quote = char
-            elif char == "[":
-                inner_bracket += 1
-            elif char == "]":
-                inner_bracket = max(0, inner_bracket - 1)
-            elif not inner_bracket:
-                if char == "(":
-                    depth += 1
-                elif char == ")":
-                    depth -= 1
-            end += 1
-        if depth:
+        end = _not_argument_end(compound, index + len(":not("))
+        if end is None:
             index += len(":not(")
             continue
         spans.append((start, end, compound[start + len(":not("):end - 1]))
@@ -380,11 +393,12 @@ def _split_selector(selector):
             else:
                 misplaced = True
         elif depth == 0 and char.isspace():
-            if current:
-                compounds.append("".join(current))
-                current = []
-                if pending is None:
-                    pending = " "
+            if not current:
+                continue
+            compounds.append("".join(current))
+            current = []
+            if pending is None:
+                pending = " "
         else:
             if not current and compounds and pending is not None:
                 combinators.append(pending)
@@ -451,13 +465,12 @@ def _parentheses_are_balanced(selector):
             bracket_depth += 1
         elif char == "]":
             bracket_depth = max(0, bracket_depth - 1)
-        elif not bracket_depth:
-            if char == "(":
-                depth += 1
-            elif char == ")":
-                depth -= 1
-                if depth < 0:
-                    return False
+        elif not bracket_depth and char == "(":
+            depth += 1
+        elif not bracket_depth and char == ")":
+            depth -= 1
+            if depth < 0:
+                return False
     return depth == 0
 
 

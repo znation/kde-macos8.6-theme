@@ -77,6 +77,49 @@ def _alias_names(node: ast.Import | ast.ImportFrom) -> list[str]:
     return names
 
 
+def _register_imported_names(imported_from, package, imports):
+    """Add the ``(module, name)`` pairs *imports* re-export to *imported_from*.
+
+    Facade modules re-export through these pairs, so a name another module
+    imports from this one keeps this one's own import alive.
+    """
+    for node, _names in imports:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        resolved = _resolved_module(package, node)
+        # Record each name as this file imported it (never the ``as`` alias
+        # a consuming module rebinds it to), so an aliased re-export keeps
+        # the source module's own import without masking a dead one under
+        # another name.
+        imported_from.update(
+            (resolved, alias.name)
+            for alias in node.names
+            if alias.name != "*"
+        )
+
+
+def _unused_names(node, names, lines, read_names, dunder_all, candidates,
+                  imported_from):
+    """Return the ``(line, name)`` pairs one import statement leaves unused."""
+    if (isinstance(node, ast.ImportFrom)
+            and node.level == 0
+            and node.module == "__future__"):
+        return []
+    if _noqa_marked(lines, node):
+        return []
+    unused = []
+    for name in names:
+        if name in read_names or name in dunder_all:
+            continue
+        if any(
+            module in candidates and imported == name
+            for module, imported in imported_from
+        ):
+            continue
+        unused.append((node.lineno, name))
+    return unused
+
+
 def _noqa_marked(lines: list[str], node: ast.stmt) -> bool:
     """Return whether the statement's lines carry a ``# noqa`` comment."""
     span = lines[node.lineno - 1 : (node.end_lineno or node.lineno)]
@@ -85,6 +128,42 @@ def _noqa_marked(lines: list[str], node: ast.stmt) -> bool:
         and re.match(r"#\s*noqa\b", token.string)
         for token in tokenize.generate_tokens(io.StringIO("\n".join(span)).readline)
     )
+
+
+def _all_entry_writer(node):
+    """Return whether *node* assigns ``__all__`` or grows it by method call.
+
+    The call form ``__all__.extend(["os"])`` (and its append and insert
+    siblings) adds entries exactly like an assignment, so a re-export hub
+    that grows ``__all__`` by method call keeps the names it adds. A call
+    that only shrinks or reorders (``remove``, ``sort``) adds nothing and is
+    no allowance.
+    """
+    targets: list[ast.expr] = []
+    if isinstance(node, ast.Assign):
+        targets = node.targets
+    elif isinstance(node, ast.AugAssign):
+        targets = [node.target]
+    elif isinstance(node, ast.AnnAssign) and node.value is not None:
+        targets = [node.target]
+    grows_all = (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr in ("append", "extend", "insert")
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "__all__"
+    )
+    return grows_all or any(
+        isinstance(target, ast.Name) and target.id == "__all__"
+        for target in targets
+    )
+
+
+def _string_constants(node):
+    """Yield each string constant in *node*'s subtree."""
+    for value in ast.walk(node):
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            yield value.value
 
 
 def _scan_module(
@@ -110,36 +189,8 @@ def _scan_module(
             # counting it would hide a genuinely dead import; a `del` then
             # flags aloud rather than being taken as a use.
             read_names.add(node.id)
-        else:
-            targets: list[ast.expr] = []
-            if isinstance(node, ast.Assign):
-                targets = node.targets
-            elif isinstance(node, ast.AugAssign):
-                targets = [node.target]
-            elif isinstance(node, ast.AnnAssign) and node.value is not None:
-                targets = [node.target]
-            # The call form `__all__.extend(["os"])` (and its append and
-            # insert siblings) adds entries exactly like an assignment, so
-            # a re-export hub that grows `__all__` by method call keeps the
-            # names it adds. A call that only shrinks or reorders (`remove`,
-            # `sort`) adds nothing and is no allowance.
-            grows_all = (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Attribute)
-                and node.func.attr in ("append", "extend", "insert")
-                and isinstance(node.func.value, ast.Name)
-                and node.func.value.id == "__all__"
-            )
-            if not grows_all and not any(
-                isinstance(t, ast.Name) and t.id == "__all__"
-                for t in targets
-            ):
-                continue
-            for value in ast.walk(node):
-                if isinstance(value, ast.Constant) and isinstance(
-                    value.value, str
-                ):
-                    entries.add(value.value)
+        elif _all_entry_writer(node):
+            entries.update(_string_constants(node))
     return imports, read_names, entries
 
 
@@ -180,18 +231,7 @@ def unused_imports(
         tree = ast.parse(source, filename=str(path))
         imports, read_names, dunder_all = _scan_module(tree)
         package = path.relative_to(root).with_suffix("").parts[:-1]
-        for node, names in imports:
-            if not isinstance(node, ast.ImportFrom):
-                continue
-            resolved = _resolved_module(package, node)
-            for alias in node.names:
-                # Record the name as this file imported it (never the
-                # ``as`` alias a consuming module rebinds it to), so an
-                # aliased re-export keeps the source module's own import
-                # without masking a dead one under another name.
-                if alias.name == "*":
-                    continue
-                imported_from.add((resolved, alias.name))
+        _register_imported_names(imported_from, package, imports)
         if path.name != "__init__.py":
             scanned.append(
                 (path, imports, source.splitlines(), read_names, dunder_all)
@@ -202,23 +242,11 @@ def unused_imports(
         relative = str(path.relative_to(root))
         candidates = _dotted_candidates(path, root)
         for node, names in imports:
-            if (
-                isinstance(node, ast.ImportFrom)
-                and node.level == 0
-                and node.module == "__future__"
-            ):
-                continue
-            if _noqa_marked(lines, node):
-                continue
-            for name in names:
-                if name in read_names or name in dunder_all:
-                    continue
-                if any(
-                    module in candidates and imported == name
-                    for module, imported in imported_from
-                ):
-                    continue
-                findings.append((relative, node.lineno, name))
+            unused = _unused_names(
+                node, names, lines, read_names, dunder_all,
+                candidates, imported_from,
+            )
+            findings.extend((relative, line, name) for line, name in unused)
     # ast.walk collects a module's imports breadth-first, so a nested or
     # block-nested import would trail its later top-level imports; sort by
     # path, then line, then name to keep the promise the docstring states.
