@@ -111,8 +111,9 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                     },
                 )
         # Exact guarded spellings also prevent overriding disabled selections.
-        # The family keeps the landed dotted focus outline as its only other
-        # icon-view rule: a renamed restated arm leaves exactly its successor.
+        # The family keeps the landed dotted focus outline and the 2026-11-11
+        # disabled-view restatement's two arms as its only other icon-view
+        # rules: a renamed restated arm leaves exactly its successor.
         # 2026-11-04: the vertical-stepper and content-view-check corner
         # record restates eight more iconview arms — the selection-check
         # state faces `iconview.content-view.check…:not(list)` — all pinned
@@ -132,6 +133,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "iconview" in selector},
             {
                 "iconview:focus",
+                "iconview:disabled",
+                "iconview text:disabled",
                 "iconview.view:not(:disabled):selected",
                 "iconview.view:not(:disabled):selected:focus",
                 "iconview.view:not(:disabled):backdrop:selected",

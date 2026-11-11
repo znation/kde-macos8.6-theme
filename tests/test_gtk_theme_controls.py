@@ -652,6 +652,67 @@ print("progress bar: the 0.5 fill spans trough rows 1-10 and columns 1-10 on the
         )
         self._run_gtk_child(program, str(CSS))
 
+    def test_disabled_view_renders_the_white_field_and_grey_ink(self):
+        # An insensitive view's stock arms out-specify the landed
+        # `.view, textview text, list` group, so the pixels show whether the
+        # restated disabled view group actually reaches the text window. The
+        # buffer's underscores are scaled 3x with a TextTag: at the default
+        # font the underscore stroke is a sub-pixel hairline and no pixel
+        # reaches full ink coverage, so only a scaled stroke offers the
+        # solid run the restated ink is pinned through. The GTK work runs in
+        # a child interpreter; see _run_gtk_child for why it never runs in
+        # this one.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+'''
+            + _GTK3_SHEET_AND_WINDOW
+            + '''box = Gtk.Box()
+box.set_border_width(5)
+view = Gtk.TextView()
+view.set_sensitive(False)
+view.set_can_focus(False)
+buf = view.get_buffer()
+tag = buf.create_tag("scaled", scale=3.0)
+buf.set_text("_" * 60, -1)
+buf.apply_tag(tag, buf.get_start_iter(), buf.get_end_iter())
+box.pack_start(view, True, True, 0)
+window.add(box)
+window.set_default_size(240, 96)
+'''
+            + _GTK3_PIXEL_HEAD
+            + '''alloc = view.get_allocation()
+left, top = alloc.x, alloc.y
+right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+assert (right - left + 1) * (bottom - top + 1) > 400, (left, top, right, bottom)
+
+FIELD, INK = "#FFFFFF", "#888888"
+STOCK = ("#929595", "#faf9f8")
+
+corners = [at(left, top), at(right, top), at(left, bottom), at(right, bottom)]
+assert corners == [FIELD] * 4, corners
+
+for y in range(top, bottom + 1):
+    for x in range(left, right + 1):
+        pixel = at(x, y)
+        assert pixel not in STOCK, (x, y, pixel)
+
+best = 0
+for y in range(top, bottom + 1):
+    run = 0
+    for x in range(left, right + 1):
+        if at(x, y) == INK:
+            run += 1
+            best = max(best, run)
+        else:
+            run = 0
+assert best >= 8, best
+print("disabled text view: the allocation corners read the white field, no pixel inside the allocation reads a stock disabled literal, and one row carries a >=8px #888888 underscore run")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
     def test_scrolled_viewport_draws_no_frame(self):
         self.assert_rule(
             "scrolledwindow viewport.frame",

@@ -4210,6 +4210,52 @@ textview text selection:backdrop:disabled,
   color: #888888;
 }
 
+/* 2026-11-11: gresource probe of the GTK 3 gtk-contained.css disabled view
+   arms (libgtk-3 3.24.49; full resource path in docs/invariants.md): the
+   resource arms exactly three disabled view groups — a five-member
+   `.view:disabled, iconview:disabled, .view text:disabled, iconview
+   text:disabled, textview text:disabled` comma group (resource line 28),
+   `treeview.view:disabled` (line 699) and `treeview.view:disabled:backdrop`
+   (line 705) — and the dark-twin resource `gtk-contained-dark.css` carries
+   the same-shaped family (comma group at its own line 28, tree arms at
+   lines 691 and 697; all five foreign literals elided here, their verbatim
+   values in the docs/invariants.md row). Render-probed the same day: the
+   user sheet installs above the toolkit resource, so the landed
+   `.view, textview text, list` base group already wins per-property and an
+   insensitive view today paints the landed white field — under the base
+   group's unconditional black ink, unlike every other landed insensitive
+   text (the disabled label, entry and disabled-selected arms paint the
+   landed insensitive grey). These restatements give the insensitive view
+   family that same grey, the ink re-derived from the landed insensitive
+   records, and restate the landed white field per-family so the restated
+   group stays self-contained; the backdrop tree twin keeps the grey in
+   unfocused windows, the policy the landed disabled-selected backdrop
+   restatements follow. The `:disabled:selected` combinations stay owned by
+   the landed disabled-selected groups above (their ink, including the
+   treeview disabled-selected pair); the toolkit's remaining insensitive
+   arms outside the view family (label, entry and button fields) are the
+   landed disabled-text records' own; and the GTK 4 sibling — the
+   integration library's per-family disabled view ink arms and the landed
+   2026-11-09 GTK 4 disabled-view group's deliberately excluded `color`
+   co-declaration — is a separate candidate, not this one. No geometry,
+   margin, transition or other-state declaration is added. */
+.view:disabled,
+iconview:disabled,
+.view text:disabled,
+iconview text:disabled,
+textview text:disabled {
+  color: #888888;
+  background-color: #FFFFFF;
+}
+
+treeview.view:disabled {
+  color: #888888;
+}
+
+treeview.view:disabled:backdrop {
+  color: #888888;
+}
+
 /* 2026-10-31: libgtk-3 3.24.49 tab-close ink from its bundled GTK resource
  * (full resource path in docs/invariants.md); no reference screenshot shows
  * this control. Reuse the landed black label and insensitive grey. */
