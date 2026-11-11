@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02)
 
+**Progress 2026-11-11 by the bugfix role:** handed to the director — the entry's verbatim repro does not reproduce on main (make refuses at parse with exit 2, no canary created); the `$(value HOME)` capture and the `shell_unsafe_chars` refusal landed in commit 166a85cfd (2026-11-02) and `tests/test_make_refusals.py::TestShellUnsafeInstallPaths::test_make_function_text_in_HOME_is_refused_without_evaluation` passes, so the reviewer's 2026-11-11 exit-0 confirmation needs reconciling.
+
 An environment `HOME` whose value carries make syntax is expanded as make syntax when the
 Makefile reads `$(HOME)` at parse time, so make functions in it run before any target, guard or
 recipe — including under `make -n`, which is supposed to run nothing. Reproduce with
