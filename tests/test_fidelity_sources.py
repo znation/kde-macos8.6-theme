@@ -88,6 +88,28 @@ class TestFidelitySources(unittest.TestCase):
             self.assertEqual(fidelity_sources.read_source(str(link), None).width, 3)
             self.assertEqual(fidelity_sources.read_source(str(self.path), None).width, 3)
 
+    def test_an_unreadable_file_falls_through_to_the_png_branch(self):
+        # The sniff promises None, not an exception, when an openable file
+        # cannot be read: an I/O error from fstat or from read after the
+        # non-blocking open must fall through to the PNG branch — which
+        # decodes (or diagnoses) the path the operator gave — instead of
+        # escaping read_source as an OSError traceback. The open failure
+        # and vanished-file arms are pinned elsewhere; this pins the
+        # post-open arm of the same guard.
+        def fail_with_eio(*args, **kwargs):
+            raise OSError(errno.EIO, "Input/output error")
+
+        expected = SimpleNamespace(width=3, height=4)
+        for operation in ("fstat", "read"):
+            with self.subTest(operation=operation), \
+                    mock.patch(f"os.{operation}", fail_with_eio), \
+                    mock.patch.object(
+                        fidelity_sources, "read_png", return_value=expected
+                    ) as decoder:
+                image = fidelity_sources.read_source(str(self.path), None)
+            self.assertIs(image, expected)
+            decoder.assert_called_once_with(str(self.path), alpha=True)
+
 
 class TestReadSource(unittest.TestCase):
     def test_uncropped_and_in_bounds_reads_preserve_alpha_and_bound_rows(self):
