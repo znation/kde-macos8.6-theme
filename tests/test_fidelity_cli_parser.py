@@ -77,6 +77,24 @@ class TestFidelityCliParser(unittest.TestCase):
             ):
                 fidelity_arguments.worst_pixel_offset(value)
 
+    def test_run_offset_converters_accept_nonnegative_ascii_decimal_and_reject_otherwise(self):
+        for converter, flag in (
+            (fidelity_arguments.difference_run_offset, "--difference-run-offset"),
+            (
+                fidelity_arguments.difference_column_run_offset,
+                "--difference-column-run-offset",
+            ),
+        ):
+            with self.subTest(converter=converter.__name__):
+                self.assertEqual(converter("0"), 0)
+                self.assertEqual(converter("7"), 7)
+                for value in ("-1", "+1", "1.0", "", "١"):
+                    with self.subTest(value=value), self.assertRaisesRegex(
+                        fidelity_arguments.argparse.ArgumentTypeError,
+                        flag + r" must be a nonnegative ASCII integer",
+                    ):
+                        converter(value)
+
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
         for value, diagnostic in (

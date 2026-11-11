@@ -17,34 +17,37 @@ from tools import theme_config_writer, theme_defaults  # noqa: E402
 
 
 def _recording_writer(recorded):
-    """Return a ``write_atomically`` stand-in recording ``(config name, bytes)``.
+    """Patch ``write_config_atomically`` with a stand-in recording calls.
 
-    :func:`theme_config_writer.write_configs` takes the writer as an argument,
-    so a recording stand-in pins which names the per-name loop writes and in
-    which call order, without touching a real file.
+    The publication step :func:`theme_config_writer.write_configs` uses is
+    the module's ``write_config_atomically``; patching that attribute lets a
+    recording stand-in pin which names the per-name loop writes and in which
+    call order, without touching a real file. Use as a context manager.
     """
 
     def write(path, content):
         recorded.append((path.name, content))
 
-    return write
+    return mock.patch.object(theme_config_writer, "write_config_atomically", write)
 
 
 def _failing_writer(failures):
-    """Return a ``write_atomically`` stand-in raising before its failing writes.
+    """Patch ``write_config_atomically`` to raise before its failing writes.
 
     A name in *failures* raises instead of writing anything; every other
-    write goes through the real
-    :func:`theme_config_writer.write_config_atomically`, so the promoted
-    file is a genuine temp-sibling-and-rename write.
+    write goes through the real publication step captured before the patch,
+    so the promoted file is a genuine temp-sibling-and-rename write. Use as
+    a context manager.
     """
+
+    real = theme_config_writer.write_config_atomically
 
     def write(path, content):
         if path.name in failures:
             raise OSError(f"simulated failure writing {path.name}")
-        theme_config_writer.write_config_atomically(path, content)
+        real(path, content)
 
-    return write
+    return mock.patch.object(theme_config_writer, "write_config_atomically", write)
 
 
 def _run_defaults_groups_in_child(path):
@@ -505,13 +508,12 @@ class TestWriteConfigs(unittest.TestCase):
         # config home (where a mkdir call would be a no-op and the paths
         # would be recorded on a fake object) observes.
         recorded = []
-        with self.assertRaises(ValueError) as caught:
+        with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
             theme_config_writer.write_configs(
                 "somewhere/config",
                 ("kwinrc",),
                 defaults_path=make_tmp_dir(self) / "defaults",
                 read_groups=lambda _path: {},
-                write_atomically=_recording_writer(recorded),
             )
         self.assertIn("config_home must be a pathlib.Path", str(caught.exception))
         self.assertEqual([], recorded)
@@ -523,13 +525,15 @@ class TestWriteConfigs(unittest.TestCase):
         recorded = []
         for names in ("kwinrc", b"kwinrc"):
             with self.subTest(names=names):
-                with self.assertRaises(ValueError) as caught:
+                with (
+                    self.assertRaises(ValueError) as caught,
+                    _recording_writer(recorded),
+                ):
                     theme_config_writer.write_configs(
                         make_tmp_dir(self),
                         names,
                         defaults_path=make_tmp_dir(self) / "defaults",
                         read_groups=lambda _path: {},
-                        write_atomically=_recording_writer(recorded),
                     )
                 self.assertIn("not a single", str(caught.exception))
                 self.assertEqual([], recorded)
@@ -538,13 +542,12 @@ class TestWriteConfigs(unittest.TestCase):
         # A non-iterable names value must surface as the iterable-expected
         # ValueError, naming its type, before the writer fires.
         recorded = []
-        with self.assertRaises(ValueError) as caught:
+        with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
             theme_config_writer.write_configs(
                 make_tmp_dir(self),
                 37,
                 defaults_path=make_tmp_dir(self) / "defaults",
                 read_groups=lambda _path: {},
-                write_atomically=_recording_writer(recorded),
             )
         self.assertIn("must be an iterable", str(caught.exception))
         self.assertIn("int", str(caught.exception))
@@ -558,13 +561,15 @@ class TestWriteConfigs(unittest.TestCase):
         recorded = []
         for name in (".", "..", "sub/kwinrc", "kwinrc\0", ""):
             with self.subTest(name=name):
-                with self.assertRaises(ValueError) as caught:
+                with (
+                    self.assertRaises(ValueError) as caught,
+                    _recording_writer(recorded),
+                ):
                     theme_config_writer.write_configs(
                         make_tmp_dir(self),
                         (name,),
                         defaults_path=make_tmp_dir(self) / "defaults",
                         read_groups=lambda _path: {},
-                        write_atomically=_recording_writer(recorded),
                     )
                 self.assertIn("plain config filenames", str(caught.exception))
                 self.assertEqual([], recorded)
@@ -577,7 +582,7 @@ class TestWriteConfigs(unittest.TestCase):
         # is fully defined.
         recorded = []
         defaults = make_tmp_dir(self) / "defaults"
-        with self.assertRaises(ValueError) as caught:
+        with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
             theme_config_writer.write_configs(
                 make_tmp_dir(self),
                 ("kwinrc", "plasmarc"),
@@ -585,7 +590,6 @@ class TestWriteConfigs(unittest.TestCase):
                 read_groups=lambda _path: {
                     ("kwinrc", "Theme"): {"name": "demo"},
                 },
-                write_atomically=_recording_writer(recorded),
             )
         self.assertIn("plasmarc", str(caught.exception))
         self.assertIn(str(defaults), str(caught.exception))
@@ -599,16 +603,16 @@ class TestWriteConfigs(unittest.TestCase):
         # written-config pin asserts, under an injected read_groups that
         # names no shipped defaults file.
         recorded = []
-        theme_config_writer.write_configs(
-            make_tmp_dir(self),
-            ("kwinrc", "plasmarc"),
-            defaults_path=make_tmp_dir(self) / "defaults",
-            read_groups=lambda _path: {
-                ("plasmarc", "Theme"): {"name": "example"},
-                ("kwinrc", "General"): {"key": "value"},
-            },
-            write_atomically=_recording_writer(recorded),
-        )
+        with _recording_writer(recorded):
+            theme_config_writer.write_configs(
+                make_tmp_dir(self),
+                ("kwinrc", "plasmarc"),
+                defaults_path=make_tmp_dir(self) / "defaults",
+                read_groups=lambda _path: {
+                    ("plasmarc", "Theme"): {"name": "example"},
+                    ("kwinrc", "General"): {"key": "value"},
+                },
+            )
         self.assertEqual(
             [
                 ("kwinrc", "[General]\nkey=value\n"),
@@ -628,7 +632,7 @@ class TestWriteConfigs(unittest.TestCase):
         directory = make_tmp_dir(self)
         plasmarc = directory / "plasmarc"
         plasmarc.write_text("ORIGINAL\n", encoding="utf-8")
-        with self.assertRaises(OSError) as caught:
+        with self.assertRaises(OSError) as caught, _failing_writer(("plasmarc",)):
             theme_config_writer.write_configs(
                 directory,
                 ("kwinrc", "plasmarc"),
@@ -637,7 +641,6 @@ class TestWriteConfigs(unittest.TestCase):
                     ("kwinrc", "Theme"): {"name": "one"},
                     ("plasmarc", "Theme"): {"name": "two"},
                 },
-                write_atomically=_failing_writer(("plasmarc",)),
             )
         self.assertIn("plasmarc", str(caught.exception))
         self.assertEqual(
