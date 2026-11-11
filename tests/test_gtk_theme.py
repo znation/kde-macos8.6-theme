@@ -347,13 +347,15 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_inline_link_interaction_colours(self):
+        # GTK 3 gtklabel.c creates child link nodes with either LINK or VISITED,
+        # never both. Pin declarations for those actual node/state combinations.
         blue = (
-            "label:link:hover:not(:disabled)",
-            "label:link:active:not(:disabled)",
+            "label > link:link:hover:not(:disabled)",
+            "label > link:link:active:not(:disabled)",
         )
         visited = (
-            "label:link:visited:hover:not(:disabled)",
-            "label:link:visited:active:not(:disabled)",
+            "label > link:visited:hover:not(:disabled)",
+            "label > link:visited:active:not(:disabled)",
         )
         for selector in blue:
             self.assertEqual(self.rules[selector], {"color": "#0000EE"})

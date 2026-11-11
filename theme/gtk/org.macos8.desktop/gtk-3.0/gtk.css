@@ -4142,14 +4142,16 @@ notebook > header tab button.flat:backdrop:disabled {
 }
 
 /* 2026-10-31: no reference screenshot shows GTK inline-link interaction;
- * reuse the colour scheme's link roles for GTK 3's stock interaction states. */
-label:link:hover:not(:disabled),
-label:link:active:not(:disabled) {
+ * reuse the colour scheme's link roles for GTK 3's stock interaction states.
+ * GtkLabel's gtklabel.c CSS-node documentation names child link nodes,
+ * carrying mutually exclusive link and visited states (checked 2026-11-11). */
+label > link:link:hover:not(:disabled),
+label > link:link:active:not(:disabled) {
   color: #0000EE;
 }
 
-label:link:visited:hover:not(:disabled),
-label:link:visited:active:not(:disabled) {
+label > link:visited:hover:not(:disabled),
+label > link:visited:active:not(:disabled) {
   color: #551A8B;
 }
 
