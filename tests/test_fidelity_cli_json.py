@@ -141,6 +141,30 @@ class TestJsonCli(FidelityCliTestCase):
         self.assertEqual(result.stdout, "")
         self.assertTrue(result.stderr)
 
+    def test_usage_and_read_errors_emit_no_json(self):
+        reference = self._solid_reference()
+        tmp = self._tmp_dir()
+        malformed = self._write(tmp, "malformed.png", b"not a png")
+        _, small = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        _, large = rgb_image(4, 4, lambda x, y: (x * 9, y * 9, 5))
+        small_path = self._write(tmp, "small.png", small)
+        large_path = self._write(tmp, "large.png", large)
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(self._tmp_dir(), "reference.png", data)
+        cases = {
+            "invalid argument": ((reference, reference, "--max-mae", "-1"), None),
+            "malformed PNG": ((malformed, reference), None),
+            "unequal dimensions": ((small_path, large_path), "size mismatch"),
+            "out-of-bounds crop": ((small_path, small_path, "--crop", "1,1,2,2"), "falls outside"),
+            "escaping symlink": ((reference, str(link)), "resolves outside"),
+        }
+        for name, (args, needle) in cases.items():
+            with self.subTest(name), mock.patch.object(fidelity_sources, "ROOT", str(root)):
+                result = self._run(*args, "--json")
+            self._assert_usage_error(result, *([needle] if needle else []))
+            self.assertEqual(result.stdout, "")
+            self.assertTrue(result.stderr)
+
     def test_control_path_round_trips_with_escaped_output(self):
         path = self._solid_reference()
         control_path = path + "\x01"
