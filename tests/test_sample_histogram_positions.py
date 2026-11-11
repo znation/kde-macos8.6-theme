@@ -61,6 +61,37 @@ class TestSampleHistogramPositions(CliTestCase):
         self.assertEqual([item["alpha"] for item in colors], [0, 128])
         positioned.assert_called_once()
 
+    def test_disconnected_first_occurrence_differs_from_bounds_corner(self):
+        _, data = rgb_image(6, 6, lambda x, y: (
+            (9, 9, 9) if (x, y) in ((5, 0), (0, 5)) else (0, 0, 0)))
+        path = self._write(self._tmp_dir(), "disconnected.png", data)
+        result = self._run(path, "0", "0", "--width", "6", "--height", "6",
+                           "--histogram", "--color-positions", "--color-bounds", "--json")
+        self._assert_success(result)
+        colors = json.loads(result.stdout)["colors"]
+        self.assertEqual(colors[1], {
+            "rgb": [9, 9, 9], "hex": "#090909", "count": 2,
+            "position": {"x": 5, "y": 0},
+            "bounds": {"x": 0, "y": 0, "width": 6, "height": 6},
+        })
+
+    def test_single_pixel_and_uniform_region(self):
+        _, data = rgb_image(6, 6, lambda x, y: (
+            (9, 9, 9) if (x, y) in ((5, 0), (0, 5)) else (0, 0, 0)))
+        path = self._write(self._tmp_dir(), "anchors.png", data)
+        single = self._run(path, "5", "0", "--width", "1", "--height", "1",
+                           "--histogram", "--color-positions", "--json")
+        self._assert_success(single)
+        self.assertEqual(json.loads(single.stdout)["colors"], [
+            {"rgb": [9, 9, 9], "hex": "#090909", "count": 1, "position": {"x": 5, "y": 0}},
+        ])
+        uniform = self._run(path, "1", "1", "--width", "4", "--height", "4",
+                            "--histogram", "--color-positions", "--json")
+        self._assert_success(uniform)
+        self.assertEqual(json.loads(uniform.stdout)["colors"], [
+            {"rgb": [0, 0, 0], "hex": "#000000", "count": 16, "position": {"x": 1, "y": 1}},
+        ])
+
     def test_option_requires_histogram_before_reads_and_script_parity(self):
         path = self._fixture()
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
