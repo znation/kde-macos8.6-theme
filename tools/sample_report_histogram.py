@@ -21,9 +21,12 @@ else:  # run directly: python3 tools/sample.py
 def _palette_filters_requested(args) -> bool:
     """Return whether any optional palette filter limits the emitted colors.
 
-    The histogram MQA is shared by callers whose namespace carries only the
-    attributes their report asked for, so every attribute beyond the parser's
-    own ``top_colors`` is read tolerantly.
+    Three sites in this module share the predicate: the result assembler's
+    eligibility branch, its totals fields and the printer's totals lines.
+    Only ``top_colors`` is guaranteed present in every caller's namespace
+    (the sample CLI's parser always defines it); tests drive the report with
+    namespaces carrying just the attributes their report asked for, so every
+    other attribute is read tolerantly with getattr.
     """
     return (args.top_colors is not None
             or getattr(args, "color_offset", None) is not None

@@ -1,4 +1,4 @@
-"""Output formatting and report handlers for the reference pixel sampler."""
+"""Dispatch to the reference pixel sampler's report handlers."""
 
 from __future__ import annotations
 
