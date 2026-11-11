@@ -37,6 +37,12 @@ class TestSampleRunsColors(CliTestCase):
                                "--run-color", "040506", "--json")
         unfiltered = self._run(*base, "--json")
         self.assertEqual(json.loads(all_colors.stdout)["runs"], json.loads(unfiltered.stdout)["runs"])
+        _, data = rgb_image(4, 2, lambda x, y: (1, 2, 3))
+        rows_path = self._write(self._tmp_dir(), "rows.png", data)
+        rows = self._run(rows_path, "0", "0", "--width", "4", "--height", "2", "--runs",
+                         "--run-axis", "horizontal", "--run-color", "010203", "--json")
+        self.assertEqual([(r["x"], r["y"], r["length"]) for r in json.loads(rows.stdout)["runs"]],
+                         [(0, 0, 4), (0, 1, 4)])
 
     def test_alpha_grouping_selection_and_vertical_scanlines(self):
         rgba = bytes((1, 2, 3, 0, 1, 2, 3, 128, 4, 5, 6, 255))
@@ -47,6 +53,15 @@ class TestSampleRunsColors(CliTestCase):
                           "--run-color", "010203", "--json")
         self.assertEqual([(r["x"], r["length"], r["alpha"]) for r in json.loads(alpha.stdout)["runs"]],
                          [(0, 1, 0), (1, 1, 128)])
+        short = self._run(alpha_path, "0", "0", "--width", "3", "--runs", "--alpha",
+                          "--run-color", "010203", "--min-run-length", "2", "--json")
+        self.assertEqual(json.loads(short.stdout)["runs"], [])
+        _, data = rgb_image(2, 1, lambda x, y: (7, 8, 9))
+        opaque_path = self._write(self._tmp_dir(), "opaque.png", data)
+        opaque = self._run(opaque_path, "0", "0", "--width", "2", "--runs", "--alpha",
+                           "--run-color", "070809", "--json")
+        self.assertEqual([(r["x"], r["length"], r["alpha"]) for r in json.loads(opaque.stdout)["runs"]],
+                         [(0, 2, 255)])
         _, data = rgb_image(5, 5, lambda x, y: (1, 2, 3) if x == 2 and y in (1, 2, 4) else (0, 0, 0))
         path = self._write(self._tmp_dir(), "vertical.png", data)
         vertical = self._run(path, "2", "1", "--height", "4", "--runs", "--run-color", "010203", "--json")
@@ -109,7 +124,7 @@ class TestSampleRunsColors(CliTestCase):
         parser = build_parser()
         self.assertIsNone(parser.parse_args(("image.png", "0", "0", "--runs")).run_colors)
         self.assertIn("--run-color RRGGBB", parser.format_help())
-        for value in ("12345", "gggggg", "#1234567", " 010203"):
+        for value in ("12345", "gggggg", "#1234567", " 010203", "010203 "):
             result = self._run("missing.png", "0", "0", "--runs", "--run-color", value)
             self.assertEqual((result.returncode, result.stdout), (2, ""), value)
         with mock.patch.object(sample.os, "open") as open_image:
