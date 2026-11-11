@@ -23,10 +23,9 @@ from support.config_home_cases import (
 )
 from support.theme_install import (
     assert_make_n_uninstall_parses,
-    read_bytes,
+    assert_uninstall_diagnostics,
     write_config_file,
 )
-from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
 DTHEME_ID = "org.macos8.desktop"
@@ -55,26 +54,14 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(config, "[Theme]\nname=" + DTHEME_ID + "\n")
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
         # A diagnostic must not edit the user's plasmarc.
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(config, "[Theme]\n  name = " + DTHEME_ID + "  \n")
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
         # plasma-apply-desktoptheme would never write this shape, but an
@@ -86,13 +73,7 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config,
             "\ufeff[Theme]\r\n# a comment line\r\nname=" + DTHEME_ID + "\r\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -100,13 +81,7 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "[Theme]\nname=breeze_dark\nname=" + DTHEME_ID + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_a_later_duplicate_names_ours(self):
         # The scanner takes the last duplicate's value, as the other four
@@ -116,43 +91,28 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "[Theme]\nname=" + DTHEME_ID + "\ncursorTheme=ignored\nname=" + DTHEME_ID + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_not_warned_for_a_foreign_value(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[Theme]\nname=breeze_dark\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_an_empty_value(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[Theme]\nname=\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_without_a_theme_group(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[General]\nname=" + DTHEME_ID + "\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_when_the_key_sits_in_another_group(self):
         tmp = str(make_tmp_dir(self))
@@ -161,10 +121,7 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[Theme]\nextra=1\n[Other]\nname=" + DTHEME_ID + "\n"
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -173,30 +130,21 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[Theme]\nname=" + DTHEME_ID + "\nname=breeze_dark\n"
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_there_is_no_plasmarc(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(config, exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_the_path_is_a_directory(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(os.path.join(config, "plasmarc"), exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         # Like the four existing diagnostics, the guard ignores an unset or
@@ -231,24 +179,19 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         os.makedirs(config, exist_ok=True)
         with open(kcminputrc, "wb") as handle:
             handle.write(("[Mouse]\ncursorTheme=" + DTHEME_ID + "\n").encode("utf-8"))
-        original = read_bytes(plasmarc)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(plasmarc), result.stderr)
-        self.assertIn(RESET, result.stderr)
-        self.assertIn("plasma-apply-cursortheme breeze_cursors", result.stderr)
-        self.assertIn(
-            (
-                "uninstall: the pointer selection still names "
-                + DTHEME_ID
-                + " after removal in "
-                + kcminputrc
-            ),
-            result.stderr,
+        assert_uninstall_diagnostics(
+            self,
+            tmp,
+            config,
+            rule_for(plasmarc),
+            RESET,
+            "plasma-apply-cursortheme breeze_cursors",
+            "uninstall: the pointer selection still names "
+            + DTHEME_ID
+            + " after removal in "
+            + kcminputrc,
+            unchanged=plasmarc,
         )
-        self.assertEqual(original, read_bytes(plasmarc))
 
     def test_make_n_uninstall_still_parses(self):
         assert_make_n_uninstall_parses(self, '--desktop-id "org.macos8.desktop"')

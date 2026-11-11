@@ -31,6 +31,7 @@ from support.config_home_cases import (
 )
 from support.theme_install import (
     assert_make_n_uninstall_parses,
+    assert_uninstall_diagnostics,
     read_bytes,
     write_config_file,
 )
@@ -69,14 +70,8 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + AURORAE_THEME
             + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
         # A diagnostic must not edit the user's kwinrc.
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_values_only_trim_to_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -93,13 +88,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + AURORAE_THEME
             + "\t\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
         # Editors add BOMs and CRLF endings; the scanner strips the first
@@ -118,13 +107,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + AURORAE_THEME
             + "\r\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_pair_precedes_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -145,13 +128,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + AURORAE_THEME
             + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_a_later_duplicate_pair_names_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -181,30 +158,21 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + "\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
 
     def test_silent_when_there_is_no_kwinrc(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(config, exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_when_the_path_is_a_directory(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(os.path.join(config, "kwinrc"))
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_without_a_decoration_group(self):
         tmp = str(make_tmp_dir(self))
@@ -221,13 +189,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + AURORAE_THEME
             + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration", unchanged=path)
 
     def test_silent_with_only_one_of_the_two_keys(self):
         for body in (
@@ -319,10 +281,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + "=KvArc\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_when_the_keys_are_split_across_groups(self):
         tmp = str(make_tmp_dir(self))
@@ -342,10 +301,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             + "\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_for_a_group_holding_only_the_landed_button_pair(self):
         # The landed button-layout diagnostic covers the ButtonsOn pair; a
@@ -357,10 +313,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
             "[" + REMOVAL_GROUP + "]\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn("window-decoration", result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         # Like the other diagnostics, the guard ignores an unset or

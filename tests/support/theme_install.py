@@ -246,6 +246,39 @@ class UninstallRecipeTestCase(unittest.TestCase):
         )
 
 
+def assert_uninstall_diagnostics(case, tmp, config, *printed, absent=(), unchanged=None):
+    """Run the suite's `make _uninstall` recipe once and pin its stderr.
+
+    The per-surface `_uninstall` diagnostic suites share one run shape: a
+    single recipe run rooted at *tmp* with *XDG_CONFIG_HOME* at *config*,
+    success, and the stderr assertions. *printed* names the diagnostic lines
+    that must appear and *absent* those that must not; either may be one
+    diagnostic line or a tuple of them. *unchanged*, when given, is a path
+    whose bytes the run must not touch: the helper reads it
+    before the run and again after, as the warn cases pin a diagnostic that
+    edits nothing. Returns the recipe's CompletedProcess for the sites that
+    pin more than stderr.
+
+    Every one-line stderr rule assertion around a recipe run in the
+    `_uninstall` diagnostic suites routes through here; the read-cap suite's
+    cap-contract sites keep their own with-open read idiom, and the suites'
+    multi-line rule arguments, loop bodies, output order pins, and the
+    mirror suite's direct config reads keep their explicit form.
+    """
+    original = read_bytes(unchanged) if unchanged is not None else None
+    result = case.uninstall_with_config(tmp, config)
+    assert_succeeded(case, result)
+    for rule in printed:
+        case.assertIn(rule, result.stderr)
+    # A lone string passed for *absent* must be one rule, not a sequence of
+    # characters each asserted on its own.
+    for rule in (absent,) if isinstance(absent, str) else absent:
+        case.assertNotIn(rule, result.stderr)
+    if unchanged is not None:
+        case.assertEqual(original, read_bytes(unchanged))
+    return result
+
+
 def installed_template(case, packages):
     """Return this test class's installed tree for *packages*, installing once.
 

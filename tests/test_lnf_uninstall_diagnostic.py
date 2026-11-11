@@ -23,6 +23,7 @@ from support.config_home_cases import (
 )
 from support.theme_install import (
     assert_make_n_uninstall_parses,
+    assert_uninstall_diagnostics,
     read_bytes,
     write_config_file,
 )
@@ -66,14 +67,8 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
         # A diagnostic must not edit the user's kdeglobals.
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -81,13 +76,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "  [KDE]  \n LookAndFeelPackage = " + LNF_VALUE + "  \n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_crlf_and_indents(self):
         # The apply would never write this shape, but an editor BOM-save plus
@@ -100,13 +89,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "\ufeff# header\r\n; another comment\r\n[KDE]\r\n"
             "  LookAndFeelPackage = " + LNF_VALUE + "  \r\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
         # The scanner takes the last duplicate's value, as the other
@@ -117,13 +100,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[KDE]\nLookAndFeelPackage=BreezeDark\n"
             "LookAndFeelPackage=" + LNF_VALUE + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_an_unterminated_header_leaves_the_section(self):
         # A header that never closes is skipped without changing the
@@ -134,13 +111,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n[KDE\n"
             "LookAndFeelPackage=" + LNF_VALUE + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_not_warned_for_a_later_foreign_duplicate_overriding_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -150,10 +121,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "LookAndFeelPackage=BreezeDark\n"
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_a_foreign_or_empty_last_value(self):
         for last in ["BreezeDark", ""]:
@@ -178,10 +146,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[KDE]\nlookandfeelpackage=" + LNF_VALUE + "\n"
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_independent_of_the_key_living_in_another_group(self):
         tmp = str(make_tmp_dir(self))
@@ -191,30 +156,21 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[General]\nLookAndFeelPackage=" + LNF_VALUE + "\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_there_is_no_kdeglobals(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(config, exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_the_path_is_a_directory(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(os.path.join(config, "kdeglobals"), exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_for_a_file_without_the_group_or_without_the_key(self):
         for body in (

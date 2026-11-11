@@ -21,10 +21,9 @@ from support.config_home_cases import (
 )
 from support.theme_install import (
     assert_make_n_uninstall_parses,
-    read_bytes,
+    assert_uninstall_diagnostics,
     write_config_file,
 )
-from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
 CURSOR_ID = "org.macos8.desktop"
@@ -53,14 +52,8 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(config, "[Mouse]\ncursorTheme=" + CURSOR_ID + "\n")
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
         # A diagnostic must not edit the user's kcminputrc.
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -68,13 +61,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "[Mouse]\n  cursorTheme = " + CURSOR_ID + "  \n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
         # plasma-apply-cursortheme would never write this shape, but an
@@ -86,33 +73,21 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config,
             "\ufeff[Mouse]\r\n# a comment line\r\ncursorTheme=" + CURSOR_ID + "\r\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_not_warned_for_a_foreign_value(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[Mouse]\ncursorTheme=breeze_cursors\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_an_empty_value(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[Mouse]\ncursorTheme=\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_when_the_key_sits_in_another_section(self):
         tmp = str(make_tmp_dir(self))
@@ -121,20 +96,14 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config, "[Mouse]\ncursorSize=1\n[Other]\ncursorTheme=" + CURSOR_ID + "\n"
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_a_different_key_in_the_mouse_section(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[Mouse]\ncursorSize=" + CURSOR_ID + "\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
         # The scanner takes the last duplicate's value, as the color-scheme
@@ -146,10 +115,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[Mouse]\ncursorTheme=" + CURSOR_ID + "\ncursorTheme=breeze_cursors\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_warned_when_a_later_duplicate_names_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -159,20 +125,14 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[Mouse]\ncursorTheme=breeze_cursors\ncursorTheme=" + CURSOR_ID + "\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path), result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
 
     def test_silent_when_there_is_no_kcminputrc(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         os.makedirs(config, exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_for_an_unreadable_kcminputrc(self):
         if os.geteuid() == 0:
@@ -182,10 +142,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(config, "[Mouse]\ncursorTheme=" + CURSOR_ID + "\n")
         os.chmod(path, 0o000)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         # Like the three existing diagnostics, the guard ignores an unset or

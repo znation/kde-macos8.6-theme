@@ -26,6 +26,7 @@ from support.config_home_cases import (
 )
 from support.theme_install import (
     assert_make_n_uninstall_parses,
+    assert_uninstall_diagnostics,
     read_bytes,
     write_config_file,
 )
@@ -129,13 +130,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(config, "[General]\n  menuFont = Lato,10  \n")
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path, "General", "menuFont", FONT_VALUE), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "menuFont", FONT_VALUE), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_crlf_and_indents(self):
         # The apply would never write this shape, but an editor BOM-save plus
@@ -147,13 +142,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             config,
             "\ufeff[General]\r\n# a comment\r\n; another\r\n  font = Lato,10  \r\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path, "General", "font", FONT_VALUE), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "font", FONT_VALUE), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -179,13 +168,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         path = write_selection(
             config, "[WM]\nactiveFont=Salsa\nactiveFont=Lato,10\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path, "WM", "activeFont", FONT_VALUE), result.stderr)
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "WM", "activeFont", FONT_VALUE), unchanged=path)
 
     def test_warns_when_an_unterminated_header_leaves_the_section(self):
         # A header that never closes is skipped without changing the
@@ -195,16 +178,14 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         path = write_selection(
             config, "[General]\nfont=Lato,10\n[KDE\nmenuFont=Lato,10\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(rule_for(path, "General", "font", FONT_VALUE), result.stderr)
-        self.assertIn(
-            rule_for(path, "General", "menuFont", FONT_VALUE), result.stderr
+        assert_uninstall_diagnostics(
+            self,
+            tmp,
+            config,
+            rule_for(path, "General", "font", FONT_VALUE),
+            rule_for(path, "General", "menuFont", FONT_VALUE),
+            unchanged=path,
         )
-        self.assertEqual(original, read_bytes(path))
 
     def test_not_warned_for_a_later_foreign_value_overriding_ours(self):
         for section, key, value in KEYS:
@@ -254,10 +235,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         config = os.path.join(tmp, "config")
         write_selection(config, "[General]\nFont=Lato,10\n[WM]\nActiveFont=Lato,10\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(reset_for("General", "font"), result.stderr)
+        result = assert_uninstall_diagnostics(self, tmp, config, absent=reset_for("General", "font"))
         self.assertNotIn(reset_for("WM", "activeFont"), result.stderr)
 
     def test_independence_each_key_silent_outside_its_own_group(self):

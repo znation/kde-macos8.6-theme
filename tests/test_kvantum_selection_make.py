@@ -15,7 +15,11 @@ import os
 import unittest
 
 from support import theme_install
-from support.theme_install import read_bytes, write_config_file
+from support.theme_install import (
+    assert_uninstall_diagnostics,
+    read_bytes,
+    write_config_file,
+)
 from support.config_home_cases import assert_home_fallback
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -72,25 +76,17 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_selection(
             config, "[General]\ntheme=" + KVANTUM_ID + "\n"
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(DIAGNOSTIC, result.stderr)
-        self.assertIn(RESET, result.stderr)
         # A diagnostic must not edit the user's kvconfig.
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(
+            self, tmp, config, DIAGNOSTIC, RESET, unchanged=path
+        )
 
     def test_not_warned_for_a_foreign_selection(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[General]\ntheme=KvBreezeDark\n")
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(DIAGNOSTIC, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=DIAGNOSTIC)
 
     def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
         tmp = str(make_tmp_dir(self))
@@ -100,10 +96,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[General]\ntheme=org.macos8.desktop\ntheme=KvBreezeDark\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(DIAGNOSTIC, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=DIAGNOSTIC)
 
     def test_warned_when_a_later_duplicate_names_ours(self):
         # KDE's config reader takes a later key's value, so the diagnostic
@@ -115,11 +108,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[General]\ntheme=KvBreezeDark\ntheme=org.macos8.desktop\n",
         )
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertIn(DIAGNOSTIC, result.stderr)
-        self.assertIn(RESET, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, DIAGNOSTIC, RESET)
 
     def test_reads_the_home_fallback_when_the_config_variable_is_unset(self):
         assert_home_fallback(
@@ -135,10 +124,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         config = os.path.join(tmp, "config")
         os.makedirs(config, exist_ok=True)
 
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(DIAGNOSTIC, result.stderr)
+        assert_uninstall_diagnostics(self, tmp, config, absent=DIAGNOSTIC)
 
 
 if __name__ == "__main__":
