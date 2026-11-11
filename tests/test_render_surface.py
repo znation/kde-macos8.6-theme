@@ -1495,7 +1495,7 @@ class _PixelPins:
 class TestRender(_PixelPins, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Run the CLI the way `make render` does, as one of _Renders' three
+        # Run the CLI the way `make render` does, as one of _Renders' four
         # concurrent sessions, with the tool's documented settle default
         # (8s), not a tighter one. The session sleeps for that paint budget
         # and then captures: a loaded host that has not painted the window
@@ -2246,6 +2246,12 @@ class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
                 self.assertEqual("#AAAAAA", hex_colour(pixel_at(image, x + width - 2, y + dy)))
             with self.subTest(column="right-edge", row=dy):
                 self.assertEqual("#000000", hex_colour(pixel_at(image, x + width - 1, y + dy)))
+        # The flat interior fill's edge columns: the field's face runs flat
+        # beside the bevel where neither the selected text nor the pinned
+        # arrow cell reaches.
+        for yy in range(y + 2, y + height - 2):
+            self.assert_pixel(x + 2, yy, "#DDDDDD")
+            self.assert_pixel(x + width - 3, yy, "#DDDDDD")
 
     def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
         self.assert_raised_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
@@ -2393,7 +2399,18 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
             self.assert_pixel(x + 1, yy, "#000000")
             self.assert_pixel(x + width - 2, yy, "#000000")
             self.assert_pixel(x + width - 1, yy, "#FFFFFF")
+        # Both unpainted corners are the window face, stated explicitly as
+        # the record requires; the art never paints either of them.
+        self.assert_pixel(x + width - 1, y, "#DDDDDD")
         self.assert_pixel(x, y + height - 1, "#DDDDDD")
+        # The flat interior fill beside the focus ring: the interior's edge
+        # columns and its first row stay the viewport's flat white where no
+        # item text or focus art reaches them.
+        for yy in range(y + 2, y + height - 2):
+            self.assert_pixel(x + 2, yy, "#FFFFFF")
+            self.assert_pixel(x + width - 3, yy, "#FFFFFF")
+        for xx in range(x + 2, x + width - 2):
+            self.assert_pixel(xx, y + 2, "#FFFFFF")
 
     def test_current_item_focus_ring_is_pinned_inside_the_field(self):
         for xx in range(115, 365):
