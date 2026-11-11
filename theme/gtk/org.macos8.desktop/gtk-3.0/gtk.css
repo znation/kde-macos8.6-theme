@@ -305,11 +305,12 @@ entry, spinbutton:not(.vertical) {
    vertical arm at the exposed right edge, the corner where the LTR
    field's arm sits. Plain entry fields are untouched — only the spin
    field's overlay is the defect. The four .osd spinbutton state groups
-   restate the etch at equal-or-higher specificity, so their RTL fields
-   keep the covered arm; twins for them would multiply the
-   overlay-scoped OSD record across its four states, so the OSD family
-   stays a future candidate. The :not(.vertical) arm keeps vertical spin
-   fields out. */
+   now carry their RTL twins beside them in the OSD entry-field record
+   below (pinned by tests/test_gtk_theme_osd.py::TestGtkThemeOsd::
+   test_osd_spin_field_mirrors_the_etch_in_rtl and rendered by
+   tests/test_gtk_theme_controls.py::TestGtkThemeControls::
+   test_osd_spin_field_renders_the_mirrored_etch_in_rtl). The
+   :not(.vertical) arm keeps vertical spin fields out. */
 spinbutton:dir(rtl):not(.vertical) {
   box-shadow: inset -1px 1px #999999;
 }
@@ -2151,6 +2152,23 @@ colorchooser .popover.osd {
   -gtk-icon-shadow: none;
 }
 
+/* Adaptation (2026-11-11): no collected reference screenshot shows a
+   field inside a GTK OSD overlay — the standing premise the record above
+   keeps — so the etch is the landed field recipe and this mirror is the
+   theme's adaptation, because GTK 3 does not mirror box-shadow for
+   direction. The four groups of this record restate the etch at
+   equal-or-higher specificity, so the landed plain mirror never reached
+   an OSD RTL field: measured 2026-11-11 on this host with a GTK 3
+   offscreen child, the shipped sheet read #999999, #FFFFFF, #FFFFFF,
+   #FFFFFF at the RTL field's exposed right edge. Each twin below
+   restates the landed mirror beside its base state group and out-ranks
+   that group by one class, so the win does not depend on source
+   position. Plain entry fields stay untouched — they have no steppers
+   to cover the arm, so the landed exclusion's reason stands for them. */
+.osd spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 .osd spinbutton:focus:not(.vertical),
 .osd entry:focus {
   background-color: #FFFFFF;
@@ -2166,6 +2184,10 @@ colorchooser .popover.osd {
   -gtk-outline-radius: 0;
 }
 
+.osd spinbutton:dir(rtl):focus:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 .osd spinbutton:backdrop:not(.vertical),
 .osd entry:backdrop {
   background-color: #FFFFFF;
@@ -2178,6 +2200,10 @@ colorchooser .popover.osd {
   -gtk-icon-shadow: none;
 }
 
+.osd spinbutton:dir(rtl):backdrop:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 .osd spinbutton:disabled:not(.vertical),
 .osd entry:disabled {
   background-color: #FFFFFF;
@@ -2188,6 +2214,10 @@ colorchooser .popover.osd {
   color: #888888;
   text-shadow: none;
   -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:dir(rtl):disabled:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
 }
 
 /* No collected reference screenshot shows a GTK OSD overlay or a check or

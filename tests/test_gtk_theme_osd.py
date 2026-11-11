@@ -12,6 +12,7 @@ sheet's comment blocks carry each value's provenance.
 import unittest
 from pathlib import Path
 
+from support.gtk_css import strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
@@ -123,7 +124,11 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         entry recipe (``ENTRY_FIELD`` in ``support.gtk_theme_spec.py``) plus
         the stock arms' own shadow claims, cleared. The arm selectors,
         states and shadow claims come from gtk-contained.css in
-        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49).
+        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49). Each
+        state's spin-button arm also carries its RTL twin, the landed etch
+        mirror restated beside the group, because the record's
+        equal-or-higher specificity kept the plain RTL mirror from ever
+        reaching an OSD spin field.
         """
         field = {
             **ENTRY_FIELD,
@@ -147,6 +152,22 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd entry:backdrop": field,
             ".osd spinbutton:disabled:not(.vertical)": disabled,
             ".osd entry:disabled": disabled,
+            # The 2026-11-11 RTL twins restated the landed etch mirror
+            # beside each base state group: the groups' equal-or-higher
+            # specificity kept the plain RTL mirror from reaching an OSD
+            # spin field.
+            ".osd spinbutton:dir(rtl):not(.vertical)": {
+                "box-shadow": "inset -1px 1px #999999"
+            },
+            ".osd spinbutton:dir(rtl):focus:not(.vertical)": {
+                "box-shadow": "inset -1px 1px #999999"
+            },
+            ".osd spinbutton:dir(rtl):backdrop:not(.vertical)": {
+                "box-shadow": "inset -1px 1px #999999"
+            },
+            ".osd spinbutton:dir(rtl):disabled:not(.vertical)": {
+                "box-shadow": "inset -1px 1px #999999"
+            },
             # The 2026-11-07 nested-field clearing twin restated the
             # resource's byte-equal `.osd spinbutton:not(.vertical) entry`
             # spelling in the entry state-faces record's group, so the
@@ -180,6 +201,49 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             },
             set(expected),
         )
+
+    def test_osd_spin_field_mirrors_the_etch_in_rtl(self):
+        # The four OSD field groups restate the etch at equal-or-higher
+        # specificity than the landed plain RTL mirror, so each state
+        # carries its own twin, spelled one class higher than its base
+        # group so the win does not depend on source position. Each twin
+        # sits directly after its base state group in the comment-stripped
+        # sheet, keeping the record together; a twin moved elsewhere —
+        # say, gathered at the record's end — breaks the adjacency pin.
+        pairs = [
+            (
+                ".osd spinbutton:not(.vertical),\n.osd entry {",
+                ".osd spinbutton:dir(rtl):not(.vertical)",
+            ),
+            (
+                ".osd spinbutton:focus:not(.vertical),\n.osd entry:focus {",
+                ".osd spinbutton:dir(rtl):focus:not(.vertical)",
+            ),
+            (
+                ".osd spinbutton:backdrop:not(.vertical),\n.osd entry:backdrop {",
+                ".osd spinbutton:dir(rtl):backdrop:not(.vertical)",
+            ),
+            (
+                ".osd spinbutton:disabled:not(.vertical),\n.osd entry:disabled {",
+                ".osd spinbutton:dir(rtl):disabled:not(.vertical)",
+            ),
+        ]
+        stripped = strip_comments(self.css)
+        for base, twin in pairs:
+            with self.subTest(twin=twin):
+                self.assertEqual(self.selectors.count(twin), 1, twin)
+                self.assertEqual(
+                    self.rules[twin],
+                    {"box-shadow": "inset -1px 1px #999999"},
+                    twin,
+                )
+                self.assertEqual(stripped.count(twin), 1, twin)
+                between = stripped[stripped.index(base):stripped.index(twin)]
+                self.assertEqual(
+                    between.count("{"),
+                    1,
+                    f"{twin} does not sit directly after its base group",
+                )
 
     def test_osd_spinbutton_buttons(self):
         """Pin the twelve OSD spinbutton stepper arms to push-button faces."""

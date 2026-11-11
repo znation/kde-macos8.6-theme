@@ -1989,6 +1989,69 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
         )
         self._run_gtk_child(program, str(CSS))
 
+    def test_osd_spin_field_renders_the_mirrored_etch_in_rtl(self):
+        # The four OSD field groups restate the etch at equal-or-higher
+        # specificity than the landed plain RTL mirror, so the OSD record
+        # carries its own RTL twins. The probe renders the spin button
+        # under an .osd-classed box and measures the field's edge columns
+        # from its own allocation in both directions; see _run_gtk_child
+        # for why this runs in a child.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+
+def render(rtl):
+    window = Gtk.OffscreenWindow()
+    box = Gtk.Box()
+    box.set_border_width(5)
+    box.get_style_context().add_class("osd")
+    spin = Gtk.SpinButton.new_with_range(0, 100, 1)
+    spin.set_can_focus(False)
+    if rtl:
+        spin.set_direction(Gtk.TextDirection.RTL)
+    box.pack_start(spin, False, False, 0)
+    window.add(box)
+    window.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+    alloc = spin.get_allocation()
+    pixbuf = window.get_pixbuf()
+    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+    window.destroy()
+
+    def at(x, y):
+        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+    left, top = alloc.x, alloc.y
+    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+    return at, left, top, right, bottom
+
+BLACK, GREY = "#000000", "#999999"
+
+# The etch's vertical arm reads down the field's exposed edge column at
+# rows T+1, T+2, T+3 and B-1; the covered edge stays black in both
+# directions. A twin spelled `inset 1px 1px #999999` would leave the RTL
+# exposed edge white below the top arm, and a dropped twin would too.
+for rtl in (False, True):
+    at, left, top, right, bottom = render(rtl)
+    rows = (top + 1, top + 2, top + 3, bottom - 1)
+    if rtl:
+        assert [at(left + 1, y) for y in rows] == [BLACK] * 4, (rtl, "left", rows)
+        assert [at(right - 1, y) for y in rows] == [GREY] * 4, (rtl, "right", rows)
+    else:
+        assert [at(left + 1, y) for y in rows] == [GREY] * 4, (rtl, "left", rows)
+        assert [at(right - 1, y) for y in rows] == [BLACK] * 4, (rtl, "right", rows)
+print("OSD spin field: the etch's vertical arm reads at the exposed edge column in LTR and RTL, the covered edge staying black")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
     def test_vertical_spinbutton_renders_one_pixel_joins(self):
         # The vertical spin button stacks its up stepper, the field and
         # the down stepper, and each member paints its own full 1px black
