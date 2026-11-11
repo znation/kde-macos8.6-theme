@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import os
 import tempfile
 import unittest
@@ -180,6 +181,49 @@ class TestReadSource(unittest.TestCase):
                 timeout=10,
             )
             assert_fifo_refused(self, child, fifo)
+
+
+class TestVanishedJpegFallThrough(unittest.TestCase):
+    """A JPEG side that vanishes between the sniff and the whole read."""
+
+    def test_vanished_jpeg_falls_through_to_the_png_branch(self):
+        # The docstring promises the whole read's None falls through to the
+        # PNG branch, whose own open produces the standing diagnostic. The
+        # vanishing is staged offline: the second os.open of the run — the
+        # JPEG branch's whole read, after the sniff's — fails with the
+        # ENOENT a deleted file produces, and every later open (read_png's)
+        # succeeds. A regression that converts the None bytes anyway fails
+        # through the converter guard, and one that swallows the fall-through
+        # fails for want of the standing refusal.
+        _, png_data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        jpeg = b"\xff\xd8\xff" + png_data
+        real_open = os.open
+        opened = []
+
+        def flaky_open(path, flags):
+            opened.append(path)
+            if len(opened) == 2:
+                raise OSError(errno.ENOENT, "No such file or directory", str(path))
+            return real_open(path, flags)
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "vanished.jpg"
+            path.write_bytes(jpeg)
+            with mock.patch("os.open", flaky_open), \
+                    mock.patch.object(
+                        fidelity_sources, "convert_jpeg",
+                        side_effect=AssertionError("converted vanished bytes"),
+                    ):
+                with self.assertRaisesRegex(png.PngError, "not a PNG file") as caught:
+                    fidelity_sources.read_source(str(path), None)
+        # The PNG loader's decode guard prefixes the operator's path to the
+        # standing refusal (tools/png/loader.py: "cannot decode {path}").
+        self.assertEqual(
+            str(caught.exception),
+            f"cannot decode {path}: not a PNG file: the input is a JPEG "
+            "image, not a PNG; convert it to PNG first",
+        )
+        self.assertEqual(len(opened), 3)
 
 
 class TestWholeFileRead(unittest.TestCase):
