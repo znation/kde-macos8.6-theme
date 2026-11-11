@@ -18,7 +18,19 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-_None yet._
+### The hosted CI image lacks ImageMagick's `convert` for JPEG sampler tests (found by the ci role 2026-11-10)
+
+The newest pushed CI run fails `tests/test_sample_jpeg.py` because its runner cannot find the
+external `convert` executable. The test assertion reports:
+
+```text
+AssertionError: 2 != 0 : sample: error: cannot decode /tmp/tmpajeftfg7/quilt.jpg: the input is a JPEG image, and decoding it needs ImageMagick's convert, which is not installed
+```
+
+The hosted run is https://github.com/znation/kde-macos8.6-theme/actions/runs/42982951246. The
+same workflow step passes in this worktree, where `/usr/bin/convert` is installed. The workflow's
+render-tool install step does not install ImageMagick, so the hosted dependency gap is not
+reproducible as a source or test failure here.
 
 ## Won't fix
 
