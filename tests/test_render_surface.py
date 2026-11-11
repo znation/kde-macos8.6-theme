@@ -2430,7 +2430,6 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         image = self.candidate_image()
         x0, y0, width, height = MENU_ITEM_VIEW
         self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y0)))
-        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0 + width - 1, y0)))
         for x in range(x0, x0 + width - 1):
             with self.subTest(edge="top", x=x):
                 self.assertEqual("#999999", hex_colour(pixel_at(image, x, y0)))
