@@ -221,6 +221,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "json", "channel_counts", "channel_bias", "channel_maxima",
             "difference_rows", "difference_columns", "difference_row_bounds",
             "difference_column_bounds", "difference_runs", "difference_column_runs",
+            "difference_column_run_count",
             "difference_centroid", "longest_difference_run", "longest_difference_column_run", "delta_histogram", "delta_percentiles", "explain_worst",
         )))
 
