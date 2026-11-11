@@ -61,6 +61,17 @@ class TestSampleHistogramExclusions(CliTestCase):
         self.assertEqual(payload["omitted_pixels"], 2)
         self.assertEqual(payload["colors"][0]["alpha"], 255)
 
+    def test_alpha_exclusion_applies_to_opaque_fallback(self):
+        _, data = rgb_image(2, 1, lambda x, y: (1, 2, 3) if x == 0 else (4, 5, 6))
+        path = self._write(self._tmp_dir(), "opaque.png", data)
+        result = self._run(path, "0", "0", "--width", "2", "--histogram", "--alpha",
+                           "--exclude-color", "#010203", "--json")
+        self._assert_success(result)
+        payload = json.loads(result.stdout)
+        self.assertEqual([c["rgb"] for c in payload["colors"]], [[4, 5, 6]])
+        self.assertEqual(payload["colors"][0]["alpha"], 255)
+        self.assertEqual((payload["total_colors"], payload["omitted_pixels"]), (2, 1))
+
     def test_invalid_values_and_modes_are_rejected_before_image_access(self):
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
              mock.patch.object(sample, "read_png", side_effect=AssertionError("decode")):
