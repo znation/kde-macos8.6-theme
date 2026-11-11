@@ -998,6 +998,18 @@ class TestSessionCommand(unittest.TestCase):
                 shlex.split(command.argv[-1])[4:],
             )
 
+    def test_client_words_with_shell_syntax_and_empty_words_stay_positional(self):
+        client = ["client", "two words", "quote'and $HOME; $(false)", ""]
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session, client, 1, 64, 48, 9.5
+            )
+
+            self.assertEqual(
+                ["1", str(session.surface), *client],
+                shlex.split(command.argv[-1])[4:],
+            )
+
     def test_carries_the_checkbox_dialog_client_words(self):
         with self._dialog_command(checkbox_dialog_client) as (session, command):
             # The dontagain config file lands in the scratch config home, so
