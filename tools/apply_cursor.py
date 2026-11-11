@@ -18,9 +18,9 @@ Usage::
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
 2 for a usage error, an unusable ``HOME``, a missing installed theme, a
 foreign path at the link target, a selector that cannot be started, a scratch
-directory that cannot be created, or another install/uninstall holding the
-data-home lock past the timeout, and 128 plus the signal number when a
-SIGTERM or SIGHUP ends the run.
+directory that cannot be created, a data home that cannot be inspected, or
+another install/uninstall holding the data-home lock past the timeout, and 128
+plus the signal number when a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -84,8 +84,9 @@ def main(argv: list[str] | None = None) -> int:
             "selector failed, 2 for a usage error, an unusable HOME, a "
             "missing installed theme, a foreign path at the link target, a "
             "selector that cannot be started, or a scratch directory that "
-            "cannot be created, and 128 plus the signal number when a SIGTERM "
-            "or SIGHUP ends the run"
+            "cannot be created, or a data home that cannot be inspected, "
+            "and 128 plus the signal number when a SIGTERM or SIGHUP ends "
+            "the run"
         ),
     )
     parser.add_argument(
