@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleLongestMatchRun(CliTestCase):
+    """The find-color search's ``--longest-match-run`` horizontal summary."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

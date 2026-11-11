@@ -12,6 +12,8 @@ from tools.sample_report_common import positioned_region_pixels  # noqa: E402
 
 
 class TestPixelRecords(unittest.TestCase):
+    """The pixel report's lazy, ordered record generation."""
+
     def test_records_are_lazy_ordered_and_do_not_mutate_or_print(self):
         class TrackingBytes:
             """Byte sequence that records the index of every element read."""
@@ -76,6 +78,8 @@ class TestPixelRecords(unittest.TestCase):
 
 
 class TestPositionedRegionPixels(unittest.TestCase):
+    """The positioned region helper's row-major pixel coordinates."""
+
     def test_positions_advance_across_rows_with_row_major_rgb_values(self):
         class Image:
             width = 3

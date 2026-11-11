@@ -13,6 +13,8 @@ from tools import sample_report_histogram
 
 
 class TestSampleHistogramPositions(CliTestCase):
+    """The histogram's ``--color-positions`` option: each color's first row-major occurrence."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

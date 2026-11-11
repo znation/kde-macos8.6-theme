@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchRunCount(CliTestCase):
+    """The find-color search's ``--match-run-count`` total."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

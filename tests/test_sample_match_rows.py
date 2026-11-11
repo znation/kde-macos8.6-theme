@@ -12,6 +12,8 @@ from tools import sample, sample_report_search
 
 
 class TestSampleMatchRows(CliTestCase):
+    """The find-color search's ``--match-rows`` per-row counts."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

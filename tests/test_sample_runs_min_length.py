@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleRunsMinimumLength(CliTestCase):
+    """The scanline runs report's ``--min-run-length`` cutoff."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

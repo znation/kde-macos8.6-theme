@@ -12,6 +12,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleMatchColumnRunsMaxLength(CliTestCase):
+    """The vertical match runs' ``--max-match-column-run-length`` cutoff."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleHistogramMinimumFraction(CliTestCase):
+    """The histogram's ``--min-color-fraction`` filter against the other palette filters."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -12,6 +12,8 @@ from tools import sample, sample_report_search
 
 
 class TestSampleMatchColumnBounds(CliTestCase):
+    """The find-color search's ``--match-column-bounds`` per-column spans."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

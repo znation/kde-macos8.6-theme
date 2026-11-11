@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleMatchRunsLimit(CliTestCase):
+    """The horizontal match runs' ``--max-match-runs`` page cap."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

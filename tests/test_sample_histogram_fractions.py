@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleHistogramFractions(CliTestCase):
+    """The histogram's ``--color-fractions`` option: each emitted color's share of the region."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

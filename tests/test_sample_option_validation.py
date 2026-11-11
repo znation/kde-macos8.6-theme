@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser, option_error, region_error
 
 
 class TestSampleOptionValidation(CliTestCase):
+    """The sampler's option cross-checks and region bounds validation."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

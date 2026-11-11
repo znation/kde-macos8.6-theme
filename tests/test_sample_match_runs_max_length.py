@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleMatchRunsMaxLength(CliTestCase):
+    """The horizontal match runs' ``--max-match-run-length`` cutoff."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

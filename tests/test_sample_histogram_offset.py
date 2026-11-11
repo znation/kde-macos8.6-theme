@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleHistogramOffset(CliTestCase):
+    """The histogram's ``--color-offset`` paging of the ranked color list."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -60,6 +60,8 @@ class TestIsJpeg(unittest.TestCase):
 
 
 class TestConvertJpegArguments(unittest.TestCase):
+    """The conversion bridge's argument validation."""
+
     def test_rejects_non_bytes_input_with_argument_name(self):
         with self.assertRaisesRegex(
             ValueError,
@@ -76,6 +78,8 @@ class TestConvertJpegArguments(unittest.TestCase):
 
 
 class TestConvertJpegFailureDiagnostic(unittest.TestCase):
+    """The conversion bridge's failure diagnostics and their private-path scrubbing."""
+
     def test_nonzero_converter_status_keeps_output_and_scrubs_private_paths(self):
         with tempfile.TemporaryDirectory() as directory:
             temp_png = Path(directory) / "decoded.png"

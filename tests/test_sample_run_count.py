@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleRunCount(CliTestCase):
+    """The scanline runs report's ``--run-count`` unfiltered total."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

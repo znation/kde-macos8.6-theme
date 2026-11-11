@@ -10,6 +10,8 @@ from tools import sample_arguments, sample_validators as validators
 
 
 class TestSampleValidators(unittest.TestCase):
+    """The sampler's scalar argument validators: acceptance, ranges and diagnostics."""
+
     def test_valid_values_and_compatibility_exports(self):
         self.assertEqual(validators.rgb_argument("#aBcD09"), (171, 205, 9))
         self.assertEqual(validators.color_tolerance("0"), 0)

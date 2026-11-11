@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleRunsColors(CliTestCase):
+    """The scanline runs report's ``--run-color`` retention filter."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

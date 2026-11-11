@@ -12,6 +12,8 @@ from tools import sample, sample_report_histogram
 
 
 class TestSampleHistogramBounds(CliTestCase):
+    """The histogram's ``--color-bounds`` option: absolute rectangles per emitted color."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

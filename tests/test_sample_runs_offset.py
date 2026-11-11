@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleRunsOffset(CliTestCase):
+    """The scanline runs report's ``--run-offset`` paging."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

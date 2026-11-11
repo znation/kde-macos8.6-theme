@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchPixels(CliTestCase):
+    """The find-color search's ``--match-pixels`` coordinate page."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

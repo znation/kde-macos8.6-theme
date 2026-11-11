@@ -12,6 +12,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleMatchColumnRunsLimit(CliTestCase):
+    """The vertical match runs' ``--max-match-column-runs`` page cap."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

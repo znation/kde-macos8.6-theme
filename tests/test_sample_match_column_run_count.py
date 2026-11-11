@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchColumnRunCount(CliTestCase):
+    """The find-color search's ``--match-column-run-count`` total."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

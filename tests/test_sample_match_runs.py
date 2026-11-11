@@ -12,6 +12,8 @@ from tools import sample, sample_report_search
 
 
 class TestSampleMatchRuns(CliTestCase):
+    """The find-color search's ``--match-runs`` horizontal intervals."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

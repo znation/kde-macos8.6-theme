@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleMatchRunsOffset(CliTestCase):
+    """The horizontal match runs' ``--match-run-offset`` paging."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

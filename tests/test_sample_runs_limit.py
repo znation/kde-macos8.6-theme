@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleRunsLimit(CliTestCase):
+    """The scanline runs report's ``--max-runs`` page cap."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

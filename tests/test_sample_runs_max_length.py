@@ -12,6 +12,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleRunsMaximumLength(CliTestCase):
+    """The scanline runs report's ``--max-run-length`` cutoff."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

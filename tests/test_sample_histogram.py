@@ -13,6 +13,8 @@ from tools import sample
 
 
 class TestSampleHistogram(CliTestCase):
+    """The histogram report's color counts, palette filters and RGBA grouping."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleLongestRun(CliTestCase):
+    """The scanline runs report's ``--longest-run`` summary."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

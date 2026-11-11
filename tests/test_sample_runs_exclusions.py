@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleRunsExclusions(CliTestCase):
+    """The scanline runs report's ``--exclude-run-color`` filter."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -16,6 +16,8 @@ from tools import sample_report_histogram
 
 
 class TestSampleHistogramResult(CliTestCase):
+    """The histogram report handler's assembled JSON and text result object."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

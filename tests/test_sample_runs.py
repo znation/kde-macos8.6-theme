@@ -13,6 +13,8 @@ from tools import sample
 
 
 class TestSampleRuns(CliTestCase):
+    """The scanline runs report's segmentation, axes and RGBA grouping."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

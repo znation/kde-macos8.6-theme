@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchAlpha(CliTestCase):
+    """The find-color search's ``--match-alpha`` exact-alpha predicate."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

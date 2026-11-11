@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleHistogramMaximumFraction(CliTestCase):
+    """The histogram's ``--max-color-fraction`` filter against the other palette filters."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

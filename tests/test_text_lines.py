@@ -1,3 +1,5 @@
+"""Tests for ``tools/text_lines.py``'s line splitting and first-line readers."""
+
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)

@@ -10,6 +10,8 @@ from tools.sample_report_common import report_context  # noqa: E402
 
 
 class TestReportContext(unittest.TestCase):
+    """The shared report context's source and region fields."""
+
     def test_context_contains_source_dimensions_and_requested_region(self):
         args = Namespace(image="reference.png", x=3, y=5, width=7, height=2)
 

@@ -13,6 +13,8 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleHistogramCumulativeFractions(CliTestCase):
+    """The histogram's ``--color-cumulative-fractions`` option: cumulative shares across the displayed page."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

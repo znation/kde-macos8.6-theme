@@ -13,6 +13,8 @@ from tools import sample
 
 
 class TestSampleHistogramExclusions(CliTestCase):
+    """The histogram's ``--exclude-color`` filter against the other palette filters."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

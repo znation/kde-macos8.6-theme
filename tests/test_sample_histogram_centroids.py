@@ -12,6 +12,8 @@ from tools import sample, sample_report_histogram
 
 
 class TestSampleHistogramCentroids(CliTestCase):
+    """The histogram's ``--color-centroids`` option: mean pixel coordinates per emitted color."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

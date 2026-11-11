@@ -13,6 +13,8 @@ from tools.sample_report_runs import _runs_result, report_runs
 
 
 class TestSampleRunsResult(TestCase):
+    """The runs report handler's assembled JSON and text result object."""
+
     def test_report_runs_prints_json_result(self):
         args = build_parser().parse_args([
             "fixture.png", "0", "0", "--width", "2", "--runs", "--json",

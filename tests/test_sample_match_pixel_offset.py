@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchPixelOffset(CliTestCase):
+    """The find-color search's ``--match-pixel-offset`` paging."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

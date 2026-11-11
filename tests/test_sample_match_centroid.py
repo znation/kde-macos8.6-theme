@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleMatchCentroid(CliTestCase):
+    """The find-color search's ``--match-centroid`` summary."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

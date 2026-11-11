@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchColumnRuns(CliTestCase):
+    """The find-color search's ``--match-column-runs`` vertical intervals."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

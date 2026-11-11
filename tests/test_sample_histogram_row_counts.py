@@ -26,6 +26,8 @@ def _rows_image():
 
 
 class TestSampleHistogramRowCounts(CliTestCase):
+    """The histogram's ``--row-color-counts`` option: per-row distinct-color totals."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

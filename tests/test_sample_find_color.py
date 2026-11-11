@@ -13,6 +13,8 @@ from tools import sample
 
 
 class TestSampleFindColor(CliTestCase):
+    """The find-color search's ``--find-color`` matches: absolute counts, page bounds and JSON/text parity."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

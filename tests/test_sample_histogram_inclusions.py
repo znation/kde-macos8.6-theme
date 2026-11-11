@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleHistogramInclusions(CliTestCase):
+    """The histogram's ``--include-color`` filter against the other palette filters."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

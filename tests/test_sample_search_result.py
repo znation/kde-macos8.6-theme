@@ -13,6 +13,8 @@ from tools.sample_report_search import _search_match
 
 
 class TestSampleSearchResult(TestCase):
+    """The find-color search handler's empty result and no-print paths."""
+
     def test_empty_match_set_has_no_bounds_centroid_or_runs(self):
         args = build_parser().parse_args([
             "fixture.png", "1", "0", "--width", "3", "--height", "2",

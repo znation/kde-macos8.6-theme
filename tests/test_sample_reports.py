@@ -11,6 +11,8 @@ from tools import sample_reports
 
 
 class TestReportDispatch(unittest.TestCase):
+    """The report dispatcher's mode selection and precedence."""
+
     def test_runs_takes_precedence_and_returns(self):
         args = SimpleNamespace(runs=True, histogram=True, find_color="#010203")
         image = object()

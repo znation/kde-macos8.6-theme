@@ -11,6 +11,8 @@ from tools import sample
 
 
 class TestSampleMatchColumnRunsOffset(CliTestCase):
+    """The vertical match runs' ``--match-column-run-offset`` paging."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

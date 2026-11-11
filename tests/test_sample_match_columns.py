@@ -12,6 +12,8 @@ from tools import sample, sample_report_search
 
 
 class TestSampleMatchColumns(CliTestCase):
+    """The find-color search's ``--match-columns`` per-column counts."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

@@ -12,6 +12,8 @@ from tools import sample, sample_report_search
 
 
 class TestSampleMatchRowBounds(CliTestCase):
+    """The find-color search's ``--match-row-bounds`` per-row spans."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

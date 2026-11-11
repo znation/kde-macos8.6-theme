@@ -14,6 +14,8 @@ from tools.sample_match_runs import ColumnRuns
 
 class TestColumnRunsStorage(unittest.TestCase):
 
+    """The vertical match-run collector's capped page storage during the scan and the final flush."""
+
     def test_capped_collector_bounds_retained_runs_during_scan_and_final_flush(self):
         collector = ColumnRuns(0, 0, 3, 6, run_limit=2, run_offset=1)
         matches = {
@@ -73,6 +75,8 @@ class TestColumnRunsStorage(unittest.TestCase):
 
 
 class TestCappedColumnRunsStorage(CliTestCase):
+    """The capped vertical collector's end-to-end page, text parity and alpha pairing."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

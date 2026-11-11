@@ -8,6 +8,8 @@ from tools.sample_match_runs import MatchRuns
 
 class TestMatchRunsStorage(unittest.TestCase):
 
+    """The horizontal match-run collector's capped page storage during the scan and the final flush."""
+
     def test_capped_collector_bounds_retained_runs_during_scan_and_final_flush(self):
         collector = MatchRuns(10, 4, 39, 1, horizontal=True, vertical=False,
                                run_limit=3, run_offset=12)

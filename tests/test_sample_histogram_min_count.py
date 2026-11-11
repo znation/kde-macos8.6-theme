@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleHistogramMinimumCount(CliTestCase):
+    """The histogram's ``--min-color-count`` filter against the other palette filters."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 

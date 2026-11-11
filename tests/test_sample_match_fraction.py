@@ -12,6 +12,8 @@ from tools import sample
 
 
 class TestSampleMatchFraction(CliTestCase):
+    """The find-color search's ``--match-fraction`` matching share."""
+
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 
