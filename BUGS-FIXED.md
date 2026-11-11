@@ -1714,14 +1714,6 @@ session infrastructure is proposed.
 
 ### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30) — fixed 2026-11-03 by the bugfix role
 
-The `--checkbox-dialog` Yes button had black rows at (195,209) and (195,228), although the shipped button face is flat `#DDDDDD`. Kvantum's `[Focus]` ring caused the rows, and its compiled-in `button-default-indicator` painted a light corner wedge.
-
-Fix: `[PanelButtonCommand] focusRectElement=focus-none` scopes focus-ring suppression to push buttons, and the theme supplies flat face art for `button-default-indicator`. The rendered regression checks both former black pixels and the indicator area; the config pin covers the steering value. The item-view focus frame remains enabled.
-
-**Validation gap:** none — the dialog render gate reproduced both black rows before the fix and confirmed the rendered face after the fix.
-
-### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30) — fixed 2026-11-03 by the bugfix role
-
 The `--checkbox-dialog` render's focused Yes button painted black rows at (195,209) and
 (195,228), where the reference-grounded face is `#DDDDDD`. Kvantum draws these as the push
 button's focus rectangle inside its bevel. The reference places the default mark outside the

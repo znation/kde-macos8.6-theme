@@ -327,7 +327,6 @@ VALUE_KEYS = {
     "PanelButtonCommand": {
         "focusRectElement": "focus-none",
         "frame": "true",
-        "focusRectElement": "focus-none",
         "interior": "true",
         "indicator.size": "9",
         "text.normal.color": "#000000",
