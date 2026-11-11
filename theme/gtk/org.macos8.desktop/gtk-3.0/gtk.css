@@ -4096,8 +4096,10 @@ label:backdrop:selected,
 entry selection:backdrop,
 spinbutton:not(.vertical) selection:backdrop,
 textview text:backdrop:selected,
+textview text:backdrop:selected:focus,
 .view text:backdrop:selected,
 textview text selection:backdrop,
+textview text selection:backdrop:focus,
 .view text selection:backdrop {
   color: #000000;
 }

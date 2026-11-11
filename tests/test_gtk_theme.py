@@ -220,8 +220,10 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             "textview text selection:focus", ".view text selection:focus",
             ".view text selection", "label:backdrop selection", "label:backdrop:selected",
             "entry selection:backdrop", "spinbutton:not(.vertical) selection:backdrop",
-            "textview text:backdrop:selected", ".view text:backdrop:selected",
-            "textview text selection:backdrop", ".view text selection:backdrop",
+            "textview text:backdrop:selected", "textview text:backdrop:selected:focus",
+            ".view text:backdrop:selected",
+            "textview text selection:backdrop", "textview text selection:backdrop:focus",
+            ".view text selection:backdrop",
         )
         disabled = (
             "label:disabled selection", "label:disabled:selected", "entry selection:disabled",
