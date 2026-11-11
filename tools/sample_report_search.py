@@ -20,12 +20,12 @@ else:  # run directly: python3 tools/sample.py
     from sample_match_runs import ColumnRuns, MatchRuns
 
 
-def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
+def _extend_match_bound(bounds, index: int, position: int,
                         coordinate_key: str, length_key: str) -> None:
     """Open the bound at *index* on the first match and stretch it to *position*."""
     bound = bounds[index]
     if bound is None:
-        bounds[index] = {coordinate_key: coordinate, length_key: 1}
+        bounds[index] = {coordinate_key: position, length_key: 1}
     else:
         bound[length_key] = position - bound[coordinate_key] + 1
 
@@ -84,10 +84,10 @@ def _search_match(args, image) -> dict:
                 matching_columns[x - args.x] += 1
             if matching_row_bounds is not None:
                 _extend_match_bound(
-                    matching_row_bounds, y - args.y, x, x, "x", "width")
+                    matching_row_bounds, y - args.y, x, "x", "width")
             if matching_column_bounds is not None:
                 _extend_match_bound(
-                    matching_column_bounds, x - args.x, y, y, "y", "height")
+                    matching_column_bounds, x - args.x, y, "y", "height")
             if args.match_centroid:
                 sum_x += x
                 sum_y += y
