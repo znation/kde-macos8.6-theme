@@ -808,6 +808,13 @@ class TestSessionSetup(unittest.TestCase):
                 session.environment["SPECTACLE_VIDEO_PLATFORM"],
             )
 
+    def test_environment_forces_dbus_services_to_use_offscreen_qt(self):
+        # D-Bus-activated Qt services inherit this environment before the
+        # nested Wayland socket is ready, so they must not try that display.
+        with mock.patch.dict(os.environ, {"QT_QPA_PLATFORM": "wayland"}):
+            with render_session.Session.create() as session:
+                self.assertEqual("offscreen", session.environment["QT_QPA_PLATFORM"])
+
     def test_environment_drops_the_callers_session(self):
         ambient = {
             "WAYLAND_DISPLAY": "wl",
