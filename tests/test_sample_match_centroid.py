@@ -15,13 +15,14 @@ class TestSampleMatchCentroid(CliTestCase):
     PROGRAM = "sample"
 
     def test_asymmetric_cropped_matches_and_limit(self):
-        _, data = rgb_image(6, 3, lambda x, y: (1, 2, 3) if (x, y) in {(1, 1), (4, 1), (2, 2)} else (0, 0, 0))
+        _, data = rgb_image(6, 3, lambda x, y: (1, 2, 3) if (x, y) in {(1, 1), (4, 1), (2, 2), (5, 2)} else (0, 0, 0))
         path = self._write(self._tmp_dir(), "centroid.png", data)
         args = (path, "1", "1", "--width", "4", "--height", "2", "--find-color", "010203", "--match-centroid")
         result = self._run(*args, "--match-pixels", "1", "--json")
         self._assert_success(result)
         match = json.loads(result.stdout)["match"]
         self.assertEqual(match["count"], 3)
+        self.assertEqual(match["bounds"], {"x": 1, "y": 1, "width": 4, "height": 2})
         self.assertEqual(match["centroid"], {"x": 7 / 3, "y": 4 / 3})
         self.assertEqual(len(match["pixels"]), 1)
         text = self._run(*args)
@@ -34,12 +35,22 @@ class TestSampleMatchCentroid(CliTestCase):
         none = self._run(path, "0", "0", "--width", "2", "--find-color", "ffffff", "--match-centroid", "--json")
         self._assert_success(none)
         self.assertIsNone(json.loads(none.stdout)["match"]["centroid"])
+        none_text = self._run(path, "0", "0", "--width", "2", "--find-color", "ffffff", "--match-centroid")
+        self._assert_success(none_text)
+        self.assertIn("count: 0\n", none_text.stdout)
+        self.assertIn("bounds: none\ncentroid: none\n", none_text.stdout)
         one = self._run(path, "0", "0", "--width", "2", "--find-color", "010203", "--match-centroid", "--json")
         self._assert_success(one)
         self.assertEqual(json.loads(one.stdout)["match"]["centroid"], {"x": 1.0, "y": 0.0})
+        one_text = self._run(path, "0", "0", "--width", "2", "--find-color", "010203", "--match-centroid")
+        self._assert_success(one_text)
+        self.assertIn("bounds: 1,0,1,1\ncentroid: 1.0,0.0\n", one_text.stdout)
         ordinary = self._run(path, "0", "0", "--width", "2", "--find-color", "010203", "--json")
         self._assert_success(ordinary)
         self.assertNotIn("centroid", json.loads(ordinary.stdout)["match"])
+        ordinary_text = self._run(path, "0", "0", "--width", "2", "--find-color", "010203")
+        self._assert_success(ordinary_text)
+        self.assertNotIn("centroid:", ordinary_text.stdout)
 
     def test_direct_script_matches_package_cli(self):
         _, data = rgb_image(2, 1, lambda x, y: (1, 2, 3))
