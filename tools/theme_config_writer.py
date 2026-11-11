@@ -55,7 +55,6 @@ def write_configs(
     *,
     defaults_path: Path,
     read_groups: Callable[[Path], dict[tuple[str, str], dict[str, str]]],
-    write_atomically: Callable[[Path, str], None] = write_config_atomically,
 ) -> None:
     """Write configs named by *names* using sections from the defaults file."""
     if not isinstance(config_home, Path):
@@ -95,4 +94,4 @@ def write_configs(
             lines.append(f"[{group}]")
             lines.extend(f"{key}={value}" for key, value in values.items())
             lines.append("")
-        write_atomically(config_home / name, "\n".join(lines))
+        write_config_atomically(config_home / name, "\n".join(lines))
