@@ -51,6 +51,17 @@ class TestWorstPixel(FidelityCliTestCase):
         self.assertNotIn("worst_pixel", json.loads(self._run_png_pair(candidate, reference, "--json").stdout))
         self.assertNotIn("worst pixel:", self._run_png_pair(candidate, reference).stdout)
 
+    def test_offset_without_worst_pixels_is_refused_before_reads(self):
+        # The parser's last cross-check (tools/fidelity_cli_parser.py):
+        # --worst-pixel-offset pages a --worst-pixels report, so the offset
+        # without its count cap is refused as a usage error that names the
+        # cap. The input files do not exist, so any image read would produce
+        # a read diagnostic instead; the usage-error shape proves the refusal
+        # happens before reads, like the sibling offset refusals do.
+        result = self._run("missing.png", "missing.png", "--worst-pixel-offset", "1")
+        self._assert_usage_error(result, "--worst-pixel-offset requires --worst-pixels")
+        self.assertEqual(result.stdout, "")
+
     def test_errors_and_direct_script(self):
         _, png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         failed = self._run_png_pair(b"not a png", png, "--explain-worst")
