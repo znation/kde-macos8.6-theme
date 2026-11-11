@@ -1654,7 +1654,12 @@ produce a candidate render. Where the Plasma render tools are on `PATH`, `make c
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
 `30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
-region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
+region with the same `crop`/`compare` the fidelity tool uses. The applet face gate
+(`tests/test_render_surface.py::TestRender`) pins the same capture's client face beside
+those strips: the display field's black outline and flat interior and the keypad's
+eighteen raised cells with their blended corner arcs, plus the flat gap rows and
+columns between the cells, while the font-dependent label and digit ink is pinned
+only by live-ink checks. The dialog renders the same
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
 `::TestCalendarDialogRender`, `::TestColorDialogRender`, `::TestSliderDialogRender`,

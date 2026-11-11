@@ -103,6 +103,69 @@ COLLAPSE_CANDIDATE = (303, 4, 13, 13)
 COLLAPSE_REFERENCE = (343, 29, 13, 13)
 ZOOM_CANDIDATE = (282, 4, 21, 13)
 ZOOM_REFERENCE = (776, 26, 21, 13)
+# The applet face gate's client-face geometry, measured on three full
+# `tools/render_surface.py` runs on 2026-11-11 (every pair compared
+# byte-identical, so each pinned pixel is run-stable). The client face
+# spans rows 22..233 between the frame borders (x=0..5 and x=314..319,
+# which the landed chrome-strip tests byte-compare); its flat face rows
+# run x=6..313.
+# The display field: a 1px #000000 outline box x=10..309, y=27..78 whose
+# interior x=11..308, y=28..77 is flat #DDDDDD except the digit's
+# font-dependent ink, confined to the measured region below (197 pixels,
+# antialiased greys included, on the three-render capture).
+DISPLAY_FIELD = (10, 27, 309, 78)
+DISPLAY_INK_REGION = (292, 45, 305, 63)
+# The keypad: five button-row bands whose outline rows are y=83/113/143/
+# 174/204 (top) and y=108/138/169/199/229 (bottom). The first three bands
+# carry four cells over the column spans x=10..71, 76..138, 143..204 and
+# 209..309; the fourth drops the rightmost span (the tall right cell
+# merges bands four and five at x=209..309, y=174..229) and the fifth
+# band's leftmost cell spans x=10..138 across the first four bands' first
+# gap column, so the fifth band's cells are x=10..138 and x=143..204.
+# (The planned re-derivation note's three fifth-band cells over x=10..71,
+# 76..138, 143..204 with ink bleeding across x=72..76 do not match the
+# capture: no frame pixels sit at x=71..76 in rows 207..226, and the
+# circle around x=69..79 is the wide cell's label ink.)
+KEYPAD_BANDS = ((83, 108), (113, 138), (143, 169), (174, 199), (204, 229))
+KEYPAD_CELLS = tuple(
+    (x, y0, x1 - x + 1, y1 - y0 + 1)
+    for index, (y0, y1) in enumerate(KEYPAD_BANDS)
+    for x, x1 in (
+        ((10, 71), (76, 138), (143, 204), (209, 309))
+        if index < 3
+        else ((10, 71), (76, 138), (143, 204))
+        if index == 3
+        else ((10, 138), (143, 204))
+    )
+) + ((209, 174, 101, 56),)
+# The keypad cells' shared corner arcs: the outline's rounded corners
+# blend the black rectangle into the face over a three-pixel arc. The
+# four full-width rows each cell draws (top outline, bevel, arm, bottom
+# outline) carry the arcs' blend greys at their ends; rows y+2 and
+# y+height-3 hold the remaining arc greys at the cell ends, below. All
+# eighteen cells draw these rows identically (re-derived on the
+# three-render capture; the two fifth-band left cells' label ink stays
+# clear of their corner arcs).
+KEYPAD_ROW_ENDS = (
+    (("#D7D7D7", "#656565", "#151515"), "#000000", ("#151515", "#656565", "#D7D7D7")),
+    (("#656565", "#4C4C4C", "#E8E8E8"), "#FFFFFF", ("#E8E8E8", "#595959", "#656565")),
+    (("#656565", "#595959", "#B0B0B0"), "#AAAAAA", ("#9B9B9B", "#333333", "#656565")),
+    (("#D7D7D7", "#656565", "#161616"), "#000000", ("#161616", "#656565", "#D7D7D7")),
+)
+KEYPAD_ARC_ROWS = (
+    ("#151515", "#E8E8E8", "#E4E4E4"),  # y+2 at x..x+2
+    ("#E3E3E3", "#B0B0B0", "#161616"),  # y+2 at x+width-3..x+width-1
+    ("#151515", "#E8E8E8", "#E2E2E2"),  # y+height-3 at x..x+2
+    ("#D2D2D2", "#9B9B9B", "#161616"),  # y+height-3 at x+width-3..x+width-1
+)
+
+
+def _keypad_rows(width):
+    """Return the four full-width rows a *width*-wide keypad cell draws."""
+    return [
+        [*head, *([body] * (width - 6)), *tail]
+        for head, body, tail in KEYPAD_ROW_ENDS
+    ]
 # The dialog render's engine-drawn widget gate: `--checkbox-dialog` opens a
 # kdialog warning at the headless KWin session's centre in a 480x360 capture,
 # and its dontagain check box draws the theme's `checkbox-normal` art through
@@ -1325,6 +1388,68 @@ SOFTWARE_RENDER_SKIP_REASON = (
 )
 
 
+class _PixelPins:
+    """Pixel-reading assertions the render gates share.
+
+    A plain mixin: unittest discovers test methods only on the
+    ``TestCase`` subclasses that mix it in, so the mixin itself never
+    runs as a test. ``TestRender`` and ``_DialogGate``'s concrete
+    subclasses inherit these helpers beside their own ``candidate_image``
+    accessors.
+    """
+
+    def assert_pixel(self, x, y, colour):
+        self.assertEqual(colour, hex_colour(pixel_at(self.candidate_image(), x, y)))
+
+    def assert_raised_frame(self, rect, *, flat_rows=(), corner_blend=0):
+        """Pin a raised frame's outline/bevel and optional label-free rows.
+
+        *corner_blend* excludes the antialiased corner arc some buttons
+        draw over the sharp rectangle's ends: 0 (the default, and the
+        dialog buttons' shape) asserts the full outline rows and columns;
+        *n* > 0 shrinks each asserted span by *n* pixels at the row ends
+        and by *n* - 1 at the column ends (the arc covers one fewer row),
+        leaving the blend greys to the caller's row pins.
+        """
+        x, y, width, height = rect
+        if corner_blend:
+            rows = range(x + corner_blend, x + width - corner_blend)
+            columns = range(y + corner_blend, y + height - corner_blend)
+        else:
+            rows = range(x, x + width)
+            columns = range(y + 1, y + height - 1)
+        for xx in rows:
+            self.assert_pixel(xx, y, "#000000")
+            self.assert_pixel(xx, y + height - 1, "#000000")
+        for yy in columns:
+            self.assert_pixel(x, yy, "#000000")
+            self.assert_pixel(x + 1, yy, "#FFFFFF")
+            self.assert_pixel(x + width - 2, yy, "#AAAAAA")
+            self.assert_pixel(x + width - 1, yy, "#000000")
+        for row in flat_rows:
+            self.assert_pixel(x + 2, row, "#DDDDDD")
+            self.assert_pixel(x + width - 3, row, "#DDDDDD")
+
+    def assert_band(self, rect, rows):
+        """Pin every cell of *rect* at the per-row colours *rows*.
+
+        A blended bevel arm, a lost outline row, a swapped arm colour, a
+        resampled grip bar or a one-pixel crop slip shows up here
+        immediately.
+        """
+        image = self.candidate_image()
+        x, y, width, height = rect
+        for row in range(height):
+            with self.subTest(row=y + row):
+                self.assertEqual(
+                    list(rows[row]),
+                    [
+                        hex_colour(pixel_at(image, x + dx, y + row))
+                        for dx in range(width)
+                    ],
+                )
+
+
 @unittest.skipIf(
     software_renderer_skip_reason() is not None,
     software_renderer_skip_reason() or "",
@@ -1334,7 +1459,7 @@ SOFTWARE_RENDER_SKIP_REASON = (
     "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle and "
     "plasma-apply-colorscheme on PATH",
 )
-class TestRender(unittest.TestCase):
+class TestRender(_PixelPins, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Run the CLI the way `make render` does, as one of _Renders' three
@@ -1423,6 +1548,149 @@ class TestRender(unittest.TestCase):
         ):
             with self.subTest(candidate_crop=candidate_crop):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
+
+    # The applet's own face below the landed chrome strips: the display
+    # field and the keypad cells, pinned from the 2026-11-11 three-render
+    # capture through the shared pixel helpers (the constants above quote
+    # the measured geometry and each value's stability provenance). The
+    # font-dependent label and digit ink stays out of the exact pins;
+    # the live-ink checks at the end pin that the glyphs really draw.
+
+    def assert_keypad_cell(self, rect):
+        """Pin one keypad cell's raised frame and its corner arcs.
+
+        ``assert_raised_frame`` pins the black outline rows and columns,
+        the #FFFFFF bevel column, the #AAAAAA shadow column and the flat
+        #DDDDDD face rows over their clean spans (corner_blend=3); the
+        four full-width rows pin the outline/bevel/arm rows including
+        their blend greys, and the two arc rows pin the remaining blend
+        pixels at the cell's ends.
+        """
+        x, y, width, height = rect
+        top, bevel, arm, bottom = _keypad_rows(width)
+        self.assert_band((x, y, width, 1), [top])
+        self.assert_band((x, y + 1, width, 1), [bevel])
+        self.assert_band((x, y + height - 2, width, 1), [arm])
+        self.assert_band((x, y + height - 1, width, 1), [bottom])
+        for dx, colour in enumerate(KEYPAD_ARC_ROWS[0]):
+            self.assert_pixel(x + dx, y + 2, colour)
+        for dx, colour in enumerate(KEYPAD_ARC_ROWS[1]):
+            self.assert_pixel(x + width - 3 + dx, y + 2, colour)
+        for dx, colour in enumerate(KEYPAD_ARC_ROWS[2]):
+            self.assert_pixel(x + dx, y + height - 3, colour)
+        for dx, colour in enumerate(KEYPAD_ARC_ROWS[3]):
+            self.assert_pixel(x + width - 3 + dx, y + height - 3, colour)
+        self.assert_raised_frame(
+            rect, corner_blend=3, flat_rows=range(y + 3, y + height - 3)
+        )
+
+    def test_the_display_field_pins_its_outline_and_flat_interior(self):
+        # The display field is a 1px #000000 outline box (see
+        # DISPLAY_FIELD) whose interior is flat #DDDDDD except the digit's
+        # font-dependent ink, confined to the measured region; a
+        # recoloured outline, a lost face row or stray art in the display
+        # fails here.
+        x0, y0, x1, y1 = DISPLAY_FIELD
+        for xx in range(x0, x1 + 1):
+            self.assert_pixel(xx, y0, "#000000")
+            self.assert_pixel(xx, y1, "#000000")
+        for yy in range(y0, y1 + 1):
+            self.assert_pixel(x0, yy, "#000000")
+            self.assert_pixel(x1, yy, "#000000")
+        ix0, iy0, ix1, iy1 = DISPLAY_INK_REGION
+        image = self.candidate_image()
+        self.assertEqual(
+            [],
+            [
+                (x, y, hex_colour(pixel_at(image, x, y)))
+                for x in range(x0 + 1, x1)
+                for y in range(y0 + 1, y1)
+                if not (ix0 <= x <= ix1 and iy0 <= y <= iy1)
+                and hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+            ],
+        )
+
+    def test_the_display_inks_its_digit(self):
+        # The digit must really draw: at least one #000000 pixel inside
+        # the measured ink region (the glyphs themselves stay unpinned,
+        # mirroring the title gate's live-ink check).
+        ix0, iy0, ix1, iy1 = DISPLAY_INK_REGION
+        image = self.candidate_image()
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, x, y)) == "#000000"
+                for x in range(ix0, ix1 + 1)
+                for y in range(iy0, iy1 + 1)
+            ),
+            "the display field carries no digit ink",
+        )
+
+    def test_the_keypad_cells_pin_the_raised_frames(self):
+        # Each measured cell's raised frame: a dropped bevel arm, a
+        # shifted cell boundary or a resampled frame fails here.
+        for rect in KEYPAD_CELLS:
+            with self.subTest(cell=rect):
+                self.assert_keypad_cell(rect)
+
+    def test_the_gaps_between_the_cells_stay_flat_face(self):
+        # The flat #DDDDDD face rows between the bands: full client width
+        # (x=6..313; x=0..5 and x=314..319 carry the side border art the
+        # landed strip tests byte-compare) for rows 23..26 above the
+        # display, 79..82 between display and keypad, 109..112, 139..142,
+        # 170..173 and 230..233, and x=6..208 only for rows 200..203,
+        # where the tall right cell spans them. The gap columns x=72..75
+        # and 139..142 stay flat across each of the first four bands'
+        # interior rows; the fifth band has no gap column to pin (its
+        # leftmost cell spans x=10..138 across the first gap column).
+        image = self.candidate_image()
+        self.assertEqual(
+            [],
+            [
+                (x, y, hex_colour(pixel_at(image, x, y)))
+                for y0, y1 in ((23, 26), (79, 82), (109, 112), (139, 142),
+                               (170, 173), (230, 233))
+                for y in range(y0, y1 + 1)
+                for x in range(6, 314)
+                if hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+            ],
+        )
+        self.assertEqual(
+            [],
+            [
+                (x, y, hex_colour(pixel_at(image, x, y)))
+                for y in range(200, 204)
+                for x in range(6, 209)
+                if hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+            ],
+        )
+        for y0, y1 in KEYPAD_BANDS[:4]:
+            self.assertEqual(
+                [],
+                [
+                    (x, y, hex_colour(pixel_at(image, x, y)))
+                    for x in (*range(72, 76), *range(139, 143))
+                    for y in range(y0 + 3, y1 - 2)
+                    if hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                ],
+            )
+
+    def test_every_keypad_cell_inks_its_label(self):
+        # Every cell must really draw its label: at least one #000000
+        # pixel inside its interior (the glyphs themselves stay unpinned,
+        # mirroring the dialog gates' live-ink checks).
+        image = self.candidate_image()
+        for rect in KEYPAD_CELLS:
+            x, y, width, height = rect
+            with self.subTest(cell=rect):
+                self.assertTrue(
+                    any(
+                        hex_colour(pixel_at(image, x + 2 + dx, y + 2 + dy))
+                        == "#000000"
+                        for dx in range(width - 4)
+                        for dy in range(height - 4)
+                    ),
+                    f"cell {rect} carries no label ink",
+                )
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
@@ -1654,7 +1922,7 @@ class TestRenderBudgets(unittest.TestCase):
         self.assertNotIn("--settle", flags)
 
 
-class _DialogGate:
+class _DialogGate(_PixelPins):
     """Test scaffolding the fourteen dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
@@ -1708,43 +1976,6 @@ class _DialogGate:
             for y in range(height)
         }
         self.assertEqual(expected, actual)
-
-    def assert_pixel(self, x, y, colour):
-        self.assertEqual(colour, hex_colour(pixel_at(self.candidate_image(), x, y)))
-
-    def assert_raised_frame(self, rect, *, flat_rows=()):
-        """Pin a raised frame's outline/bevel and optional label-free rows."""
-        x, y, width, height = rect
-        for xx in range(x, x + width):
-            self.assert_pixel(xx, y, "#000000")
-            self.assert_pixel(xx, y + height - 1, "#000000")
-        for yy in range(y + 1, y + height - 1):
-            self.assert_pixel(x, yy, "#000000")
-            self.assert_pixel(x + 1, yy, "#FFFFFF")
-            self.assert_pixel(x + width - 2, yy, "#AAAAAA")
-            self.assert_pixel(x + width - 1, yy, "#000000")
-        for row in flat_rows:
-            self.assert_pixel(x + 2, row, "#DDDDDD")
-            self.assert_pixel(x + width - 3, row, "#DDDDDD")
-
-    def assert_band(self, rect, rows):
-        """Pin every cell of *rect* at the per-row colours *rows*.
-
-        A blended bevel arm, a lost outline row, a swapped arm colour, a
-        resampled grip bar or a one-pixel crop slip shows up here
-        immediately.
-        """
-        image = self.candidate_image()
-        x, y, width, height = rect
-        for row in range(height):
-            with self.subTest(row=y + row):
-                self.assertEqual(
-                    list(rows[row]),
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
-                )
 
     def assert_push_button_recipe(self, rect, cell, flat_rows):
         """Pin the raised push-button recipe over its full-height cell.
