@@ -52,7 +52,14 @@ class TestBoundedLogText(unittest.TestCase):
             result = _bounded_log_text(str(path))
 
         self.assertTrue(result.startswith("check: "), result[:80])
-        self.assertIn(" earlier log bytes hidden; showing the last ", result)
+        # Only "visible\n" (8 bytes) survives; every earlier byte, including
+        # the discarded partial line inside the window, is counted hidden.
+        shown = len(b"visible\n")
+        self.assertEqual(
+            f"check: {len(prefix) - shown} earlier log bytes hidden; "
+            f"showing the last {shown}",
+            result.split("\n", 1)[0],
+        )
         self.assertTrue(result.endswith("visible\n"), result[-80:])
         self.assertNotIn("x", result)
 
