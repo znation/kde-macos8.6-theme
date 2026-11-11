@@ -1586,7 +1586,8 @@ transparent pixels participate, and missing alpha is treated as 255. This is an 
 not a mismatching-pixel count: runs end at row boundaries, and adjacent mismatching pixels in one
 row form one segment. Length cutoffs affect the optional run list but not the scalar. Combined
 with `--difference-runs`, it reuses that scan; by itself it streams the count without retaining run
-records. The diagnostic is omitted unless requested.
+records. Requesting the run list also reports the count; with neither option the diagnostic is
+omitted.
 Pass `--min-difference-run-length N` with `--difference-runs` to omit completed runs shorter than
 `N`. The inclusive cutoff filters the reported list after segmentation, so separated runs stay
 separate and comparison metrics and longest-run summaries still use the complete mismatch data.
