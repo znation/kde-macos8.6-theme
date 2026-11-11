@@ -4308,6 +4308,5 @@ class TestDesktopRender(unittest.TestCase):
             "the bar's right half carries no live content",
         )
 
-
 if __name__ == "__main__":
     unittest.main()
