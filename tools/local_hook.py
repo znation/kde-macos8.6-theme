@@ -45,11 +45,12 @@ else:  # run directly: python3 tools/local_hook.py
 
 TOOL = "local_hook"
 HOOK_NAME = "post-commit"
-# The line that marks a hook as this tool's; a hook without it is foreign.
+# A line of the generated hook. Ownership is an exact byte match with
+# HOOK_SCRIPT, not this marker: a foreign hook can copy the marker.
 MARKER = "# installed by kde-macos8.6-theme: make install-local-hook"
 # The hook this tool writes is a few hundred bytes. An existing hook is read
-# only to look for MARKER, and the path holds whatever another tool or the
-# user put there, at any size, so a huge file must not be loaded whole: a
+# only to compare it with HOOK_SCRIPT, and the path holds whatever another
+# tool or the user put there, at any size, so a huge file must not be loaded whole: a
 # multi-gigabyte hook would exhaust memory and raise MemoryError (which is not
 # an OSError and would escape as a traceback) instead of the documented exit-2
 # refusal. Read at most this many bytes plus one; a longer file is refused by
@@ -76,8 +77,8 @@ def _existing_hook(path: Path) -> bytes | None:
     ``lstat`` sees a symlink as itself rather than as its target, so a
     symlink (a dangling one included) is refused: writing through it could
     clobber a file outside the hooks directory. A non-regular file and an
-    unreadable file are refused too, so the marker check can never silently
-    pass. A file larger than ``_MAX_HOOK_BYTES`` is refused without being read
+    unreadable file are refused too, so the ownership check can never
+    silently pass. A file larger than ``_MAX_HOOK_BYTES`` is refused without being read
     whole, so an oversize hook cannot exhaust memory. Each refusal raises
     `LocalHookError`, which the callers report with exit status 2.
     """
