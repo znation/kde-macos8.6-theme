@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from support import repo_root  # noqa: F401
+from support import repo_root  # noqa: F401  (puts ROOT on sys.path)
+from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.png_fixtures import rgb_image
+from support.repo_root import ROOT
+from support import snippet_child
 from tools import fidelity_sources, png
 
 
@@ -149,6 +153,33 @@ class TestReadSource(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     fidelity_sources.read_source(str(link), None)
             decoder.assert_not_called()
+
+    def test_a_fifo_candidate_is_refused_instead_of_blocking(self):
+        # A FIFO at a candidate path must not stall the run: the sniff's
+        # non-blocking open and regular-file check match read_png's own
+        # guards, so the pipe falls through to the PNG branch and the
+        # standing cannot-read refusal names it. The CLI runs in a child
+        # process, so a blocking regression is a bounded timeout, not a
+        # stalled suite (the same shape tests/test_containment.py uses).
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as directory:
+            fifo = Path(directory) / "candidate.png"
+            make_fifo(self, fifo)
+            _, reference = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+            reference_path = Path(directory) / "reference.png"
+            reference_path.write_bytes(reference)
+            child = snippet_child.run(
+                [
+                    "import sys; from tools import fidelity; "
+                    "sys.exit(fidelity.main([sys.argv[1], sys.argv[2]]))",
+                    str(fifo),
+                    str(reference_path),
+                ],
+                cwd=ROOT,
+                timeout=10,
+            )
+            assert_fifo_refused(self, child, fifo)
 
 
 if __name__ == "__main__":
