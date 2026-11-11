@@ -95,7 +95,10 @@ def build_parser() -> EscapingArgumentParser:
     )
     parser.add_argument("candidate", help="rendered surface image (PNG)")
     parser.add_argument("reference", help="reference image (PNG)")
-    parser.add_argument("--json", action="store_true", help="emit comparison as JSON")
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument("--json", action="store_true", help="emit comparison as JSON")
+    output.add_argument("--quiet", action="store_true",
+                        help="print no report; use the exit status as the verdict")
     parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
                         help="list up to N worst differing pixels (1-1000)")
     parser.add_argument("--worst-pixel-offset", type=worst_pixel_offset, metavar="K",

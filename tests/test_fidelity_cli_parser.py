@@ -125,7 +125,8 @@ class TestFidelityCliParser(unittest.TestCase):
 
     def test_help_text_is_stable(self):
         help_text = build_parser().format_help()
-        self.assertIn("usage: fidelity [-h] [--json] [--worst-pixels N]", help_text)
+        self.assertIn("--json | --quiet", help_text)
+        self.assertIn("--quiet", help_text)
         self.assertIn("--candidate-crop X,Y,W,H", help_text)
         self.assertIn("--worst-pixel-offset K", help_text)
         self.assertIn("--max-differing N", help_text)
@@ -149,6 +150,7 @@ class TestFidelityCliParser(unittest.TestCase):
             "candidate": "candidate.png",
             "reference": "reference.png",
             "json": False,
+            "quiet": False,
             "worst_pixels": None,
             "worst_pixel_offset": None,
             "channel_counts": False,

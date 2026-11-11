@@ -5,6 +5,19 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Fidelity CLI: offer a quiet verdict mode for scripted gates (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Let shell callers compare screenshots for their exit status without printing a successful or failed comparison report. Source searches found no quiet option in the fidelity CLI and no planned or archived quiet-mode entry. This is independent of the waiting GTK suite split and the push-button retirement being handled on the pending plan branch.
+
+**Approach and files.** In `tools/fidelity_cli_parser.py::build_parser`, make `--json` and a new `--quiet` boolean mutually exclusive output choices. In `tools/fidelity.py::main`, return the computed budget verdict before constructing/rendering the report when quiet is selected, after the existing image reads, comparison and option validation. Keep diagnostic flags legal with quiet: they retain their validation but produce no report. Do not introduce a separate comparison path or change budget calculations. Add `tests/test_fidelity_quiet.py` using `support.fidelity_cli_case.FidelityCliTestCase` and its PNG fixtures; update `tests/test_fidelity_cli_parser.py` for the parser's new default and help text; document the option in README.md's Fidelity checking section and append its guarantee to `docs/invariants.md`'s tooling table. The change touches these six files and stays within a few hundred lines including tests.
+
+**Acceptance criteria.**
+
+- Given identical 1x1 RGB PNGs, `--quiet` returns 0 with empty stdout and stderr. Given pixels (0,0,0) and (1,0,0), it returns 1 by default and 0 with `--tolerance 1`, with empty stdout and stderr in both cases. These fixtures distinguish quiet reporting from accidentally forcing success.
+- Given a missing input or malformed PNG with `--quiet`, the CLI retains its normal error status and a nonempty stderr diagnostic, with empty stdout. Quiet does not hide usage errors: `--quiet --json` fails argument parsing before attempting to open missing input paths, in either flag order.
+- Quiet with a valid diagnostic option such as `--difference-rows` still yields empty stdout and the correct comparison status; an invalid dependent-option combination still reports a usage error. Without quiet, existing text and JSON reports retain their tested behavior.
+- A direct script invocation exercises the quiet option successfully; `make check` passes after the final edit. No GUI session or new dependency is needed.
+
 ### Platinum GTK 4 push button: pin the rendered raised face, bevel and inverted active bevel with an offscreen pixel probe (planned 2026-11-11 by the plan role; progress-meter independence refreshed 2026-11-11 by the steward role — the GTK 4 progress-meter entry this clause originally cited as waiting landed 2026-11-11 (PLANS-DONE.md), landing its `test_progressbar_faces_render` probe and its end-of-table `## gtk` row, so the merge-order hazard it described is resolved; the still-waiting neighbour is the GTK 4 slider entry below — the two share no test method, no pinned widget and no README sentence, though both touch `tests/test_gtk4_theme.py`'s rendered-probe region and `docs/invariants.md`'s `## gtk` table tail, so whichever merges later re-reads the file's probe region and the table tail before writing; at implementation re-grep every anchor this entry names) — retired 2026-11-11 by the plan role
 
 **Retired 2026-11-11 by plan: duplicate of "Platinum GTK 4 push button: pin the rendered raised face, bevel and inverted active bevel with an offscreen pixel probe" in PLANS-DONE.md, done 2026-11-11 by the feature role.** Checked `tests/test_gtk4_theme.py::TestGtk4Theme::test_button_faces_render`: the child renders resting and ACTIVE buttons and pins the face, border and swapped bevel arms; `docs/invariants.md` names that probe. The archived completed entry is the survivor.

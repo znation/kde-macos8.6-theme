@@ -94,6 +94,8 @@ recorded here to keep the scope deliberate.
 
 ### Split the 6622-line tests/test_gtk4_theme.py into per-surface suites (planned 2026-11-11 by the organize role; ordering clause — this entry queues behind the three waiting GTK 4 rendered-probe entries (push button, slider, scrollbar) and must land after all three, since each appends a probe to `tests/test_gtk4_theme.py`'s rendered-probe region and an end-of-table `## gtk` row to `docs/invariants.md`, and writing their anchors into the per-surface suites once beats churning them twice; at implementation re-grep every anchor this entry names)
 
+Needs review 2026-11-11 by feature: too large for one run
+
 **Goal and cost.** `tests/test_gtk4_theme.py` is the repository's largest file by a wide margin — 6622 lines, ~6400 of them the single `TestGtk4Theme` class holding 249 test methods over every GTK 4 surface (header bar, OSD, notebook, scrollbar, calendar, spin field, …), with the inline child-interpreter probe programs (the `subprocess.run([sys.executable, "-c", '''…'''])` blocks near lines 164–780) embedding whole GTK programs as string literals inside one method. Every new GTK 4 probe appends to this one file: the three queued probe entries all target its rendered-probe region, `docs/invariants.md` pins ~217 references to the file, and the queued entries' independence clauses already coordinate merge order around "the file's probe region and the table tail" — evidence that one file is now a shared edit point where merges queue on each other. A 249-method grab-bag class also hides which surface a method covers. The split is not a one-run move: the reference updates alone (invariants table, queued-entry anchors) are large, so it is planned rather than started.
 
 **Target structure.** Designed up front; no assertion, expected value, probe pixel or child-program byte changes — only module placement, class composition and imports move.
@@ -112,19 +114,6 @@ recorded here to keep the scope deliberate.
 - A grep over the repository (source, tests, docs) finds no remaining `tests/test_gtk4_theme.py` reference: the file is gone and every invariants-table row names the module the test landed in.
 - Each per-surface suite is under roughly one sitting and imports its parse only from `tests/support/gtk4_sheet.py`; the probe suite's child programs carry the extracted prelude and no duplicated prelude line remains across the seven probe methods (a diff of the extracted prelude against each original block shows only the moved lines).
 - The queued probe entries' independence clauses and the invariants table tail read true after the split; if one of the three probe entries is still unlanded at implementation time, this entry is behind it and waits.
-
-### Fidelity CLI: offer a quiet verdict mode for scripted gates (planned 2026-11-11 by the plan role)
-
-**Goal.** Let shell callers compare screenshots for their exit status without printing a successful or failed comparison report. Source searches found no quiet option in the fidelity CLI and no planned or archived quiet-mode entry. This is independent of the waiting GTK suite split and the push-button retirement being handled on the pending plan branch.
-
-**Approach and files.** In `tools/fidelity_cli_parser.py::build_parser`, make `--json` and a new `--quiet` boolean mutually exclusive output choices. In `tools/fidelity.py::main`, return the computed budget verdict before constructing/rendering the report when quiet is selected, after the existing image reads, comparison and option validation. Keep diagnostic flags legal with quiet: they retain their validation but produce no report. Do not introduce a separate comparison path or change budget calculations. Add `tests/test_fidelity_quiet.py` using `support.fidelity_cli_case.FidelityCliTestCase` and its PNG fixtures; document the option in README.md's Fidelity checking section and append its guarantee to `docs/invariants.md`'s tooling table. Limit the change to those five files and a few hundred lines including tests.
-
-**Acceptance criteria.**
-
-- Given identical 1x1 RGB PNGs, `--quiet` returns 0 with empty stdout and stderr. Given pixels (0,0,0) and (1,0,0), it returns 1 by default and 0 with `--tolerance 1`, with empty stdout and stderr in both cases. These fixtures distinguish quiet reporting from accidentally forcing success.
-- Given a missing input or malformed PNG with `--quiet`, the CLI retains its normal error status and a nonempty stderr diagnostic, with empty stdout. Quiet does not hide usage errors: `--quiet --json` fails argument parsing before attempting to open missing input paths, in either flag order.
-- Quiet with a valid diagnostic option such as `--difference-rows` still yields empty stdout and the correct comparison status; an invalid dependent-option combination still reports a usage error. Without quiet, existing text and JSON reports retain their tested behavior.
-- A direct script invocation exercises the quiet option successfully; `make check` passes after the final edit. No GUI session or new dependency is needed.
 
 ## Done
 

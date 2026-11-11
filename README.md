@@ -1504,6 +1504,10 @@ A candidate or reference path inside the repository that resolves outside it (a 
 symlink) is refused by name before it is read, so a comparison cannot probe a private image;
 a path outside the repository is read as before. Guarded PNG reads and crop-bounded row decoding
 are handled by `tools/fidelity_sources.py`, called by the CLI in `tools/fidelity.py`.
+Add `--quiet` to suppress the report and use only the exit status (0 pass, 1 comparison failure,
+2 usage or read error) in a scripted gate. It can be combined with comparison diagnostics, which
+are still calculated but not printed; `--quiet` and `--json` are mutually exclusive.
+
 By default a run passes only when no pixel differs from the reference by more than `--tolerance`
 (a per-channel delta; 0, i.e. byte-exact, unless given). Each pixel's alpha byte is compared
 along with its red, green and blue bytes, so a transparent candidate cannot pass as an opaque

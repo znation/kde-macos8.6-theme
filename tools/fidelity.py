@@ -186,6 +186,8 @@ def main(argv: list[str] | None = None) -> int:
     ok = budget_verdict(metrics, args.max_mae, args.max_frac,
                         max_rmse=args.max_rmse, max_delta=args.max_delta,
                         max_differing=args.max_differing)
+    if args.quiet:
+        return 0 if ok else 1
     result = report_data(args.candidate, args.reference, args.candidate_crop,
                          args.crop, args.tolerance, args.max_mae, args.max_frac,
                          metrics, worst=worst, channels=channels,
