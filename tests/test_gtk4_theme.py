@@ -3068,6 +3068,10 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         """Pin the disabled selected rows and children restated stock-twin."""
         self.assert_disabled_text((
             "row:disabled:selected",
+            "list row.activatable:disabled:selected",
+            "listview > row.activatable:disabled:selected",
+            "list row.activatable:disabled:selected:backdrop",
+            "listview > row.activatable:disabled:selected:backdrop",
             "flowbox > flowboxchild:disabled:selected",
             "gridview > child:disabled:selected",
             "columnview.view:disabled:selected",
@@ -3084,12 +3088,18 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         # against stock by this exact set assertion.
         # 2026-10-31: selected text arms and the generic .view disabled twin
         # are restated by their focused plan entries.
+        # More-specific disabled activatable-row overrides also belong
+        # to this inventory and preserve grey against enabled row rules.
         self.assertEqual(
             {
                 s for s in self.rules if ":disabled:selected" in s
             },
             {
                 "row:disabled:selected",
+                "list row.activatable:disabled:selected",
+                "listview > row.activatable:disabled:selected",
+                "list row.activatable:disabled:selected:backdrop",
+                "listview > row.activatable:disabled:selected:backdrop",
                 "flowbox > flowboxchild:disabled:selected",
                 "gridview > child:disabled:selected",
                 "columnview.view:disabled:selected",

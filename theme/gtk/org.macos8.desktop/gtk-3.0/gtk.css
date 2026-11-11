@@ -6655,3 +6655,11 @@ scrollbar slider:backdrop {
 progressbar.osd progress:disabled {
   background-color: #999999;
 }
+
+/* The landed activatable-row selection rules outrank row alone. Name
+   their nodes and disabled state so inactive text also wins there,
+   including backdrop and the selected:hover arms. */
+list row.activatable:disabled:selected,
+list row.activatable:disabled:selected:backdrop {
+  color: #888888;
+}

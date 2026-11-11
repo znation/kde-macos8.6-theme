@@ -288,6 +288,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         """Pin the disabled selected rows and children restated stock-twin."""
         self.assert_disabled_text((
             "row:disabled:selected",
+            "list row.activatable:disabled:selected",
+            "list row.activatable:disabled:selected:backdrop",
             "flowbox flowboxchild:disabled:selected",
             "treeview.view:disabled:selected",
             "row:backdrop:disabled:selected",
@@ -297,10 +299,14 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # The family keeps stock's member set: nothing else in the sheet
         # names the state pair. 2026-10-31: selected-text restatements add
         # their seven stock twins to this sweep.
+        # More-specific disabled activatable-row overrides also belong
+        # to this inventory and preserve grey against enabled row rules.
         self.assertEqual(
             {s for s in self.rules if ":disabled:selected" in s},
             {
                 "row:disabled:selected",
+                "list row.activatable:disabled:selected",
+                "list row.activatable:disabled:selected:backdrop",
                 "flowbox flowboxchild:disabled:selected",
                 "treeview.view:disabled:selected",
                 "row:backdrop:disabled:selected",
