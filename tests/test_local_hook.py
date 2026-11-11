@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -271,15 +272,26 @@ class TestGitFailures(unittest.TestCase):
                 local_hook_git.hooks_dir()
 
     def test_hooks_dir_reports_path_resolution_errors(self):
-        with mock.patch.object(local_hook_git, "_git", return_value="/hooks"), \
-                mock.patch.object(
-                    Path, "resolve", side_effect=RuntimeError("symlink loop")
+        # A symlink loop reaches pathlib as RuntimeError; a filesystem error
+        # during the walk (permissions, I/O) reaches it as OSError. Both must
+        # become the CLI's LocalHookError diagnostic, so both are pinned.
+        cases = (
+            (RuntimeError("symlink loop"), "symlink loop"),
+            (OSError(13, "Permission denied"), "[Errno 13] Permission denied"),
+        )
+        for failure, detail in cases:
+            with self.subTest(failure=type(failure).__name__):
+                with mock.patch.object(
+                    local_hook_git, "_git", return_value="/hooks"
+                ), mock.patch.object(
+                    Path, "resolve", side_effect=failure
                 ):
-            with self.assertRaisesRegex(
-                local_hook_git.LocalHookError,
-                "cannot resolve path from git rev-parse --git-path hooks: symlink loop",
-            ):
-                local_hook_git.hooks_dir()
+                    with self.assertRaisesRegex(
+                        local_hook_git.LocalHookError,
+                        "cannot resolve path from git rev-parse --git-path hooks: "
+                        + re.escape(detail),
+                    ):
+                        local_hook_git.hooks_dir()
 
 
 class TestGitDiscovery(unittest.TestCase):
