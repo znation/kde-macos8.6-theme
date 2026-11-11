@@ -200,15 +200,19 @@ def _filter_line(ftype: int, line: bytes, prev: bytes, bpp: int) -> bytes:
 
 
 def _require_positive_dimensions(name: str, width: int, height: int) -> None:
-    """Reject a non-positive width or height before it reaches ``struct.pack``.
+    """Reject non-integer or non-positive dimensions before encoding.
 
-    A zero or negative dimension is a fixture bug. A negative one used to
-    escape from ``struct.pack(">I", ...)`` as a bare ``struct.error`` that
-    named neither the argument nor the requirement, and a zero width silently
-    built a degenerate PNG whose decode error pointed at the decoder rather
-    than the fixture. Every PNG dimension is positive, so report it here by
-    name.
+    Booleans count as integers in Python, and floats can fail later in the
+    scanline builder or ``struct.pack``. Reject both here with the dimension
+    name. A zero or negative dimension is also a fixture bug: a negative one
+    used to escape as a bare ``struct.error``, while zero built a degenerate
+    PNG whose decode error pointed at the decoder.
     """
+    for dimension_name, dimension in (("width", width), ("height", height)):
+        if not is_plain_int(dimension):
+            raise ValueError(
+                f"{name}: {dimension_name} must be an integer, got {dimension!r}"
+            )
     if width <= 0 or height <= 0:
         raise ValueError(
             f"{name}: width and height must be positive: {width}x{height}"

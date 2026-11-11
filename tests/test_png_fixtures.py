@@ -82,6 +82,17 @@ class TestMakePng(unittest.TestCase):
                 self.assertIn("make_png", message)
                 self.assertIn(f"{width}x{height}", message)
 
+    def test_rejects_non_integer_dimensions(self):
+        for width, height, name in (
+            (True, 1, "width"),
+            (1, False, "height"),
+            (1.5, 1, "width"),
+            (1, 2.5, "height"),
+        ):
+            with self.subTest(width=width, height=height):
+                message = _value_error_message(self, make_png, width, height, [])
+                self.assertIn(f"{name} must be an integer", message)
+
     def test_accepts_exact_row_and_matching_filters(self):
         data = make_png(1, 1, [bytes([7, 8, 9])], filter_types=[0])
         self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
@@ -208,6 +219,19 @@ class TestPngWithIdat(unittest.TestCase):
                 )
                 self.assertIn("png_with_idat", message)
                 self.assertIn(f"{width}x{height}", message)
+
+    def test_rejects_non_integer_dimensions(self):
+        for width, height, name in (
+            (True, 1, "width"),
+            (1, False, "height"),
+            (1.5, 1, "width"),
+            (1, 2.5, "height"),
+        ):
+            with self.subTest(width=width, height=height):
+                message = _value_error_message(
+                    self, png_with_idat, b"", width=width, height=height
+                )
+                self.assertIn(f"{name} must be an integer", message)
 
 
 class TestRgbImage(unittest.TestCase):
