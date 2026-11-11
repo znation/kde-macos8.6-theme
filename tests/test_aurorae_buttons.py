@@ -151,8 +151,8 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         # fully transparent at every pixel of the widget's canvas. The one
         # paintless path it carries supplies KSvg geometry, not paint, so
         # hovering or pressing an unfocused window's button cannot erase or
-        # change anything (BUGS.md's erasure symptom has nothing it can act
-        # on).
+        # change anything (the BUGS-FIXED.md entry on that erasure has nothing
+        # it can act on).
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
