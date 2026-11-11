@@ -80,6 +80,19 @@ def _sample_jpeg(args, fd: int) -> int:
     return 0
 
 
+def _jpeg_alpha_refusal(args) -> str | None:
+    """Return the refusal for alpha options given a JPEG input, else None.
+
+    A JPEG carries no alpha channel to sample or match, so these refusals
+    fire before any conversion runs.
+    """
+    if args.alpha:
+        return "--alpha requires a PNG input: a JPEG image carries no alpha channel"
+    if args.match_alpha is not None:
+        return "--match-alpha requires a PNG input: a JPEG image carries no alpha channel"
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     """Validate and load the requested region, then dispatch its report."""
     args = build_parser().parse_args(argv)
@@ -114,18 +127,9 @@ def main(argv: list[str] | None = None) -> int:
             # Sniff the bytes on the already-open stable handle, so a
             # concurrent symlink swap cannot change what is decoded.
             if is_jpeg(os.pread(fd, len(JPEG_MAGIC), 0)):
-                # A JPEG carries no alpha channel to sample or match, so
-                # these refusals fire before any conversion runs.
-                if args.alpha:
-                    return report_error(
-                        "sample",
-                        "--alpha requires a PNG input: a JPEG image carries no alpha channel",
-                    )
-                if args.match_alpha is not None:
-                    return report_error(
-                        "sample",
-                        "--match-alpha requires a PNG input: a JPEG image carries no alpha channel",
-                    )
+                message = _jpeg_alpha_refusal(args)
+                if message is not None:
+                    return report_error("sample", message)
                 return _sample_jpeg(args, fd)
             width, height = read_png_size(opened_path)
             message = region_error(args, width, height)
