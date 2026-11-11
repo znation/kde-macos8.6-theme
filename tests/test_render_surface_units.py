@@ -92,6 +92,25 @@ class TestArguments(unittest.TestCase):
         self.assertEqual(1.25, args.settle)
         self.assertEqual(33.0, args.timeout)
 
+    def test_accepts_the_minimum_settle_and_timeout(self):
+        # The bounds are inclusive: --settle 0 (no wait before the capture)
+        # and --timeout 1 are the smallest values the parser accepts. Both
+        # satisfy the timeout-longer-than-settle rule (1 > 0).
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            status = render_surface.main(
+                ("out.png", "--settle", "0", "--timeout", "1")
+            )
+
+        self.assertEqual(0, status)
+        args = workflow.call_args.args[0]
+        self.assertEqual(0.0, args.settle)
+        self.assertEqual(1.0, args.timeout)
+
     def test_cli_delegates_the_lineedit_dialog_capture_size(self):
         # A plain --lineedit-dialog run captures at the 480x360 the widget
         # gate byte-compares, not the applet's 320x240 default.
