@@ -7,6 +7,10 @@ each run.
 
 ## Open
 
+_None yet._
+
+## Answered
+
 ### Should the sampler refuse a contradictory min/max filter window?
 
 **Context.** The sampler's `option_error` (tools/sample_arguments.py) validates option
@@ -35,7 +39,7 @@ combinations that can only produce a misleading report (`--top-colors requires -
 and an empty report from a typo looks exactly like a real measurement of "no matches". The cost
 is rewriting the empty-result fixtures in roughly six test modules. (Improve role, 2026-11-11.)
 
-## Answered
+**Answered 2026-11-11 by the user:** Let's go with option 2, refuse
 
 ## Answered
 
