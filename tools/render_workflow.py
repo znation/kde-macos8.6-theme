@@ -11,6 +11,7 @@ if __package__:
     from tools.process_group import run_logged
     from tools.render_output import publish
     from tools.gtk_user_files import ConfigError
+    from tools.render_clients import splash_client
     from tools.render_dialogs import DIALOG_MODES, DialogMode
     from tools.render_session import Session, session_command
     from tools.render_window_rules import RULES_FILE, write_window_rules
@@ -30,6 +31,7 @@ else:  # run directly from render_surface.py
     from process_group import run_logged
     from render_output import publish
     from gtk_user_files import ConfigError
+    from render_clients import splash_client
     from render_dialogs import DIALOG_MODES, DialogMode
     from render_session import Session, session_command
     from render_window_rules import RULES_FILE, write_window_rules
@@ -72,6 +74,10 @@ def _selected_dialog_mode(args: argparse.Namespace) -> DialogMode | None:
 
 def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
     """Return the client command for the dialog flag set, else the applet."""
+    if args.splash:
+        # The look-and-feel's own splash paints the client itself; no applet
+        # or dialog client.
+        return list(splash_client(session))
     if args.desktop:
         # The shell draws the menu bar itself; no applet or dialog client.
         return ["plasmashell"]
@@ -127,6 +133,10 @@ def render(args: argparse.Namespace) -> int:
 
         mode = _selected_dialog_mode(args)
         desktop = args.desktop
+        # A splash run keeps the applet's own session configs: the splash
+        # reads no selection (the client argument is the session-local
+        # installed package path), so no Kvantum or GTK selection, no desktop
+        # selection and no window-rules file are written for it.
         try:
             write_session_configs(
                 session,

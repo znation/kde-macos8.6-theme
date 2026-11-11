@@ -629,6 +629,95 @@ class TestArguments(unittest.TestCase):
         _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
         self.assertIn("--desktop", stdout)
 
+    def test_cli_delegates_the_splash_capture_size(self):
+        # The splash capture is fixed at 640x400, the same probe
+        # virtual-framebuffer size the desktop capture fixes; the applet id
+        # stays at its default, which the splash render never opens.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--splash"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((640, 400), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_splash(self):
+        # The splash client is ksplashqml, not an applet window, so an
+        # applet override has no window to open in.
+        status, stderr = call_main(
+            render_surface.main, "out.png", "--splash", "--applet", "x"
+        )
+        self.assertEqual(2, status)
+        self.assertIn("--splash", stderr)
+        self.assertIn("--applet", stderr)
+
+    def test_rejects_a_capture_size_with_the_splash(self):
+        # 640x400 is the crop basis the queued splash gate will compare, so
+        # a size override moves the splash the pinned crops assume.
+        status, stderr = call_main(
+            render_surface.main, "out.png", "--splash", "--width", "320"
+        )
+        self.assertEqual(2, status)
+        self.assertIn("--splash", stderr)
+        self.assertIn("640x400", stderr)
+
+    def test_rejects_a_dialog_mode_and_the_desktop_with_the_splash(self):
+        # The splash client opens the look-and-feel's own splash, so neither
+        # a dialog client nor the desktop shell can ride the same session.
+        for partner in (
+            "--desktop", "--checkbox-dialog", "--file-dialog",
+            "--gtk-dialog",
+        ):
+            with self.subTest(partner=partner):
+                status, stderr = call_main(
+                    render_surface.main, "out.png", "--splash", partner
+                )
+                self.assertEqual(2, status)
+                self.assertIn("--splash", stderr)
+                self.assertIn(partner, stderr)
+
+    def test_the_splash_requires_ksplashqml(self):
+        # The splash client is a plain command, so the missing-tool
+        # preflight names it instead of starting a splash-less session.
+        tools = render_surface.REQUIRED_TOOLS + ("ksplashqml",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--splash")
+        )
+
+    def test_the_splash_defaults_the_slower_settle_and_timeout(self):
+        # The --test --nofork client paints within an 8 s settle (three probe
+        # runs) but deterministically exits about 10 s in, so splash mode
+        # keeps the applet's 8 s settle and 90 s timeout; an explicit flag
+        # still wins over the mode default.
+        cases = (
+            (("out.png", "--splash"), (8.0, 90.0)),
+            (
+                ("out.png", "--splash", "--settle", "5", "--timeout", "60"),
+                (5.0, 60.0),
+            ),
+        )
+        for argv, expected in cases:
+            with self.subTest(argv=argv):
+                with (
+                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+                    mock.patch.object(render_surface, "output_problem", return_value=None),
+                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
+                    mock.patch.object(render_surface, "exit_on_termination"),
+                ):
+                    status = render_surface.main(argv)
+
+                self.assertEqual(0, status)
+                args = workflow.call_args.args[0]
+                self.assertEqual(expected, (args.settle, args.timeout))
+
+    def test_the_help_text_names_the_splash(self):
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--splash", stdout)
+
 
 class TestAppletPreflight(unittest.TestCase):
     """The calculator preflight refuses a missing applet package, before any

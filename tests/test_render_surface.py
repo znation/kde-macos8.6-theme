@@ -675,6 +675,39 @@ class TestFailurePaths(StubTools):
             status, stderr, output, 1, "render session exited 1",
         )
 
+    def test_splash_render_launches_the_ksplashqml_client(self):
+        # The splash mode must reach the session as ksplashqml pointing at
+        # the session-local installed look-and-feel package (the splash
+        # paints its own Splash.qml from the scratch data home, never the
+        # caller's), writing only the applet's session configs: the splash
+        # reads no selection, so no look-and-feel, Kvantum, GTK or window
+        # rules write may ride the session.
+        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run, \
+                mock.patch.object(render_workflow, "write_session_configs") as configs, \
+                mock.patch.object(render_workflow, "write_desktop_selection") as look, \
+                mock.patch.object(render_workflow, "write_kvantum_selection") as kvantum, \
+                mock.patch.object(render_workflow, "write_window_rules") as rules, \
+                mock.patch.object(render_workflow, "install_gtk_selection") as gtk:
+            status, stderr, output = self.run_main("--splash")
+
+        self.assertEqual(render_setup.CONFIG_FILES, configs.call_args.kwargs["files"])
+        look.assert_not_called()
+        kvantum.assert_not_called()
+        rules.assert_not_called()
+        gtk.assert_not_called()
+        argv = run.call_args.args[0]
+        self.assertIn("ksplashqml", argv[-1])
+        self.assertIn("--nofork", argv[-1])
+        self.assertIn(
+            "plasma/look-and-feel/org.macos8.desktop", argv[-1]
+        )
+        self.assertNotIn("org.kde.plasma.calculator", argv[-1])
+        self.assertNotIn("plasmawindowed", argv[-1])
+        self.assertNotIn("kdialog", argv[-1])
+        self.assert_failed_run(
+            status, stderr, output, 1, "render session exited 1",
+        )
+
     def test_only_the_inactive_dialog_writes_the_window_rules(self):
         # The two-window forced-geometry rules are the inactive mode's own
         # session config: no applet render and no one-window dialog render

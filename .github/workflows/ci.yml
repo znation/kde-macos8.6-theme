@@ -66,6 +66,7 @@ jobs:
              command -v plasmawindowed >/dev/null && \
              command -v plasma-apply-colorscheme >/dev/null && \
              command -v spectacle >/dev/null && \
+             command -v ksplashqml >/dev/null && \
              command -v kdialog >/dev/null && \
              command -v zenity >/dev/null && \
              has_calculator_applet; then
@@ -75,8 +76,8 @@ jobs:
             # The names below are grounded on the Ubuntu runners' release
             # (noble records each on launchpad.net/ubuntu/noble/amd64/):
             # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
-            # `plasma-workspace` both plasmawindowed and
-            # plasma-apply-colorscheme, `plasma-widgets-addons` the
+            # `plasma-workspace` plasmawindowed,
+            # plasma-apply-colorscheme and ksplashqml, `plasma-widgets-addons` the
             # org.kde.plasma.calculator applet the applet render opens, and
             # `libgl1-mesa-dri` the llvmpipe EGL driver the virtual KWin
             # session needs on the GPU-less runner; `kdialog` provides the
@@ -117,7 +118,8 @@ jobs:
               sudo apt-get install -y --no-install-recommends dbus-daemon
           fi
           for tool in dbus-run-session kwin_wayland plasmawindowed \
-                      plasma-apply-colorscheme spectacle kdialog zenity; do
+                      plasma-apply-colorscheme spectacle ksplashqml \
+                      kdialog zenity; do
             command -v "$tool" >/dev/null \
               || { echo "render tool missing after install: $tool" >&2; exit 1; }
           done

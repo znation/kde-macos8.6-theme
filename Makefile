@@ -558,11 +558,11 @@ RENDER_OUTPUT ?= render.png
 # two refusal echoes in the `render` recipe and the help line build their mode
 # list from RENDER_MODE_LIST, so the list is spelled once here, and
 # tests/test_render_make.py pins RENDER_MODE_VALUES against the DIALOG_MODES
-# table plus calculator and desktop so the two cannot drift apart. The recipe's case branches stay
+# table plus calculator, desktop and splash so the two cannot drift apart. The recipe's case branches stay
 # literal -- make cannot generate recipe text from a variable at recipe time
 # without an extra interpreter run -- and that test also pins every branch's
 # literal argv, so a mode missing its branch fails there.
-RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog desktop
+RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog desktop splash
 comma := ,
 empty :=
 space := $(empty) $(empty)
@@ -591,6 +591,7 @@ render:
 	  inactive-dialog) set -- --inactive-dialog ;; \
 	  file-dialog) set -- --file-dialog ;; \
   desktop) set -- --desktop ;; \
+  splash) set -- --splash ;; \
 	  *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; \
 	esac; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"

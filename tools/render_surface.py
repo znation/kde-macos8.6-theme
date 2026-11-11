@@ -2,7 +2,8 @@
 
 Starts a virtual KWin Wayland session with no display server, applies the
 Mac OS 8.6 theme inside it, opens the selected mode's client (a Plasma applet
-window, a dialog, or the shell that draws the menu bar) and screenshots the
+window, a dialog, the shell that draws the menu bar, or the startup splash)
+and screenshots the
 output, producing the candidate image ``tools/fidelity.py`` compares against a
 reference screenshot.
 
@@ -21,7 +22,7 @@ Usage::
         | --menu-dialog | --radiolist-dialog
         | --calendar-dialog | --progressbar-dialog | --slider-dialog
         | --textbox-dialog | --gtk-dialog | --file-dialog]
-        [--desktop]
+        [--desktop] [--splash]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a missing
@@ -79,10 +80,20 @@ _DIALOG_CAPTURE = (480, 360)
 # The desktop capture's size: the probe's virtual-framebuffer size, and the
 # crop basis the queued desktop gate will compare.
 _DESKTOP_CAPTURE = (640, 400)
+# The splash capture's size: the same probe framebuffer the desktop capture
+# fixes, and the crop basis the queued splash gate will compare.
+_SPLASH_CAPTURE = (640, 400)
 # The desktop session's paint budget: plasmashell's first start imports the
 # look-and-feel layout, which the probe painted by a 20 s settle.
 _DESKTOP_SETTLE = 30.0
 _DESKTOP_TIMEOUT = 180.0
+# The splash session's paint budget. The --test --nofork client paints
+# within an 8 s settle (three probe runs) but deterministically exits about
+# 10 s in (upstream's seven 2 s stages), so the splash keeps the applet's
+# 8 s / 90 s defaults; a longer settle would capture an already-vanished
+# splash.
+_SPLASH_SETTLE = 8.0
+_SPLASH_TIMEOUT = 90.0
 
 
 def _seconds(option: str, minimum: float) -> Callable[[str], float]:
@@ -150,12 +161,20 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--splash",
+        action="store_true",
+        help=(
+            "capture the look-and-feel's own themed startup splash "
+            "(ksplashqml) at the fixed 640x400 splash size"
+        ),
+    )
+    parser.add_argument(
         "--width",
         type=positive_int("--width"),
         default=None,
         help=(
             "output width in pixels (default 320, or 480 with a --*-dialog, "
-            "or 640 with --desktop)"
+            "or 640 with --desktop or --splash)"
         ),
     )
     parser.add_argument(
@@ -164,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help=(
             "output height in pixels (default 240, or 360 with a --*-dialog, "
-            "or 400 with --desktop)"
+            "or 400 with --desktop or --splash)"
         ),
     )
     parser.add_argument(
@@ -172,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
         type=_seconds("--settle", 0.0),
         default=None,
         help="seconds to wait for the window to paint before capturing "
-        "(default 8, or 30 with --desktop)",
+        "(default 8, or 30 with --desktop or --splash)",
     )
     parser.add_argument(
         "--timeout",
@@ -180,16 +199,24 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help=(
             "seconds before the render session is killed (default 90, or 180 "
-            "with --desktop); must be longer than --settle"
+            "with --desktop or --splash); must be longer than --settle"
         ),
     )
     args = parser.parse_args(argv)
     # The settle and timeout defaults differ per mode, so the parser leaves
     # them unset and the mode choice fills them in; an explicit flag wins.
     if args.settle is None:
-        args.settle = _DESKTOP_SETTLE if args.desktop else 8.0
+        args.settle = (
+            _DESKTOP_SETTLE if args.desktop
+            else _SPLASH_SETTLE if args.splash
+            else 8.0
+        )
     if args.timeout is None:
-        args.timeout = _DESKTOP_TIMEOUT if args.desktop else 90.0
+        args.timeout = (
+            _DESKTOP_TIMEOUT if args.desktop
+            else _SPLASH_TIMEOUT if args.splash
+            else 90.0
+        )
     dialog_flags = [
         mode.flag for mode in DIALOG_MODES if getattr(args, mode.attr)
     ]
@@ -202,6 +229,12 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             "--desktop captures the shell's own menu bar: do not combine it "
             f"with {dialog_flags[0]}"
+        )
+    if args.splash and (args.desktop or dialog_flags):
+        partner = "--desktop" if args.desktop else dialog_flags[0]
+        parser.error(
+            "--splash renders the look-and-feel's own splash: do not combine "
+            f"it with {partner}"
         )
     if dialog_flags:
         flag = dialog_flags[0]
@@ -229,6 +262,19 @@ def main(argv: list[str] | None = None) -> int:
                 "--width/--height"
             )
         args.width, args.height = _DESKTOP_CAPTURE
+    elif args.splash:
+        if args.applet != _DEFAULT_APPLET:
+            parser.error(
+                "--splash opens the splash client, not an applet window: do "
+                "not combine it with --applet"
+            )
+        if args.width is not None or args.height is not None:
+            parser.error(
+                "--splash captures at 640x400, the probe framebuffer size "
+                "the later splash gate crops: do not combine it with "
+                "--width/--height"
+            )
+        args.width, args.height = _SPLASH_CAPTURE
     else:
         if args.width is None:
             args.width = 320
@@ -251,7 +297,10 @@ def main(argv: list[str] | None = None) -> int:
     for mode in DIALOG_MODES:
         if getattr(args, mode.attr) and mode.client_tool not in dialog_clients:
             dialog_clients += (mode.client_tool,)
-    if args.desktop:
+    if args.splash:
+        # The splash client is a plain command, so it joins the tool check.
+        requirements = REQUIRED_TOOLS + ("ksplashqml",)
+    elif args.desktop:
         # The desktop client is a plain command, so it joins the tool check.
         requirements = REQUIRED_TOOLS + ("plasmashell",)
     else:
@@ -259,7 +308,7 @@ def main(argv: list[str] | None = None) -> int:
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:
         return missing
-    if not dialog_flags and not args.desktop:
+    if not dialog_flags and not args.desktop and not args.splash:
         # An applet package is not a command, so report_missing_tool cannot
         # see its absence: the default calculator render would otherwise
         # waste a full scratch session on a capture that never paints and

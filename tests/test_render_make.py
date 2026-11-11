@@ -54,6 +54,7 @@ class TestRenderMake(unittest.TestCase):
             ("inactive-dialog", ["--inactive-dialog"]),
             ("file-dialog", ["--file-dialog"]),
             ("desktop", ["--desktop"]),
+            ("splash", ["--splash"]),
         )
         for mode, flags in modes:
             with self.subTest(mode=mode):
@@ -104,8 +105,9 @@ class TestRenderMake(unittest.TestCase):
         message's wording order is not the table's, so the modes are compared
         as a set; a duplicated mode would make the refusal suggest a value
         twice, so the list must also be duplicate-free. The standalone
-        desktop mode is not a table entry: the CLI adds its --desktop flag
-        beside the table-derived dialog flags, so it ships as its own value.
+        desktop and splash modes are not table entries: the CLI adds their
+        --desktop/--splash flags beside the table-derived dialog flags, so
+        each ships as its own value.
         """
         makefile = repo_root.ROOT / "Makefile"
         declared = None
@@ -117,7 +119,8 @@ class TestRenderMake(unittest.TestCase):
             declared, "Makefile must declare RENDER_MODE_VALUES"
         )
         self.assertEqual(
-            {"calculator", *[mode.flag[2:] for mode in DIALOG_MODES], "desktop"},
+            {"calculator", *[mode.flag[2:] for mode in DIALOG_MODES],
+             "desktop", "splash"},
             set(declared),
         )
         self.assertEqual(len(declared), len(set(declared)))
