@@ -3487,6 +3487,10 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     # is a #AAAAAA shadow column beside a #000000 core column, at
     # x=350/351 and x=400/401. A lost shadow column, a lost core column or
     # a recoloured face fails the band test below.
+    # Re-derived 2026-11-11 (second same-day drift: the KIO chooser's Name
+    # column rendered 7px wider again, moving every pin right of it +7)
+    # from three consecutive full --file-dialog renders on this host that
+    # agreed byte-for-byte outside the caret strip x=200, y=267..282.
     HEADER_DIVIDERS = (
         (350, "#AAAAAA"),
         (351, "#000000"),
@@ -3639,6 +3643,8 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     # from the exactness pin across a band's full height and demands live
     # ink instead: the seeded files' modification times are the render
     # session's wall clock, so the date column's digits move between runs.
+    # The size-text rectangles re-derived 2026-11-11 with the dividers
+    # above (the wider Name column moved the size column's text +7).
     ROW_BANDS = (
         (123, "#FFFFFF", ((173, 182, 126, 138), (191, 241, 128, 139),
                           (375, 393, 128, 137))),
