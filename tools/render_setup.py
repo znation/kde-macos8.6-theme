@@ -57,6 +57,28 @@ def write_session_configs(session: Session, files: tuple[str, ...] = CONFIG_FILE
     write_configs(session.config, files)
 
 
+def write_desktop_selection(session: Session) -> None:
+    """Select the look-and-feel in the scratch config home for plasmashell.
+
+    Writes the selection keys the published apply records (``[KDE]
+    LookAndFeelPackage=org.macos8.desktop``) into both ``plasmarc`` and
+    ``kdeglobals``. The session configs the defaults writer just published
+    are appended to, not replaced, so their own sections (``plasmarc``'s
+    ``[Theme]`` name) survive the selection.
+    """
+    selection = f"[KDE]\nLookAndFeelPackage={KVANTUM_THEME}\n".encode("utf-8")
+    for name in ("plasmarc", "kdeglobals"):
+        path = session.config / name
+        try:
+            existing = path.read_bytes()
+        except FileNotFoundError:
+            existing = b""
+        # Keep the appended group on its own line even when the file does
+        # not end in a newline.
+        joiner = b"" if (not existing or existing.endswith(b"\n")) else b"\n"
+        write_bytes_atomically(path, existing + joiner + selection)
+
+
 def write_kvantum_selection(session: Session) -> None:
     """Select the Kvantum theme in the scratch config home for Qt clients."""
     directory = session.config / "Kvantum"

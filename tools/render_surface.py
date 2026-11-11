@@ -1,7 +1,8 @@
 """Render a themed Plasma surface headlessly and capture it as a PNG.
 
 Starts a virtual KWin Wayland session with no display server, applies the
-Mac OS 8.6 theme inside it, opens one Plasma applet window and screenshots the
+Mac OS 8.6 theme inside it, opens the selected mode's client (a Plasma applet
+window, a dialog, or the shell that draws the menu bar) and screenshots the
 output, producing the candidate image ``tools/fidelity.py`` compares against a
 reference screenshot.
 
@@ -20,6 +21,7 @@ Usage::
         | --menu-dialog | --radiolist-dialog
         | --calendar-dialog | --progressbar-dialog | --slider-dialog
         | --textbox-dialog | --gtk-dialog | --file-dialog]
+        [--desktop]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a missing
@@ -74,6 +76,13 @@ REQUIRED_TOOLS = (
 _DEFAULT_APPLET = "org.kde.plasma.calculator"
 # The dialog capture's size, the size the widget gate byte-compares.
 _DIALOG_CAPTURE = (480, 360)
+# The desktop capture's size: the probe's virtual-framebuffer size, and the
+# crop basis the queued desktop gate will compare.
+_DESKTOP_CAPTURE = (640, 400)
+# The desktop session's paint budget: plasmashell's first start imports the
+# look-and-feel layout, which the probe painted by a 20 s settle.
+_DESKTOP_SETTLE = 30.0
+_DESKTOP_TIMEOUT = 180.0
 
 
 def _seconds(option: str, minimum: float) -> Callable[[str], float]:
@@ -133,33 +142,54 @@ def main(argv: list[str] | None = None) -> int:
     for mode in DIALOG_MODES:
         parser.add_argument(mode.flag, action="store_true", help=mode.help)
     parser.add_argument(
+        "--desktop",
+        action="store_true",
+        help=(
+            "capture the themed plasmashell menu bar (the 20px top panel the "
+            "look-and-feel layout builds) at the fixed 640x400 desktop size"
+        ),
+    )
+    parser.add_argument(
         "--width",
         type=positive_int("--width"),
         default=None,
-        help="output width in pixels (default 320, or 480 with a --*-dialog)",
+        help=(
+            "output width in pixels (default 320, or 480 with a --*-dialog, "
+            "or 640 with --desktop)"
+        ),
     )
     parser.add_argument(
         "--height",
         type=positive_int("--height"),
         default=None,
-        help="output height in pixels (default 240, or 360 with a --*-dialog)",
+        help=(
+            "output height in pixels (default 240, or 360 with a --*-dialog, "
+            "or 400 with --desktop)"
+        ),
     )
     parser.add_argument(
         "--settle",
         type=_seconds("--settle", 0.0),
-        default=8.0,
-        help="seconds to wait for the window to paint before capturing (default 8)",
+        default=None,
+        help="seconds to wait for the window to paint before capturing "
+        "(default 8, or 30 with --desktop)",
     )
     parser.add_argument(
         "--timeout",
         type=_seconds("--timeout", 1.0),
-        default=90.0,
+        default=None,
         help=(
-            "seconds before the render session is killed (default 90); must "
-            "be longer than --settle"
+            "seconds before the render session is killed (default 90, or 180 "
+            "with --desktop); must be longer than --settle"
         ),
     )
     args = parser.parse_args(argv)
+    # The settle and timeout defaults differ per mode, so the parser leaves
+    # them unset and the mode choice fills them in; an explicit flag wins.
+    if args.settle is None:
+        args.settle = _DESKTOP_SETTLE if args.desktop else 8.0
+    if args.timeout is None:
+        args.timeout = _DESKTOP_TIMEOUT if args.desktop else 90.0
     dialog_flags = [
         mode.flag for mode in DIALOG_MODES if getattr(args, mode.attr)
     ]
@@ -167,6 +197,11 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             "the dialog modes open one dialog client each: give one of "
             f"{', '.join(dialog_flags)}, not more than one"
+        )
+    if args.desktop and dialog_flags:
+        parser.error(
+            "--desktop captures the shell's own menu bar: do not combine it "
+            f"with {dialog_flags[0]}"
         )
     if dialog_flags:
         flag = dialog_flags[0]
@@ -181,6 +216,19 @@ def main(argv: list[str] | None = None) -> int:
                 "byte-compares: do not combine it with --width/--height"
             )
         args.width, args.height = _DIALOG_CAPTURE
+    elif args.desktop:
+        if args.applet != _DEFAULT_APPLET:
+            parser.error(
+                "--desktop captures the shell's own menu bar, not an applet "
+                "window: do not combine it with --applet"
+            )
+        if args.width is not None or args.height is not None:
+            parser.error(
+                "--desktop captures at 640x400, the menu-bar panel size the "
+                "queued desktop gate crops: do not combine it with "
+                "--width/--height"
+            )
+        args.width, args.height = _DESKTOP_CAPTURE
     else:
         if args.width is None:
             args.width = 320
@@ -203,16 +251,20 @@ def main(argv: list[str] | None = None) -> int:
     for mode in DIALOG_MODES:
         if getattr(args, mode.attr) and mode.client_tool not in dialog_clients:
             dialog_clients += (mode.client_tool,)
-    requirements = REQUIRED_TOOLS + dialog_clients
+    if args.desktop:
+        # The desktop client is a plain command, so it joins the tool check.
+        requirements = REQUIRED_TOOLS + ("plasmashell",)
+    else:
+        requirements = REQUIRED_TOOLS + dialog_clients
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:
         return missing
-    if not dialog_flags:
+    if not dialog_flags and not args.desktop:
         # An applet package is not a command, so report_missing_tool cannot
         # see its absence: the default calculator render would otherwise
         # waste a full scratch session on a capture that never paints and
-        # times out. The dialog modes open their own clients and never touch
-        # the applet, so they skip this check.
+        # times out. The dialog modes and the desktop capture open their own
+        # clients and never touch the applet, so they skip this check.
         applet = applet_problem(args.applet)
         if applet is not None:
             return report_error(TOOL, applet)

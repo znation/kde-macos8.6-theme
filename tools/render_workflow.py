@@ -19,6 +19,7 @@ if __package__:
         install_gtk_selection,
         install_theme,
         link_kvantum_themes,
+        write_desktop_selection,
         write_kvantum_selection,
         write_session_configs,
     )
@@ -37,6 +38,7 @@ else:  # run directly from render_surface.py
         install_gtk_selection,
         install_theme,
         link_kvantum_themes,
+        write_desktop_selection,
         write_kvantum_selection,
         write_session_configs,
     )
@@ -51,7 +53,7 @@ def _capture_is_unpainted(rgb: bytes) -> bool:
 
 
 def _dialog_config_files() -> tuple[str, ...]:
-    """Config files the dialog render applies, unlike the applet render."""
+    """Config files the dialog and desktop renders apply, unlike the applet."""
     return CONFIG_FILES + ("kdeglobals",)
 
 
@@ -70,6 +72,9 @@ def _selected_dialog_mode(args: argparse.Namespace) -> DialogMode | None:
 
 def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
     """Return the client command for the dialog flag set, else the applet."""
+    if args.desktop:
+        # The shell draws the menu bar itself; no applet or dialog client.
+        return ["plasmashell"]
     for mode in DIALOG_MODES:
         if getattr(args, mode.attr):
             return list(mode.client(session))
@@ -121,8 +126,12 @@ def render(args: argparse.Namespace) -> int:
             return report_error(TOOL, f"cannot link {path}: {problem}")
 
         mode = _selected_dialog_mode(args)
+        desktop = args.desktop
         try:
-            write_session_configs(session, files=_dialog_config_files() if mode else CONFIG_FILES)
+            write_session_configs(
+                session,
+                files=_dialog_config_files() if (mode or desktop) else CONFIG_FILES,
+            )
             # The scratch config home gets the theme defaults the dialog
             # applies, plus the mode's own extra config files. kwinrulesrc is
             # not one of the theme defaults (the defaults writer refuses a
@@ -130,6 +139,11 @@ def render(args: argparse.Namespace) -> int:
             # the mode names is written beside them from its own writer.
             if mode is not None and RULES_FILE in mode.extra_config_files:
                 write_window_rules(session)
+            if desktop:
+                # The shell only builds the themed menu bar when the scratch
+                # session selects the look-and-feel, so the selection is
+                # written beside the session configs.
+                write_desktop_selection(session)
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(TOOL, f"cannot write the session config: {exc}")
 

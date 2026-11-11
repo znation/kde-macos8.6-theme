@@ -552,15 +552,17 @@ check-references:
 RENDER_OUTPUT ?= render.png
 # The render modes the `render` target accepts, in the order
 # tools/render_surface.py's CLI lists its flags: the calculator applet render
-# first, then one entry per tools/render_dialogs.py's DIALOG_MODES table. The
+# first, then one entry per tools/render_dialogs.py's DIALOG_MODES table, then
+# the standalone desktop mode (not a table entry: the CLI adds its --desktop
+# flag beside the table-derived dialog flags). The
 # two refusal echoes in the `render` recipe and the help line build their mode
 # list from RENDER_MODE_LIST, so the list is spelled once here, and
 # tests/test_render_make.py pins RENDER_MODE_VALUES against the DIALOG_MODES
-# table so the two cannot drift apart. The recipe's case branches stay
+# table plus calculator and desktop so the two cannot drift apart. The recipe's case branches stay
 # literal -- make cannot generate recipe text from a variable at recipe time
 # without an extra interpreter run -- and that test also pins every branch's
 # literal argv, so a mode missing its branch fails there.
-RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog
+RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog desktop
 comma := ,
 empty :=
 space := $(empty) $(empty)
@@ -588,6 +590,7 @@ render:
 	  gtk-dialog) set -- --gtk-dialog ;; \
 	  inactive-dialog) set -- --inactive-dialog ;; \
 	  file-dialog) set -- --file-dialog ;; \
+  desktop) set -- --desktop ;; \
 	  *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; \
 	esac; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"

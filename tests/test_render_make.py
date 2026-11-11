@@ -53,6 +53,7 @@ class TestRenderMake(unittest.TestCase):
             ("gtk-dialog", ["--gtk-dialog"]),
             ("inactive-dialog", ["--inactive-dialog"]),
             ("file-dialog", ["--file-dialog"]),
+            ("desktop", ["--desktop"]),
         )
         for mode, flags in modes:
             with self.subTest(mode=mode):
@@ -94,7 +95,7 @@ class TestRenderMake(unittest.TestCase):
                 self.assertFalse(injected_file.exists())
 
     def test_makefile_mode_list_matches_dialog_modes_table(self):
-        """The Makefile's RENDER_MODE_VALUES covers exactly the shared table's modes.
+        """The Makefile's RENDER_MODE_VALUES covers exactly the shipped modes.
 
         The `render` recipe's refusal text and `make help`'s mode line derive
         from that Makefile variable, so a dialog mode added to the shared
@@ -102,7 +103,9 @@ class TestRenderMake(unittest.TestCase):
         here rather than reach the refusal as an undocumented value. The
         message's wording order is not the table's, so the modes are compared
         as a set; a duplicated mode would make the refusal suggest a value
-        twice, so the list must also be duplicate-free.
+        twice, so the list must also be duplicate-free. The standalone
+        desktop mode is not a table entry: the CLI adds its --desktop flag
+        beside the table-derived dialog flags, so it ships as its own value.
         """
         makefile = repo_root.ROOT / "Makefile"
         declared = None
@@ -114,7 +117,7 @@ class TestRenderMake(unittest.TestCase):
             declared, "Makefile must declare RENDER_MODE_VALUES"
         )
         self.assertEqual(
-            {"calculator", *[mode.flag[2:] for mode in DIALOG_MODES]},
+            {"calculator", *[mode.flag[2:] for mode in DIALOG_MODES], "desktop"},
             set(declared),
         )
         self.assertEqual(len(declared), len(set(declared)))

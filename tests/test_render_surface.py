@@ -588,6 +588,30 @@ class TestFailurePaths(StubTools):
             status, stderr, output, 1, "render session exited 1",
         )
 
+    def test_desktop_render_launches_the_plasmashell_client(self):
+        # The desktop mode must reach the session as plasmashell (the shell
+        # draws the menu bar itself), with the look-and-feel selection
+        # written beside the session configs, not fall through to the
+        # default Plasma calculator applet or a dialog client.
+        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run, \
+                mock.patch.object(render_workflow, "write_session_configs") as configs, \
+                mock.patch.object(render_workflow, "write_desktop_selection") as selection:
+            status, stderr, output = self.run_main("--desktop")
+
+        self.assertEqual(
+            render_setup.CONFIG_FILES + ("kdeglobals",),
+            configs.call_args.kwargs["files"],
+        )
+        selection.assert_called_once_with(configs.call_args.args[0])
+        argv = run.call_args.args[0]
+        self.assertIn("plasmashell", argv[-1])
+        self.assertNotIn("org.kde.plasma.calculator", argv[-1])
+        self.assertNotIn("plasmawindowed", argv[-1])
+        self.assertNotIn("kdialog", argv[-1])
+        self.assert_failed_run(
+            status, stderr, output, 1, "render session exited 1",
+        )
+
     def test_only_the_inactive_dialog_writes_the_window_rules(self):
         # The two-window forced-geometry rules are the inactive mode's own
         # session config: no applet render and no one-window dialog render

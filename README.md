@@ -39,7 +39,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 | Select the GTK theme alone | Python 3.10 or newer, the package-install utilities above, and writable data and config homes. Run `make apply-gtk`; restart GTK applications. See [Installing](#installing) for selection and backup details. |
 | Select the cursor theme alone | Python 3.10 or newer, the package-install utilities above, and `plasma-apply-cursortheme` on `PATH`. Run `make apply-cursor`; aggregate `make apply` skips cursor selection with a note when that tool is missing. See [Installing](#installing) for details. |
 | Install Firefox sheets alone | Python 3.10 or newer and an existing writable Firefox profile, found automatically or specified as `FIREFOX_PROFILE=/absolute/profile`. Run `make install-firefox`; aggregate `make apply` skips this step with a note when it finds no profile. See [Installing](#installing) for profile selection and restart details. |
-| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead. The default applet render also needs the `org.kde.plasma.calculator` applet (Debian packages it in `plasma-widgets-addons`); missing, the render refuses with exit 2 before any session, naming the applet id and the searched locations. See [Rendering a candidate](#rendering-a-candidate). |
+| Render headlessly | Python 3.10 or newer; `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and `spectacle`. Dialog render modes also require `kdialog`; the GTK dialog render mode requires `zenity` instead; the desktop render mode requires `plasmashell`. The default applet render also needs the `org.kde.plasma.calculator` applet (Debian packages it in `plasma-widgets-addons`); missing, the render refuses with exit 2 before any session, naming the applet id and the searched locations. See [Rendering a candidate](#rendering-a-candidate). |
 | Run optional GTK 4 probes | Xvfb, `xvfb-run`, `xauth`, and Python GTK 4 introspection bindings. See [Running checks](#running-checks) for isolated commands. |
 | Materialize reference images | Git LFS; run `git lfs install` and `git lfs pull`. See [Validating the reference set](#validating-the-reference-set). |
 | Sample JPEG screenshots | ImageMagick's `convert` on `PATH`; PNG inputs need no extra tool. The sampler refuses a JPEG input without it. See [Sampling reference pixels](#sampling-reference-pixels). |
@@ -497,7 +497,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the fourteen widget dialogs:
+Capture the default calculator, one of the fourteen widget dialogs, or the desktop menu bar:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -516,15 +516,16 @@ python3 tools/render_surface.py textbox.png --textbox-dialog
 python3 tools/render_surface.py gtk.png --gtk-dialog
 python3 tools/render_surface.py inactive.png --inactive-dialog
 python3 tools/render_surface.py file.png --file-dialog
+python3 tools/render_surface.py desktop.png --desktop
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
 `menu-dialog`, `radiolist-dialog`, `calendar-dialog`, `color-dialog`, `icon-dialog`, `progressbar-dialog`, `slider-dialog`,
-`textbox-dialog`, `gtk-dialog`, `inactive-dialog` or `file-dialog` to select a surface. Direct Python commands remain available. The calculator
-capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
-different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
-modes and `zenity` in the GTK mode; see
+`textbox-dialog`, `gtk-dialog`, `inactive-dialog`, `file-dialog` or `desktop` to select a surface. Direct Python commands remain available. The calculator
+capture defaults to 320x240; each dialog capture is fixed at 480x360; the desktop capture is fixed at 640x400. Dialog modes cannot be combined with each other, a
+different applet, or width/height overrides; the desktop capture cannot be combined with a dialog mode, an applet override, or width/height overrides. Dialog captures require `kdialog` in the kdialog
+modes and `zenity` in the GTK mode, and the desktop capture requires `plasmashell`; see
 [Prerequisites](#prerequisites) for the other rendering tools. To compare a candidate PNG with
 the references, see [Fidelity checking](#fidelity-checking).
 
@@ -638,6 +639,14 @@ opens on the scratch session's fixed `Documents` directory holding exactly `alph
 `bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. Its surfaces await the
 file-dialog gate, which will pin them in `tests/test_render_surface.py`; the chooser's
 per-file type icons are the fallback icon theme's and stay deliberately unpinned.
+`--desktop` opens the themed Plasma shell itself (`plasmashell`, the 640x400 virtual
+session's only client) so the flush 20px top panel the look-and-feel layout builds — the
+menu bar with its clock and window list — paints into the capture; the scratch session
+selects the look-and-feel (`[KDE] LookAndFeelPackage` in the scratch `plasmarc` and
+`kdeglobals`) and defaults to a 30 s settle and a 180 s timeout because plasmashell's
+first start imports the layout. Its surfaces await the desktop gate, which will pin the
+menu-bar rows in `tests/test_render_surface.py`; the desktop area below the bar stays
+deliberately unpinned.
 
 ### Staging packages
 
@@ -1350,13 +1359,15 @@ Capture the default Plasma calculator with `make render`, setting its output pat
 ```sh
 make render RENDER_OUTPUT=calculator.png
 make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
+make render RENDER_MODE=desktop RENDER_OUTPUT=desktop.png
 ```
 
-The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the fourteen dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator, one of
+the fourteen dialogs, or the desktop menu bar. The calculator capture defaults to 320x240; dialogs
+are fixed at 480x360 and
 require `kdialog` for checkbox, combo box, line edit, menu, radio list, calendar, color picker, icon
 chooser, progress meter, slider, text box, the two-window inactive pair and the file chooser or
-`zenity` for GTK.
+`zenity` for GTK; the desktop capture is fixed at 640x400 and requires `plasmashell`.
 Direct Python commands remain available; each dialog flag must be used alone, and dialog captures
 reject `--width`, `--height` and a non-default `--applet`:
 
@@ -1376,9 +1387,10 @@ reject `--width`, `--height` and a non-default `--applet`:
 | GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
 | Inactive dialog | `python3 tools/render_surface.py --inactive-dialog inactive.png` | 480x360 |
 | File dialog | `python3 tools/render_surface.py --file-dialog file.png` | 480x360 |
+| Desktop | `python3 tools/render_surface.py --desktop desktop.png` | 640x400 |
 
 The calculator capture defaults to 320x240. Dialog captures need `kdialog` on `PATH` in the
-kdialog modes and `zenity` in the GTK mode;
+kdialog modes and `zenity` in the GTK mode; the desktop capture needs `plasmashell` on `PATH`;
 see [Prerequisites](#prerequisites) for the render tools. To allow a slower calculator paint,
 increase the settle wait and set a longer timeout (which must exceed settle):
 

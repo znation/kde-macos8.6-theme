@@ -543,6 +543,92 @@ class TestArguments(unittest.TestCase):
     def test_the_help_text_names_the_file_dialog(self):
         assert_help_lists_dialog(self, "--file-dialog")
 
+    def test_cli_delegates_the_desktop_capture_size(self):
+        # The desktop capture is fixed at 640x400, the probe's
+        # virtual-framebuffer size and the queued desktop gate's crop basis;
+        # the applet id stays at its default, which the desktop render
+        # never opens.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--desktop"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((640, 400), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_desktop(self):
+        # The desktop client is plasmashell, not an applet window, so an
+        # applet override has no window to open in.
+        status, stderr = call_main(
+            render_surface.main, "out.png", "--desktop", "--applet", "x"
+        )
+        self.assertEqual(2, status)
+        self.assertIn("--desktop", stderr)
+        self.assertIn("--applet", stderr)
+
+    def test_rejects_a_capture_size_with_the_desktop(self):
+        # 640x400 is the crop basis the queued desktop gate will compare, so
+        # a size override moves the menu bar the pinned crops assume.
+        status, stderr = call_main(
+            render_surface.main, "out.png", "--desktop", "--height", "240"
+        )
+        self.assertEqual(2, status)
+        self.assertIn("--desktop", stderr)
+        self.assertIn("640x400", stderr)
+
+    def test_rejects_a_dialog_mode_with_the_desktop(self):
+        # The desktop client opens the shell itself, so a dialog client
+        # cannot ride the same session.
+        for partner in ("--checkbox-dialog", "--file-dialog"):
+            with self.subTest(partner=partner):
+                status, stderr = call_main(
+                    render_surface.main, "out.png", "--desktop", partner
+                )
+                self.assertEqual(2, status)
+                self.assertIn("--desktop", stderr)
+                self.assertIn(partner, stderr)
+
+    def test_the_desktop_requires_plasmashell(self):
+        # The desktop client is a plain command, so the missing-tool
+        # preflight names it instead of starting a shell-less session.
+        tools = render_surface.REQUIRED_TOOLS + ("plasmashell",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--desktop")
+        )
+
+    def test_the_desktop_defaults_the_slower_settle_and_timeout(self):
+        # plasmashell's first start imports the look-and-feel layout, so the
+        # desktop mode defaults to a 30 s settle and a 180 s timeout; an
+        # explicit flag still wins over the mode default.
+        cases = (
+            (("out.png", "--desktop"), (30.0, 180.0)),
+            (
+                ("out.png", "--desktop", "--settle", "5", "--timeout", "60"),
+                (5.0, 60.0),
+            ),
+        )
+        for argv, expected in cases:
+            with self.subTest(argv=argv):
+                with (
+                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+                    mock.patch.object(render_surface, "output_problem", return_value=None),
+                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
+                    mock.patch.object(render_surface, "exit_on_termination"),
+                ):
+                    status = render_surface.main(argv)
+
+                self.assertEqual(0, status)
+                args = workflow.call_args.args[0]
+                self.assertEqual(expected, (args.settle, args.timeout))
+
+    def test_the_help_text_names_the_desktop(self):
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--desktop", stdout)
+
 
 class TestAppletPreflight(unittest.TestCase):
     """The calculator preflight refuses a missing applet package, before any
@@ -628,6 +714,26 @@ class TestAppletPreflight(unittest.TestCase):
             status, stderr = call_main(
                 render_surface.main, "out.png", "--menu-dialog"
             )
+        self.assertEqual(2, status, stderr)
+        self.assertFalse(applet_seam.called)
+
+    def test_a_desktop_run_never_consults_the_applet_check(self):
+        # The desktop capture opens plasmashell, which needs no applet
+        # package, so a host without the calculator package must still
+        # render the menu bar; the refusal here comes from the landed
+        # missing-tool path, and the applet check seam is never entered.
+        home = self.scratch / "first"
+        home.mkdir()
+        env_patches = {
+            "XDG_DATA_HOME": str(home),
+            "XDG_DATA_DIRS": str(self.scratch / "second"),
+        }
+        with (
+            mock.patch.dict(os.environ, env_patches),
+            mock.patch.object(render_surface, "report_missing_tool", return_value=2),
+            mock.patch.object(render_surface, "applet_problem") as applet_seam,
+        ):
+            status, stderr = call_main(render_surface.main, "out.png", "--desktop")
         self.assertEqual(2, status, stderr)
         self.assertFalse(applet_seam.called)
 
@@ -1319,6 +1425,35 @@ class TestSessionThemeSources(unittest.TestCase):
                 session.config / "Kvantum" / "kvantum.kvconfig"
             ).read_text(encoding="utf-8")
         self.assertEqual("[General]\ntheme=org.macos8.desktop\n", selection)
+
+    def test_write_desktop_selection_names_the_look_and_feel(self):
+        # plasmashell only builds the themed menu bar when the scratch
+        # session selects the look-and-feel, so both keys the published
+        # apply records must stand in the scratch config home.
+        with render_session.Session.create() as session:
+            render_setup.write_desktop_selection(session)
+            for name in ("plasmarc", "kdeglobals"):
+                text = (session.config / name).read_text(encoding="utf-8")
+                with self.subTest(file=name):
+                    self.assertEqual(
+                        "[KDE]\nLookAndFeelPackage=org.macos8.desktop\n", text
+                    )
+
+    def test_write_desktop_selection_appends_beside_the_defaults(self):
+        # The defaults writer has already published plasmarc's [Theme] name
+        # when the desktop selection runs, so the selection is appended, not
+        # written over it: replacing the file would drop the desktop theme
+        # name the shell reads.
+        with render_session.Session.create() as session:
+            (session.config / "plasmarc").write_text(
+                "[Theme]\nname=org.macos8.desktop\n", encoding="utf-8"
+            )
+            render_setup.write_desktop_selection(session)
+            self.assertEqual(
+                "[Theme]\nname=org.macos8.desktop\n"
+                "[KDE]\nLookAndFeelPackage=org.macos8.desktop\n",
+                (session.config / "plasmarc").read_text(encoding="utf-8"),
+            )
 
     def test_write_kvantum_selection_overwrites_a_stale_selection(self):
         # The scratch config home starts empty, but the function still has to
