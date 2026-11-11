@@ -200,9 +200,9 @@ class TestRuleBlockSemantics(unittest.TestCase):
             "a, b { --empty:; --spaces: \t\n ; --comment: /* only comment */; "
             "color: red; }"
             "a { --empty: ; } a { --empty: blue; }"
-            "a { --important: red !important; --later: red; }"
-            "a { --important: ; --later: blue !important; }"
-            "a { --case: ; --Case: blue; }"
+            "a { --important: red !important; --later: ; --across: red; }"
+            "a { --important: ; --later: blue !important; --across: ; }"
+            "a { --case: ; --Case: blue; --tie: red; --tie: ; }"
         )
         self.assertEqual(
             parse_css(css),
@@ -216,8 +216,10 @@ class TestRuleBlockSemantics(unittest.TestCase):
                         "color": "red",
                         "--important": "red !important",
                         "--later": "blue !important",
+                        "--across": "",
                         "--case": "",
                         "--Case": "blue",
+                        "--tie": "",
                     },
                     "b": {
                         "--empty": "",
