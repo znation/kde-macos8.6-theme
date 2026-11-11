@@ -143,6 +143,12 @@ class TestSampleOptionValidation(CliTestCase):
         result = self._run("unread.png", "0", "0", "--match-runs", "--alpha")
         self.assertIn("sample: error: --match-runs requires --find-color\n", result.stderr)
 
+    def test_direct_script_reports_invalid_option_combination(self):
+        result = self._run_script("missing.png", "0", "0", "--match-runs")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("--match-runs requires --find-color", result.stderr)
+
     def test_valid_namespaces_return_none_without_mutation(self):
         parser = build_parser()
         cases = (
@@ -262,12 +268,6 @@ class TestSampleOptionValidation(CliTestCase):
                          (direct.returncode, direct.stdout, direct.stderr))
         self.assertEqual(package.stderr,
                          "sample: error: region (3, 2) 2x2 is outside the 4x3 image\n")
-
-    def test_direct_script_reports_invalid_option_combination(self):
-        result = self._run_script("missing.png", "0", "0", "--match-runs")
-        self.assertEqual(result.returncode, 2)
-        self.assertEqual(result.stdout, "")
-        self.assertIn("--match-runs requires --find-color", result.stderr)
 
 
 if __name__ == "__main__":
