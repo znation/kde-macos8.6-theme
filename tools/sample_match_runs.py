@@ -114,9 +114,9 @@ class MatchRuns:
 
     def _close_run(self, length: int) -> None:
         run = {"x": self.run_start, "y": self.run_y, "length": length}
-        if not self.summarize or self.longest_run is None or length > self.longest_run["length"]:
-            if self.summarize:
-                self.longest_run = run
+        if self.summarize and (self.longest_run is None
+                               or length > self.longest_run["length"]):
+            self.longest_run = run
         self.runs_page.add(run)
         self.run_start = self.run_y = None
 

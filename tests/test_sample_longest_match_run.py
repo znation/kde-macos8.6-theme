@@ -84,6 +84,20 @@ class TestSampleLongestMatchRun(CliTestCase):
         self.assertNotIn("column_runs", match)
         self.assertNotIn("longest_run", match)
 
+    def test_summary_is_horizontal_beside_column_runs(self):
+        _, encoded = rgb_image(3, 3, lambda x, y: (1, 2, 3)
+                               if (y == 0 and x <= 1) or x == 0 else (9, 9, 9))
+        path = self._write(self._tmp_dir(), "mixed.png", encoded)
+        result = self._run(path, "0", "0", "--width", "3", "--height", "3",
+                           "--find-color", "010203", "--longest-match-run",
+                           "--match-column-runs", "--json")
+        self._assert_success(result)
+        match = json.loads(result.stdout)["match"]
+        self.assertEqual(match["longest_run"], {"x": 0, "y": 0, "length": 2})
+        self.assertNotIn("runs", match)
+        self.assertEqual(match["column_runs"],
+                         [{"x": 0, "y": 0, "length": 3}, {"x": 1, "y": 0, "length": 1}])
+
     def test_requires_find_color_help_and_direct_script(self):
         _, encoded = rgb_image(1, 1, lambda _x, _y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "one.png", encoded)

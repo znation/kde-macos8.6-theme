@@ -3974,7 +3974,7 @@ The duplicate queue entry was consolidated here — duplicate removed 2026-11-02
 
 **Approach and files.** Added `--longest-match-run` with pre-read validation, one-pass horizontal run summarization, JSON/text reports, README documentation, focused CLI and collector tests, and a tooling invariant. Summary-only mode retains only the current and best run. The existing full run list remains available when `--match-runs` is requested. No theme values changed.
 
-**Acceptance criteria.** Offset crop and row-major tie behavior, empty/full regions, edge flushing, list coexistence, coordinate limits, summary-only memory behavior, invalid-option handling, help and direct-script entry points are covered by `tests/test_sample_longest_match_run.py`. `make check` run after final edits.
+**Acceptance criteria.** Offset crop and row-major tie behavior, empty/full and single-pixel regions, edge and final-row flushing, coexistence with `--match-runs`, `--match-pixels` and `--match-column-runs`, summary-only memory behavior, invalid-option handling, help and direct-script entry points are covered by `tests/test_sample_longest_match_run.py`; the shared tolerance and exact-alpha predicate stays covered by the existing `--match-runs` tests. `make check` run after final edits.
 
 ### Reference-pixel sampler: report enclosing color-match spans per column (planned 2026-11-02 by the plan role) — done 2026-11-02 by the feature role
 
