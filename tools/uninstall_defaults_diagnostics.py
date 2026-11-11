@@ -33,7 +33,7 @@ def ksplashrc_messages(config_home: str, lnf_id: str) -> list[str]:
             f" left in defaults still names {lnf_id} after removal in"
             f" {path}; the start splash cannot load the removed"
             " SplashQML and keeps the platform default splash. Reset it"
-            f" with: kwriteconfig6 --file {path} --group KSplash"
+            f' with: kwriteconfig6 --file "{path}" --group KSplash'
             " --key Theme --delete"
         ]
     return []
@@ -66,8 +66,8 @@ def kdedefaults_kdeglobals_messages(config_home: str, icon_theme_id: str) -> lis
             " apply left in defaults ([KDE] widgetStyle=kvantum) is"
             f" still in {path} after removal; when the live key"
             " is absent or reset away, the defaults layer re-selects the"
-            " style that key names. Reset it with: kwriteconfig6 --file"
-            f" {path} --group KDE --key widgetStyle --delete"
+            " style that key names. Reset it with: kwriteconfig6"
+            f' --file "{path}" --group KDE --key widgetStyle --delete'
         )
     if defaults.get(("Icons", "Theme")) == icon_theme_id:
         messages.append(
@@ -76,8 +76,8 @@ def kdedefaults_kdeglobals_messages(config_home: str, icon_theme_id: str) -> lis
             f" in {path} after removal; when the live key is"
             " absent or reset away, the defaults layer re-selects the"
             " removed icon theme and KDE and Qt applications keep the"
-            " default icons. Reset it with: kwriteconfig6 --file"
-            f" {path} --group Icons --key Theme --delete"
+            " default icons. Reset it with: kwriteconfig6"
+            f' --file "{path}" --group Icons --key Theme --delete'
         )
     return messages
 
@@ -100,9 +100,9 @@ def kdedefaults_kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
             " the defaults layer re-selects the removed"
             f" kwin/decorations/{aurorae_id} decoration package"
             " and KWin keeps a default window decoration. Reset it with:"
-            f" kwriteconfig6 --file {path} --group"
+            f' kwriteconfig6 --file "{path}" --group'
             " org.kde.kdecoration2 --key library --delete &&"
-            f" kwriteconfig6 --file {path} --group"
+            f' kwriteconfig6 --file "{path}" --group'
             " org.kde.kdecoration2 --key theme --delete"
         ]
     return []
@@ -119,6 +119,6 @@ def kdedefaults_plasmarc_messages(config_home: str, dtheme_id: str) -> list[str]
             f" {dtheme_id} after removal in {path}; when the live"
             " key is absent or reset away, the defaults layer re-selects"
             " the removed desktop theme. Reset it with: kwriteconfig6"
-            f" --file {path} --group Theme --key name --delete"
+            f' --file "{path}" --group Theme --key name --delete'
         ]
     return []

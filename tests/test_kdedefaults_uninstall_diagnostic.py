@@ -45,7 +45,7 @@ def splash_rule(path):
         "uninstall: the splash selection the look-and-feel apply left in "
         f"defaults still names {LNF_ID} after removal in {path}; the start "
         "splash cannot load the removed SplashQML and keeps the platform "
-        f"default splash. Reset it with: kwriteconfig6 --file {path} "
+        f'default splash. Reset it with: kwriteconfig6 --file "{path}" '
         "--group KSplash --key Theme --delete"
     )
 
@@ -146,6 +146,19 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nTheme=breeze\nTheme=" + LNF_ID + "\n",
+        )
+        assert_uninstall_diagnostics(self, tmp, config, splash_rule(path), unchanged=path)
+
+    def test_splash_reset_quotes_a_config_home_path_with_a_space(self):
+        # A space is legal in XDG_CONFIG_HOME (the Makefile refuses only
+        # control characters there), so the copy-pasteable reset must keep
+        # the path inside its double quotes, as the package reset already
+        # does.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "con fig")
+        path = write_file(
+            os.path.join(config, "kdedefaults", "ksplashrc"),
+            "[KSplash]\nTheme=" + LNF_ID + "\n",
         )
         assert_uninstall_diagnostics(self, tmp, config, splash_rule(path), unchanged=path)
 

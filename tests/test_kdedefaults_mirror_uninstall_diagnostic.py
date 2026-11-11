@@ -46,7 +46,7 @@ def widget_rule(path):
         "in defaults ([KDE] widgetStyle=kvantum) is still in " + path +
         " after removal; when the live key is absent or reset away, the "
         "defaults layer re-selects the style that key names. Reset it with: "
-        "kwriteconfig6 --file " + path + " --group KDE --key widgetStyle "
+        "kwriteconfig6 --file \"" + path + "\" --group KDE --key widgetStyle "
         "--delete"
     )
 
@@ -59,7 +59,7 @@ def icons_rule(path):
         " after removal; when the live key is absent or reset away, the "
         "defaults layer re-selects the removed icon theme and KDE and Qt "
         "applications keep the default icons. Reset it with: kwriteconfig6 "
-        "--file " + path + " --group Icons --key Theme --delete"
+        "--file \"" + path + "\" --group Icons --key Theme --delete"
     )
 
 
@@ -72,10 +72,10 @@ def mirror_kwinrc_rule(path):
         path + "; when the live keys are absent or reset away, the defaults "
         "layer re-selects the removed kwin/decorations/org.macos8.desktop "
         "decoration package and KWin keeps a "
-        "default window decoration. Reset it with: kwriteconfig6 --file " +
-        path + " --group org.kde.kdecoration2 --key library --delete && "
-        "kwriteconfig6 --file " + path +
-        " --group org.kde.kdecoration2 --key theme --delete"
+        "default window decoration. Reset it with: kwriteconfig6 --file \"" +
+        path + "\" --group org.kde.kdecoration2 --key library --delete && "
+        "kwriteconfig6 --file \"" + path +
+        "\" --group org.kde.kdecoration2 --key theme --delete"
     )
 
 
@@ -86,7 +86,7 @@ def mirror_plasmarc_rule(path):
         "left in defaults still names " + LNF_ID + " after removal in" +
         " " + path + "; when the live key is absent or reset away, the "
         "defaults layer re-selects the removed desktop theme. Reset it "
-        "with: kwriteconfig6 --file " + path + " --group Theme --key name "
+        "with: kwriteconfig6 --file \"" + path + "\" --group Theme --key name "
         "--delete"
     )
 
@@ -158,6 +158,28 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             os.path.join(config, "kdedefaults", "kwinrc"),
             (
                 "[org.kde.kdecoration2]\nNoPlugin=false\n"
+                "library=org.kde.kwin.aurorae\n"
+                "theme=" + LNF_ID + "\n"
+            ),
+        )
+        original = read_bytes(path)
+
+        result = run_uninstall(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(mirror_kwinrc_rule(path), result.stderr)
+        self.assertEqual(original, read_bytes(path))
+
+    def test_kwinrc_pair_reset_quotes_a_config_home_path_with_a_space(self):
+        # A space is legal in XDG_CONFIG_HOME (the Makefile refuses only
+        # control characters there), so both `--file` words of the
+        # two-command reset must keep the path inside their double quotes.
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "con fig")
+        path = write_file(
+            os.path.join(config, "kdedefaults", "kwinrc"),
+            (
+                "[org.kde.kdecoration2]\n"
                 "library=org.kde.kwin.aurorae\n"
                 "theme=" + LNF_ID + "\n"
             ),
