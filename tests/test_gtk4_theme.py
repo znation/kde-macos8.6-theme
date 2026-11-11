@@ -1304,7 +1304,15 @@ print("scrollbar pins settled")
         )
         # The compositor-less solid-csd arms rest after the window.csd arms
         # they out-rank and before the maximized group, so a maximized or
-        # tiled solid-csd window keeps stock's ring-less edge state.
+        # tiled solid-csd window keeps its state-specific shadow rule.
+        self.assertGreater(
+            self.selectors.index("window.solid-csd"),
+            self.selectors.index("window.csd.dialog.message:backdrop"),
+        )
+        self.assertGreater(
+            self.selectors.index("window.solid-csd:backdrop"),
+            self.selectors.index("window.solid-csd"),
+        )
         self.assertGreater(
             self.selectors.index("window.solid-csd:backdrop"),
             self.selectors.index("window.csd:backdrop"),
