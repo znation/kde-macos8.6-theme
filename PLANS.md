@@ -14,7 +14,8 @@ by the clean role; validation scope clarified 2026-10-25 by the steward role; Fi
 and content-surface status updated 2026-10-26 by the steward role; install-firefox
 file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
 2026-10-27 by the feature role; Firefox content scope refreshed
-2026-10-29 by the steward role):** The
+2026-10-29 by the steward role; landed-series narration trimmed 2026-11-11 by the
+steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -68,31 +69,27 @@ out of scope unless a broader login/lock-screen plan is taken up (QUESTIONS.md, 
 2026-10-21). The
 shipped work should not be treated as the whole of the prompt.
 
-Two answers on 2026-10-19 widen the scope again, and both are being implemented in series.
-**GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19) as a
-four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita stylesheet) have
-landed, and part 3/4 has landed as three entries — the opt-in install (parts 1/3 and 2/3) and
-the selection (part 3/3) — while part 4/4 is split into two runs: part 1/2 (the
-Firefox `userChrome.css` stylesheet) has landed and part 2/2 (the profile install plus the
-preference) has landed. **The UI font** is to be vendored
-(QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
-Charcoal-style body face and has landed (installed and selected by the global theme); part 2/3
-(a Chicago-style menu face, whose redistribution licence is still unresolved) is not planned
-yet; and part 3/3 (selecting the installed family in KDE/Plasma/Qt) has landed for the Lato
-body face only, because Lato is the only family the package installs. KDE, Plasma and Qt
-applications now use Lato for the general, menu, toolbar, smallest-readable and window-title
-fonts, and monospaced text keeps the user's fixed font; GTK and Firefox
-applications keep their own chrome unless the opt-in GTK targets or the Firefox userChrome
-install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
-landed, while its profile install is part 2/2, which has landed). Firefox work since that
-series landed as single-surface chrome plans (the downloads-panel and all-tabs rows, the
-sidebar frame, the menu-bar title box, the tab faces and the app-menu rows). The
-`userContent.css` sheet now styles surfaces within six internal pages:
-about:downloads, about:config, about:preferences, about:support, about:networking
-and about:telemetry. These include preferences navigation and controls, support
-tables and buttons, and telemetry navigation, tables and histograms; this is
-surface coverage, not a claim of complete page theming. The opt-in profile install
-copies this sheet alongside `userChrome.css`. This content work extends the
+Two answers on 2026-10-19 widened the scope, and both are recorded below in their landed
+state (their landed-series entry narration trimmed 2026-11-11 by the steward role;
+the entries themselves are archived in PLANS-DONE.md).
+**GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19): the GTK 3
+and GTK 4/libadwaita Platinum stylesheets under `theme/gtk/` are installed — and selected —
+only by the opt-in `install-gtk` and `apply-gtk` targets (`make install` copies no GTK
+files), and the opt-in `install-firefox` target copies the Firefox `userChrome.css` and
+`userContent.css` sheets into a profile and writes the preference that selects them.
+**The UI font** is vendored (QUESTIONS.md, answered 2026-10-19): Lato is installed as the
+Charcoal-style body face and selected by the global theme for the general, menu, toolbar,
+smallest-readable and window-title fonts, and monospaced text keeps the user's fixed font;
+a Chicago-style menu face (part 2/3 of the font series) remains unplanned because its
+redistribution licence is unresolved, and Lato is the only family the package installs.
+GTK and Firefox applications keep their own chrome unless the opt-in GTK targets or the
+Firefox install are used. Firefox chrome work since that series landed as single-surface
+chrome plans (the downloads-panel and all-tabs rows, the sidebar frame, the menu-bar title
+box, the tab faces and the app-menu rows). The `userContent.css` sheet styles surfaces
+within six internal pages — about:downloads, about:config, about:preferences,
+about:support, about:networking and about:telemetry — including preferences navigation and
+controls, support tables and buttons, and telemetry navigation, tables and histograms; this
+is surface coverage, not a claim of complete page theming. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
