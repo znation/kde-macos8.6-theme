@@ -14,6 +14,18 @@ from tools.fidelity_cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):
+    def _rejects_value(self, convert, value):
+        """`convert` must refuse `value` with an ArgumentTypeError."""
+        with self.assertRaises(fidelity_arguments.argparse.ArgumentTypeError):
+            convert(value)
+
+    def _rejects_value_matching(self, convert, value, pattern):
+        """`convert` must refuse `value` with a message matching `pattern`."""
+        with self.assertRaisesRegex(
+            fidelity_arguments.argparse.ArgumentTypeError, pattern
+        ):
+            convert(value)
+
     def test_per_channel_limits_accept_bounds_and_reject_values_outside_them(self):
         for validator in (
             fidelity_arguments.max_mae,
@@ -22,21 +34,20 @@ class TestFidelityCliParser(unittest.TestCase):
             fidelity_arguments.tolerance,
         ):
             with self.subTest(validator=validator.__name__):
-                self.assertEqual(validator("0"), 0)
-                self.assertEqual(validator("255"), 255)
-                for value in ("-1", "256"):
-                    with self.subTest(value=value), self.assertRaises(
-                        fidelity_arguments.argparse.ArgumentTypeError
-                    ):
-                        validator(value)
+                self._per_channel_bounds(validator)
 
         for validator in (fidelity_arguments.max_mae, fidelity_arguments.max_rmse):
             for value in ("nan", "inf", "-inf"):
-                with self.subTest(validator=validator.__name__, value=value), \
-                        self.assertRaises(
-                            fidelity_arguments.argparse.ArgumentTypeError
-                        ):
-                    validator(value)
+                with self.subTest(validator=validator.__name__, value=value):
+                    self._rejects_value(validator, value)
+
+    def _per_channel_bounds(self, validator):
+        """`validator` accepts 0 and 255 and refuses -1 and 256."""
+        self.assertEqual(validator("0"), 0)
+        self.assertEqual(validator("255"), 255)
+        for value in ("-1", "256"):
+            with self.subTest(value=value):
+                self._rejects_value(validator, value)
 
     def test_max_frac_accepts_endpoints_and_rejects_nonfinite_or_out_of_range(self):
         self.assertEqual(fidelity_arguments.max_frac("0"), 0.0)
@@ -86,14 +97,19 @@ class TestFidelityCliParser(unittest.TestCase):
             ),
         ):
             with self.subTest(converter=converter.__name__):
-                self.assertEqual(converter("0"), 0)
-                self.assertEqual(converter("7"), 7)
-                for value in ("-1", "+1", "1.0", "", "١"):
-                    with self.subTest(value=value), self.assertRaisesRegex(
-                        fidelity_arguments.argparse.ArgumentTypeError,
-                        flag + r" must be a nonnegative ASCII integer",
-                    ):
-                        converter(value)
+                self._run_offset_bounds(converter, flag)
+
+    def _run_offset_bounds(self, converter, flag):
+        """`converter` accepts 0 and 7; anything else is refused, naming `flag`."""
+        self.assertEqual(converter("0"), 0)
+        self.assertEqual(converter("7"), 7)
+        for value in ("-1", "+1", "1.0", "", "١"):
+            with self.subTest(value=value):
+                self._rejects_value_matching(
+                    converter,
+                    value,
+                    flag + r" must be a nonnegative ASCII integer",
+                )
 
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
@@ -216,17 +232,28 @@ class TestFidelityCliParser(unittest.TestCase):
             ["missing.png", "missing.png", "--unknown\x1b"],
         )
         with mock.patch.object(fidelity, "_read_source", side_effect=AssertionError("read")):
-            for argv in (["--help"], *invalid_arguments):
-                stdout = io.StringIO()
-                stderr = io.StringIO()
-                with self.subTest(argv=argv), contextlib.redirect_stdout(stdout), \
-                        contextlib.redirect_stderr(stderr):
-                    with self.assertRaises(SystemExit) as raised:
-                        fidelity.main(argv)
-                self.assertEqual(raised.exception.code, 0 if argv == ["--help"] else 2)
-                if argv != ["--help"]:
-                    self.assertIn("fidelity: error:", stderr.getvalue())
-                    self.assertNotIn("\x1b", stderr.getvalue())
+            with self.subTest(argv=["--help"]):
+                status, _ = self._status_and_stderr(["--help"])
+                self.assertEqual(status, 0)
+            for argv in invalid_arguments:
+                with self.subTest(argv=argv):
+                    status, stderr = self._status_and_stderr(argv)
+                    self.assertEqual(status, 2)
+                    self.assertIn("fidelity: error:", stderr)
+                    self.assertNotIn("\x1b", stderr)
+
+    def _status_and_stderr(self, argv):
+        """Run `fidelity.main(argv)` with both streams redirected.
+
+        stdout is captured and discarded (it only carries `--help` text);
+        returns the SystemExit status and the captured stderr text.
+        """
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                fidelity.main(argv)
+        return raised.exception.code, stderr.getvalue()
 
 
 if __name__ == "__main__":

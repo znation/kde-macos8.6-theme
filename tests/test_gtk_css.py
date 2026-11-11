@@ -677,25 +677,29 @@ class TestRuleBlockSemantics(unittest.TestCase):
     def test_non_css_whitespace_at_declaration_boundaries_is_preserved(self):
         for character in ("\u00a0", "\u2003", "\u000b"):
             with self.subTest(codepoint=f"U+{ord(character):04X}"):
-                for value, expected in (
-                    (f"{character}token", f"{character}token"),
-                    (f"token{character}", f"token{character}"),
-                    (f" \t{character}token{character}\r\n",
-                     f"{character}token{character}"),
-                    (character, character),
-                ):
-                    with self.subTest(value=repr(value)):
-                        self.assertEqual(
-                            parse_css(f"a {{ content: {value}; }}")[1],
-                            {"a": {"content": expected}},
-                        )
+                self._boundaries_preserve_or_refuse(character)
 
-                with self.assertRaisesRegex(
-                    ValueError,
-                    r"^source\.css: malformed declaration in selector 'a':",
-                ):
-                    parse_css("a { \u00a0; }" if character == "\u00a0" else
-                              f"a {{ {character}; }}", source="source.css")
+    def _boundaries_preserve_or_refuse(self, character):
+        """`character` survives verbatim in a value, or a bare one is refused."""
+        for value, expected in (
+            (f"{character}token", f"{character}token"),
+            (f"token{character}", f"token{character}"),
+            (f" \t{character}token{character}\r\n",
+             f"{character}token{character}"),
+            (character, character),
+        ):
+            with self.subTest(value=repr(value)):
+                self.assertEqual(
+                    parse_css(f"a {{ content: {value}; }}")[1],
+                    {"a": {"content": expected}},
+                )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^source\.css: malformed declaration in selector 'a':",
+        ):
+            parse_css("a { \u00a0; }" if character == "\u00a0" else
+                      f"a {{ {character}; }}", source="source.css")
 
         self.assertEqual(
             parse_css("a { ; \t\n\r\f; content: token \t; }")[1],
@@ -901,11 +905,14 @@ class TestRuleBlockSemantics(unittest.TestCase):
                 self.assertEqual(parse_css(f"a {{ color: {invalid}; }}")[1]["a"]["color"], invalid)
 
         for separator in (" ", "\t", "\n", "\r", "\f", " \t\n\r\f"):
-            with self.subTest(separator=repr(separator)):
-                for trailing in ("", separator):
-                    with self.subTest(trailing=repr(trailing)):
-                        css = f"a {{ color: red !{separator}IMPORTANT{trailing}; color: blue; }}"
-                        self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
+            for trailing in ("", separator):
+                with self.subTest(separator=repr(separator), trailing=repr(trailing)):
+                    self._important_keyword_with_trailing(separator, trailing)
+
+    def _important_keyword_with_trailing(self, separator, trailing):
+        """The upper-case keyword stays recognized whatever follows it."""
+        css = f"a {{ color: red !{separator}IMPORTANT{trailing}; color: blue; }}"
+        self.assertEqual(parse_css(css)[1]["a"]["color"], "red ! IMPORTANT")
 
     def test_important_keyword_uses_ascii_case_folding(self):
         for lookalike in ("\u0131", "\u0130"):
@@ -921,17 +928,22 @@ class TestRuleBlockSemantics(unittest.TestCase):
                     "blue",
                 )
 
-        for keyword in ("important", "IMPORTANT", "ImPoRtAnT"):
-            for separator in ("", " "):
-                for blocks in (False, True):
-                    with self.subTest(keyword=keyword, separator=separator, blocks=blocks):
-                        first = f"red !{separator}{keyword}{separator}"
-                        css = (
-                            f"a {{ color: {first}; }} a {{ color: blue; }}"
-                            if blocks
-                            else f"a {{ color: {first}; color: blue; }}"
-                        )
-                        self.assertEqual(parse_css(css)[1]["a"]["color"], first.strip())
+        cases = itertools.product(
+            ("important", "IMPORTANT", "ImPoRtAnT"), ("", " "), (False, True)
+        )
+        for keyword, separator, blocks in cases:
+            with self.subTest(keyword=keyword, separator=separator, blocks=blocks):
+                self._important_keyword_form(keyword, separator, blocks)
+
+    def _important_keyword_form(self, keyword, separator, blocks):
+        """One keyword spelling, separator and placement: `first` wins."""
+        first = f"red !{separator}{keyword}{separator}"
+        css = (
+            f"a {{ color: {first}; }} a {{ color: blue; }}"
+            if blocks
+            else f"a {{ color: {first}; color: blue; }}"
+        )
+        self.assertEqual(parse_css(css)[1]["a"]["color"], first.strip())
 
     def test_important_keyword_decodes_css_escapes(self):
         valid = (

@@ -100,17 +100,32 @@ class TestSvgCaseInputLimits(unittest.TestCase):
         }
         for name, data in encoded.items():
             with self.subTest(encoding=name):
-                with tempfile.TemporaryDirectory() as tmp:
-                    path = Path(tmp) / "entity.svg"
-                    path.write_bytes(data)
-                    with self.assertRaises(ValueError) as caught:
-                        svg_case.parse_svg(path)
-                self.assertIn(str(path), str(caught.exception))
-                self.assertIn("DTD or entity", str(caught.exception))
+                self._refuses_dtd(data)
+
+    def _refuses_dtd(self, data):
+        """Write one encoded document and require the parser to refuse it."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "entity.svg"
+            path.write_bytes(data)
+            with self.assertRaises(ValueError) as caught:
+                svg_case.parse_svg(path)
+        self.assertIn(str(path), str(caught.exception))
+        self.assertIn("DTD or entity", str(caught.exception))
 
 
 class TestSvgCaseCache(unittest.TestCase):
     """An unchanged SVG parses once, but a changed or escaping one does not reuse."""
+
+    def _refused_twice(self, path, error):
+        """Parse `path` twice and require each call to raise `error`.
+
+        Returns the second exception, so callers can assert on its message.
+        """
+        caught = None
+        for _ in range(2):
+            with self.assertRaises(error) as caught:
+                svg_case.parse_svg(path)
+        return caught.exception
 
     def test_reuses_the_tree_of_an_unchanged_file(self):
         # Every widget test method parses its SVG in setUp, and the Kvantum
@@ -157,9 +172,7 @@ class TestSvgCaseCache(unittest.TestCase):
             with mock.patch.object(
                 svg_case.ET, "parse", wraps=svg_case.ET.parse
             ) as parse:
-                for _ in range(2):
-                    with self.assertRaises(ValueError):
-                        svg_case.parse_svg(path)
+                self._refused_twice(path, ValueError)
                 self.assertEqual(parse.call_count, 0)
                 path.write_text("<svg id='fixed'/>", encoding="utf-8")
                 first = svg_case.parse_svg(path)
@@ -180,14 +193,12 @@ class TestSvgCaseCache(unittest.TestCase):
             with mock.patch.object(
                 svg_case.ET, "parse", wraps=svg_case.ET.parse
             ) as parse:
-                for _ in range(2):
-                    with self.assertRaises(ValueError) as caught:
-                        svg_case.parse_svg(path)
+                refusal = self._refused_twice(path, ValueError)
                 self.assertEqual(parse.call_count, 0)
                 path.write_text("<svg id='fixed'/>", encoding="utf-8")
                 first = svg_case.parse_svg(path)
                 second = svg_case.parse_svg(path)
-        self.assertIn("DTD or entity", str(caught.exception))
+        self.assertIn("DTD or entity", str(refusal))
         self.assertIs(first, second)
         self.assertEqual(parse.call_count, 1)
 
@@ -198,9 +209,7 @@ class TestSvgCaseCache(unittest.TestCase):
             with mock.patch.object(
                 svg_case.ET, "parse", wraps=svg_case.ET.parse
             ) as parse:
-                for _ in range(2):
-                    with self.assertRaises(svg_case.ET.ParseError):
-                        svg_case.parse_svg(path)
+                self._refused_twice(path, svg_case.ET.ParseError)
                 self.assertEqual(parse.call_count, 2)
                 path.write_text("<svg id='fixed'/>", encoding="utf-8")
                 first = svg_case.parse_svg(path)
