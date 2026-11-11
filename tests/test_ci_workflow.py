@@ -121,7 +121,9 @@ class TestCiWorkflow(unittest.TestCase):
         )
 
     def test_every_use_pins_a_full_commit_sha(self):
-        workflow = self.read_workflow()
+        self.assert_action_pins(self.read_workflow())
+
+    def assert_action_pins(self, workflow):
         # A mutable version tag (`@v4`) is a retargeting vector: whoever
         # controls the action's repository can move the tag onto any commit
         # and run that code inside this workflow on every push and pull
@@ -129,10 +131,15 @@ class TestCiWorkflow(unittest.TestCase):
         # commit SHA, with the upstream version tag kept as a comment so the
         # pinned release stays legible to a reader.
         uses = re.findall(
-            r"^\s*-\s*uses:\s*(\S+)\s+#\s*(\S+)\s*$", workflow, re.MULTILINE
+            r"^[ \t]*(?:-[ \t]+)?uses:[ \t]*([^\n]*)$", workflow, re.MULTILINE
         )
         self.assertTrue(uses, "workflow declares no third-party actions")
-        for reference, tag in uses:
+        for declaration in uses:
+            reference, comment, tag = declaration.partition("#")
+            reference, tag = reference.strip(), tag.strip()
+            self.assertTrue(
+                comment and tag, "action must name its version tag in a comment"
+            )
             name, _, pinned = reference.partition("@")
             self.assertTrue(name, f"uses line without an action name: {reference}")
             self.assertRegex(
@@ -190,6 +197,22 @@ class TestCiWorkflow(unittest.TestCase):
         # moving ubuntu-latest label must not decide the environment.
         self.assertRegex(workflow, r"(?m)^\s+runs-on: ubuntu-26\.04$")
         self.assertNotRegex(workflow, r"(?m)^\s+runs-on: ubuntu-latest$")
+
+    def test_action_pin_check_covers_every_step(self):
+        valid = "      - uses: actions/checkout@" + "a" * 40 + " # v4\n"
+        for declaration in (
+            "      - uses: example/action@v1\n",
+            "      - uses: example/action@v1 # v1\n",
+            "      - name: Another action\n        uses: example/action@v1 # v1\n",
+            "      - uses: example/action@" + "b" * 40 + "\n",
+        ):
+            with self.subTest(declaration=declaration):
+                with self.assertRaises(AssertionError):
+                    self.assert_action_pins(valid + declaration)
+        self.assert_action_pins(
+            valid + "      - name: Pinned action\n        uses: example/action@"
+            + "b" * 40 + " # v1\n"
+        )
 
     def test_workflow_pins_the_python_development_version(self):
         workflow = self.read_workflow()
