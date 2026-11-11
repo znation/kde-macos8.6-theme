@@ -1302,6 +1302,21 @@ class TestSessionCommand(unittest.TestCase):
                 words[len(words) - len(file_dialog_client(session)) :],
             )
 
+    def test_pins_the_seeded_file_dialog_files_mtime(self):
+        with self._dialog_command(file_dialog_client) as (session, _):
+            # KIO sizes the details view's Date column from the rendered
+            # mtime text, and a live-clock touch would let that column's
+            # width -- and the header band's divider, caption, sort-arrow
+            # and size-text x-positions beside it -- move with the time of
+            # day, so the seeding pins both timestamps to one constant the
+            # gate's landed pins can re-derive against.
+            documents = session.home / "Documents"
+            for name in ("alpha.txt", "bravo.txt", "delta.rtf"):
+                # 1104537600 = the seed epoch tools/render_clients.py pins
+                # (2005-01-01 00:00:00 UTC), spelled as a literal so the
+                # expectation here is independent of the code under test.
+                self.assertEqual(1104537600, (documents / name).stat().st_mtime)
+
     def test_carries_the_icon_dialog_client_words(self):
         with self._dialog_command(icon_dialog_client) as (_, command):
             # The icon chooser's category default travels as its own quoted

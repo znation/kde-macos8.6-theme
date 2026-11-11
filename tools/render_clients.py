@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 try:
@@ -266,6 +267,13 @@ def inactive_dialog_client(_session: Session) -> tuple[str, ...]:
     )
 
 
+# The seeded file-dialog listing's fixed mtime, in seconds since the Unix
+# epoch (2005-01-01 00:00:00 UTC): a constant keeps the details view's Date
+# column text -- and with it the column widths the header pins re-derive --
+# identical in every session, whatever the wall clock says.
+FILE_DIALOG_SEED_EPOCH = 1104537600
+
+
 def file_dialog_client(session: Session) -> tuple[str, ...]:
     """Return the file-chooser argv the file-dialog mode renders.
 
@@ -274,17 +282,23 @@ def file_dialog_client(session: Session) -> tuple[str, ...]:
     this theme's colorscheme palette and shipped art, the pixels the
     file-dialog gate byte-compares. The chooser opens on a fixed scratch
     ``Documents`` directory holding exactly three fixed empty files
-    (``alpha.txt``, ``bravo.txt``, ``delta.rtf``): the fresh session home,
-    the fixed filenames and the absence of clock-dependent content keep
-    every capture deterministic, with no directory the caller's disk can
-    vary. The per-file type icons the chooser draws are the fallback icon
+    (``alpha.txt``, ``bravo.txt``, ``delta.rtf``) whose mtimes are pinned to
+    ``FILE_DIALOG_SEED_EPOCH``: KIO sizes the details view's Date column
+    from the rendered mtime text, so a live-clock touch would let that
+    column's width -- and every header x-position beside it -- move with
+    the time of day. The fresh session home, the fixed filenames, the
+    pinned mtimes and the absence of any other clock-dependent content
+    keep every capture deterministic, with no directory the caller's disk
+    can vary. The per-file type icons the chooser draws are the fallback icon
     theme's, not theme-owned, so the gate must keep its crops off icon
     cells the way ``TestIconDialogRender``'s bands do.
     """
     documents = session.home / "Documents"
     documents.mkdir(exist_ok=True)
     for name in ("alpha.txt", "bravo.txt", "delta.rtf"):
-        (documents / name).touch()
+        path = documents / name
+        path.touch()
+        os.utime(path, (FILE_DIALOG_SEED_EPOCH, FILE_DIALOG_SEED_EPOCH))
     return (
         "kdialog",
         "--title",
