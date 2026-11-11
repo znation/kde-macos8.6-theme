@@ -53,7 +53,9 @@ from support.gtk_theme_spec import (
     SCALE_EMPTY_FILL,
     SCALE_THUMB,
     SCALE_TROUGH,
+    SELECTION_CHECK_STATES,
     TEXT_SELECTION,
+    TILE_CHECK_FACE,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
@@ -906,16 +908,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         per-property (no declaration here), so this dictionary is the
         whole group.
         """
-        states = (
-            "",
-            ":hover",
-            ":active",
-            ":backdrop",
-            ":checked",
-            ":checked:hover",
-            ":checked:active",
-            ":backdrop:checked",
-        )
+        states = SELECTION_CHECK_STATES
         class_armed = tuple(
             f"{head}{state}:not(list)"
             for state in states
@@ -927,13 +920,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         tile_members = tuple(
             f".content-view .tile check{state}:not(list)" for state in states
         )
-        unchecked = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
-        }
+        unchecked = dict(TILE_CHECK_FACE)
         checked = {**unchecked, "-gtk-icon-source": CHECK_GLYPH["-gtk-icon-source"]}
         expected = {
             selector: dict(unchecked) for selector in class_armed + tile_members
@@ -3509,16 +3496,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         # iconview arms -- the selection-check state faces
         # `iconview.content-view.check…:not(list)` -- all pinned with the
         # other content-view check spellings by test_tile_check_faces.
-        states = (
-            "",
-            ":hover",
-            ":active",
-            ":backdrop",
-            ":checked",
-            ":checked:hover",
-            ":checked:active",
-            ":backdrop:checked",
-        )
+        states = SELECTION_CHECK_STATES
         self.assertEqual(
             {selector for selector in self.rules if "iconview" in selector},
             {

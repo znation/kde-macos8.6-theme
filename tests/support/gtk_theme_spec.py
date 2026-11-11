@@ -404,6 +404,37 @@ CHECK_GLYPH = {"-gtk-icon-source": 'url("../assets/checkmark.svg")'}
 RADIO_GLYPH = {"-gtk-icon-source": 'url("../assets/bullet.svg")'}
 MIXED_GLYPH = {"-gtk-icon-source": 'url("../assets/check-mixed.svg")'}
 
+# The eight selection-check states the content-view check families rest,
+# shared by the GTK 3 and GTK 4 suites: the empty suffix plus the seven
+# state arms the sheets append. Exactly four tests read it --
+# test_tile_check_faces and test_iconview_selected_arms in
+# tests/test_gtk4_theme.py, test_iconview_selected_arms and
+# test_vertical_stepper_and_content_view_check_corners in
+# tests/test_gtk_theme_views.py.
+SELECTION_CHECK_STATES = (
+    "",
+    ":hover",
+    ":active",
+    ":backdrop",
+    ":checked",
+    ":checked:hover",
+    ":checked:active",
+    ":backdrop:checked",
+)
+
+# The content-view tile-check face both suites pin: the landed check
+# face's raised etched field at the tile record's zero radius. Exactly two
+# tests read it -- test_tile_check_faces in tests/test_gtk4_theme.py and
+# test_vertical_stepper_and_content_view_check_corners in
+# tests/test_gtk_theme_views.py.
+TILE_CHECK_FACE = {
+    "background-color": FACE,
+    "background-image": "none",
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
+}
+
 # The combo box dropdown arrow both sheets paint from the desktop theme's
 # pinned down-arrow triangle, sized to the installed default sheet's 16px.
 COMBO_ARROW = {

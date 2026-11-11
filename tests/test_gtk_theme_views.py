@@ -22,7 +22,9 @@ from support.gtk_theme_spec import (
     ROW_HOVER,
     MIXED_GLYPH,
     RADIO_GLYPH,
+    SELECTION_CHECK_STATES,
     SUBMENU_ARROW,
+    TILE_CHECK_FACE,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
 )
@@ -31,7 +33,6 @@ from support.platinum_palette import (
     ETCH_DARK,
     FACE,
     SELECTION,
-    WHITE,
 )
 from support.repo_root import ROOT
 
@@ -120,16 +121,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # state faces `iconview.content-view.check…:not(list)` — all pinned
         # with the other content-view check spellings by
         # test_vertical_stepper_and_content_view_check_corners.
-        check_states = (
-            "",
-            ":hover",
-            ":active",
-            ":backdrop",
-            ":checked",
-            ":checked:hover",
-            ":checked:active",
-            ":backdrop:checked",
-        )
+        check_states = SELECTION_CHECK_STATES
         self.assertEqual(
             {selector for selector in self.rules if "iconview" in selector},
             {
@@ -925,16 +917,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         """
         stepper_up = "spinbutton.vertical button.up"
         stepper_down = "spinbutton.vertical button.down"
-        states = (
-            "",
-            ":hover",
-            ":active",
-            ":backdrop",
-            ":checked",
-            ":checked:hover",
-            ":checked:active",
-            ":backdrop:checked",
-        )
+        states = SELECTION_CHECK_STATES
         check_spellings = (
             *[f".view.content-view.check{state}:not(list)" for state in states],
             *[f"iconview.content-view.check{state}:not(list)" for state in states],
@@ -947,13 +930,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # check face under every state: the four unchecked spellings
         # carry the raised etched face, the four checked ones the same
         # five declarations under the shipped checkmark glyph.
-        tile_face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
-        }
+        tile_face = dict(TILE_CHECK_FACE)
         tile_rules = {}
         for state_index in range(len(states)):
             declarations = (
