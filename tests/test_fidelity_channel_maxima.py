@@ -25,6 +25,17 @@ class TestChannelMaxima(unittest.TestCase):
                          {"r": 0, "g": 0, "b": 0, "a": 0})
         self.assertEqual(channel_maxima(Image(1, 1, bytes([255, 0, 0])), Image(1, 1, bytes(3))),
                          {"r": 255, "g": 0, "b": 0, "a": 0})
+        # An alpha-only error with one plane missing: RGB bytes agree, the
+        # present plane's 100 meets the absent plane's opaque 255.
+        one_sided = Image(1, 1, bytes(3), bytes([100]))
+        self.assertEqual(channel_maxima(one_sided, Image(1, 1, bytes(3))),
+                         {"r": 0, "g": 0, "b": 0, "a": 155})
+        self.assertEqual(channel_maxima(Image(1, 1, bytes(3)), one_sided),
+                         {"r": 0, "g": 0, "b": 0, "a": 155})
+        # An RGB change beneath zero alpha compares raw, not composited.
+        beneath = Image(1, 1, bytes([200, 0, 0]), bytes([0]))
+        self.assertEqual(channel_maxima(beneath, Image(1, 1, bytes(3))),
+                         {"r": 200, "g": 0, "b": 0, "a": 255})
 
 
 class TestChannelMaximaCli(FidelityCliTestCase):
