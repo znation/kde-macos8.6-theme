@@ -636,9 +636,11 @@ ring, recoloured client edge, flat bar and title ink there.
 sidebar, file list view, toolbar and name-filter surfaces the engine draws with the theme's
 palette and the shipped field and button art, captured at the same 480x360 size; the chooser
 opens on the scratch session's fixed `Documents` directory holding exactly `alpha.txt`,
-`bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. Its surfaces await the
-file-dialog gate, which will pin them in `tests/test_render_surface.py`; the chooser's
-per-file type icons are the fallback icon theme's and stay deliberately unpinned.
+`bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. The file-dialog gate
+(`tests/test_render_surface.py::TestFileDialogRender`) pins the chooser's frame and title-bar
+bands, the title-bar boxes and pinstripes, the panels' sunken borders, the selected places row,
+the Name and Filter fields and the toolbar and bottom buttons; the chooser's per-file type
+icons are the fallback icon theme's and stay deliberately unpinned.
 `--desktop` opens the themed Plasma shell itself (`plasmashell`, the 640x400 virtual
 session's only client) so the flush 20px top panel the look-and-feel layout builds — the
 menu bar with its clock and window list — paints into the capture; the scratch session
