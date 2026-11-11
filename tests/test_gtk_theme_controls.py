@@ -232,14 +232,16 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     def test_entry_progress(self):
         self.assert_rule("entry progress", ENTRY_PROGRESS)
 
-    def test_suggested_action_plain_arms(self):
-        """The plain `suggested-action` arms restate the landed face.
+    def assert_plain_action_arms(self, prefix):
+        """Assert a plain colour-class action's arms restate the landed face.
 
-        Only the opaque members of the stock family are restated; no
-        restated selector carries `.flat`, so the stock transparent-face
-        colour-class family keeps governing whole (recorded 2026-10-31
-        by the feature role). (2026-10-31: the colour-class members are
-        since restated by test_action_class_flat_arms.)
+        The recipe behind both plain action families: only the opaque
+        members of the stock family are restated; no restated selector
+        carries `.flat`, so the stock transparent-face colour-class family
+        keeps governing whole (recorded 2026-10-31 by the feature role).
+        (2026-10-31: the colour-class members are since restated by
+        test_action_class_flat_arms.) Exactly two call sites: the
+        suggested- and destructive-action plain families.
         """
         face = {
             "background-color": FACE,
@@ -266,42 +268,42 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             "box-shadow": BUTTON_BEVEL,
             "color": DISABLED_TEXT["color"],
         }
-        self.assert_rule("button.suggested-action", face)
-        self.assert_rule("button.suggested-action:hover", face)
-        self.assert_rule("button.suggested-action:active", sunken)
-        self.assert_rule("button.suggested-action:checked", sunken)
-        self.assert_rule("button.suggested-action:backdrop", face)
-        self.assert_rule("button.suggested-action:backdrop:active", sunken)
-        self.assert_rule("button.suggested-action:backdrop:checked", sunken)
+        self.assert_rule(prefix, face)
+        self.assert_rule(f"{prefix}:hover", face)
+        self.assert_rule(f"{prefix}:active", sunken)
+        self.assert_rule(f"{prefix}:checked", sunken)
+        self.assert_rule(f"{prefix}:backdrop", face)
+        self.assert_rule(f"{prefix}:backdrop:active", sunken)
+        self.assert_rule(f"{prefix}:backdrop:checked", sunken)
         for selector in (
-            "button.suggested-action:backdrop:disabled",
-            "button.suggested-action:backdrop:disabled:active",
-            "button.suggested-action:backdrop:disabled:checked",
-            "button.suggested-action:disabled",
-            "button.suggested-action:disabled:active",
-            "button.suggested-action:disabled:checked",
+            f"{prefix}:backdrop:disabled",
+            f"{prefix}:backdrop:disabled:active",
+            f"{prefix}:backdrop:disabled:checked",
+            f"{prefix}:disabled",
+            f"{prefix}:disabled:active",
+            f"{prefix}:disabled:checked",
         ):
             self.assert_rule(selector, disabled)
         expected = {
-            "button.suggested-action",
-            "button.suggested-action:hover",
-            "button.suggested-action:active",
-            "button.suggested-action:checked",
-            "button.suggested-action:backdrop",
-            "button.suggested-action:backdrop:active",
-            "button.suggested-action:backdrop:checked",
-            "button.suggested-action:backdrop:disabled",
-            "button.suggested-action:backdrop:disabled:active",
-            "button.suggested-action:backdrop:disabled:checked",
-            "button.suggested-action:disabled",
-            "button.suggested-action:disabled:active",
-            "button.suggested-action:disabled:checked",
+            prefix,
+            f"{prefix}:hover",
+            f"{prefix}:active",
+            f"{prefix}:checked",
+            f"{prefix}:backdrop",
+            f"{prefix}:backdrop:active",
+            f"{prefix}:backdrop:checked",
+            f"{prefix}:backdrop:disabled",
+            f"{prefix}:backdrop:disabled:active",
+            f"{prefix}:backdrop:disabled:checked",
+            f"{prefix}:disabled",
+            f"{prefix}:disabled:active",
+            f"{prefix}:disabled:checked",
         }
         self.assertEqual(
             {
                 selector
                 for selector in self.rules
-                if selector.startswith("button.suggested-action")
+                if selector.startswith(prefix)
                 # 2026-10-31: the colour-class members are since restated
                 # by test_action_class_flat_arms; the plain opaque keys
                 # carry no flat token, so this filter stays inside this
@@ -310,6 +312,10 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             },
             expected,
         )
+
+    def test_suggested_action_plain_arms(self):
+        """The plain `suggested-action` arms restate the landed face."""
+        self.assert_plain_action_arms("button.suggested-action")
 
     def test_flat_button_plain_arms(self):
         """The plain `button.flat` arms restate the landed face.
@@ -401,82 +407,9 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     def test_destructive_action_plain_arms(self):
         """The plain `destructive-action` arms restate the landed face.
 
-        The red mirror of `test_suggested_action_plain_arms`: only the
-        opaque members of the stock family are restated; no restated
-        selector carries `.flat`, so the stock transparent-face
-        colour-class family keeps governing whole (recorded 2026-10-31
-        by the feature role). (2026-10-31: the colour-class members are
-        since restated by test_action_class_flat_arms.)
+        The red mirror of `test_suggested_action_plain_arms`.
         """
-        face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        sunken = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        disabled = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-        }
-        self.assert_rule("button.destructive-action", face)
-        self.assert_rule("button.destructive-action:hover", face)
-        self.assert_rule("button.destructive-action:active", sunken)
-        self.assert_rule("button.destructive-action:checked", sunken)
-        self.assert_rule("button.destructive-action:backdrop", face)
-        self.assert_rule("button.destructive-action:backdrop:active", sunken)
-        self.assert_rule("button.destructive-action:backdrop:checked", sunken)
-        for selector in (
-            "button.destructive-action:backdrop:disabled",
-            "button.destructive-action:backdrop:disabled:active",
-            "button.destructive-action:backdrop:disabled:checked",
-            "button.destructive-action:disabled",
-            "button.destructive-action:disabled:active",
-            "button.destructive-action:disabled:checked",
-        ):
-            self.assert_rule(selector, disabled)
-        expected = {
-            "button.destructive-action",
-            "button.destructive-action:hover",
-            "button.destructive-action:active",
-            "button.destructive-action:checked",
-            "button.destructive-action:backdrop",
-            "button.destructive-action:backdrop:active",
-            "button.destructive-action:backdrop:checked",
-            "button.destructive-action:backdrop:disabled",
-            "button.destructive-action:backdrop:disabled:active",
-            "button.destructive-action:backdrop:disabled:checked",
-            "button.destructive-action:disabled",
-            "button.destructive-action:disabled:active",
-            "button.destructive-action:disabled:checked",
-        }
-        self.assertEqual(
-            {
-                selector
-                for selector in self.rules
-                if selector.startswith("button.destructive-action")
-                # 2026-10-31: the colour-class members are since restated
-                # by test_action_class_flat_arms; the plain opaque keys
-                # carry no flat token, so this filter stays inside this
-                # family.
-                and ".flat" not in selector
-            },
-            expected,
-        )
+        self.assert_plain_action_arms("button.destructive-action")
 
     def test_action_class_flat_arms(self):
         """The plain colour-class `.flat` arms restate the landed face.
