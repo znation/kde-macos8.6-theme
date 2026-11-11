@@ -3415,12 +3415,17 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     the leftmost box holds the window icon, whose mark is the fallback
     icon theme's rendering, pinned as measured.
 
-    The list panel's content faces are pinned too (measured on the same
-    consecutive pair, plus a third same-day render whose pinned regions
-    compared byte-equal to the first): the column-header band rows
+    The list panel's content faces are pinned too, re-derived on
+    2026-11-11 from three consecutive ``--file-dialog`` renders that
+    agreed byte for byte outside the Name field's caret column: the
+    session-measured Name column sat 7px narrower when the first pair
+    measured it, and no repository change explains the width (the
+    host's rendering shifted underneath the pins), so the divider,
+    caption, sort-arrow and size-text pins below were re-derived from
+    the agreeing second set. The column-header band rows
     99..120 draws face ``#DDDDDD`` with two full-height dividers (an
     ``#AAAAAA`` shadow column beside a ``#000000`` core column at
-    x=343/344 and x=393/394) whose style-drawn sort arrow is byte-pinned
+    x=350/351 and x=400/401) whose style-drawn sort arrow is byte-pinned
     as measured; the seeded file rows 123..182 pin their ``#FFFFFF`` and
     ``#EEEEEE`` (alternate-row trough) band faces with each per-file
     type icon's cell byte-pinned as measured; the empty rows 183..251
@@ -3501,22 +3506,22 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
 
     # The column-header band's two dividers (rows 99..120, measured): each
     # is a #AAAAAA shadow column beside a #000000 core column, at
-    # x=343/344 and x=393/394. A lost shadow column, a lost core column or
+    # x=350/351 and x=400/401. A lost shadow column, a lost core column or
     # a recoloured face fails the band test below.
     HEADER_DIVIDERS = (
-        (343, "#AAAAAA"),
-        (344, "#000000"),
-        (393, "#AAAAAA"),
-        (394, "#000000"),
+        (350, "#AAAAAA"),
+        (351, "#000000"),
+        (400, "#AAAAAA"),
+        (401, "#000000"),
     )
     # The header captions' ink bands (measured columns; the glyphs stay
-    # live): "Name" x=155..187, "Size" x=349..371 and "Date" x=400..425,
+    # live): "Name" x=155..187, "Size" x=355..379 and "Date" x=406..433,
     # all inking rows 105..114.
-    HEADER_CAPTIONS = ((155, 187), (349, 371), (400, 425))
+    HEADER_CAPTIONS = ((155, 187), (355, 379), (406, 433))
     CAPTION_ROWS = (105, 114)
     # The header band's style-drawn sort arrow (a solid #000000
     # downward-pointing triangle with antialiased arms), byte-pinned as
-    # measured at x=329..339, rows 106..114. A moved, dropped, recoloured
+    # measured at x=336..346, rows 106..114. A moved, dropped, recoloured
     # or resampled arrow fails the byte-compare.
     SORT_ARROW = (
         ("#DDDDDD", "#373737", "#000000", "#000000", "#000000",
@@ -3538,7 +3543,7 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
         ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
          "#6E6E6E", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
     )
-    SORT_ARROW_RECT = (329, 106)
+    SORT_ARROW_RECT = (336, 106)
 
     # The three seeded file rows' type-icon cells, byte-pinned as measured
     # (rows 1 and 2 draw the fallback theme's document glyph, row 3 its
@@ -3657,14 +3662,14 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     # session's wall clock, so the date column's digits move between runs.
     ROW_BANDS = (
         (123, "#FFFFFF", ((173, 182, 126, 138), (191, 241, 128, 139),
-                          (368, 386, 128, 137))),
+                          (375, 393, 128, 137))),
         (143, "#EEEEEE", ((173, 182, 146, 158), (191, 241, 148, 157),
-                          (368, 386, 148, 157))),
+                          (375, 393, 148, 157))),
         (163, "#FFFFFF", ((172, 183, 167, 178), (191, 241, 168, 178),
-                          (368, 386, 168, 177))),
+                          (375, 393, 168, 177))),
     )
     ROW_BAND_HEIGHT = 20
-    ROW_TEXT_BANDS = ((191, 241), (368, 386), (395, 473))
+    ROW_TEXT_BANDS = ((191, 241), (375, 393), (395, 473))
     EMPTY_ROWS = (183, 251)
 
     def assert_box_matches_svg(self, x0, y0, svg_name):
@@ -4069,8 +4074,8 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     def test_the_column_header_band_pins_its_face_and_dividers(self):
         # Rows 99..120 across x=152..473 (right of the landed scrollbar-strip
         # exclusion): face #DDDDDD except the two full-height dividers (the
-        # #AAAAAA shadow column beside the #000000 core column at x=343/344
-        # and x=393/394) and the caption and sort-arrow ink bands pinned
+        # #AAAAAA shadow column beside the #000000 core column at x=350/351
+        # and x=400/401) and the caption and sort-arrow ink bands pinned
         # live and byte-exact in the sibling tests below. Rows 121..122 are
         # the list field's top edge (#AAAAAA rule, #000000 outline). A lost
         # divider column, a recoloured header face or a recoloured top edge

@@ -105,6 +105,10 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
                     )
 
     def test_default_button_indicator_keeps_the_face_flat(self):
+        # The 8x8 flat face patch the shipped SVG supplies so Kvantum never
+        # draws its compiled-in default-button corner art over the button
+        # face (the 2026-11-03 default-mark fix's art): a dropped, moved,
+        # recoloured or resampled indicator fails the count and the map.
         tree = parse_svg(SVG)
         self.assertEqual(
             1,
@@ -115,7 +119,7 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
         )
         slices = render_slices(tree)
         self.assertEqual(
-            pixel_map(("#DDDDDD",) * 49, 7, 7),
+            pixel_map(("#DDDDDD",) * 64, 8, 8),
             slices["button-default-indicator"],
         )
 
