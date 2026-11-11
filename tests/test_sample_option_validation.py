@@ -253,7 +253,7 @@ class TestSampleOptionValidation(CliTestCase):
             with self.subTest(argv=argv), \
                     mock.patch.object(sample, "read_png_size", return_value=(4, 3)), \
                     mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded invalid region")):
-                    result = self._run(image, *argv)
+                result = self._run(image, *argv)
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.stderr, f"sample: error: {diagnostic}\n")

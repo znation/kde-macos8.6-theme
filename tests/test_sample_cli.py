@@ -431,10 +431,13 @@ class TestSampleCli(CliTestCase):
         real_guard = sample.resolves_within
 
         def swap_after_open(directory, path):
-            if str(path).startswith("/proc/self/fd/"):
-                link.unlink()
-                link.symlink_to(outside)
-            return real_guard(directory, path)
+            # An attacker swaps the directory entry once the containment
+            # check has passed and before the reads: perform the real check,
+            # then replace the link, then let the caller proceed.
+            result = real_guard(directory, path)
+            link.unlink()
+            link.symlink_to(outside)
+            return result
 
         with mock.patch.object(sample, "ROOT", str(root)), mock.patch.object(
             sample, "resolves_within", side_effect=swap_after_open
