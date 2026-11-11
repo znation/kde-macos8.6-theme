@@ -78,17 +78,29 @@ class TestDifferenceRuns(unittest.TestCase):
             rgb[(y * width + x) * 3] = value
         candidate = Image(width, height, bytes(rgb))
         reference = Image(width, height, bytes(width * height * 3))
-        self.assertEqual(difference_runs(candidate, reference, 10),
+        runs = difference_runs(candidate, reference, 10)
+        self.assertEqual(runs,
                          [{"x": 0, "y": 0, "length": 2},
                           {"x": 3, "y": 0, "length": 1},
                           {"x": 4, "y": 1, "length": 1}])
         self.assertEqual(difference_runs(candidate, reference, 255), [])
+        # Each compared pixel belongs to exactly one run.
+        self.assertEqual(sum(run["length"] for run in runs),
+                         compare(candidate, reference, 10).differing)
 
     def test_raw_alpha_and_hidden_rgb(self):
         candidate = Image(2, 1, bytes([20, 0, 0, 0, 0, 0]), bytes([255, 0]))
         reference = Image(2, 1, bytes(6), bytes([255, 255]))
         self.assertEqual(difference_runs(candidate, reference, 254),
                          [{"x": 1, "y": 0, "length": 1}])
+        # Stored RGB beneath fully transparent pixels still participates:
+        # the only difference is hidden RGB, and it is raw bytes, never
+        # composited away.
+        hidden = Image(1, 1, bytes([250, 0, 0]), bytes([0]))
+        transparent = Image(1, 1, bytes(3), bytes([0]))
+        self.assertEqual(difference_runs(hidden, transparent, 200),
+                         [{"x": 0, "y": 0, "length": 1}])
+        self.assertEqual(difference_runs(hidden, transparent, 250), [])
 
 
 class TestDifferenceRunsCli(FidelityCliTestCase):
