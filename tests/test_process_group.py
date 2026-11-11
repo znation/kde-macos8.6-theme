@@ -401,6 +401,53 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(b"", self.stderr_log.read_bytes())
 
 
+class TestFeedStdin(unittest.TestCase):
+    """_feed_stdin runs in a daemon thread and must never raise out of it.
+
+    A child that exits or stops reading makes the write fail with a broken
+    pipe; the run's outcome does not depend on that write, so the error is
+    swallowed. The sink must still be closed, or the child waiting for EOF
+    would hang.
+    """
+
+    def test_a_broken_pipe_on_write_is_swallowed_and_the_sink_is_closed(self):
+        sink = mock.Mock()
+        sink.write.side_effect = BrokenPipeError
+        process_group._feed_stdin(sink, b"payload")
+        sink.write.assert_called_once_with(b"payload")
+        sink.close.assert_called_once_with()
+
+    def test_an_os_error_on_write_is_swallowed_and_the_sink_is_closed(self):
+        sink = mock.Mock()
+        sink.write.side_effect = OSError
+        process_group._feed_stdin(sink, b"payload")
+        sink.close.assert_called_once_with()
+
+    def test_an_error_on_close_is_swallowed(self):
+        sink = mock.Mock()
+        sink.close.side_effect = BrokenPipeError
+        process_group._feed_stdin(sink, b"payload")
+        sink.write.assert_called_once_with(b"payload")
+        sink.close.assert_called_once_with()
+
+    def test_a_child_that_exits_without_reading_stdin_keeps_its_status(self):
+        # The payload is far larger than a pipe buffer, so the write cannot
+        # finish until the child is gone; the broken pipe must not replace
+        # the child's exit status or stall the run past its timeout.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            status = process_group.run_logged_split(
+                ["sh", "-c", "exit 7"],
+                dict(os.environ),
+                root / "out.log",
+                root / "err.log",
+                10,
+                root,
+                stdin_bytes=b"x" * (1 << 20),
+            )
+        self.assertEqual(7, status)
+
+
 class TestExitOnTermination(unittest.TestCase):
     def _kill_self_under_exit_on_termination(self, number):
         """Send *number* to this process and return the shell-convention code."""
