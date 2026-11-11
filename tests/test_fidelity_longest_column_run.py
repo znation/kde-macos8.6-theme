@@ -23,11 +23,13 @@ class TestLongestDifferenceColumnRun(unittest.TestCase):
                          {"x": 1, "y": 0, "length": 4})
 
     def test_tied_column_runs_keep_first_scanline(self):
-        values = [11, 0, 11, 0, 11, 0, 11, 0]
+        # Column 0 runs at y=1..3, column 1 at y=0..2; both length 3. The
+        # first-encountered column's run wins despite its later start.
+        values = [0, 11, 11, 11, 11, 11, 11, 0]
         candidate = Image(2, 4, b"".join(bytes((v, 0, 0)) for v in values))
         reference = Image(2, 4, bytes(2 * 4 * 3))
         self.assertEqual(longest_difference_column_run(candidate, reference, 10),
-                         {"x": 0, "y": 0, "length": 4})
+                         {"x": 0, "y": 1, "length": 3})
 
     def test_earliest_column_and_row_ties(self):
         # Two columns hold length-2 runs (x=0 at y=0, x=2 at y=2); the
