@@ -17,6 +17,7 @@ import os
 import re
 import shlex
 import stat
+import sys
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -931,9 +932,56 @@ class TestSessionScript(unittest.TestCase):
         self.assertLess(
             script.index('kill "$client"'), script.index('wait "$client"')
         )
-        self.assertLess(
-            script.index('wait "$client"'), script.index("exit $status")
+
+    def test_waits_for_client_termination_and_preserves_capture_status(self):
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        ready = root / "ready"
+        stopped = root / "stopped"
+        client = root / "client.py"
+        client.write_text(
+            "import signal, sys, time\n"
+            "from pathlib import Path\n"
+            "def stop(*args):\n"
+            "    time.sleep(0.2)\n"
+            "    Path(sys.argv[2]).write_text('terminated')\n"
+            "    sys.exit(23)\n"
+            "signal.signal(signal.SIGTERM, stop)\n"
+            "signal.alarm(5)\n"
+            "Path(sys.argv[1]).touch()\n"
+            "signal.pause()\n",
+            encoding="utf-8",
         )
+        # Replace only the desktop commands. The real shell launches, signals
+        # and waits for a real child whose termination deliberately takes time.
+        # run_logged tears down descendants when the shell exits, so omitting
+        # wait prevents the child from recording its completed termination.
+        poll = (
+            "import time, sys; from pathlib import Path; "
+            "deadline = time.monotonic() + 3\n"
+            "while not Path(sys.argv[1]).exists():\n"
+            "    if time.monotonic() > deadline: sys.exit(1)\n"
+            "    time.sleep(0.01)\n"
+        )
+        for capture_status in (0, 7):
+            with self.subTest(capture_status=capture_status):
+                ready.unlink(missing_ok=True)
+                stopped.unlink(missing_ok=True)
+                prefix = (
+                    f'sleep() {{ if [ "$1" = 0 ]; then {shlex.join([sys.executable, "-c", poll, str(ready)])}; else command sleep "$@"; fi; }}; '
+                    f"spectacle() {{ return {capture_status}; }}; "
+                )
+                status = render_workflow.run_logged(
+                    ["sh", "-c", prefix + render_session.session_script(),
+                     "sh", "0", str(root / "capture.png"), sys.executable,
+                     str(client), str(ready), str(stopped)],
+                    environment, root / "session.log", 5, root,
+                )
+                self.assertEqual(capture_status, status)
+                self.assertTrue(stopped.exists(), "session exited before client termination")
 
 
 class TestSessionCommand(unittest.TestCase):
