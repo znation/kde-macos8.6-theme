@@ -140,20 +140,20 @@ def _check_entries(
             )
             continue
         if not image.is_file():
-            problems.append((lineno, f"{sources}:{lineno}: {filename!r} does not exist in {directory}/"))
+            problems.append((lineno, f"{sources}:{lineno}: {safe_filename!r} does not exist in {directory}/"))
             continue
         try:
             head, tail, size = _image_head_and_tail(image)
             if head.startswith(LFS_POINTER_MAGIC):
                 problems.append(
-                    (lineno, f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
+                    (lineno, f"{sources}:{lineno}: {safe_filename!r} is an unmaterialized Git LFS pointer; "
                      "run `git lfs install && git lfs pull` to fetch the image")
                 )
             elif not is_image(head):
                 # The unrecognized-payload diagnostic outranks a truncation
                 # one: without a known format there is no ending to judge.
                 problems.append(
-                    (lineno, f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
+                    (lineno, f"{sources}:{lineno}: {safe_filename!r} is not a PNG, JPEG, GIF or WebP image; "
                      "it may be an HTML error page or a truncated download")
                 )
             elif not is_complete(head, tail, size):
@@ -163,7 +163,7 @@ def _check_entries(
                      f"{_incomplete_stream_suffix(head, tail, size)}")
                 )
         except (OSError, ValueError) as exc:
-            problems.append((lineno, f"{sources}:{lineno}: {filename!r} could not be read: {exc}"))
+            problems.append((lineno, f"{sources}:{lineno}: {safe_filename!r} could not be read: {exc}"))
     return problems
 
 

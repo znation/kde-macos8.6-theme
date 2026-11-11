@@ -304,6 +304,21 @@ class TestProblemListEscaping(CheckerTestCase):
         self.assertIn("points outside", joined)
         assert_escapes_escape_character(self, joined)
 
+    def test_missing_declared_escape_names_the_file_escaped(self):
+        module = self.checker
+        hostile = "evil" + chr(27) + "]2;pwned" + chr(7) + ".png"
+        with reference_set(
+            module,
+            f"{hostile} | https://example.test/e.png | label\n",
+        ) as root:
+            # No file is created: the declared-entry loop reports the
+            # missing name, and that line must carry the name escaped like
+            # the symlink-escape and swap-refusal lines do.
+            problems = module.check_references(root)
+        joined = "\n".join(problems)
+        self.assertIn("does not exist", joined)
+        assert_escapes_escape_character(self, joined)
+
 
 class TestScriptEntryPoint(unittest.TestCase):
     """The checker must still run as ``python3 tools/check_references.py``.
