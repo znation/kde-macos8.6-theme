@@ -1336,8 +1336,6 @@ scanline yields at least one run, so the summary is never null. What `runs`
 lists does not change; omitting the flag omits the JSON key, the text line and
 the comparison. The flag requires `--runs`.
 
-
-
 Pass `--max-runs N` with `--runs` to display only the first N eligible runs
 across the complete scan in its existing row or column order. Named color
 selection and exclusion plus inclusive run-length filters apply before this
