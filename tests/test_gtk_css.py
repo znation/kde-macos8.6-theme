@@ -493,7 +493,7 @@ class TestRuleBlockSemantics(unittest.TestCase):
             {"foo:bar": "blue !important"},
         )
 
-    def test_custom_and_invalid_escaped_property_names_keep_source_spelling(self):
+    def test_custom_names_decode_and_invalid_escaped_names_keep_source_spelling(self):
         self.assertEqual(
             parse_css("a { --\\63 olor: red; \\2d-escaped: blue; bad\\\\: red; bad\\\nname: green; }")[1]["a"],
             {"--color": "red", "--escaped": "blue", "bad\\": "red", "bad\\\nname": "green"},
@@ -549,6 +549,8 @@ class TestRuleBlockSemantics(unittest.TestCase):
             (r"a { \2d-tone: simple; --tone: literal; }", {"--tone": "literal"}),
             ("a { --t\\6f\r\nne: crlf; --tone: literal; }", {"--tone": "literal"}),
             (r"a { --\110000: replacement; --�: literal; }", {"--�": "literal"}),
+            (r"a { --\e9: lower; --\c9: upper; }", {"--é": "lower", "--É": "upper"}),
+            ("a { --to\\\nne: newline; --tone: literal; }", {"--to\\\nne": "newline", "--tone": "literal"}),
         )
         for css, expected in cases:
             with self.subTest(css=css):
