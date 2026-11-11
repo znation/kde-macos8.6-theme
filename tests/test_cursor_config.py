@@ -57,6 +57,29 @@ class TestCursorThemeSetting(unittest.TestCase):
             "theirs", cursor_config.cursor_theme_setting(self.config_home)
         )
 
+    def test_a_foreign_section_after_mouse_does_not_change_the_value(self):
+        # The section must be tracked past [Mouse]: a later [Other] header
+        # ends the Mouse section, so its cursorTheme line is not the setting.
+        # Without a [Mouse] before the foreign header the suite's other
+        # cases cannot tell a stale section from a fresh one.
+        (self.config_home / "kcminputrc").write_text(
+            "[Mouse]\ncursorTheme=ours\n[Other]\ncursorTheme=theirs\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            "ours", cursor_config.cursor_theme_setting(self.config_home)
+        )
+
+    def test_mouse_section_read_again_after_a_foreign_section(self):
+        # Returning to [Mouse] reopens the section, so its line counts again.
+        (self.config_home / "kcminputrc").write_text(
+            "[Mouse]\n[Other]\ncursorTheme=theirs\n[Mouse]\ncursorTheme=ours\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            "ours", cursor_config.cursor_theme_setting(self.config_home)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
