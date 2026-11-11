@@ -7,7 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import rgb_image
+from support.png_fixtures import make_png, rgb_image, solid_rgb
 from tools import sample
 
 
@@ -61,6 +61,32 @@ class TestSampleHistogramMinimumCount(CliTestCase):
         self.assertEqual(payload["colors"][0]["position"], {"x": 1, "y": 0})
         self.assertEqual(payload["colors"][0]["centroid"], {"x": 2.0, "y": 0.0})
         self.assertEqual(payload["colors"][0]["fraction"], 3 / 8)
+
+    def test_alpha_grouping_separation_and_opaque_fallback_honor_the_cutoff(self):
+        # Crop pixels: (1,2,3) at alpha 0 and twice at alpha 128, plus (7,8,9) at alpha 128.
+        rows = [bytes((9, 9, 9, 255, 1, 2, 3, 0, 7, 8, 9, 128)),
+                bytes((8, 8, 8, 255, 1, 2, 3, 128, 1, 2, 3, 128))]
+        path = self._write(self._tmp_dir(), "rgba-min.png", make_png(3, 2, rows, color_type=6))
+        crop = (path, "1", "0", "--width", "2", "--height", "2", "--histogram")
+        grouped = self._run(*crop, "--min-color-count", "3", "--json")
+        self._assert_success(grouped)
+        payload = json.loads(grouped.stdout)
+        self.assertEqual([(c["rgb"], c["count"]) for c in payload["colors"]],
+                         [([1, 2, 3], 3)])
+        self.assertEqual((payload["total_colors"], payload["omitted_pixels"]), (2, 1))
+        separated = self._run(*crop, "--alpha", "--min-color-count", "2", "--json")
+        self._assert_success(separated)
+        payload = json.loads(separated.stdout)
+        self.assertEqual(payload["colors"],
+                         [{"rgb": [1, 2, 3], "hex": "#010203", "count": 2, "alpha": 128}])
+        self.assertEqual((payload["total_colors"], payload["omitted_pixels"]), (3, 2))
+        _, opaque = solid_rgb(1, 1, (4, 5, 6))
+        opaque_path = self._write(self._tmp_dir(), "opaque-min.png", opaque)
+        fallback = self._run(opaque_path, "0", "0", "--histogram", "--alpha",
+                             "--min-color-count", "1", "--json")
+        self._assert_success(fallback)
+        self.assertEqual(json.loads(fallback.stdout)["colors"],
+                         [{"rgb": [4, 5, 6], "hex": "#040506", "count": 1, "alpha": 255}])
 
     def test_invalid_values_and_modes_are_rejected_before_image_access(self):
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
