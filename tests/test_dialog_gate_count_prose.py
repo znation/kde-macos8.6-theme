@@ -1,15 +1,14 @@
 """The prose that counts the dialog gates must track the shipped gates.
 
-Four prose surfaces count the dialog render gates in words -- ``docs/
-invariants.md``'s skip-guard and software-renderer rows, the comment in
-``tests/test_ci_workflow.py`` that motivates the workflow's tool installs,
-and the skip-guard comment and gate-scaffold docstrings in
-``tests/test_render_surface.py`` itself -- and the same surfaces count the
-kdialog modes. When a dialog gate lands (as the color gate did), those
-words must move with it: a count that lags the code quietly under-reports
-the gates the shared skip guard covers. The shift to the color gate left
-``tests/test_render_surface.py``'s own comment and docstring stale, so the
-defining file is scanned beside the surfaces that describe it.
+Three prose files count the dialog render gates in words: ``docs/invariants.md``'s
+skip-guard and software-renderer rows, ``tests/test_ci_workflow.py``'s
+workflow-install comment, and ``tests/test_render_surface.py``'s skip-guard
+comments and gate-scaffold docstrings. Those files count the kdialog modes too.
+When a dialog gate lands (as the color gate did), those words must move with it:
+a count that lags the code quietly under-reports the gates the shared skip guard
+covers. The shift to the color gate left ``tests/test_render_surface.py``'s own
+comment and docstring stale, so the defining file is scanned beside the surfaces
+that describe it.
 The expected counts derive from the live ``Test...DialogRender`` gate
 classes in ``tests/test_render_surface.py``, never from the prose, so the
 two cannot drift in opposite directions.
