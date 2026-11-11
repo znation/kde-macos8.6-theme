@@ -1464,8 +1464,9 @@ reports `null`. When combined with `--difference-runs`, it reuses those interval
 comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
 JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
 combined with `--difference-column-runs`, it reuses those intervals.
-The aggregate metrics use comparison raw bytes and are independent of `--tolerance`; RMSE is not a
-perceptual error measure. Add `--worst-pixels N` (1–1000) to list
+The mean, RMSE and maximum-delta metrics use comparison raw bytes and are independent of
+`--tolerance`; the differing-pixel fraction and the `--max-differing` count are measured beyond
+`--tolerance`. RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
 the most severe mismatches, ranked by maximum RGBA channel delta with row-major tie ordering.
 The listed `x`/`y` coordinates are relative to the compared, cropped surfaces. Each record also
 includes `candidate_position` and `reference_position`, which add the corresponding crop origin
