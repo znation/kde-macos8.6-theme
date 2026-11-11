@@ -313,6 +313,27 @@ entry, spinbutton:not(.vertical), spinbutton.vertical > text {
   color: #000000;
 }
 
+/* Adaptation (2026-11-11): no reference screenshot shows a GTK spin
+   button in either direction; this mirrors the landed etch above onto a
+   horizontal spin field's exposed edge in right-to-left text direction,
+   because GTK 4 does not mirror box-shadow for direction. Measured
+   2026-11-11 in a GTK 4 child render before this edit: in a horizontal
+   RTL spin button the landed :dir(rtl) stepper arms sit at the field's
+   left edge and cover the etch's vertical arm there, so the exposed
+   field drew only the horizontal top arm — a half-etched field, where
+   the LTR field shows the full L; the mirror puts the vertical arm at
+   the exposed right edge, the corner where the LTR field's arm sits.
+   Vertical spin fields stay out (no horizontal stepper covers the arm —
+   the landed GTK 3 exclusion's reason stands), plain entry fields stay
+   out (no steppers, the landed GTK 3 plain-entry exclusion) and the
+   treeview-embedded entry group stays out (an entry, not a spin field).
+   The landed GTK 3 sheet carries the same mirror
+   (spinbutton:dir(rtl):not(.vertical) in the gtk-3.0 sheet). The
+   :not(.vertical) arm keeps the vertical spin fields out. */
+spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 /* No GTK entry-focus motion reference; reuse the immediate scale-focus
  * policy. Recorded 2026-10-29 by the feature role. */
 entry {
@@ -599,6 +620,18 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
   -gtk-icon-shadow: none;
 }
 
+/* Adaptation (2026-11-11): the landed OSD field groups above restate the
+   same etch, so a horizontal RTL spin field inside the overlay keeps the
+   same half-etched defect and carries its own mirror, one class above
+   the landed plain RTL mirror so the OSD record governs the overlay.
+   Plain OSD entry fields stay out (no steppers), and the vertical OSD
+   spin fields stay out (no horizontal stepper covers the arm); the
+   focused and disabled state twins mirror the same arm directly after
+   their own groups. */
+.osd spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 .osd spinbutton.vertical > text:focus-within, .osd spinbutton:focus-within:not(.vertical), .osd entry:focus-within {
   background-color: #FFFFFF;
   background-image: none;
@@ -610,6 +643,11 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
   -gtk-icon-shadow: none;
 }
 
+/* The focused OSD field twin mirrors the same arm (2026-11-11). */
+.osd spinbutton:dir(rtl):focus-within:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 .osd spinbutton.vertical > text:disabled, .osd spinbutton:disabled:not(.vertical), .osd entry:disabled {
   background-color: #FFFFFF;
   background-image: none;
@@ -619,6 +657,11 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
   color: #000000;
   text-shadow: none;
   -gtk-icon-shadow: none;
+}
+
+/* The disabled OSD field twin mirrors the same arm (2026-11-11). */
+.osd spinbutton:dir(rtl):disabled:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
 }
 
 check, radio {
