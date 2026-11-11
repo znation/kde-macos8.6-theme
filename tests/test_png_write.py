@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import unittest
+from typing import get_type_hints
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png  # noqa: E402
-from tools.png.write import encode_png  # noqa: E402
+from tools.png.write import encode_png, encode_rgba_png  # noqa: E402
 
 
 class TestEncodePng(unittest.TestCase):
@@ -26,6 +27,12 @@ class TestEncodePng(unittest.TestCase):
         rgb = bytearray([9, 8, 7, 6, 5, 4])
         image = png.decode_png(encode_png(2, 1, rgb))
         self.assertEqual(image.rgb, bytes(rgb))
+
+    def test_pixel_annotations_match_accepted_buffer_types(self):
+        self.assertEqual(get_type_hints(encode_png)["rgb"], bytes | bytearray)
+        self.assertEqual(
+            get_type_hints(encode_rgba_png)["rgba"], bytes | bytearray
+        )
 
     def test_output_is_deterministic(self):
         rgb = bytes(range(12))
