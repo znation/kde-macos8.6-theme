@@ -4029,16 +4029,17 @@ flowbox flowboxchild:backdrop:selected {
    the landed row groups keep governing the tree and list nodes their
    selectors name. GTK's `GtkIconView` carries the `view` class in both
    toolkits, so every icon-view node still matches the classed spelling.
+   The :not(:disabled) guard preserves stock disabled-selection paint.
    Declaration checks do not establish rendered pixels. */
-iconview.view:selected,
-iconview.view:selected:focus {
+iconview.view:not(:disabled):selected,
+iconview.view:not(:disabled):selected:focus {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
 }
 
-iconview.view:backdrop:selected,
-iconview.view:backdrop:selected:focus {
+iconview.view:not(:disabled):backdrop:selected,
+iconview.view:not(:disabled):backdrop:selected:focus {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;

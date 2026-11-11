@@ -4186,15 +4186,16 @@ filechooser gridview child:selected:active {
    two-token stock twin over icon-view nodes and sits later in source
    order, while the landed row groups keep governing the tree, list and
    grid nodes their selectors name. Declaration checks do not establish
-   rendered pixels. */
-iconview.view:selected,
-iconview.view:selected:focus {
+   rendered pixels. The :not(:disabled) guard preserves stock
+   disabled-selection paint. */
+iconview.view:not(:disabled):selected,
+iconview.view:not(:disabled):selected:focus {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
 }
 
-iconview.view:backdrop:selected {
+iconview.view:not(:disabled):backdrop:selected {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;

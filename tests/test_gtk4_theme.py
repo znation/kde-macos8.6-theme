@@ -3138,9 +3138,9 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
     def test_iconview_selected_arms(self):
         """Pin the selected icon view restated off the landed row selection."""
         for selector in (
-            "iconview.view:selected",
-            "iconview.view:selected:focus",
-            "iconview.view:backdrop:selected",
+            "iconview.view:not(:disabled):selected",
+            "iconview.view:not(:disabled):selected:focus",
+            "iconview.view:not(:disabled):backdrop:selected",
         ):
             with self.subTest(selector=selector):
                 self.assert_rule(
@@ -3151,7 +3151,8 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
                         "border-radius": "0",
                     },
                 )
-        self.assert_matches_frame("iconview.view:selected", "border-radius")
+        self.assert_matches_frame("iconview.view:not(:disabled):selected", "border-radius")
+        # Exact guarded spellings also prevent overriding disabled selections.
         # The family keeps the landed DND drop border as its only other
         # icon-view rule: a renamed restated arm leaves exactly its successor.
         # 2026-11-05: the tile-check face record restates eight more
@@ -3174,9 +3175,9 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
                 "iconview > dndtarget:drop(active)",
                 "iconview",
                 "iconview:focus:focus-visible",
-                "iconview.view:selected",
-                "iconview.view:selected:focus",
-                "iconview.view:backdrop:selected",
+                "iconview.view:not(:disabled):selected",
+                "iconview.view:not(:disabled):selected:focus",
+                "iconview.view:not(:disabled):backdrop:selected",
                 *(
                     f"iconview.content-view.check{state}:not(list)"
                     for state in states
@@ -3203,7 +3204,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         )
         self.assertGreater(
             self.selectors.index("iconview:focus:focus-visible"),
-            self.selectors.index("iconview.view:backdrop:selected"),
+            self.selectors.index("iconview.view:not(:disabled):backdrop:selected"),
         )
         self.assertLess(
             self.selectors.index("iconview:focus:focus-visible"),

@@ -96,10 +96,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     def test_iconview_selected_arms(self):
         """Pin the selected icon view restated off the landed row selection."""
         for selector in (
-            "iconview.view:selected",
-            "iconview.view:selected:focus",
-            "iconview.view:backdrop:selected",
-            "iconview.view:backdrop:selected:focus",
+            "iconview.view:not(:disabled):selected",
+            "iconview.view:not(:disabled):selected:focus",
+            "iconview.view:not(:disabled):backdrop:selected",
+            "iconview.view:not(:disabled):backdrop:selected:focus",
         ):
             with self.subTest(selector=selector):
                 self.assert_rule(
@@ -110,8 +110,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                         "border-radius": "0",
                     },
                 )
-        # The family keeps the landed dotted focus outline as its only other
-        # icon-view rule: a renamed restated arm leaves exactly its successor.
+        # Exact guarded spellings also prevent overriding disabled selections.
         # The family keeps the landed dotted focus outline as its only other
         # icon-view rule: a renamed restated arm leaves exactly its successor.
         # 2026-11-04: the vertical-stepper and content-view-check corner
@@ -133,10 +132,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "iconview" in selector},
             {
                 "iconview:focus",
-                "iconview.view:selected",
-                "iconview.view:selected:focus",
-                "iconview.view:backdrop:selected",
-                "iconview.view:backdrop:selected:focus",
+                "iconview.view:not(:disabled):selected",
+                "iconview.view:not(:disabled):selected:focus",
+                "iconview.view:not(:disabled):backdrop:selected",
+                "iconview.view:not(:disabled):backdrop:selected:focus",
                 *(
                     f"iconview.content-view.check{state}:not(list)"
                     for state in check_states
