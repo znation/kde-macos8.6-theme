@@ -79,6 +79,37 @@ def _dialog_config_files() -> tuple[str, ...]:
     return CONFIG_FILES + ("kdeglobals",)
 
 
+def _dialog_clients() -> tuple[tuple[str, object], ...]:
+    """Each dialog flag paired with its client factory, in precedence order."""
+    return (
+        ("checkbox_dialog", checkbox_dialog_client),
+        ("combobox_dialog", combobox_dialog_client),
+        ("lineedit_dialog", lineedit_dialog_client),
+        ("menu_dialog", menu_dialog_client),
+        ("radiolist_dialog", radio_dialog_client),
+        ("calendar_dialog", calendar_dialog_client),
+        ("color_dialog", color_dialog_client),
+        ("icon_dialog", icon_dialog_client),
+        ("progressbar_dialog", progressbar_dialog_client),
+        ("slider_dialog", slider_dialog_client),
+        ("textbox_dialog", textbox_dialog_client),
+        ("gtk_dialog", gtk_dialog_client),
+    )
+
+
+def _dialog_requested(args: argparse.Namespace) -> bool:
+    """Return whether any dialog render mode was selected on the command line."""
+    return any(getattr(args, flag) for flag, _ in _dialog_clients())
+
+
+def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
+    """Return the client command for the first dialog flag set, else the applet."""
+    for flag, factory in _dialog_clients():
+        if getattr(args, flag):
+            return list(factory(session))
+    return ["plasmawindowed", args.applet]
+
+
 def render(args: argparse.Namespace) -> int:
     """Run the already-validated render options through capture and publish."""
     output = Path(args.output).absolute()
@@ -99,44 +130,13 @@ def render(args: argparse.Namespace) -> int:
         if problem is not None:
             return report_error(TOOL, f"cannot link {path}: {problem}")
 
-        dialog = (
-            args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-            or args.menu_dialog or args.radiolist_dialog
-            or args.calendar_dialog or args.color_dialog
-            or args.icon_dialog or args.progressbar_dialog or args.slider_dialog
-            or args.textbox_dialog or args.gtk_dialog
-        )
+        dialog = _dialog_requested(args)
         try:
             write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(TOOL, f"cannot write the session config: {exc}")
 
-        if args.checkbox_dialog:
-            client = list(checkbox_dialog_client(session))
-        elif args.combobox_dialog:
-            client = list(combobox_dialog_client(session))
-        elif args.lineedit_dialog:
-            client = list(lineedit_dialog_client(session))
-        elif args.menu_dialog:
-            client = list(menu_dialog_client(session))
-        elif args.radiolist_dialog:
-            client = list(radio_dialog_client(session))
-        elif args.calendar_dialog:
-            client = list(calendar_dialog_client(session))
-        elif args.color_dialog:
-            client = list(color_dialog_client(session))
-        elif args.icon_dialog:
-            client = list(icon_dialog_client(session))
-        elif args.progressbar_dialog:
-            client = list(progressbar_dialog_client(session))
-        elif args.slider_dialog:
-            client = list(slider_dialog_client(session))
-        elif args.textbox_dialog:
-            client = list(textbox_dialog_client(session))
-        elif args.gtk_dialog:
-            client = list(gtk_dialog_client(session))
-        else:
-            client = ["plasmawindowed", args.applet]
+        client = _client_command(args, session)
         if dialog:
             try:
                 write_kvantum_selection(session)
