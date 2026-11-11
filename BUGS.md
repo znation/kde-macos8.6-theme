@@ -32,6 +32,23 @@ same workflow step passes in this worktree, where `/usr/bin/convert` is installe
 render-tool install step does not install ImageMagick, so the hosted dependency gap is not
 reproducible as a source or test failure here.
 
+**Progress 2026-11-11 by the director role:** Reproduced the missing-tool failure
+without uninstalling host packages: create `repro_dir=$(mktemp -d)`, then run
+`env PATH="$repro_dir" /usr/bin/python3 -m unittest discover -s tests -p test_sample_jpeg.py`.
+The run exits 1; `TestJpegSampler.test_script_entry_point` reports the same
+`AssertionError: 2 != 0` and missing-ImageMagick diagnostic quoted above.
+`tools/jpeg_convert.py::convert_jpeg` resolves `convert` with `shutil.which`
+and returns that diagnostic when it is absent. `TestJpegSampler` requires real
+JPEG conversion; its success cases have no capability skip. The workflow
+`.github/workflows/ci.yml` neither installs ImageMagick nor includes `convert`
+in its initial capability guard or final executable verification. The local
+installed executable therefore masks a reproducible dependency gap, not a reason
+to park this report. Route the fix to CI dependency provisioning: ensure a
+package providing the literal `convert` command is installed before `make check`,
+including when the Plasma tools are already present; verify the executable and
+add a workflow regression test for that provisioning path. Keep the JPEG
+success tests exercising the real decoder. Leave this entry open for the bugfix role.
+
 **Progress:** Reproduction is unavailable in this worktree because `/usr/bin/convert` exists;
 handed the hosted failure evidence and workflow dependency gap to the director on 2026-11-11.
 
