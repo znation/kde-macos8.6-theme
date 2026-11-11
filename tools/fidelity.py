@@ -5,10 +5,13 @@ comparison metrics from the sibling ``tools/fidelity_metrics.py``: mean
 absolute error, per-channel mean absolute error (R, G, B, A), RMSE, the worst
 per-channel delta and where it occurs, and the fraction of differing pixels.
 
-This entry point owns orchestration only: parsing via the sibling
-``tools/fidelity_cli_parser.py``, the reads and comparison, and the exit-status
-selection. The report's data assembly and
-JSON/text rendering live in the sibling ``tools/fidelity_rendering.py``, and
+This entry point owns orchestration only: parsing and option validation
+via the sibling ``tools/fidelity_cli_parser.py``, the reads and
+comparison, the scan selection for each requested report, and the
+exit-status selection. The report's data assembly and
+JSON/text rendering live in the sibling ``tools/fidelity_rendering.py``,
+the difference-run families' paging and filtering in
+``tools/fidelity_run_family.py``, and
 the metrics themselves in ``tools/fidelity_metrics.py``.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
@@ -33,29 +36,17 @@ from __future__ import annotations
 
 import sys
 
-
-def _filter_run_report(runs, minimum, maximum, limit, offset=0):
-    """Filter a run report, then page through its eligible records."""
-    if minimum is not None:
-        runs = [run for run in runs if run["length"] >= minimum]
-    if maximum is not None:
-        runs = [run for run in runs if run["length"] <= maximum]
-    omitted = None
-    if limit is not None:
-        eligible_count = len(runs)
-        runs = runs[offset:offset + limit]
-        omitted = eligible_count - len(runs)
-    return runs, omitted
-
 if __package__:
-    from tools.fidelity_cli_parser import build_parser
+    from tools.fidelity_cli_parser import build_parser, validate_options
     from tools.fidelity_sources import read_source as _read_source
     from tools.diagnostics import report_error
     from tools.fidelity_geometry import FidelityError, crop
     from tools.fidelity_metrics import compare
     from tools.fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, iter_difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
-    from tools.fidelity_run_page import collect_run_page
+    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
+    from tools.fidelity_run_family import (COLUMN_RUN_CALLS,
+                                           collect_run_family,
+                                           HORIZONTAL_RUN_CALLS)
     from tools.fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -66,14 +57,16 @@ if __package__:
     from tools.fidelity_rendering import render_json, render_text
     from tools.png import PngError
 else:  # run directly: python3 tools/fidelity.py
-    from fidelity_cli_parser import build_parser
+    from fidelity_cli_parser import build_parser, validate_options
     from fidelity_sources import read_source as _read_source
     from diagnostics import report_error
     from fidelity_geometry import FidelityError, crop
     from fidelity_metrics import compare
     from fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_runs, iter_difference_runs, difference_run_count, difference_column_runs, iter_difference_column_runs, difference_column_run_count, difference_centroid, longest_difference_run, longest_difference_column_run, select_longest_run
-    from fidelity_run_page import collect_run_page
+    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
+    from fidelity_run_family import (COLUMN_RUN_CALLS,
+                                     collect_run_family,
+                                     HORIZONTAL_RUN_CALLS)
     from fidelity_reports import (
         budget_verdict,
         delta_percentiles,
@@ -93,38 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.min_difference_run_length is not None and not args.difference_runs:
-        parser.error("--min-difference-run-length requires --difference-runs")
-    if args.max_difference_run_length is not None and not args.difference_runs:
-        parser.error("--max-difference-run-length requires --difference-runs")
-    if (args.min_difference_run_length is not None
-            and args.max_difference_run_length is not None
-            and args.min_difference_run_length > args.max_difference_run_length):
-        parser.error(
-            f"--min-difference-run-length must not exceed --max-difference-run-length "
-            f"({args.min_difference_run_length} > {args.max_difference_run_length})")
-    if args.max_difference_runs is not None and not args.difference_runs:
-        parser.error("--max-difference-runs requires --difference-runs")
-    if args.difference_run_offset is not None and args.max_difference_runs is None:
-        parser.error("--difference-run-offset requires --max-difference-runs")
-    if args.min_difference_column_run_length is not None and not args.difference_column_runs:
-        parser.error("--min-difference-column-run-length requires --difference-column-runs")
-    if args.max_difference_column_run_length is not None and not args.difference_column_runs:
-        parser.error("--max-difference-column-run-length requires --difference-column-runs")
-    if (args.min_difference_column_run_length is not None
-            and args.max_difference_column_run_length is not None
-            and args.min_difference_column_run_length > args.max_difference_column_run_length):
-        parser.error(
-            f"--min-difference-column-run-length must not exceed "
-            f"--max-difference-column-run-length "
-            f"({args.min_difference_column_run_length} > "
-            f"{args.max_difference_column_run_length})")
-    if args.max_difference_column_runs is not None and not args.difference_column_runs:
-        parser.error("--max-difference-column-runs requires --difference-column-runs")
-    if args.difference_column_run_offset is not None and args.max_difference_column_runs is None:
-        parser.error("--difference-column-run-offset requires --max-difference-column-runs")
-    if args.worst_pixel_offset is not None and args.worst_pixels is None:
-        parser.error("--worst-pixel-offset requires --worst-pixels")
+    validate_options(parser, args)
 
     try:
         candidate = _read_source(args.candidate, args.candidate_crop)
@@ -190,92 +152,26 @@ def main(argv: list[str] | None = None) -> int:
         column_bounds = (difference_column_bounds(candidate, reference, args.tolerance,
                                                   flags=flags)
                          if args.difference_column_bounds else None)
-        capped_runs = args.difference_runs and args.max_difference_runs is not None
-        run_total = None
-        capped_longest = None
-        omitted_runs = None
-        if capped_runs:
-            runs, omitted_runs, run_total, capped_longest = collect_run_page(
-                iter_difference_runs(candidate, reference, args.tolerance, flags=flags),
-                args.min_difference_run_length, args.max_difference_run_length,
-                args.difference_run_offset or 0, args.max_difference_runs)
-        else:
-            runs = (difference_runs(candidate, reference, args.tolerance, flags=flags)
-                    if args.difference_runs else None)
-        # Every report value below reads the capped run page's precomputed
-        # total or longest pick when paging is active, else the page it
-        # already holds, else a full scan it pays for only when no page ran.
-        if args.difference_run_count:
-            if capped_runs:
-                run_count = run_total
-            elif runs is not None:
-                run_count = len(runs)
-            else:
-                run_count = difference_run_count(candidate, reference,
-                                                 args.tolerance, flags=flags)
-        else:
-            run_count = None
-        longest_run = None
-        if args.longest_difference_run:
-            if capped_runs:
-                longest_run = capped_longest
-            elif runs is not None:
-                longest_run = select_longest_run(runs)
-            else:
-                longest_run = longest_difference_run(candidate, reference,
-                                                     args.tolerance,
-                                                     flags=flags)
-        if runs is not None and not capped_runs:
-            runs, omitted_runs = _filter_run_report(
-                runs, args.min_difference_run_length,
-                args.max_difference_run_length, args.max_difference_runs,
-                args.difference_run_offset or 0)
-        capped_column_runs = (args.difference_column_runs
-                              and args.max_difference_column_runs is not None)
-        column_run_total = None
-        capped_longest_column = None
-        omitted_column_runs = None
-        if capped_column_runs:
-            (column_runs, omitted_column_runs, column_run_total,
-             capped_longest_column) = collect_run_page(
-                iter_difference_column_runs(candidate, reference, args.tolerance,
-                                             flags=flags),
-                args.min_difference_column_run_length,
-                args.max_difference_column_run_length,
-                args.difference_column_run_offset or 0,
-                args.max_difference_column_runs)
-        else:
-            column_runs = (difference_column_runs(candidate, reference, args.tolerance,
-                                                  flags=flags)
-                           if args.difference_column_runs else None)
-        if args.difference_column_run_count:
-            if capped_column_runs:
-                column_run_count = column_run_total
-            elif column_runs is not None:
-                column_run_count = len(column_runs)
-            else:
-                column_run_count = difference_column_run_count(candidate,
-                                                                reference,
-                                                                args.tolerance,
-                                                                flags=flags)
-        else:
-            column_run_count = None
-        longest_column_run = None
-        if args.longest_difference_column_run:
-            if capped_column_runs:
-                longest_column_run = capped_longest_column
-            elif column_runs is not None:
-                longest_column_run = select_longest_run(column_runs)
-            else:
-                longest_column_run = longest_difference_column_run(candidate,
-                                                                    reference,
-                                                                    args.tolerance,
-                                                                    flags=flags)
-        if column_runs is not None and not capped_column_runs:
-            column_runs, omitted_column_runs = _filter_run_report(
-                column_runs, args.min_difference_column_run_length,
-                args.max_difference_column_run_length, args.max_difference_column_runs,
-                args.difference_column_run_offset or 0)
+        # The horizontal and vertical difference-run families share one
+        # assembly recipe; the sibling tools/fidelity_run_family.py owns it.
+        horizontal = collect_run_family(
+            candidate, reference, args.tolerance, flags, HORIZONTAL_RUN_CALLS,
+            enabled=args.difference_runs,
+            minimum=args.min_difference_run_length,
+            maximum=args.max_difference_run_length,
+            cap=args.max_difference_runs,
+            offset=args.difference_run_offset or 0,
+            wants_count=args.difference_run_count,
+            wants_longest=args.longest_difference_run)
+        column = collect_run_family(
+            candidate, reference, args.tolerance, flags, COLUMN_RUN_CALLS,
+            enabled=args.difference_column_runs,
+            minimum=args.min_difference_column_run_length,
+            maximum=args.max_difference_column_run_length,
+            cap=args.max_difference_column_runs,
+            offset=args.difference_column_run_offset or 0,
+            wants_count=args.difference_column_run_count,
+            wants_longest=args.longest_difference_column_run)
         centroid = (difference_centroid(candidate, reference, args.tolerance,
                                         flags=flags)
                     if args.difference_centroid else None)
@@ -299,13 +195,13 @@ def main(argv: list[str] | None = None) -> int:
                          columns=columns,
                          row_bounds=row_bounds,
                          column_bounds=column_bounds,
-                         runs=runs,
-                         omitted_difference_runs=omitted_runs,
+                         runs=horizontal.runs,
+                         omitted_difference_runs=horizontal.omitted,
                          difference_run_offset=args.difference_run_offset,
-                         run_count=run_count,
-                         column_run_count=column_run_count,
-                         column_runs=column_runs,
-                         omitted_difference_column_runs=omitted_column_runs,
+                         run_count=horizontal.count,
+                         column_run_count=column.count,
+                         column_runs=column.runs,
+                         omitted_difference_column_runs=column.omitted,
                          difference_column_run_offset=args.difference_column_run_offset,
                          explanation=explanation,
                          histogram=histogram if args.delta_histogram else None,
@@ -316,9 +212,9 @@ def main(argv: list[str] | None = None) -> int:
                          max_differing=args.max_differing,
                          centroid=centroid,
                          include_centroid=args.difference_centroid,
-                         longest_run=longest_run,
+                         longest_run=horizontal.longest,
                          include_longest_run=args.longest_difference_run,
-                         longest_column_run=longest_column_run,
+                         longest_column_run=column.longest,
                          include_longest_column_run=args.longest_difference_column_run)
     if args.json:
         print(render_json(result))

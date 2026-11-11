@@ -5,9 +5,11 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_column_calls,
+)
 from support.png_fixtures import make_png  # noqa: E402
-from tools import fidelity  # noqa: E402
 from tools.fidelity_spatial import difference_column_run_count  # noqa: E402
 from tools.png import Image  # noqa: E402
 
@@ -63,8 +65,8 @@ class TestDifferenceColumnRunCountCli(FidelityCliTestCase):
         text = self._run_png_pair(candidate, reference, *crops, "--difference-column-run-count")
         self.assertIn("difference column run count: 5", text.stdout)
 
-        with mock.patch.object(fidelity, "difference_column_run_count",
-                               side_effect=AssertionError("extra counter scan")):
+        with patched_column_calls(
+                run_count=mock.Mock(side_effect=AssertionError("extra counter scan"))):
             listed = self._run_png_pair(candidate, reference, *crops,
                                         "--difference-column-runs", "--difference-column-run-count", "--json")
         records = json.loads(listed.stdout)["difference_column_runs"]

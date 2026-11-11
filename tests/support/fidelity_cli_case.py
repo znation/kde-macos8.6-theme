@@ -13,11 +13,36 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import CliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image, solid_rgb  # noqa: E402
-from tools import fidelity  # noqa: E402
+from tools import fidelity, fidelity_run_family  # noqa: E402
+
+
+def patched_horizontal_calls(**replacement):
+    """Patch the scan callables the horizontal difference-run family scans with.
+
+    ``tools/fidelity.py``'s ``main`` reads each family's scan callables from
+    the ``HORIZONTAL_RUN_CALLS`` bundle in its own namespace, so this
+    replaces that binding with a copy whose named callables are swapped;
+    the keyword names are ``RunFamilyCalls``'s fields (``runs``,
+    ``iter_runs``, ``run_count``, ``longest_run``).
+    """
+    return mock.patch.object(
+        fidelity, "HORIZONTAL_RUN_CALLS",
+        fidelity_run_family.HORIZONTAL_RUN_CALLS._replace(**replacement))
+
+
+def patched_column_calls(**replacement):
+    """Patch the scan callables the vertical difference-run family scans with.
+
+    See :func:`patched_horizontal_calls`; this patches ``COLUMN_RUN_CALLS``.
+    """
+    return mock.patch.object(
+        fidelity, "COLUMN_RUN_CALLS",
+        fidelity_run_family.COLUMN_RUN_CALLS._replace(**replacement))
 
 
 class FidelityCliTestCase(CliTestCase):

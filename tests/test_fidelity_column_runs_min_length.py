@@ -7,7 +7,10 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_column_calls,
+)
 from support.png_fixtures import (  # noqa: E402
     difference_pair,
     make_png,
@@ -54,12 +57,12 @@ class TestColumnRunsMinimumLength(FidelityCliTestCase):
         self.assertEqual(cutoff["difference_column_runs"], plain["difference_column_runs"])
         self.assertEqual(cutoff["longest_difference_column_run"],
                          plain["longest_difference_column_run"])
-        with mock.patch.object(fidelity, "difference_column_runs", return_value=[
+        with patched_column_calls(runs=mock.Mock(return_value=[
             {"x": 0, "y": 0, "length": 1}, {"x": 1, "y": 0, "length": 3},
-        ]) as helper:
+        ])) as patched:
             result = self._run_png_pair(candidate, reference, *args,
                                       "--min-difference-column-run-length", "2")
-        helper.assert_called_once()
+        patched.runs.assert_called_once()
         data = json.loads(result.stdout)
         self.assertEqual(data["difference_column_runs"], [{"x": 1, "y": 0, "length": 3}])
         self.assertEqual(data["longest_difference_column_run"], {"x": 1, "y": 0, "length": 3})

@@ -4,9 +4,11 @@ import json
 import unittest
 from unittest import mock
 
-from support.fidelity_cli_case import FidelityCliTestCase
+from support.fidelity_cli_case import (
+    FidelityCliTestCase,
+    patched_column_calls,
+)
 from support.png_fixtures import make_png
-from tools import fidelity
 from tools.fidelity_spatial import longest_difference_column_run
 from tools.png import Image
 
@@ -65,18 +67,19 @@ class TestLongestDifferenceColumnRunCli(FidelityCliTestCase):
         self.assertIn('longest difference column run: {"x": 0, "y": 1, "length": 2}', text.stdout)
         empty = self._run_png_pair(reference, reference, "--longest-difference-column-run", "--json")
         self.assertIsNone(json.loads(empty.stdout)["longest_difference_column_run"])
-        with mock.patch.object(fidelity, "longest_difference_column_run") as helper:
+        with patched_column_calls(longest_run=mock.Mock()) as patched:
             ordinary = self._run_png_pair(candidate, reference, "--json")
         self.assertNotIn("longest_difference_column_run", json.loads(ordinary.stdout))
-        helper.assert_not_called()
-        with mock.patch.object(fidelity, "difference_column_runs", side_effect=AssertionError("materialized")):
+        patched.longest_run.assert_not_called()
+        with patched_column_calls(
+                runs=mock.Mock(side_effect=AssertionError("materialized"))):
             self._run_png_pair(candidate, reference, "--longest-difference-column-run", "--json")
         combined = self._run_png_pair(candidate, reference, "--longest-difference-column-run",
                                        "--difference-column-runs", "--json", "--tolerance", "10")
         self.assertEqual(json.loads(combined.stdout)["longest_difference_column_run"],
                          {"x": 1, "y": 1, "length": 2})
-        with mock.patch.object(fidelity, "longest_difference_column_run",
-                               side_effect=AssertionError("rescanned image")):
+        with patched_column_calls(
+                longest_run=mock.Mock(side_effect=AssertionError("rescanned image"))):
             combined = self._run_png_pair(candidate, reference,
                                            "--longest-difference-column-run",
                                            "--difference-column-runs", "--json", "--tolerance", "10")

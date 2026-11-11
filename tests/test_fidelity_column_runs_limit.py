@@ -7,7 +7,10 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_column_calls,
+)
 from support.png_fixtures import (  # noqa: E402
     difference_pair,
     make_png,
@@ -59,7 +62,7 @@ class TestColumnRunsLimit(FidelityCliTestCase):
             for i in range(5000):
                 yield TrackedRun(x=i, y=0, length=(i % 7) + 1)
         TrackedRun.live = TrackedRun.peak = 0
-        with mock.patch.object(fidelity, "iter_difference_column_runs", side_effect=stream):
+        with patched_column_calls(iter_runs=stream):
             result = self._run_png_pair(
                 candidate, reference, "--difference-column-runs",
                 "--difference-column-run-count", "--longest-difference-column-run",

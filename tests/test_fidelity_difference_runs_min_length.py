@@ -7,7 +7,10 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_horizontal_calls,
+)
 from support.png_fixtures import (  # noqa: E402
     difference_pair,
     make_png,
@@ -71,13 +74,13 @@ class TestDifferenceRunsMinimumLength(FidelityCliTestCase):
 
     def test_longest_summary_uses_unfiltered_run_list(self):
         candidate, reference = self._pair()
-        with mock.patch.object(fidelity, "difference_runs", return_value=[
+        with patched_horizontal_calls(runs=mock.Mock(return_value=[
             {"x": 0, "y": 0, "length": 1}, {"x": 2, "y": 0, "length": 3},
-        ]) as helper:
+        ])) as patched:
             result = self._run_png_pair(candidate, reference, "--difference-runs",
                                         "--longest-difference-run", "--json",
                                         "--min-difference-run-length", "2")
-        helper.assert_called_once()
+        patched.runs.assert_called_once()
         data = json.loads(result.stdout)
         self.assertEqual(data["difference_runs"], [{"x": 2, "y": 0, "length": 3}])
         self.assertEqual(data["longest_difference_run"], {"x": 2, "y": 0, "length": 3})

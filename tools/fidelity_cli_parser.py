@@ -1,4 +1,9 @@
-"""Construct the fidelity comparison command-line parser."""
+"""The fidelity comparison command line's argument surface.
+
+``build_parser`` constructs the parser; ``validate_options`` cross-checks
+the parsed option values and refuses contradictory or dependent
+combinations before any image read.
+"""
 
 from __future__ import annotations
 
@@ -32,6 +37,48 @@ else:  # run directly: python3 tools/fidelity.py
         difference_run_offset,
         difference_column_run_offset,
     )
+
+
+def validate_options(parser: EscapingArgumentParser, args) -> None:
+    """Refuse contradictory or dependent option combinations via *parser*.
+
+    Every check reads only the parsed values, so a refusal happens before
+    any image read: a contradictory filter window or an offset without its
+    count cap would otherwise exit 0 with an empty or unbounded report
+    beside full metrics, indistinguishable from a genuine measurement.
+    """
+    if args.min_difference_run_length is not None and not args.difference_runs:
+        parser.error("--min-difference-run-length requires --difference-runs")
+    if args.max_difference_run_length is not None and not args.difference_runs:
+        parser.error("--max-difference-run-length requires --difference-runs")
+    if (args.min_difference_run_length is not None
+            and args.max_difference_run_length is not None
+            and args.min_difference_run_length > args.max_difference_run_length):
+        parser.error(
+            f"--min-difference-run-length must not exceed --max-difference-run-length "
+            f"({args.min_difference_run_length} > {args.max_difference_run_length})")
+    if args.max_difference_runs is not None and not args.difference_runs:
+        parser.error("--max-difference-runs requires --difference-runs")
+    if args.difference_run_offset is not None and args.max_difference_runs is None:
+        parser.error("--difference-run-offset requires --max-difference-runs")
+    if args.min_difference_column_run_length is not None and not args.difference_column_runs:
+        parser.error("--min-difference-column-run-length requires --difference-column-runs")
+    if args.max_difference_column_run_length is not None and not args.difference_column_runs:
+        parser.error("--max-difference-column-run-length requires --difference-column-runs")
+    if (args.min_difference_column_run_length is not None
+            and args.max_difference_column_run_length is not None
+            and args.min_difference_column_run_length > args.max_difference_column_run_length):
+        parser.error(
+            f"--min-difference-column-run-length must not exceed "
+            f"--max-difference-column-run-length "
+            f"({args.min_difference_column_run_length} > "
+            f"{args.max_difference_column_run_length})")
+    if args.max_difference_column_runs is not None and not args.difference_column_runs:
+        parser.error("--max-difference-column-runs requires --difference-column-runs")
+    if args.difference_column_run_offset is not None and args.max_difference_column_runs is None:
+        parser.error("--difference-column-run-offset requires --max-difference-column-runs")
+    if args.worst_pixel_offset is not None and args.worst_pixels is None:
+        parser.error("--worst-pixel-offset requires --worst-pixels")
 
 
 def build_parser() -> EscapingArgumentParser:

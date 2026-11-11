@@ -7,9 +7,11 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_column_calls,
+)
 from support.png_fixtures import make_png  # noqa: E402
-from tools import fidelity  # noqa: E402
 from tools.fidelity_spatial import difference_column_runs, difference_runs  # noqa: E402
 from tools.fidelity_metrics import compare  # noqa: E402
 from tools.png import Image  # noqa: E402
@@ -100,10 +102,10 @@ class TestDifferenceColumnRunsCli(FidelityCliTestCase):
         self.assertFalse(json.loads(failing.stdout)["passed"])
         text = self._run_png_pair(candidate, reference, *args)
         self.assertIn('difference column runs: [{"x": 0, "y": 1, "length": 1}, {"x": 2, "y": 1, "length": 1}]', text.stdout)
-        with mock.patch.object(fidelity, "difference_column_runs") as helper:
+        with patched_column_calls(runs=mock.Mock()) as patched:
             ordinary = self._run_png_pair(candidate, reference, "--json")
         self.assertNotIn("difference_column_runs", json.loads(ordinary.stdout))
-        helper.assert_not_called()
+        patched.runs.assert_not_called()
         tmp = self._tmp_dir()
         a = self._write(tmp, "a.png", candidate)
         b = self._write(tmp, "b.png", reference)

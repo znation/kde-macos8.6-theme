@@ -5,9 +5,12 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_cli_case import (  # noqa: E402
+    FidelityCliTestCase,
+    patched_horizontal_calls,
+)
+from tools.fidelity_run_family import HORIZONTAL_RUN_CALLS  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
-from tools import fidelity  # noqa: E402
 from tools.fidelity_spatial import difference_run_count  # noqa: E402
 from tools.png import Image  # noqa: E402
 
@@ -29,13 +32,15 @@ class TestDifferenceRunCountCli(FidelityCliTestCase):
                                    bytes(12),
                                    bytes([11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0])])
         reference = make_png(4, 3, [bytes(12), bytes(12), bytes(12)])
-        with mock.patch.object(fidelity, "difference_runs", wraps=fidelity.difference_runs):
+        with patched_horizontal_calls(
+                runs=mock.Mock(wraps=HORIZONTAL_RUN_CALLS.runs)):
             result = self._run_png_pair(candidate, reference, "--difference-run-count", "--json")
         self.assertEqual(json.loads(result.stdout)["difference_run_count"], 3)
         self.assertEqual(json.loads(result.stdout)["metrics"]["differing"], 7)
         text = self._run_png_pair(candidate, reference, "--difference-run-count")
         self.assertIn("difference run count: 3", text.stdout)
-        with mock.patch.object(fidelity, "difference_run_count", side_effect=AssertionError):
+        with patched_horizontal_calls(
+                run_count=mock.Mock(side_effect=AssertionError)):
             listed = self._run_png_pair(candidate, reference, "--difference-run-count",
                                          "--difference-runs", "--json")
         self.assertEqual(json.loads(listed.stdout)["difference_run_count"], 3)
@@ -47,7 +52,8 @@ class TestDifferenceRunCountCli(FidelityCliTestCase):
                                    bytes(12),
                                    bytes([11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0])])
         reference = make_png(4, 3, [bytes(12), bytes(12), bytes(12)])
-        with mock.patch.object(fidelity, "difference_run_count", side_effect=AssertionError):
+        with patched_horizontal_calls(
+                run_count=mock.Mock(side_effect=AssertionError)):
             listed = self._run_png_pair(candidate, reference, "--difference-runs", "--json")
         data = json.loads(listed.stdout)
         self.assertNotIn("difference_run_count", data)
@@ -143,22 +149,22 @@ class TestFidelityRunCountCli(FidelityCliTestCase):
 
     def test_scan_selection_and_default_omission(self):
         candidate, reference = self._pair()
-        with mock.patch.object(fidelity, "difference_run_count",
-                               side_effect=AssertionError("extra count scan")):
+        with patched_horizontal_calls(
+                run_count=mock.Mock(side_effect=AssertionError("extra count scan"))):
             combined = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,4,3",
                                           "--crop", "2,1,4,3", "--difference-runs",
                                           "--difference-run-count", "--json")
         self.assertEqual(json.loads(combined.stdout)["difference_run_count"], 3)
-        with mock.patch.object(fidelity, "difference_runs",
-                               side_effect=AssertionError("full list collected")):
+        with patched_horizontal_calls(
+                runs=mock.Mock(side_effect=AssertionError("full list collected"))):
             count_only = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,4,3",
                                             "--crop", "2,1,4,3",
                                             "--difference-run-count", "--json")
         self.assertEqual(json.loads(count_only.stdout)["difference_run_count"], 3)
-        with mock.patch.object(fidelity, "difference_run_count") as counter:
+        with patched_horizontal_calls(run_count=mock.Mock()) as patched:
             ordinary = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,4,3",
                                            "--crop", "2,1,4,3", "--json")
-        counter.assert_not_called()
+        patched.run_count.assert_not_called()
         self.assertNotIn("difference_run_count", json.loads(ordinary.stdout))
         self.assertNotIn("difference run count:", ordinary.stdout)
 
