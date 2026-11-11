@@ -103,11 +103,11 @@ from svg_assertions import rect_geometry
 
 ROW_SELECTED_BUTTON_ARM_SIDEBAR = (
     "row:selected button.sidebar-button"
-    ":not(:active):not(:checked):not(:hover):not(disabled)"
+    ":not(:active):not(:checked):not(:hover):not(disabled):not(:disabled)"
 )
 ROW_SELECTED_BUTTON_ARM_FLAT = (
     "row:selected button.flat"
-    ":not(:active):not(:checked):not(:hover):not(disabled)"
+    ":not(:active):not(:checked):not(:hover):not(disabled):not(:disabled)"
 )
 ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP = ROW_SELECTED_BUTTON_ARM_SIDEBAR + ":backdrop"
 ROW_SELECTED_BUTTON_ARM_FLAT_BACKDROP = ROW_SELECTED_BUTTON_ARM_FLAT + ":backdrop"
@@ -215,11 +215,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         stock's three selected-row arms would paint an opaque button with
         a blue border and a flat button with a white label on the landed
         light selection fill and recolour the flat label near white in
-        backdrop, so each restated selector is the exact stock twin
-        appended at the sheet tail, winning the tie by later source order
-        with the landed palette's black (recorded 2026-10-31 by the
-        feature role; the block is spelled identically in both shipped
-        sheets). Both suites run this whole assertion; the only
+        backdrop. The border arm ties stock by later source order; the
+        label arms add :not(:disabled) and win by specificity, preserving
+        deferred disabled states: stock's :not(disabled) excludes a node
+        name, not a state (review 2026-11-11). The block is spelled
+        identically in both shipped sheets. Both suites run this whole assertion; the only
         suite-owned input is *flat_stock_backdrop*, each toolkit's own
         spelling of the plain flat-backdrop selector.
         """

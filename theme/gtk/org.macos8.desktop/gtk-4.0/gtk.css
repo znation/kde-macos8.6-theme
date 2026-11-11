@@ -4087,28 +4087,30 @@ button.destructive-action.flat:disabled {
    landed flat family and the landed colour-class `.flat` blocks on label
    and border at more class tokens, so a flat button on a selected row
    would paint a white or near-white label on the landed light-lavender
-   selection fill and lose its black at-rest bevel border. Each apppended
-   selector is the exact stock twin and sits later in source order, so it
-   wins every tie; every restated value is the landed black — the
+   selection fill and lose its black at-rest bevel border. Each appended
+   label selector adds a disabled-state guard and wins by specificity;
+   every restated value is the landed black — the
    selection label the landed selection groups declare and the border and
    flat backdrop label the landed plain `button` and flat-family blocks
-   already carry. Stock's own `:not(…)` chain keeps pressed, hovered and
-   disabled buttons out of these arms, so the landed state arms keep
-   governing them, and no face, background, box-shadow, geometry or
+   already carry. Stock's chain excludes pressed and hovered states.
+   Review 2026-11-11:
+   :not(disabled) excludes a node name, not a state; :not(:disabled) is
+   added to preserve the deferred disabled remainder. No face,
+   background, box-shadow, geometry or
    motion claim is restated. Declaration checks do not establish rendered
    pixels. */
 row:selected button {
   border-color: #000000;
 }
 
-row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled),
-row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled) {
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled),
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled) {
   color: #000000;
   border-color: #000000;
 }
 
-row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):backdrop,
-row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):backdrop {
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop,
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop {
   color: #000000;
 }
 
