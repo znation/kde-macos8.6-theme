@@ -278,6 +278,58 @@ def make_png(
     return out
 
 
+# The channel-0 byte the run-scan fixtures mark differing pixels with. It is
+# small but non-zero so a scan that inverted the comparison, or one that read
+# the reference where the candidate belongs, fails the expectations loudly.
+_DIFFERENCE_BYTE = 20
+
+
+def difference_pair(
+    width: int,
+    height: int,
+    changed_units: tuple[set[int], ...],
+    *,
+    vertical: bool,
+) -> tuple[bytes, bytes]:
+    """Return a (candidate, reference) PNG pair for the fidelity run tests.
+
+    The pair is a *width*×*height* RGB image whose only differences the
+    candidate marks: with ``vertical=False`` unit *y* is a row and the
+    candidate sets the first channel to ``_DIFFERENCE_BYTE`` at the columns
+    in *changed_units[y]*; with ``vertical=True`` unit *x* is a column and
+    the candidate marks the rows in *changed_units[x]* the same way. Every
+    other byte is zero, and the reference is zero throughout, so the run
+    scans see exactly the intervals each test's expectations describe.
+
+    Eight fidelity run suites share this geometry; their ``_pair`` helpers
+    each pass their own dimensions and changed sets here.
+
+    *changed_units* must have one entry per unit (``height`` entries
+    horizontally, ``width`` vertically); a different count is a fixture bug
+    and is reported here instead of silently scanning a truncated surface.
+    """
+    units = width if vertical else height
+    if len(changed_units) != units:
+        raise ValueError(
+            f"difference_pair: {len(changed_units)} entries for {units} "
+            f"{'columns' if vertical else 'rows'} of a {width}x{height} image"
+        )
+    rows = [bytearray(width * 3) for _ in range(height)]
+    if vertical:
+        for x, changed in enumerate(changed_units):
+            for y in changed:
+                rows[y][x * 3] = _DIFFERENCE_BYTE
+    else:
+        for y, changed in enumerate(changed_units):
+            for x in changed:
+                rows[y][x * 3] = _DIFFERENCE_BYTE
+    blank = bytes(width * 3)
+    return (
+        make_png(width, height, [bytes(row) for row in rows]),
+        make_png(width, height, [blank] * height),
+    )
+
+
 def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
     """Return *data* with one IHDR payload byte replaced and the CRC fixed.
 

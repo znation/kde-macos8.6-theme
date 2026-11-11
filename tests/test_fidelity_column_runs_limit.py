@@ -8,21 +8,17 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
-from support.png_fixtures import make_png  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
+    difference_pair,
+    make_png,
+)
 from tools import fidelity  # noqa: E402
 
 
 class TestColumnRunsLimit(FidelityCliTestCase):
     def _pair(self):
-        changed_columns = ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8})
-        rows = []
-        for y in range(9):
-            pixels = bytearray(2 * 3)
-            for x, changed in enumerate(changed_columns):
-                if y in changed:
-                    pixels[x * 3] = 20
-            rows.append(bytes(pixels))
-        return make_png(2, 9, rows), make_png(2, 9, [bytes(6) for _ in rows])
+        return difference_pair(
+            2, 9, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=True)
 
     def test_cap_follows_column_order_and_length_filters_without_changing_summaries(self):
         candidate, reference = self._pair()

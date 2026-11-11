@@ -8,21 +8,17 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
-from support.png_fixtures import make_png  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
+    difference_pair,
+    make_png,
+)
 from tools import fidelity  # noqa: E402
 
 
 class TestColumnRunsMinimumLength(FidelityCliTestCase):
     def _pair(self):
-        rows = []
-        for changed in ({0, 1, 3}, {1, 3}, {1, 3}, {3}):
-            pixels = bytearray(7 * 3)
-            for x in changed:
-                pixels[x * 3] = 20
-            rows.append(bytes(pixels))
-        candidate = make_png(7, 4, rows)
-        reference = make_png(7, 4, [bytes(21) for _ in range(4)])
-        return candidate, reference
+        return difference_pair(
+            7, 4, ({0, 1, 3}, {1, 3}, {1, 3}, {3}), vertical=False)
 
     def test_crop_relative_column_intervals_filter_inclusively(self):
         candidate, reference = self._pair()

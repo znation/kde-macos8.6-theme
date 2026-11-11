@@ -7,19 +7,16 @@ import unittest
 
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
-from support.png_fixtures import make_png  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
+    difference_pair,
+    make_png,
+)
 
 
 class TestDifferenceRunsMaximumLength(FidelityCliTestCase):
     def _pair(self):
-        changed_rows = ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8})
-        rows = []
-        for changed in changed_rows:
-            pixels = bytearray(9 * 3)
-            for x in changed:
-                pixels[x * 3] = 20
-            rows.append(bytes(pixels))
-        return make_png(9, 2, rows), make_png(9, 2, [bytes(27), bytes(27)])
+        return difference_pair(
+            9, 2, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=False)
 
     def test_inclusive_filter_and_minimum_combine_after_segmentation(self):
         candidate, reference = self._pair()

@@ -7,18 +7,13 @@ import unittest
 
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
-from support.png_fixtures import make_png  # noqa: E402
+from support.png_fixtures import difference_pair  # noqa: E402
 
 
 class TestDifferenceColumnRunsOffset(FidelityCliTestCase):
     def _pair(self):
-        changed_columns = ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8})
-        rows = [bytearray(2 * 3) for _ in range(9)]
-        for x, changed in enumerate(changed_columns):
-            for y in changed:
-                rows[y][x * 3] = 20
-        return make_png(2, 9, [bytes(row) for row in rows]), make_png(
-            2, 9, [bytes(6) for _ in range(9)])
+        return difference_pair(
+            2, 9, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=True)
 
     def test_offset_is_global_after_length_filters(self):
         candidate, reference = self._pair()

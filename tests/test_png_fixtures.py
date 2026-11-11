@@ -19,6 +19,7 @@ from support.png_fixtures import (  # noqa: E402
     _chunk,
     control_named_missing,
     control_named_png,
+    difference_pair,
     ihdr_chunk,
     ihdr_end,
     make_png,
@@ -96,6 +97,45 @@ class TestMakePng(unittest.TestCase):
     def test_accepts_exact_row_and_matching_filters(self):
         data = make_png(1, 1, [bytes([7, 8, 9])], filter_types=[0])
         self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
+
+
+class TestDifferencePair(unittest.TestCase):
+    def test_row_units_mark_only_the_named_columns(self):
+        candidate, reference = difference_pair(
+            3, 2, ({0, 2}, {1}), vertical=False)
+        # Unit y is row y; row 0 marks columns 0 and 2, row 1 column 1, so
+        # only those first-channel bytes are non-zero and the other channels
+        # and the reference stay zero.
+        self.assertEqual(
+            png.decode_png(candidate).rgb,
+            bytes([20, 0, 0, 0, 0, 0, 20, 0, 0,
+                   0, 0, 0, 20, 0, 0, 0, 0, 0]),
+        )
+        self.assertEqual(png.decode_png(reference).rgb, bytes(18))
+
+    def test_column_units_mark_only_the_named_rows(self):
+        candidate, reference = difference_pair(
+            2, 3, ({0, 2}, set()), vertical=True)
+        # Unit x is column x; column 0 marks rows 0 and 2 and column 1 none,
+        # so the marks sit at x=0 rather than swapping into the rows.
+        self.assertEqual(
+            png.decode_png(candidate).rgb,
+            bytes([20, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0, 0,
+                   20, 0, 0, 0, 0, 0]),
+        )
+        self.assertEqual(png.decode_png(reference).rgb, bytes(18))
+
+    def test_rejects_an_entry_count_that_does_not_match_the_units(self):
+        # One entry per row horizontally, one per column vertically: a
+        # different count is a fixture bug that would otherwise silently
+        # scan a truncated surface.
+        message = _value_error_message(
+            self, difference_pair, 3, 2, (set(),), vertical=False)
+        self.assertIn("1 entries for 2 rows of a 3x2 image", message)
+        message = _value_error_message(
+            self, difference_pair, 2, 3, (set(),), vertical=True)
+        self.assertIn("1 entries for 2 columns of a 2x3 image", message)
 
 
 class TestWithIhdrByte(unittest.TestCase):
