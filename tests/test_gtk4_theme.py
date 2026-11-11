@@ -1351,6 +1351,17 @@ print("scrollbar pins settled")
                 self.assertTrue(candidates)
                 self.assertEqual(max(candidates)[2], expected)
 
+        # Solid shells must not reintroduce a frame on maximized/fullscreen
+        # windows or override the tiled state arms (including backdrop ties).
+        for state in ("maximized", "fullscreen", "tiled", "tiled-top",
+                      "tiled-left", "tiled-right", "tiled-bottom"):
+            for suffix in ("", ":backdrop"):
+                with self.subTest(state=state, suffix=suffix):
+                    self.assertLess(
+                        self.selectors.index("window.solid-csd" + suffix),
+                        self.selectors.index("window." + state + suffix),
+                    )
+
     def test_expander_arrows(self):
         self.assert_expander_arrows(
             ("treeview.view.expander", "expander"),
