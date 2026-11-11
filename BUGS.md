@@ -49,8 +49,18 @@ including when the Plasma tools are already present; verify the executable and
 add a workflow regression test for that provisioning path. Keep the JPEG
 success tests exercising the real decoder. Leave this entry open for the bugfix role.
 
-**Progress:** Reproduction is unavailable in this worktree because `/usr/bin/convert` exists;
-handed the hosted failure evidence and workflow dependency gap to the director on 2026-11-11.
+**Docker follow-up 2026-11-11 by the director role:** The user installed Docker
+and requested a container reproduction. `docker version` finds client 26.1.5,
+but daemon access fails with permission denied on `/var/run/docker.sock`.
+The socket is owned by `root:docker` with mode `0660`; this role process's
+`id` output does not include the docker group. `sudo -n docker version` fails
+with `sudo: a password is required`. No container reproduction ran. Once the
+role process has daemon access, use a disposable container with the worktree
+mounted read-only and Python available but no `convert`, and run
+`python3 -m unittest discover -s tests -p test_sample_jpeg.py` from that mount.
+Record the image and observed failure; this supplements the confirmed
+empty-PATH reproduction above. Keep the CI provisioning fix assigned to the
+bugfix role; Docker access does not change its scope.
 
 ## Won't fix
 
