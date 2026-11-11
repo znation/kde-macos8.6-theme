@@ -9,11 +9,15 @@ introspection tests render with a real GTK 3 in a child interpreter (see
 ``_run_gtk_child``); the suite process itself imports no GTK.
 """
 
-import subprocess
-import sys
 import unittest
 from pathlib import Path
 
+from support.gtk_child_probe import (
+    _GTK3_CHILD_HEAD,
+    _GTK3_PIXEL_HEAD,
+    _GTK3_SHEET_AND_WINDOW,
+    run_gtk_child,
+)
 from support.gtk_css import assert_svg_root_first, strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
@@ -63,47 +67,6 @@ ICON_GO_NEXT = (
     / "actions"
     / "go-next-symbolic.svg"
 )
-
-# Everything the two GTK 3 offscreen pixel probes below share: the child
-# interpreter's gi imports with their exit-77 skip guards, the sheet
-# provider the OffscreenWindow paints with, and the pixel reader the
-# assertions sample through. The middle of each program -- which bytes the
-# sheet is loaded from and which widget is drawn -- stays in the test that
-# owns it; tests/test_gtk_view_census.py's _CHILD_HEAD is the GTK 4
-# counterpart of the same isolation pattern.
-_GTK3_CHILD_HEAD = '''import sys
-from pathlib import Path
-
-try:
-    import gi
-    gi.require_version("Gtk", "3.0")
-    gi.require_version("Gdk", "3.0")
-    from gi.repository import Gdk, Gtk
-except (ImportError, ValueError):
-    print("GTK 3 introspection is not installed")
-    sys.exit(77)
-if Gdk.Screen.get_default() is None:
-    print("no display for GTK 3")
-    sys.exit(77)
-'''
-_GTK3_SHEET_AND_WINDOW = '''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
-window = Gtk.OffscreenWindow()
-'''
-_GTK3_PIXEL_HEAD = '''window.show_all()
-while Gtk.events_pending():
-    Gtk.main_iteration()
-pixbuf = window.get_pixbuf()
-pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-
-def at(x, y):
-    return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
-
-'''
-
 
 class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
@@ -598,33 +561,12 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
                 )
 
     def _run_gtk_child(self, program, *paths):
-        """Run the GTK 3 pixel *program* in a fresh child interpreter.
+        """Run the GTK 3 pixel *program* in a child interpreter.
 
-        *paths* are the child's ``sys.argv[1:]``. The child does the GTK
-        introspection work and asserts on the pixels it draws; the parent
-        only judges its exit status, attaching the child's output to the
-        failure. Exit 77 is the skip marker tests/test_gtk4_theme.py
-        established: introspection or a display is missing, so the child
-        prints its own skip reason first.
-
-        The child process is not only a sandbox: an in-process ``import gi``
-        leaves GLib's C worker threads in the suite process, which
-        ``threading.active_count()`` cannot see, so every later
-        ``tests/support/snippet_child.py`` ``os.fork`` FIFO guard would run
-        from a multi-threaded parent -- Python 3.12+ warns about that as a
-        deadlock hazard in the child, and a future Python may refuse it
-        outright. The suite therefore never imports ``gi`` in-process
-        (``tests/test_no_gtk_introspection.py`` pins that).
+        A delegate to ``support.gtk_child_probe.run_gtk_child``, which
+        holds the harness this module's offscreen pixel probes share.
         """
-        result = subprocess.run(
-            [sys.executable, "-c", program, *paths],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        if result.returncode == 77:
-            self.skipTest(result.stdout.strip() or "GTK 3 is not available")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        return run_gtk_child(self, program, *paths)
 
     def test_entry_progress_draws_a_two_pixel_strip(self):
         # GTK 3 ignores min-height on this node, so pin the drawn pixels.

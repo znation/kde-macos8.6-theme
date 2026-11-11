@@ -96,33 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### GTK 3 child-probe harness: move the shared child-interpreter program heads and runner into tests/support/gtk_child_probe.py (planned 2026-11-11 by the plan role; independent of every other entry — it touches only `tests/test_gtk_theme_controls.py`'s harness block, the three `_GTK3_*` program-string constants and the `_run_gtk_child` method, and adds `tests/support/gtk_child_probe.py` plus one contract test, sharing no sheet rule, widget, probe assertion or invariants row with the waiting RTL spin-field entry or the in-flight vertical-spin-button branch, whose probes keep working unchanged whichever lands first because the imported names and the `_run_gtk_child` call surface stay; at implementation re-grep every anchor this entry names, since the two spin entries also extend this test file)
-
-**Goal.** `tests/test_gtk_theme_controls.py` (2,503 lines) carries, besides its probes and shipped-glyph tests, the GTK 3 child-probe harness: the three program-string constants `_GTK3_CHILD_HEAD`, `_GTK3_SHEET_AND_WINDOW` and `_GTK3_PIXEL_HEAD` and the `TestGtkThemeControls._run_gtk_child` runner that seven probes call through. The project's one-responsibility principle puts shared helpers in `tests/support` beside `snippet_child.py`, `gtk_css.py` and the rest; the waiting RTL spin-field entry and the in-flight vertical-spin-button branch each add more probes to this same file, and every landed GTK 3 probe plan (progress-bar fill, notebook faces, seam and frame probes) already describes its probe as built from these in-file pieces. Moving the harness gives the growing probe family a stable import surface and trims the test file without touching a single probe.
-
-**Approach.**
-
-1. New `tests/support/gtk_child_probe.py`: the module docstring carries the harness comment above the constants (the child interpreter's gi imports with their exit-77 skip guards, the sheet provider the `Gtk.OffscreenWindow` paints with, the pixel reader the assertions sample through, and why the GTK work runs in a child — an in-process `import gi` leaves GLib's C worker threads in the suite process, which `tests/test_no_gtk_introspection.py` pins) and the `_run_gtk_child` docstring's rationale. The three constants move byte-for-byte. Add `def run_gtk_child(test, program, *paths)` with the moved method body: `subprocess.run([sys.executable, "-c", program, *paths], capture_output=True, text=True, timeout=120)`, `returncode == 77` calls `test.skipTest(result.stdout.strip() or "GTK 3 is not available")`, otherwise `test.assertEqual(result.returncode, 0, result.stdout + result.stderr)`. The module imports only `subprocess` and `sys`; `gi` appears only inside string constants, which the AST scanner never sees as imports.
-
-2. `tests/test_gtk_theme_controls.py`: delete the constants block and the `_run_gtk_child` body. Import the three constants from `support.gtk_child_probe` and shrink the method to a one-line delegate — `return run_gtk_child(self, program, *paths)` — keeping its name, signature and a short docstring pointing at the support module. Every one of the seven call sites, every probe program and every prose mention of `_run_gtk_child` stays untouched.
-
-3. New `tests/test_gtk_child_probe_support.py` (no GTK in the suite process, no introspection needed):
-   - Pin `_GTK3_CHILD_HEAD`'s contract strings as substrings: `gi.require_version("Gtk", "3.0")` and `gi.require_version("Gdk", "3.0")`, the two skip reasons "GTK 3 introspection is not installed" and "no display for GTK 3" (the parent judges the child's printed reason, so the wording is the contract), and both `sys.exit(77)` guards.
-   - Pin `_GTK3_PIXEL_HEAD`'s pixel reader: it defines `def at(x, y)` over the offscreen pixbuf's pixels, stride and channel count.
-   - Pin `run_gtk_child` against a recorder object (methods `skipTest(reason)` and `assertEqual(a, b, msg=None)` that record instead of skipping): a child printing a reason and exiting 77 records a skip with that reason; a child exiting 1 with output records the failure assertion with the child's output attached; a child printing "ok" and exiting 0 records neither. This fails on the plausible swapped-branch bug — treating 77 as a failure or 0 as a skip.
-
-No sheet, artwork or invariants change: the no-gi invariant row in `docs/invariants.md` pins `tests/test_no_gtk_introspection.py`, which scans `tests/` tree-wide and keeps passing over the new module unchanged; the GTK 4 counterpart head in `tests/test_gtk_view_census.py` stays where it is (its probes use the `GDK_BACKEND`/`GSK_RENDERER` pattern and are out of scope).
-
-**Files.** `tests/support/gtk_child_probe.py` (new), `tests/test_gtk_theme_controls.py`, `tests/test_gtk_child_probe_support.py` (new).
-
-**Acceptance criteria.**
-
-- `tests/support/gtk_child_probe.py` holds the three program-string constants byte-equal to the deleted block and defines `run_gtk_child`; `tests/test_gtk_theme_controls.py` defines none of the four harness members itself beyond the one-line `_run_gtk_child` delegate and imports the three constants from `support.gtk_child_probe`; all seven call sites still read `self._run_gtk_child(...)` unchanged.
-- A GTK 3 pixel probe renders the same pixels after the move as before it: the child programs are byte-identical concatenations, so every probe that passed before the move passes after it where GTK 3 introspection and a display are present, and skips with the child's own reason where they are missing — the probe set's behavior is unchanged.
-- `tests/test_no_gtk_introspection.py` passes unchanged over the new support module, and `tests/test_no_unused_imports.py` reports no finding in the touched files.
-- The new contract test pins the head's guard strings, the pixel reader's presence and `run_gtk_child`'s three exit-status behaviors (77 → skip with the child's reason, nonzero → failure with the child's output attached, 0 → pass), and fails when the 77 and 0 branches are swapped.
-- `make check` passes.
-
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
