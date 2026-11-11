@@ -102,7 +102,10 @@ def _define_color_matches(text):
     inside the string. A quoted string is a token here, as it is for the
     comment and block scanners, and a backslash keeps the character after it
     inside the string. Function contents are also tokens: definitions inside
-    balanced parentheses remain part of the surrounding value.
+    balanced parentheses remain part of the surrounding value, and so are
+    definitions inside a rule block: unquoted, unescaped braces outside
+    parentheses track nonnegative block depth, so a stray ``}`` cannot hide
+    a following top-level definition.
     """
     index = 0
     quote = None

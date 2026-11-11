@@ -1125,16 +1125,19 @@ class TestRuleBlockSemantics(unittest.TestCase):
         )
 
     def test_define_color_scan_tracks_braces_outside_functions(self):
+        # Each function, quoted and escaped brace is unmatched, so counting
+        # any of them would expose a decoy or hide a genuine definition.
         text = (
-            'a { content: fn({ @define-color hidden #111111; }); '
-            'b { --x: "{ @define-color quoted #222222; }"; '
-            r'--y: \{ @define-color escaped #333333; \}; '
-            "--z: @define-color nested #444444; } }\n"
-            "} @define-color shown #555555;"
+            'a { content: fn(}); --x: "}"; --y: \\}; '
+            "b { --z: @define-color nested #444444; } "
+            "--w: @define-color inner #666666; }\n"
+            "} @define-color between #555555;\n"
+            'x: fn({); --q: "{"; --e: \\{;\n'
+            "@define-color shown #777777;"
         )
         self.assertEqual(
             [match.group("name") for match in _define_color_matches(text)],
-            ["shown"],
+            ["between", "shown"],
         )
 
 
