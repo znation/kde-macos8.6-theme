@@ -89,6 +89,17 @@ def difference_columns(
     )
 
 
+def _axis_scanlines(flags: bytes, width: int, height: int, vertical: bool):
+    """Yield each row or column flag slice in report order."""
+    if vertical:
+        for x in range(width):
+            yield x, flags[x::width]
+    else:
+        for y in range(height):
+            start = y * width
+            yield y, flags[start:start + width]
+
+
 def _difference_axis_counts(
     candidate: Image, reference: Image, tolerance: int,
     *, vertical: bool, flags: bytes | None = None,
@@ -96,9 +107,8 @@ def _difference_axis_counts(
     """Count each over-tolerance pixel once in its row or column."""
     flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     width, height = candidate.width, candidate.height
-    if vertical:
-        return [flags[x::width].count(1) for x in range(width)]
-    return [flags[y * width:(y + 1) * width].count(1) for y in range(height)]
+    return [scanline.count(1)
+            for _, scanline in _axis_scanlines(flags, width, height, vertical)]
 
 
 def difference_row_bounds(
@@ -136,11 +146,7 @@ def _difference_axis_bounds(
     width, height = candidate.width, candidate.height
     start_key, length_key = ("y", "height") if vertical else ("x", "width")
     bounds = []
-    for scanline in range(width if vertical else height):
-        scanline_flags = (
-            flags[scanline::width] if vertical
-            else flags[scanline * width:(scanline + 1) * width]
-        )
+    for _, scanline_flags in _axis_scanlines(flags, width, height, vertical):
         first = scanline_flags.find(1)
         if first < 0:
             bounds.append(None)
@@ -164,11 +170,7 @@ def _iter_difference_axis_runs(
     """
     flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
     width, height = candidate.width, candidate.height
-    for scanline in range(width if vertical else height):
-        scanline_flags = (
-            flags[scanline::width] if vertical
-            else flags[scanline * width:(scanline + 1) * width]
-        )
+    for scanline, scanline_flags in _axis_scanlines(flags, width, height, vertical):
         for match in _RUN.finditer(scanline_flags):
             start, end = match.span()
             if vertical:
@@ -276,8 +278,8 @@ def difference_centroid(
     if not count:
         return None
     sum_x = sum_y = 0
-    for y in range(height):
-        for match in _RUN.finditer(flags[y * width:(y + 1) * width]):
+    for y, row_flags in _axis_scanlines(flags, width, height, vertical=False):
+        for match in _RUN.finditer(row_flags):
             start, end = match.span()
             run_length = end - start
             sum_x += run_length * (start + end - 1) // 2

@@ -30,6 +30,7 @@ from tools.fidelity_spatial import (  # noqa: E402
     differing_flags,
     longest_difference_column_run,
     longest_difference_run,
+    _axis_scanlines,
 )
 from tools.png import Image  # noqa: E402
 
@@ -69,6 +70,18 @@ REPORTS = (
 
 class TestSharedFlags(unittest.TestCase):
     """Explicit flags and derived flags give identical spatial outputs."""
+
+    def test_axis_scanlines_preserve_row_and_column_order(self):
+        flags = bytes((1, 0, 1, 0, 1, 1))
+        self.assertEqual(list(_axis_scanlines(flags, 3, 2, False)), [
+            (0, bytes((1, 0, 1))),
+            (1, bytes((0, 1, 1))),
+        ])
+        self.assertEqual(list(_axis_scanlines(flags, 3, 2, True)), [
+            (0, bytes((1, 0))),
+            (1, bytes((0, 1))),
+            (2, bytes((1, 1))),
+        ])
 
     def test_shared_flags_reproduce_every_report(self):
         """Each report's output equals its derived-flags output."""
