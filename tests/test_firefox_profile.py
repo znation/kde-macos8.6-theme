@@ -64,6 +64,15 @@ class TestProfileResolution(FirefoxProfileTestCase):
             self.resolve("profile")
         self.assertIn("absolute", str(caught.exception))
 
+    def test_empty_named_profile_is_refused_as_empty(self):
+        # An explicit empty value must not be reported as the relative path ".".
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve("")
+        message = str(caught.exception)
+        self.assertIn("empty", message)
+        self.assertNotIn("'.'", message)
+        self.assertNotIn(": .", message)
+
     def test_missing_named_profile_is_refused(self):
         missing = self.root / "missing"
         with self.assertRaises(firefox_user_files.ConfigError) as caught:

@@ -174,6 +174,13 @@ def resolve_profile(
     if named is None:
         named = env.get("FIREFOX_PROFILE") or None
     if named is not None:
+        if not named:
+            # An empty --profile would otherwise reach Path("") and be
+            # reported as the relative path ".", naming nothing the caller typed.
+            raise ConfigError(
+                "the named Firefox profile is empty; name an absolute profile "
+                "directory with --profile or FIREFOX_PROFILE"
+            )
         path = Path(named)
         if not path.is_absolute():
             raise ConfigError(f"Firefox profile must be an absolute path: {path}")
