@@ -155,7 +155,7 @@ def supervise(modules: list[str], argv_prefix: list[str], cwd: str,
     return results
 
 
-def _fill_workers(queue: list[str], running: list[_Worker],
+def _fill_workers(queue: deque[str], running: list[_Worker],
                   results: dict[str, int | None], argv_prefix: list[str],
                   cwd: str, log_paths: dict[str, str], timeout: float,
                   workers: int) -> None:
