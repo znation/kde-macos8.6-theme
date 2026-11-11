@@ -1487,6 +1487,18 @@ class _PixelPins:
                     ],
                 )
 
+    def assert_flat_window_face(self, rect):
+        """Pin every cell of *rect* at the flat #DDDDDD window face.
+
+        The calendar, colour and icon dialog gates each pin one
+        face crop this way: the rows must show the window body colour
+        column to column, so a stray glyph row, a title-bar bleed or a
+        repaint of the chrome above the widget inside fails row by row.
+        """
+        self.assert_band(
+            rect, [["#DDDDDD"] * rect[2] for _ in range(rect[3])]
+        )
+
 
 @unittest.skipIf(
     software_renderer_skip_reason() is not None,
@@ -2282,28 +2294,21 @@ class TestLineInputDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_field_sunken_bevel(self):
         """Pin the Kvantum field's sunken rows right of the caret."""
-        image = self.candidate_image()
-        x, y, width, height = LINEEDIT_DIALOG_FIELD_CROP
+        width, height = LINEEDIT_DIALOG_FIELD_CROP[2:]
         # The reference field's border runs (tests/support/firstboot_lineedit.py)
         # give the arrangement: #999999 shadow row, #000000 outline, #FFFFFF
         # face, then the bottom outline and outer #FFFFFF highlight. The
         # crop's rows are exactly the field's, so an off-by-one row fails.
-        expected_rows = (
-            ["#999999"] * width,
-            ["#000000"] * width,
-            *( ["#FFFFFF"] * width for _ in range(height - 4) ),
-            ["#000000"] * width,
-            ["#FFFFFF"] * width,
+        self.assert_band(
+            LINEEDIT_DIALOG_FIELD_CROP,
+            (
+                ["#999999"] * width,
+                ["#000000"] * width,
+                *( ["#FFFFFF"] * width for _ in range(height - 4) ),
+                ["#000000"] * width,
+                ["#FFFFFF"] * width,
+            ),
         )
-        for row, expected in enumerate(expected_rows):
-            with self.subTest(row=row):
-                self.assertEqual(
-                    expected,
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
-                )
 
     def test_field_lands_keep_the_reference_corner_arrangement(self):
         """Pin the field's border columns and the four 2x2 corner blocks.
@@ -2521,17 +2526,7 @@ class TestCalendarDialogRender(_DialogGate, unittest.TestCase):
         title-bar bleed or a repaint of the chrome above the day table
         fails row by row.
         """
-        image = self.candidate_image()
-        x0, y0, width, height = CALENDAR_WINDOW_FACE
-        for row in range(height):
-            with self.subTest(row=y0 + row):
-                self.assertEqual(
-                    ["#DDDDDD"] * width,
-                    [
-                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
-                        for dx in range(width)
-                    ],
-                )
+        self.assert_flat_window_face(CALENDAR_WINDOW_FACE)
 
     def test_draws_the_selected_day_cell(self):
         """Pin the #CCCCFF selection fill, its digit ink and the white face.
@@ -2647,17 +2642,7 @@ class TestColorDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_flat_window_face(self):
         """Pin the window-color face crop with no other ink inside."""
-        image = self.candidate_image()
-        x0, y0, width, height = COLOR_WINDOW_FACE
-        for row in range(height):
-            with self.subTest(row=y0 + row):
-                self.assertEqual(
-                    ["#DDDDDD"] * width,
-                    [
-                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
-                        for dx in range(width)
-                    ],
-                )
+        self.assert_flat_window_face(COLOR_WINDOW_FACE)
 
     def test_draws_the_basic_swatch_row(self):
         """Pin the grid's #000000 lead cell and its #AA0000 neighbour."""
@@ -2725,17 +2710,7 @@ class TestIconDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_flat_window_face(self):
         """Pin the window-color face crop with no other ink inside."""
-        image = self.candidate_image()
-        x0, y0, width, height = ICON_WINDOW_FACE
-        for row in range(height):
-            with self.subTest(row=y0 + row):
-                self.assertEqual(
-                    ["#DDDDDD"] * width,
-                    [
-                        hex_colour(pixel_at(image, x0 + dx, y0 + row))
-                        for dx in range(width)
-                    ],
-                )
+        self.assert_flat_window_face(ICON_WINDOW_FACE)
 
     def test_draws_the_grid_field_top_edge(self):
         """Pin the outline rule, shadow row and white face at the field's top."""
@@ -2807,21 +2782,14 @@ class TestSliderDialogRender(_DialogGate, unittest.TestCase):
         face fails row by row; the boundary rows are all #000000, so a
         swapped arm colour or a lost outline row fails.
         """
-        image = self.candidate_image()
-        x, y, width, height = SLIDER_DIALOG_TROUGH
-        for row in range(height):
-            if row in (0, height - 1):
-                expected = ["#000000"] * width
-            else:
-                expected = ["#EEEEEE"] * width
-            with self.subTest(row=y + row):
-                self.assertEqual(
-                    expected,
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
-                )
+        width, height = SLIDER_DIALOG_TROUGH[2:]
+        self.assert_band(
+            SLIDER_DIALOG_TROUGH,
+            [
+                ["#000000"] * width if row in (0, height - 1) else ["#EEEEEE"] * width
+                for row in range(height)
+            ],
+        )
 
 
 @_dialog_gate_guard()
