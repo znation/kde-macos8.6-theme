@@ -51,6 +51,7 @@ class TestSampleOptionValidation(CliTestCase):
             (("--max-match-runs", "1", "--match-run-offset", "0"),
              "--max-match-runs requires --match-runs"),
             (("--match-column-runs",), "--match-column-runs requires --find-color"),
+            (("--match-column-run-count",), "--match-column-run-count requires --find-color"),
             (("--min-match-column-run-length", "1", "--find-color", "010203"),
              "--min-match-column-run-length requires --match-column-runs"),
             (("--max-match-column-run-length", "1", "--find-color", "010203"),

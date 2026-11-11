@@ -7,7 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import rgb_image
+from support.png_fixtures import make_png, rgb_image
 from tools import sample
 
 
@@ -86,6 +86,27 @@ class TestSampleMatchColumnRunCount(CliTestCase):
         without = self._run(path, "1", "1", "--width", "3", "--height", "2",
                             "--find-color", "0a141e", "--json")
         self.assertNotIn("column_run_count", json.loads(without.stdout)["match"])
+
+    def test_alpha_filtering_splits_segments_and_treats_rgb_only_as_opaque(self):
+        encoded = make_png(1, 4,
+            [bytes((1, 2, 3, 0)), bytes((1, 2, 3, 0)),
+             bytes((1, 2, 3, 255)), bytes((1, 2, 3, 0))], color_type=6)
+        path = self._write(self._tmp_dir(), "alpha.png", encoded)
+        common = (path, "0", "0", "--width", "1", "--height", "4",
+                  "--find-color", "010203", "--match-column-run-count")
+        transparent = self._run(*common, "--match-alpha", "0", "--json")
+        match = json.loads(transparent.stdout)["match"]
+        self.assertEqual((match["count"], match["column_run_count"]), (3, 2))
+        opaque = self._run(*common, "--match-alpha", "255", "--json")
+        self.assertEqual(json.loads(opaque.stdout)["match"]["column_run_count"], 1)
+        _, rgb_encoded = rgb_image(1, 2, lambda _x, _y: (1, 2, 3))
+        rgb_path = self._write(self._tmp_dir(), "rgb.png", rgb_encoded)
+        counted = self._run(rgb_path, "0", "0", "--find-color", "010203",
+                            "--match-alpha", "255", "--match-column-run-count", "--json")
+        self.assertEqual(json.loads(counted.stdout)["match"]["column_run_count"], 1)
+        uncounted = self._run(rgb_path, "0", "0", "--find-color", "010203",
+                              "--match-alpha", "0", "--match-column-run-count", "--json")
+        self.assertEqual(json.loads(uncounted.stdout)["match"]["column_run_count"], 0)
 
     def test_dependency_validation_help_and_direct_script(self):
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
