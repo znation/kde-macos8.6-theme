@@ -7,7 +7,35 @@ each run.
 
 ## Open
 
-_None yet._
+### Should the sampler refuse a contradictory min/max filter window?
+
+**Context.** The sampler's `option_error` (tools/sample_arguments.py) validates option
+combinations before any image read, but it never cross-checks the five min/max filter pairs:
+`--min-run-length`/`--max-run-length`, `--min-color-count`/`--max-color-count`,
+`--min-color-fraction`/`--max-color-fraction`, `--min-match-run-length`/`--max-match-run-length`
+and `--min-match-column-run-length`/`--max-match-column-run-length`. A minimum above its maximum
+keeps no value at all, so the run exits 0 and prints an empty report (or `"runs": []` in JSON),
+indistinguishable from "the region genuinely has no such values".
+
+This is pinned behavior, not an accident: `tests/test_sample_runs_max_length.py` (and the sibling
+match-run suites) deliberately run `--min-run-length 3 --max-run-length 2` and assert the empty
+list, using the contradictory window as the empty-result fixture. I prototyped the refusal and
+test rows; it failed those suites, so I reverted it rather than break the pinned contract.
+
+**Options.**
+1. Keep the empty window (status quo): the caller can compose filters freely, and an empty
+   window is a legitimate way to ask for nothing. No code change.
+2. Refuse min > max at argument time with a diagnostic like `--min-run-length must not exceed
+   --max-run-length (3 > 2)`, and rewrite the suites' empty-result fixtures to use a genuinely
+   absent value instead of a contradictory window. A typo such as `--min-run-length 50
+   --max-run-length 5` would then fail loudly instead of printing an empty report.
+
+**Recommendation.** Option 2: the refusal matches the file's existing style of refusing
+combinations that can only produce a misleading report (`--top-colors requires --histogram`),
+and an empty report from a typo looks exactly like a real measurement of "no matches". The cost
+is rewriting the empty-result fixtures in roughly six test modules. (Improve role, 2026-11-11.)
+
+## Answered
 
 ## Answered
 

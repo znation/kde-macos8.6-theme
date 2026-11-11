@@ -160,14 +160,17 @@ class TestRejectsNonBytesInput(unittest.TestCase):
             head = image_format.PNG_MAGIC + b"\x00" * 8
             image_format.is_complete(head, bad, len(head))
 
-        for func in (image_format.is_webp, image_format.is_image,
-                     image_format.other_image_format,
-                     image_format.image_stream_format,
-                     complete_head, complete_tail):
-            # is_complete reports its own public name for both arguments;
-            # the two closures only carry which argument was bad.
-            raising_name = ("is_complete" if func is complete_head
-                            or func is complete_tail else func.__name__)
+        # ``complete_head`` and ``complete_tail`` drive ``is_complete``'s
+        # two arguments; the diagnostic names the detector the caller
+        # invoked (``is_complete``), not the local helper that reached it.
+        for func, detector in (
+            (image_format.is_webp, image_format.is_webp),
+            (image_format.is_image, image_format.is_image),
+            (image_format.other_image_format, image_format.other_image_format),
+            (image_format.image_stream_format, image_format.image_stream_format),
+            (complete_head, image_format.is_complete),
+            (complete_tail, image_format.is_complete),
+        ):
             for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
                 with self.subTest(func=func.__name__, bad=bad):
                     with self.assertRaises(ValueError) as ctx:
@@ -177,7 +180,7 @@ class TestRejectsNonBytesInput(unittest.TestCase):
                     # detector's name cannot pass unnoticed.
                     self.assertEqual(
                         str(ctx.exception),
-                        f"{raising_name} data must be bytes or "
+                        f"{detector.__name__} data must be bytes or "
                         f"bytearray, not {type(bad).__name__}",
                     )
 
