@@ -70,23 +70,26 @@ class TestDialogGateCountProse(unittest.TestCase):
                 "tests/test_ci_workflow.py",
                 "tests/test_render_surface.py",
             ):
-                for word in pattern.findall(read(name)):
-                    with self.subTest(file=name, word=word):
-                        if word in _NON_NUMERIC:
-                            continue
-                        self.assertIn(
-                            word,
-                            _WORDS,
-                            f"{name} counts its dialog gates with a word "
-                            "the number map does not spell; teach the map",
-                        )
-                        self.assertEqual(
-                            expected,
-                            _WORDS[word],
-                            f"{name}'s count prose lags the "
-                            f"{expected} derived from "
-                            "test_render_surface's gate classes",
-                        )
+                self._assert_file_spells_its_counts(pattern, expected, name)
+
+    def _assert_file_spells_its_counts(self, pattern, expected, name):
+        for word in pattern.findall(read(name)):
+            with self.subTest(file=name, word=word):
+                if word in _NON_NUMERIC:
+                    continue
+                self.assertIn(
+                    word,
+                    _WORDS,
+                    f"{name} counts its dialog gates with a word "
+                    "the number map does not spell; teach the map",
+                )
+                self.assertEqual(
+                    expected,
+                    _WORDS[word],
+                    f"{name}'s count prose lags the "
+                    f"{expected} derived from "
+                    "test_render_surface's gate classes",
+                )
 
 
 if __name__ == "__main__":

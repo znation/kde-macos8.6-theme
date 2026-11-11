@@ -109,13 +109,16 @@ class TestWorstPixelsCli(FidelityCliTestCase):
         with mock.patch.object(fidelity, "_read_source", side_effect=AssertionError("read")):
             for value in ("0", "1"):
                 with self.subTest(value=value):
-                    stdout = io.StringIO()
-                    stderr = io.StringIO()
-                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-                        with self.assertRaises(SystemExit) as raised:
-                            fidelity.main(["missing.png", "missing.png", "--worst-pixel-offset", value])
-                    self.assertEqual(raised.exception.code, 2)
-                    self.assertEqual(stdout.getvalue(), "")
+                    self._assert_value_exits_before_reading(value)
+
+    def _assert_value_exits_before_reading(self, value):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                fidelity.main(["missing.png", "missing.png", "--worst-pixel-offset", value])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), "")
 
     def test_json_and_text_and_crop_relative_coordinates(self):
         surface, candidate = rgb_image(2, 1, lambda x, y: (10 if x == 1 else 0, 0, 0))

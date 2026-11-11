@@ -86,15 +86,18 @@ class TestSharedFlags(unittest.TestCase):
     def test_shared_flags_reproduce_every_report(self):
         """Each report's output equals its derived-flags output."""
         for name, pair in (("rgb", RGB_PAIR), ("rgba", RGBA_PAIR)):
-            with self.subTest(pair=name):
-                for tolerance in (0, 9, 100):
-                    with self.subTest(tolerance=tolerance):
-                        flags = differing_flags(*pair, tolerance)
-                        for report_name, report in REPORTS:
-                            with self.subTest(report=report_name):
-                                shared = report(*pair, tolerance, flags=flags)
-                                derived = report(*pair, tolerance, flags=None)
-                                self.assertEqual(shared, derived)
+            for tolerance in (0, 9, 100):
+                with self.subTest(pair=name, tolerance=tolerance):
+                    self._assert_reports_match_the_flags(pair, tolerance)
+
+    def _assert_reports_match_the_flags(self, pair, tolerance):
+        """Each report's output equals its derived-flags output."""
+        flags = differing_flags(*pair, tolerance)
+        for report_name, report in REPORTS:
+            with self.subTest(report=report_name):
+                shared = report(*pair, tolerance, flags=flags)
+                derived = report(*pair, tolerance, flags=None)
+                self.assertEqual(shared, derived)
 
     def test_flags_union_matches_the_comparison_metrics(self):
         """The shared string's population equals compare's differing count."""

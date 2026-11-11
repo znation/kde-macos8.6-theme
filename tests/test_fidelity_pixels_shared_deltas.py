@@ -71,15 +71,19 @@ class TestSharedDeltas(unittest.TestCase):
     def test_shared_deltas_reproduce_every_report(self):
         """Each report's output equals its derived-deltas output."""
         for name, pair in (("rgb", RGB_PAIR), ("rgba", RGBA_PAIR)):
-            with self.subTest(pair=name):
-                deltas = channel_deltas(*pair)
-                for tolerance in (0, 9, 100):
-                    with self.subTest(tolerance=tolerance):
-                        for report_name, call in CALLS.items():
-                            with self.subTest(report=report_name):
-                                shared = call(pair, tolerance, deltas=deltas)
-                                derived = call(pair, tolerance)
-                                self.assertEqual(shared, derived)
+            deltas = channel_deltas(*pair)
+            for tolerance in (0, 9, 100):
+                with self.subTest(pair=name, tolerance=tolerance):
+                    self._assert_reports_match_the_deltas(pair, tolerance,
+                                                          deltas)
+
+    def _assert_reports_match_the_deltas(self, pair, tolerance, deltas):
+        """Each report's output equals its derived-deltas output."""
+        for report_name, call in CALLS.items():
+            with self.subTest(report=report_name):
+                shared = call(pair, tolerance, deltas=deltas)
+                derived = call(pair, tolerance)
+                self.assertEqual(shared, derived)
 
     def test_rgb_reports_read_the_shared_strings(self):
         """The RGB pair's reports re-derive each byte's delta from the list.

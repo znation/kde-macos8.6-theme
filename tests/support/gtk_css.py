@@ -143,6 +143,33 @@ def _define_color_matches(text):
 
 
 
+def _unquoted_url_end(text, index):
+    """Return the index past an unquoted ``url(...)`` body at *index*.
+
+    *index* names the opening ``u``. Whitespace after ``url(`` and the body
+    up to its closing parenthesis belong to the token, and the returned
+    index is past the ``)`` (or the end of the text when no ``)`` closes
+    the body). A body opening with a quote is not a match: the caller's
+    string tracking keeps the quotes and their contents literal, as it
+    does for any other quoted string. An escaped character is two
+    characters of the body and cannot close it.
+    """
+    url_start = index + 4
+    while url_start < len(text) and text[url_start] in " \t\n\r\f":
+        url_start += 1
+    if url_start >= len(text) or text[url_start] in "\"'":
+        return None
+    position = url_start
+    while position < len(text):
+        if text[position] == "\\":
+            position += 2
+        elif text[position] == ")":
+            return position + 1
+        else:
+            position += 1
+    return position
+
+
 def strip_comments(text):
     """Return *text* with each ``/* ... */`` comment removed.
 
@@ -181,19 +208,9 @@ def strip_comments(text):
             text[index - 1].isalnum() or text[index - 1] in "_-\\"
             or not text[index - 1].isascii()
         )) and text[index:index + 3].translate(_ASCII_LOWER) == "url" and index + 3 < len(text) and text[index + 3] == "(":
-            url_start = index + 4
-            while url_start < len(text) and text[url_start] in " \t\n\r\f":
-                url_start += 1
-            if url_start < len(text) and text[url_start] not in "\"'":
-                index = url_start
-                while index < len(text):
-                    if text[index] == "\\":
-                        index += 2
-                    elif text[index] == ")":
-                        index += 1
-                        break
-                    else:
-                        index += 1
+            end = _unquoted_url_end(text, index)
+            if end is not None:
+                index = end
                 continue
         if text.startswith("/*", index):
             parts.append(text[position:index])
@@ -364,6 +381,42 @@ def read_theme_text(path):
     return containment.read_text(path, ROOT, encoding="utf-8")
 
 
+def _hex_escape_end(text, index):
+    """Return the index past the hex escape opening at *index*, or ``None``.
+
+    At most six hexadecimal digits follow the backslash, and one whitespace
+    character after the digits belongs to the escape (an escaped ``\r\n``
+    pair counts as one), so the escaped text can be copied whole. Fewer
+    than one digit is no escape, and the caller then treats the backslash
+    by its own rules.
+    """
+    end = index + 1
+    while end < len(text) and end - index <= 6 and text[end] in "0123456789abcdefABCDEF":
+        end += 1
+    if end == index + 1:
+        return None
+    if end < len(text) and text[end] in " \t\n\r\f":
+        if text[end] == "\r" and end + 1 < len(text) and text[end + 1] == "\n":
+            end += 2
+        else:
+            end += 1
+    return end
+
+
+def _append_text(parts, text, pending_space, chunk):
+    """Append *chunk* to *parts*, collapsing a pending space before it.
+
+    A pending space is dropped before the first chunk and kept as one
+    space between chunks, so a run of whitespace outside quotes collapses
+    to one space. Returns ``False`` because the chunk consumes the pending
+    space.
+    """
+    if pending_space and parts:
+        parts.append(" ")
+    parts.append(chunk)
+    return False
+
+
 def _collapse_whitespace(text):
     """Return *text* with each whitespace run outside quotes collapsed to one space.
 
@@ -381,38 +434,24 @@ def _collapse_whitespace(text):
     while index < len(text):
         char = text[index]
         if quote is None and char == "\\":
-            end = index + 1
-            while end < len(text) and end - index <= 6 and text[end] in "0123456789abcdefABCDEF":
-                end += 1
-            if end > index + 1:
-                if end < len(text) and text[end] in " \t\n\r\f":
-                    if text[end] == "\r" and end + 1 < len(text) and text[end + 1] == "\n":
-                        end += 2
-                    else:
-                        end += 1
-                if pending_space and parts:
-                    parts.append(" ")
-                parts.append(text[index:end])
-                pending_space = False
+            end = _hex_escape_end(text, index)
+            if end is not None:
+                pending_space = _append_text(parts, text, pending_space,
+                                             text[index:end])
                 index = end
                 continue
         if quote is None and char in "\"'":
             quote = char
         elif quote is not None:
             if char == "\\" and index + 1 < len(text):
-                if pending_space and parts:
-                    parts.append(" ")
-                parts.append(text[index:index + 2])
-                pending_space = False
+                pending_space = _append_text(parts, text, pending_space,
+                                             text[index:index + 2])
                 index += 2
                 continue
             if char == quote:
                 quote = None
         elif char == "\\":
-            if pending_space and parts:
-                parts.append(" ")
-            parts.append(char)
-            pending_space = False
+            pending_space = _append_text(parts, text, pending_space, char)
             index += 1
             if index < len(text):
                 parts.append(text[index])

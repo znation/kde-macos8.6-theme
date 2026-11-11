@@ -632,12 +632,15 @@ class TestCursorSet(unittest.TestCase):
         # frame edge, orthogonal on every side, in every shipped grid.
         for canonical, rows, _, _ in cursor_art.CURSORS:
             with self.subTest(canonical=canonical):
-                self.assertEqual(len(rows), 16)
-                self.assertEqual({len(row) for row in rows}, {16})
-                for y, row in enumerate(rows):
-                    for x, cell in enumerate(row):
-                        if cell == "#":
-                            self._assert_black_cell_is_shielded(rows, x, y)
+                self._assert_grid_is_shielded(canonical, rows)
+
+    def _assert_grid_is_shielded(self, canonical, rows):
+        self.assertEqual(len(rows), 16)
+        self.assertEqual({len(row) for row in rows}, {16})
+        for y, row in enumerate(rows):
+            for x, cell in enumerate(row):
+                if cell == "#":
+                    self._assert_black_cell_is_shielded(rows, x, y)
 
     def _assert_black_cell_is_shielded(self, rows, x, y):
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):

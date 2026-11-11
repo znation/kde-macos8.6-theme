@@ -108,12 +108,16 @@ class TestShippedFilesSymlinks(unittest.TestCase):
             icons = checkout / "icons"
             icons.symlink_to(private, target_is_directory=True)
             for default_anchor in (False, True):
-                with self.subTest(default_anchor=default_anchor):
-                    with mock.patch("support.shipped_files.ROOT", checkout):
-                        kwargs = {} if default_anchor else {"anchor": checkout}
-                        with self.assertRaises(ValueError) as caught:
-                            shipped_files(alias / "icons" / "package", **kwargs)
-                    self.assertIn(str(alias / "icons"), str(caught.exception))
+                self._assert_ancestor_link_refused(alias, checkout,
+                                                   default_anchor)
+
+    def _assert_ancestor_link_refused(self, alias, checkout, default_anchor):
+        with self.subTest(default_anchor=default_anchor):
+            kwargs = {} if default_anchor else {"anchor": checkout}
+            with (mock.patch("support.shipped_files.ROOT", checkout),
+                  self.assertRaises(ValueError) as caught):
+                shipped_files(alias / "icons" / "package", **kwargs)
+            self.assertIn(str(alias / "icons"), str(caught.exception))
 
     def test_refuses_a_symlink_inside_the_package(self):
         for kind in ("file", "directory", "contained"):
