@@ -1385,12 +1385,19 @@ class TestSessionThemeSources(unittest.TestCase):
             directory.mkdir()
             target = directory / "kvantum.kvconfig"
             target.write_text("previous selection\n", encoding="utf-8")
-            with mock.patch.object(
-                render_setup, "write_bytes_atomically", side_effect=OSError("disk full")
-            ):
+            def fail_publication(source, destination):
+                self.assertEqual(target, destination)
+                self.assertEqual(
+                    b"[General]\ntheme=org.macos8.desktop\n", source.read_bytes()
+                )
+                self.assertEqual("previous selection\n", target.read_text(encoding="utf-8"))
+                raise OSError("disk full")
+
+            with mock.patch("tools.atomic_write.os.replace", side_effect=fail_publication):
                 with self.assertRaisesRegex(OSError, "disk full"):
                     render_setup.write_kvantum_selection(session)
             self.assertEqual("previous selection\n", target.read_text(encoding="utf-8"))
+            self.assertEqual([target], list(directory.iterdir()))
 
     @staticmethod
     def stage_installed_sheets(session, versions):
