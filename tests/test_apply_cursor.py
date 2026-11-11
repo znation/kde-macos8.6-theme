@@ -269,6 +269,7 @@ class TestInstall(CursorCase):
         # after the link it was meant to expose is missing.
         self.install_theme()
         self.stub_selector()
+
         def failing_symlink(source, target, *args, **kwargs):
             raise OSError("simulated link failure")
 
@@ -301,6 +302,24 @@ class TestInstall(CursorCase):
             (self.home / ".icons" / "foreign-entry").read_text(encoding="utf-8"),
         )
         self.assertFalse(os.path.lexists(self.link))
+        self.assertEqual([], self.recorded())
+
+    def test_a_failed_link_creation_keeps_a_preexisting_icons_directory(self):
+        # Cleanup after a failed link removes only a ~/.icons this attempt
+        # created; an empty ~/.icons the user already had must survive.
+        self.install_theme()
+        self.stub_selector()
+        self.link.parent.mkdir(parents=True)
+
+        def failing_symlink(source, target, *args, **kwargs):
+            raise OSError("simulated link failure")
+
+        with mock.patch.object(apply_cursor.os, "symlink", failing_symlink):
+            result = self.run_tool()
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(str(self.link), result.stderr)
+        self.assertTrue(self.link.parent.is_dir())
         self.assertEqual([], self.recorded())
 
 
