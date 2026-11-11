@@ -627,7 +627,9 @@ literal `$HOME/.local/share/themes/` path.
 captures the pair at the same 480x360 size: the session reads forced-geometry window
 rules that place the two windows side by side, and KWin activates the newest one, so the
 captured surface shows the unfocused window — the earlier-spawned one, on the left — drawn
-with the inactive decoration art.
+with the inactive decoration art; the inactive gate
+(`tests/test_render_surface.py::TestInactiveDialogRender`) pins that window's outline
+ring, recoloured client edge, flat bar and title ink there.
 
 ### Staging packages
 
@@ -1630,11 +1632,16 @@ region with the same `crop`/`compare` the fidelity tool uses. The dialog renders
 suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
 `::TestCalendarDialogRender`, `::TestColorDialogRender`, `::TestSliderDialogRender`,
-`::TestTextboxDialogRender`, `::TestProgressbarDialogRender` and `::TestGtkDialogRender`)
+`::TestTextboxDialogRender`, `::TestProgressbarDialogRender`, `::TestGtkDialogRender` and
+`::TestInactiveDialogRender`)
 open a `kdialog` warning box, chooser, input box, menu list, calendar, color picker, slider,
 progress meter and text box and a `zenity` GTK 4 entry dialog, and byte-compare the
 engine-drawn widget each opens with the shipped art described under
-[Rendering a candidate](#rendering-a-candidate). The GTK 4 dialog gate also pins the
+[Rendering a candidate](#rendering-a-candidate). The inactive gate pins the two-window
+capture's unfocused window: its decoration pixels — the `#555555` outline ring, the
+recoloured client edge, the flat buttonless `#DDDDDD` bar and the `#777777` title ink —
+against the shipped inactive art, beside the focused neighbour that proves the capture
+holds two states. The GTK 4 dialog gate also pins the
 rendered action-button row, Cancel button and CSD shell edge; the gates also check capture-level
 invariants.
 

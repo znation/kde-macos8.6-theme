@@ -39,15 +39,16 @@ class TestCiWorkflow(unittest.TestCase):
     def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
         workflow = self.read_workflow()
         # The render gate (tests/test_render_surface.py::TestRender) silently
-        # skips wherever its five Plasma tools are absent, and the twelve dialog
+        # skips wherever its five Plasma tools are absent, and the thirteen dialog
         # gates (TestCheckboxDialogRender, TestComboboxDialogRender,
         # TestLineInputDialogRender, TestMenuDialogRender,
         # TestRadioDialogRender,
         # TestCalendarDialogRender, TestColorDialogRender,
         # TestIconDialogRender, TestProgressbarDialogRender,
-        # TestSliderDialogRender, TestTextboxDialogRender and
-        # TestGtkDialogRender) skip wherever the dialog client their dialog
-        # render opens is absent (kdialog for the eleven kdialog modes, zenity
+        # TestSliderDialogRender, TestTextboxDialogRender,
+        # TestGtkDialogRender and TestInactiveDialogRender) skip wherever the
+        # dialog client their dialog
+        # render opens is absent (kdialog for the twelve kdialog modes, zenity
         # for the GTK 4 mode). The workflow must
         # install and, by name, verify all seven tools,
         # so no gate quietly misses the render it byte-compares.

@@ -27,7 +27,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.aurorae_fixtures import AURORAE_DIR, REFERENCE_BOUNDS
+from support.aurorae_fixtures import (
+    AURORAE_DIR,
+    INACTIVE_FRAME_GREY,
+    REFERENCE_BOUNDS,
+)
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F401
 from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
 from support.kvantum_fixtures import SVG
@@ -37,6 +41,7 @@ from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
     FACE,
+    INACTIVE_OUTLINE,
     WHITE,
     hex_colour,
 )
@@ -1261,7 +1266,7 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
 # skip condition away from the condition the render CLI refuses on: each
-# dialog flag requires its own client by name (kdialog for the eleven kdialog
+# dialog flag requires its own client by name (kdialog for the twelve kdialog
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
@@ -1392,12 +1397,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The twelve dialog gates skip wherever their render CLI refuses on a tool.
+    """The thirteen dialog gates skip wherever their render CLI refuses on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the eleven kdialog modes, zenity for the
-    GTK mode), and the twelve dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the twelve kdialog modes, zenity for the
+    GTK mode), and the thirteen dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1469,6 +1474,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestSliderDialogRender,
             TestTextboxDialogRender,
             TestGtkDialogRender,
+            TestInactiveDialogRender,
         ):
             with self.subTest(gate=gate.__name__):
                 self.assertEqual(expected, gate.__unittest_skip__)
@@ -1522,6 +1528,7 @@ class _Renders:
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
         ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
+        ("inactive", ("--inactive-dialog",), "dialog.png"),
     )
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
@@ -1583,6 +1590,16 @@ class TestRenderBudgets(unittest.TestCase):
         settle = flags[flags.index("--settle") + 1]
         self.assertEqual(settle, "20")
 
+    def test_the_inactive_gate_renders_at_the_documented_default_settle(self):
+        # The two-window inactive capture rides the same dialog defaults as
+        # the kdialog widget gates: its flags in _Renders.KINDS carry
+        # no --settle argument, so the dialog default paint budget governs
+        # and no under-budgeted override can shorten the two-window
+        # session's settle. A static pin of the shipped flag list, like the
+        # sibling applet pin below.
+        flags = dict((kind, flags) for kind, flags, _ in _Renders.KINDS)["inactive"]
+        self.assertNotIn("--settle", flags)
+
     def test_the_applet_gate_renders_at_the_documented_default_settle(self):
         # The offline reproduction of the archived slow-check record about the
         # applet render gate: its flags in _Renders.KINDS carry no --settle
@@ -1598,7 +1615,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the twelve dialog render gates share.
+    """Test scaffolding the thirteen dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1691,12 +1708,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the twelve dialog render gates share.
+    """Return the skip guard the thirteen dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the eleven
-    kdialog modes, zenity for the GTK mode), so the twelve dialog gates skip
+    missing-tool diagnostic when one is absent: kdialog for the twelve
+    kdialog modes, zenity for the GTK mode), so the thirteen dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -2903,6 +2920,131 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
             for y in range(0, image.height, 8)
         }
         self.assertGreater(len(colours), 1)
+
+
+@_dialog_gate_guard()
+class TestInactiveDialogRender(_DialogGate, unittest.TestCase):
+    """The shipped inactive Aurorae decoration as KWin draws the unfocused window.
+
+    The two-window ``--inactive-dialog`` capture holds one unfocused client
+    (the left window, the earlier-spawned of the pair the forced-geometry
+    rules place side by side) beside one focused client, and this class pins
+    the left window's decoration pixels: the 1px ``#555555`` inactive outline
+    ring, the active frame's black client edge recoloured to the same grey,
+    the flat buttonless ``#DDDDDD`` bar and the ``#777777`` title ink. It
+    complements the landed art-side pins in ``tests/test_aurorae_frame.py``
+    and ``tests/test_aurorae_rc.py`` and holds no client-widget pin: the
+    message-box contents stay unpinned, where the other dialog gates own
+    widget pins.
+    """
+
+    KIND = "inactive"
+
+    # The left (unfocused) window's forced frame rectangle and the inner
+    # client-edge rectangle, from tools/render_window_rules.py's
+    # INACTIVE_GEOMETRY (position (4, 8), size (224, 344)); the ring test
+    # pins the forced placement too, since a moved or resized window no
+    # longer puts the ring on these coordinates.
+    LEFT_WINDOW = (4, 8, 224, 344)
+    CLIENT_EDGE = (9, 29, 214, 318)  # corners (9, 29) and (222, 346)
+    # The right (focused) window's forced frame rectangle and title-bar band.
+    RIGHT_WINDOW = (252, 8, 224, 344)
+    RIGHT_TITLE_BAND = (253, 9, 222, 20)  # rows y=9..28, x=253..474
+    # The centered title "Inactive window"'s glyph band, the one region of
+    # the between-rings field the text's antialiasing may bleed into.
+    # Measured 2026-11-11 on a consecutive pair of full
+    # ``tools/render_surface.py --inactive-dialog`` runs on this host whose
+    # two 480x360 captures agreed byte for byte under ``cmp``: the ink's
+    # ``#777777`` pixels span x=60..128 at y=14..23, and the antialiasing
+    # bleeds beyond them to x=59..151 (wider than the planned re-derivation
+    # note's x=58..130, so the band was widened to the fresh capture), all
+    # inside x=58..152 at y=13..24. Rows y=9..12 and y=25..28 measured flat
+    # outside the band in the same pair.
+    GLYPH_BAND = (58, 13, 95, 12)  # x=58..152, y=13..24
+
+    def assert_ring(self, rect, colour):
+        """Pin every border-ring pixel of *rect* at *colour*."""
+        image = self.candidate_image()
+        x0, y0, width, height = rect
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+            if x in (0, width - 1) or y in (0, height - 1)
+        }
+        self.assertEqual(
+            {(x, y): colour for (x, y) in actual},
+            actual,
+        )
+
+    def test_left_window_outline_is_the_inactive_outline(self):
+        # Every border pixel of the left window's forced frame rectangle
+        # equals the shipped INACTIVE_OUTLINE: the recoloured inactive ring
+        # (the active frame's #000000 would fail here), and the ring's
+        # coordinates also pin the forced placement -- a moved or resized
+        # window no longer puts the ring on these coordinates.
+        self.assert_ring(self.LEFT_WINDOW, INACTIVE_OUTLINE)
+
+    def test_left_window_client_edge_is_the_recoloured_inner_rectangle(self):
+        # The ring of the client-edge rectangle equals the same
+        # INACTIVE_OUTLINE: the active frame's black client edge recoloured,
+        # the same derivation test_inactive_frame_matches_reference pins in
+        # the art.
+        self.assert_ring(self.CLIENT_EDGE, INACTIVE_OUTLINE)
+
+    def test_left_window_field_is_the_flat_buttonless_bar(self):
+        # Every pixel of the frame rect that lies neither on the outer
+        # ring, nor on the inner-rectangle ring, nor strictly inside the
+        # inner rectangle, nor in the title glyph band (GLYPH_BAND above,
+        # with its measured-run provenance), equals the flat
+        # INACTIVE_FRAME_GREY. A flattened box art, a stray active bevel
+        # row or a resampling bleed in the bar fails here.
+        image = self.candidate_image()
+        fx, fy, fw, fh = self.LEFT_WINDOW
+        ex, ey, ew, eh = self.CLIENT_EDGE
+        gx, gy, gw, gh = self.GLYPH_BAND
+        actual = {
+            (x, y): hex_colour(pixel_at(image, fx + x, fy + y))
+            for x in range(fw)
+            for y in range(fh)
+            if x not in (0, fw - 1)
+            and y not in (0, fh - 1)
+            and not (ex <= fx + x < ex + ew and ey <= fy + y < ey + eh)
+            and not (gx <= fx + x < gx + gw and gy <= fy + y < gy + gh)
+        }
+        self.assertEqual(
+            {(x, y): INACTIVE_FRAME_GREY for (x, y) in actual},
+            actual,
+        )
+
+    def test_title_ink_is_the_inactive_text_colour(self):
+        # The title stem's deterministic core: the leftmost column of the
+        # centered "Inactive window" title (x=60, rows y=14..23 in the
+        # measured run) carries the full-strength ink, not an antialiased
+        # blend. The value is quoted from
+        # theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc's
+        # InactiveTextColor=119,119,119, which tests/test_aurorae_rc.py
+        # already pins against the reference title-core samples. The full
+        # antialiased glyph set is deliberately not byte-compared; the stem
+        # column is the ink's deterministic core.
+        for y in range(14, 24):
+            self.assert_pixel(60, y, "#777777")
+
+    def test_right_window_keeps_its_active_frame(self):
+        # The right window's border ring stays the active BLACK frame, and
+        # its title bar carries non-field ink: the capture must hold two
+        # different states or the left-window pins prove nothing.
+        self.assert_ring(self.RIGHT_WINDOW, BLACK)
+        image = self.candidate_image()
+        bx, by, bw, bh = self.RIGHT_TITLE_BAND
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, bx + x, by + y)) != INACTIVE_FRAME_GREY
+                for x in range(bw)
+                for y in range(bh)
+            ),
+            "the right window's title bar carries no ink",
+        )
 
 
 if __name__ == "__main__":
