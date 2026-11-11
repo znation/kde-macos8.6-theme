@@ -1403,6 +1403,23 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             with self.subTest(gate=gate.__name__):
                 self.assertEqual(expected, gate.__unittest_skip__)
 
+        # Reapply the real guard to disposable classes: never alter the
+        # render gates or start a session while simulating missing tools.
+        for missing in (None, *tools):
+            with self.subTest(missing=missing):
+                def which(tool):
+                    return None if tool == missing else "/fake/bin/" + tool
+
+                with (
+                    mock.patch.object(shutil, "which", side_effect=which),
+                    mock.patch.object(
+                        sys.modules[__name__], "software_renderer_skip_reason",
+                        return_value=None,
+                    ),
+                ):
+                    guarded = _dialog_gate_guard()(type("Probe", (), {}))
+                self.assertEqual(missing is not None, guarded.__unittest_skip__)
+
 
 class _Renders:
     """The module's render gates' sessions, started together, finished once.
