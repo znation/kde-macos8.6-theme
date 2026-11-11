@@ -240,7 +240,10 @@ class TestSampleCli(CliTestCase):
         # being handed to the decoder. Patch the decode entry point to fail if
         # it is reached at all.
         path = self._image()
-        for arguments in (("4", "1", "--json"), ("2", "1", "--width", "3", "--json")):
+        for arguments in (
+            ("4", "1"), ("2", "1", "--width", "3"),
+            ("4", "1", "--json"), ("2", "1", "--width", "3", "--json"),
+        ):
             with self.subTest(arguments=arguments):
                 with mock.patch.object(
                     sample,
@@ -261,11 +264,13 @@ class TestSampleCli(CliTestCase):
             4, 3, [bytes(12), bytes(12), bytes(12)], filter_types=[0, 9, 0]
         )
         path = self._write(self._tmp_dir(), "corrupt.png", data)
-        result = self._run(path, "0", "0", "--json")
-        self._assert_usage_error(
-            result, "unsupported PNG filter type 9 in row 1"
-        )
-        self.assertEqual(result.stdout, "")
+        for mode in ((), ("--json",)):
+            with self.subTest(mode=mode):
+                result = self._run(path, "0", "0", *mode)
+                self._assert_usage_error(
+                    result, "unsupported PNG filter type 9 in row 1"
+                )
+                self.assertEqual(result.stdout, "")
 
     def test_region_is_row_major(self):
         path = self._image()
@@ -349,8 +354,11 @@ class TestSampleCli(CliTestCase):
     def test_missing_file_is_error(self):
         tmp = self._tmp_dir()
         missing = str(tmp / "absent.png")
-        result = self._run(missing, "0", "0", "--json")
-        self._assert_usage_error(result, "cannot read", missing)
+        for mode in ((), ("--json",)):
+            with self.subTest(mode=mode):
+                result = self._run(missing, "0", "0", *mode)
+                self._assert_usage_error(result, "cannot read", missing)
+                self.assertEqual(result.stdout, "")
 
     def test_missing_file_error_names_the_os_reason(self):
         """An OS-level read refusal reports why, naming the underlying error.
@@ -389,10 +397,12 @@ class TestSampleCli(CliTestCase):
         root, link = symlinked_repo(
             self._tmp_dir(), "reference.png", data
         )
-        with mock.patch.object(sample, "ROOT", str(root)):
-            result = self._run(str(link), "0", "0", "--json")
-        self._assert_usage_error(result, "resolves outside", str(root))
-        self.assertEqual(result.stdout, "")
+        for mode in ((), ("--json",)):
+            with self.subTest(mode=mode):
+                with mock.patch.object(sample, "ROOT", str(root)):
+                    result = self._run(str(link), "0", "0", *mode)
+                self._assert_usage_error(result, "resolves outside", str(root))
+                self.assertEqual(result.stdout, "")
 
     def test_rejects_an_escaping_symlink_reached_through_a_checkout_alias(self):
         _, data = solid_rgb(1, 1)
