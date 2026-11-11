@@ -563,19 +563,19 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         for action_class in ("suggested-action", "destructive-action"):
             with self.subTest(action_class=action_class):
                 prefix = f"button.{action_class}.flat"
-                self.assert_rule(prefix, face)
+                self.assertEqual(self.rules[prefix], face)
                 for state in (":active", ":checked"):
-                    self.assert_rule(f"{prefix}{state}", sunken)
-                self.assert_rule(f"{prefix}:backdrop", face)
+                    self.assertEqual(self.rules[f"{prefix}{state}"], sunken)
+                self.assertEqual(self.rules[f"{prefix}:backdrop"], face)
                 for state in (":backdrop:active", ":backdrop:checked"):
-                    self.assert_rule(f"{prefix}{state}", sunken)
+                    self.assertEqual(self.rules[f"{prefix}{state}"], sunken)
                 for state in (
                     ":disabled",
                     ":backdrop:disabled",
                     ":backdrop:disabled:active",
                     ":backdrop:disabled:checked",
                 ):
-                    self.assert_rule(f"{prefix}{state}", disabled)
+                    self.assertEqual(self.rules[f"{prefix}{state}"], disabled)
                 expected = {
                     prefix,
                     f"{prefix}:active",
