@@ -16,8 +16,8 @@ Usage::
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
         [--checkbox-dialog | --combobox-dialog | --color-dialog
-        | --icon-dialog | --lineedit-dialog | --menu-dialog
-        | --radiolist-dialog
+        | --icon-dialog | --inactive-dialog | --lineedit-dialog
+        | --menu-dialog | --radiolist-dialog
         | --calendar-dialog | --progressbar-dialog | --slider-dialog
         | --textbox-dialog | --gtk-dialog]
 

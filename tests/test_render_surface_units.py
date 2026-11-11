@@ -30,6 +30,7 @@ from tools import (
     render_session,
     render_setup,
     render_surface,
+    render_window_rules,
     render_workflow,
     apply_optional,
 )  # noqa: E402
@@ -40,6 +41,7 @@ from tools.render_clients import (
     combobox_dialog_client,
     gtk_dialog_client,
     icon_dialog_client,
+    inactive_dialog_client,
     lineedit_dialog_client,
     menu_dialog_client,
     progressbar_dialog_client,
@@ -752,6 +754,57 @@ class TestArguments(unittest.TestCase):
             self, render_surface.main, tools, ("out.png", "--checkbox-dialog")
         )
 
+    def test_cli_delegates_the_inactive_dialog_capture_size(self):
+        # A plain --inactive-dialog run captures at the 480x360 dialog
+        # default, like every one-window dialog mode.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--inactive-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
+    def test_rejects_an_applet_with_the_inactive_dialog(self):
+        # The two-window client opens its own dialogs; a plasmoid id
+        # combined with it has no window to open it in.
+        self.assert_usage_error("out.png", "--inactive-dialog", "--applet", "x")
+
+    def test_rejects_a_capture_size_with_the_inactive_dialog(self):
+        # The capture stays at the 480x360 the dialog render publishes;
+        # the forced-geometry rules are derived for that size.
+        self.assert_usage_error("out.png", "--inactive-dialog", "--height", "240")
+
+    def test_rejects_two_dialog_modes_names_the_inactive_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a missing name
+        # would print a refusal without the inactive flag in it.
+        for left, right in (
+            ("--inactive-dialog", "--checkbox-dialog"),
+            ("--inactive-dialog", "--gtk-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_inactive_dialog_requires_kdialog(self):
+        # Both windows of the two-window client are kdialog message boxes,
+        # so the mode's client tool is kdialog.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--inactive-dialog")
+        )
+
+    def test_the_help_text_names_the_inactive_dialog(self):
+        # --help lists every dialog mode; a flag missing from that help
+        # would leave the mode unusable by anyone reading the CLI.
+        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+        self.assertIn("--inactive-dialog", stdout)
+
 
 class TestSessionSetup(unittest.TestCase):
     def test_creates_the_scratch_layout_and_removes_it(self):
@@ -1082,6 +1135,35 @@ class TestSessionCommand(unittest.TestCase):
             self.assertEqual(
                 ["1", str(session.surface), *client],
                 shlex.split(command.argv[-1])[4:],
+            )
+
+    def test_carries_the_inactive_dialog_wrapper_words(self):
+        # The two-window client is one sh -c wrapper the session script
+        # backgrounds as a single client PID: it opens the to-be-inactive
+        # kdialog first and the focused one last, so KWin's newest-window
+        # activation lands on the second, then waits so the wrapper stays
+        # the PID the script liveness-checks and reaps. The wrapper's kdialog
+        # titles are the exact matches the forced-geometry kwinrulesrc pins.
+        with self._dialog_command(inactive_dialog_client) as (_, command):
+            script = command.argv[-1]
+            self.assertIn("sh -c", script)
+            # The titles travel inside double quotes in the wrapper, which
+            # the outer session script shlex-quotes as one word: single
+            # quotes inside the wrapper would be escaped out of recognition
+            # there.
+            self.assertIn(
+                f'kdialog --title "{render_window_rules.INACTIVE_TITLE}"', script
+            )
+            self.assertIn(
+                f'kdialog --title "{render_window_rules.FOCUSED_TITLE}"', script
+            )
+            self.assertIn("--msgbox", script)
+            self.assertIn("wait", script)
+            self.assertLess(
+                script.index(render_window_rules.INACTIVE_TITLE),
+                script.index(render_window_rules.FOCUSED_TITLE),
+                "the to-be-inactive window must spawn first so KWin "
+                "activates the focused one",
             )
 
     def test_carries_the_checkbox_dialog_client_words(self):

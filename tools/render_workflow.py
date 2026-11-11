@@ -11,8 +11,9 @@ if __package__:
     from tools.process_group import run_logged
     from tools.render_output import publish
     from tools.gtk_user_files import ConfigError
-    from tools.render_dialogs import DIALOG_MODES
+    from tools.render_dialogs import DIALOG_MODES, DialogMode
     from tools.render_session import Session, session_command
+    from tools.render_window_rules import RULES_FILE, write_window_rules
     from tools.render_setup import (
         CONFIG_FILES,
         install_gtk_selection,
@@ -28,8 +29,9 @@ else:  # run directly from render_surface.py
     from process_group import run_logged
     from render_output import publish
     from gtk_user_files import ConfigError
-    from render_dialogs import DIALOG_MODES
+    from render_dialogs import DIALOG_MODES, DialogMode
     from render_session import Session, session_command
+    from render_window_rules import RULES_FILE, write_window_rules
     from render_setup import (
         CONFIG_FILES,
         install_gtk_selection,
@@ -55,7 +57,15 @@ def _dialog_config_files() -> tuple[str, ...]:
 
 def _dialog_requested(args: argparse.Namespace) -> bool:
     """Return whether any dialog render mode was selected on the command line."""
-    return any(getattr(args, mode.attr) for mode in DIALOG_MODES)
+    return _selected_dialog_mode(args) is not None
+
+
+def _selected_dialog_mode(args: argparse.Namespace) -> DialogMode | None:
+    """Return the dialog mode whose flag was set, or None for the applet."""
+    for mode in DIALOG_MODES:
+        if getattr(args, mode.attr):
+            return mode
+    return None
 
 
 def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
@@ -110,14 +120,21 @@ def render(args: argparse.Namespace) -> int:
         if problem is not None:
             return report_error(TOOL, f"cannot link {path}: {problem}")
 
-        dialog = _dialog_requested(args)
+        mode = _selected_dialog_mode(args)
         try:
-            write_session_configs(session, files=_dialog_config_files() if dialog else CONFIG_FILES)
+            write_session_configs(session, files=_dialog_config_files() if mode else CONFIG_FILES)
+            # The scratch config home gets the theme defaults the dialog
+            # applies, plus the mode's own extra config files. kwinrulesrc is
+            # not one of the theme defaults (the defaults writer refuses a
+            # file no [<file>][<group>] section defines), so the rules file
+            # the mode names is written beside them from its own writer.
+            if mode is not None and RULES_FILE in mode.extra_config_files:
+                write_window_rules(session)
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(TOOL, f"cannot write the session config: {exc}")
 
         client = _client_command(args, session)
-        if dialog:
+        if mode is not None:
             failure = _select_dialog_theme(session, args)
             if failure is not None:
                 return failure

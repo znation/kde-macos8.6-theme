@@ -1,6 +1,6 @@
 """Tests for the shared dialog-mode table in tools/render_dialogs.py.
 
-``DIALOG_MODES`` is the single declaration of the render CLI's twelve dialog
+``DIALOG_MODES`` is the single declaration of the render CLI's thirteen dialog
 modes: the parser builds one ``--*-dialog`` flag per entry from it, the CLI's
 mutual-exclusion refusal and required-tool list read it, and the workflow maps
 the chosen flag to its client and its theme-selection fan-out from it. A wrong
@@ -14,6 +14,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import render_clients, render_dialogs  # noqa: E402
+from tools.render_clients import inactive_dialog_client
 
 
 class TestDialogModes(unittest.TestCase):
@@ -37,6 +38,7 @@ class TestDialogModes(unittest.TestCase):
                 "--textbox-dialog",
                 "--gtk-dialog",
                 "--icon-dialog",
+                "--inactive-dialog",
             ),
             tuple(mode.flag for mode in render_dialogs.DIALOG_MODES),
         )
@@ -67,6 +69,7 @@ class TestDialogModes(unittest.TestCase):
                 render_clients.textbox_dialog_client,
                 render_clients.gtk_dialog_client,
                 render_clients.icon_dialog_client,
+                inactive_dialog_client,
             ),
             tuple(mode.client for mode in render_dialogs.DIALOG_MODES),
         )
@@ -76,7 +79,7 @@ class TestDialogModes(unittest.TestCase):
         # installs the GTK selection beside the Kvantum one for the zenity
         # modes, so a swapped tool column would demand kdialog for --gtk-dialog.
         self.assertEqual(
-            ("kdialog",) * 10 + ("zenity", "kdialog"),
+            ("kdialog",) * 10 + ("zenity", "kdialog", "kdialog"),
             tuple(mode.client_tool for mode in render_dialogs.DIALOG_MODES),
         )
         gtk_modes = [

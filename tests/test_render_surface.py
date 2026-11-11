@@ -41,7 +41,13 @@ from support.platinum_palette import (
     hex_colour,
 )
 from support.reference_image import read_reference, skip_unless_materialized
-from tools import render_session, render_setup, render_surface, render_workflow  # noqa: E402
+from tools import (
+    render_session,
+    render_setup,
+    render_surface,
+    render_window_rules,
+    render_workflow,
+)  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -545,6 +551,54 @@ class TestFailurePaths(StubTools):
         self.assert_failed_run(
             status, stderr, output, 1, "render session exited 1",
         )
+
+    def test_inactive_dialog_launches_its_two_window_wrapper(self):
+        # The inactive mode must reach the session as the two-window sh -c
+        # wrapper (one kdialog per fixed title, opened inactive-window
+        # first), not fall through to the default Plasma calculator applet.
+        # Its session also writes the forced-geometry rules the two titles
+        # are matched by, beside the dialog's Kvantum selection.
+        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run, \
+                mock.patch.object(render_workflow, "write_session_configs") as configs, \
+                mock.patch.object(render_workflow, "write_kvantum_selection") as selection, \
+                mock.patch.object(render_workflow, "write_window_rules") as rules:
+            status, stderr, output = self.run_main("--inactive-dialog")
+
+        self.assertEqual(
+            render_setup.CONFIG_FILES + ("kdeglobals",),
+            configs.call_args.kwargs["files"],
+        )
+        selection.assert_called_once_with(configs.call_args.args[0])
+        rules.assert_called_once_with(configs.call_args.args[0])
+        argv = run.call_args.args[0]
+        self.assertIn("kdialog", argv[-1])
+        self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
+        self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])
+        self.assertNotIn("org.kde.plasma.calculator", argv[-1])
+        self.assert_failed_run(
+            status, stderr, output, 1, "render session exited 1",
+        )
+
+    def test_only_the_inactive_dialog_writes_the_window_rules(self):
+        # The two-window forced-geometry rules are the inactive mode's own
+        # session config: no applet render and no one-window dialog render
+        # may write a kwinrulesrc the other sessions never asked for.
+        self.stub("kdialog", "exit 0")
+        with mock.patch.object(
+            render_workflow, "write_window_rules"
+        ) as rules, mock.patch.object(
+            render_workflow, "run_logged", return_value=1
+        ):
+            for extra in ((), ("--checkbox-dialog",)):
+                with self.subTest(extra=extra):
+                    status, _, _ = self.run_main(*extra)
+                    self.assertEqual(1, status)
+                    rules.assert_not_called()
+            status, _, _ = self.run_main("--inactive-dialog")
+            self.assertEqual(1, status)
+
+        rules.assert_called_once()
+        self.assert_scratch_removed()
 
     def test_only_dialog_renders_add_kdeglobals_to_the_session_configs(self):
         # Dialog clients are Qt applications, so the scratch session must

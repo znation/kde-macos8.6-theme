@@ -20,6 +20,7 @@ try:
         combobox_dialog_client,
         gtk_dialog_client,
         icon_dialog_client,
+        inactive_dialog_client,
         lineedit_dialog_client,
         menu_dialog_client,
         progressbar_dialog_client,
@@ -35,6 +36,7 @@ except ImportError:  # imported from a directly run tool
         combobox_dialog_client,
         gtk_dialog_client,
         icon_dialog_client,
+        inactive_dialog_client,
         lineedit_dialog_client,
         menu_dialog_client,
         progressbar_dialog_client,
@@ -54,6 +56,9 @@ class DialogMode(NamedTuple):
     render client factory the workflow builds the mode's window with, and
     ``client_tool`` the external tool that client runs (the CLI requires it
     on PATH, and the workflow installs the GTK selection for it).
+    ``extra_config_files`` names further config files the workflow writes
+    into the scratch config home beside the dialog defaults (empty for
+    every one-window mode).
     """
 
     attr: str
@@ -61,6 +66,7 @@ class DialogMode(NamedTuple):
     help: str
     client: Callable[[Session], tuple[str, ...]]
     client_tool: str
+    extra_config_files: tuple[str, ...] = ()
 
 
 # One entry per dialog mode, in the order the CLI lists the flags: the parser
@@ -203,5 +209,19 @@ DIALOG_MODES = (
         ),
         icon_dialog_client,
         "kdialog",
+    ),
+    DialogMode(
+        "inactive_dialog",
+        "--inactive-dialog",
+        (
+            "open two KDialog message boxes with two distinct fixed titles "
+            "and capture the 480x360 pair at the size the inactive-window "
+            "gate byte-compares: KWin activates the newest, so the earlier "
+            "window stands beside it drawn in the frame's inactive state, "
+            "placed by the forced-geometry window rules the session reads"
+        ),
+        inactive_dialog_client,
+        "kdialog",
+        ("kwinrulesrc",),
     ),
 )

@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+try:
+    from tools import render_window_rules
+except ImportError:  # imported from a directly run tool
+    import render_window_rules
+
 if TYPE_CHECKING:
     from tools.render_session import Session
 
@@ -220,3 +225,42 @@ def color_dialog_client(_session: Session) -> tuple[str, ...]:
     the capture needs no date or default pin.
     """
     return ("kdialog", "--title", "Test", "--getcolor")
+
+
+def inactive_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the two-window wrapper argv the inactive-window gate renders.
+
+    A ``sh -c`` wrapper backgrounds two ``kdialog --msgbox`` windows with
+    two distinct fixed titles -- the to-be-inactive window first, the
+    focused one last -- so KWin activates the newest and the earlier one
+    draws the frame in its inactive state: the flat buttonless bar whose
+    centered title paints the colorscheme's ``InactiveTextColor``. The
+    wrapper then ``wait``s, so it is the single client PID the session
+    script liveness-checks after the settle and reaps after the capture,
+    exactly like every one-window client; its death after the capture
+    leaves the two kdialogs to the private bus's teardown, the session
+    lifecycle every client already relies on.
+
+    The titles are the exact matches the session's forced-geometry
+    ``kwinrulesrc`` rules (``tools/render_window_rules.py``) pin, and the
+    inter-spawn sleep keeps the mapping order that decides which window
+    KWin activates: the second window spawns after the first has had time
+    to map, so KWin's newest-window activation lands on the focused one.
+    """
+    return (
+        "sh",
+        "-c",
+        (
+            # The titles travel inside double quotes: the outer session
+            # script shlex-quotes this wrapper as one word, and single
+            # quotes inside it would be escaped beyond recognition there.
+            f'kdialog --title "{render_window_rules.INACTIVE_TITLE}" '
+            "--msgbox Unfocused &\n"
+            "first=$!\n"
+            "sleep 2\n"
+            f'kdialog --title "{render_window_rules.FOCUSED_TITLE}" '
+            "--msgbox Focused\n"
+            "wait\n"
+        ),
+        "inactive-dialog-wrapper",
+    )

@@ -497,7 +497,7 @@ refuses to overwrite or remove a `post-commit` hook it did not write -- this clo
 is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 ### Rendering a candidate
 
-Capture the default calculator or one of the twelve widget dialogs:
+Capture the default calculator or one of the thirteen widget dialogs:
 
 ```sh
 make render RENDER_OUTPUT=calculator.png
@@ -514,12 +514,13 @@ python3 tools/render_surface.py progressbar.png --progressbar-dialog
 python3 tools/render_surface.py slider.png --slider-dialog
 python3 tools/render_surface.py textbox.png --textbox-dialog
 python3 tools/render_surface.py gtk.png --gtk-dialog
+python3 tools/render_surface.py inactive.png --inactive-dialog
 ```
 
 The Make target captures the default calculator and takes its output path from `RENDER_OUTPUT`;
 set `RENDER_MODE` to `calculator`, `checkbox-dialog`, `combobox-dialog`, `lineedit-dialog`,
 `menu-dialog`, `radiolist-dialog`, `calendar-dialog`, `color-dialog`, `icon-dialog`, `progressbar-dialog`, `slider-dialog`,
-`textbox-dialog` or `gtk-dialog` to select a surface. Direct Python commands remain available. The calculator
+`textbox-dialog`, `gtk-dialog` or `inactive-dialog` to select a surface. Direct Python commands remain available. The calculator
 capture defaults to 320x240; each dialog capture is fixed at 480x360. Dialog modes cannot be combined with each other, a
 different applet, or width/height overrides. Dialog captures require `kdialog` in the kdialog
 modes and `zenity` in the GTK mode; see
@@ -617,9 +618,16 @@ scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@i
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
 GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
-edge; it also checks capture-level invariants. The twelve dialog modes cannot be combined. In each mode the scratch session links its own home's
+edge; it also checks capture-level invariants. The thirteen dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
+`--inactive-dialog` opens two `kdialog` message boxes with two distinct fixed titles and
+captures the pair at the same 480x360 size: the session reads forced-geometry window
+rules that place the two windows side by side, and KWin activates the newest one, so the
+captured surface shows the unfocused window — the earlier-spawned one, on the left — drawn
+with the inactive decoration art.
+
+### Staging packages
 
 ### Staging packages
 

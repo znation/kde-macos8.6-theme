@@ -51,6 +51,7 @@ class TestRenderMake(unittest.TestCase):
             ("slider-dialog", ["--slider-dialog"]),
             ("textbox-dialog", ["--textbox-dialog"]),
             ("gtk-dialog", ["--gtk-dialog"]),
+            ("inactive-dialog", ["--inactive-dialog"]),
         )
         for mode, flags in modes:
             with self.subTest(mode=mode):
