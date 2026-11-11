@@ -36,6 +36,8 @@ class TestSampleHistogramResult(CliTestCase):
                 {"rgb": [4, 5, 6], "hex": "#040506", "count": 1},
             ],
         })
+        self.assertNotIn("total_colors", result)
+        self.assertNotIn("omitted_pixels", result)
         self.assertEqual(output.getvalue(), "")
         self.assertEqual(vars(args), original)
 
@@ -60,6 +62,23 @@ class TestSampleHistogramResult(CliTestCase):
         self.assertEqual(result["colors"], [])
         self.assertEqual((result["total_colors"], result["omitted_pixels"]), (2, 2))
 
+    def test_cropped_rgba_result_truncation_and_disconnected_bounds(self):
+        image = SimpleNamespace(width=5, rgb=bytes(
+            (99, 0, 0, 1, 2, 3, 8, 8, 8, 1, 2, 3, 99, 0, 0,
+             99, 0, 0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 99, 0, 0)),
+            alpha=bytes((255, 0, 128, 0, 255, 255, 0, 255, 0, 255)))
+        args = SimpleNamespace(image="fixture.png", x=1, y=0, width=4, height=2,
+                               alpha=True, top_colors=1, color_bounds=True,
+                               color_positions=True, color_fractions=True)
+        self.assertEqual(sample_report_histogram._histogram_result(args, image, 5, 2), {
+            "image": "fixture.png", "image_width": 5, "image_height": 2,
+            "region": {"x": 1, "y": 0, "width": 4, "height": 2},
+            "colors": [{"rgb": [1, 2, 3], "hex": "#010203", "count": 4,
+                        "alpha": 0, "fraction": 4 / 8, "position": {"x": 1, "y": 0},
+                        "bounds": {"x": 1, "y": 0, "width": 3, "height": 2}}],
+            "total_colors": 4, "omitted_pixels": 4,
+        })
+
     def test_cropped_alpha_result_and_combined_cli_order(self):
         path = self._write(self._tmp_dir(), "rgba.png", make_png(4, 2, [
             bytes((9, 9, 9, 255, 1, 2, 3, 0, 4, 5, 6, 128, 8, 8, 8, 255)),
@@ -71,6 +90,9 @@ class TestSampleHistogramResult(CliTestCase):
                            "--color-centroids", "--json")
         self._assert_success(result)
         payload = json.loads(result.stdout)
+        self.assertEqual(list(payload), ["image", "image_width", "image_height",
+                                         "region", "colors", "total_colors",
+                                         "omitted_pixels"])
         self.assertEqual(payload, {
             "image": path, "image_width": 4, "image_height": 2,
             "region": {"x": 1, "y": 0, "width": 2, "height": 2},
