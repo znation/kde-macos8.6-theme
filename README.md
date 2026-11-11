@@ -641,8 +641,11 @@ opens on the scratch session's fixed `Documents` directory holding exactly `alph
 `bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. The file-dialog gate
 (`tests/test_render_surface.py::TestFileDialogRender`) pins the chooser's frame and title-bar
 bands, the title-bar boxes and pinstripes, the panels' sunken borders, the selected places row,
-the Name and Filter fields and the toolbar and bottom buttons; the chooser's per-file type
-icons are the fallback icon theme's and stay deliberately unpinned.
+the Name and Filter fields, the toolbar and bottom buttons, the list panel's column-header band
+with its dividers and style-drawn sort arrow, the file rows' `#FFFFFF` and `#EEEEEE` band faces
+with each per-file type-icon cell, and the empty rows' flat face; the caption glyphs, the file
+names and the clock-dependent date column stay live ink, and the icon art remains the fallback
+icon theme's.
 `--desktop` opens the themed Plasma shell itself (`plasmashell`, the 640x400 virtual
 session's only client) so the flush 20px top panel the look-and-feel layout builds — the
 menu bar with its clock and window list — paints into the capture; the scratch session

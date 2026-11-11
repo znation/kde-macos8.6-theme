@@ -3392,6 +3392,18 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     re-derived from ``render_slices`` like the sibling art-side pins;
     the leftmost box holds the window icon, whose mark is the fallback
     icon theme's rendering, pinned as measured.
+
+    The list panel's content faces are pinned too (measured on the same
+    consecutive pair, plus a third same-day render whose pinned regions
+    compared byte-equal to the first): the column-header band rows
+    99..120 draws face ``#DDDDDD`` with two full-height dividers (an
+    ``#AAAAAA`` shadow column beside a ``#000000`` core column at
+    x=343/344 and x=393/394) whose style-drawn sort arrow is byte-pinned
+    as measured; the seeded file rows 123..182 pin their ``#FFFFFF`` and
+    ``#EEEEEE`` (alternate-row trough) band faces with each per-file
+    type icon's cell byte-pinned as measured; the empty rows 183..251
+    are flat ``#FFFFFF``; and the caption glyphs, the file names, the
+    size text and the clock-dependent date column stay live ink.
     """
 
     KIND = "file_dialog"
@@ -3464,6 +3476,174 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     # ``render_slices`` re-derivation of the shipped SVG art.
     MAXIMIZE_BOX = (442, 7)
     SHADE_BOX = (463, 7)
+
+    # The column-header band's two dividers (rows 99..120, measured): each
+    # is a #AAAAAA shadow column beside a #000000 core column, at
+    # x=343/344 and x=393/394. A lost shadow column, a lost core column or
+    # a recoloured face fails the band test below.
+    HEADER_DIVIDERS = (
+        (343, "#AAAAAA"),
+        (344, "#000000"),
+        (393, "#AAAAAA"),
+        (394, "#000000"),
+    )
+    # The header captions' ink bands (measured columns; the glyphs stay
+    # live): "Name" x=155..187, "Size" x=349..371 and "Date" x=400..425,
+    # all inking rows 105..114.
+    HEADER_CAPTIONS = ((155, 187), (349, 371), (400, 425))
+    CAPTION_ROWS = (105, 114)
+    # The header band's style-drawn sort arrow (a solid #000000
+    # downward-pointing triangle with antialiased arms), byte-pinned as
+    # measured at x=329..339, rows 106..114. A moved, dropped, recoloured
+    # or resampled arrow fails the byte-compare.
+    SORT_ARROW = (
+        ("#DDDDDD", "#373737", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#373737", "#DDDDDD"),
+        ("#DDDDDD", "#A6A6A6", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#373737", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737", "#000000",
+         "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000",
+         "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737",
+         "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6",
+         "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#6E6E6E", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+    )
+    SORT_ARROW_RECT = (329, 106)
+
+    # The three seeded file rows' type-icon cells, byte-pinned as measured
+    # (rows 1 and 2 draw the fallback theme's document glyph, row 3 its
+    # distinct blue-ruled RTF glyph; the rightmost columns carry the
+    # #7F7F7F/#777777 fold shading against the row's own face colour, so
+    # the white-face and grey-face maps differ there).
+    DOC_ICON_ON_WHITE = (
+        ("#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#AFAFAF", "#DDDDDD", "#DDDDDD", "#FFFFFF"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#AFAFAF", "#DDDDDD", "#7F7F7F"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#AFAFAF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000"),
+    )
+    DOC_ICON_ON_GREY = (
+        ("#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#777777", "#EEEEEE", "#EEEEEE"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#AFAFAF", "#DDDDDD", "#DDDDDD", "#EEEEEE"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#AFAFAF", "#DDDDDD", "#777777"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#AFAFAF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
+         "#999999", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
+        ("#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000"),
+    )
+    RTF_ICON = (
+        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#0C2D63"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#0C2D63"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
+         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF"),
+    )
+    # The icon cells' offsets and shapes: row 1 and row 2 draw the
+    # document glyph 10x13 at (173, 126) and (173, 146); row 3 draws the
+    # RTF glyph 12x12 at (172, 167) (all measured).
+    ICON_CELLS = (
+        (173, 126, 10, 13, DOC_ICON_ON_WHITE),
+        (173, 146, 10, 13, DOC_ICON_ON_GREY),
+        (172, 167, 12, 12, RTF_ICON),
+    )
+
+    # The three seeded file rows' band faces and their per-band measured
+    # ink rectangles (the icon cell, the name text and the size text),
+    # excluded from the face pin; rows are the bands' first row, each band
+    # spanning 20 rows. The date band (DATE_BAND, x=395..473) is excluded
+    # from the exactness pin across a band's full height and demands live
+    # ink instead: the seeded files' modification times are the render
+    # session's wall clock, so the date column's digits move between runs.
+    ROW_BANDS = (
+        (123, "#FFFFFF", ((173, 182, 126, 138), (191, 241, 128, 139),
+                          (368, 386, 128, 137))),
+        (143, "#EEEEEE", ((173, 182, 146, 158), (191, 241, 148, 157),
+                          (368, 386, 148, 157))),
+        (163, "#FFFFFF", ((172, 183, 167, 178), (191, 241, 168, 178),
+                          (368, 386, 168, 177))),
+    )
+    ROW_BAND_HEIGHT = 20
+    ROW_TEXT_BANDS = ((191, 241), (368, 386), (395, 473))
+    EMPTY_ROWS = (183, 251)
 
     def assert_box_matches_svg(self, x0, y0, svg_name):
         """Byte-compare the box at (x0, y0) with the shipped Aurorae SVG art.
@@ -3707,8 +3887,9 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
             ),
             "the directory label above the header draws no ink",
         )
-        # So do the header labels and the file rows (the fallback-theme
-        # per-file type icons and the row text stay unpinned per README).
+        # So do the header labels and the file rows (the row text and the
+        # type-icon art stay unpinned per README; the icon cells themselves
+        # are byte-pinned by the sibling type-icon test below).
         self.assertTrue(
             any(
                 hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
@@ -3862,6 +4043,120 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
                     ),
                     "the box draws no mark inside its outline",
                 )
+
+    def test_the_column_header_band_pins_its_face_and_dividers(self):
+        # Rows 99..120 across x=152..473 (right of the landed scrollbar-strip
+        # exclusion): face #DDDDDD except the two full-height dividers (the
+        # #AAAAAA shadow column beside the #000000 core column at x=343/344
+        # and x=393/394) and the caption and sort-arrow ink bands pinned
+        # live and byte-exact in the sibling tests below. Rows 121..122 are
+        # the list field's top edge (#AAAAAA rule, #000000 outline). A lost
+        # divider column, a recoloured header face or a recoloured top edge
+        # fails here.
+        divider_columns = {x for x, _ in self.HEADER_DIVIDERS}
+        caption_y0, caption_y1 = self.CAPTION_ROWS
+        arrow_x0, arrow_y0 = self.SORT_ARROW_RECT
+        arrow_width, arrow_height = len(self.SORT_ARROW[0]), len(self.SORT_ARROW)
+        for y in range(99, 121):
+            for x in range(152, 474):
+                if caption_y0 <= y <= caption_y1 and any(
+                    a <= x <= b for a, b in self.HEADER_CAPTIONS
+                ):
+                    continue
+                if (arrow_y0 <= y < arrow_y0 + arrow_height
+                        and arrow_x0 <= x < arrow_x0 + arrow_width):
+                    continue
+                if x in divider_columns:
+                    continue
+                self.assert_pixel(x, y, "#DDDDDD")
+        for x, colour in self.HEADER_DIVIDERS:
+            for y in range(99, 121):
+                self.assert_pixel(x, y, colour)
+        for y in (121, 122):
+            for x in range(152, 474):
+                self.assert_pixel(x, y, "#AAAAAA" if y == 121 else "#000000")
+
+    def test_the_header_inks_its_captions_and_sort_arrow(self):
+        # The three captions must really draw: at least one pixel darker
+        # than the #DDDDDD face inside each caption band (the glyphs
+        # themselves stay live). The style-drawn sort arrow is byte-pinned
+        # to its measured 11x9 pixel map: a dropped, moved, resampled or
+        # recoloured arrow fails the byte-compare.
+        image = self.candidate_image()
+        for x0, x1 in self.HEADER_CAPTIONS:
+            with self.subTest(caption=(x0, x1)):
+                self.assertTrue(
+                    any(
+                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                        for x in range(x0, x1 + 1)
+                        for y in range(self.CAPTION_ROWS[0], self.CAPTION_ROWS[1] + 1)
+                    ),
+                    "the header caption draws no ink",
+                )
+        self.assert_band(
+            (self.SORT_ARROW_RECT[0], self.SORT_ARROW_RECT[1],
+             len(self.SORT_ARROW[0]), len(self.SORT_ARROW)),
+            self.SORT_ARROW,
+        )
+
+    def test_the_list_rows_pin_their_band_faces(self):
+        # The three seeded file rows: rows 123..142 and 163..182 face
+        # #FFFFFF, rows 143..162 the #EEEEEE alternate-row trough, each
+        # pinned across x=152..473 except the measured icon cell and name/size
+        # text rectangles (ROW_BANDS) and the clock-dependent date band
+        # (x=395..473, live ink demanded instead). Rows 183..251, the empty
+        # rows below the listing, are flat #FFFFFF: a lost alternate-row
+        # trough, a stray paint or art in the empty rows fails here.
+        for start, face, rects in self.ROW_BANDS:
+            with self.subTest(row_band=start):
+                for y in range(start, start + self.ROW_BAND_HEIGHT):
+                    for x in range(152, 474):
+                        if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
+                            continue
+                        if 395 <= x <= 473:
+                            continue
+                        self.assert_pixel(x, y, face)
+        image = self.candidate_image()
+        for start, face, _ in self.ROW_BANDS:
+            with self.subTest(date_ink=start):
+                self.assertTrue(
+                    any(
+                        hex_colour(pixel_at(image, x, y)) != face
+                        for x in range(395, 474)
+                        for y in range(start, start + self.ROW_BAND_HEIGHT)
+                    ),
+                    "the date column draws no ink",
+                )
+        for y in range(self.EMPTY_ROWS[0], self.EMPTY_ROWS[1] + 1):
+            for x in range(152, 474):
+                self.assert_pixel(x, y, "#FFFFFF")
+
+    def test_the_file_rows_draw_their_type_icons(self):
+        # The three type-icon cells, byte-pinned to their measured pixel
+        # maps (rows 1 and 2 the fallback theme's document glyph against
+        # its row's own face colour, row 3 the distinct blue-ruled RTF
+        # glyph): a shifted cell, a dropped icon or a resampled glyph
+        # fails the byte-compare.
+        for x0, y0, width, height, rows in self.ICON_CELLS:
+            with self.subTest(icon_cell=(x0, y0)):
+                self.assert_band((x0, y0, width, height), rows)
+
+    def test_the_file_rows_ink_their_columns(self):
+        # Each seeded row must really draw its listing: at least one pixel
+        # off the row's face inside the name, size and date bands. A
+        # dropped listing or an emptied date cell fails here.
+        image = self.candidate_image()
+        for start, face, _ in self.ROW_BANDS:
+            for x0, x1 in self.ROW_TEXT_BANDS:
+                with self.subTest(row_column=(start, x0)):
+                    self.assertTrue(
+                        any(
+                            hex_colour(pixel_at(image, x, y)) != face
+                            for x in range(x0, x1 + 1)
+                            for y in range(start, start + self.ROW_BAND_HEIGHT)
+                        ),
+                        "the file row draws no ink in one of its columns",
+                    )
 
 
 @_desktop_gate_guard()
