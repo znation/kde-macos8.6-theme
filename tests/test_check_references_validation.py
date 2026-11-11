@@ -294,6 +294,17 @@ class TestImageStreamCompleteness(unittest.TestCase):
         # accept a prefix of the terminator.
         self.assertFalse(is_complete(PNG_MAGIC, TERMINAL_PNG[:-1], 12))
 
+    def test_size_must_include_signature_and_complete_terminator(self):
+        # A valid ending cannot fit in a file shorter than its format's
+        # signature plus that ending, even when the supplied tail looks valid.
+        for name, head, ending, size in (
+            ("PNG", PNG_MAGIC, TERMINAL_PNG, 19),
+            ("JPEG", JPEG_MAGIC, TERMINAL_JPEG, 4),
+            ("GIF", b"GIF89a", TERMINAL_GIF, 6),
+        ):
+            with self.subTest(format=name):
+                self.assertFalse(is_complete(head, ending, size))
+
     def test_complete_jpeg_passes(self):
         self.assertTrue(is_complete(JPEG_MAGIC, TERMINAL_JPEG, 5))
 

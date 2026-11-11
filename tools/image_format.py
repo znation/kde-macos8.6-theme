@@ -94,11 +94,20 @@ def is_complete(
         )
     stream = image_stream_format(head)
     if stream == "PNG":
-        return tail[-len(TERMINAL_PNG):] == TERMINAL_PNG
+        return (
+            size >= len(PNG_MAGIC) + len(TERMINAL_PNG)
+            and tail[-len(TERMINAL_PNG):] == TERMINAL_PNG
+        )
     if stream == "JPEG":
-        return tail[-len(TERMINAL_JPEG):] == TERMINAL_JPEG
+        return (
+            size >= len(JPEG_MAGIC) + len(TERMINAL_JPEG)
+            and tail[-len(TERMINAL_JPEG):] == TERMINAL_JPEG
+        )
     if stream == "GIF":
-        return tail[-len(TERMINAL_GIF):] == TERMINAL_GIF
+        return (
+            size >= len(GIF_MAGICS[0]) + len(TERMINAL_GIF)
+            and tail[-len(TERMINAL_GIF):] == TERMINAL_GIF
+        )
     # WebP: RIFF stores the chunk-group size at bytes 4-7; the stream is
     # complete when that plus the 8-byte RIFF header matches the file size.
     if stream == "WebP":
