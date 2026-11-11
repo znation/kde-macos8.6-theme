@@ -20,6 +20,26 @@ user 2026-11-01; recorded by the director role.)
 
 _None yet._
 
+### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02)
+
+An environment `HOME` whose value carries make syntax is expanded as make syntax when the
+Makefile reads `$(HOME)` at parse time, so make functions in it run before any target, guard or
+recipe — including under `make -n`, which is supposed to run nothing. Reproduce with
+
+    env HOME='$(shell touch /tmp/canary)' make -n help
+
+which creates `/tmp/canary` (confirmed by an adversarial reviewer on 2026-11-11 with make exit 0
+and the canary file present) before `help` prints anything.
+
+**Suspected cause:** `XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)`
+expands `$(HOME)` while parsing, and GNU make expands environment-origin variables as recursive
+variables, so their values are evaluated as make syntax. The `shell_unsafe_chars` guard closes
+the shell-quoting route for values pasted into recipe shells; it does not see the raw value of a
+variable make has already expanded — the Makefile's own comment on that guard says a value
+carrying make `$( )` is expanded by make while the guard reads it, and calls that documented
+behaviour outside the shell route the guard closes. The impact is parse-time command execution
+from an untrusted environment value that the guards treat as a path.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
