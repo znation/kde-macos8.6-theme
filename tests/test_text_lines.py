@@ -5,6 +5,8 @@ from tools.text_lines import first_line, has_first_line_marker, split_lines
 
 
 class SplitLinesTests(unittest.TestCase):
+    """Tests for ``split_lines``' line-break handling."""
+
     def test_splits_lf_crlf_and_bare_cr(self):
         self.assertEqual(split_lines("first\nsecond\r\nthird\rfourth"), [
             "first", "second", "third", "fourth",
@@ -21,6 +23,8 @@ class SplitLinesTests(unittest.TestCase):
 
 
 class FirstLineTests(unittest.TestCase):
+    """Tests for ``first_line``'s line-break handling."""
+
     def test_uses_the_same_line_breaks_as_split_lines(self):
         self.assertEqual("first", first_line("first\nsecond"))
         self.assertEqual("first", first_line("first\r\nsecond"))
@@ -32,6 +36,8 @@ class FirstLineTests(unittest.TestCase):
 
 
 class FirstLineMarkerTests(unittest.TestCase):
+    """Tests for ``has_first_line_marker``'s exact-match handling."""
+
     def test_matches_exact_first_line_with_optional_bom_and_supported_endings(self):
         for text in ("marker\nrest", "\ufeffmarker\r\nrest", "marker\rrest"):
             with self.subTest(text=text):

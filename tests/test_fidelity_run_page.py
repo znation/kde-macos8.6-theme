@@ -10,6 +10,8 @@ from tools.fidelity_run_page import collect_run_page
 
 
 class TrackedRun(dict):
+    """Dict that counts its live instances and records the concurrency peak."""
+
     live = peak = 0
 
     def __init__(self, *args, **kwargs):

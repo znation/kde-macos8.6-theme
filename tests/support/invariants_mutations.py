@@ -85,10 +85,12 @@ def _reference_apply(reference):
 
 
 def _apply_malformed_row(scratch):
+    """Write the scratch invariants with the first row's Provenance cell removed."""
     scratch.write_invariants(_drop_first_row_cell(scratch.invariants_text))
 
 
 def _apply_test_cell_without_reference(scratch):
+    """Write the scratch invariants with the first row's backticks removed."""
     scratch.write_invariants(_strip_first_row_backticks(scratch.invariants_text))
 
 
@@ -107,6 +109,7 @@ def _apply_unreadable_test_file(scratch):
 
 
 def _apply_escaped_pipe(scratch):
+    """Write the scratch invariants with the first guarantee holding an escaped pipe."""
     scratch.write_invariants(
         _replace_first_guarantee(
             scratch.invariants_text, "The active \\| inactive title-bar boxes hold."
@@ -115,6 +118,7 @@ def _apply_escaped_pipe(scratch):
 
 
 def _observe_escaped_pipe(scratch):
+    """Assert the scratch invariants still parse a guarantee holding a literal pipe."""
     from support.invariants import parse_rows
 
     sections = parse_rows(scratch.read_invariants())

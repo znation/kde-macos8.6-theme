@@ -100,6 +100,7 @@ def scratch_home(case):
 
 
 def run_uninstall(tmp, config, env=None):
+    """Run the uninstall recipe with XDG_CONFIG_HOME at *config*, or with *env*."""
     return theme_install.uninstall_recipe(
         tmp,
         extra=(),

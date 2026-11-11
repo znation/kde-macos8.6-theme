@@ -71,16 +71,19 @@ def _observe_placeholder(asset):
 
 
 def _apply_marker_without_row(scratch):
+    """Write USER_TRASH_ICON with a PLACEHOLDER: marker and no register row."""
     scratch.write_repo_file(USER_TRASH_ICON, "<!-- PLACEHOLDER: an orphan -->\n")
 
 
 def _apply_row_without_file(scratch):
+    """Register ABSENT_ICON without creating the file the row names."""
     scratch.write_placeholders(
         _append_row(scratch.placeholders_text, ABSENT_ICON, "an absent icon")
     )
 
 
 def _apply_row_without_marker(scratch):
+    """Write USER_TRASH_ICON unmarked and register it anyway."""
     scratch.write_repo_file(USER_TRASH_ICON, "<svg/>\n")
     scratch.write_placeholders(
         _append_row(scratch.placeholders_text, USER_TRASH_ICON, "a plain icon")
@@ -88,6 +91,7 @@ def _apply_row_without_marker(scratch):
 
 
 def _apply_duplicate_register_row(scratch):
+    """Write the marked FOLDER_ICON and two register rows for it."""
     text = _append_row(scratch.placeholders_text, FOLDER_ICON, "a duplicated icon")
     scratch.write_repo_file(FOLDER_ICON, "<!-- PLACEHOLDER: a duplicated icon -->\n")
     scratch.write_placeholders(
@@ -96,10 +100,12 @@ def _apply_duplicate_register_row(scratch):
 
 
 def _apply_unreadable_register(scratch):
+    """Replace PLACEHOLDERS_REGISTER with a directory so reading it fails."""
     scratch.write_directory(PLACEHOLDERS_REGISTER)
 
 
 def _apply_dangling_symlink(scratch):
+    """Point DANGLING_LINK at a missing sibling so the scanner's read arm fails."""
     scratch.write_symlink(DANGLING_LINK, "missing.desktop")
 
 

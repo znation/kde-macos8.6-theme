@@ -50,6 +50,7 @@ class CursorFile(NamedTuple):
 
 
 def _fail(path: Path, message: str) -> None:
+    """Raise ValueError naming *path* with *message*."""
     raise ValueError(f"{path}: {message}")
 
 

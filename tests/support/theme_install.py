@@ -169,6 +169,7 @@ def assert_metacharacter_refused(case, variable, make_value, shown_value, args=(
 
 
 def _run(target, destdir, extra=(), env=None):
+    """Run *target* with DESTDIR=*destdir*, the shared XDG_DATA_HOME, *extra* and *env*."""
     return run_make(
         [target, f"DESTDIR={destdir}", f"XDG_DATA_HOME={XDG_DATA_HOME}", *extra],
         env=env,

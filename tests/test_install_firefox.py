@@ -35,6 +35,7 @@ CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
 
 
 def _read(path):
+    """Return the UTF-8 text at *path*."""
     return path.read_bytes().decode("utf-8")
 
 

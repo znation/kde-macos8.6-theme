@@ -36,6 +36,8 @@ COMMAND = ["slowcmd", "--flag"]
 
 
 class RequiredCommandCase(unittest.TestCase):
+    """Base class: the scratch root, log, cwd and environment ``run_required`` uses."""
+
     def setUp(self):
         self.root = make_tmp_dir(self)
         self.log = self.root / "command.log"

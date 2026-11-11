@@ -26,19 +26,23 @@ from support.repo_root import ROOT
 
 
 def _snapshot_memo():
+    """Return both Firefox case modules' memoized fixture attributes."""
     return (chrome_cases._chrome_fixture, content_cases._content_fixture)
 
 
 def _restore_memo(snapshot):
+    """Write a :func:`_snapshot_memo` pair back into the case modules."""
     chrome_cases._chrome_fixture, content_cases._content_fixture = snapshot
 
 
 def _fresh_chrome_classes():
+    """Return two fresh FirefoxChromeTestCase subclasses."""
     return (type("ProbeChromeOne", (FirefoxChromeTestCase,), {}),
             type("ProbeChromeTwo", (FirefoxChromeTestCase,), {}))
 
 
 def _fresh_content_classes(first_url, second_url):
+    """Return two fresh FirefoxContentTestCase subclasses with distinct AT_RULE_URLs."""
     return (type("ProbeContentOne", (FirefoxContentTestCase,),
                  {"AT_RULE_URL": first_url}),
             type("ProbeContentTwo", (FirefoxContentTestCase,),

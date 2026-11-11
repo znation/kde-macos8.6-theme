@@ -39,6 +39,7 @@ COMMON_IDS = [
 
 
 def _scan_env(config_home: str) -> dict[str, str]:
+    """Return the ambient environment with XDG_CONFIG_HOME and HOME at *config_home*."""
     env = {
         key: value
         for key, value in os.environ.items()
@@ -50,6 +51,7 @@ def _scan_env(config_home: str) -> dict[str, str]:
 
 
 def _run(config_home: str) -> subprocess.CompletedProcess:
+    """Run the uninstall diagnostics tool with COMMON_IDS under *config_home*."""
     return subprocess.run(
         [sys.executable, TOOL, *COMMON_IDS],
         env=_scan_env(config_home),

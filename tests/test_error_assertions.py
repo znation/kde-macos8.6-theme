@@ -32,6 +32,7 @@ from tools.png.filters import byte_add  # noqa: E402
 
 
 def _raise(exception):
+    """Raise *exception*; the failing callable ``assert_rejection_names`` observes."""
     raise exception
 
 

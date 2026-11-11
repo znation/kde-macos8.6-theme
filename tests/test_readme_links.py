@@ -16,10 +16,12 @@ _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
 def read_readme() -> str:
+    """Return the repository README's text."""
     return containment.read_text(f"{ROOT}/README.md", ROOT, encoding="utf-8")
 
 
 def _slug(text: str) -> str:
+    """Return the GitHub-style heading anchor slug for *text*."""
     text = _PUNCTUATION.sub("", text.lower())
     return re.sub(r"\s+", "-", text.strip())
 

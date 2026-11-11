@@ -18,6 +18,7 @@ from support.rejection_assertions import assert_rejection_names
 
 
 def _reject(case, value, *, label="bad"):
+    """Fail the case, reporting the *label* value that should have been rejected."""
     case.fail(f"{label} value: {value}")
 
 

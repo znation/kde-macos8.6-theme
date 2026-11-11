@@ -34,6 +34,7 @@ UNINSTALL_RECIPE = re.compile(
 
 
 def read_makefile():
+    """Return the Makefile's text."""
     with open(MAKEFILE, "r", encoding="utf-8") as handle:
         return handle.read()
 

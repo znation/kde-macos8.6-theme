@@ -220,6 +220,7 @@ GATED_COPIES = (
 
 
 def read_text(path):
+    """Return the UTF-8 text at *path*."""
     with open(path, encoding="utf-8") as handle:
         return handle.read()
 
@@ -245,6 +246,7 @@ def singleton_properties(path):
 
 
 def parse_rc(path):
+    """Return a ``section/key`` mapping parsed from the ini file at *path*."""
     values = {}
     section = None
     for line in read_text(path).splitlines():

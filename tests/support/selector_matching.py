@@ -299,6 +299,7 @@ def _not_spans(compound):
 
 
 def _compound_matches(compound, element):
+    """Return whether the single compound selector *compound* matches *element*."""
     spans = _attribute_spans(compound)
     attributes = [compound[start:end] for start, end in spans]
     compound = _mask_attributes(compound, spans)

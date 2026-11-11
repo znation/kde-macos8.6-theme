@@ -56,10 +56,12 @@ SUBFAMILY_NAME_ID = 2
 
 
 def _utf16be(raw):
+    """Decode *raw* as UTF-16-BE."""
     return raw.decode("utf-16-be")
 
 
 def _mac_roman(raw):
+    """Decode *raw* as Mac Roman."""
     return raw.decode("mac_roman")
 
 

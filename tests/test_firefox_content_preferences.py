@@ -78,6 +78,7 @@ def assert_palette_declarations(case, selectors, allowed, important=None):
 
 
 def assert_pinned_value(case, value, allowed, must_be_important):
+    """Assert *value* carries ``!important`` when required and only *allowed* hex colors."""
     if must_be_important:
         case.assertIn("!important", value)
     for token in HEX.findall(value):

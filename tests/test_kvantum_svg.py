@@ -149,10 +149,12 @@ BRANCH_ARROW_PATH_D = {
 
 
 def _rect(x, y, width, height, fill):
+    """Return a ``rect`` element tuple with the given geometry and *fill*."""
     return ("rect", {"x": x, "y": y, "width": width, "height": height, "fill": fill})
 
 
 def _circle(cx, cy, r, fill):
+    """Return a ``circle`` element tuple at *cx*, *cy* with radius *r* and *fill*."""
     return ("circle", {"cx": cx, "cy": cy, "r": r, "fill": fill})
 
 

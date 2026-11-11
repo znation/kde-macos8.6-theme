@@ -11,6 +11,8 @@ from support.recorded_lines import recorded_lines
 
 
 class RecordedLinesTests(unittest.TestCase):
+    """Tests for ``support.recorded_lines``' call-log reading."""
+
     def test_missing_log_returns_empty_list(self):
         with tempfile.TemporaryDirectory() as directory:
             self.assertEqual([], recorded_lines(Path(directory) / "calls"))

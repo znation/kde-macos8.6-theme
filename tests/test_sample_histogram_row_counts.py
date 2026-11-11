@@ -21,6 +21,7 @@ _EXPECTED_COLORS = [
 
 
 def _rows_image():
+    """Return the 4x3 RGB image whose palette-mapped rows the counts come from."""
     return rgb_image(4, 3, lambda x, y: _PALETTE[_RGB_ROWS[y][x]])
 
 

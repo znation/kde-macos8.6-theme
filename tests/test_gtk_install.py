@@ -30,6 +30,7 @@ from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 def _installed_dir(destdir):
+    """Return the GTK theme directory installed under *destdir*."""
     return installed_gtk_theme(destdir)
 
 
@@ -48,6 +49,7 @@ def _package_bytes(name):
 
 
 def _sentinel(name):
+    """Return the distinctive ``sentinel:`` byte string tagged *name*."""
     return ("sentinel:" + name).encode()
 
 

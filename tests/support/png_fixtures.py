@@ -39,6 +39,7 @@ _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 
 
 def _chunk(ctype: bytes, payload: bytes) -> bytes:
+    """Return one PNG chunk: length, type, payload and CRC32."""
     return (
         struct.pack(">I", len(payload))
         + ctype
@@ -170,6 +171,7 @@ def assert_both_decoders_refuse(case, blob, *, needles=(), **context):
 
 
 def _paeth(a: int, b: int, c: int) -> int:
+    """Return the Paeth predictor for the bytes *a*, *b* and *c*."""
     p = a + b - c
     pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
     if pa <= pb and pa <= pc:
@@ -180,6 +182,7 @@ def _paeth(a: int, b: int, c: int) -> int:
 
 
 def _filter_line(ftype: int, line: bytes, prev: bytes, bpp: int) -> bytes:
+    """Return *line* filtered by PNG filter type *ftype* against *prev*."""
     if ftype == 0:
         return line
     out = bytearray(len(line))
