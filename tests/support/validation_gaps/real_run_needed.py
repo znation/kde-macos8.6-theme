@@ -123,8 +123,14 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_render_surface.py::TestFailurePaths"
         "::test_session_pins_the_nested_bus_to_a_display_free_qt_platform",
     ),
+    Reproduction(
+        "hosted-ci-imagemagick-convert",
+        ("The hosted CI image lacks ImageMagick",),
+        "tests/test_ci_workflow.py::TestCiWorkflow"
+        "::test_workflow_provisions_and_verifies_imagemagick_convert",
+    ),
 )
 
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 13
+REAL_RUN_NEEDED_BASELINE = 14

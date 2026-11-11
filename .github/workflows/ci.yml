@@ -126,5 +126,16 @@ jobs:
           # at the install step that was meant to provide it.
           has_calculator_applet \
             || { echo "calculator applet missing after install" >&2; exit 1; }
+          # tools/jpeg_convert.py decodes the JPEG screenshots by running the
+          # literal `convert` executable, which the render tools above do not
+          # provide. This runs outside the `else` branch so a runner that
+          # already has the Plasma tools still gets it. The package is
+          # ImageMagick's, and the check below verifies `convert` by name.
+          if ! command -v convert >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends imagemagick
+          fi
+          command -v convert >/dev/null \
+            || { echo "convert missing after install" >&2; exit 1; }
       - run: make check
       - run: make check-references

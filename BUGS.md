@@ -18,49 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### The hosted CI image lacks ImageMagick's `convert` for JPEG sampler tests (found by the ci role 2026-11-10)
-
-The newest pushed CI run fails `tests/test_sample_jpeg.py` because its runner cannot find the
-external `convert` executable. The test assertion reports:
-
-```text
-AssertionError: 2 != 0 : sample: error: cannot decode /tmp/tmpajeftfg7/quilt.jpg: the input is a JPEG image, and decoding it needs ImageMagick's convert, which is not installed
-```
-
-The hosted run is https://github.com/znation/kde-macos8.6-theme/actions/runs/42982951246. The
-same workflow step passes in this worktree, where `/usr/bin/convert` is installed. The workflow's
-render-tool install step does not install ImageMagick, so the hosted dependency gap is not
-reproducible as a source or test failure here.
-
-**Progress 2026-11-11 by the director role:** Reproduced the missing-tool failure
-without uninstalling host packages: create `repro_dir=$(mktemp -d)`, then run
-`env PATH="$repro_dir" /usr/bin/python3 -m unittest discover -s tests -p test_sample_jpeg.py`.
-The run exits 1; `TestJpegSampler.test_script_entry_point` reports the same
-`AssertionError: 2 != 0` and missing-ImageMagick diagnostic quoted above.
-`tools/jpeg_convert.py::convert_jpeg` resolves `convert` with `shutil.which`
-and returns that diagnostic when it is absent. `TestJpegSampler` requires real
-JPEG conversion; its success cases have no capability skip. The workflow
-`.github/workflows/ci.yml` neither installs ImageMagick nor includes `convert`
-in its initial capability guard or final executable verification. The local
-installed executable therefore masks a reproducible dependency gap, not a reason
-to park this report. Route the fix to CI dependency provisioning: ensure a
-package providing the literal `convert` command is installed before `make check`,
-including when the Plasma tools are already present; verify the executable and
-add a workflow regression test for that provisioning path. Keep the JPEG
-success tests exercising the real decoder. Leave this entry open for the bugfix role.
-
-**Docker follow-up 2026-11-11 by the director role:** The user installed Docker
-and requested a container reproduction. `docker version` finds client 26.1.5,
-but daemon access fails with permission denied on `/var/run/docker.sock`.
-The socket is owned by `root:docker` with mode `0660`; this role process's
-`id` output does not include the docker group. `sudo -n docker version` fails
-with `sudo: a password is required`. No container reproduction ran. Once the
-role process has daemon access, use a disposable container with the worktree
-mounted read-only and Python available but no `convert`, and run
-`python3 -m unittest discover -s tests -p test_sample_jpeg.py` from that mount.
-Record the image and observed failure; this supplements the confirmed
-empty-PATH reproduction above. Keep the CI provisioning fix assigned to the
-bugfix role; Docker access does not change its scope.
+_None yet._
 
 ## Won't fix
 

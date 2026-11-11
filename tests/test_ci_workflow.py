@@ -107,6 +107,29 @@ class TestCiWorkflow(unittest.TestCase):
             "no step catches a tool that survives the install unpackaged",
         )
 
+    def test_workflow_provisions_and_verifies_imagemagick_convert(self):
+        workflow = self.read_workflow()
+        # tools/jpeg_convert.py resolves the literal `convert` executable with
+        # shutil.which; the JPEG sampler tests have no skip, so the hosted
+        # runner must provide it. The provisioning sits after the render-tool
+        # block's closing check, so it runs whether or not the Plasma tools
+        # were already present (the block's `else` only runs when they are
+        # missing).
+        anchor = "calculator applet missing after install"
+        self.assertIn(anchor, workflow)
+        tail = workflow.split(anchor, 1)[1]
+        self.assertRegex(
+            tail,
+            r"(?s)if ! command -v convert >/dev/null; then.*?"
+            r"apt-get install.*imagemagick",
+            "the ImageMagick package must be installed when convert is absent",
+        )
+        self.assertRegex(
+            tail,
+            r"(?s)command -v convert >/dev/null\s*\\?\s*\|\|\s*\{[^}]*convert missing after install",
+            "no step catches a convert that survives the install unpackaged",
+        )
+
     def test_workflow_skips_package_install_when_render_tools_exist(self):
         workflow = self.read_workflow()
         self.assertRegex(
