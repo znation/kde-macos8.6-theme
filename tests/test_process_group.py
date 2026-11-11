@@ -253,6 +253,75 @@ class TestRunLogged(unittest.TestCase):
         with ThreadPoolExecutor(max_workers=1) as executor:
             self.assertEqual(3, executor.submit(self.run_sh, "exit 3").result(10))
 
+    def _run_while_handlers_are_restored(self, number, raises):
+        """Run the logged runner while *number* arrives as handlers swap back.
+
+        Restoring the real handlers is the second half of the startup race:
+        once the recording handlers are swapped back out, the next signal
+        raises immediately, so it must raise inside ``run_logged``'s cleanup
+        try -- where the group kill runs -- not before that try exists. The
+        signal is injected at the second restore, the one that re-arms the
+        raising handlers, so the race is deterministic. The child is killed
+        in a cleanup so a regression does not leave it running, and this
+        fails unless it is gone by the time the exception escapes.
+        """
+        real_restore = process_group._restore_termination
+        real_popen = subprocess.Popen
+        child = {}
+        restores = []
+
+        def restore_then_signal(previous):
+            real_restore(previous)
+            restores.append(previous)
+            if len(restores) == 2:
+                os.kill(os.getpid(), number)
+
+        def capture_popen(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            child["pid"] = process.pid
+            return process
+
+        def kill_child():
+            pid = child.get("pid")
+            if pid is not None:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_child)
+        with (
+            mock.patch.object(
+                process_group.subprocess, "Popen", side_effect=capture_popen
+            ),
+            mock.patch.object(
+                process_group, "_restore_termination",
+                side_effect=restore_then_signal,
+            ),
+        ):
+            with self.assertRaises(raises) as caught:
+                with process_group.exit_on_termination():
+                    process_group.run_logged(
+                        ["/bin/sleep", "60"],
+                        dict(os.environ),
+                        self.log,
+                        30,
+                        self.root,
+                    )
+        self.assertTrue(gone(child["pid"]))
+        return caught.exception
+
+    def test_a_sigterm_while_the_handlers_are_restored_still_kills_the_child(self):
+        # A SIGTERM that arrives just as the recording handlers are swapped
+        # back for the real ones raises at the next bytecode. If that raise
+        # happens before run_logged's try/finally exists -- in the startup
+        # helper, not in the caller's cleanup -- the group kill is skipped
+        # and the command keeps running after the caller died.
+        caught = self._run_while_handlers_are_restored(
+            signal.SIGTERM, SystemExit
+        )
+        self.assertEqual(128 + signal.SIGTERM, caught.code)
+
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
         # SystemExit out of the first wait. If the just-killed child is in

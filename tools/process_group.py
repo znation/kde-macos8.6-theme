@@ -101,8 +101,23 @@ def _restore_termination(previous: list[tuple[int, object]]) -> None:
     previous.clear()
 
 
-def _popen_deferred(*args, **kwargs) -> tuple[subprocess.Popen, list[int]]:
-    """Start a child with catchable signals deferred; return them for replay."""
+def _popen_deferred(
+    *args, **kwargs
+) -> tuple[
+    subprocess.Popen,
+    list[int],
+    list[tuple[int, object]],
+    list[tuple[int, object]],
+]:
+    """Start a child with catchable signals deferred; return them and handlers.
+
+    On a successful start the recorded handlers are returned, not restored:
+    the caller must swap them back inside its own cleanup try, where the
+    group kill runs, or a signal arriving in between would unwind before any
+    cleanup exists and leave the child running. A failed start leaves no
+    child to own, so the handlers are restored here and the first recorded
+    signal is replayed before the original error re-raises.
+    """
     deferred: list[int] = []
     previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
     previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
@@ -113,9 +128,7 @@ def _popen_deferred(*args, **kwargs) -> tuple[subprocess.Popen, list[int]]:
         _restore_termination(previous_interrupts)
         _replay_deferred(deferred)
         raise
-    _restore_termination(previous)
-    _restore_termination(previous_interrupts)
-    return process, deferred
+    return process, deferred, previous, previous_interrupts
 
 
 def _kill_group(process: subprocess.Popen) -> None:
@@ -152,8 +165,10 @@ def run_logged(
     timeout result or the in-flight ``SystemExit``/``KeyboardInterrupt``.
     """
     with log.open("wb") as sink:
-        # Defer signals until the cleanup try below is ready to own the child.
-        process, deferred = _popen_deferred(
+        # Defer signals until the cleanup try below is ready to own the child:
+        # the handlers are swapped back inside the try, so a signal that
+        # arrives as they are restored raises where the group kill runs.
+        process, deferred, previous, previous_interrupts = _popen_deferred(
             argv,
             cwd=cwd,
             env=env,
@@ -163,6 +178,8 @@ def run_logged(
             start_new_session=True,
         )
         try:
+            _restore_termination(previous)
+            _restore_termination(previous_interrupts)
             _replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
@@ -200,7 +217,10 @@ def run_logged_split(
     exactly as before.
     """
     with stdout_log.open("wb") as out, stderr_log.open("wb") as err:
-        process, deferred = _popen_deferred(
+        # Defer signals until the cleanup try below is ready to own the child:
+        # the handlers are swapped back inside the try, so a signal that
+        # arrives as they are restored raises where the group kill runs.
+        process, deferred, previous, previous_interrupts = _popen_deferred(
             argv,
             cwd=cwd,
             env=env,
@@ -219,6 +239,8 @@ def run_logged_split(
         if writer is not None:
             writer.start()
         try:
+            _restore_termination(previous)
+            _restore_termination(previous_interrupts)
             _replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:

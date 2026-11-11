@@ -11,12 +11,14 @@ import time
 
 if __package__:
     from tools.process_group import (
-        _kill_group, _popen_deferred, _reap, _replay_deferred,
+        _kill_group, _popen_deferred, _reap, _restore_termination,
+        _replay_deferred,
     )
     from tools.terminal import escape_controls
 else:
     from process_group import (
-        _kill_group, _popen_deferred, _reap, _replay_deferred,
+        _kill_group, _popen_deferred, _reap, _restore_termination,
+        _replay_deferred,
     )
     from terminal import escape_controls
 
@@ -73,10 +75,17 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
     try:
         with _open_log(log_path) as sink:
             try:
-                process, deferred = _popen_deferred(
-                    argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
-                    stderr=subprocess.STDOUT, start_new_session=True,
+                process, deferred, previous, previous_interrupts = (
+                    _popen_deferred(
+                        argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
+                        stderr=subprocess.STDOUT, start_new_session=True,
+                    )
                 )
+                # Swap the handlers back here, where the outer cleanup below
+                # owns the child: a signal that arrives as they are restored
+                # still reaches the group kill instead of unwinding past it.
+                _restore_termination(previous)
+                _restore_termination(previous_interrupts)
                 _replay_deferred(deferred)
             except OSError as failure:
                 process = _NeverStarted()
