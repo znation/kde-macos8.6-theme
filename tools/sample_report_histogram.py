@@ -7,16 +7,14 @@ from collections import Counter
 from heapq import nsmallest
 
 if __package__:
-    from tools.sample_report_common import report_context
-    from tools.sample_report_pixels import (
-        compact_json, hex, positioned_region_pixels, region_alpha, region_pixels,
-        print_region_line,
+    from tools.sample_report_common import (
+        compact_json, hex, positioned_region_pixels, print_region_line,
+        region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
-    from sample_report_common import report_context
-    from sample_report_pixels import (
-        compact_json, hex, positioned_region_pixels, region_alpha, region_pixels,
-        print_region_line,
+    from sample_report_common import (
+        compact_json, hex, positioned_region_pixels, print_region_line,
+        region_alpha, region_pixels, report_context,
     )
 
 

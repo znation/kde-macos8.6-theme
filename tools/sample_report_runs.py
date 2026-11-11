@@ -5,14 +5,12 @@ from __future__ import annotations
 import json
 
 if __package__:
-    from tools.sample_report_common import report_context
-    from tools.sample_report_pixels import (
-        hex, region_alpha, region_pixels, print_region_line,
+    from tools.sample_report_common import (
+        hex, print_region_line, region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
-    from sample_report_common import report_context
-    from sample_report_pixels import (
-        hex, region_alpha, region_pixels, print_region_line,
+    from sample_report_common import (
+        hex, print_region_line, region_alpha, region_pixels, report_context,
     )
 
 

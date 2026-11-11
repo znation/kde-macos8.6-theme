@@ -5,17 +5,17 @@ from __future__ import annotations
 import json
 
 if __package__:
-    from tools.sample_report_common import report_context
-    from tools.sample_report_pixels import (
+    from tools.sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
-        positioned_region_pixels, region_alpha, print_region_line,
+        positioned_region_pixels, print_region_line, region_alpha,
+        report_context,
     )
     from tools.sample_match_runs import ColumnRuns, MatchRuns
 else:  # run directly: python3 tools/sample.py
-    from sample_report_common import report_context
-    from sample_report_pixels import (
+    from sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
-        positioned_region_pixels, region_alpha, print_region_line,
+        positioned_region_pixels, print_region_line, region_alpha,
+        report_context,
     )
     from sample_match_runs import ColumnRuns, MatchRuns
 

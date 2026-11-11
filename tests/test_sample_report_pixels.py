@@ -7,7 +7,8 @@ from argparse import Namespace
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_pixels import _pixel_records, positioned_region_pixels  # noqa: E402
+from tools.sample_report_pixels import _pixel_records  # noqa: E402
+from tools.sample_report_common import positioned_region_pixels  # noqa: E402
 
 
 class TestPixelRecords(unittest.TestCase):
