@@ -98,8 +98,12 @@ class TestSampleAlpha(CliTestCase):
             2, 2, [bytes((4, 5, 6, 7, 8, 9)), bytes((10, 11, 12, 13, 14, 15))]))
         result = self._run(opaque, "0", "0", "--width", "2", "--height", "2", "--alpha", "--json")
         self._assert_success(result)
-        self.assertEqual([pixel["alpha"] for pixel in json.loads(result.stdout)["pixels"]],
-                         [255, 255, 255, 255])
+        self.assertEqual(json.loads(result.stdout)["pixels"], [
+            {"x": 0, "y": 0, "rgb": [4, 5, 6], "hex": "#040506", "alpha": 255},
+            {"x": 1, "y": 0, "rgb": [7, 8, 9], "hex": "#070809", "alpha": 255},
+            {"x": 0, "y": 1, "rgb": [10, 11, 12], "hex": "#0A0B0C", "alpha": 255},
+            {"x": 1, "y": 1, "rgb": [13, 14, 15], "hex": "#0D0E0F", "alpha": 255},
+        ])
 
     def test_opaque_text_rectangle_reports_255_alpha_in_row_major_order(self):
         opaque = self._write(self._tmp_dir(), "opaque-text-rect.png", make_png(
