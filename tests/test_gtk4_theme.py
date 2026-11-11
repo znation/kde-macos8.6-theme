@@ -878,6 +878,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         for selector in selectors:
             self.assertEqual(self.selectors.count(selector), 1, selector)
             self.assert_rule(selector, {"color": TEXT_SELECTION["color"]})
+            self.assertEqual(self.rules[selector], {"color": TEXT_SELECTION["color"]})
             for earlier in ("link:visited", "link:hover", "link:active"):
                 self.assertGreater(css.index(selector), css.index(earlier), selector)
             self.assertGreater(css.index(selector), selected_links, selector)
