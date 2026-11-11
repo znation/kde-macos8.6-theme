@@ -106,6 +106,44 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         )
         self.assertNotIn(str(temp_png), problem)
 
+    def test_a_log_naming_an_imagemagick_temporary_path_is_scrubbed(self):
+        # A failing converter's own output can name the scratch files
+        # ImageMagick creates for itself; the diagnostic must blank those
+        # occurrences as well, so it names only surfaces the operator chose
+        # and never a converter-internal temporary path.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def fail_naming_magick_temporary(
+                argv, env, stdout_log, stderr_log, *args, **kwargs
+            ):
+                Path(stdout_log).write_text(
+                    "convert-im6.q16: cannot open /tmp/magick-abc123 : "
+                    "no decode delegate for the JPEG input"
+                )
+                return 3
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=fail_naming_magick_temporary,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(
+            problem,
+            "convert exited 3: convert-im6.q16: cannot open "
+            "<an ImageMagick temporary> : no decode delegate for the JPEG input",
+        )
+        self.assertNotIn("magick-abc123", problem)
+
     def test_flooding_converter_log_is_read_and_quoted_only_to_its_cap(self):
         flood = 1 << 20  # one MiB of stderr from a failing converter
         with tempfile.TemporaryDirectory() as directory:
