@@ -2027,6 +2027,21 @@ for rtl in (False, True):
     check_field(at, field, top, bottom)
     for x in steppers:
         check_stepper(at, x, top, bottom)
+    # The RTL mirror rule moves the etch's vertical arm to the field's
+    # exposed right edge: measured 2026-11-11, the shipped sheet left the
+    # RTL field with no vertical arm at either exposed edge (GTK 3 does
+    # not mirror box-shadow for direction, and the steppers cover the
+    # arm at the left edge), reading white at R-1 below the top arm and
+    # stepper face over the covered arm at L+1. A mirror spelled
+    # `inset 1px 1px #999999` would keep RTL R-1 white at T+2 and B-1,
+    # and a mirror on the wrong side would read grey at RTL L+1.
+    rows = (top + 1, top + 2, top + 3, bottom - 1)
+    if rtl:
+        assert [at(right - 1, y) for y in rows] == [GREY] * 4, (rtl, rows)
+        assert [at(left + 1, y) for y in rows] == [WHITE, WHITE, WHITE, SHADE], (rtl, rows)
+    else:
+        assert [at(left + 1, y) for y in rows] == [GREY] * 4, (rtl, rows)
+        assert [at(right - 1, y) for y in rows] == [SHADE] * 4, (rtl, rows)
 print("horizontal spin button: one 1px black seam per stepper edge in LTR and RTL, with the field and stepper faces unchanged")
 '''
         )

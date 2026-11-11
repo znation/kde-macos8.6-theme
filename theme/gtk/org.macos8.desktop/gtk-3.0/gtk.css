@@ -294,6 +294,26 @@ entry, spinbutton:not(.vertical) {
   color: #000000;
 }
 
+/* Adaptation (2026-11-11): no reference screenshot shows a GTK spin
+   button; this mirrors the landed etch above onto a horizontal spin
+   field's exposed edge in right-to-left text direction, because GTK 3
+   does not mirror box-shadow for direction. Measured 2026-11-11 in a GTK
+   3 offscreen child: in a horizontal RTL spin button the steppers sit
+   left of the field and cover the etch's vertical arm at the left edge,
+   so the exposed field drew only the horizontal top arm — a half-etched
+   field, where the LTR field shows the full L; the mirror puts the
+   vertical arm at the exposed right edge, the corner where the LTR
+   field's arm sits. Plain entry fields are untouched — only the spin
+   field's overlay is the defect. The four .osd spinbutton state groups
+   restate the etch at equal-or-higher specificity, so their RTL fields
+   keep the covered arm; twins for them would multiply the
+   overlay-scoped OSD record across its four states, so the OSD family
+   stays a future candidate. The :not(.vertical) arm keeps vertical spin
+   fields out. */
+spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
 /* No GTK entry-focus reference exists; reuse button:focus's outline, offset
    and square outline corners (2026-10-29). */
 entry:focus {

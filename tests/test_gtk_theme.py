@@ -201,6 +201,24 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             ("treeview.view.expander:checked", "expander title > arrow:checked"),
         )
 
+    def test_rtl_spin_field_mirrors_the_etch(self):
+        # No reference shows a GTK spin button; the landed field rule etches
+        # with `inset 1px 1px #999999`, and GTK 3 does not mirror box-shadow
+        # for text direction. Measured 2026-11-11 in a GTK 3 offscreen child:
+        # in a horizontal RTL spin button the steppers cover that arm at the
+        # left edge, so this mirror pins the arm to the field's exposed right
+        # edge (2026-11-11). The rendered pixels are the horizontal-seam
+        # probe's subject in tests/test_gtk_theme_controls.py.
+        self.assert_rule(
+            "spinbutton:dir(rtl):not(.vertical)",
+            {"box-shadow": "inset -1px 1px #999999"},
+        )
+        self.assertEqual(self.selectors.count("spinbutton:dir(rtl):not(.vertical)"), 1)
+        self.assert_rule_after(
+            "spinbutton:dir(rtl):not(.vertical) {",
+            "entry, spinbutton:not(.vertical) {",
+        )
+
     def test_expander_title_focus_outline(self):
         self.assert_dotted_focus_outline("expander > title:focus")
 

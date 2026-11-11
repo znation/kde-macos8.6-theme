@@ -94,34 +94,7 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-
-### Platinum GTK 3 spin field in RTL: mirror the etch's inset arm to the field's exposed edge and pin it in the seam probe (planned 2026-11-11 by the plan role; independent of every other entry — it adds one rule to the GTK 3 sheet directly after the landed `entry, spinbutton:not(.vertical)` rule, one declaration test to `tests/test_gtk_theme.py`, extends the landed probe `test_horizontal_spinbutton_steppers_render_one_pixel_seams` in `tests/test_gtk_theme_controls.py` and adds one `## gtk` row to `docs/invariants.md`, sharing no sheet region, test or invariants row with the waiting flat-`Gtk.Frame` entry or the queued vertical-spin-button entry; at implementation re-read the landed field rule and the horizontal-seam record and its probe, and re-grep every anchor this entry names)
-
-**Goal.** The landed field rule `entry, spinbutton:not(.vertical)` etches the spin field with `box-shadow: inset 1px 1px #999999`, and GTK 3 does not mirror `box-shadow` for right-to-left text direction. In a horizontal RTL spin button the steppers therefore overlay the entry node's left edge and cover the etch's vertical arm, so the exposed field draws only the horizontal top arm — a half-etched field, where the LTR field shows the full L. Measured 2026-11-11 on this host with the shipped `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (`url(...)` stripped) in a child-interpreter `Gtk.OffscreenWindow`: a `Gtk.SpinButton.new_with_range(0, 100, 1)` with focus disabled, packed in a `Gtk.Box` with a 5px border width, allocation L,T,R,B = 5,5,110,36, its four black columns at L, 52, 81, R in LTR and at L, 34, 63, R in RTL (the steppers sit left of the field in RTL). The column at L+1 read `#999999` at T+1, T+2, T+3 and B−1 in LTR; in RTL the same column read `#FFFFFF` at T+1…T+3 and `#AAAAAA` at B−1 (the steppers' face over the arm), and the exposed field's other edge read `#999999` at T+1 only, then `#FFFFFF` — no vertical arm at either exposed edge. That GTK 3 keeps the arm at the covered left column rather than mirroring it is itself measured: if the toolkit mirrored `box-shadow`, the RTL column at R−1 would read `#999999` below T+1 and it reads `#FFFFFF` in the shipped sheet. No collected reference screenshot shows a GTK spin button in any direction (the standing GTK-scope adaptation premise); the etch is the theme's own landed recipe, and mirroring it keeps the RTL field's sunken L at its exposed outer edge, the same corner the LTR field's L sits at.
-
-**Approach.** In the GTK 3 sheet, directly after the `entry, spinbutton:not(.vertical)` rule, add this rule with a short dated comment naming the landed etch it mirrors, the measured covered-arm defect above, GTK 3's non-mirrored `box-shadow`, and the mirrored result:
-- `spinbutton:dir(rtl):not(.vertical) { box-shadow: inset -1px 1px #999999; }`
-
-The mirror out-specifies the base rule per-property (two pseudo-classes against one), so it wins the plain RTL field's `box-shadow` at any source position; placing it beside the base rule keeps the record together. Change nothing else. A scratch copy of the sheet with exactly this rule at exactly that position, rendered as above, gave:
-- **LTR:** unchanged — the column at L+1 read `#999999` at T+1, T+2, T+3, B−1 and the column at R−1 `#AAAAAA` at those rows; the four black columns stayed at L, 52, 81, R.
-- **RTL:** the column at R−1 read `#999999` at T+1, T+2, T+3 and B−1 (was `#999999` at T+1 only); the column at L+1 kept the steppers' `#FFFFFF`, `#FFFFFF`, `#FFFFFF`, `#AAAAAA`; the four black columns stayed at L, 34, 63, R.
-
-Exclusions with reasons, recorded in the comment and the invariants row: the four `.osd spinbutton:not(.vertical)` state groups restate the etch at equal-or-higher specificity, so their RTL fields keep the covered arm; giving them `:dir(rtl)` twins would multiply the overlay-scoped OSD record across its four states, so the OSD family is this entry's own future candidate, not part of it. Plain `entry` fields are untouched — the plan measures only the spin field, whose overlay is the defect. The rule carries `:not(.vertical)`, so vertical spin fields cannot match it. GTK 4 is out of scope: its spin button uses a different node tree and its probe cannot run on a host without Xvfb.
-
-**Tests.**
-1. `tests/test_gtk_theme.py::TestGtkTheme::test_rtl_spin_field_mirrors_the_etch`, shaped like `test_rtl_collapsed_expander_arrows`: `assert_rule` pins the mirror's single declaration exactly, and `self.selectors.count("spinbutton:dir(rtl):not(.vertical)")` equals exactly 1.
-2. Extend `test_horizontal_spinbutton_steppers_render_one_pixel_seams` in `tests/test_gtk_theme_controls.py`: inside its LTR/RTL loop, after the seam assertions, read the columns at L+1 and R−1 at rows T+1, T+2, T+3 and B−1 and assert the two measured column results above — this fails on the shipped sheet (RTL R−1 reads `#FFFFFF` at T+2 and B−1) and on a mirror added to the wrong side (RTL L+1 would then read `#999999`).
-
-Add one `## gtk` row to `docs/invariants.md` beside the horizontal-spin-button seam row, naming both tests and recording: no reference screenshot shows a GTK spin button; the etch is the landed field recipe and the mirror is this theme's adaptation because GTK 3 does not mirror `box-shadow` for RTL; the covered-arm measurement and the mirrored render (this host, the date, a GTK 3 offscreen child); and the OSD exclusion with its reason.
-
-**Files.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk_theme_controls.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-
-- The GTK 3 sheet contains exactly one `spinbutton:dir(rtl):not(.vertical)` rule, placed directly after the `entry, spinbutton:not(.vertical)` rule, declaring exactly `box-shadow: inset -1px 1px #999999`; the base rule's declarations are unchanged and no `.osd spinbutton` rule changes.
-- When GTK 3 introspection and a display are present, a horizontal spin button rendered with the shipped sheet reads, at rows T+1, T+2, T+3 and B−1: column L+1 `#999999` at all four rows and column R−1 `#AAAAAA` at all four rows in LTR; column R−1 `#999999` at all four rows and column L+1 `#FFFFFF`, `#FFFFFF`, `#FFFFFF`, `#AAAAAA` in RTL. The four fully-black columns stay one per edge with two non-adjacent seams in both directions, and the allocation is unchanged.
-- The probe fails with the new rule removed (RTL R−1 then reads `#FFFFFF` at T+2 and B−1) and with the mirror spelled `inset 1px 1px #999999` (RTL R−1 then reads `#FFFFFF` at T+2).
-- Where GTK 3 introspection or a display is missing, the probe skips with the child's own reason, as the other GTK 3 pixel probes do. The suite process never imports `gi`, so `tests/test_no_gtk_introspection.py` still passes. `make check` passes.
+_None yet._
 
 ## Done
 
