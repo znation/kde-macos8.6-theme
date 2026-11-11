@@ -539,6 +539,24 @@ class TestSuiteDiscovery(unittest.TestCase):
             [("test_probe.py", [("test_first", 4, 7)])],
         )
 
+    def test_a_shadowed_async_test_method_is_reported(self):
+        # Async defs replace earlier same-named defs in a class body just as
+        # ordinary defs do, so the static guard must catch them too.
+        source = (
+            "class TestProbe:\n"
+            "    async def test_first(self):\n"
+            "        return 1\n"
+            "\n"
+            "    async def test_first(self):\n"
+            "        return 2\n"
+        )
+        tmp = make_tmp_dir(self)
+        (tmp / "test_probe.py").write_text(source, encoding="utf-8")
+        self.assertEqual(
+            shadowed_def_files(str(tmp)),
+            [("test_probe.py", [("test_first", 2, 5)])],
+        )
+
     def test_a_shadowed_module_level_helper_is_reported(self):
         # The same shadowing in a support module hides a helper just as
         # silently: a mixin whose setUp is redefined below its use site is
