@@ -380,10 +380,12 @@ combobox arrow {
 
 menu > arrow.top, .menu > arrow.top, .context-menu > arrow.top {
   -gtk-icon-source: url("../assets/arrow-up.svg");
+  border-radius: 0;
 }
 
 menu > arrow.bottom, .menu > arrow.bottom, .context-menu > arrow.bottom {
   -gtk-icon-source: url("../assets/arrow-down.svg");
+  border-radius: 0;
 }
 
 notebook > header {
@@ -7026,4 +7028,84 @@ notebook > header > tabs > arrow:hover:not(:active):not(:backdrop) {
   -gtk-icon-shadow: none;
   -gtk-icon-effect: none;
   transition: none;
+}
+
+/* 2026-11-11: no collected reference screenshot shows a GTK scrolling
+   menu, so the menu scroll arrows — the `menu > arrow`, `.menu > arrow`
+   and `.context-menu > arrow` nodes stock paints — take the landed
+   flat-button recipe: each state arm below carries exactly the landed
+   plain `button.flat` family's same-sheet dictionary, byte-equal, at the
+   arrow's own exact stock spelling, so later user-sheet source order wins
+   stock's equal-specificity tie per-property. The arrow-bearing stock
+   face arms were probed 2026-11-11 with gresource from gtk-contained.css
+   in libgtk-3 3.24.49 (the 2055-line toolkit resource; the dark-twin
+   resource declares the same arms with its own palette values at the
+   same lines): line 808 the base group clears the border colour, face
+   colour, face image, box shadow, text shadow and icon shadow, sets 16px
+   minimums and 4px padding, then closes with an opaque white face after
+   its own transparent face declaration and `border-radius: 0` — so the
+   effective rest face is white; line 814 hovers to a light grey wash;
+   line 816 backdrops to another near-white face; line 818 disables with
+   transparent ink and transparent face and border colours. Exclusions,
+   each inherited per-property as kept toolkit values: stock's geometry
+   (the line-808 minimums and padding, the lines-810/812 top and bottom
+   scroll margins) and the lines-810/812 edge hairlines stay inherited
+   as platform scroll geometry and kept toolkit ink — in the disabled
+   state the restated border colour below wins the equal-specificity tie
+   over the stock line-818 transparent border colour, while the
+   hairline's width and style stay stock; stock's own up and down
+   `-gtk-icontheme` glyph claims on the lines-810/812 arms are already
+   beaten by the landed glyph groups' asset URLs, which stay where they
+   are mid-sheet; and stock declares no checked, active or drop arm for
+   menu arrows. The radius additions to the landed glyph groups above
+   square the 5px top and bottom radii the lines-810/812 arms round, per
+   the landed square-corner policy; the base arm already squares itself
+   (line 808 closes `border-radius: 0`). No restated arm sets on-disk
+   geometry beyond those radius additions. Declaration checks do not
+   establish rendered pixels. */
+
+menu > arrow, .menu > arrow, .context-menu > arrow {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+menu > arrow:hover, .menu > arrow:hover, .context-menu > arrow:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+menu > arrow:backdrop, .menu > arrow:backdrop, .context-menu > arrow:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+menu > arrow:disabled, .menu > arrow:disabled, .context-menu > arrow:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
 }

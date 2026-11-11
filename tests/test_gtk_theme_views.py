@@ -17,6 +17,7 @@ from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     CHECK_GLYPH,
     DISABLED_TEXT,
+    BUTTON_BEVEL,
     MENU_CHECK,
     ROW_HOVER,
     MIXED_GLYPH,
@@ -1036,11 +1037,110 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     def test_menu_scroll_arrows(self):
         for selector in MENU_SCROLL_UP:
             self.assert_rule(
-                selector, {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'}
+                selector,
+                {
+                    "-gtk-icon-source": 'url("../assets/arrow-up.svg")',
+                    "border-radius": "0",
+                },
             )
         for selector in MENU_SCROLL_DOWN:
             self.assert_rule(
-                selector, {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}
+                selector,
+                {
+                    "-gtk-icon-source": 'url("../assets/arrow-down.svg")',
+                    "border-radius": "0",
+                },
+            )
+
+    def test_menu_scroll_arrow_faces(self):
+        """Pin the 2026-11-11 menu scroll-arrow face restatement."""
+        # 2026-11-11: stock paints the menu's scroll arrows with an opaque
+        # white face, a grey hover wash and a near-white backdrop tile, and
+        # no collected reference screenshot shows the arrows, so each state
+        # arm below restates the landed plain `button.flat` family's
+        # dictionary at the arrow's own exact stock spelling, later source
+        # order winning the tie per-property.
+        raised = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+            "transition": "none",
+        }
+        disabled = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        for selector in (
+            "menu > arrow",
+            ".menu > arrow",
+            ".context-menu > arrow",
+            "menu > arrow:hover",
+            ".menu > arrow:hover",
+            ".context-menu > arrow:hover",
+            "menu > arrow:backdrop",
+            ".menu > arrow:backdrop",
+            ".context-menu > arrow:backdrop",
+        ):
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertEqual(self.rules[selector], raised, selector)
+        for selector in (
+            "menu > arrow:disabled",
+            ".menu > arrow:disabled",
+            ".context-menu > arrow:disabled",
+        ):
+            self.assertEqual(self.selectors.count(selector), 1, selector)
+            self.assertEqual(self.rules[selector], disabled, selector)
+        # The token sweep keys on a substring no other landed selector
+        # carries: a dropped twin, a renamed spelling, a lost comma member
+        # or a stray extra rule fails.
+        self.assertEqual(
+            {selector for selector in self.selectors if "menu > arrow" in selector},
+            set(MENU_SCROLL_UP) | set(MENU_SCROLL_DOWN)
+            | {
+                "menu > arrow",
+                ".menu > arrow",
+                ".context-menu > arrow",
+                "menu > arrow:hover",
+                ".menu > arrow:hover",
+                ".context-menu > arrow:hover",
+                "menu > arrow:backdrop",
+                ".menu > arrow:backdrop",
+                ".context-menu > arrow:backdrop",
+                "menu > arrow:disabled",
+                ".menu > arrow:disabled",
+                ".context-menu > arrow:disabled",
+            },
+        )
+        # Source order: every appended spelling files after the landed
+        # glyph group, so the restated faces decide the equal-specificity
+        # race against the stock arms.
+        for selector in (
+            "menu > arrow",
+            ".menu > arrow",
+            ".context-menu > arrow",
+            "menu > arrow:hover",
+            ".menu > arrow:hover",
+            ".context-menu > arrow:hover",
+            "menu > arrow:backdrop",
+            ".menu > arrow:backdrop",
+            ".context-menu > arrow:backdrop",
+            "menu > arrow:disabled",
+            ".menu > arrow:disabled",
+            ".context-menu > arrow:disabled",
+        ):
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("menu > arrow.top"),
             )
 
     def test_icon_sources_resolve_to_shipped_files(self):
