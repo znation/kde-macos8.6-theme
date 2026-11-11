@@ -3431,6 +3431,17 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     type icon's cell byte-pinned as measured; the empty rows 183..251
     are flat ``#FFFFFF``; and the caption glyphs, the file names, the
     size text and the clock-dependent date column stay live ink.
+
+    The places sidebar is pinned beside its landed selected-row
+    highlight (measured on the same fresh pair): the two group
+    headers' live-ink bands, the Home entry's 40x26 folder icon cell
+    and the two device entries' byte-identical 40x26 drive cells (one
+    measured map pins both at the +52 row offset), each entry's
+    live-label band and both capacity-bar troughs with their caps,
+    edge column and left-anchored fills. After these pins only the
+    label and group-header glyphs, the icon art's provenance and the
+    capacity bars' fill/free boundary (the host filesystem's live
+    used-space total) stay unpinned.
     """
 
     KIND = "file_dialog"
@@ -3671,6 +3682,450 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     ROW_BAND_HEIGHT = 20
     ROW_TEXT_BANDS = ((191, 241), (375, 393), (395, 473))
     EMPTY_ROWS = (183, 251)
+
+    # The places sidebar's two group headers: live-ink bands (measured
+    # on the fresh pair named in the class docstring; "Places" inks
+    # x=13..47, rows 39..48 and "Devices" x=13..56, rows 171..180; the
+    # glyphs themselves stay unpinned like the other app-drawn text).
+    GROUP_HEADERS = ((13, 47, 39, 48), (13, 56, 171, 180))
+    # The Home entry's 40x26 folder icon cell (x=14..53, rows 70..95),
+    # byte-pinned as measured, with its live-label band to the cell's
+    # right (ink measured inside x=63..96, rows 77..86, band widened to
+    # the plan's column extent; the glyphs themselves stay unpinned).
+    FOLDER_CELL = (14, 70, 40, 26)
+    PLACES_LABEL_BANDS = ((58, 96, 73, 86),)
+    FOLDER_CELL_ROWS = (
+        ("#6E6E6E", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#1B1B1B", "#C1C1C1", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#6E6E6E", "#000000", "#DBDBDB", "#C9C9C9", "#B7B7B7",
+         "#B7B7B7", "#B7B7B7", "#B7B7B7", "#B7B7B7", "#B7B7B7",
+         "#B7B7B7", "#B7B7B7", "#B7B7B7", "#B7B7B7", "#B7B7B7",
+         "#949494", "#1B1B1B", "#C1C1C1", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#B7B7B7", "#1B1B1B", "#C1C1C1", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#E1E1E1", "#FBFBFB", "#B7B7B7", "#1B1B1B", "#C1C1C1",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#E1E1E1", "#FBFBFB", "#B7B7B7", "#1B1B1B",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#A6A6A6"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#E1E1E1", "#FBFBFB", "#B7B7B7",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#E1E1E1", "#FBFBFB",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#CCCCCC", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#E1E1E1",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#C3C3C3", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#CCCCCC", "#C3C3C3", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB", "#BBBBBB",
+         "#BBBBBB", "#BBBBBB", "#BBBBBB", "#CCCCCC", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#BBBBBB", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6E6E6E"),
+        ("#6E6E6E", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#6E6E6E"),
+        ("#A6A6A6", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E",
+         "#6E6E6E", "#6E6E6E", "#6E6E6E", "#6E6E6E", "#A6A6A6"),
+    )
+    # The two device entries' 40x26 drive icon cells at (14, 202) and
+    # (14, 254): measured byte-identical at the +52 row offset on the
+    # fresh pair, so one map pins both. Their live-label bands (ink
+    # measured inside x=63..119, rows 206..215 and 258..267) sit beside
+    # them; the glyphs themselves stay unpinned.
+    DRIVE_CELLS = ((14, 202), (14, 254))
+    DEVICE_LABEL_BANDS = ((62, 119, 206, 215), (62, 119, 258, 267))
+    DRIVE_CELL_ROWS = (
+        ("#6F6F6F", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#DADADA", "#C8C8C8", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6", "#B6B6B6",
+         "#B6B6B6", "#AFAFAF", "#A7A7A7", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#CCCCCC", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#CCCCCC", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#F6F6F6", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE", "#EEEEEE",
+         "#EEEEEE", "#C3C3C3", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#3F3F3F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#3F3F3F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#C6C6C6", "#7A7A7A", "#7A7A7A", "#C6C6C6", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#7F7F7F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#ACACAC",
+         "#0C0C0C", "#000000", "#000000", "#0D0D0D", "#ADADAD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#7F7F7F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#2A2A2A",
+         "#000000", "#000000", "#000000", "#000000", "#2B2B2B",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#7F7F7F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#020202",
+         "#000000", "#000000", "#000000", "#000000", "#020202",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#7F7F7F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#2A2A2A",
+         "#000000", "#000000", "#000000", "#000000", "#2B2B2B",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#7F7F7F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#ACACAC",
+         "#0D0D0D", "#000000", "#000000", "#0D0D0D", "#ADADAD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#3F3F3F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F",
+         "#7F7F7F", "#7F7F7F", "#7F7F7F", "#7F7F7F", "#3F3F3F",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#C6C6C6", "#7A7A7A", "#7A7A7A", "#C6C6C6", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#FFFFFF", "#EEEEEE", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+         "#DDDDDD", "#BBBBBB", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#999999", "#999999",
+         "#999999", "#999999", "#999999", "#000000", "#6F6F6F"),
+        ("#6F6F6F", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#000000",
+         "#000000", "#000000", "#000000", "#000000", "#6F6F6F"),
+        ("#A6A6A6", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F",
+         "#6F6F6F", "#6F6F6F", "#6F6F6F", "#6F6F6F", "#A6A6A6"),
+    )
+    # The two device entries' capacity-bar troughs (x=62..134, 6 rows,
+    # top rows 218 and 270): caps, edge column and left-anchored fill
+    # pinned by test_the_capacity_bars_pin_their_troughs below; the
+    # fill's extent stays unpinned (the live used-space total).
+    CAPACITY_TROUGHS = (218, 270)
 
     def assert_box_matches_svg(self, x0, y0, svg_name):
         """Byte-compare the box at (x0, y0) with the shipped Aurorae SVG art.
@@ -3930,7 +4385,10 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
         # The selected places entry highlights #CCCCFF across x=6..138,
         # rows 108..159, except the highlighted entry's own icon and label
         # ink (measured inside x=8..53 and x=58..118; live, unpinned); the
-        # places entries below the band stay deliberately unpinned.
+        # sidebar's other surfaces are pinned beside it (the group headers,
+        # entry icon cells, live labels and capacity-bar troughs in the
+        # sibling tests below), leaving only the glyphs, the icon art's
+        # provenance and the capacity bars' fill/free boundary unpinned.
         image = self.candidate_image()
         ink = [
             (x, y)
@@ -3944,6 +4402,150 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
                 if (x, y) in ink:
                     continue
                 self.assert_pixel(x, y, "#CCCCFF")
+
+    def test_the_sidebar_group_headers_ink_their_live_labels(self):
+        # Each group header must really draw its caption: at least one
+        # pixel off the #DDDDDD face inside its measured band (the
+        # glyphs themselves stay unpinned, like the other app-drawn
+        # text). A dropped header fails here.
+        image = self.candidate_image()
+        for x0, x1, y0, y1 in self.GROUP_HEADERS:
+            with self.subTest(header=(x0, x1)):
+                self.assertTrue(
+                    any(
+                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                        for x in range(x0, x1 + 1)
+                        for y in range(y0, y1 + 1)
+                    ),
+                    "the sidebar group header draws no ink",
+                )
+
+    def test_the_places_entry_pins_its_folder_cell(self):
+        # The Home entry's 40x26 folder icon cell, byte-pinned to its
+        # measured map (measured on the fresh pair named in the class
+        # docstring): a moved, dropped or resampled cell fails the
+        # byte-compare. The entry's label draws live ink beside it.
+        x0, y0, width, height = self.FOLDER_CELL
+        self.assert_band((x0, y0, width, height), self.FOLDER_CELL_ROWS)
+        image = self.candidate_image()
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                for x in range(58, 97)
+                for y in range(73, 87)
+            ),
+            "the Home entry's label draws no ink",
+        )
+
+    def test_the_device_entries_pin_their_drive_cells(self):
+        # Both device entries draw the same 40x26 drive icon cell
+        # (measured byte-identical at the +52 row offset on the fresh
+        # pair), so one measured map pins both: a moved, dropped,
+        # resampled or diverging cell fails the byte-compare.
+        for x0, y0 in self.DRIVE_CELLS:
+            with self.subTest(drive_cell=y0):
+                self.assert_band((x0, y0, 40, 26), self.DRIVE_CELL_ROWS)
+
+    def test_the_device_entries_ink_their_live_labels(self):
+        # Each device name must really draw beside its cell: at least
+        # one pixel off the #DDDDDD face inside its measured band. A
+        # dropped device entry's name fails here.
+        image = self.candidate_image()
+        for x0, x1, y0, y1 in self.DEVICE_LABEL_BANDS:
+            with self.subTest(label=y0):
+                self.assertTrue(
+                    any(
+                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                        for x in range(x0, x1 + 1)
+                        for y in range(y0, y1 + 1)
+                    ),
+                    "the device entry's label draws no ink",
+                )
+
+    def test_the_capacity_bars_pin_their_troughs(self):
+        # Each device entry carries a 6-row capacity-bar trough at
+        # x=62..134: no #DDDDDD face pixel inside the box, the left
+        # cap's fill-side blends (#C8C8E4/#CACAF8 at x=62, the fill's
+        # own #CCCCFF at x=63), the right cap's #B1B1B1 core at x=133
+        # with its #C5C5C5/#DCDCDC edge column at x=134, at least one
+        # full-strength #CCCCFF and one #B1B1B1 pixel per trough, and
+        # the fill left-anchored at x=63. The fill's extent stays
+        # deliberately unpinned: it is the host filesystem's live
+        # used-space total, so session writes can move the fill/free
+        # boundary between runs (the splash track's fill-extent
+        # precedent). A dropped bar, a moved trough, a recoloured cap,
+        # a lost fill or a right-anchored fill fails here.
+        image = self.candidate_image()
+        for trough_y0 in self.CAPACITY_TROUGHS:
+            with self.subTest(trough=trough_y0):
+                self.assertEqual(
+                    [],
+                    [
+                        (x, y)
+                        for y in range(trough_y0, trough_y0 + 6)
+                        for x in range(62, 135)
+                        if hex_colour(pixel_at(image, x, y)) == "#DDDDDD"
+                    ],
+                    "a #DDDDDD face pixel sits inside the trough box",
+                )
+                for offset, colour in enumerate(
+                    ("#C8C8E4", "#CACAF8", "#CACAF8", "#C8C8E4")
+                ):
+                    self.assert_pixel(62, trough_y0 + 1 + offset, colour)
+                    self.assert_pixel(63, trough_y0 + 1 + offset, "#CCCCFF")
+                for y in range(trough_y0, trough_y0 + 6):
+                    self.assert_pixel(
+                        133,
+                        y,
+                        "#C5C5C5"
+                        if y in (trough_y0, trough_y0 + 5)
+                        else "#B1B1B1",
+                    )
+                self.assert_band(
+                    (134, trough_y0, 1, 6),
+                    [
+                        ("#DCDCDC",),
+                        ("#C5C5C5",),
+                        ("#B5B5B5",),
+                        ("#B5B5B5",),
+                        ("#C5C5C5",),
+                        ("#DCDCDC",),
+                    ],
+                )
+                trough = [
+                    hex_colour(pixel_at(image, x, y))
+                    for y in range(trough_y0, trough_y0 + 6)
+                    for x in range(62, 135)
+                ]
+                self.assertIn("#CCCCFF", trough)
+                self.assertIn("#B1B1B1", trough)
+
+    def test_the_sidebar_face_stays_flat_outside_its_ink(self):
+        # Every sidebar pixel in x=6..138, rows 26..349 outside the
+        # landed selected-row band, the pinned icon cells, the trough
+        # boxes and the live-ink bands is the flat #DDDDDD face: a
+        # stray widget or a recoloured face fails here.
+        image = self.candidate_image()
+        bands = (
+            self.GROUP_HEADERS
+            + self.PLACES_LABEL_BANDS
+            + self.DEVICE_LABEL_BANDS
+        )
+        cells = [self.FOLDER_CELL[:2]] + list(self.DRIVE_CELLS)
+        exclusions = list(bands)
+        exclusions.extend((x0, x0 + 39, y0, y0 + 25) for x0, y0 in cells)
+        exclusions.extend((62, 134, y0, y0 + 5) for y0 in self.CAPACITY_TROUGHS)
+        stray = [
+            (x, y, hex_colour(pixel_at(image, x, y)))
+            for y in range(26, 350)
+            for x in range(6, 139)
+            if not (108 <= y <= 159)
+            and not any(
+                a <= x <= b and c <= y <= d for a, b, c, d in exclusions
+            )
+            and hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+        ]
+        self.assertEqual([], stray)
 
     def test_the_filter_and_name_fields_draw_sunken_boxes(self):
         # Both labeled fields (Name above, Filter below, labels to their

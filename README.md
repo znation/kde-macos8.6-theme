@@ -643,9 +643,13 @@ opens on the scratch session's fixed `Documents` directory holding exactly `alph
 bands, the title-bar boxes and pinstripes, the panels' sunken borders, the selected places row,
 the Name and Filter fields, the toolbar and bottom buttons, the list panel's column-header band
 with its dividers and style-drawn sort arrow, the file rows' `#FFFFFF` and `#EEEEEE` band faces
-with each per-file type-icon cell, and the empty rows' flat face; the caption glyphs, the file
-names and the clock-dependent date column stay live ink, and the icon art remains the fallback
-icon theme's.
+with each per-file type-icon cell, the empty rows' flat face, the places sidebar's two group
+headers, the Home entry's folder icon cell and the two device entries' drive icon cells, the
+entries' live label bands, and both capacity-bar troughs with their caps, edge column and
+left-anchored fills; the caption glyphs, the file names, the group-header and entry-label glyphs
+and the clock-dependent date column stay live ink, each capacity bar's fill extent stays
+unpinned because it is the host filesystem's live used-space total (session writes can move the
+fill/free boundary between runs), and the icon art remains the fallback icon theme's.
 `--desktop` opens the themed Plasma shell itself (`plasmashell`, the 640x400 virtual
 session's only client) so the flush 20px top panel the look-and-feel layout builds — the
 menu bar with its clock and window list — paints into the capture; the scratch session
