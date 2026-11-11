@@ -669,6 +669,19 @@ scrolledwindow viewport.frame {
   box-shadow: none;
 }
 
+/* Stock GTK 3 keeps a flat frame frameless: gtk-contained.css, extracted
+ * from libgtk-3.so.0 with gresource on 2026-11-11, declares
+ * frame > border.flat, .frame.flat { border-style: none; }. box-shadow is
+ * reset too, because the frame > border, .frame recipe above adds an inset
+ * shadow that stock frames do not have. Without this rule a Gtk.Frame with
+ * shadow type NONE drew the same sunken frame as one with shadow IN
+ * (measured 2026-11-11 with a GTK 3 offscreen child). Recorded 2026-11-11
+ * by the feature role. */
+frame > border.flat, .frame.flat {
+  border-style: none;
+  box-shadow: none;
+}
+
 /* No reference screenshot shows a GTK color chooser. Square corners adapt
  * the existing frame > border, .frame recipe (border-radius: 0).
  * Qualified stock GTK corner selectors also reset their overlay nodes.

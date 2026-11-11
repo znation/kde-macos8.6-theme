@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 flat frame: draw no border or inset shadow on a `Gtk.Frame` whose shadow type is NONE (planned 2026-11-11 by the plan role; independent of every other entry. It adds one rule to the GTK 3 sheet, two tests to `tests/test_gtk_theme_controls.py` and one `## gtk` row to `docs/invariants.md`. When implementing, re-read the sheet's `frame > border, .frame` rule and any `scrolledwindow viewport.frame` rule that has landed beside it, and re-grep every anchor this entry names) — done 2026-11-11 by the feature role
+
+**Goal.** A GTK 3 `Gtk.Frame` set to `Gtk.ShadowType.NONE` asks for no frame: GTK gives its `border` node the `flat` style class. The sheet's `frame > border, .frame` rule (`border: 1px solid #000000; box-shadow: inset 1px 1px #999999`) still matches that node, so a flat frame draws exactly the same sunken frame as a shadow-IN one. Measured 2026-11-11 on this host with the shipped `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (`url(...)` stripped), in a child-interpreter `Gtk.OffscreenWindow`: a label-less `Gtk.Frame()` with `set_size_request(40, 30)`, packed in a `Gtk.Box` with a 5px border width, allocation L,T,R,B = 5,5,44,34. With shadow NONE, the middle column read `#000000`, `#999999`, `#DDDDDD` at T, T+1, T+2 and `#DDDDDD`, `#DDDDDD`, `#000000` at B−2, B−1, B, and the middle row read the same at L…L+2 and R−2…R — identical to shadow IN — in LTR and with `set_direction(Gtk.TextDirection.RTL)`.
+
+The stock resource GTK 3 ships avoids this: `gtk-contained.css` inside `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, re-extracted with `gresource` 2026-11-11, declares `frame > border.flat, .frame.flat { border-style: none; }`. Selecting this theme replaces that resource, and the sheet does not restate the reset (`grep -n 'border\.flat\|frame\.flat'` over `theme/` finds nothing). The stock reset alone is not enough, because the sheet adds an inset `box-shadow` stock frames lack: a scratch copy with only `border-style: none` still read `#999999` at T and at L for shadow NONE. No collected reference screenshot shows a GTK frame.
+
+**Approach.** Directly after the `frame > border, .frame` rule in the GTK 3 sheet (after the `scrolledwindow viewport.frame` rule if that waiting entry has landed there), add this rule with a short provenance comment naming the stock spelling, its extraction date, why `box-shadow` is reset too, and the measurement above:
+- `frame > border.flat, .frame.flat { border-style: none; box-shadow: none; }`
+
+Change nothing else. A scratch copy of the sheet with exactly this rule, rendered as above, gave:
+- **IN:** unchanged — the middle column read `#000000`, `#999999`, `#DDDDDD` at T…T+2 and `#DDDDDD`, `#DDDDDD`, `#000000` at B−2…B; the middle row the same at L…L+2 and R−2…R; in LTR and RTL.
+- **NONE:** all twelve of those pixels read `#DDDDDD`, in LTR and RTL.
+
+GTK 4 is out of scope: `Gtk.Frame` there has no shadow type, and its probe cannot run on a host without Xvfb. The labelled frame's label gap is a separate question.
+
+Tests go in `tests/test_gtk_theme_controls.py`, after `test_progressbar_fill_spans_the_trough` (after the scrolled-viewport tests if those have landed):
+1. **Declaration test.** `test_flat_frame_draws_no_border` uses `assert_rule` to pin the rule's two declarations exactly.
+2. **Pixel probe.** `test_flat_frame_renders_no_frame` is built from `_GTK3_CHILD_HEAD` and runs through `_run_gtk_child`. Like `test_progressbar_fill_spans_the_trough`, it strips `url(...)`, installs the provider once and renders each case in a fresh `Gtk.OffscreenWindow`: the frame above with shadow IN and with shadow NONE, each in LTR and RTL. It reads L, T, R and B from `frame.get_allocation()` and samples the middle column and middle row.
+
+Add a `## gtk` row to `docs/invariants.md` beside the other GTK 3 pixel-probe rows. It names both tests and records the provenance: no reference screenshot shows a GTK frame; the stock resource path and extraction date the selector spelling comes from; why `box-shadow` is reset too; the measured render (this host, the date, a GTK 3 offscreen child).
+
+**Files.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `tests/test_gtk_theme_controls.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- The GTK 3 sheet contains a rule for `frame > border.flat, .frame.flat` declaring exactly `border-style: none` and `box-shadow: none`. The `frame > border, .frame` rule keeps its declarations.
+- When GTK 3 introspection and a display are present, a shadow-IN `Gtk.Frame` rendered with the shipped sheet reads `#000000`, `#999999`, `#DDDDDD` at T, T+1, T+2 and `#DDDDDD`, `#000000` at B−1, B of its middle column, and the same at L…L+2 and R−1, R of its middle row, in LTR and in RTL.
+- The same frame with shadow NONE reads `#DDDDDD` at T, T+1, B−1, B of its middle column and at L, L+1, R−1, R of its middle row, in LTR and in RTL.
+- The probe fails with the new rule removed (shadow NONE then reads `#000000` at T), and fails with only `border-style: none` kept (shadow NONE then reads `#999999` at T).
+- Where GTK 3 introspection or a display is missing, the probe skips with the child's own reason, as the other GTK 3 pixel probes do. The suite process never imports `gi`, so `tests/test_no_gtk_introspection.py` still passes. `make check` passes.
+
 ### Platinum GTK 3 scrolled window: stop a wrapped viewport from drawing a second frame inside the scrolled window's own (planned 2026-11-11 by the plan role; independent of every other entry. It adds one rule to the GTK 3 sheet, two tests to `tests/test_gtk_theme_controls.py` and one `## gtk` row to `docs/invariants.md`. When implementing, re-read the sheet's `frame > border, .frame` rule and its `placessidebar > viewport.frame` rule, and re-grep every anchor this entry names) — done 2026-11-11 by the feature role
 
 **Goal.** A GTK 3 scrolled window whose child cannot scroll itself (a `Gtk.Box`, a grid, a preferences page) wraps that child in a `Gtk.Viewport`. That viewport carries the `frame` style class, so the sheet's `frame > border, .frame` rule (`border: 1px solid #000000; box-shadow: inset 1px 1px #999999`) gives it a sunken frame of its own. The viewport draws that frame inside whatever the scrolled window draws. Measured 2026-11-11 on this host with the shipped `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: a child-interpreter `Gtk.OffscreenWindow` held a `Gtk.ScrolledWindow` (size request 30×30, both scrollbar policies `NEVER`, `add(Gtk.Box())`) packed in a `Gtk.Box` with a 5px border width. The viewport's class list was `['frame']`.

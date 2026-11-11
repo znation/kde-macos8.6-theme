@@ -785,6 +785,83 @@ print("scrolled viewport: the IN frame is 1px black with a grey inset and no sec
         )
         self._run_gtk_child(program, str(CSS))
 
+    def test_flat_frame_draws_no_border(self):
+        self.assert_rule(
+            "frame > border.flat",
+            {"border-style": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            ".frame.flat",
+            {"border-style": "none", "box-shadow": "none"},
+        )
+
+    def test_flat_frame_renders_no_frame(self):
+        # A Gtk.Frame with shadow NONE asks GTK to put the flat style class
+        # on its border node, so the frame > border, .frame recipe above must
+        # not reach it. The probe measures the frame's own allocation, so it
+        # does not hard-code its position, and checks the frame drawn at its
+        # middle column and row. Each render gets a fresh offscreen window;
+        # see _run_gtk_child for why this runs in a child.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+
+def render(shadow, rtl):
+    window = Gtk.OffscreenWindow()
+    box = Gtk.Box()
+    box.set_border_width(5)
+    frame = Gtk.Frame()
+    frame.set_size_request(40, 30)
+    frame.set_shadow_type(shadow)
+    if rtl:
+        frame.set_direction(Gtk.TextDirection.RTL)
+    box.pack_start(frame, False, False, 0)
+    window.add(box)
+    window.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+    alloc = frame.get_allocation()
+    pixbuf = window.get_pixbuf()
+    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+    window.destroy()
+
+    def at(x, y):
+        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+    left, top = alloc.x, alloc.y
+    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+    mid_x, mid_y = (left + right) // 2, (top + bottom) // 2
+    column = [at(mid_x, y) for y in range(top, top + 3)]
+    column_bottom = [at(mid_x, y) for y in range(bottom - 2, bottom + 1)]
+    row = [at(x, mid_y) for x in range(left, left + 3)]
+    row_right = [at(x, mid_y) for x in range(right - 2, right + 1)]
+    return column, column_bottom, row, row_right
+
+BLACK, GREY, FACE = "#000000", "#999999", "#DDDDDD"
+
+for rtl in (False, True):
+    column, column_bottom, row, row_right = render(Gtk.ShadowType.IN, rtl)
+    assert column == [BLACK, GREY, FACE], (rtl, column)
+    assert column_bottom == [FACE, FACE, BLACK], (rtl, column_bottom)
+    assert row == [BLACK, GREY, FACE], (rtl, row)
+    assert row_right == [FACE, FACE, BLACK], (rtl, row_right)
+
+    column, column_bottom, row, row_right = render(Gtk.ShadowType.NONE, rtl)
+    assert column == [FACE] * 3, (rtl, column)
+    assert column_bottom == [FACE] * 3, (rtl, column_bottom)
+    assert row == [FACE] * 3, (rtl, row)
+    assert row_right == [FACE] * 3, (rtl, row_right)
+print("flat frame: the IN frame is 1px black with a grey inset; NONE draws no border or inset shadow, in LTR and RTL")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
     def test_mixed_check_draws_a_black_dash(self):
         # The GTK work runs in a child interpreter; see _run_gtk_child for
         # why it never runs in this one.
