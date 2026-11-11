@@ -21,7 +21,7 @@ jobs:
       # finds no Vulkan driver and cannot create its EGL screen. Only
       # LIBGL_ALWAYS_SOFTWARE is set: a pinned MESA_LOADER_DRIVER_OVERRIDE
       # =llvmpipe breaks KWin's virtual session on a real-GPU host with a KMS
-      # dumb-buffer permission denial (BUGS.md, "the render tests' KWin
+      # dumb-buffer permission denial (BUGS-FIXED.md, "the render tests' KWin
       # session cannot allocate its capture buffers under the workflow's
       # llvmpipe env", 2026-11-09), and with no driver-name pinning the
       # render gates' skip guard already fires on LIBGL_ALWAYS_SOFTWARE=1
