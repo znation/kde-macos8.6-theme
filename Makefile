@@ -525,7 +525,7 @@ help:
 	@echo "  CHECK_PARALLEL=n    parallel worker count for check (default: one per core); 0 runs the modules serially"
 	@echo "  PYTHON=path         Python 3.10+ interpreter for every target that runs Python (default python3)"
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
-	@echo "  RENDER_MODE=name   render surface: calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog (default calculator)"
+	@echo "  RENDER_MODE=name   render surface: $(RENDER_MODE_LIST) (default calculator)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
@@ -550,12 +550,28 @@ check-references:
 # validates and dispatches the render to tools/render_workflow.py, and exits 2
 # when a required tool is missing.
 RENDER_OUTPUT ?= render.png
+# The render modes the `render` target accepts, in the order
+# tools/render_surface.py's CLI lists its flags: the calculator applet render
+# first, then one entry per tools/render_dialogs.py's DIALOG_MODES table. The
+# two refusal echoes in the `render` recipe and the help line build their mode
+# list from RENDER_MODE_LIST, so the list is spelled once here, and
+# tests/test_render_make.py pins RENDER_MODE_VALUES against the DIALOG_MODES
+# table so the two cannot drift apart. The recipe's case branches stay
+# literal -- make cannot generate recipe text from a variable at recipe time
+# without an extra interpreter run -- and that test also pins every branch's
+# literal argv, so a mode missing its branch fails there.
+RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog
+comma := ,
+empty :=
+space := $(empty) $(empty)
+RENDER_MODE_LIST := $(subst $(space),$(comma)$(space),$(RENDER_MODE_VALUES))
+
 RENDER_MODE ?= calculator
 
 render:
 	@$(call require_python_ready,render)
 	@set -f; set -- $${RENDER_MODE-calculator}; \
-	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; esac; \
+	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; esac; \
 	case "$$1" in \
 	  calculator) set -- ;; \
 	  checkbox-dialog) set -- --checkbox-dialog ;; \
@@ -570,7 +586,7 @@ render:
 	  slider-dialog) set -- --slider-dialog ;; \
 	  textbox-dialog) set -- --textbox-dialog ;; \
 	  gtk-dialog) set -- --gtk-dialog ;; \
-	  *) echo "RENDER_MODE must be one of calculator, checkbox-dialog, combobox-dialog, lineedit-dialog, menu-dialog, radiolist-dialog, calendar-dialog, color-dialog, icon-dialog, progressbar-dialog, slider-dialog, textbox-dialog or gtk-dialog" >&2; exit 2 ;; \
+	  *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; \
 	esac; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"
 
