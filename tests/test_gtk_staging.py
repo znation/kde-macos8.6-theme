@@ -130,7 +130,7 @@ class TestStageAll(StagingCase):
 
         with mock.patch.object(Path, "unlink", fail_staging_unlink):
             with self.assertRaises(ConfigError) as caught:
-                stage_all([(good, "new\\n"), (blocked, "new\\n")])
+                stage_all([(good, "new\n"), (blocked, "new\n")])
 
         self.assertIn(f"cannot write {blocked}", str(caught.exception))
         self.assertIn(f"cannot remove staging file {staging}", str(caught.exception))
