@@ -22,7 +22,10 @@ class TestSampleMatchColumnRunsMaxLength(CliTestCase):
         path = self._write(self._tmp_dir(), "columns.png", encoded)
         base = (path, "2", "1", "--width", "2", "--height", "9", "--find-color",
                 "0a141e", "--match-column-runs", "--longest-match-column-run",
-                "--match-pixels", "1", "--match-columns")
+                "--match-pixels", "1", "--match-columns", "--match-runs",
+                "--longest-match-run", "--match-rows")
+        full = self._run(*base, "--json")
+        self._assert_success(full)
         result = self._run(*base, "--max-match-column-run-length", "2", "--json")
         self._assert_success(result)
         match = json.loads(result.stdout)["match"]
@@ -34,6 +37,12 @@ class TestSampleMatchColumnRunsMaxLength(CliTestCase):
         self.assertEqual(match["count"], 7)
         self.assertEqual(match["pixels"], [{"x": 2, "y": 1}])
         self.assertEqual(match["columns"], [6, 1])
+        for key in ("runs", "longest_run", "rows"):
+            self.assertEqual(match[key], json.loads(full.stdout)["match"][key], key)
+        generous = self._run(*base, "--max-match-column-run-length", "9", "--json")
+        self._assert_success(generous)
+        self.assertEqual(json.loads(generous.stdout)["match"],
+                         json.loads(full.stdout)["match"])
 
         combined = self._run(*base, "--min-match-column-run-length", "2",
                              "--max-match-column-run-length", "2", "--json")
@@ -66,6 +75,9 @@ class TestSampleMatchColumnRunsMaxLength(CliTestCase):
             result = self._run("missing.png", "0", "0", "--find-color", "010203",
                                "--match-column-runs", "--max-match-column-run-length", value)
             self.assertEqual((result.returncode, result.stdout), (2, ""))
+        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
+                            "--match-column-runs", "--max-match-column-run-length")
+        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
         help_result = self._run("--help")
         self.assertIn("--max-match-column-run-length N", help_result.stdout)
 
