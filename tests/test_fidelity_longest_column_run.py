@@ -14,7 +14,7 @@ from tools.png import Image
 
 
 class TestLongestDifferenceColumnRun(unittest.TestCase):
-    def test_longest_vertical_run_and_earliest_column_tie(self):
+    def test_longest_vertical_run(self):
         width, height = 4, 5
         values = [0, 11, 0, 0, 0, 11, 0, 11, 0, 12, 0, 11, 0, 11, 0, 0, 0, 0, 0, 11]
         candidate = Image(width, height, b"".join(bytes((v, 0, 0)) for v in values))
@@ -28,6 +28,21 @@ class TestLongestDifferenceColumnRun(unittest.TestCase):
         reference = Image(2, 4, bytes(2 * 4 * 3))
         self.assertEqual(longest_difference_column_run(candidate, reference, 10),
                          {"x": 0, "y": 0, "length": 4})
+
+    def test_earliest_column_and_row_ties(self):
+        # Two columns hold length-2 runs (x=0 at y=0, x=2 at y=2); the
+        # earlier column wins. Within that column the run also starts
+        # at the earlier row.
+        width, height = 3, 5
+        values = [11, 0, 11, 11, 0, 0, 0, 0, 11, 11, 0, 11, 0, 0, 0]
+        candidate = Image(width, height, b"".join(bytes((v, 0, 0)) for v in values))
+        reference = Image(width, height, bytes(width * height * 3))
+        self.assertEqual(longest_difference_column_run(candidate, reference, 10),
+                         {"x": 0, "y": 0, "length": 2})
+        # One column with two equal-length runs keeps the earlier row.
+        single = Image(1, 4, bytes((11, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0)))
+        self.assertEqual(longest_difference_column_run(single, Image(1, 4, bytes(12)), 10),
+                         {"x": 0, "y": 0, "length": 1})
 
     def test_empty_and_alpha_comparison(self):
         blank = Image(1, 2, bytes(6))
