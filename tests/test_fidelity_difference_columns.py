@@ -24,6 +24,9 @@ class TestDifferenceColumns(unittest.TestCase):
         candidate = Image(4, 3, bytes(rgb), bytes([255] * 12))
         self.assertEqual(difference_columns(candidate, reference, 10), [1, 1, 1, 0])
         self.assertEqual(sum(difference_columns(candidate, reference, 10)), compare(candidate, reference, 10).differing)
+        # The green delta of 11 equals this tolerance, so column 3 drops out:
+        # a delta equal to the tolerance is not differing, mirroring the gate.
+        self.assertEqual(difference_columns(candidate, reference, 11), [1, 0, 1, 0])
         self.assertEqual(difference_columns(candidate, reference, 255), [0, 0, 0, 0])
         self.assertEqual(difference_columns(reference, reference, 0), [0, 0, 0, 0])
 
