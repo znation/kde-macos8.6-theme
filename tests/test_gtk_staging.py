@@ -339,6 +339,32 @@ class TestCommit(StagingCase):
         self.assertEqual("new settings\n", target.read_text(encoding="utf-8"))
         self.assertEqual(1, len(self.backups_of(target)))
 
+    def test_backup_cleanup_continues_and_reports_every_failure(self):
+        targets = [self.root / name for name in ("first", "second", "third")]
+        for target in targets:
+            target.write_text("old settings\n", encoding="utf-8")
+        staged = stage_all([(target, "new settings\n") for target in targets])
+        real_unlink = Path.unlink
+
+        def fail_two_backups(path, *args, **kwargs):
+            if path.name.startswith((".first.", ".third.")) and path.suffix == ".backup":
+                raise OSError("injected backup cleanup failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_two_backups):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
+
+        for target in targets:
+            self.assertEqual("new settings\n", target.read_text(encoding="utf-8"))
+            self.assertFalse(self.staging_of(target).exists())
+        self.assertEqual([], self.backups_of(targets[1]))
+        for target in (targets[0], targets[2]):
+            backups = self.backups_of(target)
+            self.assertEqual(1, len(backups))
+            self.assertIn(f"cannot remove backup {backups[0]}:", str(caught.exception))
+            self.assertEqual("old settings\n", backups[0].read_text(encoding="utf-8"))
+
     def test_a_foreign_backup_sibling_is_left_untouched(self):
         target = self.root / "gtk-3.0" / "settings.ini"
         target.parent.mkdir(parents=True)

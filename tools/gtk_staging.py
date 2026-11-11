@@ -179,14 +179,15 @@ def commit(
             raise ConfigError(f"{exc}; {rollback_error}") from exc
         raise
     else:
+        failures = []
         for _, backup in applied:
             if backup is not None:
                 try:
                     backup.unlink()
                 except OSError as exc:
-                    raise ConfigError(
-                        f"cannot remove backup {backup}: {exc}"
-                    ) from exc
+                    failures.append(f"cannot remove backup {backup}: {exc}")
+        if failures:
+            raise ConfigError("; ".join(failures))
     finally:
         for _, staging in staged:
             discard(staging)
