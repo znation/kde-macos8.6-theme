@@ -26,6 +26,8 @@ user 2026-11-01; recorded by the director role.)
 
 **Suspected cause.** For the button-reference failure, the reviewer fix removed the group id the landed test pins without updating the test (the commit message says the shipped indicator stays the parent's slot-measured 8x8 art, but no group carries that id any more). For the dialog gates, the same default-button area is the prime suspect: with the indicator art gone, Kvantum's own default-button painting (a subtle gradient interior) may now cover the flat face the flat recipe pins; whether the two symptoms share that root is for the fix to establish.
 
+Reproduced with the splash render kind removed from `_Renders.KINDS` (main's render set): both failures persist, so neither is caused by the pending splash gate.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
