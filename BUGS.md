@@ -32,6 +32,9 @@ same workflow step passes in this worktree, where `/usr/bin/convert` is installe
 render-tool install step does not install ImageMagick, so the hosted dependency gap is not
 reproducible as a source or test failure here.
 
+**Progress:** Reproduction is unavailable in this worktree because `/usr/bin/convert` exists;
+handed the hosted failure evidence and workflow dependency gap to the director on 2026-11-11.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
