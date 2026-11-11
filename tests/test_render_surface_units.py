@@ -305,6 +305,27 @@ class TestArguments(unittest.TestCase):
                     "--applet", self.assert_usage_error("out.png", "--applet", bad)
                 )
 
+    def test_applet_refusals_name_the_actual_defect(self):
+        # Each refused --applet value names the defect it carries instead of
+        # one conflated wording: a path separator is answered with the path
+        # refusal (not the NUL one), an option-like value with the option-like
+        # refusal, and so on, so the diagnostic tells the caller what to fix.
+        cases = {
+            "": "not empty",
+            "--help-all": "not option-like",
+            "a/b": "not a path",
+            "a\\b": "not a path",
+            "org.example\0widget": "without NUL",
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                # The ``=`` form is the only one that carries an option-like
+                # value at all: ``--applet --help-all`` reads as a missing
+                # value before the type runs.
+                self.assertIn(
+                    expected, self.assert_usage_error("out.png", "--applet=" + value)
+                )
+
     def test_requires_an_output_path(self):
         self.assert_usage_error()
 

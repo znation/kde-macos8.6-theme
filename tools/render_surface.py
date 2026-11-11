@@ -112,16 +112,21 @@ def _seconds(option: str, minimum: float) -> Callable[[str], float]:
 
 
 def _applet(value: str) -> str:
-    """Accept a plasmoid id argument value, refusing empty, option-like or
-    NUL-carrying text."""
-    if not value or value.startswith("-") or "\0" in value:
+    """Accept a plasmoid id argument value, refusing empty, option-like,
+    path-carrying or NUL-carrying text."""
+    if not value:
+        raise argparse.ArgumentTypeError("--applet must be a plasmoid id, not empty")
+    if value.startswith("-"):
         raise argparse.ArgumentTypeError(
-            f"--applet must be a plasmoid id without NUL, not empty or option-like: {value!r}"
+            f"--applet must be a plasmoid id, not option-like: {value!r}"
+        )
+    if "\0" in value:
+        raise argparse.ArgumentTypeError(
+            f"--applet must be a plasmoid id without NUL: {value!r}"
         )
     if "/" in value or "\\" in value:
         raise argparse.ArgumentTypeError(
-            f"--applet must be a plasmoid id without NUL, not empty, "
-            f"option-like or path-carrying: {value!r}"
+            f"--applet must be a plasmoid id, not a path: {value!r}"
         )
     return value
 
