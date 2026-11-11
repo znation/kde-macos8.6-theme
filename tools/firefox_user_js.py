@@ -9,6 +9,11 @@ from __future__ import annotations
 import re
 from collections import Counter
 
+if __package__:
+    from tools.text_lines import BOM
+else:  # imported from a directly run tool
+    from text_lines import BOM
+
 USER_JS_MARKER = "// org.macos8.desktop Firefox Platinum userChrome"
 # The sheets load only when the legacy-stylesheet switch is on, and the window
 # takes the Platinum Aurorae frame -- pinstriped title bar, Mac widget boxes --
@@ -25,7 +30,6 @@ PREF_LINES = (STYLESHEETS_PREF, TITLEBAR_PREF)
 # must keep. The capture group makes ``split`` return each ending between the
 # contents, and the scan runs in C instead of character by character.
 _LINE_ENDING = re.compile(r"(\r\n|\r|\n)")
-_BOM = "\ufeff"
 
 
 def _lines(text: str) -> list[tuple[str, str]]:
@@ -79,7 +83,7 @@ def _without_block(lines: list[tuple[str, str]]) -> list[tuple[str, str]]:
     while index < len(lines):
         content = lines[index][0]
         if index == 0:
-            content = content.removeprefix(_BOM)
+            content = content.removeprefix(BOM)
         if content == USER_JS_MARKER:
             index += 1
             while index < len(lines) and lines[index][0] in PREF_LINES:

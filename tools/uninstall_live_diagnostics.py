@@ -14,15 +14,15 @@ from __future__ import annotations
 import os
 
 if __package__:
+    from tools.text_lines import BOM
     from tools.uninstall_config import (
-        _BOM,
         latched_match,
         read_selected_values_at,
         read_text,
     )
 else:  # imported from a directly run tool
+    from text_lines import BOM
     from uninstall_config import (
-        _BOM,
         latched_match,
         read_selected_values_at,
         read_text,
@@ -156,7 +156,7 @@ def gtk_messages(config_home: str, gtk_id: str, css_marker: str) -> list[str]:
     # cannot read this path while skipping the cap the ini reads have.
     css_text = read_text(css)
     css_first_line = css_text.splitlines()[0] if css_text else ""
-    if css_first_line.removeprefix(_BOM).startswith(css_marker):
+    if css_first_line.removeprefix(BOM).startswith(css_marker):
         chosen = f"{chosen} {css}"
     if not chosen:
         return []

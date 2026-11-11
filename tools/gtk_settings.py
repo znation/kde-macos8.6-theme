@@ -9,8 +9,12 @@ reads the files, ``tools/apply_gtk.py`` drives the selection and
 
 from __future__ import annotations
 
+if __package__:
+    from tools.text_lines import BOM
+else:  # imported from a directly run tool
+    from text_lines import BOM
+
 GTK_ID = "org.macos8.desktop"
-_BOM = "\ufeff"
 # Every boundary ``str.splitlines`` recognises, longest first so a CRLF is not
 # mistaken for a lone CR.
 _ENDINGS = (
@@ -47,14 +51,14 @@ def _key_value(line: str) -> tuple[str, str] | None:
 
 def _split_bom(text: str) -> tuple[bool, str]:
     """Split a leading UTF-8 BOM from *text*, returning ``(had_bom, body)``."""
-    if text.startswith(_BOM):
-        return True, text[len(_BOM) :]
+    if text.startswith(BOM):
+        return True, text[len(BOM) :]
     return False, text
 
 
 def _with_bom(had_bom: bool, text: str) -> str:
     """Prepend a UTF-8 BOM to *text* when *had_bom* is true."""
-    return _BOM + text if had_bom else text
+    return BOM + text if had_bom else text
 
 
 def _split_lines(body: str) -> list[tuple[str, str]]:

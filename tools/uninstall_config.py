@@ -36,12 +36,13 @@ from collections.abc import Iterator
 
 if __package__:
     from tools.containment import open_regular_binary
+    from tools.text_lines import strip_bom
     from tools.xdg_homes import config_home as resolve_config_home
 else:  # imported from a directly run tool
     from containment import open_regular_binary
+    from text_lines import strip_bom
     from xdg_homes import config_home as resolve_config_home
 
-_BOM = "\ufeff"
 _WHITESPACE = " \t\r\n\f\v"
 
 
@@ -111,8 +112,7 @@ def _ini_entries(text: str) -> Iterator[tuple[str | None, str, str]]:
     for raw in text.splitlines():
         if first:
             first = False
-            if raw.startswith(_BOM):
-                raw = raw[len(_BOM) :]
+            raw = strip_bom(raw)
         line = raw.strip(_WHITESPACE)
         if len(line) >= 2 and line[0] == "[" and line[-1] == "]":
             section = line[1:-1].strip(_WHITESPACE)
@@ -173,5 +173,5 @@ def flat_text(text: str) -> str:
     trimmed lines with nothing between them, as its awk did. A BOM patch on a
     later line is a real byte there and breaks the name, as with the awk.
     """
-    body = text[len(_BOM) :] if text.startswith(_BOM) else text
+    body = strip_bom(text)
     return "".join(line.strip(_WHITESPACE) for line in body.split("\n"))
