@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import fcntl
 import os
+import shlex
 import stat
-import threading
-import time
+import sys
 import unittest
 from unittest import mock
 
@@ -52,9 +52,6 @@ class ThemeLockCase(unittest.TestCase):
             "XDG_CONFIG_HOME": str(self.config),
             "PATH": str(self.bin),
         }
-        self._thread = None
-        self._stop = None
-        self.observations = []
 
     def stub(self, name, body="exit 0"):
         """Write an executable *name* that records its argv, then runs *body*."""
@@ -76,50 +73,6 @@ class ThemeLockCase(unittest.TestCase):
         """Take the data-home lock a concurrent install or uninstall holds."""
         hold_directory_flock(self, self.data)
 
-    def start_probe(self):
-        """Probe the data-home flock from a daemon thread until it is held.
-
-        Every non-blocking attempt appends ``"unlocked"`` when the flock is
-        free and ``"locked"`` once a run holds it, so an apply that never takes
-        the lock keeps the probe in its ``unlocked`` loop.
-        """
-        observations = self.observations
-        stop = threading.Event()
-        self._stop = stop
-
-        def probe():
-            descriptor = os.open(self.data, os.O_RDONLY)
-            try:
-                while not stop.is_set():
-                    try:
-                        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        observations.append("unlocked")
-                        fcntl.flock(descriptor, fcntl.LOCK_UN)
-                    except OSError:
-                        observations.append("locked")
-                        return
-                    time.sleep(0.02)
-            finally:
-                os.close(descriptor)
-
-        self._thread = threading.Thread(target=probe, daemon=True)
-        self._thread.start()
-        self.addCleanup(self.stop_probe)
-
-    def stop_probe(self):
-        """Stop the probe thread :meth:`start_probe` started."""
-        if self._stop is not None:
-            self._stop.set()
-            self._thread.join(5.0)
-            self._stop = None
-
-    def wait_until(self, predicate, message, seconds=5.0):
-        """Poll *predicate* until true, or fail the case naming *message*."""
-        deadline = time.monotonic() + seconds
-        while time.monotonic() < deadline and not predicate():
-            time.sleep(0.02)
-        if not predicate():
-            self.fail(f"{message}; saw {self.observations}")
 
 
 class TestDataHomeLock(ThemeLockCase):
@@ -152,26 +105,43 @@ class TestDataHomeLock(ThemeLockCase):
             os.close(descriptor)
 
     def test_the_selections_run_while_the_data_home_lock_is_held(self):
-        """The lock stays held across the selection steps, not before them.
-
-        A probe that is already watching the data home sees it unlocked, then
-        sees the apply's held lock while the stubbed ``lookandfeeltool`` runs:
-        a selection body executed before the lock (or after the release) keeps
-        the probe's ``unlocked`` observations without any ``locked`` one.
-        """
-        self.start_probe()
-        self.wait_until(
-            lambda: "unlocked" in self.observations,
-            "the probe never observed the unlocked data home",
+        """Each command independently observes the held data-home lock."""
+        observations = self.root / "lock-observations"
+        names = (
+            "lookandfeeltool",
+            "plasma-apply-colorscheme",
+            "plasma-apply-desktoptheme",
+            "kvantummanager",
+            "qdbus6",
         )
+        for name in names:
+            # A separate process opens its own descriptor, just as a concurrent
+            # uninstall would. Record the outcome even for best-effort commands,
+            # whose failures alone would not make the apply fail.
+            code = (
+                "import errno, fcntl, os\n"
+                f"fd = os.open({str(self.data)!r}, os.O_RDONLY)\n"
+                "try:\n"
+                "    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)\n"
+                "    state = 'unlocked'\n"
+                "except OSError as exc:\n"
+                "    if exc.errno not in (errno.EACCES, errno.EAGAIN):\n"
+                "        raise\n"
+                "    state = 'locked'\n"
+                "finally:\n"
+                "    os.close(fd)\n"
+                f"with open({str(observations)!r}, 'a') as sink:\n"
+                f"    sink.write({name!r} + ' ' + state + '\\n')\n"
+            )
+            self.stub(name, f"exec {shlex.quote(sys.executable)} -c {shlex.quote(code)}")
 
-        # Each stub sleeps 0.5s, so the selections take over a second; the
-        # probe polls every 20ms and must observe the apply's lock meanwhile.
-        self.stub("lookandfeeltool", "exec /bin/sleep 0.5")
         result = self.run_tool()
 
         assert_succeeded(self, result)
-        self.assertIn("locked", self.observations)
+        self.assertEqual(
+            [f"{name} locked" for name in names],
+            observations.read_text().splitlines(),
+        )
 
     def test_an_unresolvable_data_home_refuses_the_apply(self):
         """An apply with no resolvable data home cannot serialize at all.
