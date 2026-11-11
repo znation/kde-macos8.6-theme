@@ -94,6 +94,46 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Platinum GTK 3 horizontal spin button: draw each stepper seam as one 1px black line and pin it with an offscreen pixel probe (planned 2026-11-11 by the plan role; independent of every other entry — it adds two rules to the GTK 3 sheet, two tests to `tests/test_gtk_theme_controls.py` and one `## gtk` row to `docs/invariants.md`; at implementation re-read the sheet's `button` rule and the linked-group seam rules, and re-grep every anchor this entry names)
+
+**Goal.** In a horizontal GTK 3 spin button, the − and + stepper buttons paint the sheet's full `button` border (`1px solid #000000`) inside the spin button's own 1px black field border. Every place where a stepper meets the frame or another stepper therefore draws a 2px black line, but Platinum draws all of these edges 1px wide. Measured 2026-11-11 on this host with the shipped `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (child-interpreter `Gtk.OffscreenWindow`, a `Gtk.SpinButton.new_with_range(0, 100, 1)` with focus disabled, packed in a `Gtk.Box` with a 5px border width so the frame is not clipped):
+- Every stepper column is `#000000` at both the spin button's top row and the row below it, and at both its bottom row and the row above it.
+- The trailing edge is two black columns.
+- The seam between the two steppers is two black columns.
+- An RTL spin button mirrors all of this; its black columns at the row 4px below the top were x 5, 6, 35, 36, 65 and 112.
+
+The sheet has no `spinbutton … button` rule outside `.osd` and the vertical radius pair (`grep -n 'spinbutton[^{]*button'`). The stock resource GTK 3 ships, `gtk-contained.css` inside `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, avoids the problem by restyling these buttons: re-extracted with `gresource` 2026-11-11, it declares `spinbutton:not(.vertical) button { … border-style: none none none solid; … }` and `spinbutton:not(.vertical) button:dir(rtl) { border-style: none solid none none; }`. Selecting this theme replaces that resource, so neither rule reaches the steppers. No collected reference screenshot shows a GTK spin button. The one-seam result follows the landed linked-group scheme (`.linked:not(.vertical) > …` strips each member's trailing border so a group paints one 1px seam).
+
+**Approach.** Add these two rules to the GTK 3 sheet directly after the vertical-stepper radius pair (`spinbutton.vertical button.up` / `spinbutton.vertical button.down`), with a short provenance comment naming the stock spelling, its extraction date and the doubled-seam measurement:
+- `spinbutton:not(.vertical) button { border-style: none none none solid; }`
+- `spinbutton:not(.vertical) button:dir(rtl) { border-style: none solid none none; }`
+
+Change nothing else. The width and colour stay `1px #000000` from `button`, and the steppers keep the plain push-button face and bevel. A scratch render with exactly these two rules gave the following (spin-button allocation L,T,R,B = 5,5,110,36):
+- In LTR, the row at T+4 had black columns at exactly x 5, 52, 81 and 110, and no two were adjacent.
+- In RTL, the black columns were at x 5, 34, 63 and 110.
+- Three columns inside each stepper, away from its seam, each stepper read `#000000` at T, `#FFFFFF` at T+1, `#DDDDDD` at T+2, `#AAAAAA` at B−1 and `#000000` at B.
+- A field column still read `#000000` / `#999999` / `#FFFFFF` at T, T+1, T+2.
+
+These rules do not reach the `.osd` stepper groups. Those groups use a full border on purpose, and their higher-specificity rules keep it. The vertical spin button is out of scope; it doubles at its field/stepper joins too, but that is a separate fix. So is GTK 4, whose probe cannot run on a host without Xvfb.
+
+Tests go in `tests/test_gtk_theme_controls.py`, after `test_vertical_spinbutton_focus_outline`:
+1. A declaration test, `test_horizontal_spinbutton_steppers_share_one_seam`, uses `assert_rule` to pin the two rules.
+2. A pixel probe, `test_horizontal_spinbutton_steppers_render_one_pixel_seams`, is built from `_GTK3_CHILD_HEAD`, `_GTK3_SHEET_AND_WINDOW` and `_GTK3_PIXEL_HEAD`, runs through `_run_gtk_child`, and strips `url(...)` as `test_entry_progress_draws_a_two_pixel_strip` does. It renders the spin button above once LTR and once with `set_direction(Gtk.TextDirection.RTL)`, each in a fresh `Gtk.OffscreenWindow`. It reads the edges from `spin.get_allocation()` and finds the seams by scanning row T+4, so it does not hard-code the stepper widths.
+
+Add a `## gtk` row to `docs/invariants.md` beside the linked-group seam row. It names both tests and records the provenance: no reference screenshot shows a GTK spin button, the stock resource path and extraction date the selector spelling comes from, and the measured render (host, date, GTK 3 offscreen child).
+
+**Files.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `tests/test_gtk_theme_controls.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- The GTK 3 sheet contains `spinbutton:not(.vertical) button` declaring exactly `border-style: none none none solid`, and `spinbutton:not(.vertical) button:dir(rtl)` declaring exactly `border-style: none solid none none`. No `.osd spinbutton` rule changes.
+- When GTK 3 introspection and a display are present, an LTR horizontal spin button rendered with the shipped sheet has exactly four `#000000` columns across its row T+4: its left edge L, two seams, and its right edge R. No two of them are adjacent, and the two seams lie in the trailing part of the widget, right of the field.
+- Three columns into each stepper, the pixels from top to bottom read `#000000`, `#FFFFFF`, `#DDDDDD` at T, T+1, T+2 and `#AAAAAA`, `#000000` at B−1, B.
+- A field column of the same LTR render still reads `#000000`, `#999999`, `#FFFFFF` at T, T+1, T+2 and `#000000` at B.
+- An RTL render shows the mirror image: four non-adjacent black columns at T+4, with the two seams left of the field, and each stepper column reads the same five colours.
+- With the two new rules removed, the probe fails. The shipped sheet before this change has adjacent black columns at row T+4 and reads `#000000` at T+1 of a stepper column.
+- Where GTK 3 introspection or a display is missing, the probe skips with the child's own reason, as the other GTK 3 pixel probes do. The suite process never imports `gi` (`tests/test_no_gtk_introspection.py` still passes). `make check` passes.
+
 _None yet._
 
 ## Done
