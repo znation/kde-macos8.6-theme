@@ -395,6 +395,17 @@ ICON_PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
 COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
 COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
+# The clear part of the first selected row, away from its radio indicator and
+# label glyphs; measured on two byte-identical radio-list captures on
+# 2026-11-11.
+RADIO_DIALOG_SELECTION_BAND = (200, 97, 164, 16)
+# Dark core pixels in the selected radio dot and an unchecked radio ring.
+RADIO_DIALOG_CHECKED_DOT = (121, 106)
+RADIO_DIALOG_UNCHECKED_RING = (119, 120)
+# The sunken list field's top-left outer and inner frame pixels; the viewport
+# sample is below the selected row, clear of text and indicator art.
+RADIO_DIALOG_FIELD_FRAME = ((112, 93), (113, 94))
+RADIO_DIALOG_VIEW_FACE = (200, 140)
 
 
 class StubTools(unittest.TestCase):
@@ -1192,7 +1203,7 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
 # skip condition away from the condition the render CLI refuses on: each
-# dialog flag requires its own client by name (kdialog for the ten kdialog
+# dialog flag requires its own client by name (kdialog for the eleven kdialog
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
@@ -1323,12 +1334,12 @@ class TestRender(unittest.TestCase):
 
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The eleven dialog gates skip wherever their render CLI would refuse on a tool.
+    """The twelve dialog gates skip wherever their render CLI refuses on a tool.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the ten kdialog modes, zenity for the
-    GTK mode), and the eleven dialog gates' shared skip guard encodes exactly
+    opens is absent (kdialog for the eleven kdialog modes, zenity for the
+    GTK mode), and the twelve dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -1392,6 +1403,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestComboboxDialogRender,
             TestLineInputDialogRender,
             TestMenuDialogRender,
+            TestRadioDialogRender,
             TestCalendarDialogRender,
             TestColorDialogRender,
             TestIconDialogRender,
@@ -1444,6 +1456,7 @@ class _Renders:
         ("combobox", ("--combobox-dialog",), "dialog.png"),
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
+        ("radiolist", ("--radiolist-dialog",), "dialog.png"),
         ("calendar", ("--calendar-dialog",), "dialog.png"),
         ("color", ("--color-dialog",), "dialog.png"),
         ("icon", ("--icon-dialog",), "dialog.png"),
@@ -1527,7 +1540,7 @@ class TestRenderBudgets(unittest.TestCase):
 
 
 class _DialogGate:
-    """Test scaffolding the eleven dialog render gates share.
+    """Test scaffolding the twelve dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -1620,12 +1633,12 @@ class _DialogGate:
 
 
 def _dialog_gate_guard():
-    """Return the skip guard the eleven dialog render gates share.
+    """Return the skip guard the twelve dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the ten
-    kdialog modes, zenity for the GTK mode), so the eleven dialog gates skip
+    missing-tool diagnostic when one is absent: kdialog for the eleven
+    kdialog modes, zenity for the GTK mode), so the twelve dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped
     where its tools are missing would turn `make check` red on a machine
@@ -1971,6 +1984,36 @@ class TestMenuDialogRender(_DialogGate, unittest.TestCase):
         for point in ((114, 120), (200, 120), (365, 272)):
             with self.subTest(point=point):
                 self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
+
+
+@_dialog_gate_guard()
+class TestRadioDialogRender(_DialogGate, unittest.TestCase):
+    """The radio-list selection, indicators and sunken field keep their paint."""
+
+    KIND = "radiolist"
+
+    def test_selected_row_keeps_its_flat_selection_face(self):
+        image = self.candidate_image()
+        x, y, width, height = RADIO_DIALOG_SELECTION_BAND
+        for yy in range(y, y + height):
+            for xx in range(x, x + width):
+                self.assertEqual(
+                    "#CCCCFF", hex_colour(pixel_at(image, xx, yy)),
+                    (xx, yy),
+                )
+
+    def test_checked_radio_keeps_its_dark_dot_core(self):
+        self.assert_pixel(*RADIO_DIALOG_CHECKED_DOT, "#0C0C0F")
+
+    def test_unchecked_radio_keeps_its_dark_ring_on_white(self):
+        self.assert_pixel(*RADIO_DIALOG_UNCHECKED_RING, "#000000")
+        self.assert_pixel(117, 120, "#FFFFFF")
+
+    def test_list_field_keeps_its_sunken_frame_and_white_viewport(self):
+        outer, inner = RADIO_DIALOG_FIELD_FRAME
+        self.assert_pixel(*outer, "#999999")
+        self.assert_pixel(*inner, "#000000")
+        self.assert_pixel(*RADIO_DIALOG_VIEW_FACE, "#FFFFFF")
 
 
 @_dialog_gate_guard()
