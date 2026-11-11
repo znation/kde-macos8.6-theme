@@ -182,5 +182,52 @@ class TestReadSource(unittest.TestCase):
             assert_fifo_refused(self, child, fifo)
 
 
+class TestWholeFileRead(unittest.TestCase):
+    """The JPEG branch's whole-file read across the sniff's chunk bound."""
+
+    def test_negative_count_reads_a_file_bigger_than_one_chunk_whole(self):
+        # _read_bytes promises that a negative count reads the file whole;
+        # a file over the 65536-byte chunk bound forces the chunked append
+        # path and the end-of-file branch, so a truncated whole-read cannot
+        # survive here.
+        payload = bytes(range(256)) * 257  # 65792 bytes: 65536 + 256
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "large.bin"
+            path.write_bytes(payload)
+            self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
+
+    def test_negative_count_reads_a_single_chunk_file_whole(self):
+        # A file at exactly the chunk bound must still terminate: the next
+        # read returns end-of-file and the loop joins without appending it.
+        payload = bytes(range(256)) * 256  # exactly 65536 bytes
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "bounded.bin"
+            path.write_bytes(payload)
+            self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
+
+    def test_jpeg_branch_hands_the_whole_file_to_the_converter(self):
+        # read_source routes a JPEG-magic file through the convert bridge
+        # with the file's full bytes: the sniff reads three, the JPEG branch
+        # re-reads whole. A regression that hands the converter only the
+        # sniffed head or a truncated first chunk fails here, offline —
+        # no ImageMagick run is needed to observe the bytes handed over.
+        payload = b"\xff\xd8\xff" + bytes(range(256)) * 257
+        _, png_data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        seen = {}
+
+        def fake_convert(jpeg_bytes, temp_png):
+            seen["bytes"] = jpeg_bytes
+            temp_png.write_bytes(png_data)
+            return None
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "large.jpg"
+            path.write_bytes(payload)
+            with mock.patch.object(fidelity_sources, "convert_jpeg", fake_convert):
+                image = fidelity_sources.read_source(str(path), None)
+        self.assertEqual(seen["bytes"], payload)
+        self.assertEqual((image.width, image.height), (1, 1))
+
+
 if __name__ == "__main__":
     unittest.main()
