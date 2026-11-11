@@ -139,21 +139,29 @@ def _apply(data_home: Path, environ: dict[str, str]) -> int:
             data_home, "for the theme apply", LOCK_TIMEOUT, error=ApplyError
         ):
             env = session_env(environ)
-            for argv in STEPS:
-                status = run_required(
-                    TOOL,
-                    argv,
-                    env,
-                    scratch / f"{argv[0]}.log",
-                    COMMAND_TIMEOUT,
-                    ROOT,
-                )
-                if status is not None:
-                    return status
+            status = _run_required_steps(scratch, env)
+            if status is not None:
+                return status
             run_optional_selections(scratch, env, COMMAND_TIMEOUT)
             return 0
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+
+
+def _run_required_steps(scratch: Path, env: dict[str, str]) -> int | None:
+    """Run each required step in order; return the first failing status, else None."""
+    for argv in STEPS:
+        status = run_required(
+            TOOL,
+            argv,
+            env,
+            scratch / f"{argv[0]}.log",
+            COMMAND_TIMEOUT,
+            ROOT,
+        )
+        if status is not None:
+            return status
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:

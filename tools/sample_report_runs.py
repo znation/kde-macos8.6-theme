@@ -38,6 +38,27 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
     return ("horizontal" if horizontal else "vertical"), segments
 
 
+def _keeps_run(run, selected_colors, excluded_colors, args) -> bool:
+    """Return whether a run passes the color and length filters."""
+    if selected_colors is not None and run["rgb"] not in selected_colors:
+        return False
+    if run["rgb"] in excluded_colors:
+        return False
+    if args.min_run_length is not None and run["length"] < args.min_run_length:
+        return False
+    if args.max_run_length is not None and run["length"] > args.max_run_length:
+        return False
+    return True
+
+
+def _longer_run(longest, line_runs):
+    """Return the longest of *longest* and the runs of one scanline; the first wins ties."""
+    for run in line_runs:
+        if longest is None or run["length"] > longest["length"]:
+            longest = run
+    return longest
+
+
 def _runs_result(args, image, width: int, height: int) -> dict:
     """Assemble one run report's result mapping: scan the rectangle row by row
     or column by column, keep only the runs the color, length, offset and cap
@@ -65,17 +86,9 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         if scanline_run_counts is not None:
             scanline_run_counts.append(len(line_runs))
         if track_longest:
-            for run in line_runs:
-                if longest_run is None or run["length"] > longest_run["length"]:
-                    longest_run = run
+            longest_run = _longer_run(longest_run, line_runs)
         for run in line_runs:
-            if not (selected_colors is None or run["rgb"] in selected_colors):
-                continue
-            if run["rgb"] in excluded_colors:
-                continue
-            if args.min_run_length is not None and run["length"] < args.min_run_length:
-                continue
-            if args.max_run_length is not None and run["length"] > args.max_run_length:
+            if not _keeps_run(run, selected_colors, excluded_colors, args):
                 continue
             if args.run_offset is not None and skipped_runs < args.run_offset:
                 skipped_runs += 1
