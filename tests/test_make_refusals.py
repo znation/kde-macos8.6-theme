@@ -36,10 +36,10 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
     `set -- "$(FLOCK_TIMEOUT)"` word) and the Firefox profile path.
     """
 
-    # The guard reads each value after make's own expansion, so a `$` arrives
-    # doubled: the make argument `x$$y` expands to `x$y`, the text the guard
-    # and the diagnostic see. The other three characters pass through make
-    # verbatim.
+    # The guard reads each value raw (`$(value)`), so a `$` arrives as
+    # written: the make argument `x$$y` stays doubled in the value the guard
+    # inspects, and the diagnostic collapses the doubling for display (`x$y`).
+    # The other three characters pass through make verbatim.
     HOSTILES = (
         ('"', 'x"; y"', 'x"; y"'),
         ("$", "x$$y", "x$y"),
@@ -540,6 +540,21 @@ class TestShellUnsafePython(unittest.TestCase):
         self.assertIn("PYTHON contains a shell metacharacter", result.stderr)
         self.assertFalse(canary.exists(), tmp)
 
+    def test_make_function_text_in_PYTHON_is_refused_without_evaluation(self):
+        # The refusal's own diagnostic echoes the value, so it must echo the
+        # raw text: expanding `$(PYTHON)` there would run the very function
+        # the guard is refusing.
+        tmp = make_tmp_dir(self)
+        canary = tmp / "make-function-executed"
+        env = theme_install.make_env("PYTHON")
+        env["PYTHON"] = f"$(shell touch {canary})"
+        result = theme_install.run_captured(
+            ["make", "-n", "help"], cwd=str(repo_root.ROOT), env=env
+        )
+        assert_failed(self, result)
+        self.assertIn("PYTHON contains a shell metacharacter", result.stderr)
+        self.assertFalse(canary.exists(), canary)
+
     def test_a_multi_word_interpreter_stays_legal(self):
         # The documented form: an interpreter command with arguments. A dry
         # run must succeed and hand both words to the recipe unquoted.
@@ -704,6 +719,21 @@ class TestShellUnsafeInstallPackages(unittest.TestCase):
         self.assertFalse(canary.exists(), "canary created; the guard escaped")
         data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
+
+    def test_make_function_text_in_INSTALL_PACKAGES_is_refused_without_evaluation(self):
+        # The refusal's own diagnostic echoes the value, so it must echo the
+        # raw text: expanding `$(INSTALL_PACKAGES)` there would run the very
+        # function the guard is refusing.
+        tmp = make_tmp_dir(self)
+        canary = tmp / "make-function-executed"
+        env = theme_install.make_env("INSTALL_PACKAGES")
+        env["INSTALL_PACKAGES"] = f"$(shell touch {canary})"
+        result = theme_install.run_make(["-n", "install"], env=env)
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES contains a shell metacharacter", result.stderr
+        )
+        self.assertFalse(canary.exists(), canary)
 
     def test_a_clean_family_list_runs_the_install_recipe(self):
         # The guard must not refuse the documented single-family form.

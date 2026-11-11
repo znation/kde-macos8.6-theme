@@ -189,7 +189,7 @@ py_extra_unsafe_chars = ' ; | & < > $(open_paren) $(close_paren)
 # printable values.
 py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$(value $(1)))) $(if $(findstring $(newline),$(value $(1))),newline))
 $(if $(call control_char_in,PYTHON),$(call control_refusal,PYTHON))
-$(if $(call py_unsafe_in,PYTHON),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,PYTHON)' in '<$(PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
+$(if $(call py_unsafe_in,PYTHON),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,PYTHON)' in '<$(call make_value,PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree; the override
@@ -210,7 +210,7 @@ THEME_ROOT := theme
 # default (`color-scheme ... fonts`) is not yet defined when this guard
 # runs and only a caller's value is checked.
 $(if $(call control_char_in,INSTALL_PACKAGES),$(call control_refusal,INSTALL_PACKAGES))
-$(if $(call py_unsafe_in,INSTALL_PACKAGES),$(error INSTALL_PACKAGES contains a shell metacharacter ('$(call py_unsafe_in,INSTALL_PACKAGES)' in '$(INSTALL_PACKAGES)'); the value is expanded unquoted into the packaging guard's recipe words, where it would run as shell syntax instead of naming artifact families; pass a list of family names without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
+$(if $(call py_unsafe_in,INSTALL_PACKAGES),$(error INSTALL_PACKAGES contains a shell metacharacter ('$(call py_unsafe_in,INSTALL_PACKAGES)' in '$(call make_value,INSTALL_PACKAGES)'); the value is expanded unquoted into the packaging guard's recipe words, where it would run as shell syntax instead of naming artifact families; pass a list of family names without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 
 # The scheme source. A command-line override renames what `install` reads, so
 # `COLOR_SCHEME` reaches double-quoted recipe words below and must carry no
