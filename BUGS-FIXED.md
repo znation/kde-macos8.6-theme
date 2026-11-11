@@ -59,6 +59,18 @@ step's own verification when the next hosted run reaches it.
 
 **Validation gap:** real-run-needed — the local host's installed `convert` masked the missing executable, so only the hosted run showed it; the offline bound (the workflow must provision and verify `convert`) is pinned by the workflow test, and the empty-PATH run of `test_sample_jpeg.py` was the local reproduction.
 
+**Docker reproduction 2026-11-11 by the director role:** The daemon access that
+blocked the follow-up above is now available; this role process's `id` includes
+the docker group and `docker version` reaches the server. In a disposable
+`python:3.12-slim` container (Python 3.12.16, no `convert`), with this worktree
+mounted read-only at `/worktree:ro`, `python3 -m unittest discover -s tests -p
+test_sample_jpeg.py` failed 6 of its 19 tests, and all 6 failure messages carry
+the missing-`convert` diagnostic quoted above (13 pass). The same image with the
+`imagemagick` package installed passes all 19. This confirms in a clean
+environment both the hosted dependency gap and the fix's premise that
+provisioning `imagemagick` is sufficient; the hosted CI run itself has still not
+been observed.
+
 ### The dialog-mode mutual-exclusion refusal says "not both" when three or more dialog modes are given together (found by the bugfix role 2026-11-10) — fixed 2026-11-10 by the bugfix role
 
 **Symptom.** The render CLI refuses any combination of two or more `--*-dialog` mode flags with "the dialog modes open one dialog client each: give one of <flags>, not both" (tools/render_surface.py's mode check). With two flags the wording holds, but every third or further flag joins the same list, so a three-flag argv printed "give one of --checkbox-dialog, --slider-dialog, --gtk-dialog, not both" — a wording that is false about the number it refuses. The sibling two-mode refusal tests pinned only that both flag names appear, never the closing wording or the three-flag case, so the drift was invisible to the suite.
