@@ -97,6 +97,12 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--min-difference-run-length requires --difference-runs")
     if args.max_difference_run_length is not None and not args.difference_runs:
         parser.error("--max-difference-run-length requires --difference-runs")
+    if (args.min_difference_run_length is not None
+            and args.max_difference_run_length is not None
+            and args.min_difference_run_length > args.max_difference_run_length):
+        parser.error(
+            f"--min-difference-run-length must not exceed --max-difference-run-length "
+            f"({args.min_difference_run_length} > {args.max_difference_run_length})")
     if args.max_difference_runs is not None and not args.difference_runs:
         parser.error("--max-difference-runs requires --difference-runs")
     if args.difference_run_offset is not None and args.max_difference_runs is None:
@@ -105,6 +111,14 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
     if args.max_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--max-difference-column-run-length requires --difference-column-runs")
+    if (args.min_difference_column_run_length is not None
+            and args.max_difference_column_run_length is not None
+            and args.min_difference_column_run_length > args.max_difference_column_run_length):
+        parser.error(
+            f"--min-difference-column-run-length must not exceed "
+            f"--max-difference-column-run-length "
+            f"({args.min_difference_column_run_length} > "
+            f"{args.max_difference_column_run_length})")
     if args.max_difference_column_runs is not None and not args.difference_column_runs:
         parser.error("--max-difference-column-runs requires --difference-column-runs")
     if args.difference_column_run_offset is not None and args.max_difference_column_runs is None:

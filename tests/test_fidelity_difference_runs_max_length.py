@@ -36,9 +36,12 @@ class TestDifferenceRunsMaximumLength(FidelityCliTestCase):
             candidate, reference, *args, "--min-difference-run-length", "2",
             "--max-difference-run-length", "2").stdout)
         self.assertEqual(combined["difference_runs"], [expected[1]])
+        # An empty requested window uses a minimum above the fixture's
+        # longest run (4), kept legal against the paired maximum: a
+        # contradictory window is refused before any image read.
         empty = json.loads(self._run_png_pair(
-            candidate, reference, *args, "--min-difference-run-length", "3",
-            "--max-difference-run-length", "2").stdout)
+            candidate, reference, *args, "--min-difference-run-length", "5",
+            "--max-difference-run-length", "9").stdout)
         self.assertEqual(empty["difference_runs"], [])
         self.assertEqual(empty["longest_difference_run"], {"x": 0, "y": 1, "length": 4})
         self.assertEqual(empty["metrics"], limited["metrics"])

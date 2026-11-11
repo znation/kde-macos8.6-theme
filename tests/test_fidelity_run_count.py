@@ -131,9 +131,12 @@ class TestFidelityRunCountCli(FidelityCliTestCase):
             data = json.loads(filtered.stdout)
             self.assertEqual(data["difference_run_count"], 3)
             self.assertEqual(len(data["difference_runs"]), 1)
+        # An empty requested window uses a minimum above the fixture's
+        # longest run (4), kept legal against the paired maximum: a
+        # contradictory window is refused before any image read.
         conflict = self._run_png_pair(candidate, reference, *crops, "--difference-runs",
-                                      "--difference-run-count", "--min-difference-run-length", "4",
-                                      "--max-difference-run-length", "1", "--json")
+                                      "--difference-run-count", "--min-difference-run-length", "5",
+                                      "--max-difference-run-length", "9", "--json")
         data = json.loads(conflict.stdout)
         self.assertEqual(data["difference_run_count"], 3)
         self.assertEqual(data["difference_runs"], [])

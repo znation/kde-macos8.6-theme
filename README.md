@@ -1534,9 +1534,9 @@ Pass `--min-difference-run-length N` with `--difference-runs` to omit completed 
 separate and comparison metrics and longest-run summaries still use the complete mismatch data.
 An empty requested list is reported as `[]`.
 Pass `--max-difference-run-length N` with `--difference-runs` to omit completed runs longer
-than `N`. The inclusive maximum combines with the minimum cutoff; if the cutoffs conflict,
-the requested list is empty. Segmentation, comparison metrics and longest-run summaries still
-use the complete mismatch data.
+than `N`. The inclusive maximum combines with the minimum cutoff; a minimum above its paired
+maximum is refused before any image read with a diagnostic naming both flags and both values.
+Segmentation, comparison metrics and longest-run summaries still use the complete mismatch data.
 Pass `--max-difference-runs N` with `--difference-runs` to report only the first N eligible
 horizontal intervals in row-major order. This positive count cap is applied after the minimum
 and maximum run-length filters; JSON adds `omitted_difference_runs`, and text prints
@@ -1560,8 +1560,9 @@ to either source image. Output can grow with disjoint runs, so this scan is opt-
 shorter than `N`. The inclusive cutoff filters after segmentation, preserving separated intervals,
 comparison metrics and longest-column summaries. An empty requested list is reported as `[]`.
 Pass `--max-difference-column-run-length N` with `--difference-column-runs` to omit completed runs
-longer than `N`. The inclusive maximum combines with the minimum cutoff; conflicting cutoffs yield
-an empty list. Segmentation, metrics and longest-column summaries use the complete mismatch data.
+longer than `N`. The inclusive maximum combines with the minimum cutoff; a minimum above its
+paired maximum is refused before any image read with a diagnostic naming both flags and both
+values. Segmentation, metrics and longest-column summaries use the complete mismatch data.
 Pass `--max-difference-column-runs N` to report only the first N eligible vertical intervals in
 column-major order after both length filters. JSON adds `omitted_difference_column_runs`, and text
 prints `omitted difference column runs: N` immediately after the vertical list, including zero.

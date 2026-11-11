@@ -42,9 +42,12 @@ class TestColumnRunsMaximumLength(FidelityCliTestCase):
         self.assertEqual(intersected["difference_column_runs"], [
             {"x": 0, "y": 2, "length": 2},
         ])
+        # An empty requested window uses a minimum above the fixture's
+        # longest column run (4), kept legal against the paired maximum: a
+        # contradictory window is refused before any image read.
         contradictory = json.loads(self._run_png_pair(
-            candidate, reference, *base, "--min-difference-column-run-length", "3",
-            "--max-difference-column-run-length", "2").stdout)
+            candidate, reference, *base, "--min-difference-column-run-length", "5",
+            "--max-difference-column-run-length", "9").stdout)
         self.assertEqual(contradictory["difference_column_runs"], [])
         self.assertEqual(contradictory["longest_difference_column_run"],
                          plain["longest_difference_column_run"])
