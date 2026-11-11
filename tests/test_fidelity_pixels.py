@@ -45,6 +45,24 @@ class TestWorstPixels(unittest.TestCase):
         got = worst_pixels(cand, ref, 0, 2, offset=1)
         self.assertEqual([(p["x"], p["max_delta"]) for p in got], [(0, 20)])
 
+    def test_alpha_only_row_spanning_ties_and_source_values(self):
+        ref = Image(2, 2, bytes(12))  # RGB-only peer: every pixel opaque black
+        cand = Image(2, 2, bytes([0, 0, 3, 0, 7, 0, 7, 0, 0, 0, 0, 0]),
+                     bytes([255, 255, 255, 200]))
+        expected = [
+            {"x": 1, "y": 1, "candidate_rgba": [0, 0, 0, 200],
+             "reference_rgba": [0, 0, 0, 255], "max_delta": 55},
+            {"x": 1, "y": 0, "candidate_rgba": [0, 7, 0, 255],
+             "reference_rgba": [0, 0, 0, 255], "max_delta": 7},
+            {"x": 0, "y": 1, "candidate_rgba": [7, 0, 0, 255],
+             "reference_rgba": [0, 0, 0, 255], "max_delta": 7},
+            {"x": 0, "y": 0, "candidate_rgba": [0, 0, 3, 255],
+             "reference_rgba": [0, 0, 0, 255], "max_delta": 3},
+        ]
+        self.assertEqual(worst_pixels(cand, ref, 2, 10), expected)
+        self.assertEqual(worst_pixels(cand, ref, 2, 2), expected[:2])
+        self.assertEqual(worst_pixels(ref, ref, 0, 10), [])
+
     def test_deterministic_matrices_match_full_sort(self):
         for width, height in ((1, 1), (3, 2), (4, 2)):
             ref = Image(width, height, bytes(width * height * 3))
@@ -166,6 +184,18 @@ class TestWorstPixelsCli(FidelityCliTestCase):
         pixel = json.loads(result.stdout)["worst_pixels"][0]
         self.assertEqual((pixel["candidate_position"], pixel["reference_position"]),
                          ([0, 0], [0, 0]))
+
+    def test_text_report_lists_records_before_verdict(self):
+        _, candidate = rgb_image(2, 1, lambda x, y: (10 if x == 1 else 0, 0, 0))
+        _, reference = rgb_image(2, 1, lambda x, y: (0, 0, 0))
+        result = self._run_png_pair(candidate, reference, "--worst-pixels", "2")
+        lines = result.stdout.splitlines()
+        start = lines.index("worst pixels: 1")
+        self.assertEqual(lines[start + 1],
+                         "pixel (1, 0): candidate=10,0,0,255 reference=0,0,0,255 max_delta=10 "
+                         "candidate_position=1,0 reference_position=1,0")
+        self.assertTrue(lines[start + 2].startswith("FAIL: "))
+        self.assertEqual(result.returncode, 1)
 
     def test_default_does_not_call_helper_and_invalid_is_early(self):
         _, png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
