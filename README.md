@@ -633,8 +633,6 @@ ring, recoloured client edge, flat bar and title ink there.
 
 ### Staging packages
 
-### Staging packages
-
 To inspect installed package paths without selecting the theme in your session, stage an install
 into a scratch root:
 
@@ -1347,11 +1345,11 @@ make render RENDER_MODE=checkbox-dialog RENDER_OUTPUT=checkbox.png
 ```
 
 The Make target uses `RENDER_MODE` (`calculator` by default) to select the calculator or one of
-the twelve dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
+the thirteen dialogs. The calculator capture defaults to 320x240; dialogs are fixed at 480x360 and
 require `kdialog` for checkbox, combo box, line edit, menu, radio list, calendar, color picker, icon
-chooser, progress meter, slider and text box or `zenity` for GTK. Direct Python commands
-remain available; each dialog flag must be used alone, and dialog captures reject `--width`, `--height` and a
-non-default `--applet`:
+chooser, progress meter, slider, text box and the two-window inactive pair or `zenity` for GTK.
+Direct Python commands remain available; each dialog flag must be used alone, and dialog captures
+reject `--width`, `--height` and a non-default `--applet`:
 
 | Surface | Command | Image size |
 | --- | --- | --- |
@@ -1367,6 +1365,7 @@ non-default `--applet`:
 | Slider dialog | `python3 tools/render_surface.py --slider-dialog slider.png` | 480x360 |
 | Text box dialog | `python3 tools/render_surface.py --textbox-dialog textbox.png` | 480x360 |
 | GTK dialog | `python3 tools/render_surface.py --gtk-dialog gtk.png` | 480x360 |
+| Inactive dialog | `python3 tools/render_surface.py --inactive-dialog inactive.png` | 480x360 |
 
 The calculator capture defaults to 320x240. Dialog captures need `kdialog` on `PATH` in the
 kdialog modes and `zenity` in the GTK mode;
