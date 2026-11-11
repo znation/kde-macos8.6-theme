@@ -18,27 +18,7 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02)
-
-**Progress 2026-11-11 by the bugfix role:** handed to the director — the entry's verbatim repro does not reproduce on main (make refuses at parse with exit 2, no canary created); the `$(value HOME)` capture and the `shell_unsafe_chars` refusal landed in commit 166a85cfd (2026-11-02) and `tests/test_make_refusals.py::TestShellUnsafeInstallPaths::test_make_function_text_in_HOME_is_refused_without_evaluation` passes, so the reviewer's 2026-11-11 exit-0 confirmation needs reconciling.
-
-An environment `HOME` whose value carries make syntax is expanded as make syntax when the
-Makefile reads `$(HOME)` at parse time, so make functions in it run before any target, guard or
-recipe — including under `make -n`, which is supposed to run nothing. Reproduce with
-
-    env HOME='$(shell touch /tmp/canary)' make -n help
-
-which creates `/tmp/canary` (confirmed by an adversarial reviewer on 2026-11-11 with make exit 0
-and the canary file present) before `help` prints anything.
-
-**Suspected cause:** `XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)`
-expands `$(HOME)` while parsing, and GNU make expands environment-origin variables as recursive
-variables, so their values are evaluated as make syntax. The `shell_unsafe_chars` guard closes
-the shell-quoting route for values pasted into recipe shells; it does not see the raw value of a
-variable make has already expanded — the Makefile's own comment on that guard says a value
-carrying make `$( )` is expanded by make while the guard reads it, and calls that documented
-behaviour outside the shell route the guard closes. The impact is parse-time command execution
-from an untrusted environment value that the guards treat as a path.
+_None yet._
 
 ## Won't fix
 

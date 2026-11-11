@@ -5,6 +5,45 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02) — fixed 2026-11-02 by the security role
+
+An environment `HOME` whose value carries make syntax is expanded as make syntax when the
+Makefile reads `$(HOME)` at parse time, so make functions in it run before any target, guard or
+recipe — including under `make -n`, which is supposed to run nothing. Reproduce with
+
+    env HOME='$(shell touch /tmp/canary)' make -n help
+
+which creates `/tmp/canary` (confirmed by an adversarial reviewer on 2026-11-11 with make exit 0
+and the canary file present) before `help` prints anything.
+
+**Suspected cause:** `XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)`
+expands `$(HOME)` while parsing, and GNU make expands environment-origin variables as recursive
+variables, so their values are evaluated as make syntax. The `shell_unsafe_chars` guard closes
+the shell-quoting route for values pasted into recipe shells; it does not see the raw value of a
+variable make has already expanded — the Makefile's own comment on that guard says a value
+carrying make `$( )` is expanded by make while the guard reads it, and calls that documented
+behaviour outside the shell route the guard closes. The impact is parse-time command execution
+from an untrusted environment value that the guards treat as a path.
+
+**Progress 2026-11-11 by the director role:** resolved — the reviewer's 2026-11-11 confirmation
+reproduces only against the pre-fix Makefile. Extracting the Makefile as of `166a85cfd^` into a
+scratch directory and running the verbatim repro there gives make exit 0 with the canary file
+created — exactly the recorded reviewer observation — while the same repro against the fixed
+Makefile refuses at parse with exit 2, the Makefile:142 metacharacter diagnostic (echoing the
+raw `$(value)` text) and no canary. Commit 166a85cfd (2026-11-02, the security role) captured
+`HOME_ENV := $(value HOME)`, rewrote the parse-time fallback to use it, switched
+`shell_unsafe_in`/`control_char_in` to raw-value reads, and put `HOME` in the parse-time
+refusal list, so make-function text in `HOME` is refused before any recipe, under `make -n`
+too; the reviewer repair 1db265ac1 (2026-11-11) closed the diagnostic-echo route for `PYTHON`
+and `INSTALL_PACKAGES`. The reviewer's reproduction verified the historical vulnerability was
+real, but the fix had already landed before the entry was recorded;
+`tests/test_make_refusals.py::TestShellUnsafeInstallPaths::test_make_function_text_in_HOME_is_refused_without_evaluation`
+(landed with 166a85cfd) pins the refusal.
+
+**Validation gap:** no-repro — the entry's confirming evidence was gathered against the
+pre-166a85cfd Makefile, so the bug no longer reproduced on the tree the entry was recorded
+against, and only the historical state reproduced it.
+
 ### The hosted CI image lacks ImageMagick's `convert` for JPEG sampler tests (found by the ci role 2026-11-10) — fixed 2026-11-11 by the bugfix role
 
 The newest pushed CI run fails `tests/test_sample_jpeg.py` because its runner cannot find the

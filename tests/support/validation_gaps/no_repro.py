@@ -11,10 +11,10 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The three ``no-repro`` records the archive held when the ledger landed. Each
+# The four ``no-repro`` records the archive held when this entry joined. Each
 # failure was not deterministic when filed; its test now reproduces it every run.
 # A new record must name such a test instead of raising this.
-NO_REPRO_BASELINE = 3
+NO_REPRO_BASELINE = 4
 
 NO_REPRO_REPRODUCTIONS = (
     Reproduction(
@@ -28,6 +28,15 @@ NO_REPRO_REPRODUCTIONS = (
         ("`CHECK_PATTERN` guard accepts a pattern with surrounding whitespace",),
         "tests/test_make_check.py::TestCheckPattern"
         "::test_surrounding_whitespace_pattern_is_stripped",
+    ),
+    Reproduction(
+        "home-make-function-injection",
+        (
+            "An environment-supplied HOME value executes GNU make functions "
+            "during Makefile parsing",
+        ),
+        "tests/test_make_refusals.py::TestShellUnsafeInstallPaths"
+        "::test_make_function_text_in_HOME_is_refused_without_evaluation",
     ),
     Reproduction(
         "desktoptheme-session-theme",
