@@ -118,6 +118,18 @@ recorded here to keep the scope deliberate.
 - Where GTK 4 introspection and an X display are present with `PLATINUM_RUN_GUI_TESTS=1`, the child completes and its pinned pixels read the literal tuples for (a)–(d) exactly: the band interior and the checked tab's interior and bottom border are #DDDDDD, the header border row and the unselected tab's bottom border row are #000000, and the unselected tab's two bevel arms are #FFFFFF and #999999; deleting or weakening any landed notebook rule — a bevel arm dropped on the unselected tabs, the flat face lost on the header or the checked tab, or the checked tab's flattened bottom border lost — changes at least one pinned pixel and fails the probe.
 - The probe imports no GTK in the suite process (the guard `tests/test_no_gtk_introspection.py` pins) and mentions no brand or toolkit name; the invariants row records the measured-render provenance and the missing reference surface. `make check` passes after the final edit.
 
+### Reusable deterministic fixtures for recurring no-fake validation gaps (planned 2026-11-10 by the steward role; promote the recurring `no-fake` tag and scope the first deliverable to process-start races and bounded filesystem reads)
+
+**Goal.** The archive records repeated missing-fake gaps for the same validation patterns: SIGINT and SIGTERM arriving as `Popen` returns (BUGS-FIXED.md, “A SIGINT while a child starts can leave the caller without cleanup” and “A SIGTERM that arrives while a child starts leaves the command running”), and FIFO paths requiring bounded child checks (BUGS-FIXED.md, “A FIFO at either Firefox profile-discovery INI file blocks the install” and “A FIFO at a Firefox profile file blocks the install forever”). Each fix added its own fixture after the absence of one made confirmation harder. Reduce that repeated setup cost without introducing a dependency or obscuring each test's behavior.
+
+**Approach and files.** Inspect the cited tests and `tests/support/` first. Identify the smallest reusable standard-library helpers for (1) injecting a signal at a controlled `Popen` return boundary and (2) running a child with a bounded timeout against a FIFO fixture. Add a helper only if it removes duplicated setup across the cited cases while keeping assertions and cleanup visible at the call site; otherwise document why the existing tests are already the appropriate reusable pattern and close the plan with that finding. Update the relevant test modules and any focused helper documentation, then run `make check`. Keep this effort limited to these two recurring fixture patterns; do not generalize every historical `no-fake` case into a fixture framework.
+
+**Acceptance criteria.**
+
+- The cited signal-race and FIFO tests use shared, narrowly named helpers where setup is genuinely duplicated, and retain explicit assertions for signal outcome, child termination, timeout, and cleanup.
+- Helpers use only the standard library, have focused tests if they introduce behavior, and do not leave child processes or temporary files behind on failure.
+- If inspection finds no meaningful shared setup, record the evidence in the plan's Done epitaph instead of adding abstraction. `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
