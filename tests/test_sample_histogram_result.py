@@ -23,7 +23,8 @@ class TestSampleHistogramResult(CliTestCase):
         image = SimpleNamespace(width=2, rgb=bytes((4, 5, 6, 1, 2, 3)), alpha=None)
         args = SimpleNamespace(image="fixture.png", x=0, y=0, width=2, height=1,
                                alpha=False, top_colors=None, color_bounds=False,
-                               color_positions=False, color_fractions=False)
+                               color_positions=False, color_fractions=False,
+                               color_centroids=False)
         original = vars(args).copy()
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -45,7 +46,8 @@ class TestSampleHistogramResult(CliTestCase):
         image = SimpleNamespace(width=1, rgb=bytes((7, 8, 9)), alpha=None)
         args = SimpleNamespace(image="fixture.png", x=0, y=0, width=1, height=1,
                                alpha=True, top_colors=None, color_bounds=False,
-                               color_positions=False, color_fractions=False)
+                               color_positions=False, color_fractions=False,
+                               color_centroids=False)
         self.assertEqual(sample_report_histogram._histogram_result(args, image, 1, 1)["colors"], [
             {"rgb": [7, 8, 9], "hex": "#070809", "count": 1, "alpha": 255},
         ])
