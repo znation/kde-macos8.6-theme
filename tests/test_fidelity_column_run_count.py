@@ -78,10 +78,10 @@ class TestDifferenceColumnRunCountCli(FidelityCliTestCase):
             data = json.loads(filtered.stdout)
             self.assertEqual(data["difference_column_run_count"], 5)
             self.assertEqual(len(data["difference_column_runs"]), expected)
-        with mock.patch.object(fidelity, "difference_column_run_count",
-                               side_effect=AssertionError("extra counter scan")):
+        with patched_column_calls(run_count=mock.Mock()) as patched:
             listed_only = self._run_png_pair(candidate, reference, *crops,
                                              "--difference-column-runs", "--json")
+        patched.run_count.assert_not_called()
         self.assertNotIn("difference_column_run_count", json.loads(listed_only.stdout))
         self.assertNotIn("difference column run count:", listed_only.stdout)
         ordinary = self._run_png_pair(candidate, reference, *crops, "--json")
