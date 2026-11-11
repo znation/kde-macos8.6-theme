@@ -557,6 +557,30 @@ class TestWriteConfigs(unittest.TestCase):
         self.assertIn("int", str(caught.exception))
         self.assertEqual([], recorded)
 
+    def test_rejects_a_name_that_is_not_a_string_through_the_injected_writer(self):
+        # Each element of *names* must be a str config filename: an int or a
+        # bytes object is refused with the module's own ValueError naming the
+        # type, before any write fires. Without this guard a bytes name would
+        # slip past the plain-filename check (Path accepts bytes on POSIX) and
+        # be published as a config file with a bytes name, and an int would
+        # escape as a raw TypeError from the pathlib join instead.
+        recorded = []
+        for name, type_name in ((37, "int"), (b"kwinrc", "bytes")):
+            with self.subTest(name=name):
+                with (
+                    self.assertRaises(ValueError) as caught,
+                    _recording_writer(recorded),
+                ):
+                    theme_config_writer.write_configs(
+                        make_tmp_dir(self),
+                        (name,),
+                        defaults_path=make_tmp_dir(self) / "defaults",
+                        read_groups=lambda _path: {},
+                    )
+                self.assertIn("names must be str config filenames", str(caught.exception))
+                self.assertIn(type_name, str(caught.exception))
+                self.assertEqual([], recorded)
+
     def test_rejects_a_name_that_is_not_a_plain_config_filename(self):
         # config_home / name must stay a join onto the config home, so the
         # guard must refuse a name that is empty, one of the reserved dot
