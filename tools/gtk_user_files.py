@@ -26,9 +26,9 @@ import stat
 from pathlib import Path
 
 if __package__:
-    from tools.text_lines import first_line
+    from tools.text_lines import has_first_line_marker
 else:  # imported from a directly run tool
-    from text_lines import first_line
+    from text_lines import has_first_line_marker
 
 
 class ConfigError(Exception):
@@ -46,7 +46,6 @@ class ConfigError(Exception):
 MAX_CONFIG_FILE_BYTES = 1 << 20
 
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
-_BOM = "\ufeff"
 
 # A foreign stylesheet is copied beside itself under this suffix before it is
 # replaced. The plain name is tried first; an existing backup is never
@@ -67,7 +66,7 @@ def _is_our_user_css(text: str) -> bool:
     file. ``split_lines`` never returns an empty list, so an empty text is
     an empty first line, not the marker.
     """
-    return first_line(text).removeprefix(_BOM) == GTK4_CSS_MARKER
+    return has_first_line_marker(text, GTK4_CSS_MARKER)
 
 
 def read_config_text(path: Path) -> str | None:

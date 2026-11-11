@@ -1,7 +1,7 @@
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.text_lines import first_line, split_lines
+from tools.text_lines import first_line, has_first_line_marker, split_lines
 
 
 class SplitLinesTests(unittest.TestCase):
@@ -29,6 +29,18 @@ class FirstLineTests(unittest.TestCase):
     def test_empty_and_unicode_separator_content_stay_on_the_first_line(self):
         self.assertEqual("", first_line(""))
         self.assertEqual("left\v\u2028right", first_line("left\v\u2028right\nend"))
+
+
+class FirstLineMarkerTests(unittest.TestCase):
+    def test_matches_exact_first_line_with_optional_bom_and_supported_endings(self):
+        for text in ("marker\nrest", "\ufeffmarker\r\nrest", "marker\rrest"):
+            with self.subTest(text=text):
+                self.assertTrue(has_first_line_marker(text, "marker"))
+
+    def test_rejects_prefixes_extra_boms_and_later_lines(self):
+        for text in ("marker extra", "\ufeff\ufeffmarker", "other\nmarker"):
+            with self.subTest(text=text):
+                self.assertFalse(has_first_line_marker(text, "marker"))
 
 
 if __name__ == "__main__":

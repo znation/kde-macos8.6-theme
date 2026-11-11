@@ -15,3 +15,8 @@ def split_lines(text: str) -> list[str]:
 def first_line(text: str) -> str:
     """Return the first LF/CRLF/CR-delimited line, without its ending."""
     return split_lines(text)[0]
+
+
+def has_first_line_marker(text: str, marker: str) -> bool:
+    """Return whether the first line equals *marker*, allowing one BOM."""
+    return first_line(text).removeprefix("\ufeff") == marker

@@ -16,10 +16,11 @@ if __package__:
         user_js_path,
         write_profile_text,
     )
-    from tools.firefox_user_js import first_line, remove_user_js, set_user_js
+    from tools.firefox_user_js import remove_user_js, set_user_js
     from tools.firefox_transaction import publish_install
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
+    from tools.text_lines import has_first_line_marker
 else:  # imported from a directly run tool
     from containment import read_bytes
     from diagnostics import report_failure, report_note
@@ -32,10 +33,11 @@ else:  # imported from a directly run tool
         user_js_path,
         write_profile_text,
     )
-    from firefox_user_js import first_line, remove_user_js, set_user_js
+    from firefox_user_js import remove_user_js, set_user_js
     from firefox_transaction import publish_install
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
+    from text_lines import has_first_line_marker
 
 TOOL = "install_firefox"
 SHEET = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
@@ -52,7 +54,7 @@ SHEETS = (
 
 def _is_our_sheet(text: str, marker: str) -> bool:
     """Return whether the BOM-tolerant first line matches the owned marker."""
-    return first_line(text).removeprefix("\ufeff") == marker
+    return has_first_line_marker(text, marker)
 
 
 def apply_profile(profile: Path) -> int:
