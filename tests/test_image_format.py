@@ -168,7 +168,14 @@ class TestRejectsNonBytesInput(unittest.TestCase):
                 with self.subTest(func=func.__name__, bad=bad):
                     with self.assertRaises(ValueError) as ctx:
                         func(bad)
-                    self.assertIn(type(bad).__name__, str(ctx.exception))
+                    # The full message is pinned, including the detector's
+                    # own name, so a shared validator that reports another
+                    # detector's name cannot pass unnoticed.
+                    self.assertEqual(
+                        str(ctx.exception),
+                        f"{func.__name__} data must be bytes or "
+                        f"bytearray, not {type(bad).__name__}",
+                    )
 
     def test_is_complete_rejects_invalid_stream_sizes(self):
         for size in (-1, 1.5, True, "12"):
