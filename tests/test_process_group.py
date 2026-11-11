@@ -21,7 +21,7 @@ from tools import process_group  # noqa: E402
 
 class TestKillGroup(unittest.TestCase):
     def test_ignores_a_process_group_that_is_already_gone(self):
-        # run_logged's finally block calls _kill_group after the child has
+        # run_logged's finally block calls kill_group after the child has
         # been waited for, so a child that left no group member behind is
         # already reaped and os.killpg raises ProcessLookupError. The cleanup
         # must swallow that OSError; otherwise a normal exit would surface as
@@ -31,7 +31,7 @@ class TestKillGroup(unittest.TestCase):
         with mock.patch.object(
             process_group.os, "killpg", side_effect=ProcessLookupError
         ) as killpg:
-            process_group._kill_group(process)
+            process_group.kill_group(process)
         killpg.assert_called_once_with(4242, signal.SIGKILL)
 
 
@@ -39,7 +39,7 @@ class TestReplayDeferred(unittest.TestCase):
     def test_replays_only_the_first_signal_recorded_while_the_child_starts(self):
         # A start can be interrupted by more than one signal: a terminal
         # hangup followed by a kill, or a second Ctrl-C. _defer_signals
-        # records each one; _replay_deferred must re-raise the first, so the
+        # records each one; replay_deferred must re-raise the first, so the
         # shell convention reports the signal that ended the run. Replaying a
         # later one would change the exit status, or turn a termination into
         # a Ctrl-C, even though the earlier signal is what stopped it.
@@ -53,7 +53,7 @@ class TestReplayDeferred(unittest.TestCase):
                 deferred=[number.name for number in deferred]
             ):
                 with self.assertRaises(expected) as caught:
-                    process_group._replay_deferred(deferred)
+                    process_group.replay_deferred(deferred)
                 if code is not None:
                     self.assertEqual(code, caught.exception.code)
 
@@ -147,7 +147,7 @@ class TestRunLogged(unittest.TestCase):
         ]
         with mock.patch.object(
             process_group.subprocess, "Popen", return_value=process
-        ), mock.patch.object(process_group, "_kill_group") as kill_group:
+        ), mock.patch.object(process_group, "kill_group") as kill_group:
             status = process_group.run_logged(
                 ["slow"], dict(os.environ), self.log, 0.1, self.root
             )
@@ -265,7 +265,7 @@ class TestRunLogged(unittest.TestCase):
         in a cleanup so a regression does not leave it running, and this
         fails unless it is gone by the time the exception escapes.
         """
-        real_restore = process_group._restore_termination
+        real_restore = process_group.restore_termination
         real_popen = subprocess.Popen
         child = {}
         restores = []
@@ -295,7 +295,7 @@ class TestRunLogged(unittest.TestCase):
                 process_group.subprocess, "Popen", side_effect=capture_popen
             ),
             mock.patch.object(
-                process_group, "_restore_termination",
+                process_group, "restore_termination",
                 side_effect=restore_then_signal,
             ),
         ):
@@ -336,7 +336,7 @@ class TestRunLogged(unittest.TestCase):
         ]
         with mock.patch.object(
             process_group.subprocess, "Popen", return_value=process
-        ), mock.patch.object(process_group, "_kill_group"):
+        ), mock.patch.object(process_group, "kill_group"):
             with self.assertRaises(SystemExit) as caught:
                 process_group.run_logged(
                     ["slow"], dict(os.environ), self.log, 0.1, self.root
@@ -348,7 +348,7 @@ class TestRunLogged(unittest.TestCase):
             self.assertIsNotNone(wait_timeout)
 
     def test_a_termination_signal_during_a_failed_start_is_replayed(self):
-        # _popen_deferred's cleanup for a failing Popen restores the handlers
+        # popen_deferred's cleanup for a failing Popen restores the handlers
         # and then replays whatever the deferral recorded before the start
         # error is raised. A SIGTERM that arrives while the start is failing
         # must therefore unwind the caller with the shell's 128 + SIGTERM

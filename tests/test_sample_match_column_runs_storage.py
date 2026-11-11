@@ -9,13 +9,13 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
 from tools import sample
-from tools.sample_match_runs import _ColumnRuns
+from tools.sample_match_runs import ColumnRuns
 
 
 class TestColumnRunsStorage(unittest.TestCase):
 
     def test_capped_collector_bounds_retained_runs_during_scan_and_final_flush(self):
-        collector = _ColumnRuns(0, 0, 3, 6, run_limit=2, run_offset=1)
+        collector = ColumnRuns(0, 0, 3, 6, run_limit=2, run_offset=1)
         matches = {
             0: {0, 2, 3},
             1: {0, 1, 2, 5},
@@ -35,7 +35,7 @@ class TestColumnRunsStorage(unittest.TestCase):
         assert len(collector.runs) == 2
 
     def test_offset_beyond_the_eligible_total_returns_an_empty_page(self):
-        collector = _ColumnRuns(0, 0, 3, 6, run_limit=2, run_offset=5)
+        collector = ColumnRuns(0, 0, 3, 6, run_limit=2, run_offset=5)
         matches = {
             0: {0, 2, 3},
             1: {0, 1, 2, 5},
@@ -49,14 +49,14 @@ class TestColumnRunsStorage(unittest.TestCase):
         assert collector.eligible_run_count == 4
 
     def test_cutoffs_and_absence_return_empty_pages_with_correct_totals(self):
-        skip_long = _ColumnRuns(0, 0, 1, 4, min_run_length=3)
+        skip_long = ColumnRuns(0, 0, 1, 4, min_run_length=3)
         match = [True, True, False, False]
         for row in range(4):
             skip_long.observe(0, row, match[row])
         assert skip_long.finish() == []
         assert skip_long.eligible_run_count == 0
 
-        contradictory = _ColumnRuns(0, 0, 1, 4,
+        contradictory = ColumnRuns(0, 0, 1, 4,
                                     min_run_length=3, max_run_length=2)
         for row in range(4):
             contradictory.observe(0, row, True)
@@ -64,7 +64,7 @@ class TestColumnRunsStorage(unittest.TestCase):
         assert contradictory.finish() == []
         assert contradictory.eligible_run_count == 0
 
-        absent = _ColumnRuns(0, 0, 2, 4, run_limit=2)
+        absent = ColumnRuns(0, 0, 2, 4, run_limit=2)
         for column in range(2):
             for row in range(4):
                 absent.observe(column, row, False)

@@ -166,7 +166,7 @@ def latched_match(text: str, section: str, key: str, expected: str) -> bool:
     )
 
 
-def _flat_text(text: str) -> str:
+def flat_text(text: str) -> str:
     """Return the text with the first line's BOM stripped and lines trimmed.
 
     ``kdedefaults/package`` is a flat name, so its scanner concatenates the

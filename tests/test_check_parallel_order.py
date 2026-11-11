@@ -245,11 +245,11 @@ class TestCache(unittest.TestCase):
 
 
 class TestDurationsRecorded(unittest.TestCase):
-    """_supervise records each finished module's elapsed wall time."""
+    """supervise records each finished module's elapsed wall time."""
 
-    def _supervise(self, tests_dir, modules, log_paths, timeout, workers):
+    def supervise(self, tests_dir, modules, log_paths, timeout, workers):
         durations: dict[str, float] = {}
-        statuses = check_parallel_workers._supervise(
+        statuses = check_parallel_workers.supervise(
             modules, [sys.executable, "-m", "unittest", "-v"],
             tests_dir, log_paths, timeout, workers, durations=durations,
         )
@@ -282,7 +282,7 @@ class TestDurationsRecorded(unittest.TestCase):
             module: os.path.join(tests_dir, f"{module}.log")
             for module in ("test_ok", "test_slow")
         }
-        statuses, durations = self._supervise(
+        statuses, durations = self.supervise(
             tests_dir, ["test_ok", "test_slow"], log_paths, 30, 2,
         )
         self.assertEqual({"test_ok": 0, "test_slow": 0}, statuses)
@@ -293,7 +293,7 @@ class TestDurationsRecorded(unittest.TestCase):
     def test_a_timed_out_module_records_its_timeout_span(self):
         """A worker killed at its deadline still records a duration.
 
-        ``_supervise``'s docstring promises a timed-out worker records its
+        ``supervise``'s docstring promises a timed-out worker records its
         timeout-span, spawn through kill, so the next run's ordering steers
         a module that ends only at the kill around the critical path
         instead of treating it as never run. The kill happens only after
@@ -315,7 +315,7 @@ class TestDurationsRecorded(unittest.TestCase):
             sink.write(long_sleeper)
         log_paths = {"test_slow": os.path.join(tests_dir, "test_slow.log")}
 
-        statuses, durations = self._supervise(
+        statuses, durations = self.supervise(
             tests_dir, ["test_slow"], log_paths, 0.1, 1,
         )
 
@@ -327,7 +327,7 @@ class TestDurationsRecorded(unittest.TestCase):
         tests_dir = str(make_tmp_dir(self))
         log = os.path.join(tests_dir, "slow.log")
         durations = {}
-        statuses = check_parallel_workers._supervise(
+        statuses = check_parallel_workers.supervise(
             ["0.3"], [sys.executable, "-c", "import time, sys; time.sleep(float(sys.argv[1]))"],
             tests_dir, {"0.3": log}, 0.05, 1, durations=durations,
         )
@@ -345,7 +345,7 @@ class TestDurationsRecorded(unittest.TestCase):
             sink.write(OK_MODULE)
         missing = make_tmp_dir(self) / "missing-dir" / "worker.log"
         with mock.patch("sys.stderr"):
-            statuses, durations = self._supervise(
+            statuses, durations = self.supervise(
                 tests_dir, ["test_ok"],
                 {"test_ok": str(missing)}, 30, 2,
             )
@@ -380,14 +380,14 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
                 {"version": 1, "durations": {"test_zzz_ok": 9.9}}, sink,
             )
         seen: dict[str, list[str]] = {}
-        real = check_parallel._supervise
+        real = check_parallel.supervise
 
         def spy(modules, *args, **kwargs):
             seen["modules"] = list(modules)
             return real(modules, *args, **kwargs)
 
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(cache_dir)}):
-            with mock.patch.object(check_parallel, "_supervise", spy):
+            with mock.patch.object(check_parallel, "supervise", spy):
                 result = self._run("--tests-dir", tests_dir)
         assert_succeeded(self, result)
         # Discovery order is alphabetical, so without the cache the first

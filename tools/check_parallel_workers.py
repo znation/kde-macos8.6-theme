@@ -11,14 +11,14 @@ import time
 
 if __package__:
     from tools.process_group import (
-        _kill_group, _popen_deferred, _reap, _restore_termination,
-        _replay_deferred,
+        kill_group, popen_deferred, reap, restore_termination,
+        replay_deferred,
     )
     from tools.terminal import escape_controls
 else:
     from process_group import (
-        _kill_group, _popen_deferred, _reap, _restore_termination,
-        _replay_deferred,
+        kill_group, popen_deferred, reap, restore_termination,
+        replay_deferred,
     )
     from terminal import escape_controls
 
@@ -76,7 +76,7 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
         with _open_log(log_path) as sink:
             try:
                 process, deferred, previous, previous_interrupts = (
-                    _popen_deferred(
+                    popen_deferred(
                         argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=sink,
                         stderr=subprocess.STDOUT, start_new_session=True,
                     )
@@ -84,15 +84,15 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
                 # Swap the handlers back here, where the outer cleanup below
                 # owns the child: a signal that arrives as they are restored
                 # still reaches the group kill instead of unwinding past it.
-                _restore_termination(previous)
-                _restore_termination(previous_interrupts)
-                _replay_deferred(deferred)
+                restore_termination(previous)
+                restore_termination(previous_interrupts)
+                replay_deferred(deferred)
             except OSError as failure:
                 process = _NeverStarted()
                 exc = failure
     except BaseException:
-        _kill_group(process)
-        _reap(process)
+        kill_group(process)
+        reap(process)
         raise
     if exc is not None:
         with _open_log(log_path) as note:
@@ -117,15 +117,15 @@ def _poll_running(running: list[_Worker], durations: dict[str, float] | None,
             results[entry.module] = status
         elif time.monotonic() >= entry.deadline:
             _record_duration(entry, durations)
-            _kill_group(entry.process)
-            _reap(entry.process)
+            kill_group(entry.process)
+            reap(entry.process)
             results[entry.module] = None
         else:
             remaining.append(entry)
     return remaining
 
 
-def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
+def supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                log_paths: dict[str, str], timeout: float,
                workers: int,
                durations: dict[str, float] | None = None) -> dict[str,
@@ -150,8 +150,8 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                 time.sleep(_POLL_SECONDS)
     finally:
         for entry in running:
-            _kill_group(entry.process)
-            _reap(entry.process)
+            kill_group(entry.process)
+            reap(entry.process)
     return results
 
 

@@ -26,8 +26,8 @@ class TestSampleMatchRowBounds(CliTestCase):
         args = (path, "1", "1", "--width", "4", "--height", "3",
                 "--find-color", "0a141e", "--color-tolerance", "1",
                 "--match-row-bounds")
-        with mock.patch.object(sample_report_search, "_positioned_region_pixels",
-                               wraps=sample_report_search._positioned_region_pixels) as pixels, \
+        with mock.patch.object(sample_report_search, "positioned_region_pixels",
+                               wraps=sample_report_search.positioned_region_pixels) as pixels, \
                 mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
             result = self._run(*args, "--match-pixels", "1", "--match-rows",
                                "--match-columns", "--match-runs", "--match-column-runs", "--json")

@@ -62,8 +62,8 @@ class TestSampleMatchRunCount(CliTestCase):
         empty = self._run(path, "1", "1", "--width", "3", "--height", "2",
                           "--find-color", "ffffff", "--match-run-count", "--json")
         self.assertEqual(json.loads(empty.stdout)["match"]["run_count"], 0)
-        from tools.sample_match_runs import _MatchRuns
-        collector = _MatchRuns(0, 0, 4, 1, horizontal=True, vertical=False,
+        from tools.sample_match_runs import MatchRuns
+        collector = MatchRuns(0, 0, 4, 1, horizontal=True, vertical=False,
                                collect_runs=False)
         for x, yes in enumerate((True, True, False, True)):
             collector.observe(x, 0, yes)

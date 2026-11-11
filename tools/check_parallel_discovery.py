@@ -60,7 +60,7 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
     return names
 
 
-def _log_paths(modules: list[str], scratch: str) -> dict[str, str]:
+def assign_log_paths(modules: list[str], scratch: str) -> dict[str, str]:
     """Map modules to unique paths, preserving natural names where possible."""
     reserved = {f"{module.replace('.', '_')}.log" for module in modules}
     names: dict[str, str] = {}

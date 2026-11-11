@@ -141,13 +141,13 @@ class TestSampleHistogramResult(CliTestCase):
                            "bounds": {"x": 2, "y": 1, "width": 2, "height": 2}},
         })
         args.color_bounds = args.color_positions = args.color_centroids = False
-        with patch.object(sample_report_histogram, "_positioned_region_pixels") as scan:
+        with patch.object(sample_report_histogram, "positioned_region_pixels") as scan:
             self.assertEqual(sample_report_histogram._histogram_spatial_fields(args, image, colors),
                              {color: {} for color, _ in colors})
         scan.assert_not_called()
         args.color_bounds = args.color_positions = args.color_centroids = True
-        with patch.object(sample_report_histogram, "_positioned_region_pixels",
-                          wraps=sample_report_histogram._positioned_region_pixels) as scan:
+        with patch.object(sample_report_histogram, "positioned_region_pixels",
+                          wraps=sample_report_histogram.positioned_region_pixels) as scan:
             sample_report_histogram._histogram_spatial_fields(args, image, colors)
         scan.assert_called_once_with(image, 1, 1, 3, 2)
 

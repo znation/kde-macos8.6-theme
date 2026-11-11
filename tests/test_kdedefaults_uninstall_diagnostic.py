@@ -164,7 +164,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
                 self.assertEqual(original, read_bytes(path))
 
     def test_warns_for_a_bom_prefixed_package_file(self):
-        # _flat_text strips only the first line's byte-order mark, so a
+        # flat_text strips only the first line's byte-order mark, so a
         # BOM-prefixed flat package name still trims back to ours: the flat
         # scanner warns exactly as it does without the mark.
         tmp = str(make_tmp_dir(self))

@@ -73,7 +73,7 @@ def assert_escapes_escape_character(case, text):
 def assert_rejects_unequal_lengths(case, function):
     """Assert *function* rejects byte strings whose lengths differ.
 
-    *function* is a packed-lane byte helper (``tools.png.filters._byte_add`` or
+    *function* is a packed-lane byte helper (``tools.png.filters.byte_add`` or
     ``tools.byte_lanes.abs_diff``) whose length precondition is
     ``tools.byteops.require_equal_lengths``. A second argument that is too
     short would silently drop bytes and one that is too long would overflow

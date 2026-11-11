@@ -94,7 +94,7 @@ class TestCoordinator(unittest.TestCase):
     def test_missing_worker_log_fails_even_when_worker_exited_zero(self):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": "/missing/worker.log"}, 10
             )
         self.assertEqual(1, status)
@@ -106,7 +106,7 @@ class TestCoordinator(unittest.TestCase):
         os.mkfifo(fifo)
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": str(fifo)}, 10
             )
         self.assertEqual(1, status)
@@ -126,7 +126,7 @@ class TestCoordinator(unittest.TestCase):
         ):
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
-                status = check_parallel._print_results(
+                status = check_parallel.print_results(
                     ["test_ok"], {"test_ok": 5}, {"test_ok": str(fifo)}, 10
                 )
         self.assertEqual(1, status)
@@ -144,8 +144,8 @@ class TestCoordinator(unittest.TestCase):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         with (
             mock.patch("tools.check_parallel.os.cpu_count", return_value=None),
-            mock.patch("tools.check_parallel._supervise", return_value={}) as supervise,
-            mock.patch("tools.check_parallel._print_results", return_value=0),
+            mock.patch("tools.check_parallel.supervise", return_value={}) as supervise,
+            mock.patch("tools.check_parallel.print_results", return_value=0),
         ):
             result = self._run("--tests-dir", tests_dir)
 
@@ -156,9 +156,9 @@ class TestCoordinator(unittest.TestCase):
     def test_duration_cache_write_failure_does_not_fail_the_run(self):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         with (
-            mock.patch("tools.check_parallel._supervise", return_value={"test_ok": 0}),
+            mock.patch("tools.check_parallel.supervise", return_value={"test_ok": 0}),
             mock.patch("tools.check_parallel.save_durations", side_effect=OSError("read-only")),
-            mock.patch("tools.check_parallel._print_results", return_value=0),
+            mock.patch("tools.check_parallel.print_results", return_value=0),
         ):
             result = self._run("--tests-dir", tests_dir)
 
@@ -168,12 +168,12 @@ class TestCoordinator(unittest.TestCase):
     def test_duration_cache_error_escapes_terminal_controls(self):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         with (
-            mock.patch("tools.check_parallel._supervise", return_value={"test_ok": 0}),
+            mock.patch("tools.check_parallel.supervise", return_value={"test_ok": 0}),
             mock.patch(
                 "tools.check_parallel.save_durations",
                 side_effect=OSError("denied\x1b[2J"),
             ),
-            mock.patch("tools.check_parallel._print_results", return_value=0),
+            mock.patch("tools.check_parallel.print_results", return_value=0),
         ):
             result = self._run("--tests-dir", tests_dir)
 
@@ -217,7 +217,7 @@ class TestCoordinator(unittest.TestCase):
         log_path.write_text("partial worker output\n", encoding="utf-8")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {}, {"test_ok": str(log_path)}, 10
             )
         self.assertEqual(1, status)
@@ -239,7 +239,7 @@ class TestCoordinator(unittest.TestCase):
         log_path.write_bytes(b"x" * 100_000 + b"\n" + b"tail line\n" + b"Ran 1 test in 0.001s\n\nOK\n")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
             )
         text = output.getvalue()
@@ -278,7 +278,7 @@ class TestCoordinator(unittest.TestCase):
         )
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
             )
         self.assertEqual(0, status)
@@ -292,7 +292,7 @@ class TestCoordinator(unittest.TestCase):
         log_path.write_bytes(b"worker output: \xff\n")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
             )
         self.assertEqual(0, status)
@@ -308,7 +308,7 @@ class TestCoordinator(unittest.TestCase):
         log_path.write_bytes(b"x" * 100_000)
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
             )
         self.assertEqual(0, status)
@@ -328,7 +328,7 @@ class TestCoordinator(unittest.TestCase):
         log_path.write_bytes(b"line one\r\nline two\r\nRan 1 test in 0.001s\n\nOK\n")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
             )
         self.assertEqual(0, status)
@@ -358,7 +358,7 @@ class TestCoordinator(unittest.TestCase):
         with mock.patch.object(check_parallel_workers, "_spawn", side_effect=spawn), \
                 mock.patch.object(check_parallel_workers.time, "sleep", side_effect=sleep), \
                 mock.patch.object(check_parallel_workers.time, "monotonic", side_effect=lambda: now):
-            statuses = check_parallel_workers._supervise(
+            statuses = check_parallel_workers.supervise(
                 ["first", "second"], [], ".",
                 {"first": "first.log", "second": "second.log"}, 60, 1,
             )
@@ -391,7 +391,7 @@ class TestCoordinator(unittest.TestCase):
     def test_an_unopenable_log_records_its_module_and_keeps_the_run(self):
         # _spawn opens the worker's log before the worker starts; an open
         # that fails (a scratch volume that filled mid-run, or a log path a
-        # concurrent sweep removed) used to unwind _supervise as a bare
+        # concurrent sweep removed) used to unwind supervise as a bare
         # traceback, losing the report of every module that had already
         # finished. Now the module is recorded as never started, one stderr
         # diagnostic names it and the OS error, and the other workers still
@@ -404,7 +404,7 @@ class TestCoordinator(unittest.TestCase):
         }
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers._supervise(
+            statuses = check_parallel_workers.supervise(
                 ["test_ok", "test_two"],
                 [sys.executable, "-m", "unittest", "-v"],
                 tests_dir,
@@ -426,7 +426,7 @@ class TestCoordinator(unittest.TestCase):
         missing = make_tmp_dir(self) / "missing-dir"
         with mock.patch.object(
             check_parallel,
-            "_log_paths",
+            "assign_log_paths",
             side_effect=lambda modules, scratch: {
                 module: str(missing / f"{module}.log") for module in modules
             },
@@ -447,7 +447,7 @@ class TestCoordinator(unittest.TestCase):
         os.mkfifo(fifo)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers._supervise(
+            statuses = check_parallel_workers.supervise(
                 ["test_ok"], [sys.executable, "-m", "unittest", "-v"],
                 tests_dir, {"test_ok": str(fifo)}, 60, 1,
             )
@@ -684,7 +684,7 @@ class TestCoordinator(unittest.TestCase):
         failed_log.write_text("failure detail\n", encoding="utf-8")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_empty", "test_failed"],
                 {"test_empty": 5, "test_failed": 1},
                 {"test_empty": str(empty_log), "test_failed": str(failed_log)},
@@ -705,7 +705,7 @@ class TestCoordinator(unittest.TestCase):
         timeout_log.write_text("partial output\n", encoding="utf-8")
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_failed", "test_timeout", "test_unfinished"],
                 {"test_failed": 1, "test_timeout": None},
                 {"test_failed": str(failed_log), "test_timeout": str(timeout_log)},
@@ -725,7 +725,7 @@ class TestCoordinator(unittest.TestCase):
     def test_summary_counts_multiple_failed_workers_including_a_signal_exit(self):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_failed", "test_signalled"],
                 {"test_failed": 1, "test_signalled": -9},
                 {},
@@ -744,7 +744,7 @@ class TestCoordinator(unittest.TestCase):
         )
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = check_parallel._print_results(
+            status = check_parallel.print_results(
                 ["test_empty", "test_timeout"],
                 {"test_empty": 5, "test_timeout": None},
                 {"test_empty": str(empty_log)},

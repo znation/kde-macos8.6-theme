@@ -15,7 +15,7 @@ from tools.check_parallel_results import (
     _MARKER_SEEKS_PAREN,
     _MARKER_SEEKS_SPACE,
     _bounded_log_text,
-    _print_results,
+    print_results,
     _test_marker_step,
 )
 
@@ -84,7 +84,7 @@ class TestPrintResults(unittest.TestCase):
             path = Path(directory)
             output = StringIO()
             with redirect_stdout(output):
-                status = _print_results(
+                status = print_results(
                     ["broken", "ok"],
                     {"broken": 0, "ok": 0},
                     {"broken": str(path)},
@@ -100,7 +100,7 @@ class TestPrintResults(unittest.TestCase):
         module = "pkg\x1b[31m\nforged"
         output = StringIO()
         with redirect_stdout(output):
-            _print_results([module], {module: 0}, {}, 30)
+            print_results([module], {module: 0}, {}, 30)
 
         text = output.getvalue()
         self.assertNotIn("\x1b", text)
@@ -116,7 +116,7 @@ class TestPrintResults(unittest.TestCase):
             )
             output = StringIO()
             with redirect_stdout(output):
-                status = _print_results(
+                status = print_results(
                     ["example"], {"example": 5}, {"example": str(path)}, 30
                 )
 

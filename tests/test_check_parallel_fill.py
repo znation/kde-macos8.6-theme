@@ -1,6 +1,6 @@
 """Tests for tools/check_parallel_workers.py's concurrency bound and durations.
 
-``_supervise`` runs each queued module through ``_fill_workers``, which starts
+``supervise`` runs each queued module through ``_fill_workers``, which starts
 workers only while fewer than ``workers`` are running. These tests drive that
 loop on a virtual clock with mocked workers, so the peak number of live
 workers is observed exactly and no real subprocess or wall time is involved.
@@ -54,13 +54,13 @@ class _VirtualRun:
                                   side_effect=self.sleep), \
                 mock.patch.object(check_parallel_workers.time, "monotonic",
                                   side_effect=lambda: self.now):
-            return check_parallel_workers._supervise(
+            return check_parallel_workers.supervise(
                 modules, [], ".", log_paths, 60, workers, durations=durations,
             )
 
 
 class TestSuperviseConcurrencyBound(unittest.TestCase):
-    """_supervise never has more live workers than its --workers bound."""
+    """supervise never has more live workers than its --workers bound."""
 
     def test_two_workers_overlap_but_never_three(self):
         run = _VirtualRun(duration=1.0)

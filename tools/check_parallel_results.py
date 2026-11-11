@@ -16,6 +16,11 @@ else:
     from terminal import escape_controls
     from text_lines import split_lines
 
+def count_noun(count: int, noun: str) -> str:
+    """Return a count and its pluralized noun as one ``<count> <noun>`` phrase."""
+    return f"{count} {plural(count, noun)}"
+
+
 _NO_TESTS_RAN = 5
 # The most of a worker log one printed section keeps. A worker killed at its
 # timeout while flooding its log (a test that prints in a loop) leaves a file
@@ -24,11 +29,6 @@ _NO_TESTS_RAN = 5
 # tail with (tools/diagnostics.py's _LOG_TAIL_BYTES).
 _LOG_TAIL_BYTES = 1 << 16
 _NO_TESTS_RAN_MARKERS = ("Ran 0 tests", "NO TESTS RAN")
-
-
-def _plural(count: int, noun: str) -> str:
-    """Return a count and its correctly pluralized noun."""
-    return f"{count} {plural(count, noun)}"
 
 
 def _bounded_log_text(path: str) -> str:
@@ -170,7 +170,7 @@ def _module_verdict(module: str, statuses: dict[str, int | None],
             "unittest's NO TESTS RAN summary", "failed", log_text)
 
 
-def _print_results(modules: list[str], statuses: dict[str, int | None],
+def print_results(modules: list[str], statuses: dict[str, int | None],
                    log_paths: dict[str, str], timeout: float) -> int:
     """Print each module's section in discovery order and return its status."""
     failed = timed_out = not_finished = no_tests = 0
@@ -193,15 +193,15 @@ def _print_results(modules: list[str], statuses: dict[str, int | None],
         if log_text and not log_text.endswith("\n"):
             sys.stdout.write("\n")
     if failed or timed_out or not_finished:
-        summary = [_plural(len(modules), "module")]
+        summary = [count_noun(len(modules), "module")]
         if failed:
-            summary.append(_plural(failed, "module") + " failed")
+            summary.append(count_noun(failed, "module") + " failed")
         if timed_out:
-            summary.append(_plural(timed_out, "module") + " timed out")
+            summary.append(count_noun(timed_out, "module") + " timed out")
         if not_finished:
-            summary.append(_plural(not_finished, "module") + " not finished")
+            summary.append(count_noun(not_finished, "module") + " not finished")
         if no_tests:
-            summary.append(_plural(no_tests, "module") + " ran no tests")
+            summary.append(count_noun(no_tests, "module") + " ran no tests")
         print("check: " + ", ".join(summary))
         return 1
     return 0

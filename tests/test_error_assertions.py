@@ -28,7 +28,7 @@ from support.error_assertions import (
     error_message,
 )
 from support.rejection_assertions import NoSubTest
-from tools.png.filters import _byte_add  # noqa: E402
+from tools.png.filters import byte_add  # noqa: E402
 
 
 def _raise(exception):
@@ -147,11 +147,11 @@ class TestAssertErrorNames(unittest.TestCase):
 
 class TestAssertRejectsUnequalLengths(unittest.TestCase):
     def test_accepts_a_helper_that_rejects_both_directions(self):
-        # `_byte_add` is one of the two real callers, and its precondition
+        # `byte_add` is one of the two real callers, and its precondition
         # rejects both length-mismatch directions. That the helper checks
         # both directions is pinned by the two one-direction tests below,
-        # not by this one (a one-direction helper still accepts `_byte_add`).
-        assert_rejects_unequal_lengths(self, _byte_add)
+        # not by this one (a one-direction helper still accepts `byte_add`).
+        assert_rejects_unequal_lengths(self, byte_add)
 
     def test_fails_when_only_the_too_short_direction_is_rejected(self):
         # A helper that only tried the first (too-short) case would accept

@@ -35,7 +35,7 @@ class TestUnfilterLanes(unittest.TestCase):
                 a = bytes(rng.randrange(256) for _ in range(length))
                 b = bytes(rng.randrange(256) for _ in range(length))
                 expected = bytes((x + y) & 0xFF for x, y in zip(a, b))
-                self.assertEqual(filters._byte_add(a, b), expected)
+                self.assertEqual(filters.byte_add(a, b), expected)
 
     def test_lane_mask_cache_is_bounded(self):
         filters._lane_masks.cache_clear()
@@ -49,13 +49,13 @@ class TestUnfilterLanes(unittest.TestCase):
         self.assertEqual(filters._lane_masks.cache_info().hits, 1)
 
     def test_byte_add_unequal_lengths_raise(self):
-        assert_rejects_unequal_lengths(self, filters._byte_add)
+        assert_rejects_unequal_lengths(self, filters.byte_add)
 
     def test_byte_add_wraps_without_carrying_between_bytes(self):
         # 0xFF + 0x01 must wrap to 0x00 without carrying into the next byte;
         # a leaked carry would turn the following byte into 0x01 instead.
         self.assertEqual(
-            filters._byte_add(bytes([0xFF, 0x00, 0xFF]), bytes([0x01, 0x00, 0x01])),
+            filters.byte_add(bytes([0xFF, 0x00, 0xFF]), bytes([0x01, 0x00, 0x01])),
             bytes([0x00, 0x00, 0x00]),
         )
 
@@ -67,7 +67,7 @@ class TestUnfilterLanes(unittest.TestCase):
                 out = bytearray(channel)
                 for i in range(1, len(out)):
                     out[i] = (out[i] + out[i - 1]) & 0xFF
-                self.assertEqual(filters._prefix_sum(channel), bytes(out))
+                self.assertEqual(filters.prefix_sum(channel), bytes(out))
 
     def test_sub_and_up_filters_roundtrip_random_rows(self):
         # Encode random rows using only Sub and Up filters and decode them
@@ -125,7 +125,7 @@ class TestPaethDeltaTable(unittest.TestCase):
 
     def test_rows_are_the_flat_table_split_by_a_minus_c(self):
         with mock.patch.object(filters, "_PAETH_DELTA_ROWS", None):
-            rows = filters._paeth_delta_rows()
+            rows = filters.paeth_delta_rows()
         table = filters._paeth_delta_table()
         self.assertEqual(len(rows), 511)
         for da in range(511):
@@ -133,8 +133,8 @@ class TestPaethDeltaTable(unittest.TestCase):
 
     def test_rows_are_built_once_and_reused(self):
         with mock.patch.object(filters, "_PAETH_DELTA_ROWS", None):
-            first = filters._paeth_delta_rows()
-            self.assertIs(filters._paeth_delta_rows(), first)
+            first = filters.paeth_delta_rows()
+            self.assertIs(filters.paeth_delta_rows(), first)
 
 
 if __name__ == "__main__":

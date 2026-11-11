@@ -48,8 +48,8 @@ class TestSampleLongestMatchRun(CliTestCase):
         empty = self._run(path, "0", "0", "--find-color", "ffffff",
                           "--longest-match-run", "--json")
         self.assertIsNone(json.loads(empty.stdout)["match"]["longest_run"])
-        from tools.sample_match_runs import _MatchRuns
-        collector = _MatchRuns(0, 0, 100, 1, horizontal=True, vertical=False,
+        from tools.sample_match_runs import MatchRuns
+        collector = MatchRuns(0, 0, 100, 1, horizontal=True, vertical=False,
                                summarize=True, collect_runs=False)
         for x in range(100):
             collector.observe(x, 0, x % 2 == 0)

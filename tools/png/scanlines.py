@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import functools
 
-from .filters import _byte_add, _paeth_delta_rows, _prefix_sum
+from .filters import byte_add, paeth_delta_rows, prefix_sum
 from .image import PngError
 
 
@@ -50,10 +50,10 @@ def _unfilter_line(
         return line
     if ftype == 1:
         for c in range(channels):
-            line[c::channels] = _prefix_sum(line[c::channels])
+            line[c::channels] = prefix_sum(line[c::channels])
         return line
     if ftype == 2:
-        return _byte_add(line, prev)
+        return byte_add(line, prev)
     if ftype == 3:
         _unfilter_average(line, prev, channels)
         return line
@@ -163,7 +163,7 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
     On the largest reference screenshot (``desktop_fandom.png``) nearly half
     the bytes take that branch, and the fast path decodes it ~18% quicker.
     """
-    rows = _paeth_delta_rows()
+    rows = paeth_delta_rows()
     for c in range(channels):
         filtered = line[c::channels]
         above = prev[c::channels]

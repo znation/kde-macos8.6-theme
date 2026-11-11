@@ -101,8 +101,8 @@ class TestSampleMatchRuns(CliTestCase):
         args = (path, "1", "1", "--width", "3", "--height", "3", "--find-color",
                 "0a141e", "--color-tolerance", "1", "--match-alpha", "255",
                 "--match-runs", "--match-column-runs", "--match-pixels", "1")
-        with mock.patch.object(sample_report_search, "_positioned_region_pixels",
-                               wraps=sample_report_search._positioned_region_pixels) as pixels:
+        with mock.patch.object(sample_report_search, "positioned_region_pixels",
+                               wraps=sample_report_search.positioned_region_pixels) as pixels:
             result = self._run(*args, "--json")
         self._assert_success(result)
         match = json.loads(result.stdout)["match"]

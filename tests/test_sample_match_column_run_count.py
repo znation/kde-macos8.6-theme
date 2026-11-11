@@ -74,8 +74,8 @@ class TestSampleMatchColumnRunCount(CliTestCase):
         no_match = self._run(path, "1", "1", "--width", "3", "--height", "2",
                              "--find-color", "ffffff", "--match-column-run-count", "--json")
         self.assertEqual(json.loads(no_match.stdout)["match"]["column_run_count"], 0)
-        from tools.sample_match_runs import _MatchRuns
-        collector = _MatchRuns(0, 0, 2, 4, horizontal=False, vertical=True,
+        from tools.sample_match_runs import MatchRuns
+        collector = MatchRuns(0, 0, 2, 4, horizontal=False, vertical=True,
                                collect_column_runs=False)
         for y, values in enumerate(((True, False), (True, True), (False, False), (True, True))):
             for x, matches in enumerate(values):

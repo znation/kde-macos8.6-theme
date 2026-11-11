@@ -7,17 +7,17 @@ import json
 if __package__:
     from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_column_pixels,
-        _positioned_region_pixels, _region_alpha, print_region_line,
+        compact_json, hex, positioned_region_column_pixels,
+        positioned_region_pixels, region_alpha, print_region_line,
     )
-    from tools.sample_match_runs import _ColumnRuns, _MatchRuns
+    from tools.sample_match_runs import ColumnRuns, MatchRuns
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import report_context
     from sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_column_pixels,
-        _positioned_region_pixels, _region_alpha, print_region_line,
+        compact_json, hex, positioned_region_column_pixels,
+        positioned_region_pixels, region_alpha, print_region_line,
     )
-    from sample_match_runs import _ColumnRuns, _MatchRuns
+    from sample_match_runs import ColumnRuns, MatchRuns
 
 
 def _extend_match_bound(bounds, index: int, position: int, coordinate: int,
@@ -52,7 +52,7 @@ def _search_match(args, image) -> dict:
     matching_columns = [0] * args.width if args.match_columns else None
     matching_row_bounds = [None] * args.height if args.match_row_bounds else None
     matching_column_bounds = [None] * args.width if args.match_column_bounds else None
-    intervals = _MatchRuns(
+    intervals = MatchRuns(
         args.x, args.y, args.width, args.height,
         horizontal=args.match_runs or args.longest_match_run or args.match_run_count,
         vertical=(args.match_column_runs or args.match_column_run_count or
@@ -66,14 +66,14 @@ def _search_match(args, image) -> dict:
         summarize_columns=args.longest_match_column_run,
         collect_column_runs=(not capped_columns and args.match_column_runs))
     min_x, min_y, max_x, max_y = args.x + args.width, args.y + args.height, -1, -1
-    column_collector = _ColumnRuns(
+    column_collector = ColumnRuns(
         args.x, args.y, args.width, args.height,
         min_run_length=args.min_match_column_run_length,
         max_run_length=args.max_match_column_run_length,
         run_limit=args.max_match_column_runs,
         run_offset=getattr(args, "match_column_run_offset", None) or 0)
-    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
-    for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
+    alphas = iter(region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
+    for x, y, rgb in positioned_region_pixels(image, args.x, args.y, args.width, args.height):
         matches = _pixel_matches(alphas, rgb, target, tolerance, args.match_alpha)
         intervals.observe(x, y, matches)
         if matches:
@@ -101,15 +101,15 @@ def _search_match(args, image) -> dict:
     if capped_columns:
         column_alphas = None
         if args.match_alpha is not None:
-            # _region_alpha yields row-major, but the column scan below walks
+            # region_alpha yields row-major, but the column scan below walks
             # the region column-major: serve alphas in the scan's order so each
             # pixel keeps its own alpha value.
-            region_alphas = list(_region_alpha(image, args.x, args.y, args.width, args.height))
+            region_alphas = list(region_alpha(image, args.x, args.y, args.width, args.height))
             column_alphas = iter(
                 region_alphas[(row - args.y) * args.width + column - args.x]
                 for column in range(args.x, args.x + args.width)
                 for row in range(args.y, args.y + args.height))
-        for x, y, rgb in _positioned_region_column_pixels(
+        for x, y, rgb in positioned_region_column_pixels(
                 image, args.x, args.y, args.width, args.height):
             column_collector.observe(
                 x, y, _pixel_matches(column_alphas, rgb, target, tolerance,
@@ -133,7 +133,7 @@ def _search_match(args, image) -> dict:
                                    if run["length"] <= args.max_match_column_run_length]
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
         "width": max_x - min_x + 1, "height": max_y - min_y + 1}
-    return {"rgb": list(target), "hex": _hex(target), "count": count,
+    return {"rgb": list(target), "hex": hex(target), "count": count,
             "bounds": bounds,
             **({"fraction": count / (args.width * args.height)} if args.match_fraction else {}),
             **({"centroid": None if count == 0 else {"x": sum_x / count, "y": sum_y / count}}
@@ -200,7 +200,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
             print(f"matching run count: {match['run_count']}")
         if "run_offset" in match:
             print(f"matching run offset: {match['run_offset']}")
-        print(f"matching runs: {_compact_json(match['runs'])}")
+        print(f"matching runs: {compact_json(match['runs'])}")
         if "omitted_runs" in match:
             print(f"omitted matching runs: {match['omitted_runs']}")
     elif args.match_run_count:
@@ -210,17 +210,17 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     if args.match_column_runs:
         if "column_run_offset" in match:
             print(f"matching column run offset: {match['column_run_offset']}")
-        print(f"matching column runs: {_compact_json(match['column_runs'])}")
+        print(f"matching column runs: {compact_json(match['column_runs'])}")
         if "omitted_column_runs" in match:
             print(f"omitted matching column runs: {match['omitted_column_runs']}")
     if args.match_rows:
-        print(f"matching rows: {_compact_json(match['rows'])}")
+        print(f"matching rows: {compact_json(match['rows'])}")
     if args.match_columns:
-        print(f"matching columns: {_compact_json(match['columns'])}")
+        print(f"matching columns: {compact_json(match['columns'])}")
     if args.match_row_bounds:
-        print(f"matching row bounds: {_compact_json(match['row_bounds'])}")
+        print(f"matching row bounds: {compact_json(match['row_bounds'])}")
     if args.match_column_bounds:
-        print(f"matching column bounds: {_compact_json(match['column_bounds'])}")
+        print(f"matching column bounds: {compact_json(match['column_bounds'])}")
     if args.longest_match_run:
         run = match["longest_run"]
         print("longest matching run: none" if run is None else

@@ -68,7 +68,7 @@ def _paeth_delta_table() -> bytes:
     return table
 
 
-def _paeth_delta_rows() -> tuple[bytes, ...]:
+def paeth_delta_rows() -> tuple[bytes, ...]:
     """The Paeth delta table as 511 rows, indexed by ``a - c`` then ``b - c``.
 
     The values are exactly :func:`_paeth_delta_table`'s, split into one
@@ -118,7 +118,7 @@ def _lane_add(x: int, y: int, low7: int, high: int) -> int:
     return ((x & low7) + (y & low7)) ^ ((x ^ y) & high)
 
 
-def _byte_add(a: bytes, b: bytes) -> bytes:
+def byte_add(a: bytes, b: bytes) -> bytes:
     """Return ``a`` and ``b`` added byte-wise modulo 256.
 
     Packs both byte strings into one lane per byte and applies
@@ -126,7 +126,7 @@ def _byte_add(a: bytes, b: bytes) -> bytes:
     :func:`require_equal_lengths` rejects a mismatch and returns the shared
     length.
     """
-    length = require_equal_lengths(a, b, "_byte_add")
+    length = require_equal_lengths(a, b, "byte_add")
     if length == 0:
         return b""
     low7, high = _lane_masks(length)
@@ -138,7 +138,7 @@ def _byte_add(a: bytes, b: bytes) -> bytes:
     ).to_bytes(length, "little")
 
 
-def _prefix_sum(channel: bytes) -> bytes:
+def prefix_sum(channel: bytes) -> bytes:
     """Return the inclusive prefix sum of ``channel`` modulo 256.
 
     Equivalent to ``out[0] = channel[0]`` and

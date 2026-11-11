@@ -15,14 +15,14 @@ import sys
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, positive_int
     from tools.check_parallel_discovery import (
-        DiscoveryError, _log_paths, discover_modules,
+        DiscoveryError, assign_log_paths, discover_modules,
     )
     from tools.check_parallel_order import (
         cache_path, load_durations, merge_durations, order_modules,
         save_durations,
     )
-    from tools.check_parallel_results import _plural, _print_results
-    from tools.check_parallel_workers import _supervise
+    from tools.check_parallel_results import count_noun, print_results
+    from tools.check_parallel_workers import supervise
     from tools.diagnostics import create_scratch_directory, report_error
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
@@ -30,14 +30,14 @@ if __package__:
 else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
     from check_parallel_discovery import (
-        DiscoveryError, _log_paths, discover_modules,
+        DiscoveryError, assign_log_paths, discover_modules,
     )
     from check_parallel_order import (
         cache_path, load_durations, merge_durations, order_modules,
         save_durations,
     )
-    from check_parallel_results import _plural, _print_results
-    from check_parallel_workers import _supervise
+    from check_parallel_results import count_noun, print_results
+    from check_parallel_workers import supervise
     from diagnostics import create_scratch_directory, report_error
     from process_group import exit_on_termination
     from repo_root import ROOT
@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     workers = options.workers or min(len(modules), os.cpu_count() or 1)
     print(f"check: -p '{escape_controls(options.pattern)}', "
-          f"{_plural(len(modules), 'module')}, {_plural(workers, 'worker')}")
+          f"{count_noun(len(modules), 'module')}, {count_noun(workers, 'worker')}")
     # Order the queue by the previous run's recorded durations so the slowest
     # module starts first, and record this run's for the next one. Both
     # directions are best-effort: with no readable cache the queue is plain
@@ -104,10 +104,10 @@ def main(argv: list[str] | None = None) -> int:
     if scratch_path is None:
         return 2
     scratch = str(scratch_path)
-    log_paths = _log_paths(modules, scratch)
+    log_paths = assign_log_paths(modules, scratch)
     try:
         with exit_on_termination():
-            statuses = _supervise(
+            statuses = supervise(
                 ordered, [sys.executable, "-m", "unittest", "-v"],
                 tests_dir, log_paths, options.timeout, workers,
                 durations=durations,
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"next run: {escape_controls(str(exc))}",
                 file=sys.stderr,
             )
-        return _print_results(modules, statuses, log_paths, options.timeout)
+        return print_results(modules, statuses, log_paths, options.timeout)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 

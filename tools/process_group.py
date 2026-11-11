@@ -78,7 +78,7 @@ def _defer_signals(
     return previous
 
 
-def _replay_deferred(deferred: list[int]) -> None:
+def replay_deferred(deferred: list[int]) -> None:
     """Raise the first recorded signal's ordinary exception inside the cleanup try.
 
     More than one signal can be recorded while the child starts (a terminal
@@ -94,14 +94,14 @@ def _replay_deferred(deferred: list[int]) -> None:
     raise SystemExit(128 + number)
 
 
-def _restore_termination(previous: list[tuple[int, object]]) -> None:
+def restore_termination(previous: list[tuple[int, object]]) -> None:
     """Restore the catchable signals' previous handlers and drop the deferral."""
     for number, old in previous:
         signal.signal(number, old)
     previous.clear()
 
 
-def _popen_deferred(
+def popen_deferred(
     *args, **kwargs
 ) -> tuple[
     subprocess.Popen,
@@ -124,14 +124,14 @@ def _popen_deferred(
     try:
         process = subprocess.Popen(*args, **kwargs)
     except BaseException:
-        _restore_termination(previous)
-        _restore_termination(previous_interrupts)
-        _replay_deferred(deferred)
+        restore_termination(previous)
+        restore_termination(previous_interrupts)
+        replay_deferred(deferred)
         raise
     return process, deferred, previous, previous_interrupts
 
 
-def _kill_group(process: subprocess.Popen) -> None:
+def kill_group(process: subprocess.Popen) -> None:
     """Kill *process*'s group, ignoring a nonpositive pid or gone group."""
     if process.pid <= 0:
         return
@@ -141,7 +141,7 @@ def _kill_group(process: subprocess.Popen) -> None:
         pass
 
 
-def _reap(process: subprocess.Popen) -> None:
+def reap(process: subprocess.Popen) -> None:
     """Wait briefly for a killed process without blocking on a wedged kernel."""
     try:
         process.wait(timeout=_REAP_TIMEOUT)
@@ -168,7 +168,7 @@ def run_logged(
         # Defer signals until the cleanup try below is ready to own the child:
         # the handlers are swapped back inside the try, so a signal that
         # arrives as they are restored raises where the group kill runs.
-        process, deferred, previous, previous_interrupts = _popen_deferred(
+        process, deferred, previous, previous_interrupts = popen_deferred(
             argv,
             cwd=cwd,
             env=env,
@@ -178,18 +178,18 @@ def run_logged(
             start_new_session=True,
         )
         try:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
+            restore_termination(previous)
+            restore_termination(previous_interrupts)
+            replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             return None
         finally:
-            _kill_group(process)
+            kill_group(process)
             # The child has not been released yet, so there is nothing more
             # to do: SIGKILL is already sent. A reap timeout must not replace
             # the caller's real outcome.
-            _reap(process)
+            reap(process)
 
 
 def run_logged_split(
@@ -220,7 +220,7 @@ def run_logged_split(
         # Defer signals until the cleanup try below is ready to own the child:
         # the handlers are swapped back inside the try, so a signal that
         # arrives as they are restored raises where the group kill runs.
-        process, deferred, previous, previous_interrupts = _popen_deferred(
+        process, deferred, previous, previous_interrupts = popen_deferred(
             argv,
             cwd=cwd,
             env=env,
@@ -239,15 +239,15 @@ def run_logged_split(
         if writer is not None:
             writer.start()
         try:
-            _restore_termination(previous)
-            _restore_termination(previous_interrupts)
-            _replay_deferred(deferred)
+            restore_termination(previous)
+            restore_termination(previous_interrupts)
+            replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             return None
         finally:
-            _kill_group(process)
-            _reap(process)
+            kill_group(process)
+            reap(process)
             if writer is not None:
                 writer.join(_REAP_TIMEOUT)
 

@@ -10,7 +10,7 @@ else:  # run directly: python3 tools/sample.py
     from sample_report_common import report_context
 
 
-def _hex(rgb: tuple[int, int, int]) -> str:
+def hex(rgb: tuple[int, int, int]) -> str:
     """Format one RGB triple as the reports' ``#RRGGBB`` text."""
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
@@ -21,14 +21,14 @@ def print_region_line(args) -> None:
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
 
 
-def _compact_json(obj) -> str:
+def compact_json(obj) -> str:
     """Serialize obj as compact JSON, the format the sample reports embed list and
     mapping fields inside their plain-text lines. Eight call sites: six in the
     find-color-search report and two in the histogram report."""
     return json.dumps(obj, separators=(",", ":"))
 
 
-def _region_pixels(image, x: int, y: int, width: int, height: int):
+def region_pixels(image, x: int, y: int, width: int, height: int):
     """Yield each RGB pixel in a rectangle, row-major."""
     rgb = image.rgb
     image_width = image.width
@@ -38,15 +38,15 @@ def _region_pixels(image, x: int, y: int, width: int, height: int):
             yield (rgb[offset], rgb[offset + 1], rgb[offset + 2])
 
 
-def _positioned_region_pixels(image, x: int, y: int, width: int, height: int):
+def positioned_region_pixels(image, x: int, y: int, width: int, height: int):
     """Yield each RGB pixel in a rectangle with its absolute image position."""
-    for index, rgb in enumerate(_region_pixels(image, x, y, width, height)):
+    for index, rgb in enumerate(region_pixels(image, x, y, width, height)):
         yield x + index % width, y + index // width, rgb
 
 
-def _positioned_region_column_pixels(image, x: int, y: int, width: int, height: int):
+def positioned_region_column_pixels(image, x: int, y: int, width: int, height: int):
     """Yield each RGB pixel in a rectangle with its absolute image position,
-    column-major. Column-major twin of _positioned_region_pixels; it re-reads
+    column-major. Column-major twin of positioned_region_pixels; it re-reads
     the already-decoded buffers and owns one call site: the capped vertical
     match-run collector"""
     rgb, image_width = image.rgb, image.width
@@ -57,7 +57,7 @@ def _positioned_region_column_pixels(image, x: int, y: int, width: int, height: 
                    (rgb[offset], rgb[offset + 1], rgb[offset + 2]))
 
 
-def _region_alpha(image, x: int, y: int, width: int, height: int):
+def region_alpha(image, x: int, y: int, width: int, height: int):
     """Yield each pixel's alpha value in a rectangle, row-major; an image
     without an alpha channel yields 255."""
     alpha = image.alpha
@@ -69,11 +69,11 @@ def _region_alpha(image, x: int, y: int, width: int, height: int):
 
 def _pixel_records(args, image):
     """Yield ordinary pixel report records lazily, in row-major order."""
-    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    for x, y, rgb in _positioned_region_pixels(
+    alphas = iter(region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in positioned_region_pixels(
         image, args.x, args.y, args.width, args.height
     ):
-        pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": _hex(rgb)}
+        pixel = {"x": x, "y": y, "rgb": list(rgb), "hex": hex(rgb)}
         if alphas is not None:
             pixel["alpha"] = next(alphas)
         yield pixel

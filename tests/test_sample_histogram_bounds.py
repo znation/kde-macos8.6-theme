@@ -80,8 +80,8 @@ class TestSampleHistogramBounds(CliTestCase):
         _, data = rgb_image(2, 2, lambda _x, _y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "small.png", data)
         with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read, \
-             mock.patch.object(sample_report_histogram, "_positioned_region_pixels",
-                               wraps=sample_report_histogram._positioned_region_pixels) as positioned:
+             mock.patch.object(sample_report_histogram, "positioned_region_pixels",
+                               wraps=sample_report_histogram.positioned_region_pixels) as positioned:
             plain = self._run(path, "0", "0", "--width", "2", "--height", "2", "--histogram")
             bounded = self._run(path, "0", "0", "--width", "2", "--height", "2",
                                 "--histogram", "--color-bounds")

@@ -36,7 +36,7 @@ from tools import check_parallel_workers, process_group
 class TestSpawnDefenses(unittest.TestCase):
     """The spawn/kill primitives keep the guarantees test_process_group pins.
 
-    ``tools.process_group.py::_popen_deferred`` protects both command and
+    ``tools.process_group.py::popen_deferred`` protects both command and
     worker starts from SIGTERM, SIGHUP and Ctrl-C races; worker cleanup also
     never signals a non-positive pid.
     """
@@ -59,7 +59,7 @@ class TestSpawnDefenses(unittest.TestCase):
 
     def test_a_non_regular_log_path_is_refused_not_written_through(self):
         # _open_log's write-side regular-file check mirrors the read-side
-        # check _print_results pins through the FIFO and directory log
+        # check print_results pins through the FIFO and directory log
         # tests: a worker log path that opens successfully but is not a
         # regular file must not become the sink the worker's output is
         # streamed into. /dev/zero is the one non-regular file the open
@@ -67,7 +67,7 @@ class TestSpawnDefenses(unittest.TestCase):
         # O_CREAT and O_TRUNC are ignored on a device -- so only the
         # regular-file check can refuse it, while a FIFO ENXIOes before
         # the check runs (pinned at test_fifo_worker_log_fails...
-        # through _supervise).
+        # through supervise).
         if not os.path.exists("/dev/zero"):
             self.skipTest("/dev/zero is Linux-specific")
         with self.assertRaisesRegex(
@@ -91,7 +91,7 @@ class TestSpawnDefenses(unittest.TestCase):
         self.assertEqual(len(os.listdir("/proc/self/fd")), open_before)
 
     def test_a_non_regular_log_fails_only_its_module(self):
-        # Through _supervise: the refusal arrives as an OSError like any
+        # Through supervise: the refusal arrives as an OSError like any
         # other failed log open, so the module is recorded as never started
         # (exit 1) with one stderr diagnostic naming it and the refused
         # path, and the other workers still run -- never a traceback
@@ -103,7 +103,7 @@ class TestSpawnDefenses(unittest.TestCase):
         _write_module(tests_dir, "test_two.py", OK_MODULE)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers._supervise(
+            statuses = check_parallel_workers.supervise(
                 ["test_ok", "test_two"],
                 [sys.executable, "-m", "unittest", "-v"],
                 tests_dir,
@@ -174,10 +174,10 @@ class TestSpawnDefenses(unittest.TestCase):
                 side_effect=[termination_handlers, interrupt_handlers],
             ),
             mock.patch.object(
-                process_group, "_restore_termination"
+                process_group, "restore_termination"
             ) as restore,
             mock.patch.object(
-                process_group, "_replay_deferred"
+                process_group, "replay_deferred"
             ) as replay,
         ):
             with self.assertRaisesRegex(RuntimeError, "broken popen wrapper"):
@@ -196,7 +196,7 @@ class TestSpawnDefenses(unittest.TestCase):
         # coordinator's own process group -- under `make check`, make's
         # jobserver. The guard must reach no signal at all.
         with mock.patch.object(process_group.os, "killpg") as killpg:
-            check_parallel_workers._kill_group(
+            check_parallel_workers.kill_group(
                 check_parallel_workers._NeverStarted()
             )
         killpg.assert_not_called()
@@ -207,7 +207,7 @@ class TestSpawnDefenses(unittest.TestCase):
             process_group.os, "killpg",
             side_effect=ProcessLookupError,
         ) as killpg:
-            check_parallel_workers._kill_group(process)
+            check_parallel_workers.kill_group(process)
 
         killpg.assert_called_once_with(123, signal.SIGKILL)
 
@@ -215,7 +215,7 @@ class TestSpawnDefenses(unittest.TestCase):
         process = mock.Mock()
         process.wait.side_effect = subprocess.TimeoutExpired("worker", 5)
 
-        check_parallel_workers._reap(process)
+        check_parallel_workers.reap(process)
 
         process.wait.assert_called_once_with(timeout=5.0)
 

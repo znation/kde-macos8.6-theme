@@ -12,8 +12,8 @@ class _RunPage:
     kept. ``collect=False`` stops retention while still counting eligible
     runs, so ``omitted_runs`` stays computed against the eligible total.
 
-    Two call sites apply these identical rules: ``_MatchRuns._close_run``'s
-    horizontal page and ``_ColumnRuns._close``'s column-major page. The
+    Two call sites apply these identical rules: ``MatchRuns._close_run``'s
+    horizontal page and ``ColumnRuns._close``'s column-major page. The
     callers expose the page's counts as properties and alias the retained
     list as ``runs``, keeping the attributes their consumers read unchanged.
     """
@@ -47,7 +47,7 @@ class _RunPage:
             self.retained.append(run)
 
 
-class _MatchRuns:
+class MatchRuns:
     """Collect a region's color-match runs for the find-color search.
 
     ``observe`` feeds it one examined pixel. When *horizontal*, same-match
@@ -146,7 +146,7 @@ class _MatchRuns:
         return self.runs, self.column_runs
 
 
-class _ColumnRuns:
+class ColumnRuns:
     """Collect vertical match intervals for a capped column-run page over a
     column-major scan: the active interval closes at every column boundary
     and the bottom edge, and counting, eligibility and the retained page are

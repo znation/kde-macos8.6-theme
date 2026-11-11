@@ -166,14 +166,14 @@ class TestDiscovery(unittest.TestCase):
         _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
         modules = check_parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertEqual(["test_a.test_b", "test_a_test_b"], modules)
-        paths = check_parallel_discovery._log_paths(modules, "/scratch")
+        paths = check_parallel_discovery.assign_log_paths(modules, "/scratch")
         self.assertEqual(2, len(set(paths.values())))
 
     def test_a_disambiguated_log_never_claims_another_modules_name(self):
         # The `_2` suffix must not collide with a third module's own natural
         # stem: `test_a_test_b_2` keeps its natural log, and the later
         # colliding module takes the next free suffix.
-        paths = check_parallel_discovery._log_paths(
+        paths = check_parallel_discovery.assign_log_paths(
             ["test_a.test_b", "test_a_test_b_2", "test_a_test_b"],
             "/scratch",
         )

@@ -9,13 +9,13 @@ from heapq import nsmallest
 if __package__:
     from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        compact_json, hex, positioned_region_pixels, region_alpha, region_pixels,
         print_region_line,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import report_context
     from sample_report_pixels import (
-        _compact_json, _hex, _positioned_region_pixels, _region_alpha, _region_pixels,
+        compact_json, hex, positioned_region_pixels, region_alpha, region_pixels,
         print_region_line,
     )
 
@@ -47,8 +47,8 @@ def _histogram_spatial_fields(args, image, colors):
     bounds = ({color: [args.x + args.width, args.y + args.height, -1, -1]
                for color, _ in colors} if args.color_bounds else None)
     sums = {color: [0, 0] for color, _ in colors} if color_centroids else None
-    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
+    alphas = iter(region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in positioned_region_pixels(image, args.x, args.y, args.width, args.height):
         color = (*rgb, next(alphas)) if alphas is not None else rgb
         if color not in fields:
             continue
@@ -85,8 +85,8 @@ def _scanline_color_counts(args, image):
     column_sets = [set() for _ in range(args.width)] if getattr(args, "column_color_counts", False) else None
     if row_sets is None and column_sets is None:
         return None, None
-    alphas = iter(_region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
-    for x, y, rgb in _positioned_region_pixels(image, args.x, args.y, args.width, args.height):
+    alphas = iter(region_alpha(image, args.x, args.y, args.width, args.height)) if args.alpha else None
+    for x, y, rgb in positioned_region_pixels(image, args.x, args.y, args.width, args.height):
         color = (*rgb, next(alphas)) if alphas is not None else rgb
         if row_sets is not None:
             row_sets[y - args.y].add(color)
@@ -102,11 +102,11 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
     context = report_context(args, width, height)
     region = context["region"]
     if args.alpha:
-        pixels = zip(_region_pixels(image, args.x, args.y, args.width, args.height),
-                     _region_alpha(image, args.x, args.y, args.width, args.height))
+        pixels = zip(region_pixels(image, args.x, args.y, args.width, args.height),
+                     region_alpha(image, args.x, args.y, args.width, args.height))
         counts = Counter((*rgb, alpha) for rgb, alpha in pixels)
     else:
-        counts = Counter(_region_pixels(image, args.x, args.y, args.width, args.height))
+        counts = Counter(region_pixels(image, args.x, args.y, args.width, args.height))
     min_color_count = getattr(args, "min_color_count", None)
     max_color_count = getattr(args, "max_color_count", None)
     min_color_fraction = getattr(args, "min_color_fraction", None)
@@ -156,7 +156,7 @@ def _histogram_result(args, image, width: int, height: int) -> dict:
             running += count
             cumulative_fractions[color] = running / denominator
     result = {**context, "colors": [
-            {"rgb": list(color[:3]), "hex": _hex(color[:3]), "count": count,
+            {"rgb": list(color[:3]), "hex": hex(color[:3]), "count": count,
              **({"alpha": color[3]} if args.alpha else {}),
              **({"fraction": count / denominator} if args.color_fractions else {}),
              **({"cumulative_fraction": cumulative_fractions[color]}
@@ -204,9 +204,9 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
             suffix += f"  centroid={centroid['x']},{centroid['y']}"
         print(f"{rgb[0]},{rgb[1]},{rgb[2]}  {color['hex']}  count={color['count']}{suffix}")
     if "row_color_counts" in result:
-        print(f"row color counts: {_compact_json(result['row_color_counts'])}")
+        print(f"row color counts: {compact_json(result['row_color_counts'])}")
     if "column_color_counts" in result:
-        print(f"column color counts: {_compact_json(result['column_color_counts'])}")
+        print(f"column color counts: {compact_json(result['column_color_counts'])}")
     if _palette_filters_requested(args):
         print(f"total colors: {result['total_colors']}")
         print(f"omitted pixels: {result['omitted_pixels']}")

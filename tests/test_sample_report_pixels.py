@@ -7,7 +7,7 @@ from argparse import Namespace
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_pixels import _pixel_records, _positioned_region_pixels  # noqa: E402
+from tools.sample_report_pixels import _pixel_records, positioned_region_pixels  # noqa: E402
 
 
 class TestPixelRecords(unittest.TestCase):
@@ -84,7 +84,7 @@ class TestPositionedRegionPixels(unittest.TestCase):
             ))
 
         self.assertEqual(
-            list(_positioned_region_pixels(Image(), 1, 0, 2, 2)),
+            list(positioned_region_pixels(Image(), 1, 0, 2, 2)),
             [
                 (1, 0, (20, 21, 22)),
                 (2, 0, (30, 31, 32)),
@@ -103,7 +103,7 @@ class TestPositionedRegionPixels(unittest.TestCase):
             ))
 
         self.assertEqual(
-            list(_positioned_region_pixels(Image(), 2, 0, 1, 3)),
+            list(positioned_region_pixels(Image(), 2, 0, 1, 3)),
             [(2, 0, (3, 0, 0)), (2, 1, (7, 0, 0)), (2, 2, (11, 0, 0))],
         )
 

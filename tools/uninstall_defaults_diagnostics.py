@@ -15,12 +15,12 @@ import os
 
 if __package__:
     from tools.uninstall_config import (
-        _flat_text,
+        flat_text,
         read_selected_values_at,
         read_text,
     )
 else:  # imported from a directly run tool
-    from uninstall_config import _flat_text, read_selected_values_at, read_text
+    from uninstall_config import flat_text, read_selected_values_at, read_text
 
 
 def ksplashrc_messages(config_home: str, lnf_id: str) -> list[str]:
@@ -43,7 +43,7 @@ def package_messages(config_home: str, lnf_id: str) -> list[str]:
     """The flat look-and-feel package name in ``kdedefaults/package``."""
     path = os.path.join(config_home, "kdedefaults", "package")
     text = read_text(path)
-    if text is not None and _flat_text(text) == lnf_id:
+    if text is not None and flat_text(text) == lnf_id:
         return [
             "uninstall: the look-and-feel package default the look-and-feel"
             f" apply left in defaults still names {lnf_id} after removal in"

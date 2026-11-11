@@ -58,8 +58,8 @@ class TestSampleLongestMatchColumnRun(CliTestCase):
             "010203", "--longest-match-column-run").stdout)
 
     def test_summary_only_tie_order_validation_help_and_direct_script(self):
-        from tools.sample_match_runs import _MatchRuns
-        collector = _MatchRuns(0, 0, 3, 5, horizontal=False, vertical=True,
+        from tools.sample_match_runs import MatchRuns
+        collector = MatchRuns(0, 0, 3, 5, horizontal=False, vertical=True,
                                summarize=False, collect_runs=False,
                                summarize_columns=True, collect_column_runs=False)
         for y in range(5):
@@ -69,7 +69,7 @@ class TestSampleLongestMatchColumnRun(CliTestCase):
         collector.finish()
         self.assertEqual(collector.column_runs, [])
         self.assertEqual(collector.longest_column_run, {"x": 0, "y": 1, "length": 2})
-        earlier_y = _MatchRuns(0, 0, 1, 6, horizontal=False, vertical=True,
+        earlier_y = MatchRuns(0, 0, 1, 6, horizontal=False, vertical=True,
                                summarize=False, collect_runs=False,
                                summarize_columns=True, collect_column_runs=False)
         for y in range(6):

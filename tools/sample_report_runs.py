@@ -7,12 +7,12 @@ import json
 if __package__:
     from tools.sample_report_common import report_context
     from tools.sample_report_pixels import (
-        _hex, _region_alpha, _region_pixels, print_region_line,
+        hex, region_alpha, region_pixels, print_region_line,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import report_context
     from sample_report_pixels import (
-        _hex, _region_alpha, _region_pixels, print_region_line,
+        hex, region_alpha, region_pixels, print_region_line,
     )
 
 
@@ -24,8 +24,8 @@ def _color_runs(image, x: int, y: int, width: int, height: int, alpha_aware: boo
     differing alphas."""
     horizontal = height == 1
     segments = []
-    alphas = _region_alpha(image, x, y, width, height) if alpha_aware else None
-    for offset, rgb in enumerate(_region_pixels(image, x, y, width, height)):
+    alphas = region_alpha(image, x, y, width, height) if alpha_aware else None
+    for offset, rgb in enumerate(region_pixels(image, x, y, width, height)):
         alpha = next(alphas) if alphas is not None else None
         px, py = (x + offset, y) if horizontal else (x, y + offset)
         if segments and segments[-1]["rgb"] == rgb and (not alpha_aware or segments[-1]["alpha"] == alpha):
@@ -98,7 +98,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
             else:
                 runs.append(run)
     result = {**context, "axis": axis, "runs": [
-            {**run, "rgb": list(run["rgb"]), "hex": _hex(run["rgb"])} for run in runs
+            {**run, "rgb": list(run["rgb"]), "hex": hex(run["rgb"])} for run in runs
         ]}
     if run_count is not None:
         result["run_count"] = run_count
@@ -111,7 +111,7 @@ def _runs_result(args, image, width: int, height: int) -> dict:
     if track_longest:
         result["longest_run"] = {
             "x": longest_run["x"], "y": longest_run["y"], "length": longest_run["length"],
-            "rgb": list(longest_run["rgb"]), "hex": _hex(longest_run["rgb"]),
+            "rgb": list(longest_run["rgb"]), "hex": hex(longest_run["rgb"]),
             **({"alpha": longest_run["alpha"]} if args.alpha else {}),
         }
     return result
@@ -138,6 +138,6 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
     for run in result["runs"]:
         rgb = run["rgb"]
         suffix = f"  alpha={run['alpha']}" if args.alpha else ""
-        print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}  length={run['length']}{suffix}")
+        print(f"({run['x']}, {run['y']}): {rgb[0]},{rgb[1]},{rgb[2]}  {hex(rgb)}  length={run['length']}{suffix}")
     if "omitted_runs" in result:
         print(f"omitted runs: {result['omitted_runs']}")
