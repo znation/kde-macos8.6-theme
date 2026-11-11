@@ -136,6 +136,12 @@ GRID_SIZE = 16
 
 # The canonical cursor name, its grid, its hotspot and the X-name aliases that
 # must carry byte-identical copies. ``main`` writes them in this order.
+#
+# 2026-11-11 grounding: no reference screenshot shows a cursor, X draws
+# single-direction arrows for the side and corner roles, and reusing the landed
+# double-arrow resize art for each role keeps the set's one-face-set policy; the
+# alias grouping (the resize roles joined to their axis's canonical) is again
+# this theme's own choice.
 CURSORS = (
     (
         "left_ptr",
@@ -164,6 +170,8 @@ CURSORS = (
             "sb_h_double_arrow",
             "col-resize",
             "split_h",
+            "left_side",
+            "right_side",
         ),
     ),
     (
@@ -179,19 +187,33 @@ CURSORS = (
             "00008160000006810000408080010102",
             "row-resize",
             "split_v",
+            "top_side",
+            "bottom_side",
         ),
     ),
     (
         "size_fdiag",
         SIZE_FDIAG_GRID,
         SIZE_FDIAG_HOTSPOT,
-        ("nw-resize", "se-resize", "nwse-resize"),
+        (
+            "nw-resize",
+            "se-resize",
+            "nwse-resize",
+            "top_left_corner",
+            "bottom_right_corner",
+        ),
     ),
     (
         "size_bdiag",
         SIZE_BDIAG_GRID,
         SIZE_BDIAG_HOTSPOT,
-        ("ne-resize", "sw-resize", "nesw-resize"),
+        (
+            "ne-resize",
+            "sw-resize",
+            "nesw-resize",
+            "top_right_corner",
+            "bottom_left_corner",
+        ),
     ),
     ("crosshair", CROSSHAIR_GRID, CROSSHAIR_HOTSPOT, ("cross", "tcross")),
     (
