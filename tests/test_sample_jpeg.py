@@ -7,6 +7,7 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -72,6 +73,38 @@ class TestConvertJpegArguments(unittest.TestCase):
             r"^convert_jpeg\(\) requires pathlib\.Path: temp_png must be Path, not str$",
         ):
             jpeg_convert.convert_jpeg(b"jpeg", "out.png")
+
+
+class TestConvertJpegFailureDiagnostic(unittest.TestCase):
+    def test_nonzero_converter_status_keeps_output_and_scrubs_private_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def fail_with_private_path(
+                argv, env, stdout_log, stderr_log, *args, **kwargs
+            ):
+                Path(stderr_log).write_text(f"cannot decode {temp_png}")
+                return 7
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=fail_with_private_path,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(
+            problem,
+            "convert exited 7: cannot decode <the temporary decoded PNG>",
+        )
+        self.assertNotIn(str(temp_png), problem)
 
 
 class TestJpegSampler(CliTestCase):
