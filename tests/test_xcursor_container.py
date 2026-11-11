@@ -46,6 +46,9 @@ class TestAssemble(unittest.TestCase):
             (IMAGE_HEADER_SIZE, IMAGE_TYPE, 32, CHUNK_VERSION, 2, 1, 1, 0, 0),
         )
         self.assertEqual(data[second_offset + IMAGE_HEADER_SIZE:], b"123456")
+        self.assertEqual(
+            len(data), second_offset + IMAGE_HEADER_SIZE + len(frames[1][-1])
+        )
 
     def test_empty_frames_are_rejected(self):
         with self.assertRaisesRegex(ValueError, "at least one frame"):
