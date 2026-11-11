@@ -1744,6 +1744,48 @@ class _DialogGate:
                     ],
                 )
 
+    def assert_push_button_recipe(self, rect, cell, flat_rows):
+        """Pin the raised push-button recipe over its full-height cell.
+
+        The engine's raised button recipe is one contract, so its outline,
+        bevel arms, face rows and shadow arm are asserted here and both
+        gates that pin a push button walk their own rect and cell through
+        it (the color and icon dialog gates below).
+        """
+        self.assert_raised_frame(rect, flat_rows=flat_rows)
+        face_row = [
+            "#FFFFFF",
+            *["#DDDDDD"] * 4,
+        ]
+        arm_row = [
+            "#FFFFFF",
+            *["#AAAAAA"] * 4,
+        ]
+        rows = (
+            [["#000000"] * 5]
+            + [["#FFFFFF"] * 5]
+            + [face_row] * 20
+            + [arm_row]
+            + [["#000000"] * 5]
+        )
+        self.assert_band(cell, rows)
+
+    def assert_push_button_face_reaches_its_row(self, rect):
+        """Pin the raised recipe's flat face across its label-free row.
+
+        The raised recipe's flat face must reach the whole label-free
+        row: a rounded stock face, a duplicated or shifted bevel arm or
+        a recoloured face fails on the row's columns. Shared with
+        ``assert_push_button_recipe`` by the color and icon dialog gates.
+        """
+        image = self.candidate_image()
+        x, y, width, height = rect
+        self.assertEqual(
+            ["#DDDDDD"] * (width - 4),
+            [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))
+             for dx in range(width - 4)],
+        )
+
 
 def _dialog_gate_guard():
     """Return the skip guard the thirteen dialog render gates share.
@@ -2353,35 +2395,12 @@ class TestColorDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_push_button_frame_and_cell(self):
         """Pin the raised push-button recipe over the full-height cell."""
-        self.assert_raised_frame(PUSH_BUTTON, flat_rows=PUSH_BUTTON_FLAT_ROWS)
-        face_row = [
-            "#FFFFFF",
-            *["#DDDDDD"] * 4,
-        ]
-        arm_row = [
-            "#FFFFFF",
-            *["#AAAAAA"] * 4,
-        ]
-        rows = (
-            [["#000000"] * 5]
-            + [["#FFFFFF"] * 5]
-            + [face_row] * 20
-            + [arm_row]
-            + [["#000000"] * 5]
+        self.assert_push_button_recipe(
+            PUSH_BUTTON, PUSH_BUTTON_CELL, PUSH_BUTTON_FLAT_ROWS
         )
-        self.assert_band(PUSH_BUTTON_CELL, rows)
 
     def test_draws_the_push_button_face_at_the_landed_recipe(self):
-        # The raised recipe's flat face must reach the whole label-free
-        # row: a rounded stock face, a duplicated or shifted bevel arm or
-        # a recoloured face fails on the row's columns.
-        image = self.candidate_image()
-        x, y, width, height = PUSH_BUTTON
-        self.assertEqual(
-            ["#DDDDDD"] * (width - 4),
-            [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))
-             for dx in range(width - 4)],
-        )
+        self.assert_push_button_face_reaches_its_row(PUSH_BUTTON)
 
 
 @_dialog_gate_guard()
@@ -2459,35 +2478,12 @@ class TestIconDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_push_button_frame_and_cell(self):
         """Pin the raised push-button recipe over the full-height cell."""
-        self.assert_raised_frame(ICON_PUSH_BUTTON, flat_rows=ICON_PUSH_BUTTON_FLAT_ROWS)
-        face_row = [
-            "#FFFFFF",
-            *["#DDDDDD"] * 4,
-        ]
-        arm_row = [
-            "#FFFFFF",
-            *["#AAAAAA"] * 4,
-        ]
-        rows = (
-            [["#000000"] * 5]
-            + [["#FFFFFF"] * 5]
-            + [face_row] * 20
-            + [arm_row]
-            + [["#000000"] * 5]
+        self.assert_push_button_recipe(
+            ICON_PUSH_BUTTON, ICON_PUSH_BUTTON_CELL, ICON_PUSH_BUTTON_FLAT_ROWS
         )
-        self.assert_band(ICON_PUSH_BUTTON_CELL, rows)
 
     def test_draws_the_push_button_face_at_the_landed_recipe(self):
-        # The raised recipe's flat face must reach the whole label-free
-        # row: a rounded stock face, a duplicated or shifted bevel arm or
-        # a recoloured face fails on the row's columns.
-        image = self.candidate_image()
-        x, y, width, height = ICON_PUSH_BUTTON
-        self.assertEqual(
-            ["#DDDDDD"] * (width - 4),
-            [hex_colour(pixel_at(image, x + 2 + dx, y + height - 4))
-             for dx in range(width - 4)],
-        )
+        self.assert_push_button_face_reaches_its_row(ICON_PUSH_BUTTON)
 
 
 @_dialog_gate_guard()
