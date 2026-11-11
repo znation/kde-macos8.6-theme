@@ -38,6 +38,34 @@ class TestSessionEnv(unittest.TestCase):
             session_bus.session_env({"XDG_RUNTIME_DIR": str(self.directory)}),
         )
 
+    def test_a_runtime_dir_with_address_syntax_characters_is_percent_encoded(self):
+        # The D-Bus address grammar uses %, ;, , and = as its own syntax, so
+        # a runtime directory carrying one of them would otherwise truncate
+        # the composed path or split it into a second address; each becomes
+        # its uppercase percent escape. A literal %2C lookalike in the name
+        # becomes %252C, so no parser decodes it back to the comma it mimics.
+        odd = self.directory / "a,b=c;d%2Ce"
+        odd.mkdir()
+        (odd / "bus").write_text("", encoding="utf-8")
+        self.assertEqual(
+            {"XDG_RUNTIME_DIR": str(odd),
+             "DBUS_SESSION_BUS_ADDRESS":
+                 f"unix:path={self.directory}/a%2Cb%3Dc%3Bd%252Ce/bus"},
+            session_bus.session_env({"XDG_RUNTIME_DIR": str(odd)}),
+        )
+
+    def test_an_existing_address_is_left_untouched_even_with_syntax_characters(self):
+        # The caller composed its own address, so it is passed through as it
+        # stands: only the value this helper synthesizes gets encoded.
+        self.assertEqual(
+            {"XDG_RUNTIME_DIR": str(self.directory),
+             "DBUS_SESSION_BUS_ADDRESS": "unix:path=/a,b=c"},
+            session_bus.session_env(
+                {"XDG_RUNTIME_DIR": str(self.directory),
+                 "DBUS_SESSION_BUS_ADDRESS": "unix:path=/a,b=c"}
+            ),
+        )
+
     def test_an_absolute_runtime_dir_without_a_bus_socket_is_left_unchanged(self):
         # The runtime directory names a session only when its bus socket is
         # present; defaulting to a socket that is not there would send the
