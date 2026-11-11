@@ -1,7 +1,7 @@
 """Pin the validation-gap ledgers and their non-growth.
 
 The ``support.validation_gaps`` package (one module per concern under
-``tests/support/validation_gaps/``) maps each surviving ``no-observability"
+``tests/support/validation_gaps/``) maps each surviving ``no-observability``
 record to the test that now reproduces its failure offline, each
 ``unclear-invariant`` record to the test and the ``docs/invariants.md`` row
 that now state the guarantee it needed, each ``no-fake`` record to the test
