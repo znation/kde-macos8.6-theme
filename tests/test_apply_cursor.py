@@ -418,6 +418,14 @@ class TestRemove(CursorCase):
         self.link.parent.mkdir(parents=True)
         os.symlink(str(self.installed), str(self.link))
 
+    def clear_link(self):
+        if not self.link.is_symlink() and not os.path.lexists(self.link):
+            return
+        if self.link.is_dir() and not self.link.is_symlink():
+            self.link.rmdir()
+            return
+        self.link.unlink()
+
     def test_removal_unlinks_only_our_symlink_and_keeps_the_icons_dir(self):
         self.make_our_link()
         result = self.run_tool("--remove")
@@ -491,11 +499,7 @@ class TestRemove(CursorCase):
     def test_removal_leaves_a_foreign_symlink_dir_and_file(self):
         for kind in ("symlink", "directory", "file"):
             with self.subTest(kind=kind):
-                if self.link.is_symlink() or os.path.lexists(self.link):
-                    if self.link.is_dir() and not self.link.is_symlink():
-                        self.link.rmdir()
-                    else:
-                        self.link.unlink()
+                self.clear_link()
                 self.link.parent.mkdir(parents=True, exist_ok=True)
                 if kind == "symlink":
                     elsewhere = self.root / "foreign"
