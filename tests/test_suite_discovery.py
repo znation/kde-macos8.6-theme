@@ -338,11 +338,12 @@ def shadowed_definitions(path):
     for body in scopes:
         seen = {}
         for child in body:
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if child.name in seen:
-                    findings.append((child.name, seen[child.name], child.lineno))
-                else:
-                    seen[child.name] = child.lineno
+            if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if child.name in seen:
+                findings.append((child.name, seen[child.name], child.lineno))
+            else:
+                seen[child.name] = child.lineno
     return findings
 
 

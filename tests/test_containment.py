@@ -226,15 +226,20 @@ class TestOpenRegularBinaryCleanup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "asset.svg"
             path.write_bytes(b"inside")
-            with tracking_closes() as closed:
-                with mock.patch.object(
-                    containment_impl.os,
-                    "fstat",
-                    side_effect=OSError("simulated fstat failure"),
-                ):
-                    with self.assertRaises(OSError):
-                        containment_impl.open_regular_binary(path)
+            closed = self._open_with_fstat_failing(path)
             self.assertEqual(1, len(closed))
+
+    def _open_with_fstat_failing(self, path):
+        """Open *path* with os.fstat patched to fail; return the closed log."""
+        with tracking_closes() as closed:
+            with mock.patch.object(
+                containment_impl.os,
+                "fstat",
+                side_effect=OSError("simulated fstat failure"),
+            ):
+                with self.assertRaises(OSError):
+                    containment_impl.open_regular_binary(path)
+        return closed
 
 
 class TestReadText(unittest.TestCase):

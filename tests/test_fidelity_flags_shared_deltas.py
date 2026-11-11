@@ -52,10 +52,14 @@ class TestSharedDeltasFlags(unittest.TestCase):
             with self.subTest(pair=name):
                 deltas = channel_deltas(*pair)
                 for tolerance in (0, 9, 100):
-                    with self.subTest(tolerance=tolerance):
-                        shared = differing_flags(*pair, tolerance, deltas=deltas)
-                        derived = differing_flags(*pair, tolerance)
-                        self.assertEqual(shared, derived)
+                    self._assert_flags_match(pair, deltas, tolerance)
+
+    def _assert_flags_match(self, pair, deltas, tolerance):
+        """Pin the deltas-keyed flags to the freshly derived flags."""
+        with self.subTest(tolerance=tolerance):
+            shared = differing_flags(*pair, tolerance, deltas=deltas)
+            derived = differing_flags(*pair, tolerance)
+            self.assertEqual(shared, derived)
 
     def test_rgb_flags_read_the_shared_strings(self):
         """The RGB pair's union is exactly the two over-tolerance pixels.

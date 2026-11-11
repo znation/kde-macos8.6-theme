@@ -143,12 +143,20 @@ class TestFirefoxContentTheme(FirefoxContentTestCase):
                 )
                 for token in PAGE_CHROME:
                     self.assertNotIn(token, selector)
+        self._assert_bodies_avoid_page_chrome()
+
+    def _assert_bodies_avoid_page_chrome(self):
+        """Pin every body's selectors free of the page-chrome tokens."""
         for url, body in self.bodies.items():
             _, _, selectors = parse_css(body, source=SHEET_PATH)
             for selector in selectors:
                 with self.subTest(url=url, selector=selector):
-                    for token in FORBIDDEN_PAGE_CHROME:
-                        self.assertNotIn(token, selector)
+                    self._assert_selector_free_of_page_chrome(selector)
+
+    def _assert_selector_free_of_page_chrome(self, selector):
+        """Assert *selector* names none of the page-chrome tokens."""
+        for token in FORBIDDEN_PAGE_CHROME:
+            self.assertNotIn(token, selector)
 
     def test_palette_is_exact(self):
         self.assertEqual(

@@ -618,19 +618,21 @@ class TestIconGeometry(unittest.TestCase):
         # them drift apart.
         for size in ("16x16", "22x22", "32x32"):
             with self.subTest(size=size):
-                folder = _drawing_elements(
-                    parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
+                self._assert_aliases_share_folder_art(size)
+
+    def _assert_aliases_share_folder_art(self, size):
+        """Pin every folder alias's drawing to the folder's at *size*."""
+        folder = _drawing_elements(
+            parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
+        )
+        for alias in FOLDER_ALIASES:
+            with self.subTest(size=size, alias=alias):
+                drawing = _drawing_elements(
+                    parse_svg(
+                        os.path.join(PACKAGE, size, "places", alias + ".svg")
+                    )
                 )
-                for alias in FOLDER_ALIASES:
-                    with self.subTest(size=size, alias=alias):
-                        drawing = _drawing_elements(
-                            parse_svg(
-                                os.path.join(
-                                    PACKAGE, size, "places", alias + ".svg"
-                                )
-                            )
-                        )
-                        self.assertEqual(drawing, folder)
+                self.assertEqual(drawing, folder)
 
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):

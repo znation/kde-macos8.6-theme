@@ -171,18 +171,22 @@ class TestRejectsNonBytesInput(unittest.TestCase):
             (complete_head, image_format.is_complete),
             (complete_tail, image_format.is_complete),
         ):
-            for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
-                with self.subTest(func=func.__name__, bad=bad):
-                    with self.assertRaises(ValueError) as ctx:
-                        func(bad)
-                    # The full message is pinned, including the detector's
-                    # own name, so a shared validator that reports another
-                    # detector's name cannot pass unnoticed.
-                    self.assertEqual(
-                        str(ctx.exception),
-                        f"{detector.__name__} data must be bytes or "
-                        f"bytearray, not {type(bad).__name__}",
-                    )
+            self._assert_bad_inputs_refused(func, detector)
+
+    def _assert_bad_inputs_refused(self, func, detector):
+        """Pin *func* rejecting every non-bytes input with its message."""
+        for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
+            with self.subTest(func=func.__name__, bad=bad):
+                with self.assertRaises(ValueError) as ctx:
+                    func(bad)
+                # The full message is pinned, including the detector's
+                # own name, so a shared validator that reports another
+                # detector's name cannot pass unnoticed.
+                self.assertEqual(
+                    str(ctx.exception),
+                    f"{detector.__name__} data must be bytes or "
+                    f"bytearray, not {type(bad).__name__}",
+                )
 
     def test_is_complete_rejects_invalid_stream_sizes(self):
         for size in (-1, 1.5, True, "12"):

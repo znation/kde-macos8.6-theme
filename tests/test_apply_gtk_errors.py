@@ -187,11 +187,15 @@ class TestSettingsErrors(ApplyGtkTestCase):
                 self.assertTrue(link.is_symlink())
                 self.assertEqual(target, link.readlink())
                 self.assertFalse(target.exists())
-                for path, original in zip(paths, originals):
-                    if path != link:
-                        self.assertEqual(original, path.read_bytes())
                 self.assertFalse(list(self.config.rglob("*.staging")))
                 link.unlink()
+                self._assert_others_keep_originals(paths, originals, link)
+
+    def _assert_others_keep_originals(self, paths, originals, link):
+        """Assert every path but *link* still holds its original bytes."""
+        for path, original in zip(paths, originals):
+            if path != link:
+                self.assertEqual(original, path.read_bytes())
 
     def test_a_symlinked_config_home_is_still_supported(self):
         self.install_sheet()

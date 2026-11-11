@@ -245,12 +245,9 @@ class TestFirefoxTelemetryTheme(FirefoxContentTestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(declarations, expected)
                 self.assertTrue(declarations)
-            for name, value in declarations.items():
-                with self.subTest(selector=selector, property=name):
-                    self.assertIn("!important", value)
-                    for token in HEX.findall(value):
-                        seen.add(token)
-                        self.assertIn(token, allowed)
+            seen.update(
+                self.pin_declaration_tokens(selector, declarations, allowed)
+            )
         self.assertTrue(seen)
         body = self.bodies["about:telemetry"]
         self.assertLessEqual(set(HEX.findall(body)), allowed)

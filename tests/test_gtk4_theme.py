@@ -3223,16 +3223,20 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         for selector in selectors:
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], expected)
-                for popover in ("popover > contents", "popover > arrow"):
-                    for prop in (
-                        "background-color", "border", "border-radius", "box-shadow"
-                    ):
-                        self.assertEqual(
-                            self.rules[selector][prop], self.rules[popover][prop]
-                        )
+                self._assert_toast_matches_popover(selector)
+
+    def _assert_toast_matches_popover(self, selector):
+        """Pin the toast's box properties to its popover family's."""
+        for popover in ("popover > contents", "popover > arrow"):
+            for prop in (
+                "background-color", "border", "border-radius", "box-shadow"
+            ):
                 self.assertEqual(
-                    self.rules[selector]["color"], self.rules["window"]["color"]
+                    self.rules[selector][prop], self.rules[popover][prop]
                 )
+        self.assertEqual(
+            self.rules[selector]["color"], self.rules["window"]["color"]
+        )
 
     def test_dropdown_arrow(self):
         self.assert_rule("dropdown arrow", COMBO_ARROW)
@@ -6248,13 +6252,15 @@ class TestScrollbarBreadthRules(unittest.TestCase):
             )
             self.CSS_PATH = link
             try:
-                with mock.patch.object(gtk_css, "ROOT", root):
-                    with self.assertRaisesRegex(
+                with (
+                    mock.patch.object(gtk_css, "ROOT", root),
+                    self.assertRaisesRegex(
                         ValueError, "symlink escape"
-                    ) as caught:
-                        # Run the rule test itself, so reverting its read to a
-                        # raw read fails here and not only in the helper.
-                        self.test_thumb_minimum_fills_reference_band()
+                    ) as caught,
+                ):
+                    # Run the rule test itself, so reverting its read to a
+                    # raw read fails here and not only in the helper.
+                    self.test_thumb_minimum_fills_reference_band()
             finally:
                 self.CSS_PATH = CSS
         self.assertNotIn("PRIVATE-SECRET", str(caught.exception))

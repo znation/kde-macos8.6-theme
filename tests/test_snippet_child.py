@@ -187,15 +187,17 @@ class TestTimeoutPath(unittest.TestCase):
             return (0, 0)
 
         stderr = io.StringIO()
-        with mock.patch.object(snippet_child.os, "waitpid", never_released):
-            with mock.patch.object(process_runner, "REAP_TIMEOUT", 0.2):
-                with contextlib.redirect_stderr(stderr):
-                    start = time.monotonic()
-                    with self.assertRaises(subprocess.TimeoutExpired):
-                        snippet_child.run(
-                            ["import time; time.sleep(30)"], timeout=0.2
-                        )
-                    elapsed = time.monotonic() - start
+        with (
+            mock.patch.object(snippet_child.os, "waitpid", never_released),
+            mock.patch.object(process_runner, "REAP_TIMEOUT", 0.2),
+        ):
+            with contextlib.redirect_stderr(stderr):
+                start = time.monotonic()
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    snippet_child.run(
+                        ["import time; time.sleep(30)"], timeout=0.2
+                    )
+                elapsed = time.monotonic() - start
         for pid in waited:
             try:
                 real_waitpid(pid, os.WNOHANG)

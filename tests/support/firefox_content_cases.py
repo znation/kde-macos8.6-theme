@@ -25,7 +25,7 @@ from urllib.parse import unquote
 
 from support import containment
 from support.css_header import CommentHeaderAssertions
-from support.gtk_css import parse_css, strip_comments
+from support.gtk_css import HEX, parse_css, strip_comments
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -672,6 +672,17 @@ class FirefoxContentTestCase(CommentHeaderAssertions, unittest.TestCase):
         cls.colours, cls.rules, cls.selectors = parse_css(
             cls.bodies.get(cls.AT_RULE_URL, ""), source=SHEET_PATH
         )
+
+    def pin_declaration_tokens(self, selector, declarations, allowed):
+        """Pin *declarations* each important; return their allowed tokens."""
+        tokens = set()
+        for name, value in declarations.items():
+            with self.subTest(selector=selector, property=name):
+                self.assertIn("!important", value)
+                for token in HEX.findall(value):
+                    self.assertIn(token, allowed)
+                    tokens.add(token)
+        return tokens
 
 
 if __name__ == "__main__":

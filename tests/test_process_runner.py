@@ -159,6 +159,24 @@ class TestWaitForPidfile(unittest.TestCase):
         self.assertIn("tool exited before the child started", str(caught.exception))
 
 
+def _wait_for_grandchild(pidfile, process, deadline):
+    """Poll *pidfile* for the grandchild pid until *process* ends."""
+    grandchild = None
+    while (
+        grandchild is None
+        and process.poll() is None
+        and time.monotonic() < deadline
+    ):
+        try:
+            with open(pidfile, encoding="utf-8") as handle:
+                grandchild = int(handle.read())
+        except (FileNotFoundError, ValueError):
+            # The shell creates the file before it writes the pid, so
+            # an empty read is a setup race, not a failure.
+            time.sleep(0.01)
+    return grandchild
+
+
 class TestSubprocessTimeout(unittest.TestCase):
     def _assert_process_dies(self, pid, message):
         """Assert process *pid* is gone within a short deadline.
@@ -210,20 +228,9 @@ class TestSubprocessTimeout(unittest.TestCase):
         with process_runner.running(
             [os.path.join(tmp, "fakebin", "make")], cwd=tmp, env=env
         ) as process:
-            deadline = time.monotonic() + 30
-            grandchild = None
-            while (
-                grandchild is None
-                and process.poll() is None
-                and time.monotonic() < deadline
-            ):
-                try:
-                    with open(pidfile, encoding="utf-8") as handle:
-                        grandchild = int(handle.read())
-                except (FileNotFoundError, ValueError):
-                    # The shell creates the file before it writes the pid, so
-                    # an empty read is a setup race, not a failure.
-                    time.sleep(0.01)
+            grandchild = _wait_for_grandchild(
+                pidfile, process, time.monotonic() + 30
+            )
             self.assertIsNotNone(
                 grandchild, "the fake make never recorded its grandchild"
             )

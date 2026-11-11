@@ -226,10 +226,14 @@ class TestReadReferenceCache(unittest.TestCase):
             path = _write_reference(tmp)
             with _spy_on_read_png() as spy:
                 reference_image.read_reference(path)
-                for bound_name in ("max_rows", "max_cols"):
-                    for bad in (0, -1, True, 1.5, "2"):
-                        self._assert_bound_is_rejected(path, bound_name, bad)
+                self._assert_bounds_rejected(path)
         self.assertEqual(1, spy.call_count)
+
+    def _assert_bounds_rejected(self, path):
+        """Pin every invalid max_rows/max_cols bound rejected on *path*."""
+        for bound_name in ("max_rows", "max_cols"):
+            for bad in (0, -1, True, 1.5, "2"):
+                self._assert_bound_is_rejected(path, bound_name, bad)
 
     def _assert_bound_is_rejected(self, path, bound_name, value):
         """Assert a read with invalid *value* for *bound_name* fails.

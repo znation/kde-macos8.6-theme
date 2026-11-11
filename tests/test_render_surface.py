@@ -4136,13 +4136,17 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
         # trough, a stray paint or art in the empty rows fails here.
         for start, face, rects in self.ROW_BANDS:
             with self.subTest(row_band=start):
-                for y in range(start, start + self.ROW_BAND_HEIGHT):
-                    for x in range(152, 474):
-                        if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
-                            continue
-                        if 395 <= x <= 473:
-                            continue
-                        self.assert_pixel(x, y, face)
+                self._pin_row_band(start, face, rects)
+
+    def _pin_row_band(self, start, face, rects):
+        """Pin one row band's face across its span, skipping pinned rects."""
+        for y in range(start, start + self.ROW_BAND_HEIGHT):
+            for x in range(152, 474):
+                if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
+                    continue
+                if 395 <= x <= 473:
+                    continue
+                self.assert_pixel(x, y, face)
         image = self.candidate_image()
         for start, face, _ in self.ROW_BANDS:
             with self.subTest(date_ink=start):

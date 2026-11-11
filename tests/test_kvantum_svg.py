@@ -506,10 +506,12 @@ class TestSvg(unittest.TestCase):
         names = set()
         for section in parser.sections():
             for key, value in parser.items(section):
-                if key.endswith(".element"):
-                    # Only the MDI buttons intentionally use compiled-in art.
-                    if (section, key, value) == ("TitleBar", "indicator.element", "mdi"):
-                        continue
+                # Only the MDI buttons intentionally use compiled-in art.
+                if key.endswith(".element") and (section, key, value) != (
+                    "TitleBar",
+                    "indicator.element",
+                    "mdi",
+                ):
                     names.add(value)
         for name in names:
             with self.subTest(element=name):
@@ -665,11 +667,15 @@ class TestMdiButtons(unittest.TestCase):
                 # The close box has no glyph; only the exact-art test above
                 # pins its art.
                 continue
-            for state in MDI_STATES:
-                shipped = _drawing_elements(by_id["mdi-%s-%s" % (role, state)])
-                with self.subTest(role=role, state=state):
-                    for pixel in glyph:
-                        self.assertIn(pixel, shipped)
+            self._assert_role_glyph(by_id, role, glyph)
+
+    def _assert_role_glyph(self, by_id, role, glyph):
+        """Pin *glyph*'s pixels inside every MDI state of *role*."""
+        for state in MDI_STATES:
+            shipped = _drawing_elements(by_id["mdi-%s-%s" % (role, state)])
+            with self.subTest(role=role, state=state):
+                for pixel in glyph:
+                    self.assertIn(pixel, shipped)
 
 
 class TestSvgContainment(unittest.TestCase):

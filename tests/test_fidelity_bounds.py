@@ -13,6 +13,19 @@ from support.png_fixtures import make_png, rgb_image  # noqa: E402
 from tools.fidelity_metrics import Image, compare  # noqa: E402
 
 
+def _mask_changes(width, height, mask):
+    """Return ``(reference, changed bytes, changed points)`` for *mask*."""
+    reference, _ = rgb_image(width, height, lambda x, y: (0, 0, 0))
+    changed = bytearray(reference.rgb)
+    points = []
+    for index in range(width * height):
+        if mask & (1 << index):
+            x, y = index % width, index // width
+            points.append((x, y))
+            changed[index * 3] = 1
+    return reference, changed, points
+
+
 class TestDifferenceBounds(unittest.TestCase):
     def test_bounds_cover_union_of_changed_channels_and_rows(self):
         reference, _ = rgb_image(6, 5, lambda x, y: (0, 0, 0))
@@ -40,14 +53,7 @@ class TestDifferenceBounds(unittest.TestCase):
     def test_small_matrices_match_coordinate_enumeration(self):
         for width, height in ((1, 1), (4, 3), (5, 2)):
             for mask in range(1 << (width * height)):
-                reference, _ = rgb_image(width, height, lambda x, y: (0, 0, 0))
-                changed = bytearray(reference.rgb)
-                points = []
-                for index in range(width * height):
-                    if mask & (1 << index):
-                        x, y = index % width, index // width
-                        points.append((x, y))
-                        changed[index * 3] = 1
+                reference, changed, points = _mask_changes(width, height, mask)
                 expected = None if not points else (
                     min(x for x, _ in points), min(y for _, y in points),
                     max(x for x, _ in points) - min(x for x, _ in points) + 1,

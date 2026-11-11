@@ -67,6 +67,16 @@ class TestMarkerAgreement(unittest.TestCase):
         self.assertEqual(2, text.count("GTK_USER_CSS_MARKER"))
 
 
+def _inline_marker_lines(path, marker_tail):
+    """Return *path*'s lines spelling the marker literal inline."""
+    inline = []
+    with open(path, encoding="utf-8") as handle:
+        for number, line in enumerate(handle, 1):
+            if marker_tail in line and "GTK4_CSS_MARKER" not in line:
+                inline.append(f"{path}:{number} {line.strip()}")
+    return inline
+
+
 class TestFixturesUseThePublishedMarker(unittest.TestCase):
     # The tail of a marker string literal in a tests/*.py source line: a
     # staged gotcha whose spelling must track the publisher's constant.
@@ -86,10 +96,7 @@ class TestFixturesUseThePublishedMarker(unittest.TestCase):
         pattern = os.path.join(repo_root.ROOT, "tests", "**", "*.py")
         inline = []
         for path in sorted(glob.glob(pattern, recursive=True)):
-            with open(path, encoding="utf-8") as handle:
-                for number, line in enumerate(handle, 1):
-                    if self.MARKER_TAIL in line and "GTK4_CSS_MARKER" not in line:
-                        inline.append(f"{path}:{number} {line.strip()}")
+            inline.extend(_inline_marker_lines(path, self.MARKER_TAIL))
         self.assertEqual(
             [],
             inline,

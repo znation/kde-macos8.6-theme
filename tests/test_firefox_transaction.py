@@ -207,19 +207,18 @@ class TestPublishInstall(unittest.TestCase):
 
             with mock.patch.object(
                 firefox_transaction, "write_profile_text", publish_then_fail
+            ), mock.patch.object(
+                Path, "unlink", side_effect=OSError(EPERM, "simulated refusal")
             ):
-                with mock.patch.object(
-                    Path, "unlink", side_effect=OSError(EPERM, "simulated refusal")
-                ):
-                    with self.assertRaises(
-                        firefox_transaction.ConfigError
-                    ) as caught:
-                        firefox_transaction.publish_install(
-                            ((sheet, b"new chrome", "previous chrome"),),
-                            user_js,
-                            None,
-                            "published preferences\n",
-                        )
+                with self.assertRaises(
+                    firefox_transaction.ConfigError
+                ) as caught:
+                    firefox_transaction.publish_install(
+                        ((sheet, b"new chrome", "previous chrome"),),
+                        user_js,
+                        None,
+                        "published preferences\n",
+                    )
 
             message = str(caught.exception)
             self.assertIn("simulated publication failure", message)

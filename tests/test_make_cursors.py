@@ -44,13 +44,17 @@ class TestGridValidation(unittest.TestCase):
             non_text[0] = 1
             for rows, width in ((short, "15"), (non_text, "int")):
                 with self.subTest(name=name, width=width):
-                    with self.assertRaises(ValueError) as caught:
-                        make_cursors._checked_rows(rows, name)
-                    self.assertIn(
-                        f"{name} grid row 0 must be a 16-character string, "
-                        f"not {width}",
-                        str(caught.exception),
-                    )
+                    self._assert_row_refused(name, rows, width)
+
+    def _assert_row_refused(self, name, rows, width):
+        """Pin a malformed first row's ValueError naming *width*."""
+        with self.assertRaises(ValueError) as caught:
+            make_cursors._checked_rows(rows, name)
+        self.assertIn(
+            f"{name} grid row 0 must be a 16-character string, "
+            f"not {width}",
+            str(caught.exception),
+        )
 
     def test_generator_refuses_a_grid_with_an_unknown_cell(self):
         rows = list(cursor_art.ARROW_GRID)

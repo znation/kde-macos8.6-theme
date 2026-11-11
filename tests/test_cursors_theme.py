@@ -328,17 +328,20 @@ class TestCursorSet(unittest.TestCase):
 
     def test_each_new_cursor_has_transparent_corners(self):
         for name in TRANSPARENT_CORNER_CURSORS:
-            cursor = _read_cursor(CURSORS / name)
-            for image in cursor.images:
-                width, height, rgba = decode_rgba(image.png)
-                with self.subTest(name=name, size=image.nominal_size):
-                    for x, y in (
-                        (0, 0),
-                        (width - 1, 0),
-                        (0, height - 1),
-                        (width - 1, height - 1),
-                    ):
-                        self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+            self._assert_transparent_corners(name, _read_cursor(CURSORS / name))
+
+    def _assert_transparent_corners(self, name, cursor):
+        """Pin every image of cursor *name*'s four corners transparent."""
+        for image in cursor.images:
+            width, height, rgba = decode_rgba(image.png)
+            with self.subTest(name=name, size=image.nominal_size):
+                for x, y in (
+                    (0, 0),
+                    (width - 1, 0),
+                    (0, height - 1),
+                    (width - 1, height - 1),
+                ):
+                    self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
 
     def test_every_alias_is_byte_identical_to_its_canonical(self):
         for name in CANONICAL:
@@ -450,11 +453,15 @@ class TestCursorSet(unittest.TestCase):
         size = cursor_art.GRID_SIZE
         centre = size // 2 - 1
         rgba = make_cursors.render_rgba(cursor_art.CROSSHAIR_GRID, size)
-        for y in range(size):
-            for x in range(size):
-                if _pixel(rgba, size, x, y) == BLACK:
-                    with self.subTest(x=x, y=y):
-                        self.assertTrue(x == centre or y == centre)
+        black_cells = [
+            (x, y)
+            for y in range(size)
+            for x in range(size)
+            if _pixel(rgba, size, x, y) == BLACK
+        ]
+        for x, y in black_cells:
+            with self.subTest(x=x, y=y):
+                self.assertTrue(x == centre or y == centre)
 
     def test_not_allowed_is_a_ring_with_a_slash(self):
         cursor = _read_cursor(CURSORS / "not-allowed")

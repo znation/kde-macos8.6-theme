@@ -384,18 +384,22 @@ class TestWriteConfigs(unittest.TestCase):
             ("empty", ""),
             ("truncated", "[plasmarc][Theme]\nname=x\n"),
         ):
-            with self.subTest(defaults=label):
-                defaults = make_tmp_dir(self) / "defaults"
-                defaults.write_text(text, encoding="utf-8")
-                directory = make_tmp_dir(self)
-                with mock.patch.object(theme_defaults, "DEFAULTS", defaults):
-                    with self.assertRaises(ValueError) as caught:
-                        theme_defaults.write_configs(
-                            directory, ("kwinrc", "plasmarc")
-                        )
-                self.assertIn("kwinrc", str(caught.exception))
-                self.assertIn(str(defaults), str(caught.exception))
-                self.assertEqual(set(), set(os.listdir(directory)))
+            self._assert_defaults_refused(text, label)
+
+    def _assert_defaults_refused(self, text, label):
+        """Pin a defaults file missing sections refused, config untouched."""
+        with self.subTest(defaults=label):
+            defaults = make_tmp_dir(self) / "defaults"
+            defaults.write_text(text, encoding="utf-8")
+            directory = make_tmp_dir(self)
+            with mock.patch.object(theme_defaults, "DEFAULTS", defaults):
+                with self.assertRaises(ValueError) as caught:
+                    theme_defaults.write_configs(
+                        directory, ("kwinrc", "plasmarc")
+                    )
+            self.assertIn("kwinrc", str(caught.exception))
+            self.assertIn(str(defaults), str(caught.exception))
+            self.assertEqual(set(), set(os.listdir(directory)))
 
     def test_written_configs_follow_the_defaults(self):
         directory = make_tmp_dir(self)

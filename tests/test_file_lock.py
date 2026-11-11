@@ -184,23 +184,27 @@ class TestParentDirLock(unittest.TestCase):
             # The helper already holds the parent: opening is not exclusive,
             # so contention is the observable difference.
             holder = open_directory(lock_dir)
-            try:
-                with self.assertRaises(LockRefused):
-                    with exclusive_flock(
-                        lock_dir,
-                        "for the second selection",
-                        "the body above",
-                        0.0,
-                        error=LockRefused,
-                    ):
-                        pass
-            finally:
-                os.close(holder)
+            self._assert_second_selection_refused(lock_dir, holder)
             self.assertFalse(
                 self.child.exists(), "the helper created the child itself"
             )
 
         self.assertTrue(self.acquire(), "the lock was not released after the body")
+
+    def _assert_second_selection_refused(self, lock_dir, holder):
+        """Pin a contending exclusive selection refused, then close *holder*."""
+        try:
+            with self.assertRaises(LockRefused):
+                with exclusive_flock(
+                    lock_dir,
+                    "for the second selection",
+                    "the body above",
+                    0.0,
+                    error=LockRefused,
+                ):
+                    pass
+        finally:
+            os.close(holder)
 
     def test_an_uncreatable_parent_is_refused_with_the_helper_error(self):
         """A parent that cannot be created raises *error* naming the directory."""

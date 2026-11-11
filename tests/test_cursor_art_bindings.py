@@ -52,19 +52,23 @@ def _hotspot_name(grid_name):
     return grid_name[: -len("_GRID")] + "_HOTSPOT"
 
 
+def _module_exporting_grid(grid):
+    """Return the ``(module, grid name)`` exporting *grid*, or ``None``."""
+    for module in MODULES:
+        for grid_name in _exported_grid_names(module):
+            if vars(module)[grid_name] is grid:
+                return module, grid_name
+    return None
+
+
 def _bindings():
     """Yield ``(cursor name, module, grid, grid name, hotspot)`` per entry."""
     for name, grid, hotspot, _aliases in cursor_art.CURSORS:
-        for module in MODULES:
-            for grid_name in _exported_grid_names(module):
-                if vars(module)[grid_name] is grid:
-                    yield name, module, grid, grid_name, hotspot
-                    break
-            else:
-                continue
-            break
-        else:
+        found = _module_exporting_grid(grid)
+        if found is None:
             raise AssertionError(f"{name} binds a grid no data module exports")
+        module, grid_name = found
+        yield name, module, grid, grid_name, hotspot
 
 
 class TestCursorArtBindings(unittest.TestCase):

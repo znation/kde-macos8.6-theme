@@ -51,6 +51,19 @@ def read_text(path):
         return handle.read()
 
 
+def _block_end(text, open_index):
+    """Return the index of the '}' closing the brace opened at *open_index*."""
+    depth = 0
+    for index in range(open_index, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
 def object_blocks(text, head_re):
     """Return every block matching head_re, each closed by its matching '}'.
 
@@ -60,15 +73,9 @@ def object_blocks(text, head_re):
     blocks = []
     for match in re.finditer(head_re, text, re.MULTILINE):
         open_index = text.index("{", match.start())
-        depth = 0
-        for index in range(open_index, len(text)):
-            if text[index] == "{":
-                depth += 1
-            elif text[index] == "}":
-                depth -= 1
-                if depth == 0:
-                    blocks.append(text[open_index : index + 1])
-                    break
+        end = _block_end(text, open_index)
+        if end is not None:
+            blocks.append(text[open_index : end + 1])
     return blocks
 
 

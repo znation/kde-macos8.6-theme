@@ -229,9 +229,13 @@ class TestInstall(FirefoxProfileTestCase):
                 # neither sibling destination was written.
                 self.assertTrue(link.is_symlink())
                 self.assertEqual(original, target.read_bytes())
-                for other in destinations:
-                    if other != relative:
-                        self.assertFalse((profile / other).exists())
+                self._assert_siblings_unwritten(profile, destinations, relative)
+
+    def _assert_siblings_unwritten(self, profile, destinations, relative):
+        """Assert no destination but *relative* was written under *profile*."""
+        for other in destinations:
+            if other != relative:
+                self.assertFalse((profile / other).exists())
 
     def test_install_refuses_dangling_profile_links_before_writing_anything(self):
         for relative in (
@@ -1004,9 +1008,13 @@ class TestRemove(FirefoxProfileTestCase):
                         timeout=10,
                     )
                 assert_fifo_refused(self, child, fifo_path)
-                for other_name, other in files:
-                    if other_name != name:
-                        self.assertFalse((profile / other).exists())
+                self._assert_other_files_absent(profile, files, name)
+
+    def _assert_other_files_absent(self, profile, files, name):
+        """Assert no profile file but *name*'s was created."""
+        for other_name, other in files:
+            if other_name != name:
+                self.assertFalse((profile / other).exists())
 
     def test_a_failed_user_js_write_during_removal_is_reported_by_path(self):
         # Removal rewrites user.js before it deletes the sheet. A failure on

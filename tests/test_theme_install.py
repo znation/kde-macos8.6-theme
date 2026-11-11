@@ -264,19 +264,19 @@ class TestInstalledDestdirSharing(unittest.TestCase):
             (Path(destdir) / "leak").symlink_to(private)
             return self._succeeded()
 
-        with unittest.mock.patch.object(
-            theme_install, "install", fake_install
-        ):
-            with unittest.mock.patch.object(
+        with (
+            unittest.mock.patch.object(theme_install, "install", fake_install),
+            unittest.mock.patch.object(
                 theme_install.tempfile,
                 "TemporaryDirectory",
                 lambda *args, **kwargs: contextlib.nullcontext(str(dest)),
-            ):
-                with self.assertRaises(ValueError) as caught:
-                    with theme_install.installed_destdir(
-                        self, packages="color-scheme"
-                    ):
-                        pass
+            ),
+        ):
+            with self.assertRaises(ValueError) as caught:
+                with theme_install.installed_destdir(
+                    self, packages="color-scheme"
+                ):
+                    pass
         self.assertIn("resolves outside", str(caught.exception))
         self.assertNotIn("private secret line", str(caught.exception))
         self.assertEqual(
