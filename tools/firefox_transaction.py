@@ -51,16 +51,29 @@ def publish_install(
             write_operation(path, data)
         write_profile_text(user_js_path, published_user_js)
     except BaseException as exc:
-        rollback_errors = []
-        for path, _data, previous in sheets:
-            try:
-                _restore_file(path, previous)
-            except ConfigError as rollback:
-                rollback_errors.append(str(rollback))
-        try:
-            _restore_user_js(user_js_path, previous_user_js, published_user_js)
-        except ConfigError as rollback:
-            rollback_errors.append(str(rollback))
+        rollback_errors = _restore_published(
+            sheets, user_js_path, previous_user_js, published_user_js
+        )
         if rollback_errors:
             raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
         raise
+
+
+def _restore_published(
+    sheets: Sequence[tuple[Path, bytes, str | None]],
+    user_js_path: Path,
+    previous_user_js: str | None,
+    published_user_js: str,
+) -> list[str]:
+    """Restore every published path; return one message per failed restore."""
+    rollback_errors = []
+    for path, _data, previous in sheets:
+        try:
+            _restore_file(path, previous)
+        except ConfigError as rollback:
+            rollback_errors.append(str(rollback))
+    try:
+        _restore_user_js(user_js_path, previous_user_js, published_user_js)
+    except ConfigError as rollback:
+        rollback_errors.append(str(rollback))
+    return rollback_errors

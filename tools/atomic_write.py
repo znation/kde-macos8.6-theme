@@ -23,6 +23,15 @@ from pathlib import Path
 from typing import BinaryIO
 
 
+def _close_descriptor(descriptor: int) -> BaseException | None:
+    """Close *descriptor*, returning the failure a failed close raised."""
+    try:
+        os.close(descriptor)
+    except BaseException as exc:
+        return exc
+    return None
+
+
 def write_bytes_atomically(path: Path, data: bytes) -> None:
     """Write *data* to *path* through :func:`write_atomically`.
 
@@ -71,10 +80,7 @@ def write_atomically(
     except BaseException as failure:
         close_failure = None
         if not descriptor_closed:
-            try:
-                os.close(descriptor)
-            except BaseException as exc:
-                close_failure = exc
+            close_failure = _close_descriptor(descriptor)
         try:
             partial.unlink(missing_ok=True)
         except OSError as cleanup_error:

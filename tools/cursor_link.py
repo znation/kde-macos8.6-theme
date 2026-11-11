@@ -17,6 +17,17 @@ def installed_theme(data_home: Path) -> Path:
     return data_home / "icons" / CURSOR_THEME
 
 
+def _drop_created_icons(icons: Path) -> None:
+    """Remove *icons* again when the link that needed it failed to create.
+
+    rmdir is safe if another process has populated the directory.
+    """
+    try:
+        icons.rmdir()
+    except OSError:
+        pass
+
+
 def require_installed(data_home: Path) -> Path:
     """Return the installed theme, refusing a missing index or pointer."""
     theme = installed_theme(data_home)
@@ -77,11 +88,7 @@ def install_link(home: Path, theme: Path) -> None:
         os.symlink(str(theme), str(target))
     except OSError as exc:
         if icons_created:
-            # rmdir is safe if another process has populated the directory.
-            try:
-                icons.rmdir()
-            except OSError:
-                pass
+            _drop_created_icons(icons)
         raise CursorError(f"cannot create {target}: {exc}") from exc
 
 

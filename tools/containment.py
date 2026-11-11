@@ -28,6 +28,19 @@ from pathlib import Path
 from typing import BinaryIO
 
 
+def _is_symlink_loop(candidate: str) -> bool:
+    """Stat *candidate*; return whether the failure is a symlink loop.
+
+    Only ``ELOOP`` is a resolution failure: a path that does not exist yet
+    is merely absent, which ``Path.resolve(strict=False)`` allows.
+    """
+    try:
+        os.stat(candidate)
+    except OSError as exc:
+        return exc.errno == errno.ELOOP
+    return False
+
+
 def resolves_within(directory: str | Path, path: str | Path) -> bool:
     """Return True when *path* resolves to a location inside *directory*.
 
@@ -58,11 +71,8 @@ def resolves_within(directory: str | Path, path: str | Path) -> bool:
     # fails closed. Only ``ELOOP`` is a resolution failure: a path that does
     # not exist yet is merely absent, which ``strict=False`` allows.
     for candidate in (resolved, base):
-        try:
-            os.stat(candidate)
-        except OSError as exc:
-            if exc.errno == errno.ELOOP:
-                return False
+        if _is_symlink_loop(candidate):
+            return False
     # ``normcase`` keeps Windows' case-insensitive comparison (it is the
     # identity on POSIX), matching ``Path.is_relative_to``.
     resolved = os.path.normcase(resolved)

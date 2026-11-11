@@ -53,20 +53,26 @@ def stage_all(writes: list[tuple[Path, str]]) -> list[tuple[Path, Path]]:
         for path, text in writes:
             staged.append((path, _stage(path, text)))
     except ConfigError as failure:
-        cleanup_failures = []
-        for _, staging in staged:
-            try:
-                staging.unlink(missing_ok=True)
-            except OSError as exc:
-                cleanup_failures.append(
-                    f"cannot remove staging file {staging}: {exc}"
-                )
+        cleanup_failures = _discard_stagings(staged)
         if cleanup_failures:
             raise ConfigError(
                 f"{failure}; {'; '.join(cleanup_failures)}"
             ) from failure
         raise
     return staged
+
+
+def _discard_stagings(staged: list[tuple[Path, Path]]) -> list[str]:
+    """Unlink every staged path; return one failure message per failure."""
+    cleanup_failures = []
+    for _, staging in staged:
+        try:
+            staging.unlink(missing_ok=True)
+        except OSError as exc:
+            cleanup_failures.append(
+                f"cannot remove staging file {staging}: {exc}"
+            )
+    return cleanup_failures
 
 
 def _backup(path: Path) -> Path | None:

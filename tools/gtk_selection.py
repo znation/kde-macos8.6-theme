@@ -45,6 +45,12 @@ TOOL = "apply_gtk"
 _GTK_VERSIONS = ("gtk-3.0", "gtk-4.0")
 
 
+def _discard_staged(staged: list[tuple[Path, Path]]) -> None:
+    """Discard every staged write, ignoring a path already gone."""
+    for _path, staging in staged:
+        discard(staging)
+
+
 def _refuse_symlinked_config_dirs(config_home: Path, action: str) -> None:
     """Keep GTK config operations inside the selected config home."""
     for version in _GTK_VERSIONS:
@@ -121,8 +127,7 @@ def apply(
         try:
             backup = user_css_backup(css_backup)
         except ConfigError:
-            for _path, staging in staged:
-                discard(staging)
+            _discard_staged(staged)
             raise
         note(f"backed up {css_backup} to {backup} before replacing it")
     commit(staged)

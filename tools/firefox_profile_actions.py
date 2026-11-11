@@ -149,18 +149,30 @@ def remove_profile(profile: Path) -> int:
             except OSError as exc:
                 raise ConfigError(f"cannot remove {sheet_path}: {exc}") from exc
     except BaseException as exc:
-        # A sheet whose unlink succeeded would otherwise stay deleted beside
-        # the restored preference block: the rollback puts every already
-        # deleted owned sheet back with the text the removal read, so a
-        # removal that fails partway leaves the profile exactly as it was.
-        # A run whose unlinks all took effect (an interrupt after the last
-        # one) keeps the completed rewrite instead.
-        any_sheet_left = any(path.exists() for path, _previous in owned)
-        if any_sheet_left:
-            rollback_errors = _restore_removed_files(
-                owned, js_path, existing_js, rewrite_js
-            )
-            if rollback_errors:
-                raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
+        rollback_errors = _restore_still_missing(
+            owned, js_path, existing_js, rewrite_js
+        )
+        if rollback_errors:
+            raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
         raise
     return 0
+
+
+def _restore_still_missing(
+    owned: list[tuple[Path, str]],
+    js_path: Path,
+    existing_js: str | None,
+    rewrite_js: bool,
+) -> list[str]:
+    """Restore owned sheets a partway-failed removal already deleted.
+
+    A sheet whose unlink succeeded would otherwise stay deleted beside
+    the restored preference block: the rollback puts every already
+    deleted owned sheet back with the text the removal read, so a
+    removal that fails partway leaves the profile exactly as it was.
+    A run whose unlinks all took effect (an interrupt after the last
+    one) keeps the completed rewrite instead.
+    """
+    if not any(path.exists() for path, _previous in owned):
+        return []
+    return _restore_removed_files(owned, js_path, existing_js, rewrite_js)

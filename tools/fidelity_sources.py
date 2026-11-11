@@ -92,6 +92,16 @@ def _read_jpeg_source(path: str, crop_rect: tuple[int, int, int, int] | None):
         shutil.rmtree(directory, ignore_errors=True)
 
 
+def _read_to_eof(fd: int) -> bytes:
+    """Read *fd* to end-of-file in bounded chunks and join the chunks."""
+    chunks = []
+    while True:
+        chunk = os.read(fd, 65536)
+        if not chunk:
+            return b"".join(chunks)
+        chunks.append(chunk)
+
+
 def _read_bytes(path: str, count: int) -> bytes | None:
     """Return at most *count* leading bytes, or None when they cannot be read.
 
@@ -108,12 +118,7 @@ def _read_bytes(path: str, count: int) -> bytes | None:
         if not stat.S_ISREG(os.fstat(fd).st_mode):
             return None
         if count < 0:
-            chunks = []
-            while True:
-                chunk = os.read(fd, 65536)
-                if not chunk:
-                    return b"".join(chunks)
-                chunks.append(chunk)
+            return _read_to_eof(fd)
         return os.read(fd, count)
     except OSError:
         return None
