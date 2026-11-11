@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import os
 from pathlib import Path
 import shutil
@@ -93,6 +94,20 @@ def _jpeg_alpha_refusal(args) -> str | None:
     return None
 
 
+def _jpeg_report(args: argparse.Namespace, fd: int) -> int | None:
+    """Sample an open JPEG handle, or return None if it is not a JPEG.
+
+    The alpha refusals are checked before the decode: the JPEG loader would
+    otherwise convert the image's alpha plane away first.
+    """
+    if not is_jpeg(os.pread(fd, len(JPEG_MAGIC), 0)):
+        return None
+    refusal = _jpeg_alpha_refusal(args)
+    if refusal is not None:
+        return report_error("sample", refusal)
+    return _sample_jpeg(args, fd)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Validate and load the requested region, then dispatch its report."""
     args = build_parser().parse_args(argv)
@@ -126,11 +141,9 @@ def main(argv: list[str] | None = None) -> int:
                 return report_error("sample", f"cannot read {args.image}: not a regular file")
             # Sniff the bytes on the already-open stable handle, so a
             # concurrent symlink swap cannot change what is decoded.
-            if is_jpeg(os.pread(fd, len(JPEG_MAGIC), 0)):
-                message = _jpeg_alpha_refusal(args)
-                if message is not None:
-                    return report_error("sample", message)
-                return _sample_jpeg(args, fd)
+            jpeg_result = _jpeg_report(args, fd)
+            if jpeg_result is not None:
+                return jpeg_result
             width, height = read_png_size(opened_path)
             message = region_error(args, width, height)
             if message is not None:

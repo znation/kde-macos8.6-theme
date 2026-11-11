@@ -151,27 +151,9 @@ def commit(
     applied: list[tuple[Path, Path | None]] = []
     try:
         for path, staging in staged:
-            try:
-                backup = _backup(path)
-            except OSError as exc:
-                raise ConfigError(f"cannot write {path}: {exc}") from exc
-            applied.append((path, backup))
-            try:
-                os.replace(staging, path)
-            except OSError as exc:
-                raise ConfigError(f"cannot write {path}: {exc}") from exc
+            _stage_with_backup(path, staging, applied)
         for path in removals:
-            try:
-                backup = _backup(path)
-            except OSError as exc:
-                raise ConfigError(f"cannot remove {path}: {exc}") from exc
-            if backup is None:
-                continue
-            applied.append((path, backup))
-            try:
-                path.unlink()
-            except OSError as exc:
-                raise ConfigError(f"cannot remove {path}: {exc}") from exc
+            _remove_with_backup(path, applied)
     except BaseException as exc:
         try:
             _rollback(applied)
@@ -179,15 +161,53 @@ def commit(
             raise ConfigError(f"{exc}; {rollback_error}") from exc
         raise
     else:
-        failures = []
-        for _, backup in applied:
-            if backup is not None:
-                try:
-                    backup.unlink()
-                except OSError as exc:
-                    failures.append(f"cannot remove backup {backup}: {exc}")
-        if failures:
-            raise ConfigError("; ".join(failures))
+        _discard_backups(applied)
     finally:
         for _, staging in staged:
             discard(staging)
+
+
+def _stage_with_backup(
+    path: Path, staging: Path, applied: list[tuple[Path, Path | None]]
+) -> None:
+    """Back *path* up, then replace it with its staging file."""
+    try:
+        backup = _backup(path)
+    except OSError as exc:
+        raise ConfigError(f"cannot write {path}: {exc}") from exc
+    applied.append((path, backup))
+    try:
+        os.replace(staging, path)
+    except OSError as exc:
+        raise ConfigError(f"cannot write {path}: {exc}") from exc
+
+
+def _remove_with_backup(
+    path: Path, applied: list[tuple[Path, Path | None]]
+) -> None:
+    """Back *path* up, then delete it; an absent path deletes nothing."""
+    try:
+        backup = _backup(path)
+    except OSError as exc:
+        raise ConfigError(f"cannot remove {path}: {exc}") from exc
+    if backup is None:
+        return
+    applied.append((path, backup))
+    try:
+        path.unlink()
+    except OSError as exc:
+        raise ConfigError(f"cannot remove {path}: {exc}") from exc
+
+
+def _discard_backups(applied: list[tuple[Path, Path | None]]) -> None:
+    """Remove every backup a successful commit left; report any failure."""
+    failures = []
+    for _, backup in applied:
+        if backup is None:
+            continue
+        try:
+            backup.unlink()
+        except OSError as exc:
+            failures.append(f"cannot remove backup {backup}: {exc}")
+    if failures:
+        raise ConfigError("; ".join(failures))

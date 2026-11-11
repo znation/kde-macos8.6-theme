@@ -101,6 +101,30 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
                    time.monotonic() + timeout, started)
 
 
+def _poll_running(running: list[_Worker], durations: dict[str, float] | None,
+                  results: dict[str, int | None]) -> list[_Worker]:
+    """Reap each finished or timed-out worker and return the rest.
+
+    A finished worker records its exit status; a worker past its deadline is
+    killed, reaped and recorded as ``None``. With *durations*, both also
+    record the worker's elapsed wall time.
+    """
+    remaining: list[_Worker] = []
+    for entry in running:
+        status = entry.process.poll()
+        if status is not None:
+            _record_duration(entry, durations)
+            results[entry.module] = status
+        elif time.monotonic() >= entry.deadline:
+            _record_duration(entry, durations)
+            _kill_group(entry.process)
+            _reap(entry.process)
+            results[entry.module] = None
+        else:
+            remaining.append(entry)
+    return remaining
+
+
 def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                log_paths: dict[str, str], timeout: float,
                workers: int,
@@ -119,20 +143,7 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
     running: list[_Worker] = []
     try:
         while queue or running:
-            remaining: list[_Worker] = []
-            for entry in running:
-                status = entry.process.poll()
-                if status is not None:
-                    _record_duration(entry, durations)
-                    results[entry.module] = status
-                elif time.monotonic() >= entry.deadline:
-                    _record_duration(entry, durations)
-                    _kill_group(entry.process)
-                    _reap(entry.process)
-                    results[entry.module] = None
-                else:
-                    remaining.append(entry)
-            running = remaining
+            running = _poll_running(running, durations, results)
             _fill_workers(queue, running, results, argv_prefix, cwd,
                           log_paths, timeout, workers)
             if running:

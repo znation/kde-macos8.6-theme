@@ -110,6 +110,26 @@ def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
     return ["plasmawindowed", args.applet]
 
 
+def _select_dialog_theme(session: Session, args: argparse.Namespace) -> int | None:
+    """Select the theme for a dialog render; return a failure report, or None.
+
+    Every dialog mode writes the Kvantum selection; the GTK dialog mode also
+    installs the GTK selection.
+    """
+    try:
+        write_kvantum_selection(session)
+    except OSError as exc:
+        return report_failure(TOOL, f"cannot write the Kvantum selection: {exc}")
+    if args.gtk_dialog:
+        try:
+            install_gtk_selection(session)
+        except (OSError, ConfigError) as exc:
+            return report_failure(
+                TOOL, f"cannot install the GTK selection: {exc}"
+            )
+    return None
+
+
 def render(args: argparse.Namespace) -> int:
     """Run the already-validated render options through capture and publish."""
     output = Path(args.output).absolute()
@@ -138,17 +158,9 @@ def render(args: argparse.Namespace) -> int:
 
         client = _client_command(args, session)
         if dialog:
-            try:
-                write_kvantum_selection(session)
-            except OSError as exc:
-                return report_failure(TOOL, f"cannot write the Kvantum selection: {exc}")
-            if args.gtk_dialog:
-                try:
-                    install_gtk_selection(session)
-                except (OSError, ConfigError) as exc:
-                    return report_failure(
-                        TOOL, f"cannot install the GTK selection: {exc}"
-                    )
+            failure = _select_dialog_theme(session, args)
+            if failure is not None:
+                return failure
 
         command = session_command(session, client, args.settle, args.width, args.height, args.timeout)
         try:

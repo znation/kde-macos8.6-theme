@@ -119,14 +119,19 @@ def _log_has_started_test(path: str) -> bool:
     transitions live in ``_test_marker_step``; this loop only feeds bytes
     and stops at the first completed marker.
     """
+    with open_regular_binary(path) as log:
+        return _log_marks_started_test(log)
+
+
+def _log_marks_started_test(log) -> bool:
+    """Feed a log's bytes to the marker scanner until it completes one."""
     state = _MARKER_SEEKS_PAREN
     dots = 0
-    with open_regular_binary(path) as log:
-        while chunk := log.read(8192):
-            for byte in chunk:
-                state, dots, completed = _test_marker_step(byte, state, dots)
-                if completed:
-                    return True
+    while chunk := log.read(8192):
+        for byte in chunk:
+            state, dots, completed = _test_marker_step(byte, state, dots)
+            if completed:
+                return True
     return False
 
 
