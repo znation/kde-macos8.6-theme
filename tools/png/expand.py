@@ -24,6 +24,19 @@ from .image import PngError
 from .trns import check_palette_trns_length, check_sample_trns_length
 
 
+def _repeat_grey(grey: bytes) -> bytes:
+    """Repeat each grey sample three times, as R, G and B, using strided slices.
+
+    A per-byte generator did the same work one sample at a time in Python;
+    three slice assignments run the copy in C.
+    """
+    out = bytearray(len(grey) * 3)
+    out[0::3] = grey
+    out[1::3] = grey
+    out[2::3] = grey
+    return bytes(out)
+
+
 def to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     """Expand unfiltered *samples* of *color_type* into packed RGB bytes.
 
@@ -34,9 +47,9 @@ def to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     if color_type == 2:  # truecolor RGB
         return samples
     if color_type == 0:  # greyscale
-        return bytes(b for g in samples for b in (g, g, g))
+        return _repeat_grey(samples)
     if color_type == 4:  # greyscale + alpha, alpha ignored
-        return bytes(b for i in range(0, len(samples), 2) for b in (samples[i],) * 3)
+        return _repeat_grey(samples[0::2])
     if color_type == 3:  # palette
         if palette is None:
             raise PngError("palette PNG has no PLTE chunk")

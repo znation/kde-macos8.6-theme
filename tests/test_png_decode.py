@@ -234,6 +234,20 @@ class TestDecode(unittest.TestCase):
             png.decode_png(data).rgb, bytes([7, 7, 7, 100, 100, 100])
         )
 
+    def test_to_rgb_repeats_each_grey_sample_across_three_pixels(self):
+        # Direct check of the expansion helper over three pixels, so a stride
+        # off by one in either greyscale branch shows up in the exact bytes.
+        from tools.png.expand import to_rgb
+
+        self.assertEqual(
+            to_rgb(0, bytes([1, 2, 3]), None),
+            bytes([1, 1, 1, 2, 2, 2, 3, 3, 3]),
+        )
+        self.assertEqual(
+            to_rgb(4, bytes([1, 90, 2, 91, 3, 92]), None),
+            bytes([1, 1, 1, 2, 2, 2, 3, 3, 3]),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
