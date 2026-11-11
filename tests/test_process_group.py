@@ -385,6 +385,21 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))
         self.assertEqual("", self.stdout_log.read_text(encoding="utf-8"))
 
+    def test_stdin_bytes_are_written_and_closed(self):
+        payload = b"first line\n\x00last line\n"
+        status = process_group.run_logged_split(
+            ["cat"],
+            dict(os.environ),
+            self.stdout_log,
+            self.stderr_log,
+            10,
+            self.root,
+            stdin_bytes=payload,
+        )
+        self.assertEqual(0, status)
+        self.assertEqual(payload, self.stdout_log.read_bytes())
+        self.assertEqual(b"", self.stderr_log.read_bytes())
+
 
 class TestExitOnTermination(unittest.TestCase):
     def _kill_self_under_exit_on_termination(self, number):
