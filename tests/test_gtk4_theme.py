@@ -1855,6 +1855,111 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         ):
             self.assert_rule(selector, {"color": DISABLED_TEXT["color"]})
 
+    def test_notebook_tab_scroll_arrow_faces(self):
+        """Pin the 2026-11-11 notebook overflow-arrow restatement."""
+        # 2026-11-11: stock paints the notebook header's overflow arrows
+        # with the plain button family — rounded grey-gradient bevels and a
+        # brightness-boosted hover glyph — and no collected reference
+        # screenshot shows the arrows, so each state arm below restates the
+        # landed same-sheet button arm at the arrow's own exact stock
+        # spelling, later source order winning the tie per-property.
+        raised = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "transition": "none",
+        }
+        sunken = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "transition": "none",
+        }
+        arrow = "notebook > header > tabs > arrow"
+        self.assert_rule_group({
+            arrow: raised,
+            f"{arrow}:hover": {**raised, "-gtk-icon-filter": "none"},
+            f"{arrow}:hover:not(:active):not(:backdrop)": {
+                **raised, "-gtk-icon-filter": "none"},
+            **dict.fromkeys((
+                f"{arrow}.keyboard-activating",
+                f"{arrow}:active",
+                f"{arrow}:checked",
+            ), sunken),
+            **dict.fromkeys((
+                f"{arrow}:checked:hover",
+                f"{arrow}:checked:active",
+            ), sunken),
+            f"{arrow}:focus:focus-visible": {"outline-color": BLACK},
+            **dict.fromkeys((
+                f"{arrow}:disabled",
+                f"{arrow}:disabled:active",
+                f"{arrow}:disabled:checked",
+                f"{arrow}:backdrop:disabled",
+                f"{arrow}:backdrop:disabled:active",
+                f"{arrow}:backdrop:disabled:checked",
+            ), {
+                "background-color": FACE,
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": DISABLED_TEXT["color"],
+            }),
+            f"{arrow}:backdrop": {
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "transition": "none",
+            },
+            **dict.fromkeys((
+                f"{arrow}:backdrop:active",
+                f"{arrow}:backdrop:checked",
+            ), {
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": INVERTED_BUTTON_BEVEL,
+                "color": BLACK,
+                "transition": "none",
+            }),
+        })
+        # Source order: the base arrow group files after the landed
+        # `button.flat` family's tail block, so every arrow twin decides
+        # the equal-specificity race against the stock arms.
+        self.assertGreater(
+            self.selectors.index(arrow),
+            self.selectors.index("button.flat:backdrop"),
+        )
+        # The token sweep keys on a substring no other landed selector
+        # carries: a dropped twin, a renamed spelling, a lost comma member
+        # or a stray extra rule fails.
+        self.assertEqual(
+            {selector for selector in self.selectors if arrow in selector},
+            {
+                arrow,
+                f"{arrow}:hover",
+                f"{arrow}:hover:not(:active):not(:backdrop)",
+                f"{arrow}.keyboard-activating",
+                f"{arrow}:active",
+                f"{arrow}:checked",
+                f"{arrow}:checked:hover",
+                f"{arrow}:checked:active",
+                f"{arrow}:focus:focus-visible",
+                f"{arrow}:disabled",
+                f"{arrow}:disabled:active",
+                f"{arrow}:disabled:checked",
+                f"{arrow}:backdrop:disabled",
+                f"{arrow}:backdrop:disabled:active",
+                f"{arrow}:backdrop:disabled:checked",
+                f"{arrow}:backdrop",
+                f"{arrow}:backdrop:active",
+                f"{arrow}:backdrop:checked",
+            },
+        )
+
     def test_notebook_focus_outline_color(self):
         self.assert_scale_focus_outline(
             "notebook:focus:focus-visible > header > tabs > tab:checked"
@@ -2426,12 +2531,22 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {"outline-color": BLACK})
         # The restated spellings are the only row focus arms the sheet
-        # declares: the scan kills renamed and stray variants.
+        # declares: the scan kills renamed and stray variants. A row arm
+        # must start the selector or follow a space, so the notebook
+        # overflow arrow's own focus arm (its node name ends in "row")
+        # does not join this family.
+        suffixes = (
+            "row:focus:focus-visible",
+            "row.header:focus:focus-visible",
+            "row:focus-visible:focus-within",
+        )
         self.assertEqual(
             {selector for selector in self.rules
-             if selector.endswith("row:focus:focus-visible")
-             or selector.endswith("row.header:focus:focus-visible")
-             or selector.endswith("row:focus-visible:focus-within")},
+             if any(
+                 selector.endswith(suffix)
+                 and (len(selector) == len(suffix)
+                      or selector[-len(suffix) - 1] == " ")
+                 for suffix in suffixes)},
             set(spellings),
         )
         # Stock's generic 300 ms outline-motion arm is removed.
