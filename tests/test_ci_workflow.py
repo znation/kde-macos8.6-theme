@@ -48,7 +48,7 @@ class TestCiWorkflow(unittest.TestCase):
         # TestSliderDialogRender, TestTextboxDialogRender,
         # TestGtkDialogRender and TestInactiveDialogRender) skip wherever the
         # dialog client their dialog
-        # render opens is absent (kdialog for the twelve kdialog modes, zenity
+        # render opens is absent (kdialog for the thirteen kdialog modes, zenity
         # for the GTK 4 mode). The workflow must
         # install and, by name, verify all seven tools,
         # so no gate quietly misses the render it byte-compares.

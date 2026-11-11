@@ -1266,7 +1266,7 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # One literal feeds the gates' skip guard and the guard pins below, so an
 # edit to either the CLI's requirement list or this list cannot drift the
 # skip condition away from the condition the render CLI refuses on: each
-# dialog flag requires its own client by name (kdialog for the twelve kdialog
+# dialog flag requires its own client by name (kdialog for the thirteen kdialog
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
@@ -1401,7 +1401,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
-    opens is absent (kdialog for the twelve kdialog modes, zenity for the
+    opens is absent (kdialog for the thirteen kdialog modes, zenity for the
     GTK mode), and the thirteen dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
@@ -1712,7 +1712,7 @@ def _dialog_gate_guard():
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
-    missing-tool diagnostic when one is absent: kdialog for the twelve
+    missing-tool diagnostic when one is absent: kdialog for the thirteen
     kdialog modes, zenity for the GTK mode), so the thirteen dialog gates skip
     under the condition the applet gate above's ``skipUnless`` guard uses,
     extended with both clients. A gate that failed rather than skipped

@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The file-dialog landing left the dialog-mode count prose saying thirteen modes and twelve kdialog modes after its fourteenth mode (found by the bugfix role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+`tools/render_dialogs.py`'s `DIALOG_MODES` table has held fourteen dialog modes (thirteen
+kdialog clients and one zenity client) since the file-dialog render mode's part 1/2 plumbing
+landed, but the words that count them still read the pre-landing numbers: `tests/test_render_dialogs.py`'s
+module docstring says "the render CLI's thirteen dialog modes", and the per-flag client comment in
+`tests/test_render_surface.py`, the workflow-install comment in `tests/test_ci_workflow.py` and the
+skip-guard row in `docs/invariants.md` say "kdialog for the twelve kdialog modes". The prose reader
+is told the CLI demands one fewer kdialog client than it does.
+
+The guard `tests/test_dialog_gate_count_prose.py` could not see the drift: it derived the kdialog-mode
+count from the `Test...DialogRender` gate classes (gate count minus the zenity gate), which equals
+the CLI's kdialog-mode count only while every mode has its gate. The file-dialog series lands its
+mode in part 1/2 and its pixel gate in part 2/2, so during that window the gate-derived number
+under-counts. The guard now derives the kdialog-mode count from the live `DIALOG_MODES` table and
+also pins `tests/test_render_dialogs.py`'s mode-count docstring against it; the prose words moved to
+fourteen modes and thirteen kdialog modes.
+
+**Validation gap:** no-observability — the drifted prose left no failing trace in the suite, because the count guard's kdialog-mode expectation was derived from the gate classes (twelve) and so confirmed the stale word instead of refuting it.
+
 ### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02) — fixed 2026-11-02 by the security role
 
 An environment `HOME` whose value carries make syntax is expanded as make syntax when the

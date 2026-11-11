@@ -1,6 +1,6 @@
 """Tests for the shared dialog-mode table in tools/render_dialogs.py.
 
-``DIALOG_MODES`` is the single declaration of the render CLI's thirteen dialog
+``DIALOG_MODES`` is the single declaration of the render CLI's fourteen dialog
 modes: the parser builds one ``--*-dialog`` flag per entry from it, the CLI's
 mutual-exclusion refusal and required-tool list read it, and the workflow maps
 the chosen flag to its client and its theme-selection fan-out from it. A wrong
