@@ -8,6 +8,7 @@ Run with the project's check harness (stdlib unittest)::
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support.repo_root import ROOT  # noqa: F401  (puts root on sys.path)
@@ -55,6 +56,22 @@ class TestIsJpeg(unittest.TestCase):
         ):
             with self.subTest(head=head):
                 self.assertFalse(jpeg_convert.is_jpeg(head))
+
+
+class TestConvertJpegArguments(unittest.TestCase):
+    def test_rejects_non_bytes_input_with_argument_name(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^convert_jpeg\(\) requires bytes: input_bytes must be bytes, not str$",
+        ):
+            jpeg_convert.convert_jpeg("jpeg", Path("out.png"))
+
+    def test_rejects_non_path_output_with_argument_name(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^convert_jpeg\(\) requires pathlib\.Path: temp_png must be Path, not str$",
+        ):
+            jpeg_convert.convert_jpeg(b"jpeg", "out.png")
 
 
 class TestJpegSampler(CliTestCase):

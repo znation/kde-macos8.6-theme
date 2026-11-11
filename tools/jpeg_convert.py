@@ -46,6 +46,16 @@ def convert_jpeg(input_bytes: bytes, temp_png: Path) -> str | None:
     second private temporary directory of this function's own, dropped when
     the call returns.
     """
+    if not isinstance(input_bytes, bytes):
+        raise ValueError(
+            "convert_jpeg() requires bytes: input_bytes must be bytes, "
+            f"not {type(input_bytes).__name__}"
+        )
+    if not isinstance(temp_png, Path):
+        raise ValueError(
+            "convert_jpeg() requires pathlib.Path: temp_png must be Path, "
+            f"not {type(temp_png).__name__}"
+        )
     executable = shutil.which("convert")
     if executable is None:
         return (
