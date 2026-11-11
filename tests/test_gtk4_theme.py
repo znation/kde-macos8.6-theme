@@ -1449,14 +1449,15 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             {"background-color": FACE, "-gtk-icon-filter": "none"},
         )
 
-    def test_suggested_action_plain_arms(self):
-        # No reference screenshot shows a GTK suggested-action button; the
-        # tail arms restate the landed plain push-button recipe, so every
-        # checked relationship below anchors the landed face constants.
-        # (2026-10-31: the colour-class members are since restated by
-        # test_action_class_flat_arms.)
+    def assert_plain_action_arms(self, prefix):
+        # No reference screenshot shows a GTK colour-class action button;
+        # the tail arms restate the landed plain push-button recipe, so
+        # every checked relationship below anchors the landed face
+        # constants. (2026-10-31: the colour-class members are since
+        # restated by test_action_class_flat_arms.) Exactly two call
+        # sites: the suggested- and destructive-action plain families.
         self.assert_rule(
-            "button.suggested-action",
+            prefix,
             {
                 "background-color": FACE,
                 "background-image": "none",
@@ -1468,7 +1469,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             },
         )
         self.assert_rule(
-            "button.suggested-action:hover",
+            f"{prefix}:hover",
             {
                 "background-color": FACE,
                 "background-image": "none",
@@ -1485,7 +1486,7 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             "color": BLACK,
             "outline-color": BLACK,
         }
-        for selector in ("button.suggested-action:active", "button.suggested-action:checked"):
+        for selector in (f"{prefix}:active", f"{prefix}:checked"):
             self.assert_rule(selector, sunken)
         insensitive = {
             "background-image": "none",
@@ -1494,28 +1495,28 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             "color": DISABLED_TEXT["color"],
         }
         for selector in (
-            "button.suggested-action:disabled",
-            "button.suggested-action:disabled:active",
-            "button.suggested-action:disabled:checked",
+            f"{prefix}:disabled",
+            f"{prefix}:disabled:active",
+            f"{prefix}:disabled:checked",
         ):
             self.assert_rule(selector, insensitive)
         self.assert_rule(
-            "button.suggested-action:focus:focus-visible",
+            f"{prefix}:focus:focus-visible",
             {"outline-color": BLACK},
         )
         self.assertEqual(
-            self.rules["button.suggested-action:focus:focus-visible"]["outline-color"],
+            self.rules[f"{prefix}:focus:focus-visible"]["outline-color"],
             self.rules["button:focus:focus-visible"]["outline-color"],
         )
         expected_selectors = {
-            "button.suggested-action",
-            "button.suggested-action:hover",
-            "button.suggested-action:active",
-            "button.suggested-action:checked",
-            "button.suggested-action:disabled",
-            "button.suggested-action:disabled:active",
-            "button.suggested-action:disabled:checked",
-            "button.suggested-action:focus:focus-visible",
+            prefix,
+            f"{prefix}:hover",
+            f"{prefix}:active",
+            f"{prefix}:checked",
+            f"{prefix}:disabled",
+            f"{prefix}:disabled:active",
+            f"{prefix}:disabled:checked",
+            f"{prefix}:focus:focus-visible",
         }
         # The `.flat`-suffixed colour-class selectors land through
         # test_action_class_flat_arms, so they stay out of the plain family
@@ -1524,90 +1525,16 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             {
                 selector
                 for selector in self.rules
-                if selector.startswith("button.suggested-action") and ".flat" not in selector
+                if selector.startswith(prefix) and ".flat" not in selector
             },
             expected_selectors,
         )
 
+    def test_suggested_action_plain_arms(self):
+        self.assert_plain_action_arms("button.suggested-action")
+
     def test_destructive_action_plain_arms(self):
-        # No reference screenshot shows a GTK destructive-action button; the
-        # tail arms restate the landed plain push-button recipe, so every
-        # checked relationship below anchors the landed face constants.
-        # (2026-10-31: the colour-class members are since restated by
-        # test_action_class_flat_arms.)
-        self.assert_rule(
-            "button.destructive-action",
-            {
-                "background-color": FACE,
-                "background-image": "none",
-                "border-color": BLACK,
-                "box-shadow": BUTTON_BEVEL,
-                "color": BLACK,
-                "outline-color": BLACK,
-                "transition": "none",
-            },
-        )
-        self.assert_rule(
-            "button.destructive-action:hover",
-            {
-                "background-color": FACE,
-                "background-image": "none",
-                "border-color": BLACK,
-                "box-shadow": BUTTON_BEVEL,
-                "color": BLACK,
-                "outline-color": BLACK,
-            },
-        )
-        sunken = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-        }
-        for selector in ("button.destructive-action:active", "button.destructive-action:checked"):
-            self.assert_rule(selector, sunken)
-        insensitive = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-        }
-        for selector in (
-            "button.destructive-action:disabled",
-            "button.destructive-action:disabled:active",
-            "button.destructive-action:disabled:checked",
-        ):
-            self.assert_rule(selector, insensitive)
-        self.assert_rule(
-            "button.destructive-action:focus:focus-visible",
-            {"outline-color": BLACK},
-        )
-        self.assertEqual(
-            self.rules["button.destructive-action:focus:focus-visible"]["outline-color"],
-            self.rules["button:focus:focus-visible"]["outline-color"],
-        )
-        expected_selectors = {
-            "button.destructive-action",
-            "button.destructive-action:hover",
-            "button.destructive-action:active",
-            "button.destructive-action:checked",
-            "button.destructive-action:disabled",
-            "button.destructive-action:disabled:active",
-            "button.destructive-action:disabled:checked",
-            "button.destructive-action:focus:focus-visible",
-        }
-        # The `.flat`-suffixed colour-class selectors land through
-        # test_action_class_flat_arms, so they stay out of the plain family
-        # bound here (2026-10-31).
-        self.assertEqual(
-            {
-                selector
-                for selector in self.rules
-                if selector.startswith("button.destructive-action") and ".flat" not in selector
-            },
-            expected_selectors,
-        )
+        self.assert_plain_action_arms("button.destructive-action")
 
     def test_action_class_flat_arms(self):
         # No reference screenshot shows a GTK flat action button; the tail
