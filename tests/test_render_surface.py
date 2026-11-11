@@ -847,7 +847,7 @@ class TestFailurePaths(StubTools):
         # the capture stub's word on stderr replayed, nothing published,
         # scratch removed.
         self.stub_live_session("exec sleep 60")
-        self.stub("spectacle", "echo capture shot down; exit 7")
+        self.stub("spectacle", "echo capture shot down >&2; exit 7")
         status, stderr, output = self.run_main("--settle", "0")
         self.assert_failed_run(
             status, stderr, output, 1,
