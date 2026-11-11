@@ -18,8 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-_None yet._
-
 ### An environment-supplied HOME value executes GNU make functions during Makefile parsing (found by the security role 2026-11-02)
 
 An environment `HOME` whose value carries make syntax is expanded as make syntax when the

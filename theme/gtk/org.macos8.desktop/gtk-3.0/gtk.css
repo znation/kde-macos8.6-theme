@@ -6832,3 +6832,198 @@ list row.activatable:disabled:selected,
 list row.activatable:disabled:selected:backdrop {
   color: #888888;
 }
+
+
+/* 2026-11-11: no collected reference screenshot shows a GTK notebook tab
+   scroll arrow, so the notebook header's overflow arrows — the
+   `notebook > header > tabs > arrow` nodes stock paints beside `button` —
+   take the landed flat-button recipe: each state arm below carries exactly
+   the landed plain `button.flat` family's same-sheet dictionary,
+   byte-equal, at the arrow's own exact stock spelling, so later user-sheet
+   source order wins stock's equal-specificity tie per-property. Stock
+   groups the arrow with `button.titlebutton`/`button` on a radius-5px
+   raised arm, then paints it with the flat family's transparent face at
+   equal specificity (the group that also names `arrow.flat`), gives hover
+   a raised gradient plus `-gtk-icon-effect: highlight`, presses it with
+   `button`, raises backdrop, backdrop-pressed, backdrop-disabled,
+   backdrop-pressed-disabled, disabled and pressed-disabled arms, paints
+   backdrop and disabled transparent in the flat-style group, and its
+   later dedicated notebook section re-squares the radius, paints a
+   translucent hover wash on the higher-specificity
+   `arrow:hover:not(:active):not(:backdrop)` spelling and a transparent
+   disabled arm — so the arrows beside the landed squared Platinum tab
+   faces render stock: transparent at rest, a toolkit-gradient wash and a
+   highlighted glyph on hover, 5px-rounded corners. The arrow-bearing
+   stock arms were probed 2026-11-11 with gresource from gtk-contained.css
+   in libgtk-3 3.24.49 (the 2055-line toolkit resource; the dark-twin
+   resource gtk-contained-dark.css declares the same arms with its own
+   palette values — the button-family block at the same lines 215-249, the
+   direction block at 884-902, the dedicated notebook section at
+   904-908). Each arm's arrow member is quoted with its resource line and
+   the properties it sets (values elided with `...`, the landed
+   scrollbar-comment precedent, and the comma-group co-members elided):
+   line 215 `notebook > header > tabs > arrow` sets minimums, paddings,
+   the 1px border, radius 5px, the 200ms cubic-bezier transition, ink,
+   outline colour, border colours, the gradient face, text and icon
+   shadows and the two-part box shadow; line 217 the `arrow` and
+   `arrow.flat` members set transparent faces and borders, no face image,
+   cleared text and icon shadows and `transition: none`; line 219
+   `arrow:hover` and line 221 `arrow:hover:active` are transitions-only
+   arms; line 223 `arrow:hover` repaints the gradient face and carries
+   `-gtk-icon-effect: highlight`; line 225 the `arrow:active`
+   and `arrow:checked` members press the face with a 50ms
+   transition-duration; line 227 `arrow:backdrop` repaints with a 200ms
+   ease-out transition and `-gtk-icon-effect: none`; line 229 the
+   `arrow:backdrop:active` and `arrow:backdrop:checked` members; line 231
+   `arrow:backdrop:disabled`; line 233 the
+   `arrow:backdrop:disabled:active` and `:checked` members; line 235 the
+   flat-style group's `arrow:backdrop` and `arrow:disabled` members set
+   transparent faces and borders with cleared shadows; line 237
+   `arrow:disabled`; line 239 the `arrow:disabled:active` and `:checked`
+   members; lines 241-247 the `arrow.image-button`, `arrow.text-button`
+   and `arrow.text-button.image-button` (with its label arm) geometry
+   members; line 249 the `arrow:drop(active)` green drop arm; lines
+   892-910 the direction arms — the `header.top`/`header.bottom` and
+   `header.left`/`header.right` border-side arms, their negative-margin
+   and padding pairs and the `.down`/`.up` icon-source twins of both
+   pairs; line 912 `arrow` re-squares the radius with 16px minimums;
+   line 914 `arrow:hover:not(:active):not(:backdrop)` paints the
+   translucent wash with `background-clip: padding-box` and no shadow;
+   line 916 `arrow:disabled` sets the transparent face and borders.
+   Exclusions, each inherited per-property as kept toolkit values:
+   stock's geometry arms (the lines-241-247 minimums and paddings, the
+   direction arms' border-side styles, negative margins, paddings and
+   icon sources, the line-912 minimums) — the shipped sheet declares no
+   button or flat-button geometry, and the direction arms keep stock's
+   edge-nulled tab-band fit; the line-249 drop arm — the shipped sheet
+   declares no drop arm; the line-916 transparent disabled arm, which
+   loses the equal-specificity tie to the later disabled twin below;
+   stock's line-219/221 hover transitions, beaten by the twins'
+   `transition: none`. The two additions the flat dictionaries cannot
+   reach from the arrow node: `border-radius: 0` in the base twin (stock
+   line 215 rounds 5px and no landed rule reaches the arrow node to
+   square it, though stock's own line-912 re-square arm would) and
+   `-gtk-icon-effect: none` in the hover twins (stock line 223 highlights
+   the glyph); the line-914 wash twin below restates the
+   higher-specificity spelling so the hover face renders, the same
+   clearance the waiting GTK 4 twin's wash group applies to its toolkit
+   wash. No `.osd` arrow twin exists in this toolkit. No restated arm
+   sets on-disk geometry beyond the two named additions. Declaration
+   checks do not establish rendered pixels. */
+
+
+notebook > header > tabs > arrow,
+notebook > header > tabs > arrow.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:hover,
+notebook > header > tabs > arrow.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  -gtk-icon-effect: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:hover:active,
+notebook > header > tabs > arrow.flat:hover:active {
+  transition: none;
+}
+
+notebook > header > tabs > arrow:active,
+notebook > header > tabs > arrow:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+notebook > header > tabs > arrow:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:backdrop:active,
+notebook > header > tabs > arrow:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+notebook > header > tabs > arrow:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+notebook > header > tabs > arrow:backdrop:disabled:active,
+notebook > header > tabs > arrow:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+notebook > header > tabs > arrow:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+notebook > header > tabs > arrow:disabled:active,
+notebook > header > tabs > arrow:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+notebook > header > tabs > arrow:hover:not(:active):not(:backdrop) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  -gtk-icon-effect: none;
+  transition: none;
+}
