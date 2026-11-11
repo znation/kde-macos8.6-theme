@@ -8,6 +8,8 @@ and the color-type expansion in ``tools/png/expand.py``.
 
 from __future__ import annotations
 
+import functools
+
 from .filters import _byte_add, _paeth_delta_rows, _prefix_sum
 from .image import PngError
 
@@ -53,12 +55,42 @@ def _unfilter_line(
     if ftype == 2:
         return _byte_add(line, prev)
     if ftype == 3:
-        for i in range(len(line)):
-            a = line[i - channels] if i >= channels else 0
-            line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
+        _unfilter_average(line, prev, channels)
         return line
     _unfilter_paeth(line, prev, channels)
     return line
+
+
+@functools.cache
+def _average_rows() -> tuple[bytes, ...]:
+    """Return ``rows[left][up]``, the Average predictor ``(left + up) >> 1``.
+
+    Indexing a precomputed row replaces the shift and the add per byte, so
+    the Average loop does one row lookup and one index per sample.
+    """
+    return tuple(
+        bytes((left + up) >> 1 for up in range(256)) for left in range(256)
+    )
+
+
+def _unfilter_average(line: bytearray, prev: bytearray, channels: int) -> None:
+    """Undo the Average filter in place, one colour lane at a time.
+
+    Each sample's left neighbour is the reconstructed sample *channels*
+    bytes back, so a lane is a sequential chain that starts at 0 for the
+    row's first pixel. Walking each lane with its own running ``left`` gives
+    the same result as the per-byte loop it replaces, without a bounds check
+    on every byte.
+    """
+    rows = _average_rows()
+    for c in range(channels):
+        above = prev[c::channels]
+        out = bytearray(len(above))
+        left = 0
+        for k, (value, up) in enumerate(zip(line[c::channels], above)):
+            left = (value + rows[left][up]) & 0xFF
+            out[k] = left
+        line[c::channels] = out
 
 
 def unfilter(

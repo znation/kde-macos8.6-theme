@@ -187,5 +187,28 @@ class TestPaethEqualNeighbours(unittest.TestCase):
         self.assertEqual(unfilter(raw, 4, 2, 1), bytes([5, 9, 9, 5, 100, 200, 99, 7]))
 
 
+class AverageFilterTests(unittest.TestCase):
+    """Average (type 3) predicts floor((left + up) / 2) per colour lane."""
+
+    def test_single_channel_row_uses_the_running_left_sample(self):
+        # Row 2 with zero residuals: 0 + (0 + 10) >> 1 = 5, then (5 + 20) >> 1
+        # = 12, then (12 + 30) >> 1 = 21.
+        raw = bytes([0, 10, 20, 30, 3, 0, 0, 0])
+        self.assertEqual(unfilter(raw, 3, 2, 1), bytes([10, 20, 30, 5, 12, 21]))
+
+    def test_each_channel_keeps_its_own_left_sample(self):
+        # Two pixels of two channels. Lane 0 predicts from 10 then (5 + 30) >> 1
+        # = 17; lane 1 from 100 then (50 + 200) >> 1 = 125.
+        raw = bytes([0, 10, 100, 30, 200, 3, 0, 0, 0, 0])
+        self.assertEqual(
+            unfilter(raw, 2, 2, 2), bytes([10, 100, 30, 200, 5, 50, 17, 125])
+        )
+
+    def test_sums_wrap_to_a_byte(self):
+        # (225 + 200) >> 1 = 212, and 100 + 212 = 312, which wraps to 56.
+        raw = bytes([0, 250, 200, 3, 100, 100])
+        self.assertEqual(unfilter(raw, 2, 2, 1), bytes([250, 200, 225, 56]))
+
+
 if __name__ == "__main__":
     unittest.main()
