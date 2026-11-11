@@ -583,7 +583,7 @@ render:
 # look-and-feel apply drops those two keys, leaving the stock right-hand
 # cluster), selects the Kvantum widget theme when kvantummanager is available,
 # then asks KWin to reconfigure; the two best-effort selections and their
-# command policy live in tools/theme_apply_optional.py.
+# command policy live in tools/apply_optional.py.
 # tools/apply_gtk.py selects the installed GTK 3 and GTK 4
 # schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
 # (skipping the selection when plasma-apply-cursortheme is absent), and

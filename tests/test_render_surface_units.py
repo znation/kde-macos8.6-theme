@@ -31,7 +31,7 @@ from tools import (
     render_setup,
     render_surface,
     render_workflow,
-    theme_apply_optional,
+    apply_optional,
 )  # noqa: E402
 from tools.render_clients import (
     calendar_dialog_client,
@@ -1467,7 +1467,7 @@ class TestSessionThemeSources(unittest.TestCase):
         # `make install` copies, which tests/test_apply_theme.py pins from
         # the apply side.
         self.assertEqual(
-            render_setup.KVANTUM_THEME, theme_apply_optional.KVANTUM_THEME
+            render_setup.KVANTUM_THEME, apply_optional.KVANTUM_THEME
         )
         self.assertTrue(
             (apply_theme.ROOT / "theme" / "kvantum" / render_setup.KVANTUM_THEME)

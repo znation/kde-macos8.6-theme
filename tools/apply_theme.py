@@ -18,7 +18,7 @@ wholesale; the explicit selections then hold whatever the user had chosen.
 
 The best-effort selections -- telling Kvantum which of its installed themes
 to draw and asking KWin to reconfigure -- and their missing-tool and failure
-policies live in ``theme_apply_optional``; this module owns the required
+policies live in ``apply_optional``; this module owns the required
 selections, the decoration button layout, the locks and the exit status.
 
 Usage::
@@ -52,7 +52,7 @@ if __package__:
     from tools.repo_root import ROOT
     from tools.required_command import run_required
     from tools.session_bus import session_env
-    from tools.theme_apply_optional import run_optional_selections
+    from tools.apply_optional import run_optional_selections
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
@@ -66,7 +66,7 @@ else:  # run directly: python3 tools/apply_theme.py
     from repo_root import ROOT
     from required_command import run_required
     from session_bus import session_env
-    from theme_apply_optional import run_optional_selections
+    from apply_optional import run_optional_selections
 
 TOOL = "apply_theme"
 LNF_ID = "org.macos8.desktop"
@@ -79,7 +79,7 @@ class ApplyError(Exception):
 
 # The commands steps 1-3 need; a missing one is a hard error. qdbus and
 # kvantummanager are not in this list: the KWin reconfigure and the Kvantum
-# theme selection are best-effort (theme_apply_optional), so a missing one
+# theme selection are best-effort (apply_optional), so a missing one
 # only prints a note.
 REQUIRED_TOOLS = (
     "lookandfeeltool",

@@ -1,4 +1,4 @@
-"""Tests for tools/apply_theme.py, its theme_apply_optional boundary and the
+"""Tests for tools/apply_theme.py, its apply_optional boundary and the
 `make apply` target.
 
 `apply_theme.main` runs the re-selection commands against fake
@@ -33,7 +33,7 @@ from tools import (
     apply_theme,
     diagnostics,
     required_command,
-    theme_apply_optional,
+    apply_optional,
     theme_defaults,
 )
 
@@ -245,7 +245,7 @@ class TestKvantumDataHomeNote(StubTools):
     Kvantum joins its literal ``$HOME/.local/share/themes`` search path from
     ``$HOME``, so a selection written under another data home still succeeds
     while the engine silently keeps drawing its built-in default theme. These
-    drive ``theme_apply_optional.select_kvantum_theme`` directly through the
+    drive ``apply_optional.select_kvantum_theme`` directly through the
     stubbed ``kvantummanager`` machinery above, one env shape per test, and
     assert the selection argv and status never change with the note.
     """
@@ -263,7 +263,7 @@ class TestKvantumDataHomeNote(StubTools):
         """Run the selection against the stubbed PATH, returning (status, stderr)."""
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            status = theme_apply_optional.select_kvantum_theme(
+            status = apply_optional.select_kvantum_theme(
                 self.root, dict(os.environ), apply_theme.COMMAND_TIMEOUT
             )
         return status, stderr.getvalue()
@@ -395,7 +395,7 @@ class TestTimeoutPaths(StubTools):
     ``COMMAND_TIMEOUT``. A real timeout would need a hung child and the full
     timeout, so these patch it to report the timeout directly and pin the
     diagnostic each call site prints: the shared required-command runner for
-    the steps, and ``theme_apply_optional.run_logged`` for the best-effort
+    the steps, and ``apply_optional.run_logged`` for the best-effort
     selections.
     ``test_render_surface`` covers the process-group kill that produces the
     ``None`` in the first place.
@@ -419,7 +419,7 @@ class TestTimeoutPaths(StubTools):
             return None if argv[0].endswith("qdbus6") else 0
 
         with mock.patch.object(
-            theme_apply_optional, "run_logged", side_effect=run_logged
+            apply_optional, "run_logged", side_effect=run_logged
         ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
@@ -434,7 +434,7 @@ class TestTimeoutPaths(StubTools):
             return None if argv[0].endswith("kvantummanager") else 0
 
         with mock.patch.object(
-            theme_apply_optional, "run_logged", side_effect=run_logged
+            apply_optional, "run_logged", side_effect=run_logged
         ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
@@ -631,17 +631,17 @@ class TestKvantumSelection(unittest.TestCase):
     def test_the_selected_theme_is_the_shipped_package(self):
         """`make install` copies the `theme/kvantum/` package into Kvantum's
         search path, so the name the best-effort selection picks
-        (``theme_apply_optional``) must be that package's directory name;
+        (``apply_optional``) must be that package's directory name;
         otherwise the selection silently misses."""
         package_root = Path(apply_theme.ROOT) / "theme" / "kvantum"
         shipped = {
             entry.name for entry in package_root.iterdir() if entry.is_dir()
         }
-        self.assertEqual({theme_apply_optional.KVANTUM_THEME}, shipped)
+        self.assertEqual({apply_optional.KVANTUM_THEME}, shipped)
 
 
 class TestOptionalSelectionHelpers(unittest.TestCase):
-    """Direct coverage of the extracted theme_apply_optional boundary.
+    """Direct coverage of the extracted apply_optional boundary.
 
     The stub-tool classes above exercise the boundary through
     ``apply_theme.main``; these call the module's own functions against a
@@ -658,7 +658,7 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         stderr = io.StringIO()
         with mock.patch.dict(os.environ, env, clear=False):
             with contextlib.redirect_stderr(stderr):
-                status = theme_apply_optional.run_optional_selections(
+                status = apply_optional.run_optional_selections(
                     root, dict(os.environ), 60.0
                 )
         self.assertEqual(0, status)
@@ -678,7 +678,7 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         stderr = io.StringIO()
         with mock.patch.dict(os.environ, {"PATH": str(stub_bin)}, clear=False):
             with contextlib.redirect_stderr(stderr):
-                theme_apply_optional.run_best_effort(
+                apply_optional.run_best_effort(
                     root,
                     dict(os.environ),
                     ["tool"],
@@ -692,7 +692,7 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
 
 
 class TestReconfigureKwin(unittest.TestCase):
-    """Direct coverage of ``theme_apply_optional.reconfigure_kwin``.
+    """Direct coverage of ``apply_optional.reconfigure_kwin``.
 
     The orchestrator path above only reaches the function's missing-tool
     arrow (both qdbus binaries absent), so the branch that runs a found
@@ -720,7 +720,7 @@ class TestReconfigureKwin(unittest.TestCase):
         stderr = io.StringIO()
         with mock.patch.dict(os.environ, {"PATH": str(self.bin)}, clear=False):
             with contextlib.redirect_stderr(stderr):
-                status = theme_apply_optional.reconfigure_kwin(
+                status = apply_optional.reconfigure_kwin(
                     self.root, {"PATH": str(self.bin)}, 60.0
                 )
         return status, stderr.getvalue()

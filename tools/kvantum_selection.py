@@ -65,7 +65,7 @@ __all__ = ["KVANTUM_ID", "TOOL", "main", "remove_theme"]
 
 TOOL = "remove_kvantum"
 # The id `kvantummanager --set` writes (the same id the Makefile's
-# KVANTUM_ID and tools/theme_apply_optional.py::KVANTUM_THEME name).
+# KVANTUM_ID and tools/apply_optional.py::KVANTUM_THEME name).
 KVANTUM_ID = "org.macos8.desktop"
 # A whole removal touches one small user file, so a second run normally
 # waits well under a second for the first to finish. The bound only exists
