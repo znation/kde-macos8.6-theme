@@ -189,6 +189,18 @@ class TestReadCappedBytes(unittest.TestCase):
                 )
             )
 
+    def test_oversize_refusal_uses_the_callers_error_type(self):
+        class Refusal(Exception):
+            pass
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "oversize.ini"
+            path.write_bytes(b"1234")
+            with self.assertRaisesRegex(Refusal, "3-byte limit"):
+                containment_impl.read_capped_bytes(
+                    path, 3, "this test reads", error=Refusal
+                )
+
 
 class TestOpenRegularBinaryCleanup(unittest.TestCase):
     """A failure after the descriptor is opened must close it.
