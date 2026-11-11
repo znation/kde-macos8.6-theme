@@ -18,6 +18,7 @@ import re
 import shlex
 import stat
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -63,6 +64,16 @@ class TestCapturePaintCheck(unittest.TestCase):
 
 
 class TestArguments(unittest.TestCase):
+    def setUp(self):
+        # The applet preflight consults the host's XDG data roots; these
+        # delegation tests pin argument handling, not package discovery, so
+        # the check is pinned off and they stay host-independent.
+        patcher = mock.patch.object(
+            render_surface, "applet_problem", return_value=None
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_cli_delegates_validated_options_to_render_workflow(self):
         with (
             mock.patch.object(render_surface, "report_missing_tool", return_value=None),
@@ -242,6 +253,16 @@ class TestArguments(unittest.TestCase):
         # it with the same diagnostic as the option-like half, so an empty
         # plasmoid id never reaches the render session.
         self.assertIn("--applet", self.assert_usage_error("out.png", "--applet="))
+
+    def test_rejects_a_path_carrying_applet(self):
+        # A plasmoid id is a dotted KPlugin id; a path separator would make a
+        # later path-joining existence check read outside the plasmoids
+        # directories, so the parse refuses it.
+        for bad in ("a/b", "a\\b"):
+            with self.subTest(bad=bad):
+                self.assertIn(
+                    "--applet", self.assert_usage_error("out.png", "--applet", bad)
+                )
 
     def test_requires_an_output_path(self):
         self.assert_usage_error()
@@ -804,6 +825,94 @@ class TestArguments(unittest.TestCase):
         # would leave the mode unusable by anyone reading the CLI.
         _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
         self.assertIn("--inactive-dialog", stdout)
+
+
+class TestAppletPreflight(unittest.TestCase):
+    """The calculator preflight refuses a missing applet package, before any
+    session; the dialog modes never consult it."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix="render-preflight-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.scratch = Path(self.tmp.name)
+
+    def _run_with_roots(self, *data_dirs, render_result=None):
+        """Run ``main(["out.png"])`` with the XDG roots pinned to the scratch
+        tree; returns (status, stderr, render seam).
+
+        The render seam fails loudly unless *render_result* names the value
+        it returns instead, for the test that must reach it.
+        """
+        home = self.scratch / "first"
+        home.mkdir(exist_ok=True)
+        env_patches = {
+            "XDG_DATA_HOME": str(home),
+            "XDG_DATA_DIRS": os.pathsep.join(str(root) for root in data_dirs),
+        }
+        if render_result is None:
+            render_patch = mock.patch.object(
+                render_surface,
+                "render",
+                side_effect=AssertionError("render must not run"),
+            )
+        else:
+            render_patch = mock.patch.object(
+                render_surface, "render", return_value=render_result
+            )
+        with (
+            mock.patch.dict(os.environ, env_patches),
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "exit_on_termination"),
+            render_patch as render_seam,
+        ):
+            status, stderr = call_main(render_surface.main, "out.png")
+        return status, stderr, render_seam
+
+    def test_a_missing_applet_refuses_before_any_session(self):
+        status, stderr, render_seam = self._run_with_roots(self.scratch / "second")
+        self.assertEqual(2, status, stderr)
+        self.assertIn("org.kde.plasma.calculator", stderr)
+        self.assertIn(
+            "plasma/plasmoids/org.kde.plasma.calculator/metadata.json", stderr
+        )
+        self.assertFalse(render_seam.called)
+
+    def test_an_installed_scratch_applet_passes_the_preflight(self):
+        package = (
+            self.scratch / "first" / "plasma" / "plasmoids"
+            / "org.kde.plasma.calculator"
+        )
+        package.mkdir(parents=True)
+        (package / "metadata.json").write_text("{}", encoding="utf-8")
+        status, stderr, render_seam = self._run_with_roots(
+            self.scratch / "second", render_result=0
+        )
+        self.assertEqual(0, status, stderr)
+        self.assertTrue(render_seam.called)
+        self.assertEqual("", stderr)
+
+    def test_a_dialog_run_never_consults_the_applet_check(self):
+        # The dialog modes open their own clients and never touch the
+        # applet, so a host without the calculator package must still render
+        # its dialogs; the refusal here comes from the landed missing-tool
+        # path, and the applet check seam is never entered.
+        home = self.scratch / "first"
+        home.mkdir()
+        env_patches = {
+            "XDG_DATA_HOME": str(home),
+            "XDG_DATA_DIRS": str(self.scratch / "second"),
+        }
+        with (
+            mock.patch.dict(os.environ, env_patches),
+            mock.patch.object(render_surface, "report_missing_tool", return_value=2),
+            mock.patch.object(render_surface, "applet_problem") as applet_seam,
+        ):
+            status, stderr = call_main(
+                render_surface.main, "out.png", "--menu-dialog"
+            )
+        self.assertEqual(2, status, stderr)
+        self.assertFalse(applet_seam.called)
 
 
 class TestSessionSetup(unittest.TestCase):

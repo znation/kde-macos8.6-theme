@@ -22,7 +22,8 @@ Usage::
         | --textbox-dialog | --gtk-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
-2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
+2 for a usage error, an unwritable OUTPUT, a missing external tool, a missing
+applet package, a command
 this tool starts directly (``make`` or ``dbus-run-session``) that cannot be
 started, or a scratch session directory that cannot be created, and 128 plus
 the signal number when a SIGTERM or SIGHUP ends the run.
@@ -43,6 +44,7 @@ if __package__:
     )
     from tools.diagnostics import report_error, report_missing_tool
     from tools.process_group import exit_on_termination
+    from tools.render_applet import applet_problem
     from tools.render_dialogs import DIALOG_MODES
     from tools.render_output import output_problem
     from tools.render_workflow import render
@@ -54,6 +56,7 @@ else:  # run directly: python3 tools/render_surface.py
     )
     from diagnostics import report_error, report_missing_tool
     from process_group import exit_on_termination
+    from render_applet import applet_problem
     from render_dialogs import DIALOG_MODES
     from render_output import output_problem
     from render_workflow import render
@@ -95,6 +98,11 @@ def _applet(value: str) -> str:
         raise argparse.ArgumentTypeError(
             f"--applet must be a plasmoid id without NUL, not empty or option-like: {value!r}"
         )
+    if "/" in value or "\\" in value:
+        raise argparse.ArgumentTypeError(
+            f"--applet must be a plasmoid id without NUL, not empty, "
+            f"option-like or path-carrying: {value!r}"
+        )
     return value
 
 
@@ -109,7 +117,8 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when OUTPUT was written, 1 when the render or "
             "capture failed, 2 usage error, unwritable OUTPUT, missing external "
-            "tool, an unstartable make or dbus-run-session, or a scratch "
+            "tool, missing applet package, an unstartable make or "
+            "dbus-run-session, or a scratch "
             "session directory that cannot be created, and 128 plus the signal "
             "number when a SIGTERM or SIGHUP ends the run"
         ),
@@ -198,6 +207,15 @@ def main(argv: list[str] | None = None) -> int:
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:
         return missing
+    if not dialog_flags:
+        # An applet package is not a command, so report_missing_tool cannot
+        # see its absence: the default calculator render would otherwise
+        # waste a full scratch session on a capture that never paints and
+        # times out. The dialog modes open their own clients and never touch
+        # the applet, so they skip this check.
+        applet = applet_problem(args.applet)
+        if applet is not None:
+            return report_error(TOOL, applet)
     problem = output_problem(Path(args.output).absolute())
     if problem is not None:
         return report_error(TOOL, f"cannot write {args.output!r}: {problem}")

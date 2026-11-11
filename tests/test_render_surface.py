@@ -436,6 +436,10 @@ class StubTools(unittest.TestCase):
         patches = (
             mock.patch.dict(os.environ, {"PATH": path}),
             mock.patch.object(tempfile, "tempdir", str(self.scratch_parent)),
+            # These tests pin render and capture failure paths, not package
+            # discovery; the applet preflight's XDG-root search is pinned off
+            # so the runs stay host-independent.
+            mock.patch.object(render_surface, "applet_problem", return_value=None),
         )
         for patch in patches:
             patch.start()
