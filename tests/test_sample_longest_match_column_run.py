@@ -31,7 +31,9 @@ class TestSampleLongestMatchColumnRun(CliTestCase):
                            "--longest-match-column-run", "--json")
         self._assert_success(result)
         match = json.loads(result.stdout)["match"]
-        # The right column closes first at y=4; equal lengths choose the lower x.
+        # Columns x=1 and x=3 tie at length 3; the ascending (x, y) rule keeps x=1
+        # even though x=1 closes first at y=4 (the collector test below covers a
+        # tie whose higher-x segment closes first).
         self.assertEqual(match["longest_column_run"], {"x": 1, "y": 1, "length": 3})
         self.assertEqual(len(match["pixels"]), 1)
 
@@ -56,6 +58,34 @@ class TestSampleLongestMatchColumnRun(CliTestCase):
         self.assertIn("longest matching column run: 0,0,3", self._run(
             path, "0", "0", "--width", "1", "--height", "3", "--find-color",
             "010203", "--longest-match-column-run").stdout)
+
+    def test_transparency_rgb_tolerance_and_missing_alpha(self):
+        rows = [b"".join(bytes(
+            (10, 20, 30, 0) if (x, y) == (0, 0) else
+            (10, 20, 30, 255) if (x, y) == (1, 0) else
+            (99, 99, 99, 0) if (x, y) == (0, 1) else
+            (11, 20, 30, 0) if (x, y) == (0, 2) else (0, 0, 0, 255))
+            for x in range(2)) for y in range(3)]
+        path = self._write(self._tmp_dir(), "predicate.png",
+                           make_png(2, 3, rows, color_type=6))
+        result = self._run(path, "0", "0", "--width", "2", "--height", "3",
+                           "--find-color", "0a141e", "--color-tolerance", "1",
+                           "--match-alpha", "0", "--longest-match-column-run", "--json")
+        self._assert_success(result)
+        match = json.loads(result.stdout)["match"]
+        # Only the exact pixel and the tolerance-boundary pixel match: the
+        # transparent pixel with different RGB and the opaque pixel with the
+        # target RGB are both rejected, and the earlier y wins the length-1 tie.
+        self.assertEqual(match["count"], 2)
+        self.assertEqual(match["longest_column_run"], {"x": 0, "y": 0, "length": 1})
+        rgb_path = self._write(self._tmp_dir(), "opaque.png", make_png(1, 3,
+            [bytes((1, 2, 3)) for _ in range(3)], color_type=2))
+        no_alpha = self._run(rgb_path, "0", "0", "--width", "1", "--height", "3",
+                             "--find-color", "010203", "--match-alpha", "255",
+                             "--longest-match-column-run", "--json")
+        self._assert_success(no_alpha)
+        self.assertEqual(json.loads(no_alpha.stdout)["match"]["longest_column_run"],
+                         {"x": 0, "y": 0, "length": 3})
 
     def test_summary_only_tie_order_validation_help_and_direct_script(self):
         from tools.sample_match_runs import MatchRuns
