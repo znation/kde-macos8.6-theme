@@ -473,10 +473,23 @@ class TestRuleBlockSemantics(unittest.TestCase):
             (r"a { \63 olor: blue; color: red !important; }", "red !important"),
             (r"a { color: red; } a { \63 olor: blue; }", "blue"),
             (r"a { color: red !important; } a { \63 olor: blue; }", "red !important"),
+            (r"a { \63 olor: red !important; color: blue; }", "red !important"),
+            (r"a { \63 olor: red !important; } a { color: blue; }", "red !important"),
+            (r"a, b { \63 olor: red; } a { color: blue; }", "blue"),
         )
         for css, expected in cases:
             with self.subTest(css=css):
                 self.assertEqual(parse_css(css)[1]["a"]["color"], expected)
+        self.assertEqual(
+            parse_css(r"a { \63 olor: red !important; color: blue; }"),
+            ({}, {"a": {"color": "red !important"}}, ["a"]),
+        )
+
+    def test_escaped_colon_in_ordinary_name_decodes_without_moving_separator(self):
+        self.assertEqual(
+            parse_css(r"a { Foo\:Bar: red; foo\3a bar: blue !important; }")[1]["a"],
+            {"foo:bar": "blue !important"},
+        )
 
     def test_custom_and_invalid_escaped_property_names_keep_source_spelling(self):
         self.assertEqual(
