@@ -83,6 +83,21 @@ class TestAppletFinder(unittest.TestCase):
                 self.assertIsNotNone(problem)
                 self.assertIn("not a plasmoid id", problem)
 
+    def test_a_dot_relative_id_is_refused_without_a_search(self):
+        # A root holding a stray plasma/metadata.json would satisfy the
+        # filesystem's resolution of plasma/plasmoids/../metadata.json, so
+        # "." and ".." are refused as their own problem before any root is
+        # searched: a plasmoid id is a dotted KPlugin id, never a
+        # directory-relative path component.
+        stray = Path(self.tmp.name) / "stray"
+        (stray / "plasma").mkdir(parents=True)
+        (stray / "plasma" / "metadata.json").write_text("{}", encoding="utf-8")
+        for bad in (".", ".."):
+            with self.subTest(bad=bad):
+                problem = render_applet.applet_problem(bad, [stray, self.homed_style])
+                self.assertIsNotNone(problem)
+                self.assertIn("not a plasmoid id", problem)
+
     def test_a_non_str_id_is_a_type_error(self):
         with self.assertRaises(ValueError):
             render_applet.applet_problem(None)  # type: ignore[arg-type]

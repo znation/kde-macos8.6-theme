@@ -55,9 +55,12 @@ def data_roots_from_environment(
 def applet_problem(applet_id: str, data_roots=None) -> str | None:
     """Return why *applet_id* cannot be opened, or None when a package exists.
 
-    A plasmoid id is a dotted KPlugin id: an empty id or one carrying ``/``,
-    ``\\`` or NUL is refused as its own problem, before any directory is
-    searched. With ``data_roots`` unset the roots come from
+    A plasmoid id is a dotted KPlugin id: an empty id, ``.``, ``..``, or one
+    carrying ``/``, ``\\`` or NUL is refused as its own problem, before any
+    directory is searched. (``..`` is refused because the filesystem resolves
+    ``plasma/plasmoids/../metadata.json`` out of the plasmoids directory, so a
+    stray ``plasma/metadata.json`` under a root would otherwise count as a
+    package.) With ``data_roots`` unset the roots come from
     :func:`data_roots_from_environment`; a root whose
     ``plasma/plasmoids/<id>/metadata.json`` is a plain file ends the search
     with ``None``, and the returned problem names the id and every root that
@@ -68,10 +71,16 @@ def applet_problem(applet_id: str, data_roots=None) -> str | None:
             f"applet_problem() requires a str id: id must be str, "
             f"not {type(applet_id).__name__}"
         )
-    if not applet_id or "/" in applet_id or "\\" in applet_id or "\0" in applet_id:
+    if (
+        not applet_id
+        or applet_id in (".", "..")
+        or "/" in applet_id
+        or "\\" in applet_id
+        or "\0" in applet_id
+    ):
         return (
-            f"not a plasmoid id: {applet_id!r} is empty or carries a "
-            "path separator"
+            f"not a plasmoid id: {applet_id!r} is empty, is '.' or '..', or "
+            "carries a path separator"
         )
     roots = data_roots if data_roots is not None else data_roots_from_environment()
     relative = Path("plasma") / "plasmoids" / applet_id / "metadata.json"
