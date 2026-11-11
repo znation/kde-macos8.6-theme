@@ -119,7 +119,7 @@ class TestLongestDifferenceRunCli(FidelityCliTestCase):
                                             "--difference-runs", "--json")
         self.assertIsNone(json.loads(empty_combined.stdout)["longest_difference_run"])
         self.assertEqual(result.returncode,
-                         self._run_png_pair(candidate, reference, *args, "--json", "--tolerance", "10").returncode)
+                         self._run_png_pair(candidate, reference, "--json", "--tolerance", "10").returncode)
         with patched_horizontal_calls(
                 runs=mock.Mock(side_effect=AssertionError("materialized"))):
             summary_only = self._run_png_pair(candidate, reference, "--longest-difference-run", "--json")
