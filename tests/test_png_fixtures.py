@@ -44,6 +44,8 @@ def _value_error_message(case, func, *args, **kwargs):
 
 
 class TestMakePng(unittest.TestCase):
+    """Pin validation and encoding behavior for raw-row PNG fixtures."""
+
     def test_rejects_row_with_wrong_length(self):
         # make_png's rows are raw scanlines: a row that is not width*channels
         # bytes shifts every later scanline, and the fixture decodes with a
@@ -100,6 +102,8 @@ class TestMakePng(unittest.TestCase):
 
 
 class TestDifferencePair(unittest.TestCase):
+    """Check horizontal and vertical difference-pair fixture coordinates."""
+
     def test_row_units_mark_only_the_named_columns(self):
         candidate, reference = difference_pair(
             3, 2, ({0, 2}, {1}), vertical=False)
@@ -139,6 +143,8 @@ class TestDifferencePair(unittest.TestCase):
 
 
 class TestWithIhdrByte(unittest.TestCase):
+    """Check byte edits in an IHDR payload and their argument validation."""
+
     def test_rejects_out_of_range_offset(self):
         # A negative offset indexes from the end of the IHDR payload and would
         # silently edit a different field; one past the end raised a bare
@@ -173,6 +179,8 @@ class TestWithIhdrByte(unittest.TestCase):
 
 
 class TestIhdrEnd(unittest.TestCase):
+    """Pin the offset immediately after the PNG IHDR chunk."""
+
     def test_returns_the_offset_where_the_next_chunk_begins(self):
         # The decode tests splice chunks in at this boundary. An offset inside
         # IHDR would corrupt it, and one inside the following chunk would
@@ -184,6 +192,8 @@ class TestIhdrEnd(unittest.TestCase):
 
 
 class TestSpliceAfterIhdr(unittest.TestCase):
+    """Check insertion of bytes after a PNG's IHDR chunk."""
+
     def test_inserts_at_the_ihdr_boundary_without_changing_the_pixels(self):
         # A chunk spliced in here must sit between IHDR and IDAT; the decode
         # tests rely on this to inject framing without touching the image.
@@ -196,6 +206,8 @@ class TestSpliceAfterIhdr(unittest.TestCase):
 
 
 class TestIhdrChunk(unittest.TestCase):
+    """Pin dimensions, format fields, and CRC in generated IHDR chunks."""
+
     def test_builds_the_fixed_8_bit_non_interlaced_header(self):
         # The header's fixed defaults (8-bit depth, zero compression, filter
         # and interlace methods) are easy to get subtly wrong when written by
@@ -213,6 +225,8 @@ class TestIhdrChunk(unittest.TestCase):
 
 
 class TestRgbFromRows(unittest.TestCase):
+    """Check conversion of supported raw row formats to RGB bytes."""
+
     def test_expands_each_supported_color_type(self):
         # The helper stands in for the decoder's per-color-type expansion, so
         # pin one row of each type: a wrong stride or a kept alpha byte would
@@ -248,6 +262,8 @@ class TestRgbFromRows(unittest.TestCase):
 
 
 class TestPngWithIdat(unittest.TestCase):
+    """Check dimension validation for PNGs built around supplied IDAT data."""
+
     def test_rejects_non_positive_dimensions(self):
         # Same fixture-bug class as make_png: the declared dimensions go
         # straight into struct.pack, so a negative one escaped as a bare
@@ -275,6 +291,8 @@ class TestPngWithIdat(unittest.TestCase):
 
 
 class TestRgbImage(unittest.TestCase):
+    """Check RGB image fixture pixels and callback validation."""
+
     def _rgb_error_message(self, value):
         """Return the ``ValueError`` message ``rgb_image`` raises for *value*.
 
@@ -318,6 +336,8 @@ class TestRgbImage(unittest.TestCase):
 
 
 class TestValueError(unittest.TestCase):
+    """Check the shared assertion helper's exception type and message."""
+
     def test_returns_the_message_from_a_value_error(self):
         def reject():
             raise ValueError("row 0 needs 6 bytes")
@@ -335,6 +355,8 @@ class TestValueError(unittest.TestCase):
 
 
 class TestControlNamedPng(unittest.TestCase):
+    """Check the valid PNG fixture uses a path containing terminal controls."""
+
     def test_yields_a_valid_png_whose_name_carries_an_escape(self):
         # The CLI escaping tests read the path from this fixture; pin that it
         # really is a decodable 1x1 PNG and that the name still carries the
@@ -348,6 +370,8 @@ class TestControlNamedPng(unittest.TestCase):
 
 
 class TestControlNamedMissing(unittest.TestCase):
+    """Check the missing-file fixture uses a control-bearing path."""
+
     def test_yields_a_missing_path_whose_name_carries_an_escape(self):
         # The CLI error-escaping tests read the path from this fixture; pin
         # that no file exists there and that the name still carries the CSI
