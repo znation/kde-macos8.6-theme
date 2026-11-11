@@ -907,8 +907,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         """Pin the vertical steppers and content-view check faces square.
 
         The two appended stepper groups rest stock's vertical stepper
-        end halves at zero, and the eight content-view check state
-        groups rest the eight selection-check state faces at zero and
+        end halves at zero and restate stock's per-stepper border-style
+        halves so each field/stepper join draws one 1px line, and the
+        eight content-view check state groups rest the eight
+        selection-check state faces at zero and
         take the landed check face under every state: the 2026-11-05
         tile-check face record extends the landed radius-only groups
         in place, so the scanned parser reads the merged dictionaries
@@ -961,8 +963,14 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 ] = dict(declarations)
         self.assert_rule_group(
             {
-                stepper_up: {"border-radius": "0"},
-                stepper_down: {"border-radius": "0"},
+                stepper_up: {
+                    "border-radius": "0",
+                    "border-style": "solid solid none solid",
+                },
+                stepper_down: {
+                    "border-radius": "0",
+                    "border-style": "none solid solid solid",
+                },
                 **tile_rules,
             }
         )

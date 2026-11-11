@@ -2032,6 +2032,87 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
         )
         self._run_gtk_child(program, str(CSS))
 
+    def test_vertical_spinbutton_renders_one_pixel_joins(self):
+        # The vertical spin button stacks its up stepper, the field and
+        # the down stepper, and each member paints its own full 1px black
+        # border, so before the border-style halves landed both
+        # field/stepper joins drew two adjacent black rows. The probe
+        # measures from the widget's own allocation and finds the
+        # fully-black rows, so it does not hard-code the layout: each
+        # render gets a fresh offscreen window; see _run_gtk_child for
+        # why this runs in a child.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+
+def render(rtl):
+    window = Gtk.OffscreenWindow()
+    box = Gtk.Box()
+    box.set_border_width(5)
+    spin = Gtk.SpinButton.new_with_range(0, 100, 1)
+    spin.set_orientation(Gtk.Orientation.VERTICAL)
+    spin.set_can_focus(False)
+    if rtl:
+        spin.set_direction(Gtk.TextDirection.RTL)
+    box.pack_start(spin, False, False, 0)
+    window.add(box)
+    window.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+    alloc = spin.get_allocation()
+    pixbuf = window.get_pixbuf()
+    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+    window.destroy()
+
+    def at(x, y):
+        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+    left, top = alloc.x, alloc.y
+    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+    return at, left, top, right, bottom
+
+BLACK, WHITE, GREY, LIGHT, SHADE = "#000000", "#FFFFFF", "#999999", "#DDDDDD", "#AAAAAA"
+
+for rtl in (False, True):
+    at, left, top, right, bottom = render(rtl)
+    rows = [y for y in range(top, bottom + 1)
+            if all(at(x, y) == BLACK for x in range(left, right + 1))]
+    # Measured 2026-11-11: exactly four fully-black rows — the top edge,
+    # the two field/stepper joins and the bottom edge — each one row,
+    # never an adjacent pair, and the 27-row stepper pitch measured that
+    # day; the doubled joins the sheet painted before the halves landed
+    # made two adjacent rows black at each join and the render two rows
+    # taller.
+    assert rows == [top, top + 27, top + 54, bottom], (rtl, rows, top, bottom)
+    join1, join2 = rows[1], rows[2]
+    # The column beside the left border keeps the raised up-stepper head
+    # (black border row, white highlight, light face, shade above its
+    # removed bottom border), the field's etched face (grey, then white
+    # to its bottom border) and the down stepper's tail (white highlight
+    # below its removed top border, light face, shade, black edge).
+    x = left + 3
+    got = [at(x, top), at(x, top + 1), at(x, top + 2),
+           at(x, join1 - 1), at(x, join1), at(x, join1 + 1), at(x, join1 + 2)]
+    assert got == [BLACK, WHITE, LIGHT, SHADE, BLACK, GREY, WHITE], (rtl, got)
+    assert all(at(x, y) == WHITE for y in range(join1 + 2, join2)), \
+        (rtl, "field face rows", [y for y in range(join1 + 2, join2)
+                                  if at(x, y) != WHITE])
+    assert at(x, join2) == BLACK and at(x, join2 + 1) == WHITE, (rtl,)
+    lit = [y for y in range(join2 + 2, bottom - 1) if at(x, y) != LIGHT]
+    assert not lit, (rtl, "down stepper face rows", lit)
+    assert at(x, bottom - 1) == SHADE and at(x, bottom) == BLACK, \
+        (rtl, at(x, bottom - 1), at(x, bottom))
+print("vertical spin button: one 1px black line per field/stepper join in LTR and RTL, with the stepper and field faces unchanged")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
     def test_linked_members_strip_their_trailing_border(self):
         for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
                                 (".linked.vertical", "border-bottom-style")):

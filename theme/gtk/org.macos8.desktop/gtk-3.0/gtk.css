@@ -4932,12 +4932,31 @@ toolbar.inline-toolbar toolbutton:only-child > button.flat {
    tile groups of this record with the landed face declarations; the
    face claims are that record's. Declaration checks do not establish
    rendered pixels. */
+/* Vertical stepper joins, 2026-11-11. Stock pairs border-style halves
+   onto the radius shorthands of these two steppers: the toolkit
+   resource gtk-contained.css (inside libgtk-3.so.0, re-extracted with
+   gresource that day) declares `spinbutton.vertical button.up { …
+   border-style: solid solid none solid; }` at resource line 532 and
+   `spinbutton.vertical button.down { … border-style: none solid solid
+   solid; }` at resource line 534. The radius record above calls those
+   halves per-property inheritance that needs no restatement; the
+   doubling measurement that day disproves the claim on the selecting
+   path — with the halves absent each member paints its own full 1px
+   black border, so both field/stepper joins drew two adjacent black
+   rows. Restating the halves gives the up stepper its solid head and
+   the down stepper its solid tail, so the field's own 1px borders
+   supply each join's single line. The landed `.osd
+   spinbutton.vertical button:first-child` groups declare no
+   border-style, so these halves shape their stacked steppers the way
+   stock's own halves shape them. */
 spinbutton.vertical button.up {
   border-radius: 0;
+  border-style: solid solid none solid;
 }
 
 spinbutton.vertical button.down {
   border-radius: 0;
+  border-style: none solid solid solid;
 }
 
 /* Horizontal stepper seams, 2026-11-11. The stock toolkit resource
