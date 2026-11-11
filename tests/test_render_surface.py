@@ -564,9 +564,9 @@ class TestFailurePaths(StubTools):
             self.assertEqual(1, status)
             dialog_files = write_configs.call_args.kwargs["files"]
 
-        self.assertEqual(render_setup.CONFIG_FILES, applet_files)
+        self.assertEqual(("kwinrc", "plasmarc"), applet_files)
         self.assertEqual(
-            render_setup.CONFIG_FILES + ("kdeglobals",), dialog_files
+            ("kwinrc", "plasmarc", "kdeglobals"), dialog_files
         )
         self.assert_scratch_removed()
 
