@@ -5474,8 +5474,11 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:select
    disabled GTK text field: its fill reuses `WHITE` from
    tests/support/platinum_palette.py. The plain GTK probe does not measure
    integration style library's later transparent rule. The remaining selectors cover the
-   view class and print-dialog/sheet faces; disabled ink stays owned by stock
-   and the landed disabled-selected rules. (2026-11-09) */
+   view class and print-dialog/sheet faces; disabled ink stayed owned by stock and
+   the landed disabled-selected rules until 2026-11-11, when this group began
+   co-declaring the family's insensitive ink per-property and the dated
+   per-family block after it restated the integration library's six
+   disabled-view arms. (2026-11-09, amended 2026-11-11) */
 
 .view:disabled,
 textview > text:disabled,
@@ -5483,6 +5486,66 @@ window.print:not(.ssd-frame) .dialog-action-box:disabled,
 dialog-host > dialog.view sheet:disabled,
 window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:disabled {
   background-color: #FFFFFF;
+  color: #888888;
+}
+
+/* 2026-11-11: the insensitive view family's grey ink, restated over the
+   toolkit's and the integration library's disabled-view arms. No collected
+   reference screenshot in macos8.6-screenshots/ shows a disabled GTK view
+   (the GTK scope's standing adaptation premise), so the ink reuses the
+   landed insensitive grey #888888, the DISABLED_TEXT constant of
+   tests/support/gtk_theme_spec.py re-derived from the colour scheme's
+   [Colors:Button] ForegroundInactive — the same grey the landed
+   disabled-selected ink groups paint. Stock sources, probed with gresource
+   on 2026-11-11 (the integration library's base.css, version 1.7.6; the
+   toolkit's Default-light.css, version 4.18.6; full paths and verbatim
+   foreign values recorded in docs/invariants.md): the integration library's
+   base.css carries six disabled-view arms carrying an ink — calendar at 430,
+   column and tree at 546, a treeview dimmed twin at 682, list and listview
+   at 1222, the generic arm this group co-declares against at 2505 (whose
+   sixth member, iconview:disabled, is excluded below), and flowbox and
+   gridview at 2537 — and the toolkit's Default-light.css carries two,
+   .view:disabled, iconview:disabled, textview > text:disabled at 19 and the
+   column/tree pair at 672; every member of both toolkit arms already sits
+   in the landed field group above or the exclusions below, so one
+   restatement serves both the integration library and plain GTK 4 apps,
+   and the dark toolkit twin Default-dark.css carries the same-shaped
+   family (19 and 664). Each
+   arm below is the exact stock twin of its own members, so the
+   equal-specificity ties fall to this later user-sheet source order
+   per-property; stock claims only `color` on these arms, so no background,
+   geometry or other-state declaration is added, stock carries no :backdrop
+   twin on any of them, and where fills exist the landed field group and the
+   landed per-family face groups own them. Deliberately excluded, each with
+   its reason: the :disabled:selected combinations — the landed
+   disabled-selected groups own their ink and stock's own
+   columnview.view:disabled:selected arm (Default-light 674) is likewise
+   outranked; iconview:disabled — both generic arms carry it, but the landed
+   field record already routes icon-view nodes to the census-backed
+   class-only .view:disabled spelling, so no second spelling is added;
+   treeview.view.expander:disabled (base 698) — its own dimmed arm mixes
+   currentColor, which the restated grey feeds;
+   .navigation-sidebar.view:disabled (base 2108) and
+   row.combo listview.inline:disabled (base 1360) — transparent/inherit
+   arms with no foreign ink literal; and
+   statuspage > scrolledwindow > viewport > box > clamp > box > .icon:disabled
+   (base 1656) — an opacity-only member. */
+
+calendar.view:disabled,
+window.print:not(.ssd-frame) calendar.dialog-action-box:disabled,
+columnview.view:disabled,
+treeview.view:disabled,
+window.print:not(.ssd-frame) columnview.dialog-action-box:disabled,
+window.print:not(.ssd-frame) treeview.dialog-action-box:disabled,
+listview.view:disabled,
+window.print:not(.ssd-frame) listview.dialog-action-box:disabled,
+list.view:disabled,
+window.print:not(.ssd-frame) list.dialog-action-box:disabled,
+flowbox.view:disabled,
+window.print:not(.ssd-frame) flowbox.dialog-action-box:disabled,
+gridview.view:disabled,
+window.print:not(.ssd-frame) gridview.dialog-action-box:disabled {
+  color: #888888;
 }
 
 /* No collected reference screenshot shows a GTK check button or radio in

@@ -616,6 +616,10 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         # stock's (0,2,0) disabled view arm beats the landed (0,1,0)
         # `.view, list` group and no landed rule names its compound twins,
         # so stock would wash each member grey without the group.
+        # 2026-11-11: the group also co-declares the family's insensitive
+        # ink per-property, so each member's whole dict is the DISABLED_TEXT
+        # grey ink plus the white field and stock's own disabled-view ink
+        # literals never render on these members.
         selectors = (
             ".view:disabled",
             "textview > text:disabled",
@@ -626,15 +630,19 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
         )
         for selector in selectors:
             with self.subTest(selector=selector):
-                self.assert_rule(selector, {"background-color": WHITE})
-                self.assertEqual(self.rules[selector], {"background-color": WHITE})
+                self.assert_rule(selector, {**DISABLED_TEXT, "background-color": WHITE})
+                self.assertEqual(
+                    self.rules[selector],
+                    {**DISABLED_TEXT, "background-color": WHITE},
+                )
                 self.assertEqual(self.selectors.count(selector), 1, selector)
         # The token sweeps key on substrings no landed selector carries:
-        # the print action-box spelling alone carries
-        # "dialog-action-box:disabled", and both sheet spellings alone
-        # carry "sheet:disabled".
+        # the print action-box spelling alone carries the leading-space
+        # " .dialog-action-box:disabled" form (the 2026-11-11 per-family
+        # block's print twins name element nodes instead), and both sheet
+        # spellings alone carry "sheet:disabled".
         self.assertEqual(
-            {s for s in self.rules if "dialog-action-box:disabled" in s},
+            {s for s in self.rules if " .dialog-action-box:disabled" in s},
             {"window.print:not(.ssd-frame) .dialog-action-box:disabled"},
         )
         self.assertEqual(
@@ -669,6 +677,82 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
                 ),
                 selector,
             )
+
+    def test_disabled_view_family_ink(self):
+        """Pin the 2026-11-11 per-family disabled-view ink restatement."""
+        # 2026-11-11: the integration library's six disabled-view arms and
+        # the toolkit's two each carry a foreign ink; the per-family block
+        # restates them with the landed insensitive grey. The landed field
+        # group's count-one pin on `.view:disabled` forces the generic arm
+        # to be co-declared there, so the per-family block names only the
+        # fourteen byte-equal members below, each declaring exactly the
+        # grey ink.
+        members = (
+            "calendar.view:disabled",
+            "window.print:not(.ssd-frame) calendar.dialog-action-box:disabled",
+            "columnview.view:disabled",
+            "treeview.view:disabled",
+            "window.print:not(.ssd-frame) columnview.dialog-action-box:disabled",
+            "window.print:not(.ssd-frame) treeview.dialog-action-box:disabled",
+            "listview.view:disabled",
+            "window.print:not(.ssd-frame) listview.dialog-action-box:disabled",
+            "list.view:disabled",
+            "window.print:not(.ssd-frame) list.dialog-action-box:disabled",
+            "flowbox.view:disabled",
+            "window.print:not(.ssd-frame) flowbox.dialog-action-box:disabled",
+            "gridview.view:disabled",
+            "window.print:not(.ssd-frame) gridview.dialog-action-box:disabled",
+        )
+        for selector in members:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], dict(DISABLED_TEXT))
+                self.assertEqual(self.selectors.count(selector), 1, selector)
+        # Source order: each member files after the landed field group's
+        # `.view:disabled` key and after the landed
+        # `columnview.view:disabled:selected` ink key.
+        for selector in members:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index(".view:disabled"),
+                selector,
+            )
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("columnview.view:disabled:selected"),
+                selector,
+            )
+        # The token sweeps key on substrings no other landed selector
+        # carries (the :selected twins of the column- and tree-view
+        # spellings contain those bare spellings, so those two members are
+        # pinned above by the exact-key assertions instead): a dropped
+        # member, a lost comma member, a stray extra rule or a changed
+        # value fails.
+        for token, expected in (
+            ("calendar.view:disabled", "calendar.view:disabled"),
+            ("flowbox.view:disabled", "flowbox.view:disabled"),
+            ("gridview.view:disabled", "gridview.view:disabled"),
+            ("listview.view:disabled", "listview.view:disabled"),
+            ("list.view:disabled", "list.view:disabled"),
+            ("calendar.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) calendar.dialog-action-box:disabled"),
+            ("columnview.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) columnview.dialog-action-box:disabled"),
+            ("treeview.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) treeview.dialog-action-box:disabled"),
+            ("listview.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) listview.dialog-action-box:disabled"),
+            ("list.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) list.dialog-action-box:disabled"),
+            ("flowbox.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) flowbox.dialog-action-box:disabled"),
+            ("gridview.dialog-action-box:disabled",
+             "window.print:not(.ssd-frame) gridview.dialog-action-box:disabled"),
+        ):
+            with self.subTest(token=token):
+                self.assertEqual(
+                    {s for s in self.rules if token in s},
+                    {expected},
+                )
 
     def test_content_view_field_and_hover(self):
         self.assert_rule(".content-view", VIEW_BACKGROUND)
@@ -3014,6 +3098,8 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             "flowbox > flowboxchild:focus:focus-visible",
             # The rubberband view-specific recipe names this node (2026-11-01).
             "flowbox > rubberband",
+            # The 2026-11-11 disabled-view ink arm names the view class.
+            "flowbox.view:disabled",
         }
         self.assertEqual(
             {selector for selector in self.rules if selector.startswith("flowbox")},
@@ -3131,6 +3217,10 @@ assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height
             "filechooser gridview child:selected",
             "filechooser gridview child:selected:hover",
             "filechooser gridview child:selected:active",
+            # The 2026-11-11 disabled-view ink arms name the view class and
+            # the print action box.
+            "gridview.view:disabled",
+            "window.print:not(.ssd-frame) gridview.dialog-action-box:disabled",
         }
         self.assertEqual(
             {selector for selector in self.rules if "gridview" in selector},
