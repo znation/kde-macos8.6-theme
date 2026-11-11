@@ -644,9 +644,12 @@ session's only client) so the flush 20px top panel the look-and-feel layout buil
 menu bar with its clock and window list — paints into the capture; the scratch session
 selects the look-and-feel (`[KDE] LookAndFeelPackage` in the scratch `plasmarc` and
 `kdeglobals`) and defaults to a 30 s settle and a 180 s timeout because plasmashell's
-first start imports the layout. Its surfaces await the desktop gate, which will pin the
-menu-bar rows in `tests/test_render_surface.py`; the desktop area below the bar stays
-deliberately unpinned.
+first start imports the layout. The desktop gate
+(`tests/test_render_surface.py::TestDesktopRender`) pins the bar's Platinum structure — the
+white top row, the `#DDDDDD` face rows, the 14x10 raised leftmost mark, the empty corridor
+before the bar's right half and the two bottom rules — while the bar's right half (tray
+icons, clock digits, shell label) and the desktop area below the bar stay deliberately
+unpinned.
 
 ### Staging packages
 

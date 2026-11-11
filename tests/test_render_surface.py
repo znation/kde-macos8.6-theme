@@ -1294,6 +1294,11 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 # modes, zenity for the GTK mode), and the gates skip when either client
 # or any Plasma tool is absent.
 DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
+# The desktop mode's client, beside the applet render tools: the same set the
+# CLI's desktop preflight requires (render_surface.py joins "plasmashell"
+# onto its requirements for --desktop). One literal feeds the desktop gate's
+# skip guard, as DIALOG_REAL_TOOLS feeds the dialog gates'.
+DESKTOP_REAL_TOOLS = REAL_TOOLS + ("plasmashell",)
 # Mesa drivers that render on the CPU. KWin's ScreenShot2 offscreen effect
 # allocates a non-software EGL buffer for its render target; on a software
 # renderer the allocation has no render engine behind it, and llvmpipe faults
@@ -1553,7 +1558,14 @@ class _Renders:
         ("textbox", ("--textbox-dialog",), "dialog.png"),
         ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
         ("inactive", ("--inactive-dialog",), "dialog.png"),
+        ("desktop", ("--desktop",), "desktop.png"),
     )
+    # A kind whose tool runs a longer internal timeout waits on that budget
+    # plus margin, not the shared 150 s dialog wait: the desktop render's
+    # documented timeout default is 180 s (tools/render_surface.py's
+    # _DESKTOP_TIMEOUT), so finishing it at 150 s would SIGKILL a legitimate
+    # slow first plasmashell start the tool itself would still have served.
+    FINISH_TIMEOUTS = {"desktop": 240}
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
     completed = False
@@ -1593,7 +1605,9 @@ class _Renders:
         for kind, _, _ in cls.KINDS:
             # The first finish below waits one settle budget while the
             # other two renders run alongside it.
-            stdout, stderr = process_runner.finish(started[kind], timeout=150)
+            stdout, stderr = process_runner.finish(
+                started[kind], timeout=cls.FINISH_TIMEOUTS.get(kind, 150)
+            )
             cls.results[kind] = (
                 stdout,
                 stderr,
@@ -1755,6 +1769,33 @@ def _dialog_gate_guard():
         # guard writes the attributes itself: the skip flag must be
         # present (False where every tool exists and the renderer is a GPU)
         # whatever the host has.
+        cls.__unittest_skip__ = bool(missing) or software_renderer_skip_reason() is not None
+        cls.__unittest_skip_why__ = reason
+        return cls
+
+    return decorator
+
+
+def _desktop_gate_guard():
+    """Return the skip guard the desktop render gate uses.
+
+    The desktop render CLI requires the same five Plasma tools as the applet
+    render plus its own client, ``plasmashell`` (DESKTOP_REAL_TOOLS above, the
+    set the CLI's desktop preflight refuses on), so the gate skips under the
+    shared software-renderer condition extended with that client -- the same
+    attribute-writing shape ``_dialog_gate_guard`` uses, so the skip flag is
+    present (False where every tool exists and the renderer is a GPU)
+    whatever the host has. The desktop mode opens no kdialog or zenity
+    client, so neither belongs in its guarded set.
+    """
+    tools = DESKTOP_REAL_TOOLS
+    reason = software_renderer_skip_reason() or (
+        "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
+        "plasma-apply-colorscheme and plasmashell on PATH"
+    )
+    missing = [tool for tool in tools if shutil.which(tool) is None]
+
+    def decorator(cls):
         cls.__unittest_skip__ = bool(missing) or software_renderer_skip_reason() is not None
         cls.__unittest_skip_why__ = reason
         return cls
@@ -3068,6 +3109,139 @@ class TestInactiveDialogRender(_DialogGate, unittest.TestCase):
                 for y in range(bh)
             ),
             "the right window's title bar carries no ink",
+        )
+
+
+@_desktop_gate_guard()
+class TestDesktopRender(unittest.TestCase):
+    """The rendered plasmashell menu bar's Platinum structure, pinned.
+
+    The ``--desktop`` capture is a 640x400 PNG whose top 20 rows are the
+    flush menu-bar panel the look-and-feel layout builds and whose rows
+    20..399 are the flat desktop area below it. The bar's pinned structure
+    was measured on a consecutive pair of full
+    ``tools/render_surface.py <scratch>/desktop.png --desktop`` runs on this
+    host (2026-11-11, both exit 0, both 640x400): the two captures differ in
+    exactly 54 pixels, all inside x=472..478, y=5..14 -- the clock digits.
+    Later same-day runs drew one more stable element the first pair lacked:
+    a tray icon whose ink reaches x=351, present in four further captures and
+    absent from the first pair, so the exclusion boundary was re-derived from
+    five same-day captures (the re-derivation the planned re-derivation note
+    calls for) from the plan's x=359 to x=351: the bar's pinned empty corridor
+    is x=17..350 and the excluded right half is x=351..639, verified stable
+    and live across all five. The bar's right half (x=351..639, rows 3..16)
+    holds the tray icons, the clock digits and the shell label and stays
+    deliberately unpinned: the digits move with the wall clock, and the tray
+    and label pixels change with session state. These are session-measured
+    platform values (plasmashell on this host, 2026-11-11) no reference
+    screenshot shows. This gate is a plain ``unittest.TestCase``, not a
+    ``_DialogGate`` subclass: the capture is 640x400 into ``desktop.png``,
+    not the shared 480x360 ``dialog.png``, and the desktop is not a dialog
+    mode.
+    """
+
+    # The leftmost mark's measured rectangle: a 14x10 raised box at
+    # x=3..16, y=3..12 (plasma's rendering of the bar's leftmost mark,
+    # pinned at the pixel level whatever scale or crop plasma applies to
+    # the shipped start-here-kde-symbolic source).
+    LEFT_MARK = (3, 3, 14, 10)
+
+    @classmethod
+    def setUpClass(cls):
+        # All renders run concurrently (see _Renders); this class waits for
+        # its own and leaves its siblings' to their own classes.
+        cls.stdout, cls.stderr, cls.returncode, cls.directory = (
+            _Renders.ensure("desktop")
+        )
+        cls.output = os.path.join(cls.directory, "desktop.png")
+        cls._candidate = None
+
+    @classmethod
+    def candidate_image(cls):
+        """Return the desktop render decoded once, reused by every read below."""
+        if cls._candidate is None:
+            cls._candidate = read_png(cls.output)
+        return cls._candidate
+
+    def assert_pixel(self, x, y, colour):
+        self.assertEqual(
+            colour, hex_colour(pixel_at(self.candidate_image(), x, y))
+        )
+
+    def test_exits_zero_and_writes_a_640x400_png(self):
+        self.assertEqual(0, self.returncode, self.stderr)
+        image = self.candidate_image()
+        self.assertEqual((640, 400), (image.width, image.height))
+
+    def test_bar_rows_pin_the_platinum_structure(self):
+        # The white top row, the two face rows above the mark and the third
+        # face row below it (rows 1, 2 and 17), the two bottom rules (the
+        # #999999/#000000 pair over the 514-pixel run, its one-shade-lighter
+        # #9a9a9a/#020202 tail measured identical in both runs) and the flat
+        # desktop area below the bar (rows 20..399, the wallpaper staying
+        # out of the series as part 1/2 recorded).
+        for x in range(640):
+            self.assert_pixel(x, 0, "#FFFFFF")
+        for y in (1, 2, 17):
+            for x in range(640):
+                self.assert_pixel(x, y, "#DDDDDD")
+        for x in range(640):
+            self.assert_pixel(x, 18, "#999999" if x <= 513 else "#9A9A9A")
+            self.assert_pixel(x, 19, "#000000" if x <= 513 else "#020202")
+        for y in range(20, 400):
+            for x in range(640):
+                self.assert_pixel(x, y, "#CCCCCC")
+
+    def test_left_mark_is_the_raised_box(self):
+        # The exact measured pixel map of the 14x10 raised box: a 1px black
+        # outline rectangle, a white top/left inner bevel, a #999999
+        # bottom/right inner shadow and a flat #dddddd interior. A moved,
+        # resized or restyled leftmost mark fails here.
+        image = self.candidate_image()
+        x0, y0, width, height = self.LEFT_MARK
+        expected = {}
+        for x in range(width):
+            expected[x, 0] = "#000000"
+            expected[x, height - 1] = "#000000"
+        for y in range(1, height - 1):
+            expected[0, y] = "#000000"
+            expected[1, y] = "#FFFFFF"  # the white left inner bevel, x=4
+            expected[width - 1, y] = "#000000"
+            expected[width - 2, y] = "#999999"  # the right inner shadow, x=15
+        for x in range(1, width - 2):  # row 4 spans x=4..14 white
+            expected[x, 1] = "#FFFFFF"
+        for x in range(1, width - 1):  # row 11 spans x=4..15 shadow
+            expected[x, height - 2] = "#999999"
+        for x in range(2, width - 2):  # the flat interior, x=5..14, y=5..10
+            for y in range(2, height - 2):
+                expected[x, y] = "#DDDDDD"
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
+
+    def test_the_bar_between_the_mark_and_the_right_half_is_empty(self):
+        # Every pixel of the empty app-menu and panel-spacer corridor equals
+        # the face colour: this kills stray art, a dropped face row or a
+        # bevel bleeding into the empty area.
+        for y in range(1, 18):
+            for x in range(17, 351):
+                self.assert_pixel(x, y, "#DDDDDD")
+
+    def test_the_right_half_draws_its_live_content(self):
+        # The excluded region must really carry the tray icons, clock digits
+        # and shell label, or the exclusion would hide a bar that painted
+        # nothing (mirrors the inactive gate's two-state check).
+        image = self.candidate_image()
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                for x in range(351, 640)
+                for y in range(3, 17)
+            ),
+            "the bar's right half carries no live content",
         )
 
 
