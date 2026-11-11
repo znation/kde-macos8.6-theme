@@ -467,6 +467,10 @@ class TestRuleBlockSemantics(unittest.TestCase):
                 ["a", "a"],
             ),
         )
+        self.assertEqual(
+            parse_css("a { COLOR: red !important; } a { color: Blue !important; }"),
+            ({}, {"a": {"color": "Blue !important"}}, ["a", "a"]),
+        )
 
     def test_escaped_ordinary_declaration_names_are_canonicalized(self):
         cases = (
