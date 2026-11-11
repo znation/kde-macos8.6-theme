@@ -144,6 +144,65 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         )
         self.assertNotIn("magick-abc123", problem)
 
+    def test_a_silent_converter_failure_reports_only_the_status(self):
+        # A converter can exit nonzero without writing anything: the logs
+        # run_logged_split opens exist but hold no text. The diagnostic must
+        # still name the exit status — the headline alone — and must not
+        # crash looking for a first log line that is not there.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def fail_silently(argv, env, stdout_log, stderr_log, *args, **kw):
+                # run_logged_split opens both logs ('wb') before the child
+                # runs, so an empty failure leaves two zero-byte files.
+                Path(stdout_log).touch()
+                Path(stderr_log).touch()
+                return 1
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=fail_silently,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(problem, "convert exited 1")
+
+    def test_whitespace_only_converter_output_is_not_quoted(self):
+        # Blank output is stripped before the headline check, so a converter
+        # that fails writing only whitespace is reported like a silent one:
+        # quoting blank text would add nothing the operator can act on.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def fail_with_blank_stderr(argv, env, stdout_log, stderr_log, *a, **kw):
+                Path(stdout_log).touch()
+                Path(stderr_log).write_text("\n  \n")
+                return 2
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=fail_with_blank_stderr,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(problem, "convert exited 2")
+
     def test_flooding_converter_log_is_read_and_quoted_only_to_its_cap(self):
         flood = 1 << 20  # one MiB of stderr from a failing converter
         with tempfile.TemporaryDirectory() as directory:
