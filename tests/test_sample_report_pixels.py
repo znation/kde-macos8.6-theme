@@ -12,25 +12,57 @@ from tools.sample_report_pixels import _pixel_records, _positioned_region_pixels
 
 class TestPixelRecords(unittest.TestCase):
     def test_records_are_lazy_ordered_and_do_not_mutate_or_print(self):
+        class TrackingBytes:
+            """Byte sequence that records the index of every element read."""
+
+            def __init__(self, data):
+                self._data = bytes(data)
+                self.read = []
+
+            def __getitem__(self, index):
+                self.read.append(index)
+                return self._data[index]
+
+        rgb = TrackingBytes((1, 2, 3, 10, 11, 12, 20, 21, 22,
+                             30, 31, 32, 40, 41, 42, 50, 51, 52))
+        alpha = TrackingBytes((0, 64, 255, 128, 255, 7))
+
         class Image:
             width = 3
-            rgb = bytes((1, 2, 3, 10, 11, 12, 20, 21, 22,
-                         30, 31, 32, 40, 41, 42, 50, 51, 52))
-            alpha = bytes((0, 64, 255, 128, 255, 7))
 
+        image = Image()
+        image.rgb = rgb
+        image.alpha = alpha
         args = Namespace(x=1, y=0, width=2, height=2, alpha=True)
         snapshot = vars(args).copy()
         with mock.patch("builtins.print") as printed:
-            records = _pixel_records(args, Image())
+            records = _pixel_records(args, image)
             printed.assert_not_called()
+            self.assertEqual(rgb.read, [], "iterator construction read pixels")
+            self.assertEqual(alpha.read, [], "iterator construction read the alpha plane")
             self.assertEqual(next(records),
                              {"x": 1, "y": 0, "rgb": [10, 11, 12], "hex": "#0A0B0C", "alpha": 64})
+            self.assertEqual(rgb.read, [3, 4, 5], "first record read one pixel")
+            self.assertEqual(alpha.read, [1], "first record read one alpha byte")
             self.assertEqual(next(records),
                              {"x": 2, "y": 0, "rgb": [20, 21, 22], "hex": "#141516", "alpha": 255})
+            self.assertEqual(rgb.read, [3, 4, 5, 6, 7, 8],
+                             "second record read the next pixel, no further")
+            self.assertEqual(alpha.read, [1, 2],
+                             "second record read the next alpha byte, no further")
         self.assertEqual(vars(args), snapshot)
 
     def test_rgb_omits_alpha_and_opaque_rgba_alpha_uses_255(self):
+        class RaisingAlpha:
+            def __getitem__(self, index):
+                raise AssertionError("alpha plane read without --alpha")
+
         class Image:
+            width = 1
+            rgb = bytes((255, 0, 16))
+            alpha = RaisingAlpha()
+
+        class OpaqueImage:
             width = 1
             rgb = bytes((255, 0, 16))
             alpha = None
@@ -39,7 +71,7 @@ class TestPixelRecords(unittest.TestCase):
         self.assertEqual(list(_pixel_records(args, Image())),
                          [{"x": 0, "y": 0, "rgb": [255, 0, 16], "hex": "#FF0010"}])
         args.alpha = True
-        self.assertEqual(list(_pixel_records(args, Image()))[0]["alpha"], 255)
+        self.assertEqual(list(_pixel_records(args, OpaqueImage()))[0]["alpha"], 255)
 
 
 class TestPositionedRegionPixels(unittest.TestCase):

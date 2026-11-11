@@ -54,6 +54,15 @@ class TestSampleAlpha(CliTestCase):
         direct = self._run_script(*json_args)
         self.assertEqual((direct.stdout, direct.stderr, direct.returncode),
                          (package.stdout, package.stderr, package.returncode))
+        self.assertEqual(package.stdout,
+                         json.dumps({"image": path, "image_width": 2, "image_height": 2,
+                             "region": {"x": 1, "y": 0, "width": 1, "height": 2},
+                             "pixels": [
+                                 {"x": 1, "y": 0, "rgb": [10, 20, 30],
+                                  "hex": "#0A141E", "alpha": 128},
+                                 {"x": 1, "y": 1, "rgb": [70, 80, 90],
+                                  "hex": "#46505A", "alpha": 255},
+                             ]}, ensure_ascii=True) + "\n")
 
     def test_text_and_default_output(self):
         path = self._rgba()
