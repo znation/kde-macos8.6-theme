@@ -1272,9 +1272,9 @@ print("scrollbar pins settled")
         # ties them on specificity: without that order an unfocused maximized
         # or tiled window would paint the active outline. The solid-csd arms
         # follow the stock "Window Decorations" order: after the window.csd
-        # arms they beat on source position, before window.maximized so a
-        # maximized or tiled solid-csd window keeps the later flats, and the
-        # backdrop arm follows its base arm so the recolour wins the tie.
+        # arms they beat on source position and before window.maximized to
+        # preserve stock shadow ordering. These shadow rules do not clear
+        # the solid-csd border. The backdrop arm follows its base arm.
         self.assertGreater(
             self.selectors.index("window.solid-csd"),
             self.selectors.index("window.csd"),
