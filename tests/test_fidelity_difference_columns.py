@@ -14,6 +14,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceColumns(unittest.TestCase):
+    """Test counts of differing pixels in each image column."""
     def test_dense_columns_count_each_pixel_once(self):
         reference = Image(4, 3, bytes(36), bytes([255] * 12))
         rgb = bytearray(36)
@@ -41,6 +42,7 @@ class TestDifferenceColumns(unittest.TestCase):
 
 
 class TestDifferenceColumnsCli(FidelityCliTestCase):
+    """Test per-column output and crop handling in the CLI."""
     def test_crops_outputs_verdicts_and_default_omission(self):
         candidate = make_png(4, 4, [bytes(12)] * 4)
         rows = [bytearray(12) for _ in range(4)]

@@ -15,6 +15,7 @@ from tools.fidelity_metrics import Image, compare  # noqa: E402
 
 
 class TestWorstPixel(FidelityCliTestCase):
+    """Test the single worst-pixel summary and CLI behavior."""
     def test_rgba_delta_first_tie_and_distinct_crop_origins(self):
         # Equal maxima at source (2, 2) and (4, 2): the first one, crop-relative (1, 1), is reported.
         _, candidate_png = rgb_image(6, 3, lambda x, y: (9 if y == 2 and x in (2, 4) else 0, 0, 0))

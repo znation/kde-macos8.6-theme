@@ -24,6 +24,7 @@ class TrackedRun(dict):
 
 
 class TestCollectRunPage(unittest.TestCase):
+    """Test filtered run paging with full totals and longest summaries."""
     def test_filters_paging_totals_and_first_longest(self):
         intervals = [
             {"x": 0, "y": 0, "length": 1}, {"x": 2, "y": 0, "length": 2},

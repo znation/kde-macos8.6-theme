@@ -12,6 +12,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestMaxDeltaBudget(FidelityCliTestCase):
+    """Test maximum-delta budgets and CLI validation."""
     def test_sparse_error_and_combined_budgets(self):
         candidate, altered = self._write_altered_pair(self._tmp_dir())
         self._assert_pass(self._run(candidate, altered, "--max-mae", "2"))

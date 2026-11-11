@@ -15,6 +15,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestChannelMaxima(unittest.TestCase):
+    """Test maximum deltas for each compared channel."""
     def test_channel_peaks_and_alpha_semantics(self):
         reference = Image(3, 1, bytes(9), bytes([0, 255, 0]))
         candidate = Image(3, 1, bytes([10, 0, 0, 0, 20, 0, 0, 0, 255]), bytes([255, 0, 0]))
@@ -39,6 +40,7 @@ class TestChannelMaxima(unittest.TestCase):
 
 
 class TestChannelMaximaCli(FidelityCliTestCase):
+    """Test channel maxima output and CLI errors."""
     def test_crops_tolerance_composition_and_default_omission(self):
         candidate = make_png(4, 1, [bytes([255, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0])])
         reference = make_png(4, 1, [bytes(12)])

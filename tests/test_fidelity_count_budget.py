@@ -12,6 +12,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestCountBudget(FidelityCliTestCase):
+    """Test differing-pixel count budgets and CLI reports."""
     def test_inclusive_count_and_budget_conjunction(self):
         candidate, altered = self._write_altered_pair(self._tmp_dir())
         self._assert_pass(self._run(candidate, altered, "--max-differing", "1"))

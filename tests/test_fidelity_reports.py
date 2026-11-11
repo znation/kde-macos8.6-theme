@@ -42,6 +42,7 @@ def _metrics(**overrides) -> Metrics:
 
 
 class TestBudgetVerdict(unittest.TestCase):
+    """Test comparison verdicts with and without metric budgets."""
     def test_without_a_budget_the_default_gate_requires_no_differing_pixel(self):
         self.assertTrue(budget_verdict(_metrics()))
         self.assertFalse(budget_verdict(_metrics(frac_differing=0.5)))
@@ -72,6 +73,7 @@ class TestBudgetVerdict(unittest.TestCase):
 
 
 class TestSourceBounds(unittest.TestCase):
+    """Test translation of crop-relative bounds to source coordinates."""
     def test_absent_bounds_stay_none(self):
         self.assertIsNone(source_bounds(None, (1, 2, 3, 4)))
 
@@ -84,6 +86,7 @@ class TestSourceBounds(unittest.TestCase):
 
 
 class TestLocateWorstPixels(unittest.TestCase):
+    """Test translation of ranked pixel positions to source coordinates."""
     def test_positions_add_the_crop_origins(self):
         records = [{"x": 1, "y": 0}, {"x": 0, "y": 2}]
         located = locate_worst_pixels(records, (10, 20, 3, 4), (5, 6, 3, 4))
@@ -101,6 +104,7 @@ class TestLocateWorstPixels(unittest.TestCase):
 
 
 class TestReportData(unittest.TestCase):
+    """Test mapping optional diagnostics into report data."""
     def test_optional_diagnostics_map_each_keyword_to_its_output_key(self):
         diagnostics = (
             ("channels", "channel_counts", {"r": 1}),
@@ -206,6 +210,7 @@ class TestReportData(unittest.TestCase):
 
 
 class TestRenderJson(unittest.TestCase):
+    """Test JSON serialization of fidelity report data."""
     def test_the_line_is_ascii_escaped_json(self):
         data = report_data("café.png", "reference.png", None, None,
                            0, None, None, _metrics())
@@ -232,6 +237,7 @@ class TestRenderJson(unittest.TestCase):
 
 
 class TestRenderText(unittest.TestCase):
+    """Test text rendering of fidelity report data."""
     def test_renderer_needs_only_dimensions_and_does_not_mutate_input(self):
         class Size:
             width = 1

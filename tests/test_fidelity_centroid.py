@@ -15,6 +15,7 @@ from tools.png import Image
 
 
 class TestDifferenceCentroid(unittest.TestCase):
+    """Test centroids of pixels over the difference threshold."""
     def test_equal_pixel_centroid_and_threshold(self):
         # Differing pixels (0,0), (3,0), and (1,2): unequal deltas do not
         # weight the result, and the empty row remains irrelevant.
@@ -39,6 +40,7 @@ class TestDifferenceCentroid(unittest.TestCase):
 
 
 class TestDifferenceCentroidCli(FidelityCliTestCase):
+    """Test centroid output and crop handling in the CLI."""
     def test_crops_verdict_and_default_omission(self):
         candidate = make_png(5, 3, [bytes(15), bytes([0, 0, 0, 10, 0, 0] + [0] * 9), bytes(15)])
         reference = make_png(5, 3, [bytes(15)] * 3)

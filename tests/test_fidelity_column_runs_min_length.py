@@ -19,6 +19,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestColumnRunsMinimumLength(FidelityCliTestCase):
+    """Test minimum-length filtering of vertical runs."""
     def _pair(self):
         return difference_pair(
             7, 4, ({0, 1, 3}, {1, 3}, {1, 3}, {3}), vertical=False)

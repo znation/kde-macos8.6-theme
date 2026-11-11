@@ -18,6 +18,7 @@ from tools import fidelity_metrics
 
 
 class TestOverTable(unittest.TestCase):
+    """Test per-byte delta counts across tolerance thresholds."""
     def test_one_entry_per_byte_delta(self):
         for tolerance in (0, 7, 255):
             self.assertEqual(len(fidelity_metrics.over_table(tolerance)), 256)

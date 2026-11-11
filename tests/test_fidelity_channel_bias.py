@@ -17,6 +17,7 @@ BIAS_LINE = "channel bias (candidate - reference): "
 
 
 class TestChannelBias(unittest.TestCase):
+    """Test signed per-channel mean deltas and extrema."""
     def test_signed_fractional_and_cancelling_means(self):
         reference = Image(2, 1, bytes(6))
         candidate = Image(2, 1, bytes([1, 0, 0, 0, 3, 0]))
@@ -43,6 +44,7 @@ class TestChannelBias(unittest.TestCase):
 
 
 class TestChannelBiasCli(FidelityCliTestCase):
+    """Test channel-bias reports and CLI error handling."""
     def _run_altered_pair(self, *args: str):
         candidate, reference = self._write_altered_pair(self._tmp_dir())
         return self._run(candidate, reference, *args)

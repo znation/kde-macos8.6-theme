@@ -11,6 +11,7 @@ from support.png_fixtures import difference_pair  # noqa: E402
 
 
 class TestDifferenceRunsOffset(FidelityCliTestCase):
+    """Test paging horizontal runs by their global offset."""
     def _pair(self):
         return difference_pair(
             9, 2, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=False)

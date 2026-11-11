@@ -16,6 +16,7 @@ from tools.png import Image
 
 
 class TestLongestDifferenceRun(unittest.TestCase):
+    """Test selection and tie-breaking for the longest horizontal run."""
     def test_selector_preserves_first_tie_in_one_pass(self):
         first = {"x": 9, "y": 8, "length": 3}
         second = {"x": 0, "y": 0, "length": 3}
@@ -78,6 +79,7 @@ class TestLongestDifferenceRun(unittest.TestCase):
 
 
 class TestLongestDifferenceRunCli(FidelityCliTestCase):
+    """Test longest horizontal run summaries in CLI reports."""
     def test_ties_match_between_summary_and_combined_json(self):
         candidate = make_png(5, 2, [
             bytes((11, 0, 0, 11, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0)),

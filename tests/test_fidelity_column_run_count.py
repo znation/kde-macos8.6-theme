@@ -15,6 +15,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceColumnRunCount(unittest.TestCase):
+    """Test streaming counts of maximal vertical difference runs."""
     def test_streaming_count_uses_vertical_maximal_intervals(self):
         masks = ("101", "100", "001", "111")
         values = bytes(int(bit) * 20 for row in masks for bit in row)
@@ -36,6 +37,7 @@ class TestDifferenceColumnRunCount(unittest.TestCase):
 
 
 class TestDifferenceColumnRunCountCli(FidelityCliTestCase):
+    """Test vertical run-count output and CLI crops."""
     @staticmethod
     def _pair():
         masks = ("101", "100", "001", "111")

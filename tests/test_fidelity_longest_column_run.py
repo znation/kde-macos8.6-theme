@@ -14,6 +14,7 @@ from tools.png import Image
 
 
 class TestLongestDifferenceColumnRun(unittest.TestCase):
+    """Test selection and tie-breaking for the longest vertical run."""
     def test_longest_vertical_run(self):
         width, height = 4, 5
         values = [0, 11, 0, 0, 0, 11, 0, 11, 0, 12, 0, 11, 0, 11, 0, 0, 0, 0, 0, 11]
@@ -56,6 +57,7 @@ class TestLongestDifferenceColumnRun(unittest.TestCase):
 
 
 class TestLongestDifferenceColumnRunCli(FidelityCliTestCase):
+    """Test longest vertical run summaries in CLI reports."""
     def test_ties_match_between_summary_and_combined_json(self):
         candidate = make_png(2, 5, [
             bytes((0, 0, 0, 11, 0, 0)),

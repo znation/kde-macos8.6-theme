@@ -11,6 +11,7 @@ from support.png_fixtures import difference_pair  # noqa: E402
 
 
 class TestDifferenceRunsLimit(FidelityCliTestCase):
+    """Test capped horizontal run reports and their full summaries."""
     def _pair(self):
         return difference_pair(
             9, 2, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=False)

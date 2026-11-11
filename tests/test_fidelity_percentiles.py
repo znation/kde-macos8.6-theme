@@ -16,6 +16,7 @@ from tools.fidelity_reports import delta_percentiles  # noqa: E402
 
 
 class TestDeltaPercentiles(unittest.TestCase):
+    """Test nearest-rank percentiles of pixel channel deltas."""
     def test_nearest_rank_boundaries_and_sparse_tail(self):
         self.assertEqual(delta_percentiles([
             {"delta": 0, "count": 1}, {"delta": 10, "count": 94},
@@ -41,6 +42,7 @@ class TestDeltaPercentiles(unittest.TestCase):
 
 
 class TestDeltaPercentilesCli(FidelityCliTestCase):
+    """Test percentile reports and optional scan behavior."""
     def test_text_json_parity_percentiles_only_and_gate_independence(self):
         candidate = make_png(5, 1, [bytes([0, 0, 0] * 4 + [25, 0, 0])])
         reference = make_png(5, 1, [bytes(15)])

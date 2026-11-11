@@ -15,6 +15,7 @@ from tools.fidelity_pixels import delta_histogram  # noqa: E402
 
 
 class TestDeltaHistogram(unittest.TestCase):
+    """Test histograms of maximum per-pixel channel deltas."""
     def test_bins_track_maximum_rgba_delta_once_per_pixel(self):
         ref = Image(4, 1, bytes(12))
         cand = Image(4, 1, bytes([0, 0, 0, 7, 7, 0, 255, 0, 0, 0, 0, 0]),
@@ -38,6 +39,7 @@ class TestDeltaHistogram(unittest.TestCase):
 
 
 class TestDeltaHistogramCli(FidelityCliTestCase):
+    """Test histogram output, crops, and CLI validation."""
     def _pair(self):
         candidate = make_png(2, 1, [bytes([0, 0, 0, 20, 0, 0])])
         reference = make_png(2, 1, [bytes(6)])

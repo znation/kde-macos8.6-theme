@@ -15,6 +15,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceColumnBounds(unittest.TestCase):
+    """Test vertical bounds of pixels over the difference threshold."""
     def test_intervals_gaps_threshold_and_bottom_edge(self):
         width, height = 4, 6
         rgb = bytearray(width * height * 3)
@@ -40,6 +41,7 @@ class TestDifferenceColumnBounds(unittest.TestCase):
 
 
 class TestDifferenceColumnBoundsCli(FidelityCliTestCase):
+    """Test vertical bounds output and crop composition in the CLI."""
     def test_crops_composition_and_verdicts(self):
         candidate_rows = [bytearray(15) for _ in range(4)]
         candidate_rows[1][6] = 40

@@ -12,6 +12,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestRmseBudget(FidelityCliTestCase):
+    """Test root-mean-square error budgets and CLI reporting."""
     def test_rmse_budget_detects_sparse_error_and_replaces_default(self):
         candidate, altered = self._write_altered_pair(self._tmp_dir())
         self._assert_pass(self._run(candidate, altered, "--max-mae", "2"))

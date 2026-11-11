@@ -16,6 +16,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRows(unittest.TestCase):
+    """Test counts of differing pixels in each image row."""
     def test_dense_rows_and_rgba_pixel_union(self):
         reference = Image(3, 4, bytes(36), bytes([255] * 12))
         rgb = bytearray(36)
@@ -43,6 +44,7 @@ class TestDifferenceRows(unittest.TestCase):
 
 
 class TestDifferenceRowsCli(FidelityCliTestCase):
+    """Test per-row output and crop handling in the CLI."""
     def test_crops_outputs_verdicts_and_default_omission(self):
         candidate = make_png(4, 4, [bytes(12)] * 4)
         reference_rows = [bytearray(12) for _ in range(4)]

@@ -14,6 +14,7 @@ from support.png_fixtures import (  # noqa: E402
 
 
 class TestDifferenceRunsMaximumLength(FidelityCliTestCase):
+    """Test maximum-length filtering of horizontal runs."""
     def _pair(self):
         return difference_pair(
             9, 2, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=False)

@@ -17,6 +17,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestWorstPixels(unittest.TestCase):
+    """Test severity ranking, tie order, and differing-pixel paging."""
     def test_severity_ties_alpha_and_tolerance(self):
         ref = Image(3, 2, bytes(18))
         cand = Image(3, 2, bytes([5, 0, 0, 9, 0, 0, 8, 0, 0,
@@ -79,6 +80,7 @@ class TestWorstPixels(unittest.TestCase):
 
 
 class TestWorstPixelsCli(FidelityCliTestCase):
+    """Test worst-pixel reports, crop coordinates, and CLI validation."""
     def test_offset_pages_json_text_and_different_crop_origins(self):
         _, candidate = rgb_image(5, 3, lambda x, y: (
             9 if (x, y) in ((1, 1), (2, 1)) else 7 if (x, y) == (3, 2) else 0, 0, 0))

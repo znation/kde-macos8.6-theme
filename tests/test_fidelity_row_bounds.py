@@ -15,6 +15,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRowBounds(unittest.TestCase):
+    """Test horizontal bounds of pixels over the difference threshold."""
     def test_axis_bounds_degenerate_full_and_transpose_cases(self):
         empty = Image(3, 2, bytes(18))
         self.assertEqual(difference_row_bounds(empty, empty, 0), [None, None])
@@ -75,6 +76,7 @@ class TestDifferenceRowBounds(unittest.TestCase):
 
 
 class TestDifferenceRowBoundsCli(FidelityCliTestCase):
+    """Test horizontal bounds output and crop composition in the CLI."""
     def test_crops_output_composition_and_verdicts(self):
         candidate_rows = [bytearray(15) for _ in range(3)]
         candidate_rows[1][3] = 40

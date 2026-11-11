@@ -27,6 +27,7 @@ def _mask_changes(width, height, mask):
 
 
 class TestDifferenceBounds(unittest.TestCase):
+    """Test bounds of pixels over the difference threshold."""
     def test_bounds_cover_union_of_changed_channels_and_rows(self):
         reference, _ = rgb_image(6, 5, lambda x, y: (0, 0, 0))
         changed = bytearray(reference.rgb)
@@ -64,6 +65,7 @@ class TestDifferenceBounds(unittest.TestCase):
 
 
 class TestBoundsCli(FidelityCliTestCase):
+    """Test bounds output and crop-relative coordinates in the CLI."""
     def test_text_and_json_report_crop_relative_bounds_with_aggregate_pass(self):
         def pixel(x, y):
             if 2 <= x < 4 and 1 <= y < 3:

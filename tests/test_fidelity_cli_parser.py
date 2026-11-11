@@ -14,6 +14,7 @@ from tools.fidelity_cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):
+    """Test validation of fidelity CLI option values."""
     def _rejects_value(self, convert, value):
         """`convert` must refuse `value` with an ArgumentTypeError."""
         with self.assertRaises(fidelity_arguments.argparse.ArgumentTypeError):

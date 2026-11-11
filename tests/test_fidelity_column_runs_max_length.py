@@ -13,6 +13,7 @@ from tools import fidelity  # noqa: E402
 
 
 class TestColumnRunsMaximumLength(FidelityCliTestCase):
+    """Test maximum-length filtering of vertical runs."""
     def _pair(self):
         return difference_pair(
             2, 9, ({0, 2, 3, 5, 6, 7}, {0, 1, 2, 3, 8}), vertical=True)

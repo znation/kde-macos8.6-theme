@@ -16,6 +16,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRunCount(unittest.TestCase):
+    """Test streaming counts of maximal horizontal difference runs."""
     def test_streaming_count_handles_rows_and_tolerance(self):
         rgb = (bytes([11, 0, 0, 12, 0, 0, 0, 0, 0, 11, 0, 0])
                + bytes(12)
@@ -27,6 +28,7 @@ class TestDifferenceRunCount(unittest.TestCase):
 
 
 class TestDifferenceRunCountCli(FidelityCliTestCase):
+    """Test horizontal run-count output and CLI option behavior."""
     def test_count_json_text_and_no_extra_scan_with_run_list(self):
         candidate = make_png(4, 3, [bytes([11, 0, 0, 12, 0, 0, 0, 0, 0, 11, 0, 0]),
                                    bytes(12),
@@ -63,6 +65,7 @@ class TestDifferenceRunCountCli(FidelityCliTestCase):
 
 
 class TestCountDifferenceRuns(unittest.TestCase):
+    """Test the standalone horizontal difference-run counter."""
     def test_counts_maximal_runs_at_row_edges(self):
         values = (1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1)
         candidate = Image(4, 3, b"".join(bytes((value, 0, 0)) for value in values))
@@ -89,6 +92,7 @@ class TestCountDifferenceRuns(unittest.TestCase):
 
 
 class TestFidelityRunCountCli(FidelityCliTestCase):
+    """Test CLI run-count reports, scans, and crop origins."""
     @staticmethod
     def _pair():
         masks = ("1101", "0000", "1111")

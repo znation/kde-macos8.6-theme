@@ -20,6 +20,7 @@ from tools import fidelity_geometry
 
 
 class TestGeometryExports(unittest.TestCase):
+    """Test public crop-geometry re-exports from metrics."""
     def test_metrics_module_reexports_crop_geometry(self):
         self.assertIs(fidelity_metrics.FidelityError, fidelity_geometry.FidelityError)
         self.assertIs(
@@ -30,6 +31,7 @@ class TestGeometryExports(unittest.TestCase):
 
 
 class TestCompare(unittest.TestCase):
+    """Test image comparison metrics and crop validation."""
     def _assert_compare_rejects(self, tolerances):
         """Assert ``compare`` rejects every tolerance in *tolerances*.
 

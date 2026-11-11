@@ -19,6 +19,7 @@ from tools import fidelity_sources, png
 
 
 class TestFidelitySources(unittest.TestCase):
+    """Test bounded source-image decoding for fidelity comparisons."""
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -112,6 +113,7 @@ class TestFidelitySources(unittest.TestCase):
 
 
 class TestReadSource(unittest.TestCase):
+    """Test safe source reads, crop bounds, and repository path checks."""
     def test_uncropped_and_in_bounds_reads_preserve_alpha_and_bound_rows(self):
         image = SimpleNamespace(width=8, height=9)
         with mock.patch.object(fidelity_sources, "require_within_repo"), mock.patch.object(

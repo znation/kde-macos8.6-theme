@@ -17,6 +17,7 @@ COUNT_LINE = "channel differing pixels (R, G, B, A): "
 
 
 class TestChannelCounts(unittest.TestCase):
+    """Test per-channel counts of differing pixels."""
     def test_distinct_channels_count_their_own_pixels(self):
         ref = Image(2, 1, bytes(6))
         cand = Image(2, 1, bytes([30, 10, 5, 0, 20, 40]))
@@ -60,6 +61,7 @@ class TestChannelCounts(unittest.TestCase):
 
 
 class TestChannelCountsCli(FidelityCliTestCase):
+    """Test channel-count output and crop handling in the CLI."""
     def _run_altered_pair(self, *args: str):
         tmp = self._tmp_dir()
         candidate, altered = self._write_altered_pair(tmp)

@@ -18,6 +18,7 @@ KEYS = {"candidate", "reference", "candidate_crop", "reference_crop", "threshold
 
 
 class TestJsonCli(FidelityCliTestCase):
+    """Test the JSON report schema and comparison cases."""
     def _json(self, *args, status):
         result = self._run(*args, "--json")
         self.assertEqual(result.returncode, status, result.stdout + result.stderr)

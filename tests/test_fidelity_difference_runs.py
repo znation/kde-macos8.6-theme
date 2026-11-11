@@ -19,6 +19,7 @@ from tools.png import Image  # noqa: E402
 
 
 class TestDifferenceRuns(unittest.TestCase):
+    """Test maximal horizontal difference runs and their ordering."""
     def test_both_axes_match_literal_intervals_on_nonsquare_image(self):
         width, height = 5, 4
         rgb = bytearray(width * height * 3)
@@ -106,6 +107,7 @@ class TestDifferenceRuns(unittest.TestCase):
 
 
 class TestDifferenceRunsCli(FidelityCliTestCase):
+    """Test horizontal run reports, crops, and CLI read errors."""
     def test_opt_in_crops_text_json_and_direct_script(self):
         candidate = make_png(4, 2, [bytes([0, 0, 0, 20, 0, 0, 0, 0, 0, 30, 0, 0]), bytes(12)])
         reference = make_png(4, 2, [bytes(12), bytes(12)])
