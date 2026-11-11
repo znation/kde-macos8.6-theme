@@ -134,6 +134,90 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         self.assertEqual(len(quoted), 4096)
         self.assertEqual(set(quoted), {"W"})
 
+    def test_a_converter_that_cannot_start_is_reported_naming_the_os_error(self):
+        # convert_jpeg() resolves the executable with shutil.which() first, so
+        # the one start failure it can still meet is the executable vanishing
+        # (or becoming unstartable) between that lookup and the spawn: the
+        # Popen call raises OSError, and the sampler must print it as its
+        # "cannot run convert" diagnostic instead of dying with a traceback.
+        failure = OSError(2, "No such file or directory", "/usr/bin/convert")
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=failure,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(problem, f"cannot run convert: {failure}")
+
+    def test_a_converter_that_hits_its_timeout_is_reported_with_the_budget(self):
+        # A hung converter returns None from run_logged_split (the shared
+        # runner's timeout verdict); the diagnostic must name the decode and
+        # the documented 60-second budget, not the exit-status wording a
+        # nonzero status would print.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    return_value=None,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(
+            problem,
+            "convert did not decode the JPEG input within 60s",
+        )
+
+    def test_a_converter_that_writes_no_png_is_refused(self):
+        # A converter that exits 0 without producing the temporary PNG (or
+        # with an empty one) must still be a refusal: returning success would
+        # send the sampler after a missing or empty file whose own diagnostic
+        # names the private scratch path instead of the JPEG input.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    return_value=0,
+                ),
+            ):
+                missing = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+                self.assertEqual(
+                    missing, "convert wrote no PNG for the JPEG input"
+                )
+
+                temp_png.write_bytes(b"")
+                empty = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+                self.assertEqual(
+                    empty, "convert wrote no PNG for the JPEG input"
+                )
+
 
 class TestJpegSampler(CliTestCase):
     """The JPEG branch's end-to-end reports, pinned to the fixture's constants."""
