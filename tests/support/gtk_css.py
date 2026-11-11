@@ -179,6 +179,7 @@ def strip_comments(text):
             continue
         if char in "uU" and (index == 0 or not (
             text[index - 1].isalnum() or text[index - 1] in "_-\\"
+            or not text[index - 1].isascii()
         )) and text[index:index + 3].translate(_ASCII_LOWER) == "url" and index + 3 < len(text) and text[index + 3] == "(":
             url_start = index + 4
             while url_start < len(text) and text[url_start] in " \t\n\r\f":

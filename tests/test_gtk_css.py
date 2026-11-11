@@ -89,6 +89,9 @@ class TestStripComments(unittest.TestCase):
                 self.assertEqual(strip_comments(text), text)
         self.assertEqual(strip_comments("url(\"a/*quoted*/b\")"), "url(\"a/*quoted*/b\")")
         self.assertEqual(strip_comments("myurl(a/*gone*/b)"), "myurl(ab)")
+        # Every non-ASCII code point is an identifier character in CSS.
+        self.assertEqual(strip_comments("\u2603url(a/*gone*/b)"), "\u2603url(ab)")
+        self.assertEqual(strip_comments("\u00b7url(a/*gone*/b)"), "\u00b7url(ab)")
         self.assertEqual(strip_comments("/*before*/url(a/*keep*/b)/*after*/"), "url(a/*keep*/b)")
         self.assertEqual(strip_comments("fn(a/*gone*/b)"), "fn(ab)")
 
