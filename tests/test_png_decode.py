@@ -158,6 +158,16 @@ class TestDecode(unittest.TestCase):
         )
         self.assertEqual(bounded, png.Image(2, 2, expected))
 
+    def test_color_type_6_row_bound_still_checks_every_scanline_filter_type(self):
+        # The bounded color-type-6 path keeps every row's filter byte (rows
+        # past the bound carry zeroed samples), so a bad filter type in a row
+        # the caller did not ask for is still rejected, as it is on the
+        # color-type-2 path's own bound test.
+        rows = [bytes(4), bytes(4), bytes(4)]
+        data = make_png(1, 3, rows, color_type=6, filter_types=[0, 0, 7])
+        message = decode_error_message(self, data, max_rows=1)
+        self.assertIn("row 2", message)
+
     def test_all_filter_types(self):
         rows = [
             bytes([1, 2, 3, 4, 5, 6, 7, 8, 9]),
