@@ -509,10 +509,10 @@ def parse_css(text, source=None):
     ``@define-color`` inside a quoted value is text rather than a definition
     (and is left in the value), as it is for the other scanners.
 
-    A malformed declaration -- no ``:``, or an empty property name or value
-    (except an empty value on a named custom property) -- raises ``ValueError``
-    instead of being dropped silently. Empty custom-property values are
-    retained as empty strings. A typo in a contributor-supplied
+    A malformed declaration -- no unescaped ``:``, or an empty property name
+    or value (except an empty value on a named custom property) -- raises
+    ``ValueError`` instead of being dropped silently. Empty custom-property
+    values are retained as empty strings. A typo in a contributor-supplied
     sheet names itself rather than surfacing later as a missing key. *source*
     (usually the sheet's repository path) prefixes that diagnostic. Repeated
     or trailing ``;`` separators are not malformed, and a ``;`` inside a
