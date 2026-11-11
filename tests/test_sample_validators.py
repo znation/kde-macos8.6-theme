@@ -19,11 +19,13 @@ class TestSampleValidators(unittest.TestCase):
         self.assertEqual(validators.match_pixels("1000"), 1000)
         self.assertEqual(validators.match_pixel_offset("0"), 0)
         self.assertEqual(validators.match_pixel_offset("999999999999"), 999999999999)
+        self.assertEqual(validators.color_offset("0"), 0)
+        self.assertEqual(validators.color_offset("999999999999"), 999999999999)
         self.assertEqual(validators.color_fraction("0"), 0.0)
         self.assertEqual(validators.color_fraction("1e-1"), 0.1)
         self.assertEqual(validators.color_fraction("1"), 1.0)
         for name in ("rgb_argument", "color_tolerance", "match_alpha", "match_pixels",
-                     "match_pixel_offset", "color_fraction"):
+                     "match_pixel_offset", "color_offset", "color_fraction"):
             self.assertIs(getattr(sample_arguments, name), getattr(validators, name))
 
     def test_invalid_values_are_argument_errors(self):
@@ -31,10 +33,11 @@ class TestSampleValidators(unittest.TestCase):
             (validators.rgb_argument, "１２３456"), (validators.rgb_argument, "12345g"),
             (validators.color_tolerance, "256"), (validators.match_alpha, "-1"),
             (validators.match_pixels, "0"), (validators.match_pixels, "1001"),
-            (validators.match_pixel_offset, "-1"), (validators.color_fraction, "nan"),
+            (validators.match_pixel_offset, "-1"), (validators.color_offset, "-1"),
+            (validators.color_fraction, "nan"),
             (validators.color_fraction, "1.1"), (validators.color_fraction, " 0.5"),
             (validators.match_alpha, "١"), (validators.match_pixels, "1.5"),
-            (validators.match_pixel_offset, "9" * 5000),
+            (validators.match_pixel_offset, "9" * 5000), (validators.color_offset, "9" * 5000),
         )
         for parser, value in cases:
             with self.subTest(parser=parser.__name__, value=value[:20]):
