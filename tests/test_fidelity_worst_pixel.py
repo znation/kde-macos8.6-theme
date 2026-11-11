@@ -16,22 +16,24 @@ from tools.fidelity_metrics import Image, compare  # noqa: E402
 
 class TestWorstPixel(FidelityCliTestCase):
     def test_rgba_delta_first_tie_and_distinct_crop_origins(self):
-        candidate, candidate_png = rgb_image(5, 1, lambda x, y: (9 if x in (1, 3) else 0, 0, 0))
-        reference_png = make_png(6, 1, [bytes(18)])
+        # Equal maxima at source (2, 2) and (4, 2): the first one, crop-relative (1, 1), is reported.
+        _, candidate_png = rgb_image(6, 3, lambda x, y: (9 if y == 2 and x in (2, 4) else 0, 0, 0))
+        reference_png = make_png(7, 4, [bytes(21)] * 4)
         result = self._run_png_pair(candidate_png, reference_png,
-                                    "--candidate-crop", "1,0,3,1", "--crop", "2,0,3,1",
+                                    "--candidate-crop", "1,1,4,2", "--crop", "2,2,4,2",
                                     "--explain-worst", "--json")
         data = json.loads(result.stdout)
         self.assertEqual(data["worst_pixel"], {
-            "position": [0, 0], "candidate_position": [1, 0], "reference_position": [2, 0],
+            "position": [1, 1], "candidate_position": [2, 2], "reference_position": [3, 3],
             "candidate_rgba": [9, 0, 0, 255], "reference_rgba": [0, 0, 0, 255],
             "absolute_delta": [9, 0, 0, 0],
         })
 
-    def test_alpha_only_and_equal_images(self):
-        candidate = Image(2, 1, bytes(6), bytes([200, 200]))
-        reference = Image(2, 1, bytes(6), bytes([255, 255]))
+    def test_alpha_only_against_opaque_rgb_peer_and_equal_images(self):
+        candidate = Image(2, 1, bytes(6), bytes([255, 200]))
+        reference = Image(2, 1, bytes(6))
         explained = explain_worst_pixel(candidate, reference, compare(candidate, reference), None, None)
+        self.assertEqual(explained["position"], [1, 0])
         self.assertEqual(explained["candidate_rgba"], [0, 0, 0, 200])
         self.assertEqual(explained["reference_rgba"], [0, 0, 0, 255])
         self.assertEqual(explained["absolute_delta"], [0, 0, 0, 55])
