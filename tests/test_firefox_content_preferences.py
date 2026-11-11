@@ -61,6 +61,29 @@ from support.platinum_palette import (
 from support.selector_matching import element, matches
 
 
+def assert_palette_declarations(case, selectors, allowed, important=None):
+    """Pin every declaration of each selector in ``selectors``.
+
+    Each declaration's hex tokens must come from ``allowed``. The properties in
+    ``important`` must carry ``!important``; ``None`` means every property must.
+    """
+    for selector in selectors:
+        declarations = case.rules[selector]
+        with case.subTest(selector=selector):
+            case.assertTrue(declarations)
+        for name, value in declarations.items():
+            with case.subTest(property=name):
+                must_be_important = important is None or name in important
+                assert_pinned_value(case, value, allowed, must_be_important)
+
+
+def assert_pinned_value(case, value, allowed, must_be_important):
+    if must_be_important:
+        case.assertIn("!important", value)
+    for token in HEX.findall(value):
+        case.assertIn(token, allowed)
+
+
 class TestFirefoxPreferencesNavTheme(FirefoxContentTestCase):
     AT_RULE_URL = "about:preferences"
 
@@ -222,16 +245,12 @@ class TestFirefoxPreferencesPushButtonsTheme(FirefoxContentTestCase):
                 self.assertNotIn(token, PANE_BUTTON_HOVER)
 
     def test_push_button_rules_use_the_pinned_palette(self):
-        for selector in (PANE_BUTTON, PANE_BUTTON_HOVER):
-            declarations = self.rules[selector]
-            with self.subTest(selector=selector):
-                self.assertTrue(declarations)
-            for name, value in declarations.items():
-                with self.subTest(property=name):
-                    if name in ("background-color", "color", "border", "box-shadow"):
-                        self.assertIn("!important", value)
-                    for token in HEX.findall(value):
-                        self.assertIn(token, {WHITE, BLACK, FACE, BUTTON_SHADOW, SELECTION})
+        assert_palette_declarations(
+            self,
+            (PANE_BUTTON, PANE_BUTTON_HOVER),
+            {WHITE, BLACK, FACE, BUTTON_SHADOW, SELECTION},
+            important={"background-color", "color", "border", "box-shadow"},
+        )
 
     def test_header_names_buttons_provenance(self):
         self.assert_header_names(
@@ -277,16 +296,12 @@ class TestFirefoxPreferencesCheckboxTheme(FirefoxContentTestCase):
                 self.assertNotIn(token, CHECKBOX_GLYPH)
 
     def test_checkbox_rules_use_the_pinned_palette(self):
-        for selector in (CHECKBOX_FACE, CHECKBOX_GLYPH):
-            declarations = self.rules[selector]
-            with self.subTest(selector=selector):
-                self.assertTrue(declarations)
-            for name, value in declarations.items():
-                with self.subTest(property=name):
-                    if name in ("background-color", "border", "box-shadow"):
-                        self.assertIn("!important", value)
-                    for token in HEX.findall(value):
-                        self.assertIn(token, {WHITE, BLACK, FACE, ETCH_DARK})
+        assert_palette_declarations(
+            self,
+            (CHECKBOX_FACE, CHECKBOX_GLYPH),
+            {WHITE, BLACK, FACE, ETCH_DARK},
+            important={"background-color", "border", "box-shadow"},
+        )
 
     def test_checked_glyph_uri_pins_the_checkmarks_glyph(self):
         """Decoding the data URI yields the shipped checkmarks.svg glyph."""
@@ -344,15 +359,7 @@ class TestFirefoxPreferencesRadioTheme(FirefoxContentTestCase):
                 self.assertNotIn(token, RADIO_DOT)
 
     def test_radio_rules_use_the_pinned_palette(self):
-        for selector in (RADIO_FACE, RADIO_DOT):
-            declarations = self.rules[selector]
-            with self.subTest(selector=selector):
-                self.assertTrue(declarations)
-            for name, value in declarations.items():
-                with self.subTest(property=name):
-                    self.assertIn("!important", value)
-                    for token in HEX.findall(value):
-                        self.assertIn(token, {WHITE, BLACK})
+        assert_palette_declarations(self, (RADIO_FACE, RADIO_DOT), {WHITE, BLACK})
 
     def test_selected_dot_uri_pins_the_radiobutton_dot(self):
         """Decoding the data URI yields the shipped checkmarks.svg dot."""
@@ -499,14 +506,7 @@ class TestFirefoxPreferencesFieldsTheme(FirefoxContentTestCase):
             (PANE_MENULIST_HOVER, {SELECTION, BLACK}),
             (PANE_MENULIST_OPEN, {SELECTION, BLACK}),
         ):
-            declarations = self.rules[selector]
-            with self.subTest(selector=selector):
-                self.assertTrue(declarations)
-            for name, value in declarations.items():
-                with self.subTest(property=name):
-                    self.assertIn("!important", value)
-                    for token in HEX.findall(value):
-                        self.assertIn(token, allowed)
+            assert_palette_declarations(self, (selector,), allowed)
 
     def test_header_names_field_provenance(self):
         self.assert_header_names(
