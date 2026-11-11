@@ -581,14 +581,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         for selector in visited:
             self.assertEqual(self.rules[selector], {"color": "#551A8B"})
             self.assertEqual(self.selectors.count(selector), 1)
-        scheme = load_scheme()
-        for role, expected in (("ForegroundLink", "#0000EE"),
-                               ("ForegroundVisited", "#551A8B")):
-            rgb = scheme.get("Colors:Window", role)
-            self.assertEqual(
-                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
-                expected,
-            )
+        self.assert_scheme_link_colours()
         uncommented = gtk_css.strip_comments(self.css)
         self.assertLess(
             uncommented.index(blue[0] + ","),
@@ -725,14 +718,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             for selector in selectors:
                 self.assertEqual(self.rules[selector], {"color": expected})
                 self.assertEqual(self.selectors.count(selector), 1)
-        scheme = load_scheme()
-        for role, expected in (("ForegroundLink", "#0000EE"),
-                               ("ForegroundVisited", "#551A8B")):
-            rgb = scheme.get("Colors:Window", role)
-            self.assertEqual(
-                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
-                expected,
-            )
+        self.assert_scheme_link_colours()
         uncommented = gtk_css.strip_comments(self.css)
         blue_rule = uncommented.index(blue[0] + ",")
         visited_rule = uncommented.index(visited[0] + ",")
@@ -788,14 +774,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             for selector in selectors:
                 self.assertEqual(self.rules[selector], {"color": expected})
                 self.assertEqual(self.selectors.count(selector), 1)
-        scheme = load_scheme()
-        for role, expected in (("ForegroundLink", "#0000EE"),
-                               ("ForegroundVisited", "#551A8B")):
-            rgb = scheme.get("Colors:Window", role)
-            self.assertEqual(
-                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
-                expected,
-            )
+        self.assert_scheme_link_colours()
         uncommented = gtk_css.strip_comments(self.css)
         disabled = uncommented.index(
             "button:link:disabled > label, button:visited:disabled > label {"
@@ -816,14 +795,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             for selector in selectors:
                 self.assertEqual(self.rules[selector], {"color": expected})
                 self.assertEqual(self.selectors.count(selector), 1)
-        scheme = load_scheme()
-        for role, expected in (("ForegroundLink", "#0000EE"),
-                               ("ForegroundVisited", "#551A8B")):
-            rgb = scheme.get("Colors:Window", role)
-            self.assertEqual(
-                "#" + "".join(f"{int(part):02X}" for part in rgb.split(",")),
-                expected,
-            )
+        self.assert_scheme_link_colours()
         uncommented = gtk_css.strip_comments(self.css)
         blue_rule = uncommented.index(blue[0] + ",")
         visited_rule = uncommented.index(visited[0] + ",")

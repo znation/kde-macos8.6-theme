@@ -467,19 +467,13 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(selector, DISABLED_TEXT)
         self._assert_inactive_grey_from_scheme()
 
-    def assert_links(self, button, link, visited, underline):
-        """Assert faceless link buttons and the coloured link text.
+    def assert_scheme_link_colours(self):
+        """Assert the colour scheme carries the GTK link colours in Window.
 
-        *button*, *link* and *visited* are selector tuples; *underline* is the
-        toolkit's underline declaration. Both colours are re-derived from the
-        colour scheme.
+        The sheets pin the link and visited inks to the scheme's Window
+        ForegroundLink and ForegroundVisited roles (Kvantum's link.color and
+        link.visited.color too), so the link suites re-derive both here.
         """
-        for selector in button:
-            self.assert_rule(selector, LINK_BUTTON)
-        for selector in link:
-            self.assert_rule(selector, {**LINK_TEXT, **underline})
-        for selector in visited:
-            self.assert_rule(selector, VISITED_TEXT)
         scheme = load_scheme()
         for key, expected in (
             ("ForegroundLink", LINK),
@@ -489,6 +483,21 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assertEqual(
                 hex_colour([int(part) for part in rgb.split(",")]), expected
             )
+
+    def assert_links(self, button, link, visited, underline):
+        """Assert faceless link buttons and the coloured link text.
+
+        *button*, *link* and *visited* are selector tuples; *underline* is the
+        toolkit's underline declaration. Both colours are re-derived from the
+        colour scheme.
+        """
+        self.assert_scheme_link_colours()
+        for selector in button:
+            self.assert_rule(selector, LINK_BUTTON)
+        for selector in link:
+            self.assert_rule(selector, {**LINK_TEXT, **underline})
+        for selector in visited:
+            self.assert_rule(selector, VISITED_TEXT)
 
     def assert_rubberband(self, selectors):
         """Assert the dotted, unfilled marquee against *selectors*."""
