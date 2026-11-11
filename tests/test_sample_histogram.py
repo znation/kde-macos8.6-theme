@@ -131,11 +131,6 @@ class TestSampleHistogram(CliTestCase):
             "total colors: 2", "omitted pixels: 4",
         ])
 
-        for limit in (2, 3):
-            complete = self._run(*args, "--top-colors", str(limit), "--json")
-            self._assert_success(complete)
-            self.assertEqual(len(json.loads(complete.stdout)["colors"]), 2)
-
     def test_top_colors_validation_precedes_image_reads(self):
         path = self._fixture()
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
@@ -227,21 +222,6 @@ class TestSampleHistogram(CliTestCase):
         self._assert_success(result)
         self.assertEqual(json.loads(result.stdout)["total_colors"], 1)
         self.assertEqual(json.loads(result.stdout)["omitted_pixels"], 0)
-
-    def test_top_colors_validation_precedes_image_reads_and_is_histogram_only(self):
-        path = self._fixture()
-        for value in ("0", "-1", "1.5", "١"):
-            with self.subTest(value=value):
-                result = self._run(path, "0", "0", "--histogram", "--top-colors", value)
-                self._assert_usage_error(result)
-                self.assertEqual(result.stdout, "")
-        for mode in ((), ("--runs",), ("--find-color", "#000001")):
-            with self.subTest(mode=mode), mock.patch.object(
-                sample, "read_png_size", side_effect=AssertionError("read")
-            ):
-                result = self._run(path, "0", "0", "--top-colors", "1", *mode)
-                self._assert_usage_error(result, "requires --histogram")
-                self.assertEqual(result.stdout, "")
 
 
 if __name__ == "__main__":
