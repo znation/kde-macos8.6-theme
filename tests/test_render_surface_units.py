@@ -58,6 +58,7 @@ from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 class TestCapturePaintCheck(unittest.TestCase):
+
     def test_empty_rgb_plane_is_unpainted(self):
         self.assertTrue(render_workflow._capture_is_unpainted(b""))
 
@@ -65,7 +66,89 @@ class TestCapturePaintCheck(unittest.TestCase):
         self.assertFalse(render_workflow._capture_is_unpainted(b"\x00\x00\x01"))
 
 
+def assert_dialog_capture_size(case, flag):
+    """Assert a plain *flag* run delegates a 480x360 capture to the workflow.
+
+    Eleven per-mode tests call this: a plain --*-dialog run must capture at
+    the 480x360 the widget gate byte-compares with the applet id at its
+    default, not the applet render's 320x240 default.
+    """
+    with (
+        mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+        mock.patch.object(render_surface, "output_problem", return_value=None),
+        mock.patch.object(render_surface, "render", return_value=0) as workflow,
+        mock.patch.object(render_surface, "exit_on_termination"),
+    ):
+        render_surface.main(("out.png", flag))
+
+    args = workflow.call_args.args[0]
+    case.assertEqual((480, 360), (args.width, args.height))
+    case.assertEqual("org.kde.plasma.calculator", args.applet)
+
+
+def assert_rejects_applet_with_dialog(case, flag):
+    """Assert *flag* combined with --applet is a usage error naming the flag.
+
+    Thirteen per-mode tests call this: the dialog render opens its own
+    client, so a plasmoid id combined with it has no window to open it in.
+    """
+    status, stderr = call_main(render_surface.main, "out.png", flag, "--applet", "x")
+    case.assertEqual(2, status)
+    case.assertIn(flag, stderr)
+
+
+def assert_rejects_capture_size_with_dialog(case, flag):
+    """Assert *flag* with a custom size is a usage error naming 480x360.
+
+    Thirteen per-mode tests call this: the gate byte-compares the dialog
+    capture at 480x360, so any other size moves the window the pinned
+    comparison crops assume.
+    """
+    status, stderr = call_main(
+        render_surface.main, "out.png", flag, "--height", "240"
+    )
+    case.assertEqual(2, status)
+    case.assertIn(flag, stderr)
+    case.assertIn("480x360", stderr)
+
+
+def assert_two_mode_refusal_names_both(case, flag, partners):
+    """Assert the two-mode refusal names *flag* and each *partner* flag.
+
+    Twelve per-mode tests call this: the refusal lists the flags involved,
+    so a flag missing from that list would print a refusal without its name.
+    """
+    for right in partners:
+        with case.subTest(left=flag, right=right):
+            status, stderr = call_main(render_surface.main, "out.png", flag, right)
+            case.assertEqual(2, status)
+            case.assertIn(flag, stderr)
+            case.assertIn(right, stderr)
+
+
+def assert_dialog_requires_kdialog(case, flag):
+    """Assert a *flag* run with kdialog absent names the tool and exits 2.
+
+    Thirteen per-mode tests call this: with kdialog absent the CLI names it
+    instead of starting a session.
+    """
+    tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+    assert_missing_tool_named(case, render_surface.main, tools, ("out.png", flag))
+
+
+def assert_help_lists_dialog(case, flag):
+    """Assert --help's stdout lists *flag*.
+
+    Seven per-mode tests call this: --help lists every dialog mode, so a
+    flag missing from that help leaves the mode unusable by anyone reading
+    the CLI.
+    """
+    _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
+    case.assertIn(flag, stdout)
+
+
 class TestArguments(unittest.TestCase):
+
     def setUp(self):
         # The applet preflight consults the host's XDG data roots; these
         # delegation tests pin argument handling, not package discovery, so
@@ -127,67 +210,23 @@ class TestArguments(unittest.TestCase):
         self.assertEqual(1.0, args.timeout)
 
     def test_cli_delegates_the_lineedit_dialog_capture_size(self):
-        # A plain --lineedit-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--lineedit-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--lineedit-dialog")
 
     def test_rejects_an_applet_with_the_lineedit_dialog(self):
-        # The dialog render opens its own kdialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assert_usage_error(
-            "out.png", "--lineedit-dialog", "--applet", "x"
-        )
+        assert_rejects_applet_with_dialog(self, "--lineedit-dialog")
 
     def test_rejects_a_capture_size_with_the_lineedit_dialog(self):
-        # The gate byte-compares the dialog capture at 480x360; any other
-        # size makes the pinned crops wrong before the render runs.
-        self.assert_usage_error(
-            "out.png", "--lineedit-dialog", "--height", "240"
-        )
+        assert_rejects_capture_size_with_dialog(self, "--lineedit-dialog")
 
     def test_rejects_two_dialog_modes_names_the_lineedit_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a lineedit mode
-        # flag missing from that list would print a refusal without its name.
-        for left, right in (
-            ("--lineedit-dialog", "--checkbox-dialog"),
-            ("--lineedit-dialog", "--menu-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--lineedit-dialog", ("--checkbox-dialog", "--menu-dialog"))
 
     def test_the_lineedit_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--lineedit-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--lineedit-dialog")
 
     def test_cli_delegates_the_menu_dialog_capture_size(self):
-        # A plain --menu-dialog run captures at the 480x360 the widget gate
-        # byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--menu-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--menu-dialog")
 
     def test_a_single_custom_dimension_keeps_the_other_default(self):
         for option, value, expected in (
@@ -270,48 +309,17 @@ class TestArguments(unittest.TestCase):
         self.assert_usage_error()
 
     def test_cli_delegates_the_slider_dialog_capture_size(self):
-        # A plain --slider-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--slider-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--slider-dialog")
 
     def test_rejects_an_applet_with_the_slider_dialog(self):
-        # The slider mode opens its own kdialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assertIn(
-            "--slider-dialog",
-            self.assert_usage_error("out.png", "--slider-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--slider-dialog")
 
     def test_rejects_a_capture_size_with_the_slider_dialog(self):
-        # The gate byte-compares the slider capture at 480x360; any other
-        # size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--slider-dialog", "--width", "320"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--slider-dialog")
 
     def test_rejects_two_dialog_modes_names_the_slider_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a slider mode
-        # flag missing from that list would print a refusal without its
-        # name.
-        for left, right in (
-            ("--slider-dialog", "--checkbox-dialog"),
-            ("--slider-dialog", "--gtk-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--slider-dialog", ("--checkbox-dialog", "--gtk-dialog"))
 
     def test_the_multi_mode_refusal_wording_holds_for_three_modes(self):
         # Any count over one is refused; the wording must hold when three
@@ -326,312 +334,114 @@ class TestArguments(unittest.TestCase):
             self.assertIn(flag, stderr)
 
     def test_the_slider_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--slider-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--slider-dialog")
 
     def test_cli_delegates_the_progressbar_dialog_capture_size(self):
-        # A plain --progressbar-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--progressbar-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--progressbar-dialog")
 
     def test_rejects_an_applet_with_the_progressbar_dialog(self):
-        # The progressbar mode opens its own dialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assertIn(
-            "--progressbar-dialog",
-            self.assert_usage_error("out.png", "--progressbar-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--progressbar-dialog")
 
     def test_rejects_a_capture_size_with_the_progressbar_dialog(self):
-        # The gate byte-compares the progress meter capture at 480x360; any
-        # other size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--progressbar-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--progressbar-dialog")
 
     def test_rejects_two_dialog_modes_names_the_progressbar_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a progressbar
-        # mode flag missing from that list would print a refusal without
-        # its name.
-        for left, right in (
-            ("--progressbar-dialog", "--checkbox-dialog"),
-            ("--progressbar-dialog", "--gtk-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--progressbar-dialog", ("--checkbox-dialog", "--gtk-dialog"))
 
     def test_the_progressbar_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session;
-        # the progress dialog's helper daemon ships with kdialog, so the
+        # The progress dialog's helper daemon ships with kdialog, so the
         # requirement list still names the package's own tool.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--progressbar-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--progressbar-dialog")
 
     def test_cli_delegates_the_textbox_dialog_capture_size(self):
-        # A plain --textbox-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--textbox-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--textbox-dialog")
 
     def test_rejects_an_applet_with_the_textbox_dialog(self):
-        # The textbox mode opens its own kdialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assertIn(
-            "--textbox-dialog",
-            self.assert_usage_error("out.png", "--textbox-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--textbox-dialog")
 
     def test_rejects_a_capture_size_with_the_textbox_dialog(self):
-        # The gate byte-compares the scrollbar capture at 480x360; any other
-        # size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--textbox-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--textbox-dialog")
 
     def test_rejects_two_dialog_modes_names_the_textbox_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a textbox mode
-        # flag missing from that list would print a refusal without its
-        # name.
-        for left, right in (
-            ("--textbox-dialog", "--checkbox-dialog"),
-            ("--textbox-dialog", "--gtk-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--textbox-dialog", ("--checkbox-dialog", "--gtk-dialog"))
 
     def test_the_textbox_dialog_requires_kdialog(self):
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--textbox-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--textbox-dialog")
 
     def test_the_help_text_names_the_textbox_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--textbox-dialog", stdout)
+        assert_help_lists_dialog(self, "--textbox-dialog")
 
     def test_rejects_an_applet_with_the_checkbox_dialog(self):
-        # The dialog render opens its own kdialog client; a plasmoid id
-        # combined with it would silently draw nothing.
-        self.assertIn(
-            "--checkbox-dialog",
-            self.assert_usage_error("out.png", "--checkbox-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--checkbox-dialog")
 
     def test_rejects_a_capture_size_with_the_checkbox_dialog(self):
-        # The gate byte-compares the dialog capture at 480x360; any other
-        # size moves the KDialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--checkbox-dialog", "--width", "320"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--checkbox-dialog")
 
     def test_rejects_two_dialog_modes(self):
-        # Each dialog mode opens its own kdialog client; two flags cannot
-        # pick one client, so the CLI refuses the combination by name.
-        stderr = self.assert_usage_error(
-            "out.png", "--checkbox-dialog", "--combobox-dialog"
-        )
-        self.assertIn("--checkbox-dialog", stderr)
-        self.assertIn("--combobox-dialog", stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--checkbox-dialog", ("--combobox-dialog",))
 
     def test_rejects_an_applet_with_the_combobox_dialog(self):
-        self.assertIn(
-            "--combobox-dialog",
-            self.assert_usage_error("out.png", "--combobox-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--combobox-dialog")
 
     def test_rejects_a_capture_size_with_the_combobox_dialog(self):
-        stderr = self.assert_usage_error(
-            "out.png", "--combobox-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--combobox-dialog")
 
     def test_the_combobox_dialog_requires_kdialog(self):
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--combobox-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--combobox-dialog")
 
     def test_rejects_an_applet_with_the_menu_dialog(self):
-        # The menu mode opens its own kdialog client; a plasmoid id combined
-        # with it would silently draw nothing.
-        self.assertIn(
-            "--menu-dialog",
-            self.assert_usage_error("out.png", "--menu-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--menu-dialog")
 
     def test_rejects_a_capture_size_with_the_menu_dialog(self):
-        # The gate byte-compares the menu capture at 480x360; any other size
-        # moves the KDialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--menu-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--menu-dialog")
 
     def test_rejects_two_dialog_modes_names_the_menu_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a menu mode flag
-        # missing from that list would print a refusal without its name.
-        for left, right in (
-            ("--menu-dialog", "--checkbox-dialog"),
-            ("--menu-dialog", "--combobox-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--menu-dialog", ("--checkbox-dialog", "--combobox-dialog"))
 
     def test_the_menu_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--menu-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--menu-dialog")
 
     def test_cli_delegates_the_radiolist_dialog_capture_size(self):
-        # A plain --radiolist-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--radiolist-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--radiolist-dialog")
 
     def test_rejects_an_applet_with_the_radiolist_dialog(self):
-        # The radio-list mode opens its own kdialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assertIn(
-            "--radiolist-dialog",
-            self.assert_usage_error("out.png", "--radiolist-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--radiolist-dialog")
 
     def test_rejects_a_capture_size_with_the_radiolist_dialog(self):
-        # The gate byte-compares the radio-list capture at 480x360; any
-        # other size moves the KDialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--radiolist-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--radiolist-dialog")
 
     def test_rejects_two_dialog_modes_names_the_radiolist_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a radio-list
-        # mode flag missing from that list would print a refusal without
-        # its name.
-        for left, right in (
-            ("--radiolist-dialog", "--checkbox-dialog"),
-            ("--radiolist-dialog", "--menu-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--radiolist-dialog", ("--checkbox-dialog", "--menu-dialog"))
 
     def test_the_radiolist_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--radiolist-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--radiolist-dialog")
 
     def test_the_help_text_names_the_radiolist_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--radiolist-dialog", stdout)
+        assert_help_lists_dialog(self, "--radiolist-dialog")
 
     def test_cli_delegates_the_calendar_dialog_capture_size(self):
-        # A plain --calendar-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--calendar-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--calendar-dialog")
 
     def test_rejects_an_applet_with_the_calendar_dialog(self):
-        # The calendar mode opens its own kdialog client; a plasmoid id
-        # combined with it would silently draw nothing.
-        self.assertIn(
-            "--calendar-dialog",
-            self.assert_usage_error("out.png", "--calendar-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--calendar-dialog")
 
     def test_rejects_a_capture_size_with_the_calendar_dialog(self):
-        # The gate byte-compares the calendar capture at 480x360; any other
-        # size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--calendar-dialog", "--height", "240"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--calendar-dialog")
 
     def test_rejects_two_dialog_modes_names_the_calendar_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a calendar mode
-        # flag missing from that list would print a refusal without its
-        # name.
-        for left, right in (
-            ("--calendar-dialog", "--checkbox-dialog"),
-            ("--calendar-dialog", "--gtk-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--calendar-dialog", ("--checkbox-dialog", "--gtk-dialog"))
 
     def test_the_calendar_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--calendar-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--calendar-dialog")
 
     def test_the_help_text_names_the_calendar_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--calendar-dialog", stdout)
+        assert_help_lists_dialog(self, "--calendar-dialog")
 
     def test_usage_docstring_names_every_dialog_mode_the_parser_defines(self):
         # The module docstring's Usage block is the CLI contract a reader
@@ -653,230 +463,85 @@ class TestArguments(unittest.TestCase):
         )
 
     def test_cli_delegates_the_color_dialog_capture_size(self):
-        # A plain --color-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--color-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--color-dialog")
 
     def test_rejects_an_applet_with_the_color_dialog(self):
-        # The color mode opens its own kdialog client; a plasmoid id
-        # combined with it would silently draw nothing.
-        self.assertIn(
-            "--color-dialog",
-            self.assert_usage_error("out.png", "--color-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--color-dialog")
 
     def test_rejects_a_capture_size_with_the_color_dialog(self):
-        # The gate byte-compares the color capture at 480x360; any other
-        # size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--color-dialog", "--width", "320"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--color-dialog")
 
     def test_rejects_two_dialog_modes_names_the_color_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a color mode
-        # flag missing from that list would print a refusal without its
-        # name.
-        for left, right in (
-            ("--color-dialog", "--checkbox-dialog"),
-            ("--color-dialog", "--gtk-dialog"),
-            ("--calendar-dialog", "--color-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--color-dialog", ("--checkbox-dialog", "--gtk-dialog", "--calendar-dialog"))
 
     def test_the_color_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--color-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--color-dialog")
 
     def test_the_help_text_names_the_color_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--color-dialog", stdout)
+        assert_help_lists_dialog(self, "--color-dialog")
 
     def test_cli_delegates_the_icon_dialog_capture_size(self):
-        # A plain --icon-dialog run captures at the 480x360 the widget
-        # gate byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--icon-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--icon-dialog")
 
     def test_rejects_an_applet_with_the_icon_dialog(self):
-        # The icon mode opens its own kdialog client; a plasmoid id
-        # combined with it would silently draw nothing.
-        self.assertIn(
-            "--icon-dialog",
-            self.assert_usage_error("out.png", "--icon-dialog", "--applet", "x"),
-        )
+        assert_rejects_applet_with_dialog(self, "--icon-dialog")
 
     def test_rejects_a_capture_size_with_the_icon_dialog(self):
-        # The gate byte-compares the icon capture at 480x360; any other
-        # size moves the dialog window the comparison crops assume.
-        stderr = self.assert_usage_error(
-            "out.png", "--icon-dialog", "--width", "320"
-        )
-        self.assertIn("480x360", stderr)
+        assert_rejects_capture_size_with_dialog(self, "--icon-dialog")
 
     def test_rejects_two_dialog_modes_names_the_icon_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so an icon mode
-        # flag missing from that list would print a refusal without its
-        # name.
-        for left, right in (
-            ("--icon-dialog", "--checkbox-dialog"),
-            ("--icon-dialog", "--gtk-dialog"),
-            ("--color-dialog", "--icon-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--icon-dialog", ("--checkbox-dialog", "--gtk-dialog", "--color-dialog"))
 
     def test_the_icon_dialog_requires_kdialog(self):
-        # With kdialog absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--icon-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--icon-dialog")
 
     def test_the_help_text_names_the_icon_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--icon-dialog", stdout)
+        assert_help_lists_dialog(self, "--icon-dialog")
 
     def test_the_checkbox_dialog_requires_kdialog(self):
-        # The default applet render cannot need every tool the dialog mode
-        # needs, so the dialog requirement is refused per mode: with kdialog
-        # absent the CLI names it instead of starting a session.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--checkbox-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--checkbox-dialog")
 
     def test_cli_delegates_the_inactive_dialog_capture_size(self):
-        # A plain --inactive-dialog run captures at the 480x360 dialog
-        # default, like every one-window dialog mode.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--inactive-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--inactive-dialog")
 
     def test_rejects_an_applet_with_the_inactive_dialog(self):
-        # The two-window client opens its own dialogs; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assert_usage_error("out.png", "--inactive-dialog", "--applet", "x")
+        assert_rejects_applet_with_dialog(self, "--inactive-dialog")
 
     def test_rejects_a_capture_size_with_the_inactive_dialog(self):
-        # The capture stays at the 480x360 the dialog render publishes;
-        # the forced-geometry rules are derived for that size.
-        self.assert_usage_error("out.png", "--inactive-dialog", "--height", "240")
+        assert_rejects_capture_size_with_dialog(self, "--inactive-dialog")
 
     def test_rejects_two_dialog_modes_names_the_inactive_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a missing name
-        # would print a refusal without the inactive flag in it.
-        for left, right in (
-            ("--inactive-dialog", "--checkbox-dialog"),
-            ("--inactive-dialog", "--gtk-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--inactive-dialog", ("--checkbox-dialog", "--gtk-dialog"))
 
     def test_the_inactive_dialog_requires_kdialog(self):
-        # Both windows of the two-window client are kdialog message boxes,
-        # so the mode's client tool is kdialog.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--inactive-dialog")
-        )
+        # Both windows of the two-window client are kdialog message
+        # boxes, so the mode's client tool is kdialog.
+        assert_dialog_requires_kdialog(self, "--inactive-dialog")
 
     def test_the_help_text_names_the_inactive_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--inactive-dialog", stdout)
+        assert_help_lists_dialog(self, "--inactive-dialog")
 
     def test_cli_delegates_the_file_dialog_capture_size(self):
-        # A plain --file-dialog run captures at the 480x360 the widget gate
-        # byte-compares, not the applet's 320x240 default.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--file-dialog"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((480, 360), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_dialog_capture_size(self, "--file-dialog")
 
     def test_rejects_an_applet_with_the_file_dialog(self):
-        # The file chooser opens its own kdialog client; a plasmoid id
-        # combined with it has no window to open it in.
-        self.assert_usage_error("out.png", "--file-dialog", "--applet", "x")
+        assert_rejects_applet_with_dialog(self, "--file-dialog")
 
     def test_rejects_a_capture_size_with_the_file_dialog(self):
-        # The capture stays at the 480x360 the dialog render publishes.
-        self.assert_usage_error("out.png", "--file-dialog", "--height", "240")
+        assert_rejects_capture_size_with_dialog(self, "--file-dialog")
 
     def test_rejects_two_dialog_modes_names_the_file_dialog_too(self):
-        # The two-mode refusal lists the flags involved, so a missing name
-        # would print a refusal without the file-dialog flag in it.
-        for left, right in (
-            ("--file-dialog", "--checkbox-dialog"),
-            ("--file-dialog", "--inactive-dialog"),
-        ):
-            with self.subTest(left=left, right=right):
-                stderr = self.assert_usage_error("out.png", left, right)
-                self.assertIn(left, stderr)
-                self.assertIn(right, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--file-dialog", ("--checkbox-dialog", "--inactive-dialog"))
 
     def test_the_file_dialog_requires_kdialog(self):
-        # The file chooser is kdialog's --getopenfilename client, so the
-        # mode's client tool is kdialog.
-        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--file-dialog")
-        )
+        assert_dialog_requires_kdialog(self, "--file-dialog")
 
     def test_the_help_text_names_the_file_dialog(self):
-        # --help lists every dialog mode; a flag missing from that help
-        # would leave the mode unusable by anyone reading the CLI.
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--file-dialog", stdout)
+        assert_help_lists_dialog(self, "--file-dialog")
 
 
 class TestAppletPreflight(unittest.TestCase):
