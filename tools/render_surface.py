@@ -43,6 +43,7 @@ if __package__:
     )
     from tools.diagnostics import report_error, report_missing_tool
     from tools.process_group import exit_on_termination
+    from tools.render_dialogs import DIALOG_MODES
     from tools.render_output import output_problem
     from tools.render_workflow import render
 else:  # run directly: python3 tools/render_surface.py
@@ -53,6 +54,7 @@ else:  # run directly: python3 tools/render_surface.py
     )
     from diagnostics import report_error, report_missing_tool
     from process_group import exit_on_termination
+    from render_dialogs import DIALOG_MODES
     from render_output import output_problem
     from render_workflow import render
 
@@ -119,118 +121,8 @@ def main(argv: list[str] | None = None) -> int:
         default=_DEFAULT_APPLET,
         help=f"plasmoid id to open (default {_DEFAULT_APPLET})",
     )
-    parser.add_argument(
-        "--checkbox-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog warning box whose dontagain check box the Kvantum "
-            "engine draws with the theme's checkbox art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--combobox-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog chooser whose combo box the Kvantum engine draws "
-            "with the theme's comboarrow art, and capture it at the 480x360 "
-            "size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--lineedit-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog input box whose line edit the Kvantum engine "
-            "draws with the theme's sunken-field art, and capture it at the "
-            "480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--menu-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog menu list whose item-view frame the Kvantum "
-            "engine draws with the theme's GenericFrame art, and capture it "
-            "at the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--radiolist-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog radio list whose sunken list field, selected- "
-            "row selection band and checked and unchecked radio indicators "
-            "the Kvantum engine draws with the theme's palette and radio "
-            "art, and capture it at the 480x360 size the widget gate "
-            "byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--calendar-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog calendar whose day table the Kvantum engine "
-            "paints with the theme's colorscheme palette, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--color-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog color picker whose swatch grid, line edits and "
-            "push buttons the Kvantum engine draws with the theme's palette "
-            "and art, and capture it at the 480x360 size the widget gate "
-            "byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--progressbar-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog progress meter whose at-rest trough the Kvantum "
-            "engine draws with the theme's progress art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--slider-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog slider whose QSlider the Kvantum engine draws "
-            "with the theme's slider and slidercursor art, and capture it "
-            "at the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--textbox-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog text box whose vertical scrollbar the Kvantum "
-            "engine draws with the theme's scrollbar art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--gtk-dialog",
-        action="store_true",
-        help=(
-            "open a zenity text-entry dialog whose content-area GtkEntry the "
-            "GTK 4 toolkit draws with the published theme selection, and "
-            "capture it at the 480x360 size the widget gate byte-compares"
-        ),
-    )
-    parser.add_argument(
-        "--icon-dialog",
-        action="store_true",
-        help=(
-            "open a KDialog icon chooser whose sunken icon-list field, search "
-            "field and push buttons the Kvantum engine draws with the theme's "
-            "palette and art, and capture it at the 480x360 size the widget "
-            "gate byte-compares"
-        ),
-    )
+    for mode in DIALOG_MODES:
+        parser.add_argument(mode.flag, action="store_true", help=mode.help)
     parser.add_argument(
         "--width",
         type=positive_int("--width"),
@@ -260,22 +152,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     dialog_flags = [
-        flag
-        for flag, given in (
-            ("--checkbox-dialog", args.checkbox_dialog),
-            ("--combobox-dialog", args.combobox_dialog),
-            ("--lineedit-dialog", args.lineedit_dialog),
-            ("--menu-dialog", args.menu_dialog),
-            ("--radiolist-dialog", args.radiolist_dialog),
-            ("--calendar-dialog", args.calendar_dialog),
-            ("--color-dialog", args.color_dialog),
-            ("--icon-dialog", args.icon_dialog),
-            ("--progressbar-dialog", args.progressbar_dialog),
-            ("--slider-dialog", args.slider_dialog),
-            ("--textbox-dialog", args.textbox_dialog),
-            ("--gtk-dialog", args.gtk_dialog),
-        )
-        if given
+        mode.flag for mode in DIALOG_MODES if getattr(args, mode.attr)
     ]
     if len(dialog_flags) > 1:
         parser.error(
@@ -313,17 +190,10 @@ def main(argv: list[str] | None = None) -> int:
 
     # Each dialog flag requires its own client by name, so the first missing
     # tool the diagnostic names is the client the requested mode opens.
-    kdialog_flags = (
-        args.checkbox_dialog or args.combobox_dialog or args.lineedit_dialog
-        or args.menu_dialog or args.radiolist_dialog or args.calendar_dialog
-        or args.color_dialog or args.icon_dialog or args.progressbar_dialog
-        or args.slider_dialog or args.textbox_dialog
-    )
     dialog_clients: tuple[str, ...] = ()
-    if kdialog_flags:
-        dialog_clients += ("kdialog",)
-    if args.gtk_dialog:
-        dialog_clients += ("zenity",)
+    for mode in DIALOG_MODES:
+        if getattr(args, mode.attr) and mode.client_tool not in dialog_clients:
+            dialog_clients += (mode.client_tool,)
     requirements = REQUIRED_TOOLS + dialog_clients
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:

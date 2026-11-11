@@ -11,20 +11,7 @@ if __package__:
     from tools.process_group import run_logged
     from tools.render_output import publish
     from tools.gtk_user_files import ConfigError
-    from tools.render_clients import (
-        checkbox_dialog_client,
-        combobox_dialog_client,
-        color_dialog_client,
-        gtk_dialog_client,
-        icon_dialog_client,
-        lineedit_dialog_client,
-        menu_dialog_client,
-        radio_dialog_client,
-        calendar_dialog_client,
-        progressbar_dialog_client,
-        slider_dialog_client,
-        textbox_dialog_client,
-    )
+    from tools.render_dialogs import DIALOG_MODES
     from tools.render_session import Session, session_command
     from tools.render_setup import (
         CONFIG_FILES,
@@ -41,20 +28,7 @@ else:  # run directly from render_surface.py
     from process_group import run_logged
     from render_output import publish
     from gtk_user_files import ConfigError
-    from render_clients import (
-        checkbox_dialog_client,
-        combobox_dialog_client,
-        color_dialog_client,
-        gtk_dialog_client,
-        icon_dialog_client,
-        lineedit_dialog_client,
-        menu_dialog_client,
-        radio_dialog_client,
-        calendar_dialog_client,
-        progressbar_dialog_client,
-        slider_dialog_client,
-        textbox_dialog_client,
-    )
+    from render_dialogs import DIALOG_MODES
     from render_session import Session, session_command
     from render_setup import (
         CONFIG_FILES,
@@ -79,48 +53,34 @@ def _dialog_config_files() -> tuple[str, ...]:
     return CONFIG_FILES + ("kdeglobals",)
 
 
-def _dialog_clients() -> tuple[tuple[str, object], ...]:
-    """Each dialog flag paired with its client factory, in precedence order."""
-    return (
-        ("checkbox_dialog", checkbox_dialog_client),
-        ("combobox_dialog", combobox_dialog_client),
-        ("lineedit_dialog", lineedit_dialog_client),
-        ("menu_dialog", menu_dialog_client),
-        ("radiolist_dialog", radio_dialog_client),
-        ("calendar_dialog", calendar_dialog_client),
-        ("color_dialog", color_dialog_client),
-        ("icon_dialog", icon_dialog_client),
-        ("progressbar_dialog", progressbar_dialog_client),
-        ("slider_dialog", slider_dialog_client),
-        ("textbox_dialog", textbox_dialog_client),
-        ("gtk_dialog", gtk_dialog_client),
-    )
-
-
 def _dialog_requested(args: argparse.Namespace) -> bool:
     """Return whether any dialog render mode was selected on the command line."""
-    return any(getattr(args, flag) for flag, _ in _dialog_clients())
+    return any(getattr(args, mode.attr) for mode in DIALOG_MODES)
 
 
 def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
-    """Return the client command for the first dialog flag set, else the applet."""
-    for flag, factory in _dialog_clients():
-        if getattr(args, flag):
-            return list(factory(session))
+    """Return the client command for the dialog flag set, else the applet."""
+    for mode in DIALOG_MODES:
+        if getattr(args, mode.attr):
+            return list(mode.client(session))
     return ["plasmawindowed", args.applet]
 
 
 def _select_dialog_theme(session: Session, args: argparse.Namespace) -> int | None:
     """Select the theme for a dialog render; return a failure report, or None.
 
-    Every dialog mode writes the Kvantum selection; the GTK dialog mode also
-    installs the GTK selection.
+    Every dialog mode writes the Kvantum selection; a mode whose client runs
+    zenity also installs the GTK selection.
     """
     try:
         write_kvantum_selection(session)
     except OSError as exc:
         return report_failure(TOOL, f"cannot write the Kvantum selection: {exc}")
-    if args.gtk_dialog:
+    if any(
+        getattr(args, mode.attr)
+        for mode in DIALOG_MODES
+        if mode.client_tool == "zenity"
+    ):
         try:
             install_gtk_selection(session)
         except (OSError, ConfigError) as exc:
