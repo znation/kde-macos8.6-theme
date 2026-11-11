@@ -164,6 +164,10 @@ class TestRejectsNonBytesInput(unittest.TestCase):
                      image_format.other_image_format,
                      image_format.image_stream_format,
                      complete_head, complete_tail):
+            # is_complete reports its own public name for both arguments;
+            # the two closures only carry which argument was bad.
+            raising_name = ("is_complete" if func is complete_head
+                            or func is complete_tail else func.__name__)
             for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
                 with self.subTest(func=func.__name__, bad=bad):
                     with self.assertRaises(ValueError) as ctx:
@@ -173,7 +177,7 @@ class TestRejectsNonBytesInput(unittest.TestCase):
                     # detector's name cannot pass unnoticed.
                     self.assertEqual(
                         str(ctx.exception),
-                        f"{func.__name__} data must be bytes or "
+                        f"{raising_name} data must be bytes or "
                         f"bytearray, not {type(bad).__name__}",
                     )
 
