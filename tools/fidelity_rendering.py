@@ -25,6 +25,10 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     for key, label in (("candidate_crop", "candidate"), ("reference_crop", "reference")):
         crop = result[key]
         if crop is not None:
+            # The size line names the cropped size but not the rectangle it
+            # came from, so a transcript could not be replayed without the
+            # original --crop argument. Echo it; the fields are plain ints
+            # from parse_crop, so no escaping is needed.
             lines.append(f"{label} crop: " + ",".join(map(str, crop)))
     lines.append(f"pixels compared: {metrics['pixels']}")
     lines.append(f"mean absolute error: {metrics['mae']:.4f}")

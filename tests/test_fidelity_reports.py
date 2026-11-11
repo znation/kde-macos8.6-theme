@@ -1,8 +1,9 @@
 """Tests for fidelity report assembly and rendering.
 
-The module holds the comparison report's shape -- the budget-to-verdict
-rule, the source-position translation, the JSON object and the text lines --
-while ``tools/fidelity.py`` reads and compares. These tests drive the report
+The report's shape -- the budget-to-verdict rule and the
+source-position translation -- lives in ``tools/fidelity_reports.py``,
+its text and JSON rendering in ``tools/fidelity_rendering.py``, while
+``tools/fidelity.py`` reads and compares. These tests drive the report
 functions with explicit values (metrics records, hand-built worst records,
 images built by the fixtures), so each pins one rendering decision without
 exercising the reads or the comparison the CLI is otherwise covered by.
