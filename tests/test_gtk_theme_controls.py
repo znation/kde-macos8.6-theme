@@ -125,8 +125,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             {
                 "progressbar.horizontal trough": {"min-height": "10px"},
                 "progressbar.vertical trough": {"min-width": "10px"},
-                "progressbar.horizontal progress": {"margin": "0"},
-                "progressbar.vertical progress": {"margin": "0"},
+                "progressbar.horizontal progress": {"margin": "0", "min-height": "10px"},
+                "progressbar.vertical progress": {"margin": "0", "min-width": "10px"},
                 "progressbar progress.left": {"border-radius": "0"},
                 "progressbar progress.right": {"border-radius": "0"},
                 "progressbar progress.top": {"border-radius": "0"},
@@ -649,6 +649,63 @@ assert strip == ["#CCCCFF"] * 2, strip
 assert at(30, bottom - 3) == "#FFFFFF", at(30, bottom - 3)
 assert at(90, bottom - 1) == "#FFFFFF", at(90, bottom - 1)
 print("entry progress: the 0.5 fraction leaves the #CCCCFF strip one and two pixels above the bottom border, #FFFFFF below it")
+'''
+        )
+        self._run_gtk_child(program, str(CSS))
+
+    def test_progressbar_fill_spans_the_trough(self):
+        # GTK 3 centres a fill of its own preferred size in the trough, so
+        # the oriented fill rules' min-height/min-width is what makes the
+        # fill span the trough interior. Each bar renders in its own
+        # offscreen window; see _run_gtk_child for why this runs in a child.
+        program = (
+            "\nimport re\n"
+            + _GTK3_CHILD_HEAD
+            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+
+def render(bar, width, height, sensitive=True):
+    window = Gtk.OffscreenWindow()
+    bar.set_fraction(0.5)
+    bar.set_sensitive(sensitive)
+    window.add(bar)
+    window.set_default_size(width, height)
+    window.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+    pixbuf = window.get_pixbuf()
+    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+    window.destroy()
+
+    def at(x, y):
+        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+    return at
+
+def column(at, x, ys):
+    return [at(x, y) for y in ys]
+
+def row(at, y, xs):
+    return [at(x, y) for x in xs]
+
+BLACK, FILL, GREY, FACE = "#000000", "#CCCCFF", "#999999", "#EEEEEE"
+
+at = render(Gtk.ProgressBar(), 100, 10)
+assert column(at, 25, range(12)) == [BLACK] + [FILL] * 10 + [BLACK], column(at, 25, range(12))
+assert column(at, 75, range(12)) == [BLACK, GREY] + [FACE] * 9 + [BLACK], column(at, 75, range(12))
+
+at = render(Gtk.ProgressBar(), 100, 10, sensitive=False)
+assert column(at, 25, range(1, 11)) == [GREY] * 10, column(at, 25, range(1, 11))
+assert column(at, 75, range(12)) == [BLACK, GREY] + [FACE] * 9 + [BLACK], column(at, 75, range(12))
+
+at = render(Gtk.ProgressBar(orientation=Gtk.Orientation.VERTICAL), 12, 100)
+assert row(at, 25, range(1, 11)) == [FILL] * 10, row(at, 25, range(1, 11))
+assert row(at, 75, range(1, 11)) == [GREY] + [FACE] * 9, row(at, 75, range(1, 11))
+print("progress bar: the 0.5 fill spans trough rows 1-10 and columns 1-10 on the horizontal and vertical bars")
 '''
         )
         self._run_gtk_child(program, str(CSS))

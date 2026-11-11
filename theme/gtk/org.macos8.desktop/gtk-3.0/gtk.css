@@ -1167,10 +1167,14 @@ progressbar progress:disabled {
    user-sheet source order wins each equal-specificity tie; every
    spelling is new to this sheet. Arms that stay out of the restatement,
    with reasons: the orientation-minimum arms' two comma-group fill
-   members — a minimum floor over a fill whose natural allocation already
-   spans the trough, and the landed `progressbar progress` recipe
-   declares no minimum at all, so there is no landed value to restate
-   per-property; the base line-1451 corner arm — equal specificity with
+   members — the fill's own minimum is now declared by the oriented
+   `progressbar.horizontal progress` (min-height: 10px) and
+   `progressbar.vertical progress` (min-width: 10px) rules: a 100×10
+   offscreen render measured 2026-11-11 showed GTK 3 centring a fill of
+   its own preferred size in the trough (rows 4–7 of 10 interior rows),
+   so the minimum makes the fill span the trough's 10px interior, and
+   the landed `progressbar progress` recipe declares no minimum at all,
+   so there is no landed value to restate per-property; the base line-1451 corner arm — equal specificity with
    the landed `progressbar progress` group's square radius, which wins
    the per-property source-order tie, so nothing repaints; the
    line-1467 trough-empty fill erase arm — erases the fill node only
@@ -1202,10 +1206,12 @@ progressbar.vertical trough {
 
 progressbar.horizontal progress {
   margin: 0;
+  min-height: 10px;
 }
 
 progressbar.vertical progress {
   margin: 0;
+  min-width: 10px;
 }
 
 progressbar progress.left {
