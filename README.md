@@ -1406,6 +1406,7 @@ reference screenshot and reports mean absolute error, per-channel mean absolute 
 differing pixels.
 Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
 surface region of the reference.
+If a comparison refuses to run, see [Troubleshooting a comparison](#troubleshooting-a-comparison).
 A JPEG candidate or reference is decoded once through ImageMagick's `convert` into a
 private temporary PNG before the comparison, so the reference set's JPEG screenshots are
 comparable directly; other non-PNG formats keep the decode refusal.
@@ -1498,6 +1499,22 @@ For another surface, choose corresponding rectangles independently in the two im
 have equal dimensions. `aboutsystem_betawiki.png` is the documented beta window-chrome proxy:
 its relevant chrome is pixel-identical to the retail reference, as pinned by the
 retail-equivalence test. It is not general evidence for retail palette values.
+
+### Troubleshooting a comparison
+
+| Symptom | Check and next action |
+| --- | --- |
+| The reference is an unmaterialized Git LFS pointer. | Follow [Validating the reference set](#validating-the-reference-set) to install Git LFS and materialize the image. |
+| An input is missing or unreadable. | Check the path named in the diagnostic and confirm the file is readable. |
+| A JPEG input is refused because `convert` is unavailable. | Install ImageMagick and verify `convert` is on `PATH`. |
+| A PNG is refused during decoding. | Inspect the named image and provide a valid supported PNG input. |
+| A crop extends beyond its image. | Correct that source's crop coordinates; see [Comparing a region](#comparing-a-region) for the two crop options. |
+| The cropped images have different sizes. | Choose corresponding equal-size regions using [Comparing a region](#comparing-a-region). |
+
+A completed comparison returns 0 when it passes and 1 when it reports a mismatch; use
+[Choosing a diagnostic](#choosing-a-diagnostic) to inspect a mismatch. Usage and input
+refusals return 2. `--quiet` suppresses comparison reports, so omit it when you need to see
+the mismatch details. Direct CLI statuses differ from Make's recipe-failure status.
 
 Add mismatch locations and RGBA values in JSON with:
 

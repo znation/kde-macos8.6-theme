@@ -91,8 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-
-
 ### GTK 4 suite extraction, part 9/9: isolate calendar declarations (planned 2026-11-11 by the plan role; "requires part 1/9 landed")
 
 **Goal.** Establish one complete declaration-surface suite alongside the probe moves; this part is independent of parts 2–8.
@@ -100,16 +98,6 @@ recorded here to keep the scope deliberate.
 **Approach and files.** Move the declaration methods whose names start `test_calendar` from `TestGtk4Theme` into new `tests/test_gtk4_calendar.py::TestGtk4Calendar(Gtk4SheetRuleCases, unittest.TestCase)`, importing their constants from `support/gtk4_sheet.py` and existing palette/spec modules. Move `TestCalendarDisabledGreyReference` whole into that module with its reference imports. Preserve method bodies and class reference limits. Update the moved anchors in `docs/invariants.md`, prune unused original-module imports, and leave the scrollbar reference class and its calendar-color cross-check where they are. Keep the original module for the remaining surfaces; do not rewrite historical `PLANS-DONE.md` records or promise removal of every old path mention.
 
 **Acceptance.** Calendar declaration and disabled-grey reference methods each appear once under the new module in discovery, retain their assertion bodies and reference coordinates, and pass or report the same missing-reference skip as before. Existing non-calendar tests remain discoverable. The invariants checker resolves the calendar anchors, and `make check` passes. No stylesheet or production behavior changes.
-
-### README fidelity troubleshooting: distinguish mismatches from input refusals (planned 2026-11-11 by the plan role)
-
-**Goal.** Give contributors a short corrective path when a comparison cannot run, alongside the existing aligned-crop and diagnostic-selection guides. This is independent of the waiting GTK 4 calendar extraction and pending scrollbar extraction.
-
-**Approach and files.** Edit README.md only, outside the brief. Insert `### Troubleshooting a comparison` between Comparing a region and Choosing a diagnostic, and link it from the Fidelity checking introduction. Add a compact symptom/action table for an unmaterialized LFS pointer (link Validating the reference set), a missing or unreadable input (check the named path), missing JPEG `convert` (install ImageMagick and check PATH), a rejected PNG decode (inspect the named image and obtain a valid supported input), an out-of-image crop (correct that source's crop coordinates), and a size mismatch (choose corresponding equal-size regions using Comparing a region). Explain that a completed failing comparison returns 1 and should lead to Choosing a diagnostic; usage/read refusals return 2, while a passing comparison returns 0. Explain that `--quiet` suppresses comparison reports, so omit it to inspect a mismatch; retain the documented distinction between direct CLI statuses and Make's recipe-failure status. Do not advise raising thresholds as a repair for input errors. No runtime change or prose-pinning test is needed.
-
-**Grounding.** `tools/fidelity.py::main` selects statuses and suppresses reports under `quiet`; `tools/fidelity_sources.py::read_source` dispatches PNG/JPEG loading; `tools/jpeg_convert.py::convert_jpeg` diagnoses missing ImageMagick; `tools/png/loader.py` names read/decode and LFS problems. `tools/fidelity_geometry.py::crop` rejects overflowing rectangles and `tools/fidelity_metrics.py::compare` rejects unequal dimensions. These are evidence anchors, not implementation targets. Archived README fidelity plans cover aligned crops, the report-selection table and its links, rather than this corrective guide; the existing render and sampler troubleshooting sections concern different CLIs.
-
-**Acceptance criteria.** A reader encountering each listed symptom gets a concrete next action and a resolving link where another section supplies the procedure. A mismatch with status 1 is described as a completed comparison, distinct from status-2 refusals; removing `--quiet` is identified as the way to see its report. The guide directs size errors to equal-size corresponding crops without implying image resizing or threshold changes fix them. Existing comparison examples and diagnostic reference remain available. Run `make check` after the final edit; the existing `TestReadmeCommands` and `TestReadmeLinks` checks validate documented paths and local fragments without opening GUI windows.
 
 ### README fidelity chooser: expose distribution and channel tuning reports (planned 2026-11-11 by the plan role)
 
@@ -132,7 +120,6 @@ recorded here to keep the scope deliberate.
 **Acceptance.** Discovery finds `test_progressbar_faces_render` once at the new dotted ID and no longer at the old one; its AST body and embedded child program match the original. Without GUI opt-in the moved probe skips, with no desktop window. The documented isolated Xvfb invocation, adapted to this new ID, either exercises the same assertions or reports the existing capability skip. The invariants checker resolves its moved anchors and `make check` passes. No probe-prelude extraction or pixel changes are part of this move.
 
 **Completion and verification.** The probe moved intact to its standalone unittest class; the invariant anchor and isolated README invocation use the new ID. Focused unittest discovery without GUI opt-in found the new test and skipped before launching a child; the old module no longer defines it. The child source, environment, timeout and pixel assertions are unchanged. Xvfb is unavailable here, so the isolated render invocation was not executed; no new rendered-pixel verification is claimed. Tumwater owns the full project check.
-
 
 ### Reference-pixel sampler: select named colors in scanline runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
