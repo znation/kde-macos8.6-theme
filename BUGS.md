@@ -328,6 +328,10 @@ The post-merge review of commit `555117b2579b16d032e3a68822e03e17bd1b8b29` (Add 
 
 The post-merge review of commit `51e352d5a485dff9b1c7d03b8b580244cdcec5be` (Add signed per-channel bias reporting to the fidelity CLI) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 556d3377 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `556d3377b3939b31f9eb0298794a95a3c38f03b4` (Add signed RGBA channel-bias diagnostics to fidelity reports) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
