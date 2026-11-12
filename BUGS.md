@@ -2480,6 +2480,10 @@ The post-merge review of commit `b3063c3a0722baf1eab79a1a590682ba1be5ede5` (Docu
 
 The post-merge review of commit `c5319afd78bca6e8ef351471884e71256a9cf70e` (Restate GTK 4 solid-csd shells with the inset Aurorae outline ring) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2d8ee9fc never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `2d8ee9fcc68714dceb3e5bda4179a4e7d583b306` (Document the PNG fixture test classes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
