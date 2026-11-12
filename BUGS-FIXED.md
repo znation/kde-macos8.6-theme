@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 2c699158 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `2c699158366a181189a5a0485597813534def357`: all four add-color overlay states declare `box-shadow: none`; `test_add_color_box_shadows` pins those states, and the existing image-reset and square-corner checks retain their declarations. The GTK invariant names the missing reference surface, toolkit resource provenance and declaration-test limitation. No defect found in the reviewed change.
+
+**Validation gap:** none — the existing declaration checks cover the change, and source inspection confirmed the invariant and four-state selector group.
+
 ### post-merge review of 57a8984e never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `57a8984e37e3074a46798216af2b0bab3caa35bf`: the base `button.color colorswatch:only-child` rule clears the decorative shadow, its exact declaration test pins the reset, the swatch corner selector inventory includes the rule, and the GTK invariant records the missing reference surface and toolkit resource provenance. The change preserves swatch color and geometry and limits its guarantee to declarations.
