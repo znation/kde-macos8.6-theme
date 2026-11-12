@@ -243,7 +243,7 @@ ZOOM_OUT_GRID = (
     "                ",
 )
 
-# The context-menu pointer is the landed arrow at exactly ``ARROW_GRID``'s
+# The context-menu pointer is the existing arrow at exactly ``ARROW_GRID``'s
 # cells plus a black-bordered menu panel beside the tail, with two black text
 # bars and the shared one-cell white outline round its walls; its hotspot is
 # the arrow tip.

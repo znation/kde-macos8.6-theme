@@ -92,7 +92,7 @@ def write_kvantum_selection(session: Session) -> None:
 def install_gtk_selection(session: Session) -> None:
     """Select the GTK themes in the scratch config home for GTK clients.
 
-    This is the landed ``apply-gtk`` selection transaction pointed at the
+    This is the existing ``apply-gtk`` selection transaction pointed at the
     scratch homes: both installed sheets must exist below the scratch data
     home, and ``apply`` publishes the settings theme-name keys and the user
     CSS into the scratch config home. The scratch config home is fresh, so

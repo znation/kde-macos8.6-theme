@@ -318,7 +318,7 @@ def splash_client(session: Session) -> tuple[str, ...]:
     shape the bare nested session can capture: upstream 6.3.6
     ``ksplash/ksplashqml/splashapp.cpp`` advances one stage every 2 s in test
     mode and exits 0 at stage 7 (about 10 s in), so the client is alive at
-    the landed 8 s settle but keeps its lifetime deterministic instead of
+    the existing 8 s settle but keeps its lifetime deterministic instead of
     drifting, while a plain ``--nofork`` client died on its own between the
     25 s and 45 s marks in the 2026-11-11 probe, taking the mapped splash
     with it -- a 30 s settle captured an already-vanished splash. The

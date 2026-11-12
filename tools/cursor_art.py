@@ -16,7 +16,7 @@ hourglass, aliases ``half-busy``, ``left_ptr_watch`` and the Breeze hash names
 ``3ecb610c1bf2410f44200f48c40d3599``), ``pencil`` (a diagonal pencil), ``zoom-in`` and
 ``zoom-out`` (magnifiers with a plus or minus), and ``context-menu`` (the arrow
 beside a small white menu panel), each with the X-name aliases listed in
-``CURSORS``. The role-equivalent X names reuse the landed resize, copy and
+``CURSORS``. The role-equivalent X names reuse the existing resize, copy and
 hand glyphs (``col-resize``/``split_h`` on ``size_hor``,
 ``row-resize``/``split_v`` on ``size_ver``, ``cell``/``plus`` on ``dnd-copy``,
 ``openhand`` on ``grab`` and ``closedhand`` on ``grabbing``). The help,
@@ -138,10 +138,10 @@ GRID_SIZE = 16
 # must carry byte-identical copies. ``main`` writes them in this order.
 #
 # 2026-11-11 grounding: no reference screenshot shows a cursor, X draws
-# single-direction arrows for the side and corner roles, and reusing the landed
-# double-arrow resize art for each role keeps the set's one-face-set policy; the
-# alias grouping (the resize roles joined to their axis's canonical) is again
-# this theme's own choice.
+# single-direction arrows for the side and corner roles, and reusing the
+# existing double-arrow resize art for each role keeps the set's one-face-set
+# policy; the alias grouping (the resize roles joined to their axis's
+# canonical) is again this theme's own choice.
 CURSORS = (
     (
         "left_ptr",
