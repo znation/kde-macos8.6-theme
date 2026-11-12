@@ -5022,23 +5022,24 @@ print("scrollbar pins settled")
             "scrolledwindow > junction:dir(rtl)",
         ):
             self.assert_rule(selector, expected)
+            self.assertEqual(self.rules[selector], expected)
             self.assertEqual(self.selectors.count(selector), 1)
+            self.assertLess(
+                self.selectors.index("scrolledwindow > overshoot.right"),
+                self.selectors.index(selector),
+            )
+            self.assertLess(
+                self.selectors.index(selector),
+                self.selectors.index(
+                    "scrollbar.overlay-indicator.hovering > range > trough"
+                ),
+            )
         self.assertEqual(
             {s for s in self.rules if "junction" in s},
             {
                 "scrolledwindow > junction",
                 "scrolledwindow > junction:dir(rtl)",
             },
-        )
-        self.assertLess(
-            self.selectors.index("scrolledwindow > overshoot.right"),
-            self.selectors.index("scrolledwindow > junction"),
-        )
-        self.assertLess(
-            self.selectors.index("scrolledwindow > junction:dir(rtl)"),
-            self.selectors.index(
-                "scrollbar.overlay-indicator.hovering > range > trough"
-            ),
         )
 
     def test_progressbar(self):
