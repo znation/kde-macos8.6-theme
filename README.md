@@ -873,7 +873,7 @@ to 1. The reference PNGs are stored with Git LFS; materialize them as described 
 for the complete option list. JPEG reference screenshots are readable directly: the sampler
 decodes a JPEG input once with ImageMagick's `convert` into a private temporary PNG and
 samples it like any PNG, while `--alpha` and `--match-alpha` need a PNG input because JPEG
-carries no alpha channel.
+carries no alpha channel. For common refusals, see [Troubleshooting a sample](#troubleshooting-a-sample).
 
 | Task | Command | Result |
 | --- | --- | --- |
@@ -1384,6 +1384,19 @@ length filters apply before the offset. The offset counts skipped eligible runs;
 page. JSON adds `run_offset`, and text prints `run offset: K` before the run
 list. An offset beyond the end returns an empty page. The option requires
 `--max-runs` and is nonnegative.
+
+### Troubleshooting a sample
+
+| Symptom | What to do |
+| --- | --- |
+| The file is an unmaterialized Git LFS pointer | Follow [Validating the reference set](#validating-the-reference-set), including `git lfs install` and `git lfs pull`, to fetch the image bytes. |
+| The path is missing or unreadable | Check the path named in the diagnostic and confirm you can read the file. |
+| The pixel or region is outside the image | Correct `X`, `Y`, `--width` or `--height` to fit the image dimensions in the report. |
+| JPEG decoding says `convert` is missing | Install ImageMagick and ensure its `convert` command is on `PATH`; PNG inputs need no converter. |
+| An alpha option was requested for JPEG | Omit `--alpha` or `--match-alpha`, or use a PNG that actually has alpha. JPEG conversion cannot recover transparency that JPEG does not store. |
+| An option dependency or min/max window is refused | Add the required mode or cap described in the [option families](#sampling-options), or correct the bounds so the minimum does not exceed the maximum. |
+
+Reports and `--help` return status 0. A valid sample with no matching or retained values is still a successful empty report; an out-of-image pixel or region is refused instead. Handled usage, read and decode refusals return status 2. These are sampler statuses; fidelity comparison failures have their own status.
 
 ## Fidelity checking
 
