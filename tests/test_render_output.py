@@ -183,7 +183,7 @@ class TestOutputProblemTypeGuard(unittest.TestCase):
     def test_non_path_output_raises_naming_type(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"^output_problem\(\) requires a pathlib\.Path: output must be Path, "
+            r"^output_problem\(\) requires pathlib\.Path: output must be Path, "
             r"not int$",
         ):
             render_output.output_problem(42)

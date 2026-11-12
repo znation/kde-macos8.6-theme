@@ -392,5 +392,20 @@ class TestPlural(unittest.TestCase):
             diagnostics.plural(2, 7)
 
 
+class TestRequirePath(unittest.TestCase):
+    def test_accepts_a_path_and_returns_none(self):
+        self.assertIsNone(diagnostics.require_path("publish", "output", Path("x")))
+
+    def test_non_path_raises_naming_caller_parameter_and_type(self):
+        for value, type_name in [("x", "str"), (None, "NoneType"), (3, "int")]:
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"^publish\(\) requires pathlib\.Path: output must be Path, "
+                    rf"not {type_name}$",
+                ):
+                    diagnostics.require_path("publish", "output", value)
+
+
 if __name__ == "__main__":
     unittest.main()

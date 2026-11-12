@@ -20,8 +20,10 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from tools.diagnostics import require_path
     from tools.process_group import run_logged_split
 else:  # imported as a plain module by the direct-run path
+    from diagnostics import require_path
     from process_group import run_logged_split
 
 # JPEGs start with the SOI marker FF D8; the third byte is the marker that
@@ -58,11 +60,7 @@ def convert_jpeg(input_bytes: bytes, temp_png: Path) -> str | None:
             "convert_jpeg() requires bytes: input_bytes must be bytes, "
             f"not {type(input_bytes).__name__}"
         )
-    if not isinstance(temp_png, Path):
-        raise ValueError(
-            "convert_jpeg() requires pathlib.Path: temp_png must be Path, "
-            f"not {type(temp_png).__name__}"
-        )
+    require_path("convert_jpeg", "temp_png", temp_png)
     executable = shutil.which("convert")
     if executable is None:
         return (

@@ -51,6 +51,15 @@ def _require_str(helper: str, parameter: str, value: object) -> None:
         )
 
 
+def require_path(caller: str, name: str, value: object) -> None:
+    """Reject a non-Path *value*, naming *caller* and *name* in the message."""
+    if not isinstance(value, Path):
+        raise ValueError(
+            f"{caller}() requires pathlib.Path: {name} must be Path, "
+            f"not {type(value).__name__}"
+        )
+
+
 def plural(count: int, singular: str) -> str:
     """Return *singular*, pluralized with ``s`` unless *count* is one.
 

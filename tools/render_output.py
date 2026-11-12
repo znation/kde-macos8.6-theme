@@ -17,18 +17,16 @@ from pathlib import Path
 if __package__:
     from tools.atomic_write import write_atomically
     from tools.containment import open_regular_binary
+    from tools.diagnostics import require_path
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
     from containment import open_regular_binary
+    from diagnostics import require_path
 
 
 def output_problem(output: Path) -> str | None:
     """Return why *output* cannot be written, or None when it looks writable."""
-    if not isinstance(output, Path):
-        raise ValueError(
-            f"output_problem() requires a pathlib.Path: output must be Path, "
-            f"not {type(output).__name__}"
-        )
+    require_path("output_problem", "output", output)
     if output.is_dir():
         return "is a directory"
     if not output.parent.is_dir():
@@ -47,16 +45,8 @@ def publish(source: Path, output: Path) -> None:
     park a symlink there first and make the copy overwrite whatever file it
     names.
     """
-    if not isinstance(source, Path):
-        raise ValueError(
-            f"publish() requires pathlib.Path: source must be Path, "
-            f"not {type(source).__name__}"
-        )
-    if not isinstance(output, Path):
-        raise ValueError(
-            f"publish() requires pathlib.Path: output must be Path, "
-            f"not {type(output).__name__}"
-        )
+    require_path("publish", "source", source)
+    require_path("publish", "output", output)
     def copy_into(destination):
         with open_regular_binary(source) as origin:
             shutil.copyfileobj(origin, destination)
