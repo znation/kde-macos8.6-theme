@@ -17,8 +17,10 @@ Run with the project's check harness (stdlib unittest) via ``make check``.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
+import tempfile
 import unittest
 
 from support import repo_root
@@ -76,6 +78,29 @@ def tracked_check_output_files(root):
     return offenders
 
 
+@contextlib.contextmanager
+def scan_repo(tracked, untracked=None):
+    """Yield a new git repository whose index holds exactly *tracked*.
+
+    *tracked* and *untracked* map relative paths to file bytes. Every path in
+    *tracked* is written and staged with ``git add``; paths in *untracked* are
+    written but left out of the index. Nested paths get their directories
+    created. The repository lives in a temporary directory removed on exit.
+    Symlinks are not created here; the symlink tests set up their own.
+    """
+    with tempfile.TemporaryDirectory() as directory:
+        subprocess.run(["git", "init", "-q", directory], check=True)
+        for name, data in {**tracked, **(untracked or {})}.items():
+            path = os.path.join(directory, name)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as fh:
+                fh.write(data)
+        subprocess.run(
+            ["git", "-C", directory, "add", "--", *tracked], check=True
+        )
+        yield directory
+
+
 class _TrackFailure(AssertionError):
     """A failure that names the one offending path, not the whole tree."""
 
@@ -96,57 +121,41 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             )
 
     def test_scan_finds_matching_top_level_file_and_ignores_nested_file(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            os.makedirs(os.path.join(directory, "nested"))
-            # Git's NUL-delimited path listing must preserve legal filenames
-            # containing newlines; line-based parsing would split this name.
-            leak_name = "leak\nname"
-            with open(os.path.join(directory, leak_name), "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/tmp.work\nmore data\n")
-            with open(os.path.join(directory, "nested", "note"), "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/tmp.nested\n")
-            # A matching file in the worktree is not a tracked-tree leak
-            # until Git lists it; the production guard intentionally scans
-            # the index rather than arbitrary untracked scratch state.
-            with open(os.path.join(directory, "untracked"), "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/tmp.untracked\n")
-            subprocess.run(
-                ["git", "-C", directory, "add", leak_name, "nested/note"],
-                check=True,
-            )
-
+        # Git's NUL-delimited path listing must preserve legal filenames
+        # containing newlines; line-based parsing would split this name.
+        leak_name = "leak\nname"
+        # A matching file in the worktree is not a tracked-tree leak
+        # until Git lists it; the production guard intentionally scans
+        # the index rather than arbitrary untracked scratch state.
+        with scan_repo(
+            tracked={
+                leak_name: b"/tmp/tumwater-run-example/tmp.work\nmore data\n",
+                os.path.join("nested", "note"): (
+                    b"/tmp/tumwater-run-example/tmp.nested\n"
+                ),
+            },
+            untracked={
+                "untracked": b"/tmp/tumwater-run-example/tmp.untracked\n",
+            },
+        ) as directory:
             self.assertEqual(
                 tracked_run_scratch_files(directory),
                 [(leak_name, b"/tmp/tumwater-run-example/tmp.work\n")],
             )
 
     def test_scan_finds_scratch_path_without_a_trailing_newline(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            leak_name = "leak"
-            with open(os.path.join(directory, leak_name), "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/tmp.work")
-            subprocess.run(["git", "-C", directory, "add", leak_name], check=True)
-
+        with scan_repo(
+            tracked={"leak": b"/tmp/tumwater-run-example/tmp.work"}
+        ) as directory:
             self.assertEqual(
                 tracked_run_scratch_files(directory),
-                [(leak_name, b"/tmp/tumwater-run-example/tmp.work")],
+                [("leak", b"/tmp/tumwater-run-example/tmp.work")],
             )
 
     def test_scan_ignores_run_path_without_scratch_directory(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            with open(os.path.join(directory, "note"), "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/log.txt\n")
-            subprocess.run(["git", "-C", directory, "add", "note"], check=True)
-
+        with scan_repo(
+            tracked={"note": b"/tmp/tumwater-run-example/log.txt\n"}
+        ) as directory:
             self.assertEqual(tracked_run_scratch_files(directory), [])
 
     def test_check_log_is_not_tracked(self):
@@ -166,25 +175,16 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             )
 
     def test_scan_finds_check_capture_and_ignores_nested_file(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            os.makedirs(os.path.join(directory, "nested"))
-            with open(os.path.join(directory, "check.log"), "wb") as fh:
-                fh.write(b"python3 tools/check_parallel.py -p 'test*.py'\n")
-            with open(os.path.join(directory, "nested", "check.log"), "wb") as fh:
-                fh.write(b"python3 tools/check_parallel.py\n")
-            with open(os.path.join(directory, "ordinary"), "wb") as fh:
-                fh.write(b"python3 tools/apply_cursor.py\n")
-            with open(os.path.join(directory, "similarly_named"), "wb") as fh:
-                fh.write(b"python3 tools/check_parallel.py-wrapper\n")
-            subprocess.run(
-                ["git", "-C", directory, "add", "check.log", "nested/check.log",
-                 "ordinary", "similarly_named"],
-                check=True,
-            )
-
+        with scan_repo(
+            tracked={
+                "check.log": b"python3 tools/check_parallel.py -p 'test*.py'\n",
+                os.path.join("nested", "check.log"): (
+                    b"python3 tools/check_parallel.py\n"
+                ),
+                "ordinary": b"python3 tools/apply_cursor.py\n",
+                "similarly_named": b"python3 tools/check_parallel.py-wrapper\n",
+            }
+        ) as directory:
             self.assertEqual(
                 tracked_check_output_files(directory),
                 [
@@ -193,22 +193,15 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             )
 
     def test_check_capture_without_a_trailing_newline_is_flagged(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            with open(os.path.join(directory, "log"), "wb") as fh:
-                fh.write(b"python3 tools/check_parallel.py")
-            subprocess.run(["git", "-C", directory, "add", "log"], check=True)
-
+        with scan_repo(
+            tracked={"log": b"python3 tools/check_parallel.py"}
+        ) as directory:
             self.assertEqual(
                 tracked_check_output_files(directory),
                 [("log", b"python3 tools/check_parallel.py")],
             )
 
     def test_check_capture_scan_does_not_follow_a_tracked_symlink(self):
-        import tempfile
-
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run(["git", "init", "-q", directory], check=True)
             target = os.path.join(directory, "target")
@@ -223,8 +216,6 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             self.assertEqual(tracked_check_output_files(directory), [])
 
     def test_scan_does_not_follow_a_tracked_symlink(self):
-        import tempfile
-
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run(["git", "init", "-q", directory], check=True)
             target = os.path.join(directory, "target")
