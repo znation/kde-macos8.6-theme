@@ -980,6 +980,10 @@ The post-merge review of commit `ff927cbc63c0bc940be68be60963ca6fddc7c0b7` (Make
 
 The post-merge review of commit `1bcbfbcf3c4868916651ce83acd8818f3962d0b5` (Paint Firefox's Page Info dialog as Platinum controls and mark its plan done) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 5e89e2ab never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `5e89e2ab454fba0a11c928ee3439eaca6db16871` (Handle hex escapes in unquoted attribute values in the selector matcher) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
