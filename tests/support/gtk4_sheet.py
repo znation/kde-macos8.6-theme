@@ -180,6 +180,18 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
                 )
 
 
+    def assert_square_corner(self, selector):
+        """Assert *selector* carries exactly the square-corner rule.
+
+        The rule is ``border-radius: 0`` and nothing else, and its radius
+        matches both frame arms via ``assert_matches_frame``. Used by the
+        square-corner families that restate the landed policy one selector
+        at a time.
+        """
+        self.assertEqual(self.rules[selector], {"border-radius": "0"}, selector)
+        self.assert_matches_frame(selector, "border-radius")
+
+
     def assert_plain_action_arms(self, prefix):
         # No reference screenshot shows a GTK colour-class action button;
         # the tail arms restate the landed plain push-button recipe, so

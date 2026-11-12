@@ -1044,10 +1044,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1, selector)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(
-                    self.rules[selector], {"border-radius": "0"}, selector
-                )
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         self.assert_rule(
             "checkbutton", {"transition": "none", "border-radius": "0"}
         )
@@ -2641,10 +2638,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "keycap" in selector},
             {"shortcut > .keycap"},
         )
-        self.assertEqual(
-            self.rules["shortcut > .keycap"], {"border-radius": "0"}
-        )
-        self.assert_matches_frame("shortcut > .keycap", "border-radius")
+        self.assert_square_corner("shortcut > .keycap")
 
     def test_card_corners(self):
         expected = {
@@ -2665,8 +2659,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in (".card", "menubutton.card > button"):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
 
     def test_emoji_completion_row_corners(self):
         expected = {"emoji-completion-row"}
@@ -2674,10 +2667,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "emoji-completion-row" in selector},
             expected,
         )
-        self.assertEqual(
-            self.rules["emoji-completion-row"], {"border-radius": "0"}
-        )
-        self.assert_matches_frame("emoji-completion-row", "border-radius")
+        self.assert_square_corner("emoji-completion-row")
 
     def test_flowbox_item_corners(self):
         expected = {
@@ -2957,8 +2947,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # The exact whole-rule dictionary catches stray restated geometry,
         # for example a mis-sized replay carrying stock's padding or
         # min-width/min-height into the user group.
-        self.assertEqual(self.rules[selector], {"border-radius": "0"})
-        self.assert_matches_frame(selector, "border-radius")
+        self.assert_square_corner(selector)
         self.assertEqual(self.selectors.count(selector), 1)
         # Stock's base arm and its three orientation twins stay
         # un-replayed: the squared whole-radius declaration makes their
@@ -3035,10 +3024,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "emoji-picker" in selector},
             expected,
         )
-        self.assertEqual(
-            self.rules["popover.emoji-picker emoji"], {"border-radius": "0"}
-        )
-        self.assert_matches_frame("popover.emoji-picker emoji", "border-radius")
+        self.assert_square_corner("popover.emoji-picker emoji")
 
     def test_pill_button_corners(self):
         expected = {
@@ -3299,8 +3285,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
                 # The group sits between the landed searchbar band focus
                 # group and the residual focus group: after the landed
                 # splitbutton container key, before label:focus:focus-visible.
@@ -3330,8 +3315,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         self.assert_rule(
             ".navigation-sidebar > row:focus-visible:focus-within",
             {"outline-color": BLACK},
@@ -3385,8 +3369,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         for selector in sorted(focus):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"outline-color": BLACK})
@@ -3413,8 +3396,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         for selector in sorted(focus):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"outline-color": BLACK})
@@ -4739,8 +4721,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         for selector in sorted(expected):
             self.assertGreater(
                 self.selectors.index(selector),
@@ -4766,8 +4747,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
                 self.assertGreater(
                     self.selectors.index(selector),
                     self.selectors.index("floating-sheet > sheet"),
@@ -4794,8 +4774,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
                 self.assertGreater(
                     self.selectors.index(selector),
                     self.selectors.index("indicatorbin > mask"),
@@ -5055,10 +5034,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
         self.assertEqual(self.selectors.count("expander-widget > box > title"), 1)
-        self.assertEqual(
-            self.rules["expander-widget > box > title"], {"border-radius": "0"}
-        )
-        self.assert_matches_frame("expander-widget > box > title", "border-radius")
+        self.assert_square_corner("expander-widget > box > title")
         self.assertGreater(
             self.selectors.index("expander-widget > box > title"),
             self.selectors.index("cursor-handle > contents"),
@@ -5121,8 +5097,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "floating-sheet > sheet",
         ):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         for selector in sorted(bottom_sheet | {"floating-sheet > sheet"}):
             self.assertGreater(
                 self.selectors.index(selector),
@@ -5167,8 +5142,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assert_matches_frame(selector, "border-radius")
+                self.assert_square_corner(selector)
         for selector in sorted(rows | {nested}):
             self.assertGreater(
                 self.selectors.index(selector),
