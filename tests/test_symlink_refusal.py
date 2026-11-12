@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -31,6 +32,37 @@ class TestRefuseSymlink(unittest.TestCase):
         refuse_symlink(path, "remove", RuntimeError)
 
         self.assertFalse(path.exists())
+
+    def test_refuses_a_link_to_an_existing_file_with_the_callers_error_class(self):
+        # The caller's own exception class and its action word must both
+        # reach the diagnostic; a fixed ValueError or "write" would pass the
+        # test above, which uses those values by coincidence.
+        root = make_tmp_dir(self)
+        target = root / "managed.conf"
+        target.write_text("kept\n", encoding="utf-8")
+        link = root / "link.conf"
+        link.symlink_to(target)
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            rf"^cannot remove {re.escape(str(link))}: it is a symbolic link; "
+            r"refusing to replace or delete the link instead of the file it names$",
+        ):
+            refuse_symlink(link, "remove", RuntimeError)
+
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(target.read_text(encoding="utf-8"), "kept\n")
+
+    def test_allows_an_existing_regular_file(self):
+        # Only a symbolic link is refused; an ordinary file the caller is
+        # about to replace must pass through untouched.
+        path = make_tmp_dir(self) / "plain.conf"
+        path.write_text("plain\n", encoding="utf-8")
+
+        refuse_symlink(path, "write", ValueError)
+
+        self.assertFalse(path.is_symlink())
+        self.assertEqual(path.read_text(encoding="utf-8"), "plain\n")
 
 
 if __name__ == "__main__":
