@@ -2528,6 +2528,10 @@ The post-merge review of commit `27de3ddbe061bdd48bd10966d273e25591bad075` (Docu
 
 The post-merge review of commit `8959bc785abc83f555dc95258da9d95d6dba2206` (Repaint GTK 4 modelbutton hover, disabled and pressed-selected states with the landed Platinum fills) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of d481f40a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `d481f40a966f19a3f9120226e60dbe0a52cf84d6` (Square GTK 4 circular icon-button corners with a landed zero-radius twin group) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
