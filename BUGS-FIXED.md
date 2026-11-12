@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 8ca180d6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed `8ca180d6c6b838d6989cb03b1096beb2d0dbf6c1`: `_candidate` now rejects a relative `Path` when `IsRelative=0`, while preserving absolute paths and resolving `IsRelative=1` paths under the Firefox root. The regression test exercises a same-working-directory relative path and asserts the diagnostic identifies the malformed flag and path.
+
+**Validation gap:** none — the focused regression test and existing profile-resolution coverage directly check malformed and valid path modes.
+
 ### post-merge review of 67a2c172 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `67a2c172ed567098ef0f55d981b400776431f05a` and the current `tools/generated_files.py`. The default writer delegates to `write_bytes_atomically`, and `tests/test_generated_files.py::TestGeneratedFiles::test_default_writer_creates_directory_and_publishes_bytes` exercises the no-injection path, nested directory creation, success status and published bytes. The current suite also covers containment refusal, directory creation failure and a later write failure while retaining earlier files. No defect was found in the reviewed change.
