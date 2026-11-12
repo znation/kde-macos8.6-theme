@@ -4284,6 +4284,9 @@ print("scrollbar pins settled")
             "shortcut:focus:focus-visible",
         )
         self.assert_scale_anchored_focus_outline(selectors)
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
         # The landed calendar label arm sits under ``calendar``, the link
         # state arms carry no focus twin, and the label selection arm is a
         # ``:focus-within`` selection rule, so matching ``:focus-visible``
