@@ -325,7 +325,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_without_a_config_home_nothing_is_checked(self):
         assert_no_config_home(self, "kdedefaults/ksplashrc", "kdedefaults/package")
 
-    # -- one run with the existing diagnostics ---------------------------------
+    # -- one run with the existing diagnostics -------------------------------
 
     def test_recipe_order_keeps_the_existing_aurorae_wordings_ahead(self):
         tmp = str(make_tmp_dir(self))

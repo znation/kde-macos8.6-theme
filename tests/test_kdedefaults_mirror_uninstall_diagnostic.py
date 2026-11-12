@@ -587,7 +587,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             "kdedefaults/plasmarc",
         )
 
-    # -- one run with the existing diagnostics ---------------------------------
+    # -- one run with the existing diagnostics -------------------------------
 
     def test_one_run_carries_the_existing_and_mirror_lines_in_recipe_order(self):
         tmp, config = scratch_home(self)
