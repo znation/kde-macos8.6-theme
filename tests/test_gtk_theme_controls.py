@@ -82,8 +82,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_meter_geometry(self):
-        """A meter's class-armed and corner-armed geometry keeps the landed values,
-        and the scale trough carries the landed scale:focus focus shape."""
+        """A meter's class-armed and corner-armed geometry keeps the existing values,
+        and the scale trough carries the existing scale:focus focus shape."""
         self.assert_rule_group(
             {
                 "progressbar.horizontal trough": {"min-height": "10px"},
@@ -144,7 +144,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             self.assertLess(position, bottom, spelling)
 
     def test_treeview_progress_bar(self):
-        """A treeview row's progress cell restates the landed meter recipe."""
+        """A treeview row's progress cell restates the existing meter recipe."""
         plain_fill = {
             "color": BLACK,
             "background-color": SELECTION,
@@ -216,7 +216,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_meter_label_ink(self):
-        """A meter's show-text percentage label keeps the landed window ink."""
+        """A meter's show-text percentage label keeps the existing window ink."""
         self.assert_rule_group({"progressbar": {"color": BLACK}})
         self.assert_rule_after("progressbar trough {", "progressbar {")
         self.assertEqual(
@@ -233,7 +233,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule("entry progress", ENTRY_PROGRESS)
 
     def assert_plain_action_arms(self, prefix):
-        """Assert a plain colour-class action's arms restate the landed face.
+        """Assert a plain colour-class action's arms restate the existing face.
 
         The recipe behind both plain action families: only the opaque
         members of the stock family are restated; no restated selector
@@ -314,15 +314,15 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_suggested_action_plain_arms(self):
-        """The plain `suggested-action` arms restate the landed face."""
+        """The plain `suggested-action` arms restate the existing face."""
         self.assert_plain_action_arms("button.suggested-action")
 
     def test_flat_button_plain_arms(self):
-        """The plain `button.flat` arms restate the landed face.
+        """The plain `button.flat` arms restate the existing face.
 
-        A GTK 3 push button carrying the `flat` class outside the landed
-        overlays draws the landed push-button face in every armed state:
-        every restated dictionary extends the landed plain recipe with the
+        A GTK 3 push button carrying the `flat` class outside the existing
+        overlays draws the existing push-button face in every armed state:
+        every restated dictionary extends the existing plain recipe with the
         `background-color` claim the stock transparent faces force, and
         the base, hover and backdrop arms clear the stock motion claims
         with `transition: none`.
@@ -401,28 +401,28 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_selected_row_button_arms(self):
-        """The selected-row button arms restate the landed black."""
+        """The selected-row button arms restate the existing black."""
         self.assert_selected_row_button_arms("button.flat:backdrop")
 
     def test_destructive_action_plain_arms(self):
-        """The plain `destructive-action` arms restate the landed face.
+        """The plain `destructive-action` arms restate the existing face.
 
         The red mirror of `test_suggested_action_plain_arms`.
         """
         self.assert_plain_action_arms("button.destructive-action")
 
     def test_action_class_flat_arms(self):
-        """The plain colour-class `.flat` arms restate the landed face.
+        """The plain colour-class `.flat` arms restate the existing face.
 
         A GTK 3 push button carrying the `flat` class beside
         `suggested-action` or `destructive-action` outside an overlay
-        draws the landed push-button face in every armed state, erasing
+        draws the existing push-button face in every armed state, erasing
         the stock transparent face with its blue or red label: the
-        twenty selectors extend the landed plain push-button recipes the
+        twenty selectors extend the existing plain push-button recipes the
         same way `test_flat_button_plain_arms` extends the plain ones —
         every restated dictionary carries the `background-color` claim
         the stock transparent faces force, and the disabled arms
-        re-declare the face colour beside the landed disabled dictionary
+        re-declare the face colour beside the existing disabled dictionary
         and claim no `outline-color`. No `transition` is restated: the
         plain flat family's `transition: none` claims already hold at
         equal-or-higher class counts (probed from gtk-contained.css in
@@ -585,7 +585,7 @@ print("progress bar: the 0.5 fill spans trough rows 1-10 and columns 1-10 on the
         self._run_gtk_child(program, str(CSS))
 
     def test_disabled_view_renders_the_white_field_and_grey_ink(self):
-        # An insensitive view's stock arms out-specify the landed
+        # An insensitive view's stock arms out-specify the existing
         # `.view, textview text, list` group, so the pixels show whether the
         # restated disabled view group actually reaches the text window. The
         # buffer's underscores are scaled 3x with a TextTag: at the default
@@ -915,13 +915,13 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         self.assert_dotted_focus_outline("switch:focus")
 
     def test_switch_state_and_backdrop_faces(self):
-        """The landed switch faces hold through every toolkit repaint.
+        """The existing switch faces hold through every toolkit repaint.
 
         The toolkit's state, backdrop and selected-row switch arms
-        out-specify the landed groups (see the
+        out-specify the existing groups (see the
         sheet), so each stock spelling is restated byte-equal and wins by
         later user-sheet source order. Each spelling counts exactly once,
-        the three landed groups carry exactly one added member each, and
+        the three existing groups carry exactly one added member each, and
         the family sweeps admit no stray or renamed spelling.
         """
         # The restated knob arms: the raised bevel face, no fade.
@@ -962,7 +962,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "transition": "none",
             },
         )
-        # The selected-row twins of the landed `row:selected button` record.
+        # The selected-row twins of the existing `row:selected button` record.
         for selector in (
             "row:selected switch",
             "row:selected switch:backdrop",
@@ -971,7 +971,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         ):
             self.assert_rule(selector, {"border-color": BLACK})
 
-        # The three amended landed groups: one added member each, no more.
+        # The three amended existing groups: one added member each, no more.
         self.assert_rule("switch:checked", {"border-color": BLACK})
         self.assert_rule("switch:disabled", {"background-color": TROUGH})
         self.assert_rule("switch slider", {"transition": "none"})
@@ -1052,8 +1052,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             },
         )
 
-        # Order: the restated block sits between the landed `switch image`
-        # group and the landed toolbar band group.
+        # Order: the restated block sits between the existing `switch image`
+        # group and the existing toolbar band group.
         self.assertGreater(
             self.css.index("switch:hover slider"),
             self.css.index("switch image {"),
@@ -1074,7 +1074,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         )
 
     def test_meter_state_and_backdrop_faces(self):
-        """Disabled, selected-row and unfocused-window meters keep the landed
+        """Disabled, selected-row and unfocused-window meters keep the existing
         faces, and no meter repaint fades over the stock 200ms."""
         self.assert_rule_group(
             {
@@ -1119,12 +1119,12 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "row:selected scale slider": {"border-color": BLACK},
             }
         )
-        # The single amendment to the landed bare knob group: the landed
+        # The single amendment to the existing bare knob group: the existing
         # assert_scale reads that group per-property, so only an added,
         # altered or duplicated transition member dies here.
         self.assert_rule("scale slider", {"transition": "none"})
         self.assertEqual(self.selectors.count("scale slider"), 1)
-        # Family sweep: the trough keeps the landed face in exactly the six
+        # Family sweep: the trough keeps the existing face in exactly the six
         # stock state spellings. A stray state trough spelling, a renamed
         # member or a pale trough face leaking onto a disabled fill dies.
         self.assertEqual(
@@ -1178,9 +1178,9 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             },
         )
         # Every non-.osd meter backdrop spelling is accounted for: a dropped
-        # rule or a stray twin outside the state block dies. The landed .osd
+        # rule or a stray twin outside the state block dies. The existing .osd
         # and treeview progressbar backdrop spellings carry a prefix neither
-        # a scale nor a progressbar root, so neither joins; the landed one-sided
+        # a scale nor a progressbar root, so neither joins; the existing one-sided
         # marked-scale record (test_marked_scale_thumb_arms) contributes its
         # eight backdropped slider spellings, verbatim from the fresh parse.
         self.assertEqual(
@@ -1210,7 +1210,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "scale.vertical.marks-before:not(.marks-after) slider:backdrop:disabled",
             },
         )
-        # Source-order pin: the nine rules sit between the landed
+        # Source-order pin: the nine rules sit between the existing
         # scale fill/highlight and bare knob groups, so each wins its
         # equal-specificity tie by later user-sheet source order.
         # Both anchors get a line-start bolt: the new row:selected slider
@@ -1232,7 +1232,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             "row:selected scale slider:disabled, row:selected scale slider",
             "progressbar:backdrop",
         ):
-            # A line-start bolt keeps treeview's landed
+            # A line-start bolt keeps treeview's existing
             # treeview.view.progressbar:backdrop spelling out of this search.
             position = self.css.index(
                 ("\n" + spelling if spelling == "progressbar:backdrop"
@@ -1242,13 +1242,13 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             self.assertLess(position, bottom, spelling)
 
     def test_scale_decoration_ink(self):
-        """A scale's tick marks and readout paint the landed window ink.
+        """A scale's tick marks and readout paint the existing window ink.
 
-        The landed group sits directly after the landed backdrop-disabled
-        slider twin and before the landed selected-row slider twin, so the
+        The existing group sits directly after the existing backdrop-disabled
+        slider twin and before the existing selected-row slider twin, so the
         single repainted member reads through the toolkit's stock ink arm
         in every state the bare pair reaches. Assert each spelling once,
-        whole-driven, family-clean and in the landed group order.
+        whole-driven, family-clean and in the existing group order.
         """
         # The parser stores comma-group members individually, so the
         # whole-dict assertion pins the two spellings the group declares,
@@ -1262,7 +1262,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         )
         # Order pins: the pair group reads later than the backdrop-disabled
         # slider twin it follows and earlier than the selected-row slider
-        # twin it precedes in the landed sheet order.
+        # twin it precedes in the existing sheet order.
         self.assert_rule_after(
             "scale marks, scale value {", "scale slider:backdrop:disabled {"
         )
@@ -1313,8 +1313,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             }
         )
         # Family sweep: no state twin, no rename and no split spelling (the
-        # landed scale trough, fill/highlight and slider spellings fail the
-        # equality and stay out); the state sweep admits only the landed
+        # existing scale trough, fill/highlight and slider spellings fail the
+        # equality and stay out); the state sweep admits only the existing
         # `scale:focus` record's spelling, so an added `scale:disabled` or
         # `scale:backdrop` bare-node twin dies here too.
         self.assertEqual({s for s in self.selectors if s == "scale"}, {"scale"})
@@ -1325,7 +1325,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         # Order pins: the container block sits after the fine-tune radius
         # group and the fine-tuned container record follows it, mirroring
         # stock's plain-before-fine-tuned order. The two-operand pins ride
-        # first raw-text occurrence; the landed fine-tuned record's comment
+        # first raw-text occurrence; the existing fine-tuned record's comment
         # quotes these spellings, which is why the second pin holds only
         # once this record's own rule exists.
         self.assert_rule_after("scale {", "scale.fine-tune trough {")
@@ -1334,7 +1334,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
     def test_scale_fine_tune_container_geometry(self):
         """A fine-tuned scale's container keeps the toolkit's stock geometry.
 
-        The landed restatement stands directly after the fine-tune radius
+        The existing restatement stands directly after the fine-tune radius
         group, so both orientations keep stock's 9px transverse paddings
         and 16px transverse minimum under either loading reading; assert
         each spelling once, whole-driven, family-clean and in radius-block
@@ -1355,7 +1355,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             }
         )
         # Family sweeps: no state twin, no bare-class fallback, no split
-        # spelling (the landed .fine-tune slider and fill/highlight/trough
+        # spelling (the existing .fine-tune slider and fill/highlight/trough
         # spellings do not satisfy the prefixed equality and stay out).
         self.assertEqual(
             {
@@ -1373,7 +1373,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             },
             {"scale.fine-tune.vertical"},
         )
-        # The container block sits beside the landed fine-tune radius
+        # The container block sits beside the existing fine-tune radius
         # group, so its equal-specificity ties win by later source order.
         self.assert_rule_after(
             "scale.fine-tune.horizontal {",
@@ -1383,7 +1383,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
     def test_scale_marks_indicator_geometry(self):
         """A marked scale keeps the toolkit's tick spacing and line sizes.
 
-        The twelve restated arms stand directly before the landed
+        The twelve restated arms stand directly before the existing
         marked-scale record, so both orientations keep stock's 6px tick
         push-out with the -12px plain and -9px fine-tuned stop margins and
         the 6px-by-1px plain and 3px fine-tuned indicator minimums under
@@ -1441,7 +1441,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             }
         )
         # Family sweeps: no renamed spelling, no stray or split member
-        # (the landed has-marks slider spellings carry neither token and
+        # (the existing has-marks slider spellings carry neither token and
         # stay out).
         for token, members in (
             (
@@ -1488,8 +1488,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "scale.vertical.fine-tune indicator",
             },
         )
-        # The block sits after the landed trough group and before the
-        # landed marked-scale record's closing group, so its
+        # The block sits after the existing trough group and before the
+        # existing marked-scale record's closing group, so its
         # equal-specificity ties win by later source order.
         self.assert_rule_after(
             "scale.vertical.marks-after:not(.marks-before).fine-tune slider {",
@@ -1528,17 +1528,17 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         self.assert_dotted_focus_outline("entry:focus")
 
     def test_entry_error_warning_colour_classes(self):
-        # The landed entry policy takes no colour class: the sheet
+        # The existing entry policy takes no colour class: the sheet
         # restates the stock colour-class arms with byte-equal twins
-        # declaring the landed faces, so an entry, spin-button field or
-        # label carrying the `error` or `warning` class paints the landed
+        # declaring the existing faces, so an entry, spin-button field or
+        # label carrying the `error` or `warning` class paints the existing
         # recipe instead of the toolkit resource's red or orange. The
-        # label's disabled twins both take the landed insensitive grey
-        # with no backdrop dim (the landed sheet carries no label backdrop
-        # dim, matching the landed GTK 4 label colour-class record); the
-        # selection arms restate only the fill, the landed element-level
+        # label's disabled twins both take the existing insensitive grey
+        # with no backdrop dim (the existing sheet carries no label backdrop
+        # dim, matching the existing GTK 4 label colour-class record); the
+        # selection arms restate only the fill, the existing element-level
         # selection groups owning the ink; the focus arms restate only the
-        # etch and the border colour, the landed dotted outlines cascading
+        # etch and the border colour, the existing dotted outlines cascading
         # unchanged; and stock's late colour-only repeat of the error
         # field base arm needs no twin of its own.
         expected = {
@@ -1588,9 +1588,9 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             {s for s in self.rules if ".error" in s or ".warning" in s},
             set(expected),
         )
-        # Every restated spelling sits after the landed field rule, so the
-        # equal-specificity ties resolve the landed face's way under either
-        # cascade reading the landed records accept.
+        # Every restated spelling sits after the existing field rule, so the
+        # equal-specificity ties resolve the existing face's way under either
+        # cascade reading the existing records accept.
         uncommented = strip_comments(self.css)
         anchor = uncommented.index("entry, spinbutton:not(.vertical) {")
         for selector in expected:
@@ -1602,14 +1602,14 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         # (focus, disabled, backdrop, backdrop-disabled, drop-active, the
         # vertical spin button's colour-only twins, the nested horizontal
         # spin-button field and the treeview editable cell) otherwise paint
-        # foreign faces on the landed spellings: an accent ring on focus,
+        # foreign faces on the existing spellings: an accent ring on focus,
         # greige borders and off-white fills with no etch on the insensitive
         # and unfocused-window states, a green drag rim, an accent border on
-        # focused editable cells, and a duplicate landed etch on the nested
+        # focused editable cells, and a duplicate existing etch on the nested
         # field the resource itself clears. Each rule restates its stock
-        # twin's declarations with the landed faces (the field etch and hard
+        # twin's declarations with the existing faces (the field etch and hard
         # border, the insensitive grey, the no-motion backdrop policy the
-        # landed button:backdrop record states) in place of the foreign
+        # existing button:backdrop record states) in place of the foreign
         # inks, so the later user-sheet spellings win every equal-specificity
         # tie.
         etch = ENTRY_FIELD["box-shadow"]
@@ -1734,11 +1734,11 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "border-color": BLACK,
             },
         }
-        # Three spellings pre-exist in the landed sheet — the landed focus
-        # rules and the landed label/entry/spin-button insensitive group —
+        # Three spellings pre-exist in the existing sheet — the existing focus
+        # rules and the existing label/entry/spin-button insensitive group —
         # so each lands with exactly two declarations in the sheet (count 2)
         # and the rest with exactly one.
-        landed_counts = {
+        existing_counts = {
             "entry:focus": 2,
             "spinbutton:focus:not(.vertical)": 2,
             "entry:disabled": 2,
@@ -1746,7 +1746,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         for selector, declarations in expected.items():
             self.assertEqual(
                 self.selectors.count(selector),
-                landed_counts.get(selector, 1),
+                existing_counts.get(selector, 1),
                 selector,
             )
             self.assertEqual(self.rules[selector], declarations, selector)
@@ -1767,26 +1767,26 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
                 "spinbutton.vertical:drop(active)",
             },
         )
-        # Every restated spelling sits after the landed field rule, so the
-        # equal-specificity ties resolve the landed face's way under either
-        # cascade reading the landed records accept.
+        # Every restated spelling sits after the existing field rule, so the
+        # equal-specificity ties resolve the existing face's way under either
+        # cascade reading the existing records accept.
         uncommented = strip_comments(self.css)
         anchor = uncommented.index("entry, spinbutton:not(.vertical) {")
         for selector in expected:
             self.assertGreater(uncommented.index(selector), anchor, selector)
 
     def test_entry_image_inks(self):
-        # The landed entry recipe never names the icon child GTK embeds
+        # The existing entry recipe never names the icon child GTK embeds
         # inside a field or spin button, so the toolkit resource paints
         # its own inks on it: a foreign grey-green at rest, a dark grey
         # under hover, the accent hue while pressed or keyboard-active
         # and a pale grey inside an unfocused window, plus a 6px gap
-        # between each side icon and the field's text that the landed
+        # between each side icon and the field's text that the existing
         # sheet owns nowhere. Every colour arm restates its stock twin
-        # with the landed field's black ink (no collected reference
-        # screenshot shows an embedded icon, so the landed text-ink
+        # with the existing field's black ink (no collected reference
+        # screenshot shows an embedded icon, so the existing text-ink
         # record stands in; the backdrop twin keeps that face per the
-        # landed button:backdrop policy since Platinum's model is
+        # existing button:backdrop policy since Platinum's model is
         # active=frontmost), and the two margin twins keep stock's own
         # spacing byte-equal.
         expected = {
@@ -1817,8 +1817,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             },
             set(expected),
         )
-        # Every restated spelling sits after the landed field rule, so
-        # the equal-specificity ties resolve the landed face's way under
+        # Every restated spelling sits after the existing field rule, so
+        # the equal-specificity ties resolve the existing face's way under
         # either cascade reading.
         uncommented = strip_comments(self.css)
         anchor = uncommented.index("entry, spinbutton:not(.vertical) {")
@@ -1826,19 +1826,19 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
             self.assertGreater(uncommented.index(selector), anchor, selector)
 
     def test_entry_tag_faces(self):
-        # The landed entry recipe never names the tag chips a tagged
+        # The existing entry recipe never names the tag chips a tagged
         # entry embeds at its tail, so the toolkit resource paints its
         # own chip: a foreign accent-blue fill with white ink at rest,
         # a lighter accent under hover, a pale-repeat twin inside an
         # unfocused window and a dimmed translucent white close-button
         # ink with an accent ring and fill under hover and press. The
         # chip restates the palette's flat selection fill with the
-        # landed field's black ink (no collected reference screenshot
+        # existing field's black ink (no collected reference screenshot
         # shows an entry tag, so the selection-surface and text-ink
         # records stand in; the backdrop twin keeps that face per the
-        # landed button:backdrop policy since Platinum's model is
+        # existing button:backdrop policy since Platinum's model is
         # active=frontmost, and the dimmed close-button inks rise to
-        # full strength per the landed hover-erase precedents), keeps
+        # full strength per the existing hover-erase precedents), keeps
         # stock's own padding, vertical margins and border and keeps
         # the two direction margin twins byte-equal and mirrored.
         expected = {
@@ -1872,8 +1872,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         self.assertEqual(
             {s for s in self.rules if "entry-tag" in s}, set(expected)
         )
-        # The whole chip block sits after the landed entry-image block's
-        # opener, so the equal-specificity ties resolve the landed
+        # The whole chip block sits after the existing entry-image block's
+        # opener, so the equal-specificity ties resolve the existing
         # face's way under either cascade reading.
         uncommented = strip_comments(self.css)
         anchor = uncommented.index("spinbutton:not(.vertical) image, entry image {")
@@ -1984,7 +1984,7 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
 
     def test_osd_spin_field_renders_the_mirrored_etch_in_rtl(self):
         # The four OSD field groups restate the etch at equal-or-higher
-        # specificity than the landed plain RTL mirror, so the OSD record
+        # specificity than the existing plain RTL mirror, so the OSD record
         # carries its own RTL twins. The probe renders the spin button
         # under an .osd-classed box and measures the field's edge columns
         # from its own allocation in both directions; see _run_gtk_child
@@ -2048,7 +2048,7 @@ print("OSD spin field: the etch's vertical arm reads at the exposed edge column 
     def test_vertical_spinbutton_renders_one_pixel_joins(self):
         # The vertical spin button stacks its up stepper, the field and
         # the down stepper, and each member paints its own full 1px black
-        # border, so before the border-style halves landed both
+        # border, so before the border-style halves were added, both
         # field/stepper joins drew two adjacent black rows. The probe
         # measures from the widget's own allocation and finds the
         # fully-black rows, so it does not hard-code the layout: each
@@ -2099,7 +2099,7 @@ for rtl in (False, True):
     # Measured 2026-11-11: exactly four fully-black rows — the top edge,
     # the two field/stepper joins and the bottom edge — each one row,
     # never an adjacent pair, and the 27-row stepper pitch measured that
-    # day; the doubled joins the sheet painted before the halves landed
+    # day; the doubled joins the sheet painted before the halves were added
     # made two adjacent rows black at each join and the render two rows
     # taller.
     assert rows == [top, top + 27, top + 54, bottom], (rtl, rows, top, bottom)
@@ -2244,9 +2244,9 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
         `-gtk-outline-` focus-ring halves into the same arms. The sheet
         restates all thirty-seven byte-equal spellings in stock's own
         grouping, each carrying only its zeroed radius declarations.
-        Three spellings coincide with the landed border-sharing groups,
+        Three spellings coincide with the existing border-sharing groups,
         so their parsed dictionaries merge the carried border-style and
-        the spelling counts twice — once as the landed group's member,
+        the spelling counts twice — once as the existing group's member,
         once in the restating group.
         """
         expected = {}
@@ -2277,7 +2277,7 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
             {s: r for s, r in expected.items() if s not in merged})
         for selector in merged:
             with self.subTest(selector=selector):
-                # The spelling is a member of the landed border-sharing
+                # The spelling is a member of the existing border-sharing
                 # group and of this entry's restating group: the parsed
                 # rules merge the border-style with the radius longhands,
                 # so the whole dictionary pins both — a dropped group,
@@ -2310,12 +2310,12 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
              "filechooser .path-bar.linked > button:only-child"},
         )
 
-        # Every restatement parses after the sheet's landed tail group.
+        # Every restatement parses after the sheet's existing tail group.
         tail = self.selectors.index("popover.emoji-picker .emoji :hover")
         for selector in expected:
             with self.subTest(selector=selector):
                 if selector in merged:
-                    # The merged spelling's landed group sits mid-sheet;
+                    # The merged spelling's existing group sits mid-sheet;
                     # its restatement — the second listing — follows.
                     self.assertGreater(self.selectors.index(selector, tail
                                                             + 1), tail,
@@ -2375,8 +2375,8 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
         self.assertEqual(
             {s for s in self.selectors if s in group}, set(group)
         )
-        # One landed tail group holds the rule last: a later append
-        # keeps it behind every landed spelling it follows today.
+        # One existing tail group holds the rule last: a later append
+        # keeps it behind every existing spelling it follows today.
         tail = self.selectors.index(
             "infobar > revealer > box label:link"
         )
@@ -2386,7 +2386,7 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
             )
 
     def test_check_radio_backdrop_motion_disabled_and_selected_row(self):
-        """Disabled and selected-row indicators keep the landed face unfocused,
+        """Disabled and selected-row indicators keep the existing face unfocused,
         and no ``:backdrop`` indicator repaint fades over the stock 200ms."""
         etch = "inset 1px 1px #FFFFFF, inset -1px -1px #888888"
         self.assert_rule_group(
@@ -2416,7 +2416,7 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
             }
         )
         # The residue block answers the check twins only: stock's shadow
-        # clear matches the landed radio face's own none, so no radio
+        # clear matches the existing radio face's own none, so no radio
         # backdrop-disabled spelling lands (a stray twin dies here).
         self.assertEqual(
             {s for s in self.selectors
@@ -2433,9 +2433,9 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
             {"row:selected check", "row:selected radio"},
         )
         # The fade erasure stays bound to the two amended bare :backdrop
-        # groups and the landed no-fade mark group: a stray fade on any
+        # groups and the existing no-fade mark group: a stray fade on any
         # other check or radio state, a dropped amendment or a transition
-        # leaking onto the landed hover, active, disabled or glyph faces
+        # leaking onto the existing hover, active, disabled or glyph faces
         # dies here.
         self.assertEqual(
             {s for s in self.selectors
@@ -2447,7 +2447,7 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
              "check:checked:not(:backdrop)",
              "check:indeterminate:not(:backdrop)"},
         )
-        # One landed tail block holds the five residue spellings, after
+        # One existing tail block holds the five residue spellings, after
         # the amended :backdrop groups' block and before the menu record.
         top = self.css.index("radio:indeterminate:backdrop")
         bottom = self.css.index("hovered menu row")
