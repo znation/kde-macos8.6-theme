@@ -18,6 +18,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import xcursor as xcursor_reader  # noqa: E402
+from support.error_assertions import assert_error_names  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
 from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
 from tools.cursor_vector import VectorCursor  # noqa: E402
@@ -44,11 +45,10 @@ class TestGridValidation(unittest.TestCase):
     def test_refuses_a_grid_with_the_wrong_row_count(self):
         for name, rows, _, _ in _grid_cursors():
             with self.subTest(name=name):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors._checked_rows(rows[:-1], name)
-                self.assertIn(
-                    f"the {name} grid must have 16 rows, not 15",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors._checked_rows, rows[:-1],
+                    name,
+                    needles=(f"the {name} grid must have 16 rows, not 15",),
                 )
 
     def test_refuses_a_row_that_is_not_a_grid_width_string(self):
@@ -63,34 +63,32 @@ class TestGridValidation(unittest.TestCase):
 
     def _assert_row_refused(self, name, rows, width):
         """Pin a malformed first row's ValueError naming *width*."""
-        with self.assertRaises(ValueError) as caught:
-            make_cursors._checked_rows(rows, name)
-        self.assertIn(
-            f"{name} grid row 0 must be a 16-character string, "
-            f"not {width}",
-            str(caught.exception),
+        assert_error_names(
+            self, ValueError, make_cursors._checked_rows, rows, name,
+            needles=(
+                f"{name} grid row 0 must be a 16-character string, "
+                f"not {width}",
+            ),
         )
 
     def test_generator_refuses_a_grid_with_an_unknown_cell(self):
         rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
-        with self.assertRaises(ValueError) as caught:
-            make_cursors.cursor_bytes(
-                rows=tuple(rows), hotspot=cursor_art.HOTSPOT
-            )
-        self.assertIn("(0, 3)", str(caught.exception))
+        assert_error_names(
+            self, ValueError, make_cursors.cursor_bytes,
+            rows=tuple(rows), hotspot=cursor_art.HOTSPOT,
+            needles=("(0, 3)",),
+        )
 
     def test_an_unknown_cell_names_the_glyph(self):
         for canonical, rows, hotspot, _ in _grid_cursors():
             mutated = list(rows)
             mutated[0] = "x" + mutated[0][1:]
             with self.subTest(name=canonical):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors.cursor_bytes(
-                        rows=tuple(mutated), hotspot=hotspot, name=canonical
-                    )
-                self.assertIn(
-                    f"{canonical} grid cell (0, 0)", str(caught.exception)
+                assert_error_names(
+                    self, ValueError, make_cursors.cursor_bytes,
+                    rows=tuple(mutated), hotspot=hotspot, name=canonical,
+                    needles=(f"{canonical} grid cell (0, 0)",),
                 )
 
 
@@ -100,75 +98,70 @@ class TestGeneratorValidation(unittest.TestCase):
     def test_render_rgba_refuses_a_size_that_is_not_a_positive_integer(self):
         for size in (0, -1, True, 1.5):
             with self.subTest(size=size):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors.render_rgba(cursor_art.ARROW_GRID, size)
-                self.assertIn(
-                    f"size must be a positive integer: size={size!r}",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors.render_rgba,
+                    cursor_art.ARROW_GRID, size,
+                    needles=(f"size must be a positive integer: size={size!r}",),
                 )
 
     def test_scaled_hotspot_refuses_one_that_is_not_two_integers(self):
         for hotspot in ((1,), (1, 2, 3), ("a", 1), (1.5, 1)):
             with self.subTest(hotspot=hotspot):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors._scaled_hotspot(16, hotspot)
-                self.assertIn(
-                    f"hotspot must be two integers: hotspot={hotspot!r}",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors._scaled_hotspot, 16, hotspot,
+                    needles=(f"hotspot must be two integers: hotspot={hotspot!r}",),
                 )
 
     def test_scaled_hotspot_refuses_one_outside_the_grid(self):
         for hotspot in ((-1, 1), (16, 1), (1, -1), (1, 16)):
             with self.subTest(hotspot=hotspot):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors._scaled_hotspot(16, hotspot)
-                self.assertIn(
-                    f"hotspot {hotspot} lies outside the 16x16 grid",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors._scaled_hotspot, 16, hotspot,
+                    needles=(f"hotspot {hotspot} lies outside the 16x16 grid",),
                 )
 
     def test_cursor_bytes_refuses_a_bad_nominal_size(self):
         for sizes in ((0,), (True,)):
             with self.subTest(sizes=sizes):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors.cursor_bytes(sizes=sizes)
-                self.assertIn(
-                    f"nominal size must be a positive integer: size={sizes[0]!r}",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors.cursor_bytes, sizes=sizes,
+                    needles=(
+                        f"nominal size must be a positive integer: size={sizes[0]!r}",
+                    ),
                 )
 
     def test_cursor_bytes_requires_at_least_one_size(self):
-        with self.assertRaises(ValueError) as caught:
-            make_cursors.cursor_bytes(sizes=())
-        self.assertIn("at least one nominal size is required", str(caught.exception))
+        assert_error_names(
+            self, ValueError, make_cursors.cursor_bytes, sizes=(),
+            needles=("at least one nominal size is required",),
+        )
 
     def test_cursor_bytes_names_a_non_iterable_sizes_argument(self):
-        with self.assertRaises(ValueError) as caught:
-            make_cursors.cursor_bytes(sizes=None)
-        self.assertIn(
-            "nominal sizes must be an iterable, not NoneType",
-            str(caught.exception),
+        assert_error_names(
+            self, ValueError, make_cursors.cursor_bytes, sizes=None,
+            needles=("nominal sizes must be an iterable, not NoneType",),
         )
 
     def test_a_nominal_size_above_the_xcursor_frame_limit_is_refused(self):
         # 0x7FFF is the Xcursor image-dimension limit the writer enforces; the
         # generator must refuse it before render_rgba allocates size * size * 4
         # bytes.
-        with self.assertRaises(ValueError) as caught:
-            make_cursors._checked_sizes((0x8000,))
-        self.assertIn(
-            "nominal size must be at most 32767 (the Xcursor frame limit): "
-            "size=32768",
-            str(caught.exception),
+        assert_error_names(
+            self, ValueError, make_cursors._checked_sizes, (0x8000,),
+            needles=(
+                "nominal size must be at most 32767 (the Xcursor frame limit): "
+                "size=32768",
+            ),
         )
 
     def test_render_rgba_refuses_a_size_above_the_xcursor_frame_limit(self):
-        with self.assertRaises(ValueError) as caught:
-            make_cursors.render_rgba(cursor_art.ARROW_GRID, 0x8000)
-        self.assertIn(
-            "size must be at most 32767 (the Xcursor frame limit): "
-            "size=32768",
-            str(caught.exception),
+        assert_error_names(
+            self, ValueError, make_cursors.render_rgba,
+            cursor_art.ARROW_GRID, 0x8000,
+            needles=(
+                "size must be at most 32767 (the Xcursor frame limit): "
+                "size=32768",
+            ),
         )
 
     def test_a_size_below_the_grid_keeps_its_hotspot_inside_the_frame(self):
@@ -372,11 +365,11 @@ class TestCursorBytesCache(unittest.TestCase):
         rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
         for _ in range(2):
-            with self.assertRaises(ValueError) as caught:
-                make_cursors.cursor_bytes(
-                rows=tuple(rows), hotspot=cursor_art.HOTSPOT
+            assert_error_names(
+                self, ValueError, make_cursors.cursor_bytes,
+                rows=tuple(rows), hotspot=cursor_art.HOTSPOT,
+                needles=("(0, 3)",),
             )
-            self.assertIn("(0, 3)", str(caught.exception))
 
     def test_a_bad_size_is_refused_after_a_cached_build(self):
         make_cursors.cursor_bytes(
@@ -384,11 +377,9 @@ class TestCursorBytesCache(unittest.TestCase):
         )
         for sizes in ((16.0, 24.0, 32.0), (True,), ([16], 24, 32)):
             with self.subTest(sizes=sizes):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors.cursor_bytes(sizes=sizes)
-                self.assertIn(
-                    "nominal size must be a positive integer",
-                    str(caught.exception),
+                assert_error_names(
+                    self, ValueError, make_cursors.cursor_bytes, sizes=sizes,
+                    needles=("nominal size must be a positive integer",),
                 )
 
     def test_a_bad_hotspot_is_refused_after_a_cached_build(self):
@@ -397,12 +388,10 @@ class TestCursorBytesCache(unittest.TestCase):
         )
         for hotspot in ((1.0, 1.0), (True, True), ([1], 1)):
             with self.subTest(hotspot=hotspot):
-                with self.assertRaises(ValueError) as caught:
-                    make_cursors.cursor_bytes(
-                        rows=cursor_art.ARROW_GRID, hotspot=hotspot
-                    )
-                self.assertIn(
-                    "hotspot must be two integers", str(caught.exception)
+                assert_error_names(
+                    self, ValueError, make_cursors.cursor_bytes,
+                    rows=cursor_art.ARROW_GRID, hotspot=hotspot,
+                    needles=("hotspot must be two integers",),
                 )
 
 
@@ -512,9 +501,10 @@ class TestVectorArrow(unittest.TestCase):
         for hotspot in ((32, 3), (-1, 3)):
             for _ in range(2):
                 with self.subTest(hotspot=hotspot):
-                    with self.assertRaises(ValueError) as caught:
-                        make_cursors.cursor_bytes(rows=self.art, hotspot=hotspot)
-                    self.assertIn("hotspot", str(caught.exception))
+                    assert_error_names(
+                        self, ValueError, make_cursors.cursor_bytes,
+                        rows=self.art, hotspot=hotspot, needles=("hotspot",),
+                    )
 
     def test_rows_that_are_neither_a_grid_nor_vector_art_are_refused(self):
         with self.assertRaises(ValueError):
