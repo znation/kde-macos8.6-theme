@@ -3864,12 +3864,12 @@ print("scrollbar pins settled")
             "popover.menu modelbutton:selected:active",
             "modelbutton.flat:hover",
         ):
-            self.assert_rule(selector, {"background-color": SELECTION})
+            self.assertEqual(self.rules[selector], {"background-color": SELECTION})
             self.assertEqual(
                 self.rules[selector]["background-color"],
                 self.rules["popover.menu modelbutton:hover"]["background-color"],
             )
-        self.assert_rule("modelbutton.flat:disabled", {"color": ETCH_DARK})
+        self.assertEqual(self.rules["modelbutton.flat:disabled"], {"color": ETCH_DARK})
         # The landed sheet carries no other modelbutton arm: any stray,
         # renamed or removed kind fails the family bound.
         self.assertEqual(
