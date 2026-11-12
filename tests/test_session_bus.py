@@ -39,6 +39,31 @@ class TestSessionEnv(unittest.TestCase):
             session_bus.session_env({"XDG_RUNTIME_DIR": str(self.directory)}),
         )
 
+    def test_an_empty_address_is_defaulted_like_an_unset_one(self):
+        # The docstring says an empty address names no bus, so a bus socket
+        # under the runtime directory must still be named.
+        (self.directory / "bus").write_text("", encoding="utf-8")
+        self.assertEqual(
+            {"XDG_RUNTIME_DIR": str(self.directory),
+             "DBUS_SESSION_BUS_ADDRESS": f"unix:path={self.directory}/bus"},
+            session_bus.session_env(
+                {"XDG_RUNTIME_DIR": str(self.directory),
+                 "DBUS_SESSION_BUS_ADDRESS": ""}
+            ),
+        )
+
+    def test_an_empty_address_without_a_bus_socket_stays_empty(self):
+        # With no socket to name, the environment is returned unchanged, so
+        # the empty value is not replaced by a path that does not exist.
+        self.assertEqual(
+            {"XDG_RUNTIME_DIR": str(self.directory),
+             "DBUS_SESSION_BUS_ADDRESS": ""},
+            session_bus.session_env(
+                {"XDG_RUNTIME_DIR": str(self.directory),
+                 "DBUS_SESSION_BUS_ADDRESS": ""}
+            ),
+        )
+
     def test_a_runtime_dir_with_address_syntax_characters_is_percent_encoded(self):
         # The D-Bus address grammar uses %, ;, , and = as its own syntax, so
         # a runtime directory carrying one of them would otherwise truncate
