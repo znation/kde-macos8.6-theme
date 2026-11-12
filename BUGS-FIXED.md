@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of c7f27403 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
+
+The post-merge review of commit `c7f27403487e0d97b6f8dfb05f99b6139f0ac477` (Preserve important declarations when the stylesheet parser merges repeated selectors) never reached a verdict because the review run hit a usage limit.
+
+**Fix:** no code change was needed; the commit's behavior is correct as shipped. Checked by reading `git show c7f27403` on main: `_is_important` in `tests/support/gtk_css.py` counts only a top-level trailing `!important` (case-insensitive, whitespace allowed after `!`), skipping quoted text, parenthesized text such as `url(...)`, and backslash-escaped characters; `parse_css` keeps a normal declaration from replacing an important one for the same selector/property, while an important or later equal-priority declaration replaces it, both within a block and across repeated blocks. The new tests `test_important_declarations_win_with_later_ties` and `test_important_scanner_ignores_strings_urls_and_escaped_bangs` cover those orders and ignored forms. Ran `python3 -m unittest -v test_gtk_css` from `tests/` (the project's unittest runner): 64 tests, OK. A regression that let a later important declaration be overwritten by a later normal one would fail the `red !important` cases of the first test.
+
+**Validation gap:** none — the existing suite exercises the parser directly, and the review confirmed the behavior by reading the diff and running that module.
+
 ### post-merge review of fad0a08b never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed the test refactor: the shared helper creates an executable with a missing interpreter, restricts `PATH` to prevent fallback to a host command, and checks exit status, command-specific diagnostic, absence of traceback/output, and scratch cleanup. Both callers preserve their distinct command names and diagnostics; the surrounding fixture supplies isolated paths and cleanup assertions.
