@@ -301,7 +301,7 @@ class TestFirefoxLibraryHeaderChrome(FirefoxChromeTestCase):
         self.assert_arms_match_required(HEADER_FACE_ARMS + HEADER_HOVER_ARMS)
 
     def test_header_face_is_the_raised_button(self):
-        # The face arms re-derive the landed raised push button's
+        # The face arms re-derive the existing raised push button's
         # byte-recipe from the shared palette constants; the hover
         # arms re-derive the flat no-bevel selection fill.
         face = {
@@ -470,7 +470,7 @@ class TestFirefoxLibraryToolbarChrome(FirefoxChromeTestCase):
             "[open] AccentColor",
             "toolbarbutton:hover/:hover:active bevel",
             "--menuitem-icon",
-            "the landed menupopup token rule",
+            "the existing menupopup token rule",
             "the window body",
             "Only the padding is overridden",
             "Declaration checks do not establish rendered pixels",
@@ -523,7 +523,7 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
         self.assertFalse(matches(DOWNLOADS_RULES[2], row))
 
         # The sheet's whole set of downloadsListBox-naming rules is
-        # exactly the landed #downloadsPanel arms plus this section's.
+        # exactly the existing #downloadsPanel arms plus this section's.
         self.assert_rule_names_scoped_to(
             "downloadsListBox",
             {
@@ -563,7 +563,7 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
 
         # The sheet's whole set of clearDownloadsButton-naming rules is
         # exactly this section's, and the whole set of placesToolbar-
-        # naming rules is exactly the landed band rule plus them.
+        # naming rules is exactly the existing band rule plus them.
         self.assert_rule_names_scoped_to(
             "clearDownloadsButton",
             set(CLEAR_BUTTON_RULES),
@@ -586,7 +586,7 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
             "tests/test_desktoptheme_viewitem.py::TestViewItem",
             "tests/test_colorscheme_reference.py::TestReferenceAnchors",
             "test_selection_background",
-            "landed #downloadsPanel push-button recipe",
+            "existing #downloadsPanel push-button recipe",
             "widgets/button.svg",
             "tests/test_desktoptheme_button.py::TestButton",
             "tests/test_desktoptheme_button_reference.py::TestButtonReference",
@@ -741,7 +741,7 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
         # The #editBookmarkPanel copies, the two expander buttons, the
         # New Folder button, the stray input and the stray richlistbox
         # match none of the nine selectors: the details-pane scoping
-        # keeps the panel's own landed paint intact.
+        # keeps the panel's own existing paint intact.
         for name, control in (
             ("panel name field", panel_fields[0]),
             ("panel location field", panel_fields[1]),
@@ -765,11 +765,11 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
     def test_details_pane_selector_set_is_exact(self):
         # The sheet's whole set of detailsPane-naming rules is exactly
         # this section's nine arms, and the whole set of editBMPanel-
-        # naming rules is exactly them plus the landed ten
+        # naming rules is exactly them plus the existing ten
         # #editBookmarkPanel-prefixed bookmark editor's arms.
         self.assert_rule_names_scoped_to("detailsPane", set(DETAILS_RULES))
         # The sheet's whole set of editBMPanel-naming rules is exactly
-        # this section's nine arms plus the landed six that name the
+        # this section's nine arms plus the existing six that name the
         # bookmark editor's field ids and folder menulist; the Done/
         # Remove buttons' names carry editBookmarkPanel but not
         # editBMPanel, and the panels suite pins their ten-rule set.
@@ -806,7 +806,7 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
     def test_header_names_details_pane_provenance(self):
         self.assert_header_names((
             "No reference screenshot shows the Firefox Library window",
-            "details pane's bookmark fields reuse this sheet's landed",
+            "details pane's bookmark fields reuse this sheet's existing",
             "#editBookmarkPanel line-edit recipe",
             "#FFFFFF face, black text,",
             "square 1px solid #000000 outline, inset 1px 1px #999999 shadow)",
@@ -819,14 +819,14 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
             "TestLineEditReference,",
             "tests/test_desktoptheme_button.py::TestButton",
             "tests/test_desktoptheme_button_reference.py::TestButtonReference",
-            "tag selector reuses the landed #placesList sunken list-field",
+            "tag selector reuses the existing #placesList sunken list-field",
             "selected row's widgets/viewitem.svg highlight",
             "tests/test_desktoptheme_viewitem.py::TestViewItem",
             "tests/test_colorscheme_reference.py::TestReferenceAnchors",
             ".test_selection_background",
             "no hover rule exists on the fields or",
-            "the tag selector's rows because the landed recipes have none",
-            "menulist's hover arm is the landed menulist recipe's own",
+            "the tag selector's rows because the existing recipes have none",
+            "menulist's hover arm is the existing menulist recipe's own",
             "rules scope through #detailsPane because the same editBMPanel ids",
             "browser.xhtml's #editBookmarkPanel",
             "#bookmarkpropertiesdialog",

@@ -480,7 +480,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    and sunken shadow adapt widgets/lineedit.svg, grounded in
    macos8.6-screenshots/firstboot_betawiki.png and pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference, and reuse the landed #mainDeck input recipe, while
+   TestLineEditReference, and reuse the existing #mainDeck input recipe, while
    the flat rows follow widgets/listitem.svg, pinned by
    tests/test_desktoptheme_listitem.py::TestListItem, whose comment records
    no hover highlight for Mac OS 8.6 lists — the same reading the
@@ -503,7 +503,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    widgets/lineedit.svg, grounded in
    macos8.6-screenshots/firstboot_betawiki.png and pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference, and reuses the landed #mainDeck input recipe. In
+   TestLineEditReference, and reuses the existing #mainDeck input recipe. In
    the installed Firefox ESR 153.5.1,
    chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines the
    preview pane that holds browser#mediaBrowser and the
@@ -525,7 +525,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #999999 sunken shadow adapt widgets/lineedit.svg, grounded in
    macos8.6-screenshots/firstboot_betawiki.png and pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference, reusing the landed #mainDeck input and #permList
+   TestLineEditReference, reusing the existing #mainDeck input and #permList
    recipes, the transparent rows honour widgets/listitem.svg's
    no-hover-highlight list reading, pinned by
    tests/test_desktoptheme_listitem.py::TestListItem, and the flat #CCCCFF
@@ -614,7 +614,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    box; the field adapts widgets/lineedit.svg, grounded in
    macos8.6-screenshots/firstboot_betawiki.png and pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference, reusing the landed moz-input-search#searchInput
+   TestLineEditReference, reusing the existing moz-input-search#searchInput
    token route. In the installed Firefox ESR 153.5.1,
    chrome/browser/content/browser/places/places.xhtml defines
    html:moz-input-search#searchFilter in the window's toolbox toolbar
@@ -664,7 +664,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    arms. Declaration checks do not establish rendered pixels.
 
    No reference screenshot shows the Firefox Library window; the
-   toolbar band reuses this sheet's landed #toolbar-menubar recipe
+   toolbar band reuses this sheet's existing #toolbar-menubar recipe
    (#DDDDDD face, black text, the #888888 bottom rule and the
    inset 0 -1px #FFFFFF etched highlight), grounded in the reference
    toolbars and pinned by
@@ -697,24 +697,24 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    Firefox's), organizer.css's --button-min-height and native
    appearance on the menus, the ::after dropmarker, the three
    --menuitem-icon icons, the popup lists
-   (the landed menupopup token rule), the window body.
+   (the existing menupopup token rule), the window body.
    Only the padding is overridden on the titles, with a zero
    bottom pad, so the retained stock border completes the 3px bottom
    margin and stays the open title's #CCCCFF underline. Declaration
    checks do not establish rendered pixels.
 
    No reference screenshot shows the Firefox Library window; the
-   downloads list reuses this sheet's landed #placesList/#placeContent
+   downloads list reuses this sheet's existing #placesList/#placeContent
    sunken list-field recipe (#FFFFFF face, black text, square 1px
    solid #000000 outline, inset 1px 1px #999999 shadow) and the
-   landed #contentAreaDownloadsView #downloadsListBox:not(:empty)
+   existing #contentAreaDownloadsView #downloadsListBox:not(:empty)
    userContent rule for the same widget class, grounded in
    widgets/lineedit.svg and widgets/viewitem.svg and pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit,
    tests/test_desktoptheme_viewitem.py::TestViewItem and
    tests/test_colorscheme_reference.py::TestReferenceAnchors
    .test_selection_background; the Clear Downloads button reuses the
-   landed #downloadsPanel push-button recipe grounded in
+   existing #downloadsPanel push-button recipe grounded in
    widgets/button.svg, pinned by
    tests/test_desktoptheme_button.py::TestButton and
    tests/test_desktoptheme_button_reference.py::TestButtonReference
@@ -741,7 +741,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    the .downloadTypeIcon/.downloadTarget/.downloadDetails layout and
    the .downloadButton action buttons. The intentionally unchanged
    paint: the rows' geometry and per-row action buttons plus progress
-   meters (the landed about:downloads rule's same choice), the
+   meters (the existing about:downloads rule's same choice), the
    richlistbox margin: 2px 4px, the selected-row and
    multiple-selection focus-ring states Firefox paints beyond the
    flat #CCCCFF, #libraryToolbarSpacer, and the #downloadsPanel and
@@ -749,10 +749,10 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    do not establish rendered pixels.
 
    No reference screenshot shows the Firefox Library window; the
-   details pane's bookmark fields reuse this sheet's landed
+   details pane's bookmark fields reuse this sheet's existing
    #editBookmarkPanel line-edit recipe (#FFFFFF face, black text,
    square 1px solid #000000 outline, inset 1px 1px #999999 shadow)
-   and the folder menulist its landed push-button menulist recipe
+   and the folder menulist its existing push-button menulist recipe
    (#DDDDDD face, black outline, the
    inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA raised bevel,
    flat #CCCCFF hover), grounded in widgets/lineedit.svg and
@@ -761,15 +761,15 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    TestLineEditReference,
    tests/test_desktoptheme_button.py::TestButton and
    tests/test_desktoptheme_button_reference.py::TestButtonReference;
-   the tag selector reuses the landed #placesList sunken list-field
+   the tag selector reuses the existing #placesList sunken list-field
    recipe with the selected row's widgets/viewitem.svg highlight,
    pinned by tests/test_desktoptheme_viewitem.py::TestViewItem and
    tests/test_colorscheme_reference.py::TestReferenceAnchors
    .test_selection_background; no hover rule exists on the fields or
-   the tag selector's rows because the landed recipes have none (the
-   menulist's hover arm is the landed menulist recipe's own); the
+   the tag selector's rows because the existing recipes have none (the
+   menulist's hover arm is the existing menulist recipe's own); the
    rules scope through #detailsPane because the same editBMPanel ids
-   live in browser.xhtml's #editBookmarkPanel (whose landed
+   live in browser.xhtml's #editBookmarkPanel (whose existing
    #editBookmarkPanel-prefixed rules paint its copies) and in
    #bookmarkpropertiesdialog, and a grep of the omni's chrome markup
    finds a detailsPane element only in places.xhtml; the anatomy is
@@ -903,7 +903,7 @@ tooltip {
 }
 
 /* Paint only the unfocused toolbar fields. Provenance exception: no
-   reference shows Firefox's toolbar fields, so both reuse the landed field
+   reference shows Firefox's toolbar fields, so both reuse the existing field
    recipe (platform adaptation 2026-10-25). The band's markup is class-only
    in the installed Firefox ESR 153.6.0esr — UrlbarInput.mjs's #markup emits
    <html:div class="urlbar-background"/> and no element carries
@@ -1530,13 +1530,13 @@ toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
 }
 
 /* The Library details pane's bookmark fields, folder dropdown and tag
-   selector adapt the sheet's landed line-edit, push-button and sunken
+   selector adapt the sheet's existing line-edit, push-button and sunken
    list-field recipes. The same editBMPanel ids live in browser.xhtml's
-   #editBookmarkPanel, whose landed rules paint its copies, and a
+   #editBookmarkPanel, whose existing rules paint its copies, and a
    detailsPane element exists only in places.xhtml, so these rules scope
    through #detailsPane. The expander buttons, the New Folder button,
    the folder tree, the labels and the popup lists stay Firefox's, as
-   the landed bookmark editor's section does. */
+   the existing bookmark editor's section does. */
 #detailsPane #editBMPanel_namePicker,
 #detailsPane #editBMPanel_locationField,
 #detailsPane #editBMPanel_tagsField,

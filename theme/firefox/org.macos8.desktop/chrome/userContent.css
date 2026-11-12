@@ -274,17 +274,17 @@
    currentColor, so the arrow already follows the black text. Each
    enabled field is the Platinum sunken line edit — the #FFFFFF face,
    black text, square 1px black outline and the inset 1px 1px #999999
-   top-left shadow, the byte-recipe of the landed about:config
+   top-left shadow, the byte-recipe of the existing about:config
    #about-config-search rule in this same sheet — adapting
    theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg, pinned by
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference. Each enabled menulist is the landed
+   TestLineEditReference. Each enabled menulist is the existing
    #mainPrefPane button push-button recipe — the #DDDDDD face with the
    1px black outline and the #FFFFFF/#AAAAAA raised bevel — adapting
    theme/desktoptheme/org.macos8.desktop/widgets/button.svg, pinned by
    tests/test_desktoptheme_button.py::TestButton and
    tests/test_desktoptheme_button_reference.py::TestButtonReference, and
-   a hovered or [open="true"] menulist takes the landed
+   a hovered or [open="true"] menulist takes the existing
    #mainPrefPane button:hover flat #CCCCFF no-bevel recipe, the
    reference-grounded widgets/viewitem.svg selection fill pinned by
    tests/test_desktoptheme_viewitem.py::TestViewItem and
@@ -328,14 +328,14 @@
    (test_view_background_alternate) beneath the codec table's own td
    washes, so #codec-table's supported/unsupported status colours survive
    while its outer face and outline become the field's; each th header cell
-   is the raised #DDDDDD header face of the landed Library content-tree
+   is the raised #DDDDDD header face of the existing Library content-tree
    column headers (widgets/tabbar.svg's raised tab face, pinned by
    tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
    and the four name/value cells take the same face so one header run;
    a hovered th and every enabled page button, the .action-box buttons
    included, take the flat #CCCCFF black-text hover (the pinned
    [Colors:Selection], test_selection_background), the buttons being the
-   landed #DDDDDD push button with the widgets/button.svg white/#AAAAAA
+   existing #DDDDDD push button with the widgets/button.svg white/#AAAAAA
    bevel pinned by
    tests/test_desktoptheme_button_reference.py::TestButtonReference while
    a :disabled button keeps Firefox's disabled paint. The page body,
@@ -346,7 +346,7 @@
    all take the field, zebra and header paint above;
    about:logins and about:addons are shadow-DOM pages with no ::part, so
    this document-level sheet cannot reach them (out of scope here).
-   The page loads top-level in a tab like the landed about:config. A
+   The page loads top-level in a tab like the existing about:config. A
    headless run of this ESR on 2026-10-27 with a temporary profile whose
    userContent.css held an @-moz-document url("about:support") recolour
    rule painting body red and #contents table green rendered both,
@@ -373,26 +373,26 @@
    TestLineEditReference — with the #EEEEEE alternate row of the pinned
    [Colors:View] BackgroundAlternate trough
    (test_view_background_alternate); each th header cell is the raised
-   #DDDDDD header face of the landed about:support column headers
+   #DDDDDD header face of the existing about:support column headers
    (widgets/tabbar.svg's raised tab face, pinned by
    tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
    and a hovered th takes the flat #CCCCFF black-text hover (the pinned
    [Colors:Selection], test_selection_background); each of the four
    buttons — #refreshButton in the .header, #clearHTTPCache,
-   #clearDNSCache and #dnsLookupButton — is the landed #DDDDDD push
+   #clearDNSCache and #dnsLookupButton — is the existing #DDDDDD push
    button with the widgets/button.svg white/#AAAAAA bevel pinned by
    tests/test_desktoptheme_button_reference.py::TestButtonReference and
    the same :disabled-guarded flat hover, a :disabled button keeping
    Firefox's disabled paint. The #categories sidebar of .category divs,
    the #host field and the #autorefcheck checkbox are the recorded
    natural subjects of a later plan and are painted by the appended
-   rules: the rows reuse the landed about:preferences nav-row values
+   rules: the rows reuse the existing about:preferences nav-row values
    (the pinned #CCCCFF selection of test_selection_background and the
    list-row border-radius: 0, the row selected by the [selected]
    attribute only, which aboutNetworking.js flips and never a class),
-   the field reuses the landed line-edit recipe (widgets/lineedit.svg,
+   the field reuses the existing line-edit recipe (widgets/lineedit.svg,
    pinned by tests/test_desktoptheme_lineedit.py::TestLineEdit and
-   TestLineEditReference), and the checkbox reuses the landed
+   TestLineEditReference), and the checkbox reuses the existing
    about:preferences check-box face and its shipped check-mark data URI
    (the #DDDDDD face with the inset 1px 1px #FFFFFF, inset -1px -1px
    #888888 bevel, whose provenance the landing checkbox paragraph
@@ -400,7 +400,7 @@
    glyph; #autorefcheck's stock --checkbox-size sizing from
    in-content/common-shared.css stays Firefox's). The #sectionTitle
    heading, the three hrs and the about-logging link paragraph stay
-   Firefox's. The page loads top-level in a tab like the landed
+   Firefox's. The page loads top-level in a tab like the existing
    about:support. A headless run of this ESR on 2026-10-27 with a
    temporary profile whose userContent.css held an
    @-moz-document url("about:networking") recolour rule painting body
@@ -414,7 +414,7 @@
    is painted by an @-moz-document url("about:telemetry") body whose rules
    aboutTelemetry.js outweigh (selection is the .category.selected class,
    subsections are JS-added), the rows, field, menu and panel reusing the
-   landed about:networking/about:preferences recipes (the #CCCCFF selection
+   existing about:networking/about:preferences recipes (the #CCCCFF selection
    of test_selection_background, the line-edit recipe of
    widgets/lineedit.svg with
    tests/test_desktoptheme_lineedit.py::TestLineEdit and
@@ -426,11 +426,11 @@
    the #sectionTitle heading and other page chrome stay Firefox's.
 
    No reference shows the page's data payloads either; the JS-built
-   .main-content tables reuse the landed about:support/about:networking
+   .main-content tables reuse the existing about:support/about:networking
    arms byte-for-byte (the sunken white table field of FIELD_RULE, the
    #EEEEEE zebra of TROUGH, the raised #DDDDDD th band of SUPPORT_TH_RULE,
    the cleared cell borders of SUPPORT_CELL_RULE and the flat #CCCCFF
-   th:hover of BUTTON_HOVER_RULE), the .histogram box reuses the landed
+   th:hover of BUTTON_HOVER_RULE), the .histogram box reuses the existing
    #ping-picker panel values (the sheet's white face and square 1px solid
    #000000 outline, no shadow), each bar's .bar-inner reuses the
    Platinum progress fill as a flat adaptation (2026-10-28):
@@ -440,7 +440,7 @@
    border-radius: 0, its colour pinned by
    tests/test_colorscheme_reference.py::TestReferenceAnchors.
    test_selection_background — and the .copy-node and #payload-json-viewer
-   buttons reuse the landed push-button recipes BUTTON_RULE and
+   buttons reuse the existing push-button recipes BUTTON_RULE and
    BUTTON_HOVER_RULE (grounded in widgets/button.svg and
    aboutsystem_betawiki.png, pinned by
    tests/test_desktoptheme_button.py::TestButton and TestButtonReference);
@@ -748,8 +748,8 @@
 
   /* The sidebar rows, the DNS-lookup field and the autorefresh checkbox
      are the recorded natural subjects of a later plan: the rows take the
-     landed about:preferences nav-row paint, the field the landed line
-     edit and the checkbox the landed preferences check box face with its
+     existing about:preferences nav-row paint, the field the existing line
+     edit and the checkbox the existing preferences check box face with its
      shipped check-mark glyph. */
   #categories > .category {
     background-color: transparent !important;
@@ -780,7 +780,7 @@
     box-shadow: inset 1px 1px #999999 !important;
   }
 
-  /* The autorefresh checkbox: the landed preferences check box face and
+  /* The autorefresh checkbox: the existing preferences check box face and
      its shipped check-mark glyph (see the header's provenance
      paragraph). */
   #autorefcheck {

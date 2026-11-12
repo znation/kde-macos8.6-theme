@@ -1,9 +1,9 @@
 """Validate the ``userContent.css`` sheet's ``about:telemetry`` paint.
 
-The page's furniture takes the landed paints: the sidebar rows and their
+The page's furniture takes the existing paints: the sidebar rows and their
 selected arm, the subsection label, the search field and the stores menu
 button and ping-picker panel. Payload tables, histograms and their bars,
-and copy and JSON-viewer buttons reuse the landed recipes; the body stays
+and copy and JSON-viewer buttons reuse the existing recipes; the body stays
 Firefox's. The shared spec values and base case live in
 ``tests/support/firefox_content_cases.py``.
 """
