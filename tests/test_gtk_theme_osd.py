@@ -152,7 +152,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd entry:backdrop": field,
             ".osd spinbutton:disabled:not(.vertical)": disabled,
             ".osd entry:disabled": disabled,
-            # The 2026-11-11 RTL twins restated the landed etch mirror
+            # The RTL twins restate the landed etch mirror
             # beside each base state group: the groups' equal-or-higher
             # specificity kept the plain RTL mirror from reaching an OSD
             # spin field.
@@ -168,7 +168,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd spinbutton:dir(rtl):disabled:not(.vertical)": {
                 "box-shadow": "inset -1px 1px #999999"
             },
-            # The 2026-11-07 nested-field clearing twin restated the
+            # The nested-field clearing twin restates the
             # resource's byte-equal `.osd spinbutton:not(.vertical) entry`
             # spelling in the entry state-faces record's group, so the
             # family sweep gains its stock-identical clearing.

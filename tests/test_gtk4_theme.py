@@ -1656,8 +1656,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # insets-wash-or-an-accent fill on rows the landed records paint
         # transparent or with the flat lavender selection, and the
         # integration library paints background colors on the pressed
-        # spellings as well as the toolkit's insets (recorded 2026-11-06
-        # by the feature role).
+        # spellings as well as the toolkit's insets.
         expected = {
             "row.activatable.has-open-popup": dict(ROW_HOVER),
             "row.activatable:hover": dict(ROW_HOVER),
@@ -1682,8 +1681,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_selected_row_button_arms(self):
         # The selected-row button arms restate the landed black: see
-        # assert_selected_row_button_arms in support.gtk_rule_cases
-        # (recorded 2026-10-31 by the feature role).
+        # assert_selected_row_button_arms in support.gtk_rule_cases.
         self.assert_selected_row_button_arms("button:backdrop.flat")
 
     def test_places_sidebar(self):
@@ -1701,7 +1699,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         # The drag-session arms restate the stock drop strip and drag-over
         # row twins on the landed selection lavender with black ink
-        # (recorded 2026-11-09 by the feature role); each keeps stock's own
+        # each keeps stock's own
         # geometry members so the byte-equal spelling wins the cascade by
         # later user-sheet source order.
         expected_drop = {
@@ -3435,7 +3433,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             ".navigation-sidebar > child",
             ".navigation-sidebar > flowboxchild",
         }
-        # The landed row-focus entry (2026-11-03) adds one stock focus twin
+        # The row-focus restate adds one stock focus twin
         # under the same prefix; it states the focus outline, not the corner
         # radius, and test_list_row_focus_outlines pins its spelling.
         focus = {".navigation-sidebar > row:focus-visible:focus-within"}
@@ -3484,7 +3482,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             " > row:last-child.expander:checked list.nested > row:last-child",
         )
         expected = {root + suffix for root in roots for suffix in suffixes}
-        # The landed row-focus entry (2026-11-03) adds two stock focus twins
+        # The row-focus restate adds two stock focus twins
         # under each root; they state the focus outline, not the corner
         # radius, and test_list_row_focus_outlines pins their spelling.
         focus = {
@@ -3515,7 +3513,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "list.boxed-list-separate > row.expander.expander:checked list.nested",
             "list.boxed-list-separate > row.expander.expander:checked list.nested > row:last-child",
         }
-        # The landed row-focus entry (2026-11-03) adds two stock focus twins
+        # The row-focus restate adds two stock focus twins
         # under the same root; they state the focus outline, not the corner
         # radius, and test_list_row_focus_outlines pins their spelling.
         focus = {
@@ -3536,7 +3534,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertEqual(self.rules[selector], {"outline-color": BLACK})
 
     def test_color_swatch_corners(self):
-        # The landed residual focus entry (2026-11-03) adds the focus twin
+        # The residual focus restate adds the focus twin
         # under the same root; it states the focus outline colour, not a
         # corner radius, and test_residual_focus_outline_color pins its
         # spelling.
@@ -3993,7 +3991,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             ".osd scale > trough > slider:hover",
             ".osd scale > trough > slider:active",
             ".osd scale > trough > slider:disabled",
-            # The landed OSD entry-field restate (2026-11-03): the stock
+            # The OSD entry-field restate: the stock
             # `.osd` field-arm spellings lack the substring `button`, so the
             # whole-sheet sweep below must hold them too; the six spin-button
             # spellings are already excluded by it, as `spinbutton` contains

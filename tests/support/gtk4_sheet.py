@@ -148,8 +148,8 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         # No reference screenshot shows a GTK colour-class action button;
         # the tail arms restate the landed plain push-button recipe, so
         # every checked relationship below anchors the landed face
-        # constants. (2026-10-31: the colour-class members are since
-        # restated by test_action_class_flat_arms.) Exactly two call
+        # constants. (The colour-class members are restated by
+        # test_action_class_flat_arms.) Exactly two call
         # sites: the suggested- and destructive-action plain families.
         self.assert_rule(
             prefix,
@@ -215,7 +215,7 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         }
         # The `.flat`-suffixed colour-class selectors land through
         # test_action_class_flat_arms, so they stay out of the plain family
-        # bound here (2026-10-31).
+        # bound here.
         self.assertEqual(
             {
                 selector

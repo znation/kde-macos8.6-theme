@@ -218,7 +218,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         backdrop. The border arm ties stock by later source order; the
         label arms add :not(:disabled) and win by specificity, preserving
         deferred disabled states: stock's :not(disabled) excludes a node
-        name, not a state (review 2026-11-11). The block is spelled
+        name, not a state. The block is spelled
         identically in both shipped sheets. Both suites run this whole assertion; the only
         suite-owned input is *flat_stock_backdrop*, each toolkit's own
         spelling of the plain flat-backdrop selector.
@@ -694,13 +694,13 @@ class GtkSharedControlCases(GtkSheetRuleCases):
         self.assert_rule("check:indeterminate", MIXED_GLYPH)
         self.assert_rule("radio:indeterminate", MIXED_GLYPH)
 
-        # The 2026-11-05 plain state-twin arms keep the landed face under
+        # The plain state-twin arms keep the landed face under
         # every state: each suite's sheet restates the toolkit's plain
         # element-level state arms (quoted verbatim in the sheet-tail
         # comment and in docs/invariants.md) with the landed check and
         # radio faces' fill, border colour and shadow pair -- no geometry,
         # ink, glyph, radius or clip restatement (one transition reach:
-        # the 2026-11-09 amendment erases the stock 200ms backdrop fade
+        # the no-fade rule erases the stock 200ms backdrop fade
         # on the two bare :backdrop groups). The scanned
         # parser merges each checked and indeterminate spelling's face
         # blocks into the landed glyph spelling's dictionary, so the four
@@ -750,7 +750,7 @@ class GtkSharedControlCases(GtkSheetRuleCases):
             "radio:indeterminate",
         )
         if "gtk-3.0" in str(self.CSS_PATH):
-            # The 2026-11-09 no-fade amendment erases the stock 200ms
+            # The no-fade rule erases the stock 200ms
             # backdrop fade on the two bare :backdrop groups only, so the
             # checked and indeterminate :backdrop twins read unchanged.
             expected.update(

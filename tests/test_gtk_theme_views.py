@@ -74,7 +74,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # faces: stock's four element-level row arms would paint a tinted
         # hover-wash, pressed insets and a selection-accent fill on rows
         # the landed records paint transparent or with the flat lavender
-        # selection (recorded 2026-11-06 by the feature role).
+        # selection.
         expected = {
             "row.activatable.has-open-popup": dict(ROW_HOVER),
             "row.activatable:hover": dict(ROW_HOVER),
@@ -329,7 +329,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule("placessidebar row.sidebar-new-bookmark-row", {"color": BLACK})
         # The drag-session arms restate the stock drop strip and drag-over
         # row twins on the landed selection lavender with black ink
-        # (recorded 2026-11-09 by the feature role); each keeps stock's own
+        # each keeps stock's own
         # geometry members so the byte-equal spelling wins the cascade by
         # later user-sheet source order.
         expected_drop = {

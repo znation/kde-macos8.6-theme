@@ -238,8 +238,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         The recipe behind both plain action families: only the opaque
         members of the stock family are restated; no restated selector
         carries `.flat`, so the stock transparent-face colour-class family
-        keeps governing whole (recorded 2026-10-31 by the feature role).
-        (2026-10-31: the colour-class members are since restated by
+        keeps governing whole.
+        (The colour-class members are restated by
         test_action_class_flat_arms.) Exactly two call sites: the
         suggested- and destructive-action plain families.
         """
@@ -304,7 +304,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
                 selector
                 for selector in self.rules
                 if selector.startswith(prefix)
-                # 2026-10-31: the colour-class members are since restated
+                # The colour-class members are restated
                 # by test_action_class_flat_arms; the plain opaque keys
                 # carry no flat token, so this filter stays inside this
                 # family.
@@ -325,7 +325,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         every restated dictionary extends the landed plain recipe with the
         `background-color` claim the stock transparent faces force, and
         the base, hover and backdrop arms clear the stock motion claims
-        with `transition: none` (recorded 2026-10-31 by the feature role).
+        with `transition: none`.
         """
         face = {
             "background-color": FACE,
@@ -425,9 +425,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         re-declare the face colour beside the landed disabled dictionary
         and claim no `outline-color`. No `transition` is restated: the
         plain flat family's `transition: none` claims already hold at
-        equal-or-higher class counts (recorded 2026-10-31 by the
-        feature role; probed from gtk-contained.css in libgtk-3 3.24.49
-        with gresource the same day).
+        equal-or-higher class counts (probed from gtk-contained.css in
+        libgtk-3 3.24.49 with gresource).
         """
         face = {
             "background-color": FACE,

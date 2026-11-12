@@ -1,14 +1,14 @@
 """Pin the tracked tree free of run-scratch bookkeeping files.
 
 The run tooling once wrote its scratch bookkeeping file (``.scratchpath``) into
-the worktree instead of ``$TMPDIR`` and an accidental ``git add`` tracked it
-(entry found by the readme role 2026-10-31). A tracked file whose content is a
+the worktree instead of ``$TMPDIR`` and an accidental ``git add`` tracked it.
+A tracked file whose content is a
 single path into that run's temporary scratch directory carries nothing another
 clone can resolve, and no repository file or recipe reads it. These tests fail
 when such a file is tracked again, so stray bookkeeping at the repository root
-cannot hide in the tracked tree while every check stays green. A follow-up
-run tracked one run's full ``make check`` capture as ``check.log`` at the
-root (entry found by the plan role 2026-11-03); a file whose first line is
+cannot hide in the tracked tree while every check stays green. Another run
+tracked one run's full ``make check`` capture as ``check.log`` at the
+root; a file whose first line is
 the check harness invocation is scan-blocked alongside the bookkeeping
 paths.
 
@@ -158,8 +158,7 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
 
     def test_no_tracked_top_level_file_is_a_check_run_capture(self):
         # A top-level tracked file whose first line is the check harness
-        # invocation is one run's full-check capture (entry found by the
-        # plan role 2026-11-03), not repository content.
+        # invocation is one run's full-check capture, not repository content.
         for name, first_line in tracked_check_output_files(repo_root.ROOT):
             raise _TrackFailure(
                 f"tracked top-level file {name!r} opens with the check "
