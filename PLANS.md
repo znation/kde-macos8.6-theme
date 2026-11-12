@@ -93,16 +93,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### README sampling chooser: locate a near color within an RGB tolerance (planned 2026-11-12 by the plan role)
-
-**Goal.** Help contributors find pixels close to a chosen reference color — the common case for JPEG references and captured renders, where exact `--find-color` matching can miss shifted pixels — directly from the sampling chooser, without reading the whole Color search options section.
-
-**Approach and files.** Edit README.md only, outside the brief. Append one Choosing a sampling mode row after the existing rows (after the pending vertical color-match row if that has merged, else after the horizontal color-match row) using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --color-tolerance 8 --json`. Link its task label to a new standalone `sampling-color-tolerance` anchor placed immediately before the existing `--color-tolerance N` paragraph in Color search options. The Result cell says: match count and enclosing bounds for pixels whose red, green and blue channels each differ from the target by at most N, with the tolerance echoed in the report. Add a short chooser note after the existing notes stating that tolerance is a per-channel maximum (not a combined distance), alpha is ignored unless `--match-alpha` is also given, and the tolerance applies to every match report the search produces (coordinates, intervals, longest-match summaries). Keep the beta-evidence caveat; claim no particular match count. The exact-color row stays as the default for lossless PNG measurement. No runtime, invariant or test change: the option and its report already exist.
-
-**Grounding.** `tools/sample_arguments.py::build_parser` exposes `--color-tolerance` (validated by `tools/sample_validators.py::color_tolerance`, refused without `--find-color`). `tools/sample_report_search.py::_pixel_matches` applies the per-channel maximum, and `_search_match` emits `match.tolerance` only when the option is supplied. `tests/test_sample_find_color.py` covers the threshold, channel boundary and absolute bounds. README documents the option in Color search options but no chooser row or anchor reaches it. The archived entry "Reference-pixel sampler: locate colors within an explicit RGB tolerance" shipped the CLI; no Planned or archived chooser entry covers tolerance. `tests/test_readme_links.py::local_link_errors` recognizes standalone anchors.
-
-**Acceptance criteria.** A reader can copy the chooser command and follow its task link directly to the tolerance explanation. With materialized references, the command exits 0 and its JSON `match` object carries `count`, `bounds` (or null) and `tolerance` equal to 8; rerunning without `--color-tolerance` omits `tolerance` and its count is no greater than the tolerant run's. The note's per-channel and alpha statements agree with `_pixel_matches`. Existing local links resolve. Review Markdown table placement, run both command variants, and run `make check` after the final edit.
-
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role

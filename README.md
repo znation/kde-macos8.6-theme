@@ -888,6 +888,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
 | [Locate the longest horizontal color match](#sampling-longest-horizontal-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-run --json` | Longest horizontal matching segment's absolute start and length, or null |
 | [Locate the longest vertical color match](#sampling-longest-vertical-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-column-run --json` | Longest vertical matching segment's absolute start and length, or null |
+| [Locate a near color within an RGB tolerance](#sampling-color-tolerance) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --color-tolerance 8 --json` | Match count and enclosing bounds for pixels whose red, green and blue each differ from the target by at most the tolerance, with the tolerance echoed in the report |
 
 For the next palette page, change `--color-offset 0` to `--color-offset 3`.
 Offsets count eligible ranked colors, not pixel coordinates, and a later page
@@ -912,6 +913,13 @@ above. It searches the complete rectangle for the chosen color, reports one segm
 absolute start and length, and ties keep the lowest column, then the lowest row. It omits the
 full vertical interval list unless `--match-column-runs` is requested separately. It is not the
 scanline color-run command, which summarizes equal-color runs without searching for a chosen color.
+
+Use the exact-color row for lossless PNG measurement. For a near color, the tolerance row
+treats the tolerance as a per-channel maximum, not a combined distance: a pixel matches when
+each of its red, green and blue values differs from the target by at most N. Alpha is ignored
+unless `--match-alpha` is also given. The tolerance applies to every match report the search
+produces, including coordinates, intervals and longest-match summaries. Beta reference evidence
+is still not retail palette evidence, so treat the count as a demonstration rather than a claim.
 
 ### Sampling options
 
@@ -1143,6 +1151,8 @@ and `bounds` (`null` when absent):
 ```sh
 python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 0 0 --width 240 --height 180 --find-color '#63639C' --json
 ```
+
+<a id="sampling-color-tolerance"></a>
 
 Add `--color-tolerance N` to include pixels whose red, green and blue channel
 differences are each at most N (0–255). This helps locate colors affected by
