@@ -2564,6 +2564,10 @@ The post-merge review of commit `d0868dc78b29167552a80da47cfa212ea008e1e9` (Pin 
 
 The post-merge review of commit `a1e78a4246993edfe6235f6115e068376ad03862` (add tests/test_cursor_art_bindings.py pinning the cursor-art data modules to cursor_art.CURSORS) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 76477c97 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `76477c971f27d3aed997a1d10d3a291a44c08fc5` (Share the sampler’s plain text report header sequence) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
