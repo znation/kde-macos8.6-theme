@@ -1876,6 +1876,10 @@ The post-merge review of commit `c56c13ba345f9c52ceb97b2c47197307b37443bc` (reco
 
 The post-merge review of commit `ddde920ae6da1e90db0cba0ef6bb614baf3a2cf8` (Add bounded worst-pixel diagnostics to fidelity comparisons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of f7c107c0 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `f7c107c0cc1ba804c8fdd4287924c8bd38395a5d` (recovered leftover work from feature: Draw one 1px seam per horizontal GTK 3 spin button stepper edge) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
