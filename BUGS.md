@@ -628,6 +628,10 @@ The post-merge review of commit `d45bad0b784100b2eb979660481793f298e5b7a7` (Sile
 
 The post-merge review of commit `52a3d6e147acaa347aca8dd2ccf7261358b02041` (Warn on the kwinrc decoration layout left by make uninstall) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 1753a9f6 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `1753a9f65776e9a8b734e0fad901241781e008c5` (Add a plasmarc uninstall diagnostic naming the plasma-apply-desktoptheme breeze reset) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
