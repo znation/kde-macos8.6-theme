@@ -43,6 +43,13 @@ artwork, explicit size/hotspot expectations, regression tests and provenance for
 surface that is missing. Investigate selection or scale defects separately if demonstrated;
 this report does not establish either defect.
 
+**Progress 2026-11-11 by bugfix:** Handed to the director because the reported visual defect
+cannot be reproduced without an explicitly requested desktop inspection, and the replacement
+direction is still an open user decision. No desktop selection or rendering was attempted. The
+recorded inspection path is to select the installed theme and compare arrow, text and pointing-hand
+roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
+coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
