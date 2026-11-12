@@ -35,16 +35,15 @@ number when a SIGTERM or SIGHUP ends the run.
 from __future__ import annotations
 
 import os
-import shutil
 import sys
 from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import (
-        create_scratch_directory,
         report_error,
         report_missing_tool,
+        scratch_directory,
     )
     from tools.file_lock import installed_data_lock
     from tools import xdg_homes
@@ -56,9 +55,9 @@ if __package__:
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
-        create_scratch_directory,
         report_error,
         report_missing_tool,
+        scratch_directory,
     )
     from file_lock import installed_data_lock
     import xdg_homes
@@ -124,10 +123,9 @@ LOCK_TIMEOUT = 60.0
 
 def _apply(data_home: Path, environ: dict[str, str]) -> int:
     """Run the required steps, then the best-effort selections."""
-    scratch = create_scratch_directory(TOOL, "apply-theme-")
-    if scratch is None:
-        return 2
-    try:
+    with scratch_directory(TOOL, "apply-theme-") as scratch:
+        if scratch is None:
+            return 2
         # Hold the data-home lock make install/uninstall hold across the
         # selections: lookandfeeltool, plasma-apply-* and the best-effort
         # kvantummanager all read installed packages a concurrent uninstall
@@ -144,8 +142,6 @@ def _apply(data_home: Path, environ: dict[str, str]) -> int:
                 return status
             run_optional_selections(scratch, env, COMMAND_TIMEOUT)
             return 0
-    finally:
-        shutil.rmtree(scratch, ignore_errors=True)
 
 
 def _run_required_steps(scratch: Path, env: dict[str, str]) -> int | None:

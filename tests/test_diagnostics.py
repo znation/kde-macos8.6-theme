@@ -407,5 +407,33 @@ class TestRequirePath(unittest.TestCase):
                     diagnostics.require_path("publish", "output", value)
 
 
+class TestScratchDirectory(unittest.TestCase):
+    def test_yields_an_existing_directory_and_removes_it_on_exit(self):
+        with diagnostics.scratch_directory("sample", "scratch-test-") as scratch:
+            self.assertIsInstance(scratch, Path)
+            self.assertTrue(scratch.is_dir())
+            (scratch / "log").write_text("kept until exit\n")
+        self.assertFalse(scratch.exists())
+
+    def test_removes_the_directory_when_the_block_raises(self):
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            with diagnostics.scratch_directory("sample", "scratch-test-") as scratch:
+                raise RuntimeError("boom")
+        self.assertFalse(scratch.exists())
+
+    def test_yields_none_and_reports_exit_two_when_creation_fails(self):
+        stderr = io.StringIO()
+        with mock.patch(
+            "tools.diagnostics.tempfile.mkdtemp", side_effect=OSError("no space left")
+        ):
+            with contextlib.redirect_stderr(stderr):
+                with diagnostics.scratch_directory("sample", "scratch-test-") as scratch:
+                    self.assertIsNone(scratch)
+        self.assertEqual(
+            stderr.getvalue(),
+            "sample: error: cannot create a scratch directory: no space left\n",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

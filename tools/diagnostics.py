@@ -26,7 +26,8 @@ import os
 import shutil
 import sys
 import tempfile
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 if __package__:
@@ -102,6 +103,25 @@ def create_scratch_directory(
     except OSError as exc:
         report_error(tool, f"cannot create a {label}: {exc}")
         return None
+
+
+@contextmanager
+def scratch_directory(
+    tool: str, prefix: str, *, label: str = "scratch directory"
+) -> Iterator[Path | None]:
+    """Yield a scratch directory for *tool*, removed when the block exits.
+
+    Yields ``None`` (after the shared exit-2 diagnostic from
+    :func:`create_scratch_directory`) when the directory cannot be created, so
+    the caller returns 2 before doing any work. The removal runs whether the
+    block returns, raises, or is interrupted by an exception.
+    """
+    scratch = create_scratch_directory(tool, prefix, label=label)
+    try:
+        yield scratch
+    finally:
+        if scratch is not None:
+            shutil.rmtree(scratch, ignore_errors=True)
 
 
 # Only CR, LF and CRLF end a log line. ``str.splitlines`` also breaks on
