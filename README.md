@@ -1537,9 +1537,16 @@ answers your question:
 | [See vertical mismatch segments](#fidelity-report-vertical-runs) | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
 | [Find row and column concentration](#fidelity-report-scanline-counts) | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
 | [Attribute mismatches to channels](#fidelity-report-channel-counts) | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
+| [See the error-magnitude distribution](#fidelity-report-delta-histogram) | `--delta-histogram --json` | Counts grouped by each pixel's maximum absolute RGBA delta. |
+| [See typical and tail error](#fidelity-report-delta-percentiles) | `--delta-percentiles --json` | Nearest-rank p50, p95 and p99 maximum RGBA deltas. |
+| [Check the direction of channel drift](#fidelity-report-channel-bias) | `--channel-bias --json` | Signed mean candidate-minus-reference RGBA deltas. |
+| [Find the worst error per channel](#fidelity-report-channel-maxima) | `--channel-maxima --json` | Maximum absolute delta for each RGBA channel. |
 
 Interval coordinates are relative to the compared crops. See [Diagnostic reference](#diagnostic-reference)
 for details about these reports and their fields.
+
+These are raw-byte diagnostics: where applicable they include zero and sub-tolerance errors,
+and none changes the comparison verdict. Opposite signed errors can cancel in channel bias.
 
 Reported `x`/`y` positions are relative to the compared crops. `candidate_position` and
 `reference_position` locate each result in the original images; `--explain-worst` gives both
@@ -1616,6 +1623,8 @@ and text prints one `channel differing pixels (R, G, B, A)` line immediately bef
 verdict, on passing and failing runs alike. A pixel can contribute to several counts (a
 tint change moves three channels at once), so the counts overlap and must not be summed
 into a union; `metrics.differing` already holds that union count.
+<a id="fidelity-report-delta-histogram"></a>
+
 Add `--delta-histogram` to report every compared pixel once, grouped by its
 maximum absolute RGBA channel delta from 0 through 255. The complete distribution
 includes zero and deltas at or below tolerance, and is independent of the gate:
@@ -1623,6 +1632,8 @@ JSON adds `delta_histogram` records (`delta` and `count`), while text prints the
 same array as one `delta histogram:` line immediately before the verdict. The
 option reports on passing and failing comparisons; omitting it skips the scan
 and leaves the default output unchanged.
+<a id="fidelity-report-delta-percentiles"></a>
+
 Add `--delta-percentiles` to summarize that same maximum-RGBA-delta distribution
 with nearest-rank p50, p95 and p99. Each rank is `ceil(p * pixel_count / 100)`;
 the reported delta is the smallest bin whose cumulative count reaches that
@@ -1631,12 +1642,16 @@ contributes. Percentiles are diagnostic and do not affect the gate. JSON adds a
 `delta_percentiles` object and text prints the same object as one `delta percentiles:`
 line immediately before the verdict. Percentiles alone omit histogram output;
 both options share one histogram scan.
+<a id="fidelity-report-channel-bias"></a>
+
 Add `--channel-bias` to report the signed mean candidate-minus-reference byte delta for each
 RGBA channel. Positive values mean the candidate trends higher; negative values mean it trends
 lower. Opposite errors can cancel to zero even when pixels differ. This is a raw-byte diagnostic,
 including RGB beneath transparent pixels, with missing alpha treated as opaque; it does not
 composite or describe perceptual color error. JSON adds a `channel_bias` object and text prints
 the same object immediately before the verdict. It is independent of tolerance and verdict.
+<a id="fidelity-report-channel-maxima"></a>
+
 Add `--channel-maxima` to report the largest absolute byte delta seen in each RGBA channel.
 JSON adds a `channel_maxima` object and text prints a labelled RGBA maximum-delta line before
 the verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque,

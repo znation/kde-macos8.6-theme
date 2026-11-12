@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README fidelity chooser: expose distribution and channel tuning reports (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Help a contributor investigating palette drift choose the existing distribution and channel reports from the compact diagnostic table, rather than searching the long flag reference. This is independent of the waiting comparison-refusal guide.
+
+**Approach and files.** Edit README.md only, outside the brief. Append four rows to `### Choosing a diagnostic`: distribution of error magnitudes (`--delta-histogram --json`), typical and tail error (`--delta-percentiles --json`), direction of channel drift (`--channel-bias --json`), and worst error per channel (`--channel-maxima --json`). Describe the visible results respectively as counts by maximum absolute RGBA delta, nearest-rank p50/p95/p99, signed mean candidate-minus-reference RGBA deltas, and per-channel maximum absolute deltas. Make each Need label link to a new standalone explicit anchor immediately before its existing explanation in Diagnostic reference: `fidelity-report-delta-histogram`, `fidelity-report-delta-percentiles`, `fidelity-report-channel-bias`, and `fidelity-report-channel-maxima`. Add a short note that these raw-byte diagnostics include zero and sub-tolerance errors where applicable, do not change the verdict, and that opposite signed errors can cancel in the bias. Preserve the existing six rows and their links. No runtime or invariant guarantee changes; no new prose-pinning test is needed.
+
+**Grounding.** Inspected `tools/fidelity.py::main`, `tools/fidelity_pixels.py::delta_histogram`, `channel_bias`, `channel_maxima`, and `tools/fidelity_reports.py::delta_percentiles`: these reports already exist. README documents their flags in the detailed reference, but its chooser offers six other report choices. Archived plans for the compact chooser and its per-report links specify those six rows; the archived channel-maxima repair reunites its detailed explanation rather than exposing it in the chooser. `tests/test_readme_links.py::local_link_errors` recognizes explicit anchors; `TestReadmeLinks` and `tests/test_readme_commands.py::TestReadmeCommands` supply existing documentation checks. These code paths are evidence anchors, not implementation targets.
+
+**Acceptance criteria.** A reader can select each of the four reports from the table, append its options to the existing aligned-crop command, and follow its link to the matching explanation. The table distinguishes a signed mean from an absolute maximum and identifies the histogram's grouping and percentile ranks without implying perceptual error or automatic threshold adjustment. Each option cell parses with `tools/fidelity_cli_parser.py::build_parser` using placeholder candidate/reference paths, without image reads or GUI activity. Existing diagnostic links still resolve. Run `make check` after the final edit.
+
+**Completion.** Added the four chooser rows, explicit report anchors and raw-byte/verdict interpretation note.
+
 ### GTK 4 suite extraction, part 9/9: isolate calendar declarations (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
 
 **Goal.** Establish one complete declaration-surface suite alongside the probe moves; this part is independent of parts 2–8.
