@@ -1576,6 +1576,10 @@ The post-merge review of commit `762705a721c98dc5cf1953e2f781da7064c9e194` (Land
 
 The post-merge review of commit `0da3b326c1746b38bd9526b26e8cc1216877a25c` (Reword the render CLI's multi-dialog-mode refusal to hold at any count) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e95ab0f2 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `e95ab0f24be50d79d2ca6d5e0c1675509960a72e` (Clear the stock label/icon emboss on plain enabled GTK 3 push buttons with sheet-tail restatements) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
