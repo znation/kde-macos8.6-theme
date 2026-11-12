@@ -1563,6 +1563,7 @@ answers your question:
 | [See horizontal mismatch segments](#fidelity-report-horizontal-runs) | `--difference-runs --max-difference-runs 20 --json` | Capped list of horizontal intervals. |
 | [Locate the longest horizontal defect](#fidelity-report-longest-horizontal-run) | `--longest-difference-run --json` | One longest horizontal mismatch segment with crop-relative start and pixel length, or null when no pixel exceeds tolerance. |
 | [See vertical mismatch segments](#fidelity-report-vertical-runs) | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
+| [Locate the longest vertical defect](#fidelity-report-longest-vertical-run) | `--longest-difference-column-run --json` | One longest vertical mismatch segment with crop-relative start and pixel length, or null when no pixel exceeds tolerance. |
 | [Find row and column concentration](#fidelity-report-scanline-counts) | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
 | [Attribute mismatches to channels](#fidelity-report-channel-counts) | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
 | [See the error-magnitude distribution](#fidelity-report-delta-histogram) | `--delta-histogram --json` | Counts grouped by each pixel's maximum absolute RGBA delta. |
@@ -1575,6 +1576,9 @@ for details about these reports and their fields.
 
 The longest horizontal segment covers the complete compared crop; ties select the earliest row,
 then column. This summary alone does not emit the full interval list.
+
+The longest vertical segment also covers the complete compared crop; ties select the earliest
+column, then row. This summary alone does not emit the full interval list.
 
 These are raw-byte diagnostics: where applicable they include zero and sub-tolerance errors,
 and none changes the comparison verdict. Opposite signed errors can cancel in channel bias.
@@ -1622,6 +1626,8 @@ channel delta exceeds `--tolerance` — and the default no-differing-pixel gate 
 RGBA channel delta exceeds tolerance, with crop-relative `x`, `y` and `length`; ties use the
 earliest row and then column. The JSON field is `longest_difference_run`, and an empty comparison
 reports `null`. When combined with `--difference-runs`, it reuses those intervals.
+<a id="fidelity-report-longest-vertical-run"></a>
+
 `--longest-difference-column-run` reports the longest vertical contiguous interval under the same
 comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
 JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
