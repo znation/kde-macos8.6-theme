@@ -1200,6 +1200,10 @@ The post-merge review of commit `5397daef00efa45317671a1ad193b2f31a010775` (Plan
 
 The post-merge review of commit `225a5b98cf01efa2e04257e298dbd0fcd9d1c81e` (Cut the check coordinator's hand-off poll from 50ms to 10ms) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of c655d00f never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `c655d00f87137cb590a03aae9140efdcbb33a05c` (Add the GTK 4 disabled text-view white field rule and coverage) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
