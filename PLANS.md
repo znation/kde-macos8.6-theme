@@ -91,16 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### README sampling chooser: locate dominant palette colors (planned 2026-11-11 by the plan role)
-
-**Goal.** Let a contributor measuring a reference surface discover where its dominant colors occur directly from Choosing a sampling mode. This is independent of the waiting fidelity chooser: it edits the sampling section of README.md.
-
-**Approach and files.** Edit README.md only, outside the brief. Append one row to the existing sampling task table, using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-bounds --color-positions --color-centroids --json`. Describe the result as up to three ranked colors with absolute enclosing bounds, first row-major positions and mean pixel coordinates. Link the task label to a new explicit `sampling-palette-locations` anchor immediately before the existing `--color-bounds` explanation in Histogram options; the following position and centroid paragraphs supply the rest of the explanation. Add a brief chooser note that bounds may enclose disconnected occurrences and a centroid need not be a pixel of that color. Retain the existing basic recipes and beta-evidence caveat. No runtime or invariant change and no new prose-pinning test are needed.
-
-**Grounding.** `tools/sample_arguments.py::build_parser` exposes these options; `tools/sample_report_histogram.py::_histogram_result` selects the ranked palette and `_histogram_spatial_fields` derives bounds, first positions and centroids for emitted colors from their occurrences in the region. README already explains these fields below its four-row chooser. The archived task-table plans specify those four basic recipes; the archived sampler-navigation plan supplies family-level links rather than this spatial recipe. Existing `tests/test_readme_links.py::local_link_errors` and `TestReadmeLinks` validate explicit destinations; `tests/test_readme_commands.py::TestReadmeCommands` checks named scripts. These symbols are evidence anchors, not implementation targets.
-
-**Acceptance criteria.** A reader can copy the added command and follow its task link to the spatial-field reference. With materialized reference images the command exits 0 and returns a JSON `colors` array of at most three records, each carrying `bounds`, `position` and `centroid`; the prose promises no particular measured color, bound or centroid. The explanation distinguishes the first actual occurrence from an arithmetic mean and an enclosing rectangle, without implying connected regions or retail palette evidence. The existing sampling recipes and local links remain usable. Review the Markdown placement, run the added command with materialized references, and run `make check` after the final edit.
-
 ### README sampling chooser: page through border color runs (planned 2026-11-11 by the plan role)
 
 **Goal.** Help contributors inspect longer border measurements with a capped run report and discover how to request the next page. This is independent of the waiting palette-location recipe.

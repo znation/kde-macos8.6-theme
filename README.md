@@ -879,8 +879,12 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | --- | --- | --- |
 | Read one pixel | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5` | RGB and hex values |
 | Rank a small region's palette | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3` | Up to three colors, ranked by count |
+| [Locate dominant palette colors](#sampling-palette-locations) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-bounds --color-positions --color-centroids --json` | Up to three ranked colors with absolute enclosing bounds, first row-major positions and mean pixel coordinates |
 | Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors, start coordinates, and lengths |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
+
+Bounds can enclose disconnected occurrences, and a centroid is an arithmetic mean that need not
+be a pixel of that color.
 
 ### Sampling options
 
@@ -1058,6 +1062,8 @@ JSON color records gain a numeric `cumulative_fraction`; text appends
 position and centroid fields. The option works independently of
 `--color-fractions`; with `--top-colors`, the denominator still includes
 pixels omitted from the displayed page.
+
+<a id="sampling-palette-locations"></a>
 
 Add `--color-bounds` with `--histogram` to report each emitted color's
 smallest enclosing rectangle, using absolute image coordinates. The bounds
