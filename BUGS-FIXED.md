@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 85d12175 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The reviewed GTK 3 backdrop selected-ancestor link group covers the nine enabled base, hover and active selectors. Its test checks exact declarations, selector uniqueness, palette-derived black and cascade order; the invariant table records the GTK resource and absent reference surface. The reviewed change adds no keyboard mapping or theme-owned branded UI.
+
+**Validation gap:** none — the review record lacked a verdict, and inspection of the implementation, test and invariant evidence was sufficient to settle it.
+
 ### post-merge review of f506bb76 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `f506bb76d19eceb404004ab2e54faaaf08ebb265` (Share the Firefox panel declaration assertion helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

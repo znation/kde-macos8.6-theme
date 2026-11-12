@@ -52,10 +52,6 @@ recorded inspection path is to select the installed theme and compare arrow, tex
 roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
 coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
 
-### post-merge review of 85d12175 never reached a verdict (found by the review role 2026-11-11)
-
-The post-merge review of commit `85d12175ab0f8f85237fe86f4e4babb38d954600` (Style selected-ancestor inline links in GTK 3 backdrop windows) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 9a6d0021 never reached a verdict (found by the review role 2026-11-11)
 
 The post-merge review of commit `9a6d0021b5058be907c5a006ccca6220216243bc` (Add disabled GTK 4 inline-link styling inside selected ancestors) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
