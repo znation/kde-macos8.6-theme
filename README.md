@@ -1688,8 +1688,10 @@ suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
 `::TestInactiveDialogRender`)
 open a `kdialog` warning box, chooser, input box, menu list, calendar, color picker, slider,
 progress meter and text box and a `zenity` GTK 4 entry dialog, and byte-compare the
-engine-drawn widget each opens with the shipped art described under
-[Rendering a candidate](#rendering-a-candidate). The inactive gate pins the two-window
+engine-drawn widgets with the shipped art described under
+[Rendering a candidate](#rendering-a-candidate), except that the menu gate pins the
+engine-drawn `GenericFrame` item-view border runs, white interior and current-item
+focus ring against measured pixel values. The inactive gate pins the two-window
 capture's unfocused window: its decoration pixels — the `#555555` outline ring, the
 recoloured client edge, the flat buttonless `#DDDDDD` bar and the `#777777` title ink —
 against the shipped inactive art, beside the focused neighbour that proves the capture
