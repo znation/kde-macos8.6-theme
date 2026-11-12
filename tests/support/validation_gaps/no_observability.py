@@ -12,7 +12,7 @@ from __future__ import annotations
 from .records import Reproduction
 
 # The number of ``no-observability`` records the archive held when the ledger
-# landed. A new record must be retired with a test instead of raising this.
+# was added. A new record must be retired with a test instead of raising this.
 NO_OBSERVABILITY_BASELINE = 28
 
 NO_OBSERVABILITY_REPRODUCTIONS = (

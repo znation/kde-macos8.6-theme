@@ -140,7 +140,7 @@ class SheetRuleAssertions:
         """Assert *later* first appears after *earlier* in the parsed sheet.
 
         The GTK suites pin cascade precedence as a source-order comparison:
-        a landed restatement beats a stock arm of equal specificity only by
+        an existing restatement beats a stock arm of equal specificity only by
         coming later in the sheet text, so a rule-order pin asserts which of
         two substrings ``self.css`` holds first. The two-operand pins across
         the GTK 3 and GTK 4 suites route through here; loop-anchor and
@@ -211,9 +211,9 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the sheet-tail selected-row push-button arm block.
 
         A push button inside a selected row keeps reading black on the
-        landed lavender fill with the landed raised and flat treatments:
+        existing lavender fill with the existing raised and flat treatments:
         stock's three selected-row arms would paint an opaque button with
-        a blue border and a flat button with a white label on the landed
+        a blue border and a flat button with a white label on the existing
         light selection fill and recolour the flat label near white in
         backdrop. The border arm ties stock by later source order; the
         label arms add :not(:disabled) and win by specificity, preserving
@@ -248,10 +248,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         )
 
     def assert_button_disabled_and_backdrop(self):
-        """Assert the landed insensitive and unfocused-window button faces.
+        """Assert the existing insensitive and unfocused-window button faces.
 
-        Unfocused windows dim no landed push button: the suites'
-        backdrop states restate the landed raised and sunken bevels with
+        Unfocused windows dim no existing push button: the suites'
+        backdrop states restate the existing raised and sunken bevels with
         black labels and no transition, and the six-member disabled group
         keeps the raised bevel with :data:`DISABLED_TEXT`'s insensitive
         grey label and no backdrop state of its own. Both suites run this
@@ -544,7 +544,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
 
         The GTK 3 OSD suite carries the sheet's two ``scale-popup``
         button pins: the flat pop-up member squared with a solid border,
-        the hover member armed with the landed ``FACE`` and a square
+        the hover member armed with the existing ``FACE`` and a square
         radius, and the member inventory naming those two
         ``scale-popup`` button spellings and nothing else. (The GTK 4
         suite's own case restates the full push-button recipe at each
@@ -694,16 +694,16 @@ class GtkSharedControlCases(GtkSheetRuleCases):
         self.assert_rule("check:indeterminate", MIXED_GLYPH)
         self.assert_rule("radio:indeterminate", MIXED_GLYPH)
 
-        # The plain state-twin arms keep the landed face under
+        # The plain state-twin arms keep the existing face under
         # every state: each suite's sheet restates the toolkit's plain
         # element-level state arms (quoted verbatim in the sheet-tail
-        # comment and in docs/invariants.md) with the landed check and
+        # comment and in docs/invariants.md) with the existing check and
         # radio faces' fill, border colour and shadow pair -- no geometry,
         # ink, glyph, radius or clip restatement (one transition reach:
         # the no-fade rule erases the stock 200ms backdrop fade
         # on the two bare :backdrop groups). The scanned
         # parser merges each checked and indeterminate spelling's face
-        # blocks into the landed glyph spelling's dictionary, so the four
+        # blocks into the existing glyph spelling's dictionary, so the four
         # merged keys pin the glyph union and the other spellings land in
         # one block each. The suites carry the same plain dictionaries;
         # the GTK 3 sheet adds the three plain :backdrop face arms its
@@ -771,8 +771,8 @@ class GtkSharedControlCases(GtkSheetRuleCases):
                 )
                 self.assertEqual(self.rules[selector], declarations)
 
-        # The landed out-of-reach provenance stays: the suite's menu-check
-        # keys keep their landed bare-glyph dictionaries and the landed OSD
+        # The existing out-of-reach provenance stays: the suite's menu-check
+        # keys keep their existing bare-glyph dictionaries and the existing OSD
         # pressed indicators keep the recipe properties their own record
         # pins (the full dictionaries differ between the two sheets'
         # stock-cleared shadow twins, so this pins the recipe surface per

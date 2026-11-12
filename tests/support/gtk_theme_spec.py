@@ -422,7 +422,7 @@ SELECTION_CHECK_STATES = (
     ":backdrop:checked",
 )
 
-# The content-view tile-check face both suites pin: the landed check
+# The content-view tile-check face both suites pin: the existing check
 # face's raised etched field at the tile record's zero radius. Exactly two
 # tests read it -- test_tile_check_faces in tests/test_gtk4_theme.py and
 # test_vertical_stepper_and_content_view_check_corners in

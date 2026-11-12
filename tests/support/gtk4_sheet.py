@@ -169,7 +169,7 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         """Assert *selector*'s *prop* value matches each frame arm's.
 
         The square-corner tests anchor a container's paint to both spellings
-        of the landed frame rule; this drives the paired assertion for each
+        of the existing frame rule; this drives the paired assertion for each
         spelling in turn.
         """
         for frame in ("frame > border", ".frame"):
@@ -194,8 +194,8 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
 
     def assert_plain_action_arms(self, prefix):
         # No reference screenshot shows a GTK colour-class action button;
-        # the tail arms restate the landed plain push-button recipe, so
-        # every checked relationship below anchors the landed face
+        # the tail arms restate the existing plain push-button recipe, so
+        # every checked relationship below anchors the existing face
         # constants. (The colour-class members are restated by
         # test_action_class_flat_arms.) Exactly two call
         # sites: the suggested- and destructive-action plain families.

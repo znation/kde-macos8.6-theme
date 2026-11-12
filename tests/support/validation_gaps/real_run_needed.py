@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The five ``real-run-needed`` records the archive held when the ledger landed,
+# The five ``real-run-needed`` records the archive held when the ledger was added,
 # plus the check-box indicator resample fixed 2026-10-30, whose confirmation
 # drew the indicator through a real ``kwin_wayland`` ``kdialog`` render; that
 # render's size bound is pinned offline by the new test. Plus the Aurorae

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The three ``slow-check`` records the archive held when the ledger landed.
+# The three ``slow-check`` records the archive held when the ledger was added.
 # Each failure was only confirmable under render or wall-clock-shaped load;
 # its reproduction now pins the shipped paint budget offline -- a shipped
 # flag list, or a stubbed save whose diagnosis runs without the wall clock.

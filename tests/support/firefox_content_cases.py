@@ -279,9 +279,9 @@ RADIO_DOT_RULE = {
 }
 
 # The enabled pane entry fields and menulists: the field rule is the
-# byte-recipe of this module's FIELD_RULE (the landed about:config search
+# byte-recipe of this module's FIELD_RULE (the existing about:config search
 # field), and the menulist rules the byte-recipes of BUTTON_RULE and
-# BUTTON_HOVER_RULE (the landed pane push buttons), spelled explicitly so a
+# BUTTON_HOVER_RULE (the existing pane push buttons), spelled explicitly so a
 # change to the config or button recipes cannot silently retarget the panes.
 PANEFIELD_RULE = {
     "background-color": f"{WHITE} !important",
@@ -430,7 +430,7 @@ SUPPORT_SELECTORS = (
     *SUPPORT_BUTTONS_HOVER,
 )
 
-# The about:networking rules. The sheet's arms are the landed about:support
+# The about:networking rules. The sheet's arms are the existing about:support
 # arms byte-for-byte over this page's selectors (.main-content table and the
 # four button ids); the register keys the parsed selectors, which are the
 # comma-list cell and button arms split per arm by parse_css.
@@ -478,7 +478,7 @@ NETWORKING_CHECK_RULE = {
     "border-radius": "0 !important",
     "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK} !important",
 }
-# The landed about:preferences checked-arm glyph, byte-for-byte (the
+# The existing about:preferences checked-arm glyph, byte-for-byte (the
 # module's own CHECKBOX_GLYPH_URI): the plan spells the URI inline and this
 # constant is its byte-equal spelling.
 NETWORKING_CHECK_CHECKED_RULE = {
@@ -543,9 +543,9 @@ TELEMETRY_STORES = "#stores"
 TELEMETRY_STORES_HOVER = TELEMETRY_STORES + ":hover"
 TELEMETRY_PING_PANEL = "#ping-picker"
 
-# The payload arms reuse the landed support/networking table byte-recipes
+# The payload arms reuse the existing support/networking table byte-recipes
 # (FIELD_RULE, the #EEEEEE zebra of TROUGH, SUPPORT_TH_RULE,
-# SUPPORT_CELL_RULE and BUTTON_HOVER_RULE) and the landed push-button
+# SUPPORT_CELL_RULE and BUTTON_HOVER_RULE) and the existing push-button
 # recipes over this page's selectors (.main-content table, the histogram
 # boxes, their bars and copy buttons and the raw-JSON viewer); the register
 # keys the parsed selectors, which are the comma-list cell and button arms

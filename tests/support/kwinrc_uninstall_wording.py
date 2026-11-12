@@ -1,10 +1,10 @@
 """Wordings and key ids the kwinrc uninstall-diagnostic suites share.
 
-`make _uninstall` (tools/uninstall_live_diagnostics.py) prints the landed
+`make _uninstall` (tools/uninstall_live_diagnostics.py) prints the existing
 diagnostics whose wordings are each suite's assertion contract. The three
 kwinrc suites cover the button-layout, theme-key and library/theme-pair
 diagnostics under `kwinrc`'s `[org.kde.kdecoration2]` group, and each
-restates the landed wordings its siblings own. Those restated cross-suite
+restates the existing wordings its siblings own. Those restated cross-suite
 wordings and the group and key ids behind them live here so a wording or
 id change lands in one place: `button_rule` feeds all three suites and
 `aurorae_pair_rule` feeds two. The group and key ids use the test
@@ -22,7 +22,7 @@ RIGHT_KEY = "ButtonsOnRight"
 
 
 def button_rule(path):
-    """The landed button-layout diagnostic's line (the wording is the contract)."""
+    """The existing button-layout diagnostic's line (the wording is the contract)."""
     return (
         "uninstall: the window-button layout "
         f"[{LEFT_KEY}=X, {RIGHT_KEY}=AL] that make apply wrote is still in "
@@ -34,7 +34,7 @@ def button_rule(path):
 
 
 def aurorae_pair_rule(path):
-    """The landed library/theme-pair diagnostic's line (the wording is the contract)."""
+    """The existing library/theme-pair diagnostic's line (the wording is the contract)."""
     return (
         "uninstall: the window-decoration selection "
         f"[{LIBRARY_KEY}={AURORAE_LIBRARY}, {THEME_KEY}={AURORAE_THEME}] "

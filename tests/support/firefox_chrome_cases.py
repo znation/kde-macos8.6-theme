@@ -537,7 +537,7 @@ REQUIRED_RULES[
 ] = {"background-color": "transparent !important"}
 
 # The Library window's search box: the Platinum line edit through the
-# moz-input-search tokens, the byte-twin of the landed
+# moz-input-search tokens, the byte-twin of the existing
 # moz-input-search#searchInput recipe (see the header's provenance
 # paragraph). A static line edit from the token route's point of view,
 # so there is no hover, focus or disabled variant here.
@@ -550,7 +550,7 @@ REQUIRED_RULES["moz-input-search#searchFilter"] = {
 }
 
 # The Library content tree's column headers: the Platinum raised
-# header buttons, the byte-recipe of the landed edit-bookmark footer
+# header buttons, the byte-recipe of the existing edit-bookmark footer
 # buttons, with the flat #CCCCFF hover/pressed fill and no bevel (see
 # the header's provenance paragraph).
 HEADER_FACE = {
@@ -576,7 +576,7 @@ for _header_arm in (
     REQUIRED_RULES[_header_arm] = HEADER_HOVER
 
 # The Library window's toolbar band and menu titles: the byte-recipes of
-# the landed #toolbar-menubar band, its menu-title padding and its open
+# the existing #toolbar-menubar band, its menu-title padding and its open
 # title, spelled explicitly with the shared palette constants rather
 # than aliased (the band entry adds the black text #toolbar-menubar
 # inherits, see the header's provenance paragraph).
@@ -595,9 +595,9 @@ REQUIRED_RULES["menubar#placesMenu > menu[open]"] = {
 }
 
 # The Library window's downloads view: the Platinum sunken list field
-# and its square rows, the byte-recipes of the landed #placesList
+# and its square rows, the byte-recipes of the existing #placesList
 # field (plus the appearance: none the browser skin needs) and of the
-# landed #downloadsPanel row entries (see the header's provenance
+# existing #downloadsPanel row entries (see the header's provenance
 # paragraph), spelled explicitly with the shared palette constants
 # rather than aliased.
 REQUIRED_RULES["#placesViewsBox richlistbox#downloadsListBox"] = {
@@ -616,7 +616,7 @@ REQUIRED_RULES[
     "color": f"{BLACK} !important",
 }
 
-# The Library's Clear Downloads button: the byte-recipes of the landed
+# The Library's Clear Downloads button: the byte-recipes of the existing
 # #downloadsPanel push button and its hover arm; disabled ones keep
 # Firefox's paint (see the header's provenance paragraph).
 REQUIRED_RULES[
@@ -628,7 +628,7 @@ REQUIRED_RULES[
 ] = BUTTON_HOVER
 
 # The Library details pane's four bookmark fields: the byte-recipes of
-# the landed #editBookmarkPanel field entries (see the header's
+# the existing #editBookmarkPanel field entries (see the header's
 # provenance paragraph), spelled explicitly with the shared palette
 # constants rather than aliased.
 REQUIRED_RULES["#detailsPane #editBMPanel_namePicker"] = FIELD_FACE
@@ -636,7 +636,7 @@ REQUIRED_RULES["#detailsPane #editBMPanel_locationField"] = FIELD_FACE
 REQUIRED_RULES["#detailsPane #editBMPanel_tagsField"] = FIELD_FACE
 REQUIRED_RULES["#detailsPane #editBMPanel_keywordField"] = FIELD_FACE
 
-# The details pane's folder dropdown: the byte-recipes of the landed
+# The details pane's folder dropdown: the byte-recipes of the existing
 # #editBookmarkPanel folder menulist entries; disabled ones keep
 # Firefox's paint.
 REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList"] = BUTTON_FACE
@@ -644,9 +644,9 @@ REQUIRED_RULES[
     "#detailsPane #editBMPanel_folderMenuList:hover:not([disabled])"
 ] = BUTTON_HOVER
 
-# The details pane's tag selector: the landed #placesList mapping plus
+# The details pane's tag selector: the existing #placesList mapping plus
 # the appearance: none the browser skin needs, with square rows and the
-# landed downloads selected-row byte-recipe.
+# existing downloads selected-row byte-recipe.
 REQUIRED_RULES["#detailsPane richlistbox#editBMPanel_tagsSelector"] = {
     "appearance": "none !important",
     **FIELD_FACE,
