@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of b3f5b561 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `b3f5b5617e9abbfe29d60e391bce01c8c3b52d91`: its GTK 3 sheet adds nine disabled self-selected link state selectors with the inactive-text colour, and `TestGtkTheme.test_disabled_selected_inline_link_foregrounds` checks the generated selectors, disabled-text colour, colour-only declarations and ordering after both ordinary disabled and enabled self-selected rules. The invariant records the missing GTK reference surface and platform provenance.
+
+**Validation gap:** none — the existing GTK stylesheet test directly checks the declarations and precedence described by the change.
+
 ### post-merge review of d1046956 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The reviewed GTK 4 stylesheet adds six disabled self-selected inline-link selectors with `color: #888888`. The current `TestGtk4Theme.test_disabled_selected_inline_link_foregrounds` derives those states, checks each declaration and uniqueness, and verifies source order after ordinary disabled and enabled self-selected rules. The GTK invariant row records the missing reference surface and derives the value from `[Colors:Button] ForegroundInactive`. The stylesheet matches these checks; no defect found.
