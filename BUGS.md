@@ -52,10 +52,6 @@ recorded inspection path is to select the installed theme and compare arrow, tex
 roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
 coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
 
-### post-merge review of 3471442c never reached a verdict (found by the review role 2026-11-11)
-
-The post-merge review of commit `3471442cc23eefd762177498941014b393a81e6c` (Pin the render session's Kvantum theme selection with new tests in TestSessionThemeSources) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of ea41dae6 never reached a verdict (found by the review role 2026-11-11)
 
 The post-merge review of commit `ea41dae61dbb2741f0349bf4682728fc71e96143` (Restate the stock `.osd button.destructive-action` arms with the landed push-button recipe) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

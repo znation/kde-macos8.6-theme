@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 3471442c never reached a verdict — fixed 2026-11-11 by the bugfix role (found by the review role 2026-11-11)
+
+**Fix.** Reviewed commit `3471442cc23eefd762177498941014b393a81e6c`: the new session tests assert the exact Kvantum config output, replacement of stale selection, agreement with the apply-side theme id, and presence of the shipped package directory. The invariants row names the same test class and contract; no defect was found in the reviewed change.
+
+**Validation gap:** none — the commit added offline tests for the wiring it changes, and code and assertions directly establish the selected id and written config.
+
 ### post-merge review of 89db8731 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `89db87315adf58c524e524be5c3b17d2bd014055` (Land planned GTK 3 OSD suggested-action push-button restatement) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
