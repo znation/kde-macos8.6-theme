@@ -1151,7 +1151,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # orientations (half a turn at rest, upright while checked) while
         # the 200ms icon-transform ease is erased: the byte-equal stock
         # twin spelling declares only `transition: none`, sitting after
-        # the landed caps-lock groups at the sheet tail. (2026-11-09)
+        # the landed caps-lock groups at the sheet tail.
         selector = "row.expander image.expander-row-arrow"
         self.assertEqual(self.selectors.count(selector), 1, selector)
         self.assert_rule(selector, {"transition": "none"})
@@ -1174,7 +1174,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # orientations (upright at rest, half a turn while checked) while
         # the 200ms rotation ease is erased: the two byte-equal stock twin
         # spellings declare only `transition: none`, sitting after the
-        # landed caps-lock groups at the sheet tail. (2026-11-09)
+        # landed caps-lock groups at the sheet tail.
         selectors = (
             "placesview .server-list-button > image",
             "placesview .server-list-button:checked > image",
@@ -1483,7 +1483,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_infobar(("actionbar > revealer > box",))
 
     def test_search_bar_backdrop(self):
-        # An unfocused window keeps the landed band face (2026-11-09): the
+        # An unfocused window keeps the landed band face: the
         # backdrop record spells its stock twin byte-equal and wins the tie
         # by later user-sheet source order.
         declarations = {
@@ -1521,7 +1521,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # and the section toolbar paints a top rim. No collected reference
         # screenshot shows a GTK emoji picker, so the bottom rim joins the
         # landed etched band and the top rim takes the landed dark
-        # separator ink as a flat rim (2026-11-09).
+        # separator ink as a flat rim.
         searchbar = ".emoji-searchbar"
         toolbar = ".emoji-toolbar"
         expected = {
@@ -1572,7 +1572,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # search strip's own stock rim beneath the band edge the strip's
         # inner search box paints; the landed band group answers the inner
         # box, so this rim restates the strip itself with the landed etched
-        # band edge (2026-11-09).
+        # band edge.
         expected = {
             "border-bottom": f"1px solid {ETCH_DARK}",
             "box-shadow": f"inset 0 -1px {WHITE}",
@@ -1987,7 +1987,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # while it captures a key -- with its accent. No collected
         # reference screenshot shows accelerator editing, so the pinned
         # selection fill answers it, as for the selected rows and the
-        # drop header arm (see the sheet's 2026-11-09 adaptation
+        # drop header arm (see the sheet's
         # comment). The three stock arms were probed fresh 2026-11-09
         # with gresource extract of Default-light.css and Default-dark.css
         # in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6,
@@ -2720,7 +2720,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         expected = {
             ".card",
             "menubutton.card > button",
-            # The card focus arms (2026-11-04) restate the stock focus
+            # The card focus arms restate the stock focus
             # colour, not radius, and test_card_focus_outline_color pins
             # them; they join this scan because they carry ``.card``.
             "tabthumbnail .card picture",
@@ -2753,13 +2753,13 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         expected = {
             "flowbox > flowboxchild",
             # The selected view-child restatement names the same node.
-            # The disabled-selected restatement names it again (2026-10-31).
+            # The disabled-selected restatement names it again.
             "flowbox > flowboxchild:selected",
             "flowbox > flowboxchild:disabled:selected",
             "flowbox > flowboxchild:focus:focus-visible",
-            # The rubberband view-specific recipe names this node (2026-11-01).
+            # The rubberband view-specific recipe names this node.
             "flowbox > rubberband",
-            # The 2026-11-11 disabled-view ink arm names the view class.
+            # The disabled-view ink arm names the view class.
             "flowbox.view:disabled",
         }
         self.assertEqual(
@@ -2870,15 +2870,15 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             # The filechooser undershoot mirror names the same view substring.
             "filechooser gridview ~ undershoot.top",
             # The selected view-child restatement names the same nodes.
-            # The disabled-selected restatement names it again (2026-10-31).
+            # The disabled-selected restatement names it again.
             "gridview > child:selected",
             "gridview > child:disabled:selected",
-            # The rubberband view-specific recipe names this node (2026-11-01).
+            # The rubberband view-specific recipe names this node.
             "gridview > rubberband",
             "filechooser gridview child:selected",
             "filechooser gridview child:selected:hover",
             "filechooser gridview child:selected:active",
-            # The 2026-11-11 disabled-view ink arms name the view class and
+            # The disabled-view ink arms name the view class and
             # the print action box.
             "gridview.view:disabled",
             "window.print:not(.ssd-frame) gridview.dialog-action-box:disabled",
@@ -3408,7 +3408,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_sidebar_row_icon_opacity(self):
-        # The 2026-11-09 adaptation restates the toolkit resource's 0.7 veil
+        # The sheet restates the toolkit resource's 0.7 veil
         # arm, which is state-independent, so no hover, active, selected or
         # backdrop twin exists and the family holds exactly this one rule.
         self.assertEqual(
@@ -4678,7 +4678,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
     def test_tabbar_tab_and_indicator_corners(self):
         """The stock tab-family radii answer the square-corner policy.
 
-        The 2026-11-04 adaptation restates ten byte-equal stock spellings plus
+        The sheet restates ten byte-equal stock spellings plus
         the extended tab-box base: eleven border-radius-zero selectors, each
         counted once, each matching both frame arms' radius, with the two
         family scans and the source-order span killing renamed and stray

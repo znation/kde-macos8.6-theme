@@ -327,7 +327,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # for text direction. Measured 2026-11-11 in a GTK 3 offscreen child:
         # in a horizontal RTL spin button the steppers cover that arm at the
         # left edge, so this mirror pins the arm to the field's exposed right
-        # edge (2026-11-11). The rendered pixels are the horizontal-seam
+        # edge. The rendered pixels are the horizontal-seam
         # probe's subject in tests/test_gtk_theme_controls.py.
         self.assert_rule(
             "spinbutton:dir(rtl):not(.vertical)",
@@ -868,7 +868,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 # 3.24.49, arm at resource line 1687) joined the landed
                 # corner record's bare sidebar-button rule to pin the
                 # button's box geometry against upstream drift; the radius
-                # pair is the landed 2026-11-04 pair.
+                # pair is the landed pair.
                 "button.sidebar-button": {
                     "border-radius": "0",
                     "-gtk-outline-radius": "0",

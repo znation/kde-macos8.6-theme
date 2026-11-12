@@ -918,7 +918,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         """The landed switch faces hold through every toolkit repaint.
 
         The toolkit's state, backdrop and selected-row switch arms
-        out-specify the landed groups (Adaptation 2026-11-09 in the
+        out-specify the landed groups (see the
         sheet), so each stock spelling is restated byte-equal and wins by
         later user-sheet source order. Each spelling counts exactly once,
         the three landed groups carry exactly one added member each, and
@@ -2247,8 +2247,7 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
         Three spellings coincide with the landed border-sharing groups,
         so their parsed dictionaries merge the carried border-style and
         the spelling counts twice — once as the landed group's member,
-        once in the restating group. (Recorded 2026-11-04 by the
-        feature role.)
+        once in the restating group.
         """
         expected = {}
         for selector in self.LINKED_HORIZONTAL_FIRST:

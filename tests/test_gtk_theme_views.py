@@ -113,10 +113,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                     },
                 )
         # Exact guarded spellings also prevent overriding disabled selections.
-        # The family keeps the landed dotted focus outline and the 2026-11-11
+        # The family keeps the landed dotted focus outline and the
         # disabled-view restatement's two arms as its only other icon-view
         # rules: a renamed restated arm leaves exactly its successor.
-        # 2026-11-04: the vertical-stepper and content-view-check corner
+        # The vertical-stepper and content-view-check corner
         # record restates eight more iconview arms — the selection-check
         # state faces `iconview.content-view.check…:not(list)` — all pinned
         # with the other content-view check spellings by
@@ -141,7 +141,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
 
     def test_treeview_selected_check_radio_faces(self):
         """Pin the selected-row check and radio restated off the landed faces."""
-        # The 2026-11-06 sheet-tail record answers the toolkit resource's
+        # The sheet-tail record answers the toolkit resource's
         # four treeview-class-armed selected-row arms (probed verbatim in
         # the sheet comment and docs/invariants.md) per-property: the
         # colour arm's ink and border return to the landed check recipe's
@@ -223,7 +223,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # while it captures a key -- with its accent. No collected
         # reference screenshot shows accelerator editing, so the pinned
         # selection fill answers it, as for the selected rows and the
-        # drop header arm (see the sheet's 2026-11-09 adaptation
+        # drop header arm (see the sheet's
         # comment); the one stock arm was probed fresh 2026-11-09 with
         # gresource extract of the toolkit resource in
         # /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (its resource path is
@@ -293,7 +293,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "treeview.view:disabled:selected:backdrop",
         ))
         # The family keeps stock's member set: nothing else in the sheet
-        # names the state pair. 2026-10-31: selected-text restatements add
+        # names the state pair. Selected-text restatements add
         # their seven stock twins to this sweep.
         # More-specific disabled activatable-row overrides also belong
         # to this inventory and preserve grey against enabled row rules.
@@ -822,7 +822,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # The four tokens have no landed or unrelated neighbours: the landed
         # keycap corner record is the GTK 4 `shortcut > .keycap` spelling,
         # and the emoji-label rules are the only additional emoji selectors.
-        # 2026-11-04: the linked-field end-corner record restates six more
+        # The linked-field end-corner record restates six more
         # linked arm members naming the inline-toolbar token — the three
         # `.inline-toolbar button…` end members and the three
         # `toolbar.inline-toolbar toolbutton…` end members — all pinned
@@ -840,7 +840,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
              "toolbar.inline-toolbar toolbutton:only-child > button.flat"},
         )
         self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
-        # 2026-11-09: the four marked-scale fine-tune thumb arms also name
+        # The four marked-scale fine-tune thumb arms also name
         # the token and are pinned with the marked-scale thumbs by
         # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
         # same date's fine-tuned container geometry restatement adds the
@@ -907,7 +907,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         halves so each field/stepper join draws one 1px line, and the
         eight content-view check state groups rest the eight
         selection-check state faces at zero and
-        take the landed check face under every state: the 2026-11-05
+        take the landed check face under every state: the
         tile-check face record extends the landed radius-only groups
         in place, so the scanned parser reads the merged dictionaries
         in this suite, and the suite's parser leaves each spelling
@@ -926,7 +926,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         spellings = (stepper_up, stepper_down) + check_spellings
         # The docstring comment above the groups names both probes and
         # the face source, and the realized dictionaries merge this
-        # record's zero radius with the 2026-11-05 face record's landed
+        # record's zero radius with the face record's landed
         # check face under every state: the four unchecked spellings
         # carry the raised etched face, the four checked ones the same
         # five declarations under the shipped checkmark glyph.
@@ -1030,8 +1030,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             )
 
     def test_menu_scroll_arrow_faces(self):
-        """Pin the 2026-11-11 menu scroll-arrow face restatement."""
-        # 2026-11-11: stock paints the menu's scroll arrows with an opaque
+        """Pin the menu scroll-arrow face restatement."""
+        # Stock paints the menu's scroll arrows with an opaque
         # white face, a grey hover wash and a near-white backdrop tile, and
         # no collected reference screenshot shows the arrows, so each state
         # arm below restates the landed plain `button.flat` family's
