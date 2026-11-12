@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README sampling chooser: locate the longest horizontal color match (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Help contributors locate an uninterrupted horizontal segment of a chosen reference color within a rectangle without printing the complete matching interval list.
+
+**Approach and files.** Edit README.md only, outside the brief. Append one Choosing a sampling mode row with `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-run --json`. Link its task label to a new standalone `sampling-longest-horizontal-match` anchor immediately before the existing `--longest-match-run` explanation in Color search options. Describe one longest horizontal matching segment with absolute start and pixel length, or null if absent. Add a short chooser note explaining full-region coverage, earliest row then column tie ordering, and omission of the full interval list unless separately requested. Preserve the beta-evidence caveat. This is separate from the queued border color-run recipe: that recipe summarizes equal-color scanline runs regardless of a target; this one searches a rectangle for a named color. No runtime or invariant change or new prose-pinning test is needed.
+
+**Grounding.** `tools/sample_arguments.py::build_parser` exposes the options. `tools/sample_report_search.py::_search_match` enables horizontal summarization independently of list collection and emits `match.longest_run`. `tests/test_sample_longest_match_run.py::TestSampleLongestMatchRun` pins absolute crop coordinates, row-major ties, null for absent matches and summary-only omission of `match.runs`. README has the detailed flag explanation but no corresponding chooser row. Searches of Planned and archived headings found the CLI implementation and other chooser recipes, not this navigation addition; pending fidelity guidance concerns a different tool. `tests/test_readme_links.py::local_link_errors` recognizes standalone anchors. These symbols are evidence anchors, not implementation targets.
+
+**Acceptance criteria.** A reader can copy the chooser command and follow its task link directly to the horizontal color-match summary explanation. With materialized references, the command exits 0 and emits `match.longest_run` as absolute `x`, `y`, `length` or null, without `match.runs`. Adding `--match-runs` leaves the summary equal and adds the interval list. The chooser distinguishes this target-color search from the equal-color scanline summary and does not claim a measured length or retail palette evidence. Existing local links resolve. Run both example variants and `make check` after the final edit.
+
 ### README sampling chooser: find the longest border color run (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal.** Help contributors find the longest uninterrupted color segment in a border scan without reading a long interval list.

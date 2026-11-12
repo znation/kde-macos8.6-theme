@@ -886,6 +886,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | [Locate the longest border color run](#sampling-longest-run) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --longest-run --max-runs 5 --json` | Longest vertical run's absolute start, length and color, alongside up to five listed runs |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
 | [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
+| [Locate the longest horizontal color match](#sampling-longest-horizontal-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-run --json` | Longest horizontal matching segment's absolute start and length, or null |
 
 For the next palette page, change `--color-offset 0` to `--color-offset 3`.
 Offsets count eligible ranked colors, not pixel coordinates, and a later page
@@ -898,6 +899,12 @@ the longest segment need not appear in the displayed list. Ties retain the first
 The coordinate list may be empty. Bounds can enclose nonmatching pixels, and a centroid is an
 arithmetic mean that need not be a pixel of that color. The match-pixel cap limits displayed
 coordinates, not the searched area.
+
+The longest horizontal color match searches the complete rectangle, even when pixel or interval
+lists are capped or filtered. Ties select the earliest row, then column. The summary omits the
+full interval list unless `--match-runs` is requested separately. This target-color search is
+distinct from the scanline color-run commands above, which summarize equal-color runs without
+searching for a chosen color.
 
 ### Sampling options
 
@@ -1288,6 +1295,8 @@ entries: `null` for an empty column, otherwise absolute `y` and inclusive
 Disconnected matches enclose intervening pixels. The report covers the full
 region regardless of `--match-pixels`, uses the same tolerance and exact-alpha
 predicate, and is omitted unless requested.
+
+<a id="sampling-longest-horizontal-match"></a>
 
 Add `--longest-match-run` with `--find-color` to report the longest contiguous
 horizontal matching segment. JSON adds `match.longest_run` with absolute `x`,
