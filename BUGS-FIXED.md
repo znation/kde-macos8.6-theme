@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 08224293 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix:** Reviewed the commit's GTK 3 OSD stepper selector arms against the toolkit claims documented in the stylesheet and confirmed the current `test_osd_spinbutton_buttons` pins all twelve expected arms and declaration sets. The vertical active arm alone inverts its bevel; disabled arms omit the outline; vertical arms clear the stock background clip. The reviewed change is consistent with its recorded invariant.
+
+**Validation gap:** none — the existing declaration test directly pins the stepper arms and their values, so the review required no missing reproduction path.
+
 ### post-merge review of ea41dae6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The GTK 3 sheet restates the five stock `.osd button.destructive-action` arms in their original cascade order, including `background-clip: border-box` to clear the stock padding-box clip. Its regression test pins the nine state selectors, expected declarations, and selector scope; the GTK invariant records the overlay guarantee. The inspected diff and current implementation agree.
