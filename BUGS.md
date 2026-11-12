@@ -404,6 +404,10 @@ The post-merge review of commit `1b94506b634b19580c8703ad952eed743a39497a` (Shar
 
 The post-merge review of commit `06545561b1d6c7a32a647d083d213e0f196f2d42` (Restate plain GTK 4 spinbutton steppers with the push-button recipe) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 7be2bb31 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `7be2bb318502c4b4152df7f002dcdb44ccc99756` (Escape the parallel check's verdict-header module name before printing it) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
