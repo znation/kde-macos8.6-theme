@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 085434b9 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The post-merge review of commit `085434b9b0941a66380649c457baeb22eb780888` (Restate GTK 4 OSD scale thumbs with Platinum recipes) found the four OSD slider state declarations use the shared `SCALE_THUMB` paint; the disabled state matches the ordinary disabled border and flat shadow. The focused test asserts the four complete rule dictionaries and selector inventory, while `docs/invariants.md` records the missing reference surface and GTK resource provenance. The broader `make check` noted in the commit's own record passed; no discrepancy was found in the diff.
+
+**Validation gap:** none — the selector and declaration tests cover the change, and the commit records a passing project check.
+
 ### post-merge review of 1e91fbe6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `1e91fbe64d2652d35818f679635dcb7672b0ae6e` (Restate GTK 4 OSD progress and scale paints) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
