@@ -166,7 +166,8 @@ class TestCursorArtBindings(unittest.TestCase):
         for module in MODULES:
             for grid_name in _exported_grid_names(module):
                 if not grid_name.endswith("_GRID"):
-                    # ``*_ART`` exports are VectorCursor objects, not pixel grids.
+                    # ``*_ART`` exports are VectorCursor objects, not pixel grids;
+                    # the other binding tests pin their hotspot and face instead.
                     continue
                 grid = vars(module)[grid_name]
                 with self.subTest(grid=grid_name):
