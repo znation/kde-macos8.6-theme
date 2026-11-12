@@ -776,6 +776,10 @@ The post-merge review of commit `acdbb27b57f7dc97cb73fec16446b4d25c2674bc` (Land
 
 The post-merge review of commit `bab2c3dd0d5da6049699df4349e5c63afb3808bd` (Factor the duplicated config-home parent lock into file_lock.parent_dir_lock) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 0897fdd5 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `0897fdd5371786d35f5f6bc56ee365a04b3a6e8b` (ship the unselected KWin Decoration QML package and its family lifecycle) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
