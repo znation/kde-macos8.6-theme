@@ -236,9 +236,11 @@ def run_logged_split(
             if stdin_bytes is not None
             else None
         )
-        if writer is not None:
-            writer.start()
+        writer_started = False
         try:
+            if writer is not None:
+                writer.start()
+                writer_started = True
             restore_termination(previous)
             restore_termination(previous_interrupts)
             replay_deferred(deferred)
@@ -249,7 +251,13 @@ def run_logged_split(
             kill_group(process)
             reap(process)
             if writer is not None:
-                writer.join(_REAP_TIMEOUT)
+                if not writer_started:
+                    try:
+                        process.stdin.close()
+                    except OSError:
+                        pass
+                else:
+                    writer.join(_REAP_TIMEOUT)
 
 
 def _feed_stdin(sink, data: bytes) -> None:

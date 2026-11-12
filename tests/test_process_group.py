@@ -469,6 +469,35 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(payload, self.stdout_log.read_bytes())
         self.assertEqual(b"", self.stderr_log.read_bytes())
 
+    def test_thread_start_failure_kills_the_child(self):
+        child = {}
+        real_popen = subprocess.Popen
+
+        def capture_popen(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            child["pid"] = process.pid
+            return process
+
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=capture_popen
+        ), mock.patch.object(
+            process_group.threading.Thread,
+            "start",
+            side_effect=RuntimeError("thread start failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "thread start failed"):
+                process_group.run_logged_split(
+                    ["/bin/sleep", "60"],
+                    dict(os.environ),
+                    self.stdout_log,
+                    self.stderr_log,
+                    30,
+                    self.root,
+                    stdin_bytes=b"input",
+                )
+
+        self.assertTrue(gone(child["pid"]))
+
 
 class TestFeedStdin(unittest.TestCase):
     """_feed_stdin runs in a daemon thread and must never raise out of it.

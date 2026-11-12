@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The split-output command runner can leak its child if its stdin writer thread cannot start (found by the bugfix role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+`run_logged_split` started its stdin writer before entering the `try/finally` that kills and reaps the command. If `Thread.start()` raised, the caller saw the startup error but the child remained alive, and its stdin pipe stayed open.
+
+Reproduce by running `run_logged_split` with `stdin_bytes` supplied while making `threading.Thread.start` raise. Before the fix, the runtime error escaped and the child process remained alive.
+
+The writer now starts inside the child's cleanup scope; if it did not start, cleanup closes the pipe after killing and reaping the child.
+
+**Validation gap:** none — the new regression test reproduced the live child before the fix and confirmed it was gone afterward.
+
 ### The Kvantum button-reference test still pins the `button-default-indicator` group the reviewer fix removed from the shipped SVG, and the color and icon dialog gates draw a gradient push-button face (found by the plan role 2026-11-11) — fixed 2026-11-11 by the ci role
 
 `make check` failed in two modules. First, `tests/test_kvantum_button_reference.py::TestButtonReference::test_default_button_indicator_keeps_the_face_flat` asserts exactly one `button-default-indicator` group in the shipped `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg` and got zero — commit `dfd954379` (the 2026-11-11 reviewer fix for a993c56b) deleted the whole `<g id="button-default-indicator">` block while removing a duplicate `focusRectElement` line, but that commit touched no test, so the landed assertion still counted the removed group. Second, `tests/test_render_surface.py`'s `TestColorDialogRender` and `TestIconDialogRender` failed their two push-button tests each (`test_draws_the_push_button_frame_and_cell`, `test_draws_the_push_button_face_at_the_landed_recipe`): the asserted flat `#DDDDDD` face rows and right-bevel column read a `#E4E4E4`→`#E7E7E7` gradient instead (first differing element 72 of the face row).
