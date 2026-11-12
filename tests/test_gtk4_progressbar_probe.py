@@ -16,7 +16,7 @@ class TestGtk4ProgressbarProbe(unittest.TestCase):
         # ship green under the declaration tests alone. Pins measured
         # 2026-11-11 in child renders; a dropped fill, a recoloured face,
         # a lost rim or arm, or a disabled twin repainting the selection
-        # fill leaves a pinned pixel wrong and fails. One mask: the landed
+        # fill leaves a pinned pixel wrong and fails. One mask: the existing
         # opaque-disabled filter arm is pixel-invisible in the plain child
         # — the only competing meter filter arm lives in the integration
         # library's base.css resource (line 1860, recorded in the sheet),

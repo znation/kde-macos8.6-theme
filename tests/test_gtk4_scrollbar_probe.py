@@ -21,13 +21,13 @@ class TestGtk4ScrollbarProbe(unittest.TestCase):
         # Pins measured 2026-11-11 in child renders; a dropped band, rim,
         # thumb face or bevel arm, or a state fade on the disabled thumb
         # leaves a pinned pixel wrong and fails. The pressed and
-        # fine-tune states stay out: the landed hover/active and
+        # fine-tune states stay out: the existing hover/active and
         # fine-tune groups repaint the same face and raised bevel as the
         # resting thumb, so those pins would be byte-identical and add
         # nothing discriminating — the declaration tests hold the
         # spellings. Overlay scrollbars stay out: the probe builds no
         # scrolled window and no overlay-indicator widget (asserted in
-        # the child), the landed overlay groups restate the same faces,
+        # the child), the existing overlay groups restate the same faces,
         # and the overlay declaration tests hold their margins,
         # breadths and outline. The child's literal expectations are
         # formatted from the same palette constants this suite imports,
@@ -121,12 +121,12 @@ def painted(widget, w, h):
     return at
 
 # Every position derives from the fresh allocations, in the child
-# frame the landed probes record: a child widget's allocation reads
+# frame the existing probes record: a child widget's allocation reads
 # relative to its parent's content-box origin. The scrollbar widget's
 # own allocation is its painted box 1:1 (checked against a window-level
 # capture when the pins were measured); the trough's painted border box
 # is the range's allocation plus the trough's allocation, and the
-# thumb's allocation is its painted border box — the landed thumb
+# thumb's allocation is its painted border box — the existing thumb
 # margin is 0, so the slider node's allocation paints 1:1 inside the
 # trough's content box. Each pin sits clear of every border row and
 # antialiasing edge; the two band pins take the middle of the trough
@@ -183,7 +183,7 @@ while True:
             continue
         want = pins(r, t, s)
         if disabled:
-            # The landed :disabled group keeps opacity 1, so the band,
+            # The existing :disabled group keeps opacity 1, so the band,
             # rim and thumb face stay byte-equal to the resting ones;
             # any state fade leaves a pinned pixel wrong.
             want = [want[i] for i in disabled_pins]

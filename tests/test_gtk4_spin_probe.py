@@ -11,7 +11,7 @@ class TestGtk4SpinProbe(unittest.TestCase):
         require_gui_opt_in()
         # The RTL spin field's exposed right edge must read the mirrored
         # etch arm in a plain and an .osd overlay capture alike, and the
-        # landed `.osd spinbutton:dir(rtl)` state twins must govern their
+        # existing `.osd spinbutton:dir(rtl)` state twins must govern their
         # own states: the probe captures the plain field, the resting .osd
         # field, the focused .osd field and the insensitive .osd field.
         # Pins measured 2026-11-11 in child renders on this host, after

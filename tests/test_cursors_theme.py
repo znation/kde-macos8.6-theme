@@ -708,7 +708,7 @@ class TestCursorSet(unittest.TestCase):
             cursor_art.GRAB_GRID, cursor_art.GRABBING_GRID
         )
 
-    def test_dnd_aliases_reuse_the_landed_glyphs(self):
+    def test_dnd_aliases_reuse_the_existing_glyphs(self):
         for alias, canonical in (
             ("dnd-move", "fleur"),
             ("dnd-none", "left_ptr"),
@@ -732,7 +732,7 @@ class TestCursorSet(unittest.TestCase):
 
 
     def test_context_menu_keeps_the_arrow_cells(self):
-        # The panel restates, never redraws, the landed arrow: every cell the
+        # The panel restates, never redraws, the existing arrow: every cell the
         # arrow draws black stays black at the same grid coordinates.
         arrow_blacks = {
             (x, y)

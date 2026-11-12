@@ -92,7 +92,7 @@ class TestDesktopThemeLegacy(unittest.TestCase):
             "the package ships a regular file beyond the closed set",
         )
         widgets = {path for path in svg if path.startswith("widgets" + os.sep)}
-        # The widget facet's closed-set equality is the landed registry test's
+        # The widget facet's closed-set equality is the existing registry test's
         # job (TestSvgRootCanvas); this counts the facet so a member lost or
         # added fails naming every name the tree holds.
         self.assertEqual(len(widgets), 31, sorted(svg))

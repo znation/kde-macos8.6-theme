@@ -18,7 +18,7 @@ class TestGtk4ButtonProbe(unittest.TestCase):
         # the resting bevel would otherwise ship green under the declaration
         # tests alone. Pins measured 2026-11-11 in child renders; a dropped
         # face, border, raised arm or inverted active twin leaves a pinned
-        # pixel wrong and fails. The disabled state stays out: the landed
+        # pixel wrong and fails. The disabled state stays out: the existing
         # button:disabled group keeps the resting face, border and raised
         # bevel byte-equal and dims only the label ink to #888888, so a
         # childless disabled button pins nothing new; the spelling stays
@@ -105,7 +105,7 @@ while True:
     ready = True
     for button, active in zip(buttons, (False, True)):
         # Snapshot at the allocation, not the width/height getters: as the
-        # landed spin probe records, the getters exclude the margin box and
+        # existing spin probe records, the getters exclude the margin box and
         # snapshotting at them would resample the render.
         alloc = button.get_allocation()
         w, h = alloc.width, alloc.height

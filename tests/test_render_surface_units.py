@@ -808,7 +808,7 @@ class TestAppletPreflight(unittest.TestCase):
     def test_a_dialog_run_never_consults_the_applet_check(self):
         # The dialog modes open their own clients and never touch the
         # applet, so a host without the calculator package must still render
-        # its dialogs; the refusal here comes from the landed missing-tool
+        # its dialogs; the refusal here comes from the existing missing-tool
         # path, and the applet check seam is never entered.
         home = self.scratch / "first"
         home.mkdir()
@@ -830,7 +830,7 @@ class TestAppletPreflight(unittest.TestCase):
     def test_a_desktop_run_never_consults_the_applet_check(self):
         # The desktop capture opens plasmashell, which needs no applet
         # package, so a host without the calculator package must still
-        # render the menu bar; the refusal here comes from the landed
+        # render the menu bar; the refusal here comes from the existing
         # missing-tool path, and the applet check seam is never entered.
         home = self.scratch / "first"
         home.mkdir()
@@ -1309,7 +1309,7 @@ class TestSessionCommand(unittest.TestCase):
             # width -- and the header band's divider, caption, sort-arrow
             # and size-text x-positions beside it -- move with the time of
             # day, so the seeding pins both timestamps to one constant the
-            # gate's landed pins can re-derive against.
+            # gate's existing pins can re-derive against.
             documents = session.home / "Documents"
             for name in ("alpha.txt", "bravo.txt", "delta.rtf"):
                 # 1104537600 = the seed epoch tools/render_clients.py pins
