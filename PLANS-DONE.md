@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README sampler option reference: add direct navigation by output family (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal and grounding.** Make the long `### Sampling options` reference navigable when a contributor already knows which output family they need. It currently spans pixel output, histograms, color searches and scanline runs without intervening headings. The finished sampling recipe-table entries cover choosing a command; the finished navigation entries cover README workflows. Neither supplies destinations within this option reference. This documentation task is independent of the pending quiet fidelity option and GTK suite split.
+
+**Approach and files.** Edit README.md only, adding a compact four-link list immediately under `### Sampling options` and four level-four headings: `Pixel and rectangle samples` before the ordinary pixel introduction, `Histogram options` before the paragraph beginning `Pass --histogram` (the flag is backticked in the source), `Color search options` before the paragraph beginning `Pass --find-color`, and `Scanline run options` before the paragraph introducing `--runs` after the longest-match-column-run explanation. Link the list to those four headings using same-document fragments. Keep each family's existing paragraphs and examples in their present order, retaining the `#sampling-options` destination and the earlier Choosing a sampling mode table. Limit the diff to navigation links, headings and whitespace, roughly twenty added lines. No runtime code, new test, dependency or invariant change is needed; existing `tests/test_readme_links.py::TestReadmeLinks.test_local_links_resolve` checks fragment destinations and `tests/test_readme_commands.py::TestReadmeCommands` checks referenced commands. `tools/sample_arguments.py::build_parser` is the CLI evidence anchor, not an implementation target. — implemented as planned.
+
+**Acceptance criteria.**
+
+- From Sampling options, a reader can jump directly to pixel/rectangle, histogram, color-search or scanline-run documentation; each link lands immediately before that family's introductory paragraph, outside code fences.
+- Existing `#sampling-options` links still resolve, the task-selection table remains available, and a diff shows no changed commands, example outputs or option semantics.
+- Run `make check` after the final edit; the README fragment and command checks pass. Review heading placement manually because a resolvable fragment alone does not establish that it precedes the correct family.
+
 ### Fidelity CLI: offer a quiet verdict mode for scripted gates (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal.** Let shell callers compare screenshots for their exit status without printing a successful or failed comparison report. Source searches found no quiet option in the fidelity CLI and no planned or archived quiet-mode entry. This is independent of the waiting GTK suite split and the push-button retirement being handled on the pending plan branch.

@@ -884,6 +884,15 @@ carries no alpha channel.
 
 ### Sampling options
 
+Jump to an option family:
+
+- [Pixel and rectangle samples](#pixel-and-rectangle-samples)
+- [Histogram options](#histogram-options)
+- [Color search options](#color-search-options)
+- [Scanline run options](#scanline-run-options)
+
+#### Pixel and rectangle samples
+
 `python3 tools/sample.py IMAGE X Y` prints the RGB value of one pixel of a reference
 screenshot, in both forms the theme files use:
 
@@ -933,6 +942,8 @@ with a diagnostic naming the coordinate, region, image size or path. A repositor
 path that resolves outside the repository (a checked-in symlink) is refused by name
 before it is read, so a private image's pixels cannot be sampled; a path outside the
 repository is read as before.
+
+#### Histogram options
 
 Pass `--histogram` to count the RGB colors in the requested rectangle instead
 of listing its pixels. Counts sort from largest to smallest, with RGB tuple
@@ -1074,6 +1085,8 @@ columns, one count per crop column in left-to-right order. JSON adds
 `column_color_counts`, and text adds a `column color counts:` line after the
 optional `row color counts:` line. Omitting both options adds neither count,
 neither line and no traversal.
+
+#### Color search options
 
 Pass `--find-color '#63639C'` to count exact RGB matches and report their
 smallest enclosing bounds. Bounds use absolute image coordinates, include
@@ -1257,6 +1270,8 @@ prints `longest matching column run: X,Y,LENGTH` or
 lowest x and y. The summary uses the same tolerance and exact-alpha filters,
 covers the full region regardless of `--match-pixels`, and does not emit the
 full column-run list unless `--match-column-runs` is also requested.
+
+#### Scanline run options
 
 Pass `--runs` to group adjacent equal RGB values along one row or column.
 Add `--alpha` to group by RGBA instead, distinguishing transparency boundaries
