@@ -1960,6 +1960,10 @@ The post-merge review of commit `f81c4303bbfd6a8074369883b21b42624d6695b6` (Add 
 
 The post-merge review of commit `b301e2ccd52dee7182b6e7bacd896c86b028cda6` (Add per-column fidelity mismatch diagnostics) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 521ab51d never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `521ab51d4363c6965549b79379d61256db41d2ac` (Move the GTK 3 child-probe harness (constants + runner) from tests/test_gtk_theme_controls.py into…) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
