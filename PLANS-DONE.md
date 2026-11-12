@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README sampling chooser: page through ranked palette colors (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Help contributors inspect later colors in a reference region's ranked palette without printing the complete histogram.
+
+**Approach and files.** Edit README.md only, outside the brief. Append a task row to Choosing a sampling mode using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-offset 0 --json`. Link its task label to a new standalone `sampling-palette-pages` anchor immediately before the existing `--color-offset K` paragraph in Histogram options. Add a short chooser note: change the offset to 3 for the next page; offsets count ranked eligible colors rather than pixels; a later page can be empty. Explain that omitted pixels include skipped and trailing colors, and paging limits the displayed palette while counting still covers the full region. Preserve the basic palette recipe and beta-evidence caveat. No runtime or invariant change or new prose-pinning test is needed. This is independent of the queued matching-coordinate recipe and the pending border-run recipe.
+
+**Grounding.** `tools/sample_arguments.py::build_parser` exposes the cap and offset; `tools/sample_report_histogram.py::_histogram_result` filters before ranking by descending count and ascending color tuple, slices the selected palette, and computes omitted pixels from the emitted page. README has detailed pagination guidance but no chooser recipe for later palette pages. Related archived plans implement the CLI, consolidate its detailed prose, or add basic and spatial palette recipes. `tests/test_readme_links.py::local_link_errors` validates standalone anchors; `tests/test_readme_commands.py::TestReadmeCommands` checks named script paths. These code symbols are evidence anchors, not change targets.
+
+**Acceptance criteria.** A reader can copy the new command and follow its task link to the histogram paging explanation. With materialized references, offsets 0 and 3 both exit 0 and emit JSON with at most three `colors`, the requested `color_offset`, and the same `total_colors`. Each page's `omitted_pixels` equals 16 minus the sum of its emitted color counts. Prose distinguishes color slots from pixel coordinates, permits an empty second page, and promises no particular colors or reduced decoding work. Existing recipes and links remain usable. Run both sample commands, review Markdown placement, and run `make check` after the final edit.
+
 ### README sampling chooser: list actual matching-color pixels (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal.** Help a contributor find actual occurrences of a chosen reference color when its enclosing rectangle includes unrelated pixels. This adds a bounded coordinate recipe, independent of the queued border-run paging and pending dominant-palette location recipes.

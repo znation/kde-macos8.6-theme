@@ -879,11 +879,17 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | --- | --- | --- |
 | Read one pixel | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5` | RGB and hex values |
 | Rank a small region's palette | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3` | Up to three colors, ranked by count |
+| [Page through a ranked palette](#sampling-palette-pages) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-offset 0 --json` | First three eligible colors and full-region totals |
 | [Locate dominant palette colors](#sampling-palette-locations) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-bounds --color-positions --color-centroids --json` | Up to three ranked colors with absolute enclosing bounds, first row-major positions and mean pixel coordinates |
 | Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors, start coordinates, and lengths |
 | [Page through border color runs](#sampling-run-pages) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --max-runs 5 --run-offset 0 --run-count --json` | First five vertical runs and the full-region run count |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
 | [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
+
+For the next palette page, change `--color-offset 0` to `--color-offset 3`.
+Offsets count eligible ranked colors, not pixel coordinates, and a later page
+can be empty. Omitted pixels include skipped and trailing colors; paging limits
+the displayed palette while counting still covers the full region.
 
 The coordinate list may be empty. Bounds can enclose nonmatching pixels, and a centroid is an
 arithmetic mean that need not be a pixel of that color. The match-pixel cap limits displayed
@@ -972,6 +978,8 @@ even when the limit includes every color.
 Counts retain their full-region values, and ties keep ascending RGB ordering.
 This limits report size; decoding and counting still cover the complete
 region. Without the option, the complete histogram is printed.
+
+<a id="sampling-palette-pages"></a>
 
 Add `--color-offset K` with `--top-colors N` to page through the ranked
 histogram after named-color exclusions and count/fraction filters. Ranking is
