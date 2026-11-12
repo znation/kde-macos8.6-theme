@@ -27,18 +27,20 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
     from tools.cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from tools.cursor_vector import checked_size as _checked_size
     from tools.generated_files import write_generated_files
     from tools.ints import is_plain_int
     from tools.repo_root import ROOT
-    from tools.xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
+    from tools.xcursor import write_rgba_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
     from cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from cursor_vector import checked_size as _checked_size
     from generated_files import write_generated_files
     from ints import is_plain_int
     from repo_root import ROOT
-    from xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
+    from xcursor import write_rgba_cursor
 
 TOOL = "make_cursors"
 PACKAGE_DIR = Path("theme", "icons", "org.macos8.desktop")
@@ -69,24 +71,6 @@ def _checked_rows(rows, name="arrow"):
                 )
         checked.append(row)
     return tuple(checked)
-
-
-def _checked_size(size, noun="size"):
-    """Return *size* after checking it fits an Xcursor image frame.
-
-    The renderer allocates ``size * size * 4`` bytes, so a value above the
-    writer's frame-dimension limit is refused here, naming the limit, instead
-    of attempting an enormous allocation and only then failing in
-    :func:`tools.xcursor.write_rgba_cursor`.
-    """
-    if not is_plain_int(size) or size < 1:
-        raise ValueError(f"{noun} must be a positive integer: size={size!r}")
-    if size > MAX_IMAGE_SIZE:
-        raise ValueError(
-            f"{noun} must be at most {MAX_IMAGE_SIZE} (the Xcursor frame "
-            f"limit): size={size}"
-        )
-    return size
 
 
 def render_rgba(rows, size, name="arrow"):
