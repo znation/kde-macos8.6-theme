@@ -1,19 +1,15 @@
 """Rendered GTK 4 notebook probe."""
 
-import os
-import subprocess
-import sys
 import unittest
 
-from support.gtk4_sheet import THEME_DIR
+from support.gtk4_child_probe import run_gtk4_probe
 from support.gui_tests import require_gui_opt_in
 
 
 class TestGtk4NotebookProbe(unittest.TestCase):
     def test_notebook_tab_faces_render(self):
         require_gui_opt_in()
-        result = subprocess.run(
-            [sys.executable, "-c", '''
+        run_gtk4_probe(self, '''
 import sys, time
 from pathlib import Path
 try:
@@ -95,13 +91,7 @@ assert at(first_x + 3, tab_y_top) == (221, 221, 221)
 assert at(first_x + 3, tab_y_bottom) == (221, 221, 221)
 assert at(second_x + 3, tab_nodes[1].get_allocation().y + tab_nodes[1].get_height() - 1) == (0, 0, 0)
 assert at(first_x + 3, tab_nodes[0].get_allocation().y + tab_nodes[0].get_height() - 1) == (221, 221, 221)
-''', str(THEME_DIR)],
-            env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 77:
-            self.skipTest("GTK 4 introspection or an X11 display is missing")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+''')
 
 
 if __name__ == "__main__":

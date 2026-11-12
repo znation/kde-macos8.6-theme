@@ -1,11 +1,9 @@
 """Rendered GTK 4 button probe."""
 
-import os
-import subprocess
-import sys
 import unittest
 
-from support.gtk4_sheet import THEME_DIR, _rgb
+from support.gtk4_child_probe import run_gtk4_probe
+from support.gtk4_sheet import _rgb
 from support.gui_tests import require_gui_opt_in
 from support.platinum_palette import BLACK, BUTTON_SHADOW, FACE, WHITE
 
@@ -32,8 +30,7 @@ class TestGtk4ButtonProbe(unittest.TestCase):
             f"FACE, BLACK, WHITE, SHADOW = {_rgb(FACE)}, {_rgb(BLACK)}, "
             f"{_rgb(WHITE)}, {_rgb(BUTTON_SHADOW)}"
         )
-        result = subprocess.run(
-            [sys.executable, "-c", palette + '''
+        run_gtk4_probe(self, palette + '''
 import sys, time
 from pathlib import Path
 try:
@@ -139,13 +136,7 @@ while True:
         raise SystemExit(f"button pins did not settle: {mismatches}")
     time.sleep(0.01)
 print("button pins settled")
-''', str(THEME_DIR)],
-            env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 77:
-            self.skipTest("GTK 4 introspection or an X11 display is missing")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+''')
 
 
 if __name__ == "__main__":

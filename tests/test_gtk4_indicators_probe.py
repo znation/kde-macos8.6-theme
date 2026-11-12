@@ -1,11 +1,8 @@
 """Rendered GTK 4 indicator probe."""
 
-import os
-import subprocess
-import sys
 import unittest
 
-from support.gtk4_sheet import THEME_DIR
+from support.gtk4_child_probe import run_gtk4_probe
 from support.gui_tests import require_gui_opt_in
 
 
@@ -13,8 +10,7 @@ class TestGtk4IndicatorsProbe(unittest.TestCase):
     def test_mixed_indicators_draw_black_dashes(self):
         require_gui_opt_in()
         # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
-        result = subprocess.run(
-            [sys.executable, "-c", '''
+        run_gtk4_probe(self, '''
 import sys, time
 from pathlib import Path
 try:
@@ -99,13 +95,7 @@ for radio in (False, True):
         print(name + ": black dash at columns 4–11, rows 7–8; face surrounds it")
     finally:
         window.destroy()
-''', str(THEME_DIR)],
-            env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 77:
-            self.skipTest("GTK 4 introspection or an X11 display is missing")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+''')
 
 
 if __name__ == "__main__":
