@@ -206,6 +206,23 @@ Only a Regular face exists, with no Bold. Fetch the archive into a fresh `mktemp
 - `make check` passes after the final edit.
 
 
+### GTK 4 suite extraction: isolate OSD overlay declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still about 5,700 lines in one `TestGtk4Theme` class. That breaks the principle that a file is small enough to read in one sitting. Move the six `test_osd_*` declaration checks (about 380 lines) into their own module, the same way part 9/9 moved the calendar checks. This is independent of the cursor entries and of "GTK 4 suite extraction: isolate scale declarations": that entry moves only `test_scale*` methods, and the two method sets do not overlap. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_osd.py` with `class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line module docstring. Move every `TestGtk4Theme` method whose name starts with `test_osd_` into it, keeping each method's body and docstring unchanged: `test_osd_entry_fields`, `test_osd_container_bands`, `test_osd_check_radio`, `test_osd_spinbutton_steppers`, `test_osd_progress_scale` and `test_osd_scale_thumbs`. Methods that only contain `osd` mid-name (`test_video_osd_image_corners`, `test_progressbar_osd_trough_paint`, `test_progressbar_osd_trough_thickness`, `test_switch_osd_checked_track_color`) stay where they are.
+- Import the names the moved bodies use straight from the modules the original imports them from: `chain` from `itertools`; spec names such as `BUTTON_BEVEL`, `INVERTED_BUTTON_BEVEL`, `CHECK`, `RADIO`, `ENTRY_FIELD`, `INFOBAR`, `PROGRESSBAR_TROUGH`, `PROGRESSBAR_PROGRESS`, `SCALE_TROUGH`, `SCALE_THUMB` and `SCALE_EMPTY_FILL` from `support/gtk_theme_spec.py`; palette names such as `BLACK`, `WHITE`, `FACE` and `GREY` from `support/platinum_palette.py`. Where a name like `ETCH_DARK` exists in both modules, import it from the module `tests/test_gtk4_theme.py` imports it from. Never import `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. `self.rules`, `self.selectors`, `assert_rule` and `assert_rule_group` come with `Gtk4SheetRuleCases`.
+- Prune any import in `tests/test_gtk4_theme.py` that the remaining code no longer uses, and only those.
+- In `docs/invariants.md`, rewrite each `tests/test_gtk4_theme.py::TestGtk4Theme::test_osd_…` anchor to `tests/test_gtk4_osd.py::TestGtk4Osd::test_osd_…`. Leave the rows' prose alone. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the six moved methods exactly once, under `test_gtk4_osd.TestGtk4Osd`, and none of them under `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still listed there.
+- For each moved method, the AST of its function definition is identical to the original's at this plan's base commit, checked once during the run (for example by comparing `ast.dump` output). This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_osd_' docs/invariants.md` prints nothing, and the invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and `tests/test_gtk4_osd.py` stays under about 450 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_osd.py` and `docs/invariants.md`. `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
