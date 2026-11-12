@@ -504,6 +504,10 @@ The post-merge review of commit `c14a73f895a570a5a6eab290f971613f45b8e21e` (reco
 
 The post-merge review of commit `939576155bed24fc040d08f6cdc6a565a3d987a0` (recovered leftover work from coverage: Pin the GTK dialog render gate’s exact 20-second settle budget) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of fbdecc00 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `fbdecc003ea9672655926ee226f0984ac1df01a7` (Correct GTK dialog shell-edge provenance and close the plan) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
