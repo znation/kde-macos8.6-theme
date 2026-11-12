@@ -1248,6 +1248,10 @@ The post-merge review of commit `86219db275b9743ed62169d95c5a6b91728f8f27` (Rest
 
 The post-merge review of commit `7772132732703f4de04bd93efd3f52e80fd2e970` (Restate stock GTK 3 OSD scale thumbs with plain scale recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 849b25e6 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `849b25e6c14d51301273e6f52e5d140bea617213` (Restate the stock GTK 3 OSD trough/fill/progress paints with the landed Platinum meter recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
