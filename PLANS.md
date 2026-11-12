@@ -163,14 +163,6 @@ recorded here to keep the scope deliberate.
 
 **Acceptance.** Calendar declaration and disabled-grey reference methods each appear once under the new module in discovery, retain their assertion bodies and reference coordinates, and pass or report the same missing-reference skip as before. Existing non-calendar tests remain discoverable. The invariants checker resolves the calendar anchors, and `make check` passes. No stylesheet or production behavior changes.
 
-### README sampler filters: document contradictory-window refusal (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
-
-**Goal and grounding.** Bring the sampling reference into agreement with the user-approved refusal implemented in `tools/sample_arguments.py::option_error` (commit `2fd4e2452`). README's maximum histogram count/fraction and horizontal/vertical match-run passages still promised empty output for contradictory bounds. The scanline-run passage described combining bounds without explaining the refusal. This documentation correction is independent of the GTK 4 extraction series; its README edits concern Sampling reference pixels only.
-
-**Approach and files.** Edit `README.md` only, in Histogram options, Color search options and Scanline run options. Replace obsolete empty-result promises and document all five paired filters: color count, color fraction, scanline run length, horizontal match-run length and vertical match-run length. Explain that an explicitly supplied minimum greater than its maximum exits 2 before image reading, with a diagnostic naming the flags and values; equal bounds remain valid and inclusive. Distinguish an invalid window from a valid window containing no matching colors or runs. Add a contradictory example using a missing image path and an equal-bound example using the existing PNG. No production change, new dependency or new invariant is needed.
-
-**Acceptance criteria.** A reader can determine the refusal behavior for each of the five pairs without finding a claim that contradictory cutoffs yield empty reports. The contradictory example returns 2, emits no sample report, and diagnoses both run-length flags and values before the missing image. The equal-bound example succeeds and retains runs at the requested length. Existing legitimate no-match and inclusive-cutoff descriptions remain accurate. The documented examples and `make check` pass.
-
 ## Done
 
 ### Reference-pixel sampler: select named colors in scanline runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
