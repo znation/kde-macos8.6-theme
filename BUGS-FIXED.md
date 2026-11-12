@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of dad5b35f never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `dad5b35f27e37625e459ae0b0d8229642a0a4d37`: the GTK 3 stylesheet adds nine disabled self-selected backdrop link selectors with `color: #888888`; its test checks exact declaration sets and uniqueness, derives the inactive-text color from the scheme, and requires the group to follow the enabled self-selected backdrop selectors. The invariant row records the missing GTK reference surface and the installed GTK resource provenance. No defect found in the reviewed change.
+
+**Validation gap:** none — existing declaration and source-order tests confirm the change; rendered GTK pixels remain outside those checks.
+
 ### post-merge review of 8ca180d6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed `8ca180d6c6b838d6989cb03b1096beb2d0dbf6c1`: `_candidate` now rejects a relative `Path` when `IsRelative=0`, while preserving absolute paths and resolving `IsRelative=1` paths under the Firefox root. The regression test exercises a same-working-directory relative path and asserts the diagnostic identifies the malformed flag and path.
