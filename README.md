@@ -883,6 +883,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | [Locate dominant palette colors](#sampling-palette-locations) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-bounds --color-positions --color-centroids --json` | Up to three ranked colors with absolute enclosing bounds, first row-major positions and mean pixel coordinates |
 | Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors, start coordinates, and lengths |
 | [Page through border color runs](#sampling-run-pages) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --max-runs 5 --run-offset 0 --run-count --json` | First five vertical runs and the full-region run count |
+| [Locate the longest border color run](#sampling-longest-run) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --longest-run --max-runs 5 --json` | Longest vertical run's absolute start, length and color, alongside up to five listed runs |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
 | [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
 
@@ -890,6 +891,9 @@ For the next palette page, change `--color-offset 0` to `--color-offset 3`.
 Offsets count eligible ranked colors, not pixel coordinates, and a later page
 can be empty. Omitted pixels include skipped and trailing colors; paging limits
 the displayed palette while counting still covers the full region.
+
+The longest-run summary covers the complete scan before list caps, paging or run filters;
+the longest segment need not appear in the displayed list. Ties retain the first run in scan order.
 
 The coordinate list may be empty. Bounds can enclose nonmatching pixels, and a centroid is an
 arithmetic mean that need not be a pixel of that color. The match-pixel cap limits displayed
@@ -1372,6 +1376,8 @@ for the vertical; every scanline yields at least one run, so the list is never
 empty for a nonempty region. Filters change what `runs` lists but never the
 counts; omitting the flag omits the JSON key, the text line and the counting.
 The flag requires `--runs`.
+
+<a id="sampling-longest-run"></a>
 
 Pass `--longest-run` with `--runs` to add the dominant scanline run as a
 scalar: JSON gains a top-level `longest_run` mirroring one `runs` entry (`x`,
