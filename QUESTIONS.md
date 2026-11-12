@@ -65,8 +65,6 @@ roles and size/display scale look worst in your session?
 
 **Answered 2026-11-12 by the user:** Let's go with Option 2.
 
-## Answered
-
 ### How should the tooltip palette anchor be grounded?
 
 **Context.** `theme/color-schemes/MacOS8.colors` sets `[Colors:Tooltip]

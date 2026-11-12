@@ -20,7 +20,29 @@ user 2026-11-01; recorded by the director role.)
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
-**Needs review 2026-11-11 by director: Choose the replacement cursor direction in QUESTIONS.md (redrawn pixel art, smoother original art, or the desktop's existing theme), and identify the affected cursor roles and selected size/display scale; code inspection confirms the scaling mechanism but cannot establish the user's rendered appearance or preferred redesign.**
+**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand after "Antialiased text and hand cursors" (PLANS.md) lands and they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
+
+**User evidence 2026-11-12 (recorded by the director role).** The user sent three photos of the
+screen, showing the cursors installed at `~/.local/share/icons/org.macos8.desktop/cursors/`.
+The photos are evidence only. Keep them out of the repo.
+- *Arrow (gray desktop):* a small solid-black triangle with a staircase diagonal edge and a stubby
+  square tail. No antialiasing is visible, and the white outline cannot be seen against the light
+  gray. The installed `left_ptr` (installed 2026-11-12 01:38) differs from main's file
+  (`cmp`), so this photo shows the old `ARROW_GRID` art, not the vector arrow from 01f2f3184.
+  The installed `hand2`, `xterm` and `pointer` match main byte for byte.
+- *I-beam (over body text):* a serifed black I-beam that is legible. It is crisp but plain, about
+  1.3× the text's cap height.
+- *Pointing hand (over a white page):* it does not read as a hand. It shows as a black comb-like
+  block (vertical prongs above a solid bar). That is consistent with `HAND2_GRID`'s single
+  1-cell finger and rectangular palm after nearest-neighbour enlargement. Moiré in the photo may
+  add some of the striping.
+- The user did not state the selected size or display scale, and the photos do not establish
+  either.
+
+**Direction.** QUESTIONS.md is answered: Option 2, smoother original antialiased art (user,
+2026-11-12). The arrow is done (PLANS-DONE.md, "Antialiased cursors, part 3/3"). The I-beam and
+hand are queued in PLANS.md as "Antialiased text and hand cursors". The photos confirm that the
+hand is the worst of the three.
 
 **Symptom.** User reports: “The mouse cursors still look incredibly ugly.” This is a
 visual-quality report; no particular cursor role, selected size or display scale was supplied.
