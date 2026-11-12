@@ -604,6 +604,10 @@ The post-merge review of commit `cab1beb18ff6d066dee5cf5007dbf379c5fe68bc` (Remo
 
 The post-merge review of commit `ebff8213d0f0b397054d4f383ec853754c8857fb` (Add `make remove-kvantum` plus the uninstall reset diagnostic) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 4dd51fea never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `4dd51fea5c9d380769e7c861331328d7765b9115` (recovered leftover work from bugfix: Move the fixed hover/press erasure bug into BUGS.md ## Fixed) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
