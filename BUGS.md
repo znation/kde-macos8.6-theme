@@ -520,6 +520,10 @@ The post-merge review of commit `bb4047a14a539d829beb4b9bcd7aa54b401c30e6` (Add 
 
 The post-merge review of commit `2e0dc0d2c0209b712c0cf99f9f3063684c25bfc8` (Add a standalone `make apply-keymap` target) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 262d3826 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `262d38267f1ac8fae1374a1a89c9093b10548200` (Add standalone `make apply-plasma` for installed Plasma settings) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
