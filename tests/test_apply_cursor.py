@@ -23,7 +23,7 @@ from support import process_runner
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.apply_target_cases import ApplyTargetMakeCases
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
@@ -78,8 +78,9 @@ class CursorCase(unittest.TestCase):
         path.chmod(0o755)
 
     def run_tool(self, *args, env=None):
-        with mock.patch.dict(os.environ, env or self.env, clear=True):
-            return run_main(apply_cursor.main, "apply_cursor", args)
+        return run_main_with_env(
+            apply_cursor.main, "apply_cursor", args, env or self.env
+        )
 
     def recorded(self):
         return recorded_lines(self.calls)

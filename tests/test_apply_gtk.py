@@ -20,7 +20,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.apply_target_cases import ApplyTargetMakeCases
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import assert_failed, assert_succeeded
 from tools import apply_gtk, gtk_user_files
@@ -315,10 +315,12 @@ class TestRemove(ApplyGtkTestCase):
         css = self.config / "gtk-4.0" / "gtk.css"
         self.write(css, gtk_user_files.GTK4_CSS_MARKER + "\n")
 
-        with mock.patch.dict(
-            os.environ, {"XDG_CONFIG_HOME": str(self.config)}, clear=True
-        ):
-            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+        result = run_main_with_env(
+            apply_gtk.main,
+            "apply_gtk",
+            ("--remove",),
+            {"XDG_CONFIG_HOME": str(self.config)},
+        )
 
         assert_succeeded(self, result)
         self.assertNotIn(
@@ -379,8 +381,7 @@ class TestLineEndings(ApplyGtkTestCase):
 
 class TestHomeResolution(unittest.TestCase):
     def _run_with(self, env):
-        with mock.patch.dict(os.environ, env, clear=True):
-            return run_main(apply_gtk.main, "apply_gtk", ())
+        return run_main_with_env(apply_gtk.main, "apply_gtk", (), env)
 
     def test_missing_data_home_names_xdg_data_home(self):
         result = self._run_with(

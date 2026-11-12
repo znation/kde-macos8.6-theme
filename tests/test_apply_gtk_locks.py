@@ -18,7 +18,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.flock_fixtures import hold_directory_flock
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
@@ -109,10 +109,12 @@ class TestConfigLock(ApplyGtkTestCase):
     def test_remove_creates_only_the_containing_directory_it_locks(self):
         nested_config = self.root / "nested" / "config"
 
-        with mock.patch.dict(
-            os.environ, {"XDG_CONFIG_HOME": str(nested_config)}, clear=True
-        ):
-            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+        result = run_main_with_env(
+            apply_gtk.main,
+            "apply_gtk",
+            ("--remove",),
+            {"XDG_CONFIG_HOME": str(nested_config)},
+        )
 
         assert_succeeded(self, result)
         self.assertTrue(nested_config.parent.is_dir())
@@ -123,8 +125,7 @@ class TestConfigLock(ApplyGtkTestCase):
         blocked.write_text("not a directory", encoding="utf-8")
         env = {**self.env, "XDG_CONFIG_HOME": str(blocked / "config")}
 
-        with mock.patch.dict(os.environ, env, clear=True):
-            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+        result = run_main_with_env(apply_gtk.main, "apply_gtk", ("--remove",), env)
 
         assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot create {blocked}", result.stderr)

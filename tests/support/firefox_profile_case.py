@@ -9,12 +9,10 @@ name does not match ``test*.py``, so ``unittest discover`` never collects it.
 
 from __future__ import annotations
 
-import os
 import unittest
 from pathlib import Path
-from unittest import mock
 
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.tmp_dir import make_tmp_dir
 from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
 
@@ -39,8 +37,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         """Run the installer with *args* under *env*; return the captured process."""
         if env is None:
             env = {"HOME": str(self.home)}
-        with mock.patch.dict(os.environ, env, clear=True):
-            return run_main(install_firefox.main, install_firefox.TOOL, args)
+        return run_main_with_env(install_firefox.main, install_firefox.TOOL, args, env)
 
     def sheet_path(self):
         """Return the ``userChrome.css`` path inside :attr:`profile`."""

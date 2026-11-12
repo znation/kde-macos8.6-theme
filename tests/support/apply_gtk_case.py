@@ -17,7 +17,7 @@ from unittest import mock
 
 from support import repo_root
 from support import snippet_child
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import apply_gtk
@@ -41,8 +41,7 @@ class ApplyGtkTestCase(unittest.TestCase):
         }
 
     def run_tool(self, *args):
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            return run_main(apply_gtk.main, "apply_gtk", args)
+        return run_main_with_env(apply_gtk.main, "apply_gtk", args, self.env)
 
     def run_tool_in_child(self, *args):
         """Run the tool in a child so a FIFO open that slips through times out.

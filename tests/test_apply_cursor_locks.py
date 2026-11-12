@@ -17,7 +17,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.flock_fixtures import hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -50,8 +50,7 @@ class CursorLockCase(unittest.TestCase):
         (self.installed / "cursors" / "left_ptr").write_bytes(b"cursor\n")
 
     def run_tool(self, *args):
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            return run_main(apply_cursor.main, "apply_cursor", args)
+        return run_main_with_env(apply_cursor.main, "apply_cursor", args, self.env)
 
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""

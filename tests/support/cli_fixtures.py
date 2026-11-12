@@ -56,6 +56,17 @@ def run_main(main, program, args):
     )
 
 
+def run_main_with_env(main, program, args, env):
+    """Run :func:`run_main` with *env* as the entire process environment.
+
+    The tools read ``os.environ`` directly, so *env* replaces it
+    (``clear=True``) for this call only; the caller's environment is restored
+    when the call returns.
+    """
+    with mock.patch.dict(os.environ, env, clear=True):
+        return run_main(main, program, args)
+
+
 def call_main(main, *args):
     """Call ``main(list(args))`` and return ``(status, stderr)``.
 

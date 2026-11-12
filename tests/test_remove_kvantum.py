@@ -21,7 +21,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import kvantum_selection
@@ -107,8 +107,9 @@ class RemoveKvantumCase(unittest.TestCase):
         }
 
     def run_tool(self):
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            return run_main(kvantum_selection.main, "remove_kvantum", [])
+        return run_main_with_env(
+            kvantum_selection.main, "remove_kvantum", [], self.env
+        )
 
     def write(self, text, path=None):
         path = path if path is not None else self.kvconfig
@@ -155,8 +156,9 @@ class TestSelectionRemoval(RemoveKvantumCase):
         nested = self.root / "deeper" / "config"
         self.env["XDG_CONFIG_HOME"] = str(nested)
         self.env["HOME"] = str(self.root / "home")
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            result = run_main(kvantum_selection.main, "remove_kvantum", [])
+        result = run_main_with_env(
+            kvantum_selection.main, "remove_kvantum", [], self.env
+        )
 
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertIn(str(nested / "Kvantum" / "kvantum.kvconfig"), result.stdout)
@@ -245,8 +247,9 @@ class TestSelectionRemoval(RemoveKvantumCase):
     def test_an_unresolvable_config_home_is_refused_naming_both_variables(self):
         self.env["XDG_CONFIG_HOME"] = "relative"
         self.env["HOME"] = ""
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            result = run_main(kvantum_selection.main, "remove_kvantum", [])
+        result = run_main_with_env(
+            kvantum_selection.main, "remove_kvantum", [], self.env
+        )
 
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertIn("XDG_CONFIG_HOME", result.stderr)

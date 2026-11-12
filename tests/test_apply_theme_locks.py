@@ -20,7 +20,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cli_fixtures import run_main
+from support.cli_fixtures import run_main_with_env
 from support.flock_fixtures import hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -66,8 +66,7 @@ class ThemeLockCase(unittest.TestCase):
         path.chmod(path.stat().st_mode | stat.S_IXUSR)
 
     def run_tool(self):
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            return run_main(apply_theme.main, "apply_theme", [])
+        return run_main_with_env(apply_theme.main, "apply_theme", [], self.env)
 
     def hold_data_lock(self):
         """Take the data-home lock a concurrent install or uninstall holds."""
