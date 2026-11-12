@@ -10,7 +10,6 @@ the case base mirrors its ``CursorCase`` setUp.
 
 from __future__ import annotations
 
-import fcntl
 import os
 import shutil
 import unittest
@@ -18,7 +17,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
-from support.flock_fixtures import hold_directory_flock
+from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import apply_cursor, cursor_link, cursor_workflow
@@ -99,13 +98,7 @@ class TestDataHomeLock(CursorLockCase):
         self.stub_selector()
         assert_succeeded(self, self.run_tool())
 
-        descriptor = os.open(
-            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.data)
 
     def test_apply_rechecks_the_installed_theme_under_the_data_home_lock(self):
         """A theme removed before the lock is taken refuses the apply.

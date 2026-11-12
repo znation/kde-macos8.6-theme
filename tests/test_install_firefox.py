@@ -11,7 +11,6 @@ Firefox profile. Profile resolution has its own suite in
 from __future__ import annotations
 
 import errno
-import fcntl
 import os
 import unittest
 from pathlib import Path
@@ -22,6 +21,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase
+from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from tools import (
     file_lock,
     firefox_profile_actions,
@@ -644,11 +644,7 @@ class TestProfileLock(FirefoxProfileTestCase):
 
     def hold_profile_lock(self):
         """Take the lock a concurrent run would hold, and release it after."""
-        descriptor = os.open(
-            self.profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.addCleanup(os.close, descriptor)
+        hold_directory_flock(self, self.profile)
 
     def test_install_times_out_without_writing_while_another_run_holds_the_lock(
         self,
@@ -686,13 +682,7 @@ class TestProfileLock(FirefoxProfileTestCase):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
 
-        descriptor = os.open(
-            self.profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.profile)
 
     def test_install_refuses_when_the_profile_lock_cannot_be_opened(self):
         def refuse_open(*args, **kwargs):

@@ -11,8 +11,6 @@ setUp.
 
 from __future__ import annotations
 
-import fcntl
-import os
 import shlex
 import stat
 import sys
@@ -21,7 +19,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
-from support.flock_fixtures import hold_directory_flock
+from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import apply_theme
@@ -97,11 +95,7 @@ class TestDataHomeLock(ThemeLockCase):
         # After the apply printed its last selection, the data-home lock is
         # free for the next install, uninstall or apply: a non-blocking
         # attempt takes it at once.
-        descriptor = os.open(self.data, os.O_RDONLY)
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.data)
 
     def test_the_selections_run_while_the_data_home_lock_is_held(self):
         """Each command independently observes the held data-home lock."""

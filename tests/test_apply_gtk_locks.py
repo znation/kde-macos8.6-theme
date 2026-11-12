@@ -11,15 +11,13 @@ shared temp-root case is ``support.apply_gtk_case``.
 from __future__ import annotations
 
 import errno
-import fcntl
-import os
 import shutil
 import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
-from support.flock_fixtures import hold_directory_flock
+from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
@@ -36,11 +34,7 @@ class TestConfigLock(ApplyGtkTestCase):
         """Take the lock a concurrent run would hold, and release it after."""
         lock_dir = self.config.parent
         lock_dir.mkdir(parents=True, exist_ok=True)
-        descriptor = os.open(
-            lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.addCleanup(os.close, descriptor)
+        hold_directory_flock(self, lock_dir)
 
     def test_apply_times_out_without_writing_while_another_run_holds_the_lock(self):
         self.install_sheet()
@@ -63,13 +57,7 @@ class TestConfigLock(ApplyGtkTestCase):
         self.install_sheet()
         assert_succeeded(self, self.run_tool())
 
-        descriptor = os.open(
-            self.config.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.config.parent)
 
     def test_apply_with_a_missing_sheet_does_not_create_the_config_home(self):
         result = self.run_tool()
@@ -171,13 +159,7 @@ class TestDataHomeLock(ApplyGtkTestCase):
         self.install_sheet()
         assert_succeeded(self, self.run_tool())
 
-        descriptor = os.open(
-            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.data)
 
     def test_apply_rechecks_the_sheets_under_the_data_home_lock(self):
         """Sheets removed before the lock is taken refuse the apply.

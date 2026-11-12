@@ -12,7 +12,6 @@ tests pin; the tests here pin what the Kvantum tool builds on them.
 
 from __future__ import annotations
 
-import fcntl
 import os
 import subprocess
 import sys
@@ -22,6 +21,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
+from support.flock_fixtures import hold_directory_flock
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import kvantum_selection
@@ -260,9 +260,7 @@ class TestSelectionRemoval(RemoveKvantumCase):
         self.write("[General]\ntheme=org.macos8.desktop\n")
         lock_dir = self.config.parent
         lock_dir.mkdir(parents=True, exist_ok=True)
-        descriptor = os.open(lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.addCleanup(os.close, descriptor)
+        hold_directory_flock(self, lock_dir)
         before = self.read_bytes()
 
         with mock.patch.object(kvantum_selection, "LOCK_TIMEOUT", 0.05):
