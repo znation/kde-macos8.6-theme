@@ -185,7 +185,7 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
 
         The rule is ``border-radius: 0`` and nothing else, and its radius
         matches both frame arms via ``assert_matches_frame``. Used by the
-        square-corner families that restate the landed policy one selector
+        square-corner families that restate the existing policy one selector
         at a time.
         """
         self.assertEqual(self.rules[selector], {"border-radius": "0"}, selector)
