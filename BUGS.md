@@ -2352,6 +2352,10 @@ The post-merge review of commit `8dcd2ca9288d1f066e544658f9e5804a977860a9` (Keep
 
 The post-merge review of commit `03f90d02c052a18368ccbfc48deee3a1bcaaf1a1` (Add ranked offset pagination to worst-pixel diagnostics) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of ec7295fe never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `ec7295fe49f26e925054cbfb7b11cdc1160fa50e` (Add ranked histogram paging with `--color-offset`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
