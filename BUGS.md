@@ -800,6 +800,10 @@ The post-merge review of commit `8f06a31e50cd48246e7f5c2a809f732f390698e8` (squa
 
 The post-merge review of commit `e0c241c404bebf96f90e951c3806d29763525208` (Square the eight plain-axis GTK 4 spin-button end corner chains) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 88fc668a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `88fc668ae6593dab0744b08c2482207343a7242a` (Bound the `make uninstall` diagnostics' config-file reads to the project's shared 1 MiB cap) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
