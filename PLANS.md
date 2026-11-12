@@ -91,6 +91,71 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Antialiased cursors, part 1/2: a stdlib polygon rasterizer for vector cursor art (planned 2026-11-12 by the plan role; independent of the waiting README chooser plan)
+
+**Goal.** On 2026-11-12 the user chose smoother original cursor artwork with antialiased contours (QUESTIONS.md, "What direction should replace the disliked cursor artwork?", Option 2). That answers the direction fork recorded in the BUGS.md report "Cursor artwork is still visually unacceptable to the user". Today `tools/make_cursors.py::render_rgba` can only enlarge a 16×16 cell grid with nearest-neighbour sampling, so it cannot draw a smooth contour. This part adds the renderer. Part 2/2 draws the arrow with it. Each later cursor family gets its own plan.
+
+**Approach.** Add a new module `tools/cursor_vector.py`. Use the standard library only and the same `if __package__:` import pattern as `tools/cursor_art.py`. It defines:
+- `VectorCursor`, a frozen (hashable) dataclass with these fields:
+  - `face`: a tuple of at least three `(x, y)` vertices of one simple polygon, in design units.
+  - `outline_width`: a non-negative number of design units.
+  - `design_size`: a positive int, default 32.
+  `VectorCursor.__post_init__` raises `ValueError` in these cases, naming the field: fewer than three vertices, a non-numeric coordinate, a coordinate outside `0..design_size`, a negative width, or a design size that is not a positive int (bool is refused, as `tools/ints.py::is_plain_int` does).
+- `render_vector_rgba(art, size, samples=4)` returns `size*size*4` straight (non-premultiplied) RGBA bytes. `tools/xcursor.py::write_rgba_cursor` premultiplies them itself. Each pixel takes `samples×samples` sub-samples at the centres `(px + (i+0.5)/samples, py + (j+0.5)/samples)`, scaled by `design_size/size` into design units. Each sample is classified as follows:
+  - Inside `face` under the even-odd rule: black face.
+  - Otherwise, within `outline_width` (`<=`) of the nearest face edge segment: white outline.
+  - Otherwise: empty.
+  Let `B` and `W` be the black and white counts, `N = samples²` and `K = B + W`. A pixel with `K == 0` is `(0, 0, 0, 0)`. Otherwise it is `(g, g, g, a)` with `a = (510*K + N) // (2*N)` and `g = (510*W + K) // (2*K)`; both are integer round-half-up. The colours match the pinned `PIXELS` face `#000000` and outline `#FFFFFF` in `tools/cursor_art.py`. Validate `size` with the same rule and messages as `tools/make_cursors.py::_checked_size`. Move that helper into this module, or have both modules share it, so the limit `MAX_IMAGE_SIZE` stays the single bound.
+- `vector_hotspot(hotspot, art, size)` returns `(min(floor(hx*size/design_size), size-1), …)` for a design-unit hotspot. It raises `ValueError` when the hotspot is not two numbers in `[0, design_size)`.
+
+The module docstring records the provenance. No reference screenshot in `macos8.6-screenshots/` shows a pointer. The antialiased style comes from the user's 2026-11-12 answer, and the black face and white outline are the set's pinned palette. Each nominal size is rendered natively from vectors, so no shipped frame is resampled from another frame. Nothing calls this module yet, so no shipped cursor changes in this part.
+
+**Files.** New `tools/cursor_vector.py` and `tests/test_cursor_vector.py` (unittest, matching the existing `tests/test_make_cursors.py` style). If `_checked_size` moves, edit `tools/make_cursors.py` only for the import. Add one row to `docs/invariants.md` for the rasterizer's coverage and rounding contract, anchored to the new tests.
+
+**Acceptance criteria.** All expected values are worked out by hand from the geometry below, not taken from the code's output.
+- Square face `(8,8),(24,8),(24,24),(8,24)`, `outline_width=0`, `design_size=32`, at size 32: every pixel with `8 <= x,y <= 23` is `(0,0,0,255)`, and every other pixel is `(0,0,0,0)`. At size 16 the opaque black block is exactly `4 <= x,y <= 11`.
+- Face `(8,8),(24.5,8),(24.5,24),(8,24)`, width 0, size 32: pixel `(24,16)` is `(0,0,0,128)` because half its samples are inside.
+- The same face with `outline_width=2`, size 32:
+  - Pixel `(24,16)` is `(128,128,128,255)`: half face, half outline.
+  - Pixels `(6,16)` and `(7,16)` are `(255,255,255,255)`.
+  - Pixel `(5,16)` is `(0,0,0,0)`.
+  - Corner pixel `(6,6)` is white with alpha strictly between 0 and 255.
+- `vector_hotspot((3,3), art32, s)` gives `(1,1)`, `(2,2)` and `(3,3)` for `s` = 16, 24 and 32. `(31.9,31.9)` at 16 gives `(15,15)`.
+- Each invalid `VectorCursor` field, size and hotspot named above raises `ValueError` whose message names the field. Two renders of the same input are byte-identical, and their length is `size*size*4`.
+- No file under `theme/` changes, and `make check` passes after the final edit.
+
+### Antialiased cursors, part 2/2: draw the arrow pointer as antialiased vector art (planned 2026-11-12 by the plan role; "requires part 1/2 landed")
+
+**Goal.** Replace the arrow (`left_ptr` and its aliases `arrow`, `default`, `top_left_arrow` and `dnd-none`), the pointer users see most, with smooth, original, antialiased art. Each nominal size is rendered natively from one vector outline using part 1/2's `tools/cursor_vector.py`. The other cursor families keep their grids until their own plans; they are routed per family as the BUGS.md cursor report asks.
+
+**Approach.**
+- **Arrow art.** In `tools/cursor_art_pointers.py`, add `ARROW_ART = VectorCursor(face=…, outline_width=2, design_size=32)` and `ARROW_HOTSPOT = (3, 3)` (design units). The face is this theme's own classic-arrow polygon, in order: tip `(3,3)`, down the vertical left edge to `(3,24)`, notch `(8,19.5)`, tail `(12,28)`, `(15,26.6)`, inner notch `(11.2,18.5)`, wing `(18,18.5)`, then back to the tip. This polygon is the design decision; the implementer may nudge a tail vertex by at most 1 unit only to keep the tail at least 2 units wide.
+- **Grid kept for other pointers.** Keep `ARROW_GRID` and `HOTSPOT` exported unchanged. The help, progress and context-menu tests in `tests/test_cursors_theme.py` still compare against those cells. They are no longer bound in `CURSORS`.
+- **Binding.** In `tools/cursor_art.py`, bind `left_ptr` to `ARROW_ART` with `ARROW_HOTSPOT` and the same aliases. Update the module docstring: the arrow is now antialiased vector art, with the provenance sentence from part 1/2.
+- **Generator.** In `tools/make_cursors.py`, `_build_cursor_bytes`, `cursor_bytes` and `main` accept either a grid or a `VectorCursor` in the art slot:
+  - A `VectorCursor` is rendered per size with `render_vector_rgba` and positioned with `vector_hotspot`.
+  - A grid keeps today's `render_rgba` and `_scaled_hotspot` path.
+  - Validate a vector entry with `VectorCursor`'s own checks instead of `_checked_rows` and `_checked_hotspot`. Its hotspot must lie in `[0, design_size)`.
+  - Keep the `lru_cache`; `VectorCursor` is hashable.
+  - `cursor_bytes()` defaults become `ARROW_ART` and `ARROW_HOTSPOT`, so the default call still equals the committed `left_ptr`.
+  - Update the module docstring, which today says the module scales grids nearest-neighbour.
+- **Regenerate** with `python3 tools/make_cursors.py`. Only `left_ptr` and its four alias files change.
+- **Tests.**
+  - `tests/test_cursor_art_bindings.py`: admit exported `*_ART` constants beside `*_GRID`. `ARROW_ART` pairs with `ARROW_HOTSPOT`. Exempt `ARROW_GRID` from the bound-exactly-once rule through an explicit, commented set of reference grids that must be bound zero times. The hotspot-inside check uses design units for vector entries.
+  - `tests/test_cursors_theme.py`: rewrite `test_each_frame_pins_the_hotspot_outline_tip_and_transparency`, `test_left_ptr_draws_the_classic_silhouette` and `test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_the_artifact` to the criteria below. A moved face vertex replaces the corrupted grid variant. Update the `HOTSPOTS["left_ptr"]` row. In `docs/invariants.md`, update the cursor-set row and the nearest-neighbour hotspot row so they say which entries are vector-rendered.
+
+**Files.** `tools/cursor_art_pointers.py`, `tools/cursor_art.py`, `tools/make_cursors.py`, `tests/test_cursors_theme.py`, `tests/test_cursor_art_bindings.py`, `tests/test_make_cursors.py` (only if a default-argument test names the grid), `docs/invariants.md`, and the five regenerated files under `theme/icons/org.macos8.desktop/cursors/`.
+
+**Acceptance criteria.**
+- **Frames.** The committed `left_ptr` parses to three frames at nominal sizes 16, 24 and 32, with hotspots `(1,1)`, `(2,2)` and `(3,3)`. In each frame:
+  - The hotspot pixel has alpha 255.
+  - The pixel containing design point `(6,14)` is `(0,0,0,255)`: `(3,7)`, `(4,10)` and `(6,14)` respectively.
+  - The top-right `(size-1,0)` and bottom-right `(size-1,size-1)` pixels are `(0,0,0,0)`.
+  - At least one pixel has alpha strictly between 0 and 255, and at least one opaque pixel has a channel strictly between 0 and 255. This is the antialiasing evidence.
+- **Freshness and aliases.** The committed `left_ptr` equals `make_cursors.cursor_bytes()`, and each of its four aliases is byte-identical to it. A moved face vertex, a dropped size or a moved hotspot each change the bytes.
+- **Scope.** `git diff --stat` touches no other cursor file: the grid-drawn cursors, including help, progress and context-menu, keep their committed bytes.
+- `make check` passes after the final edit. This change does not close the BUGS.md cursor report: the user's visual verdict on the arrow, plus the remaining families, decide that.
+
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
