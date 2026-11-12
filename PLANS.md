@@ -91,8 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-_None yet._
-
 ### README sampling chooser: locate the longest horizontal color match (planned 2026-11-11 by the plan role)
 
 **Goal.** Help contributors locate an uninterrupted horizontal segment of a chosen reference color within a rectangle without printing the complete matching interval list.
