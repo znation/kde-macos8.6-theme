@@ -2492,6 +2492,10 @@ The post-merge review of commit `7c6244c9bcd60134c34346a938bf879ec0d01439` (Repa
 
 The post-merge review of commit `e904313e8882890cdf545cd284e6e1ff28e9aa13` (Add a quiet verdict mode to the fidelity CLI) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a31f6e35 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `a31f6e35fec3041356ace69f8620359f362f644b` (Steer the Kvantum combo field to a raised `combofield` frame family) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
