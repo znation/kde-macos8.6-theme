@@ -107,7 +107,7 @@ ZOOM_REFERENCE = (776, 26, 21, 13)
 # `tools/render_surface.py` runs on 2026-11-11 (every pair compared
 # byte-identical, so each pinned pixel is run-stable). The client face
 # spans rows 22..233 between the frame borders (x=0..5 and x=314..319,
-# which the landed chrome-strip tests byte-compare); its flat face rows
+# which the existing chrome-strip tests byte-compare); its flat face rows
 # run x=6..313.
 # The display field: a 1px #000000 outline box x=10..309, y=27..78 whose
 # interior x=11..308, y=28..77 is flat #DDDDDD except the digit's
@@ -215,7 +215,7 @@ ENTRY_FIELD_CROP = (300, 171, 54, 36)
 # 2026-11-03 on a consecutive pair of full `tools/render_surface.py
 # --gtk-dialog` runs on this host (zenity 4.1.90, GTK 4.18.6) whose two
 # captures agreed bit for bit under cmp, and reproduced bit for bit by a
-# third consecutive run. The rendered button is the landed push-button
+# third consecutive run. The rendered button is the existing push-button
 # recipe: 1px #000000 border rows (0 and 45) and border column, a 1px white
 # BUTTON_BEVEL top arm (interior row 1) and left arm (column 1), the flat
 # #DDDDDD face, and a 1px #AAAAAA (BUTTON_SHADOW) BUTTON_BEVEL bottom arm
@@ -229,7 +229,7 @@ OK_BUTTON_CROP = (114, 240, 32, 46)
 # consecutive pair of full `tools/render_surface.py --gtk-dialog` runs on
 # this host (zenity 4.1.90, GTK 4.18.6) whose two captures agreed bit for
 # bit under cmp, and reproduced bit for bit by a third consecutive run.
-# The rendered button is the same landed push-button recipe as the OK pin:
+# The rendered button is the same existing push-button recipe as the OK pin:
 # 1px #000000 border rows (0 and 45) and border column, a 1px white
 # BUTTON_BEVEL top arm (interior row 1) and left arm (column 1), the flat
 # #DDDDDD face, and a 1px #AAAAAA (BUTTON_SHADOW) BUTTON_BEVEL bottom arm
@@ -260,7 +260,7 @@ LINEEDIT_DIALOG_FIELD = (146, 172, 188, 24)
 # and fails.
 LINEEDIT_DIALOG_FIELD_CROP = (200, 172, 120, 24)
 # The rendered OK push button, left of its label glyphs, measured on the
-# same agreeing pair as the field: the landed push-button arrangement the
+# same agreeing pair as the field: the existing push-button arrangement the
 # checkbox and combo gates pin, at the same rect they measure, 1px
 # #000000 border rows and border column, the #FFFFFF bevel top and left
 # arms, the flat #DDDDDD face and the #AAAAAA bottom arm.
@@ -271,7 +271,7 @@ LINEEDIT_DIALOG_OK_BUTTON = (167, 199, 82, 24)
 # on a consecutive pair of full `tools/render_surface.py --gtk-dialog` runs
 # on this host (zenity 4.1.90, GTK 4.18.6) whose two captures agreed bit for
 # bit under cmp, and reproduced bit for bit by a third consecutive run.
-# The session background is black, so the landed active window.csd outline
+# The session background is black, so the existing active window.csd outline
 # (box-shadow: 0 0 0 1px #000000, pinned in the sheet by
 # TestGtk4Theme::test_csd_window_shell) is continuous with it: the pinned
 # top row is the shell-edge row the ring paints where the surface margin
@@ -430,7 +430,7 @@ BASIC_SWATCH_ROW = (17, 57, 46, 6)
 # top/left shadow column, the 1px #000000 outline column, the #FFFFFF
 # face run and four face columns to the right of the field.
 SUNKEN_VALUE_FIELD_BAND = (330, 212, 40, 4)
-# The dialog's left push button in the default-button row: the landed
+# The dialog's left push button in the default-button row: the existing
 # raised recipe (see TestColorDialogRender) at the 82x24 button size the
 # other dialog gates pin.
 PUSH_BUTTON = (301, 324, 82, 24)
@@ -456,7 +456,7 @@ ICON_GRID_TOP_EDGE = (200, 55, 40, 5)
 # outline and the white #FFFFFF field face, with the outline's right
 # corner and the outer white arm from the outline's edge on.
 ICON_SEARCH_FIELD_BAND = (294, 29, 174, 4)
-# The dialog's default-button row: the landed raised recipe (see
+# The dialog's default-button row: the existing raised recipe (see
 # TestIconDialogRender) at the 82x24 button size the other dialog gates
 # pin.
 ICON_PUSH_BUTTON = (301, 324, 82, 24)
@@ -1599,7 +1599,7 @@ class TestRender(_PixelPins, unittest.TestCase):
             with self.subTest(candidate_crop=candidate_crop):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
 
-    # The applet's own face below the landed chrome strips: the display
+    # The applet's own face below the existing chrome strips: the display
     # field and the keypad cells, pinned from the 2026-11-11 three-render
     # capture through the shared pixel helpers (the constants above quote
     # the measured geometry and each value's stability provenance). The
@@ -1685,7 +1685,7 @@ class TestRender(_PixelPins, unittest.TestCase):
     def test_the_gaps_between_the_cells_stay_flat_face(self):
         # The flat #DDDDDD face rows between the bands: full client width
         # (x=6..313; x=0..5 and x=314..319 carry the side border art the
-        # landed strip tests byte-compare) for rows 23..26 above the
+        # existing strip tests byte-compare) for rows 23..26 above the
         # display, 79..82 between display and keypad, 109..112, 139..142,
         # 170..173 and 230..233, and x=6..208 only for rows 200..203,
         # where the tall right cell spans them. The gap columns x=72..75
@@ -2378,7 +2378,7 @@ class TestLineInputDialogRender(_DialogGate, unittest.TestCase):
             LINEEDIT_DIALOG_OK_BUTTON, flat_rows=(201, 202, 203, 204)
         )
 
-    def test_draws_the_ok_button_face_at_the_landed_recipe(self):
+    def test_draws_the_ok_button_face_at_the_existing_recipe(self):
         # The OK button is the dialog's default, so a focus ring painted at
         # the face rows would cross this pin the way the checkbox gate's
         # default-button pin does.
@@ -2617,7 +2617,7 @@ class TestColorDialogRender(_DialogGate, unittest.TestCase):
     The color dialog opens kdialog's ``--getcolor`` picker, whose window
     face, basic-color swatch grid, sunken value fields and push buttons
     the engine draws with the theme's colorscheme palette entries
-    ([Colors:Window] and [Colors:Button] the landed art's bevel and
+    ([Colors:Window] and [Colors:Button] the existing art's bevel and
     shadow arms serve): the raised push-button recipe's outline and bevel
     arrangement comes from the shipped button art, the flat face and
     shadow arms from the palette, just as the line-edit gate's field and
@@ -2672,7 +2672,7 @@ class TestColorDialogRender(_DialogGate, unittest.TestCase):
             PUSH_BUTTON, PUSH_BUTTON_CELL, PUSH_BUTTON_FLAT_ROWS
         )
 
-    def test_draws_the_push_button_face_at_the_landed_recipe(self):
+    def test_draws_the_push_button_face_at_the_existing_recipe(self):
         self.assert_push_button_face_reaches_its_row(PUSH_BUTTON)
 
 
@@ -2683,7 +2683,7 @@ class TestIconDialogRender(_DialogGate, unittest.TestCase):
     The icon dialog opens kdialog's ``--geticon`` chooser, whose top-row
     search field, sunken icon-grid field and push buttons the engine
     draws with the theme's colorscheme palette entries ([Colors:Window]
-    and [Colors:Button] the landed art's bevel and shadow arms serve):
+    and [Colors:Button] the existing art's bevel and shadow arms serve):
     the search-field sunken recipe's shadow and outline arrangement comes
     from the shipped line-edit art, the raised push-button recipe from
     the shipped button art, the flat faces from the palette, just as the
@@ -2745,7 +2745,7 @@ class TestIconDialogRender(_DialogGate, unittest.TestCase):
             ICON_PUSH_BUTTON, ICON_PUSH_BUTTON_CELL, ICON_PUSH_BUTTON_FLAT_ROWS
         )
 
-    def test_draws_the_push_button_face_at_the_landed_recipe(self):
+    def test_draws_the_push_button_face_at_the_existing_recipe(self):
         self.assert_push_button_face_reaches_its_row(ICON_PUSH_BUTTON)
 
 
@@ -3069,13 +3069,13 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
     the 480x360 size the other dialog gates byte-compare at and a plane
     that actually painted, ``test_draws_the_entry_field_cell_1_to_1``
     byte-compares the content-area entry's cell with the arrangement the
-    landed entry recipe re-derives, the two push-button pins
+    existing entry recipe re-derives, the two push-button pins
     (``test_draws_the_action_button_row_cell_1_to_1`` and
     ``test_draws_the_cancel_button_cell_1_to_1``) byte-compare the OK and
-    Cancel buttons' cells with the arrangement the landed push-button
+    Cancel buttons' cells with the arrangement the existing push-button
     recipe re-derives, and ``test_draws_the_window_shell_edge_cell_1_to_1``
     byte-compares the window's top shell edge strip with the arrangement
-    the landed ``window.csd`` outline and ``window, .background`` surface rule
+    the existing ``window.csd`` outline and ``window, .background`` surface rule
     re-derive (each crop is measured on this host's 480x360
     capture; see the ``## tooling`` row of ``docs/invariants.md``).
     """
@@ -3084,7 +3084,7 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_action_button_row_cell_1_to_1(self):
         # Byte-compare the OK push button's left-hand cell with the
-        # arrangement the landed push-button recipe's own constants
+        # arrangement the existing push-button recipe's own constants
         # re-derive, never with the capture's own pixels. The cell spans the
         # button's full height at a label-free horizontal span: row 0 and
         # row 45 are the 1px black border rows, column 0 the black border
@@ -3120,7 +3120,7 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_cancel_button_cell_1_to_1(self):
         # Byte-compare the Cancel push button's left-hand cell with the
-        # arrangement the landed push-button recipe's own constants
+        # arrangement the existing push-button recipe's own constants
         # re-derive, never with the capture's own pixels. The cell spans
         # the button's full height at a label-free horizontal span, the
         # same shape the OK pin pins: row 0 and row 45 are the 1px black
@@ -3158,14 +3158,14 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_window_shell_edge_cell_1_to_1(self):
         # Byte-compare the window's top shell edge strip with the
-        # arrangement the landed recipes' own constants re-derive, never
+        # arrangement the existing recipes' own constants re-derive, never
         # with the capture's own pixels. The strip crosses the window's top
         # edge past the square border-radius: 0 corner's edge column and
         # clear of title glyphs: row 0 is the shell-edge
-        # row -- the landed window.csd active outline's 1px #000000 ring
+        # row -- the existing window.csd active outline's 1px #000000 ring
         # (box-shadow: 0 0 0 1px #000000), which the black session
         # background makes continuous with -- and rows 1..11 are the flat
-        # #DDDDDD window surface beneath it, painted by the landed
+        # #DDDDDD window surface beneath it, painted by the existing
         # window, .background rule. A 2026-11-03 zenity 4.1.90 / GTK
         # 4.18.6 probe found no headerbar, .titlebar or windowcontrols
         # node, so the headerbar title-button recipe does not render in
@@ -3189,7 +3189,7 @@ class TestGtkDialogRender(_DialogGate, unittest.TestCase):
 
     def test_draws_the_entry_field_cell_1_to_1(self):
         # Byte-compare the entry's painted cell with the arrangement the
-        # landed recipe's own constants re-derive, never with the capture's
+        # existing recipe's own constants re-derive, never with the capture's
         # own pixels. The entry is focused in zenity's dialog, so the
         # focused field carries stock's focus halo geometry (2px wide with
         # an inset -2px offset) recoloured black by the sheet's own
@@ -3249,7 +3249,7 @@ class TestInactiveDialogRender(_DialogGate, unittest.TestCase):
     the left window's decoration pixels: the 1px ``#555555`` inactive outline
     ring, the active frame's black client edge recoloured to the same grey,
     the flat buttonless ``#DDDDDD`` bar and the ``#777777`` title ink. It
-    complements the landed art-side pins in ``tests/test_aurorae_frame.py``
+    complements the existing art-side pins in ``tests/test_aurorae_frame.py``
     and ``tests/test_aurorae_rc.py`` and holds no client-widget pin: the
     message-box contents stay unpinned, where the other dialog gates own
     widget pins.
@@ -3400,7 +3400,7 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     are flat ``#FFFFFF``; and the caption glyphs, the file names, the
     size text and the clock-dependent date column stay live ink.
 
-    The places sidebar is pinned beside its landed selected-row
+    The places sidebar is pinned beside its existing selected-row
     highlight (measured on the same fresh pair): the two group
     headers' live-ink bands, the Home entry's 40x26 folder icon cell
     and the two device entries' byte-identical 40x26 drive cells (one
@@ -4496,7 +4496,7 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
 
     def test_the_sidebar_face_stays_flat_outside_its_ink(self):
         # Every sidebar pixel in x=6..138, rows 26..349 outside the
-        # landed selected-row band, the pinned icon cells, the trough
+        # existing selected-row band, the pinned icon cells, the trough
         # boxes and the live-ink bands is the flat #DDDDDD face: a
         # stray widget or a recoloured face fails here.
         image = self.candidate_image()
@@ -4648,7 +4648,7 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
                 )
 
     def test_the_column_header_band_pins_its_face_and_dividers(self):
-        # Rows 99..120 across x=152..473 (right of the landed scrollbar-strip
+        # Rows 99..120 across x=152..473 (right of the existing scrollbar-strip
         # exclusion): face #DDDDDD except the two full-height dividers (the
         # #AAAAAA shadow column beside the #000000 core column at x=350/351
         # and x=400/401) and the caption and sort-arrow ink bands pinned
