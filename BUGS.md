@@ -18,10 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### A command-line HOME make function executes before the shell-syntax refusal (found by the coverage role 2026-11-11)
-
-Run `make -n help 'HOME=$(shell touch /tmp/home-canary)'` with a HOME-independent environment. Make exits with the expected `HOME contains a shell metacharacter` refusal, but the canary is created before that refusal. The existing `test_make_function_text_in_HOME_is_refused_without_evaluation` covers an environment-supplied HOME and does not reproduce this command-line override path. A focused regression test was tried and confirmed the canary; it was left out because the attempted small guard adjustment did not prevent the expansion.
-
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
 **Needs review 2026-11-11 by director: Choose the replacement cursor direction in QUESTIONS.md (redrawn pixel art, smoother original art, or the desktop's existing theme), and identify the affected cursor roles and selected size/display scale; code inspection confirms the scaling mechanism but cannot establish the user's rendered appearance or preferred redesign.**

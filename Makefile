@@ -9,6 +9,9 @@ PYTHON ?= python3
 # always lets it, so it is used as given. XDG_DATA_HOME_ENV keeps the raw
 # environment value so the guard below can tell an explicit absolute path from
 # the fallback.
+# Command-line variables are exported by default. Defer HOME's export until
+# after its raw value passes the parse-time guard below.
+unexport HOME
 XDG_DATA_HOME_ENV := $(value XDG_DATA_HOME)
 HOME_ENV := $(value HOME)
 # Export the raw value so the guard below can name it in its diagnostic. The
@@ -140,6 +143,8 @@ refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if 
 # is `COLOR_SCHEME`'s guarded text after `$(notdir)` cuts it, which can
 # only re-arrange punctuation the guard already refused.
 $(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_NAME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT CHECK_TESTS CHECK_PARALLEL,$(call refuse_unsafe_value,$(v)))
+
+export HOME := $(HOME_ENV)
 
 # CHECK_PATTERN additionally reaches a single-quoted recipe word: `check`
 # pastes it into `-p '$(CHECK_PATTERN)'`, and an apostrophe — inert inside

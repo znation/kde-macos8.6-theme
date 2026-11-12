@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A command-line HOME make function executes before the shell-syntax refusal (found by the coverage role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Keep `HOME` out of make's child environments until the raw value passes the parse-time refusal; export the validated value afterwards. The regression test covers the command-line override alongside the existing environment-supplied case.
+
+**Validation gap:** none — the new test reproduced command-line function evaluation and confirmed the refusal leaves its canary absent.
+
 ### The split-output command runner can leak its child if its stdin writer thread cannot start (found by the bugfix role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 `run_logged_split` started its stdin writer before entering the `try/finally` that kills and reaps the command. If `Thread.start()` raised, the caller saw the startup error but the child remained alive, and its stdin pipe stayed open.
