@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 34ca72c4 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Checked the commit's GTK 3 stylesheet change, selector assertions, and invariant entry. The four add-color overlay states declare `#000000`, the regression test checks each state and its equality with the sheet's `window` foreground, and the invariant records the missing reference surface and adaptation source. The current tree retains these declarations and checks.
+
+**Validation gap:** none — the post-merge review was settled by inspecting the changed declarations, regression assertions, and invariant documentation; no behavior defect was found.
+
 ### post-merge review of acaedf4e never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 Fix: Checked the refactor against its parent: all four GTK 3 OSD cases still flatten selector groups into a set, assert the expected inventory size, and return that set for the existing scope comparison. The helper preserves that behavior, and the split OSD tests retain the same four count checks.

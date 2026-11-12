@@ -52,10 +52,6 @@ recorded inspection path is to select the installed theme and compare arrow, tex
 roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
 coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
 
-### post-merge review of 34ca72c4 never reached a verdict (found by the review role 2026-11-11)
-
-The post-merge review of commit `34ca72c4b76cd7667ec13c268a759bb6cd4351c3` (Pin black foregrounds on GTK 3 add-color overlays) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of f506bb76 never reached a verdict (found by the review role 2026-11-11)
 
 The post-merge review of commit `f506bb76d19eceb404004ab2e54faaaf08ebb265` (Share the Firefox panel declaration assertion helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
