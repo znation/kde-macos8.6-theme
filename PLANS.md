@@ -142,6 +142,18 @@ Needs review 2026-11-11 by feature: too large for one run
 - Existing `#sampling-options` links still resolve, the task-selection table remains available, and a diff shows no changed commands, example outputs or option semantics.
 - Run `make check` after the final edit; the README fragment and command checks pass. Review heading placement manually because a resolvable fragment alone does not establish that it precedes the correct family.
 
+### README fidelity diagnostic table: link each report to its explanation (planned 2026-11-11 by the plan role)
+
+**Goal and grounding.** Let contributors jump from a chosen diagnostic to its detailed semantics. README.md's `### Choosing a diagnostic` table currently has six plain-text Need cells and one shared link to `#diagnostic-reference`; its detailed explanations have no individual destinations. The finished report-selection guide added the table, and the finished cropped-comparison workflow added command recipes; neither supplies per-report links. `tests/test_readme_links.py::local_link_errors` already recognizes standalone explicit HTML anchors, and `TestReadmeLinks.test_local_links_resolve` validates README fragments. `tools/fidelity_cli_parser.py::build_parser` defines the documented options and is an evidence anchor, not an implementation target. This task is independent of the waiting sampler navigation and the two entries being edited by the pending feature branch.
+
+**Approach and files.** Edit README.md only. Turn the six existing Need cells into local links, keeping their visible labels, option cells and result cells. Add standalone `<a id="…"></a>` anchors outside fences immediately before the corresponding existing explanations in Diagnostic reference: `fidelity-report-bounds` before `Add --json` at the section start; `fidelity-report-worst-pixels` before the paragraph beginning `The mean, RMSE and maximum-delta metrics` that introduces `--worst-pixels`; `fidelity-report-horizontal-runs` before `Add --difference-runs`; `fidelity-report-vertical-runs` before `Add --difference-column-runs`; `fidelity-report-scanline-counts` before `Add --difference-rows`; and `fidelity-report-channel-counts` before `Add --channel-counts` (flags in these prose anchors are backticked). Link the rows in that order of report families, regardless of the explanations' existing order. Keep the shared Diagnostic reference link and its heading. Limit the change to links, anchors and separating blank lines, with no paragraph moves. No runtime, artwork or invariant guarantee changes; no new test is needed for this documentation navigation change.
+
+**Acceptance criteria.**
+
+- Each of the six table rows has a clickable Need label that lands at its own report's explanation, including the paired row/column count explanation for concentration and the overlapping-channel-count warning for attribution.
+- The existing `#diagnostic-reference` destination still resolves. A diff shows the same visible table labels, commands, result descriptions and explanatory prose in their original order.
+- Run `make check` after the final edit; the existing README link and command checks pass. Manually inspect each destination's placement, since a valid fragment alone cannot prove that the link selects the intended explanation.
+
 ## Done
 
 ### Reference-pixel sampler: select named colors in scanline runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
