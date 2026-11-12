@@ -49,14 +49,19 @@ def _config_name(name: object) -> str:
     return name
 
 
-def write_configs(
+def publish_configs(
     config_home: Path,
     names: Iterable[str],
     *,
     defaults_path: Path,
     read_groups: Callable[[Path], dict[tuple[str, str], dict[str, str]]],
 ) -> None:
-    """Write configs named by *names* using sections from the defaults file."""
+    """Write configs named by *names* using sections from the defaults file.
+
+    The public entry is ``tools.theme_defaults.write_configs``, which binds the
+    shipped defaults file and reader; this engine takes both as parameters so
+    tests can drive it with a fake defaults file.
+    """
     if not isinstance(config_home, Path):
         raise ValueError(
             f"write_configs config_home must be a pathlib.Path, not "

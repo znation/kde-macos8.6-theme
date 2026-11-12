@@ -19,7 +19,7 @@ from tools import theme_config_writer, theme_defaults  # noqa: E402
 def _recording_writer(recorded):
     """Patch ``write_config_atomically`` with a stand-in recording calls.
 
-    The publication step :func:`theme_config_writer.write_configs` uses is
+    The publication step :func:`theme_config_writer.publish_configs` uses is
     the module's ``write_config_atomically``; patching that attribute lets a
     recording stand-in pin which names the per-name loop writes and in which
     call order, without touching a real file. Use as a context manager.
@@ -513,7 +513,7 @@ class TestWriteConfigs(unittest.TestCase):
         # would be recorded on a fake object) observes.
         recorded = []
         with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
-            theme_config_writer.write_configs(
+            theme_config_writer.publish_configs(
                 "somewhere/config",
                 ("kwinrc",),
                 defaults_path=make_tmp_dir(self) / "defaults",
@@ -533,7 +533,7 @@ class TestWriteConfigs(unittest.TestCase):
                     self.assertRaises(ValueError) as caught,
                     _recording_writer(recorded),
                 ):
-                    theme_config_writer.write_configs(
+                    theme_config_writer.publish_configs(
                         make_tmp_dir(self),
                         names,
                         defaults_path=make_tmp_dir(self) / "defaults",
@@ -547,7 +547,7 @@ class TestWriteConfigs(unittest.TestCase):
         # ValueError, naming its type, before the writer fires.
         recorded = []
         with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
-            theme_config_writer.write_configs(
+            theme_config_writer.publish_configs(
                 make_tmp_dir(self),
                 37,
                 defaults_path=make_tmp_dir(self) / "defaults",
@@ -571,7 +571,7 @@ class TestWriteConfigs(unittest.TestCase):
                     self.assertRaises(ValueError) as caught,
                     _recording_writer(recorded),
                 ):
-                    theme_config_writer.write_configs(
+                    theme_config_writer.publish_configs(
                         make_tmp_dir(self),
                         (name,),
                         defaults_path=make_tmp_dir(self) / "defaults",
@@ -593,7 +593,7 @@ class TestWriteConfigs(unittest.TestCase):
                     self.assertRaises(ValueError) as caught,
                     _recording_writer(recorded),
                 ):
-                    theme_config_writer.write_configs(
+                    theme_config_writer.publish_configs(
                         make_tmp_dir(self),
                         (name,),
                         defaults_path=make_tmp_dir(self) / "defaults",
@@ -611,7 +611,7 @@ class TestWriteConfigs(unittest.TestCase):
         recorded = []
         defaults = make_tmp_dir(self) / "defaults"
         with self.assertRaises(ValueError) as caught, _recording_writer(recorded):
-            theme_config_writer.write_configs(
+            theme_config_writer.publish_configs(
                 make_tmp_dir(self),
                 ("kwinrc", "plasmarc"),
                 defaults_path=defaults,
@@ -632,7 +632,7 @@ class TestWriteConfigs(unittest.TestCase):
         # names no shipped defaults file.
         recorded = []
         with _recording_writer(recorded):
-            theme_config_writer.write_configs(
+            theme_config_writer.publish_configs(
                 make_tmp_dir(self),
                 ("kwinrc", "plasmarc"),
                 defaults_path=make_tmp_dir(self) / "defaults",
@@ -661,7 +661,7 @@ class TestWriteConfigs(unittest.TestCase):
         plasmarc = directory / "plasmarc"
         plasmarc.write_text("ORIGINAL\n", encoding="utf-8")
         with self.assertRaises(OSError) as caught, _failing_writer(("plasmarc",)):
-            theme_config_writer.write_configs(
+            theme_config_writer.publish_configs(
                 directory,
                 ("kwinrc", "plasmarc"),
                 defaults_path=directory / "defaults",

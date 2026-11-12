@@ -22,11 +22,11 @@ else:
 if __package__:
     from tools.containment import read_capped_bytes, require_within_repo
     from tools.repo_root import ROOT
-    from tools.theme_config_writer import write_configs as _write_configs
+    from tools.theme_config_writer import publish_configs
 else:  # imported from a directly run tool
     from containment import read_capped_bytes, require_within_repo
     from repo_root import ROOT
-    from theme_config_writer import write_configs as _write_configs
+    from theme_config_writer import publish_configs
 
 DEFAULTS = (
     ROOT
@@ -172,7 +172,7 @@ def write_configs(config_home: Path, names: Iterable[str]) -> None:
     for that file. All names are checked before the first one is written, so
     a missing section leaves every config unchanged.
     """
-    _write_configs(
+    publish_configs(
         config_home,
         names,
         defaults_path=DEFAULTS,
