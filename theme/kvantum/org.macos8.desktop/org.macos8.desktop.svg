@@ -2583,8 +2583,8 @@
        at-rest raised arrangement: these four families clone the landed
        `button-normal` slices byte-equal (same canvas cells, same palette
        hexes), the art `tests/test_kvantum_button_reference.py` pins to the
-       reference's own pop-up buttons (opendialog_macrumors86.jpg rows
-       15..33, systeminfo_betawiki.png rows 102..121). Upstream Kvantum
+       reference's own pop-up buttons (aboutsystem_betawiki.png).
+       Upstream Kvantum
        selects the frame element's pressed state for the combo field
        (State_Sunken || State_Selected), so the normal-family art in every
        state makes the field paint the raised look whatever state the

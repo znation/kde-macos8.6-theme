@@ -74,9 +74,15 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
         # or a swapped bevel fails here.
         colours = self._reference_colours()
         slices = render_slices(parse_svg(SVG))
-        for state, bevel in (("normal", "raised"), ("pressed", "sunken")):
-            prefix = f"button-{state}"
-            with self.subTest(state=state):
+        families = [("button-normal", "raised"), ("button-pressed", "sunken")]
+        # All combo-field states must preserve the reference's raised bevel,
+        # including states the resting-dialog render never selects.
+        families.extend(
+            (f"combofield-{state}", "raised")
+            for state in ("normal", "focused", "pressed", "disabled")
+        )
+        for prefix, bevel in families:
+            with self.subTest(prefix=prefix):
                 self.assertEqual(
                     slices[prefix],
                     pixel_map(
