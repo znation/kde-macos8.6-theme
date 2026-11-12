@@ -18,7 +18,7 @@ if __package__:
     from tools.repo_root import ROOT
     from tools.sample_arguments import build_parser, option_error, region_error
     from tools.sample_reports import report
-    from tools.terminal import escape_controls
+    from tools.sample_report_common import format_image_header
 else:  # run directly: python3 tools/sample.py
     from containment import resolves_within
     from diagnostics import report_error
@@ -27,7 +27,7 @@ else:  # run directly: python3 tools/sample.py
     from repo_root import ROOT
     from sample_arguments import build_parser, option_error, region_error
     from sample_reports import report
-    from terminal import escape_controls
+    from sample_report_common import format_image_header
 
 
 def _read_entire(fd: int) -> bytes:
@@ -76,7 +76,7 @@ def _sample_jpeg(args, fd: int) -> int:
             )
     finally:
         shutil.rmtree(directory, ignore_errors=True)
-    header = f"image: {escape_controls(args.image)}  {width}x{height}"
+    header = format_image_header(args.image, width, height)
     report(args, image, width, height, header)
     return 0
 
@@ -164,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
             # like the read and containment refusals above.
             message = message.replace(opened_path, args.image)
         return report_error("sample", message)
-    header = f"image: {escape_controls(args.image)}  {width}x{height}"
+    header = format_image_header(args.image, width, height)
     report(args, image, width, height, header)
     return 0
 

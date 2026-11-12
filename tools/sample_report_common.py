@@ -4,6 +4,16 @@ from __future__ import annotations
 
 import json
 
+if __package__:
+    from tools.terminal import escape_controls
+else:
+    from terminal import escape_controls
+
+
+def format_image_header(image: str, width: int, height: int) -> str:
+    """Format the sampler's escaped image name and decoded dimensions."""
+    return f"image: {escape_controls(image)}  {width}x{height}"
+
 
 def region_from_args(args) -> dict:
     """Return the region the report's args define, as the {"x", "y", "width", "height"}
