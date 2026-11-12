@@ -1536,6 +1536,10 @@ The post-merge review of commit `8e7b69aefe7741d41cca68a1b3aeb8b03f0de2cf` (Add 
 
 The post-merge review of commit `55dead92de528e3030c992fb031188e43336b14d` (Fix stale dialog-gate count prose left by the color-dialog gate) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2b47c11c never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `2b47c11c373437b1ed7a2bad145afa265b72f3b3` (Restate GTK 4 scale-popup buttons with the landed push-button recipe) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
