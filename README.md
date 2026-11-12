@@ -1778,7 +1778,7 @@ The GTK 4 indicator and view-census probes skip during routine checks. To opt in
 your desktop display, run either probe under Xvfb:
 
 ```sh
-env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_theme.TestGtk4Theme.test_mixed_indicators_draw_black_dashes
+env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_indicators_probe.TestGtk4IndicatorsProbe.test_mixed_indicators_draw_black_dashes
 env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk_view_census
 ```
 
