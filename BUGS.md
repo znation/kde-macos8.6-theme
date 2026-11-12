@@ -244,6 +244,10 @@ The post-merge review of commit `8e56e4f612b4bde68622a18762705fe0f92c9574` (Sepa
 
 The post-merge review of commit `7f6270a1e4b843829ce3b23043cf1824804e6ee7` (Resolve PLANS.md replay conflict, landing the bounds-plan move with main's new split plans kept) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 1cbe546a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `1cbe546a5d6de06babbdf10b15dc9498881fedcb` (Add opt-in fidelity --channel-counts per-channel report; mark plan done) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
