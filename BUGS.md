@@ -1148,6 +1148,10 @@ The post-merge review of commit `77851a15cb2c07b69be2f5f59c7d1c1663e2c2d0` (Corr
 
 The post-merge review of commit `5d0080d05bc95299de85360ff688917956ea6446` (Share sampler report context and remove its stale import) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e7abe77a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `e7abe77a57fa519e0ab86198ee58de69c22d46cd` (Restore full opacity for GTK 3 sidebar-button images) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
