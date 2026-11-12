@@ -13,6 +13,7 @@ from tools.xcursor_container import (
     IMAGE_HEADER_SIZE,
     IMAGE_TYPE,
     MAGIC,
+    MAX_IMAGE_SIZE,
     TOC_ENTRY_SIZE,
     assemble,
 )
@@ -49,6 +50,20 @@ class TestAssemble(unittest.TestCase):
         self.assertEqual(
             len(data), second_offset + IMAGE_HEADER_SIZE + len(frames[1][-1])
         )
+
+    def test_format_constants_match_the_xcursor_file_format(self):
+        # The values come from the Xcursor file format as libXcursor reads
+        # it (Xcursor.h / xcursorint.h), not from this module: the other
+        # tests build their expected bytes from these constants, so a wrong
+        # constant would otherwise agree with itself and pass.
+        self.assertEqual(MAGIC, b"Xcur")
+        self.assertEqual(FILE_HEADER_SIZE, 4 * 4)
+        self.assertEqual(FILE_VERSION, 0x10000)
+        self.assertEqual(TOC_ENTRY_SIZE, 3 * 4)
+        self.assertEqual(IMAGE_TYPE, 0xFFFD0002)
+        self.assertEqual(IMAGE_HEADER_SIZE, 9 * 4)
+        self.assertEqual(CHUNK_VERSION, 1)
+        self.assertEqual(MAX_IMAGE_SIZE, 0x7FFF)
 
     def test_empty_frames_are_rejected(self):
         with self.assertRaisesRegex(ValueError, "at least one frame"):
