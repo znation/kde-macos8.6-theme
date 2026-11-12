@@ -789,90 +789,20 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_scale_focus_outline("button:focus:focus-visible")
 
     def test_headerbar_button_focus_outline_color(self):
-        selectors = {
-            "headerbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "headerbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "headerbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
-            "headerbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "headerbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "headerbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
-            "headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
-        }
-        self.assertEqual(
-            {
-                selector
-                for selector in self.selectors
-                if selector.startswith("headerbar ")
-                and ":focus:focus-visible" in selector
-            },
-            selectors,
-        )
-        self.assert_black_focus_outline(selectors)
+        self.assert_bar_family_focus("headerbar ", "headerbar ")
 
     def test_toolbar_button_focus_outline_color(self):
-        selectors = {
-            ".toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            ".toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            ".toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
-            ".toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            ".toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            ".toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            ".toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
-            ".toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
-        }
-        self.assertEqual(
-            {
-                selector
-                for selector in self.selectors
-                if ".toolbar" in selector and ":focus:focus-visible" in selector
-            },
-            selectors,
-        )
-        self.assert_black_focus_outline(selectors)
+        self.assert_bar_family_focus(".toolbar ", ".toolbar")
 
     def test_actionbar_button_focus_outline_color(self):
-        selectors = {
-            "actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
-            "actionbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "actionbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "actionbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
-            "actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
-        }
-        self.assertEqual(
-            {
-                selector
-                for selector in self.selectors
-                if "actionbar" in selector and ":focus:focus-visible" in selector
-            },
-            selectors,
-        )
-        self.assert_black_focus_outline(selectors)
+        self.assert_bar_family_focus("actionbar > revealer > box ", "actionbar")
 
     def test_searchbar_button_focus_outline_color(self):
-        selectors = {
-            "searchbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "searchbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "searchbar > revealer > box .close:focus:focus-visible",
-            "searchbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
-            "searchbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "searchbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "searchbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
-            "searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
-            "searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
-        }
-        self.assertEqual(
-            {
-                selector
-                for selector in self.selectors
-                if "searchbar" in selector and ":focus:focus-visible" in selector
-            },
-            selectors,
+        self.assert_bar_family_focus(
+            "searchbar > revealer > box ",
+            "searchbar",
+            extra=(".close:focus:focus-visible",),
         )
-        self.assert_black_focus_outline(selectors)
 
     def test_filechooser_breadcrumb_focus_outline_color(self):
         selectors = {

@@ -64,6 +64,20 @@ SCALE_FOCUS = "scale:focus:focus-visible > trough > slider"
 
 SCALE_SLIDER = "scale > trough > slider"
 
+# The button family a header-style bar (headerbar, toolbar, actionbar,
+# searchbar) hosts. Each bar's focus test prefixes these with its own
+# container selector, so the family is spelled once here.
+BAR_FAMILY_FOCUS_SUFFIXES = (
+    "menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+    "menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+    "menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible",
+    "button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+    "button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+    "button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque)",
+    "splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible",
+    "splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible",
+)
+
 def _rgb(hexc):
     """Return the byte triple a palette hex spells, as a child pins it."""
     return tuple(int(hexc[i:i + 2], 16) for i in (1, 3, 5))
@@ -88,9 +102,10 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         """Assert each of *selectors* appears once and states only the black
         focus outline, mirroring the base button focus outline's colour.
 
-        The headerbar, toolbar, actionbar, searchbar, file-chooser breadcrumb,
-        sidebar and emoji-section focus tests share this per-selector cell;
-        each keeps its own family scan because each scans a different token.
+        The file-chooser breadcrumb, sidebar and emoji-section focus tests
+        share this per-selector cell; each keeps its own family scan because
+        each scans a different token. The header-style bars go through
+        :meth:`assert_bar_family_focus`, which uses this cell too.
         """
         for selector in selectors:
             with self.subTest(selector=selector):
@@ -100,6 +115,27 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
                     self.rules[selector]["outline-color"],
                     self.rules["button:focus:focus-visible"]["outline-color"],
                 )
+
+    def assert_bar_family_focus(self, prefix, scan, extra=()):
+        """Assert the focus selectors under *prefix* are exactly the bar's
+        button family, plus *extra* suffixes, and each states the black outline.
+
+        *scan* is the substring that picks the bar's focus selectors out of
+        ``self.selectors``; the equality below fails on any selector it picks
+        up beyond the expected set. Used by the headerbar, toolbar, actionbar
+        and searchbar focus tests.
+        """
+        selectors = {prefix + suffix for suffix in BAR_FAMILY_FOCUS_SUFFIXES}
+        selectors.update(prefix + suffix for suffix in extra)
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if scan in selector and ":focus:focus-visible" in selector
+            },
+            selectors,
+        )
+        self.assert_black_focus_outline(selectors)
 
 
     def assert_scale_anchored_focus_outline(self, selectors):
