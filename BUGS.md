@@ -20,7 +20,7 @@ user 2026-11-01; recorded by the director role.)
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
-**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand after "Antialiased text and hand cursors" (PLANS.md) lands and they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
+**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has landed, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
 
 **User evidence 2026-11-12 (recorded by the director role).** The user sent three photos of the
 screen, showing the cursors installed at `~/.local/share/icons/org.macos8.desktop/cursors/`.
@@ -41,7 +41,7 @@ The photos are evidence only. Keep them out of the repo.
 
 **Direction.** QUESTIONS.md is answered: Option 2, smoother original antialiased art (user,
 2026-11-12). The arrow is done (PLANS-DONE.md, "Antialiased cursors, part 3/3"). The I-beam and
-hand are queued in PLANS.md as "Antialiased text and hand cursors". The photos confirm that the
+hand are done too (PLANS-DONE.md, "Antialiased text and hand cursors"). The photos confirm that the
 hand is the worst of the three.
 
 **Symptom.** User reports: “The mouse cursors still look incredibly ugly.” This is a
@@ -51,8 +51,8 @@ visual-quality report; no particular cursor role, selected size or display scale
 installed Platinum cursor theme with `make apply-cursor`, restart the inspected application,
 and compare the arrow, text and pointing-hand roles. Do not apply it or open windows in the
 user's session during routine triage. The reported appearance has not been independently
-reproduced. For inspection without changing settings, examine `ARROW_GRID`, `XTERM_GRID` and
-`HAND2_GRID` in `tools/cursor_art_pointers.py` and their shipped Xcursor frames under
+reproduced. For inspection without changing settings, examine `ARROW_ART`, `XTERM_ART` and
+`HAND2_ART` in `tools/cursor_art_pointers.py` and their shipped Xcursor frames under
 `theme/icons/org.macos8.desktop/cursors/`.
 
 **Suspected cause.** `tools/make_cursors.py::render_rgba` enlarges a shared 16×16 source grid

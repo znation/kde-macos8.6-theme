@@ -412,7 +412,7 @@ class TestCursorSet(unittest.TestCase):
         for name in CANONICAL:
             if name in VECTOR_CURSORS:
                 # Vector art has no grid cells; its frames are pinned by
-                # TestCursorArtifact instead.
+                # TestCursorArtifact and TestVectorPointerArtifacts instead.
                 continue
             cursor = _read_cursor(CURSORS / name)
             face = PINNED_PIXELS[name]["face"]
