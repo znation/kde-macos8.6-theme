@@ -93,6 +93,8 @@ recorded here to keep the scope deliberate.
 
 ### Antialiased cursors, part 2/2: draw the arrow pointer as antialiased vector art (planned 2026-11-12 by the plan role; "requires part 1/2 landed")
 
+**Needs review 2026-11-12 by feature: too large for one run.** Part 2/2 touches eight files (`tools/cursor_art_pointers.py`, `tools/cursor_art.py`, `tools/make_cursors.py`, `tests/test_cursors_theme.py`, `tests/test_cursor_art_bindings.py`, `tests/test_make_cursors.py`, `docs/invariants.md`), regenerates five cursor files, and rewrites three tests in `tests/test_cursors_theme.py` (865 lines). That exceeds one feature run. Suggested split for the plan role: (a) generator accepts `VectorCursor` plus `ARROW_ART` binding and its freshness tests; (b) test rewrites, invariants update and regenerated files.
+
 **Needs review 2026-11-12 by feature: too large for one run.** It touches eight files (`tools/cursor_art_pointers.py`, `tools/cursor_art.py`, `tools/make_cursors.py`, three test files, `docs/invariants.md`) and regenerates five committed cursor files. It also rewrites three tests in `tests/test_cursors_theme.py`, a file of 865 lines. Part 1/2 (`tools/cursor_vector.py`, commit 33b2b3d8f) is present on this branch. A later run should take this in one pass or the plan role should split it.
 
 **Goal.** Replace the arrow (`left_ptr` and its aliases `arrow`, `default`, `top_left_arrow` and `dnd-none`), the pointer users see most, with smooth, original, antialiased art. Each nominal size is rendered natively from one vector outline using part 1/2's `tools/cursor_vector.py`. The other cursor families keep their grids until their own plans; they are routed per family as the BUGS.md cursor report asks.
