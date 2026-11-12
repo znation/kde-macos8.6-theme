@@ -488,6 +488,10 @@ The post-merge review of commit `c9fbb69b8157c09a8a6a31c3a738a798e991fed0` (Shar
 
 The post-merge review of commit `a80716ec005c621e8418d3d04d7d25687e1bae48` (Bound check capture detection to the exact harness command) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 02c19cab never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `02c19cab3245f9081f0610ac11165354e4d160f8` (recovered leftover work from feature: Pin the checkbox dialog’s active Aurorae close box at native size) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
