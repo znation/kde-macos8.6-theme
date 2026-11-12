@@ -652,6 +652,10 @@ The post-merge review of commit `a39e66555229f9906f8d273effc727612c8b8b75` (Open
 
 The post-merge review of commit `b7f14f851ae1fbee1a3a6ed1833f6200b3508796` (Add a `make uninstall` diagnostic for the five Lato font selections left in kdeglobals) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of b69d012a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `b69d012a579160a22f577d3da786ecc741c5a077` (Add the `[KDE] LookAndFeelPackage` uninstall diagnostic to `make _uninstall`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
