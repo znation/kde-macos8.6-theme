@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of b776336c never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed the commit's GTK 4 CSS, selector coverage, and invariant record. The five view-specific selectors match the installed GTK `Default-light.css` resource named in the invariant; the stylesheet applies the same transparent, dotted-black recipe to them and the bare `rubberband` node. The regression test checks the exact selector inventory and the shared declarations. No defect found.
+
+**Validation gap:** none — the existing suite checks the selector inventory and declarations that establish the reviewed contract.
+
+The original review stopped at a usage-limit message. This follow-up inspected the commit diff and its regression coverage; no defect was found.
+
 ### post-merge review of 3a3d2033 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `3a3d2033b87b5c71e2a41de7624ad007b1bd23be`: the GTK 4 transform is guarded to collapsed RTL expanders, leaves checked arrows on the down asset, and keeps the shared source and size declarations intact. `tests/test_gtk4_theme.py::TestGtk4Theme::test_rtl_collapsed_expander_arrows` pins both selectors and exact declarations; the GTK 4 disclosure invariant and recorded installed GTK resource provenance were updated with the change.
