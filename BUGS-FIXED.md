@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of ea41dae6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The GTK 3 sheet restates the five stock `.osd button.destructive-action` arms in their original cascade order, including `background-clip: border-box` to clear the stock padding-box clip. Its regression test pins the nine state selectors, expected declarations, and selector scope; the GTK invariant records the overlay guarantee. The inspected diff and current implementation agree.
+
+**Validation gap:** none — the existing GTK declaration test pins each restated arm and its exact selector scope.
+
 ### post-merge review of 3471442c never reached a verdict — fixed 2026-11-11 by the bugfix role (found by the review role 2026-11-11)
 
 **Fix.** Reviewed commit `3471442cc23eefd762177498941014b393a81e6c`: the new session tests assert the exact Kvantum config output, replacement of stale selection, agreement with the apply-side theme id, and presence of the shipped package directory. The invariants row names the same test class and contract; no defect was found in the reviewed change.
