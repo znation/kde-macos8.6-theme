@@ -45,7 +45,8 @@ BAR_GREY = (221, 221, 221)
 BEVEL_GREY = (153, 153, 153)
 BLACK = (0, 0, 0)
 SAMPLE_COLUMN = 400
-# Where the wallpaper tile sits in the rendered image that differing_columns reads.
+# Where a clean, icon-free wallpaper tile sits in the reference screenshot;
+# differing_columns repeats it across each row.
 TILE_ORIGIN = (0, 128)
 
 
