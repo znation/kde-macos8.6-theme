@@ -2120,6 +2120,10 @@ The post-merge review of commit `bb89efee6ae71aaf48cda2d1fbc2ed80b8c6e939` (Move
 
 The post-merge review of commit `0d3610c6186421770d6fa4aecd76277176ee65dc` (Flatten all 13 depth-4 nested functions in tests/support/ to depth ≤3 by extracting named helpers) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 0cee22b4 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `0cee22b46a11e21dfc4ebd3fca977f11104e7cc6` (Delete the stale `## Planned` `_None yet._` placeholder left above a live entry) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
