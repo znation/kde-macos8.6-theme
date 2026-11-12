@@ -32,6 +32,8 @@ GAP_RAY = math.pi / 4
 
 
 class TestBusyWidget(SvgCase, unittest.TestCase):
+    """Pin the busy indicator's SVG contract and spinning ring geometry."""
+
     SVG_PATH = BUSYWIDGET_SVG
 
     def test_busywidget_contract(self):

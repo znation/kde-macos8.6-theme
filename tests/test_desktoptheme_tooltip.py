@@ -20,6 +20,8 @@ from svg_assertions import (
 
 
 class TestTooltip(NineSliceCase, unittest.TestCase):
+    """Pin the tooltip's nine-slice geometry, pixels, palette and copy."""
+
     SVG_PATH = TOOLTIP_SVG
 
     def test_tooltip_hint_geometry(self):

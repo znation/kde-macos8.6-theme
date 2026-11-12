@@ -17,6 +17,8 @@ from svg_assertions import (
 
 
 class TestViewItem(NineSliceCase, unittest.TestCase):
+    """Pin the view item's nine-slice highlight geometry and colours."""
+
     SVG_PATH = VIEWITEM_SVG
     PREFIXES = ("normal", "hover", "selected", "selected+hover")
 
