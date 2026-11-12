@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 99b67519 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The review found the change consistent with its GTK 3 contract: all nine disabled selected-ancestor link selectors cover link, visited and combined visited states across base, hover and active states, exclude backdrop links, and declare only the inactive-text color. The test asserts the generated selector set, declarations, uniqueness and ordering after both ordinary disabled and enabled selected-ancestor rules. The invariant records the missing reference surface and palette source.
+
+**Validation gap:** none — the existing GTK test checks the selector set, declarations and cascade order; the review entry tracked a missing verdict rather than a reported behavioral failure.
+
 ### post-merge review of 9a6d0021 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed the commit diff and current GTK 4 stylesheet and test. The six disabled selected-ancestor selectors assign inactive text and appear after both ordinary disabled link rules and enabled selected-ancestor rules; the regression test checks selector uniqueness, the shared disabled-text value and cascade ordering. No defect found.
