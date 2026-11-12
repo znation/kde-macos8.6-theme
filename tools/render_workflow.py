@@ -59,11 +59,6 @@ def _dialog_config_files() -> tuple[str, ...]:
     return CONFIG_FILES + ("kdeglobals",)
 
 
-def _dialog_requested(args: argparse.Namespace) -> bool:
-    """Return whether any dialog render mode was selected on the command line."""
-    return _selected_dialog_mode(args) is not None
-
-
 def _selected_dialog_mode(args: argparse.Namespace) -> DialogMode | None:
     """Return the dialog mode whose flag was set, or None for the applet."""
     for mode in DIALOG_MODES:
