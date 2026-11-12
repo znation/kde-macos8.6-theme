@@ -1340,6 +1340,10 @@ The post-merge review of commit `03207ecb665e75101f2f0c91dc5cda171a39620a` (Shar
 
 The post-merge review of commit `001245e181a606fa13c11f09419055bea3fb79bd` (Add missing docstrings to the 16 undocumented module-level defs/classes in tools/) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 677bb692 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `677bb692f00218b408fa83b0cdf4e0b0494c0540` (Add an interrupt-path rollback test for firefox_transaction.publish_install) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
