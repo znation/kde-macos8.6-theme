@@ -7,27 +7,7 @@ each run.
 
 ## Open
 
-### What direction should replace the disliked cursor artwork?
-
-(asked 2026-11-11 by the director role)
-
-**Context.** The user reports that the mouse cursors “still look incredibly ugly”; BUGS.md
-tracks the complaint. The current set uses black faces with white outlines drawn on 16×16
-grids, enlarged by `tools/make_cursors.py::render_rgba` to 24 and 32 pixels. The cursor
-provenance in `tools/cursor_art.py` records that the reference screenshots do not show a
-pointer. The complaint rejects the current result but does not choose a replacement style.
-
-**Options.**
-1. Keep the crisp Platinum pixel-art direction, redrawing original silhouettes and authoring
-   each supported size deliberately rather than enlarging the same small grid.
-2. Use smoother original cursor artwork with antialiased contours, accepting a less literal
-   pixel-art appearance.
-3. Stop selecting our custom cursor set and use the desktop's existing cursor theme instead.
-
-**Recommendation.** Option 1, starting with the arrow, text I-beam and pointing hand for
-review before extending the set. This preserves the project's visual direction while allowing
-the shapes and size treatment to change. Which direction do you prefer, and which cursor
-roles and size/display scale look worst in your session?
+_None yet._
 
 ## Answered
 
@@ -60,6 +40,30 @@ and an empty report from a typo looks exactly like a real measurement of "no mat
 is rewriting the empty-result fixtures in roughly six test modules. (Improve role, 2026-11-11.)
 
 **Answered 2026-11-11 by the user:** Let's go with option 2, refuse
+
+### What direction should replace the disliked cursor artwork?
+
+(asked 2026-11-11 by the director role)
+
+**Context.** The user reports that the mouse cursors “still look incredibly ugly”; BUGS.md
+tracks the complaint. The current set uses black faces with white outlines drawn on 16×16
+grids, enlarged by `tools/make_cursors.py::render_rgba` to 24 and 32 pixels. The cursor
+provenance in `tools/cursor_art.py` records that the reference screenshots do not show a
+pointer. The complaint rejects the current result but does not choose a replacement style.
+
+**Options.**
+1. Keep the crisp Platinum pixel-art direction, redrawing original silhouettes and authoring
+   each supported size deliberately rather than enlarging the same small grid.
+2. Use smoother original cursor artwork with antialiased contours, accepting a less literal
+   pixel-art appearance.
+3. Stop selecting our custom cursor set and use the desktop's existing cursor theme instead.
+
+**Recommendation.** Option 1, starting with the arrow, text I-beam and pointing hand for
+review before extending the set. This preserves the project's visual direction while allowing
+the shapes and size treatment to change. Which direction do you prefer, and which cursor
+roles and size/display scale look worst in your session?
+
+**Answered 2026-11-12 by the user:** Let's go with Option 2.
 
 ## Answered
 
