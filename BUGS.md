@@ -732,6 +732,10 @@ The post-merge review of commit `1be26d0450b400c494f21fa84ff9c173483087f2` (Squa
 
 The post-merge review of commit `e9f6917c9000c57261d4e99a057bdf6a9754ea4a` (Square GTK 4 infobar and searchbar close-button corners with a byte-equal stock comma group) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 3c8405e2 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `3c8405e2531afce0960ba882fda4a425313c7ecc` (Square the GTK 4 indicator-bin badge dot and reveal mask and mark the plan done) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
