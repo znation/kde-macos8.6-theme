@@ -1424,6 +1424,10 @@ The post-merge review of commit `f4ca601c87f8e8bb21e90974b1ad5ddf07375a8a` (reco
 
 The post-merge review of commit `6f8e8f6a6f939e75c0cd1125a8c26e97750b9266` (Declare GTK 4 `.dim-label` inactive text in Platinum grey) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 03278395 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `03278395c6ad8816198a58fd35c195d50f758b38` (Share the GTK 3 pixel-probe boilerplate via three module constants) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
