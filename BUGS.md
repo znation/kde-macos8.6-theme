@@ -636,6 +636,10 @@ The post-merge review of commit `1753a9f65776e9a8b734e0fad901241781e008c5` (Add 
 
 The post-merge review of commit `27be43b66bb7868237638f2fc009bec042d3cb07` (Add a kwinrc aurorae-selection uninstall diagnostic naming the two-key --delete reset) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 5bdfcf50 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `5bdfcf50f87d72baa950e22617a94d94b1eb878f` (Add a kwinrc theme-key uninstall diagnostic naming the two-key --delete reset) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
