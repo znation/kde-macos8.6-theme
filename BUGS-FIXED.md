@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of d1046956 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The reviewed GTK 4 stylesheet adds six disabled self-selected inline-link selectors with `color: #888888`. The current `TestGtk4Theme.test_disabled_selected_inline_link_foregrounds` derives those states, checks each declaration and uniqueness, and verifies source order after ordinary disabled and enabled self-selected rules. The GTK invariant row records the missing reference surface and derives the value from `[Colors:Button] ForegroundInactive`. The stylesheet matches these checks; no defect found.
+
+**Validation gap:** none — the existing selector and declaration test directly covers the reviewed stylesheet behavior.
+
 ### post-merge review of a2f04528 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `a2f045281a4a204bc4e907865ba7974436dbac01` (Share selected inline-link assertions across GTK 3 tests) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
