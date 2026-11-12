@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of c0de12d5 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The post-merge review of commit `c0de12d5925a8a2cfead6a245e02b0f3633d9e76` (Add GTK 3 view-specific rubberband recipes and coverage) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix.** The GTK 3 stylesheet adds `.content-view rubberband`, `.content-view .rubberband`, `treeview.view rubberband` and `flowbox rubberband` alongside the existing base selectors, all with the same transparent fill and dotted black outline. `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_rubberband` checks the six-selector inventory, shared declarations and placement after the white view rule; `docs/invariants.md` records the guarantee and GTK stock-resource provenance.
+
+**Validation gap:** none — the existing declaration test directly covers the added selectors and their shared recipe; rendering pixels is outside the recorded guarantee.
+
 ### post-merge review of b776336c never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed the commit's GTK 4 CSS, selector coverage, and invariant record. The five view-specific selectors match the installed GTK `Default-light.css` resource named in the invariant; the stylesheet applies the same transparent, dotted-black recipe to them and the bare `rubberband` node. The regression test checks the exact selector inventory and the shared declarations. No defect found.
