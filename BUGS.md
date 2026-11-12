@@ -1416,6 +1416,10 @@ The post-merge review of commit `42c774f2975f3f1815718561d3fe907e0ad3c9ef` (Shar
 
 The post-merge review of commit `418d2458ca80c504b389df1669ddc11213e8aa59` (Declare the GTK 3 content-view field and backdrop) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of f4ca601c never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `f4ca601c87f8e8bb21e90974b1ad5ddf07375a8a` (recovered leftover work from feature: Add a Kvantum progressbar-dialog render gate pinning the meter trough) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
