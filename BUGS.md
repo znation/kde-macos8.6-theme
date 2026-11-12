@@ -512,6 +512,10 @@ The post-merge review of commit `fbdecc003ea9672655926ee226f0984ac1df01a7` (Corr
 
 The post-merge review of commit `c9344dfa183133845995cd27fac487311c61cd32` (Add `make remove-keymap` to remove the swap while preserving other options) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of bb4047a1 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `bb4047a14a539d829beb4b9bcd7aa54b401c30e6` (Add a standalone command to remove the Platinum keyboard swap) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
