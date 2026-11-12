@@ -1552,6 +1552,10 @@ The post-merge review of commit `6ce8dec7cd1aadbc261b16d7622d5c339441cb50` (Sync
 
 The post-merge review of commit `078c11ff6b4e98fbf0fbd505eff9e93e806126c2` (Restate GTK message-dialog bands and buttons with the landed Platinum recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 05609626 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `05609626801e3e10657b52c78fd849f44ee618c6` (recovered leftover work from bugfix: Pin the render session's nested D-Bus bus to QT_QPA_PLATFORM=offscreen so activated services stop c…) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
