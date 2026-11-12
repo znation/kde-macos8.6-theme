@@ -456,6 +456,10 @@ The post-merge review of commit `3cba444b0e8b0264b3b80d8afceff62537be5619` (reco
 
 The post-merge review of commit `3905420267adfa8f83345143660c8e0d457a8215` (Share the GTK4 black focus-outline assertion tail through TestGtk4Theme.assert_black_focus_outline) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of d3264eb8 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `d3264eb8a02252d2506899719e50b88aa6ab5635` (Give the GTK dialog gate a longer settle budget) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
