@@ -157,6 +157,24 @@ class TestDataHomeLock(ThemeLockCase):
         # The selections never ran: nothing serialized them with install.
         self.assertFalse(self.calls.exists())
 
+    def test_the_unresolvable_refusal_names_both_received_values(self):
+        """The refusal says which variable was empty and what HOME held.
+
+        A relative HOME with an empty XDG_DATA_HOME leaves no absolute data
+        home; the message must name both received values, not only HOME.
+        """
+        self.env["HOME"] = "relative/home"
+        self.env["XDG_DATA_HOME"] = ""
+
+        result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("XDG_DATA_HOME is empty", result.stderr)
+        self.assertIn("HOME is not an absolute path ('relative/home')", result.stderr)
+        self.assertIn("export an absolute HOME", result.stderr)
+        self.assertFalse(self.calls.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -184,14 +184,15 @@ def main(argv: list[str] | None = None) -> int:
         return missing
     with exit_on_termination():
         try:
-            data_home = xdg_homes.data_home(dict(os.environ))
-            if data_home is None:
-                raise ApplyError(
-                    "HOME is unset or not an absolute path, so the data home "
-                    "make install and make uninstall serialize on cannot be "
-                    "resolved; export an absolute HOME"
-                )
-            return _apply(data_home, dict(os.environ))
+            env = dict(os.environ)
+            data_home = xdg_homes.require_home(
+                xdg_homes.data_home(env),
+                env,
+                "XDG_DATA_HOME",
+                "$HOME/.local/share",
+                error=ApplyError,
+            )
+            return _apply(data_home, env)
         except ApplyError as exc:
             return report_error(TOOL, str(exc))
 
