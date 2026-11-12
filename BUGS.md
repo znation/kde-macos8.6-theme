@@ -616,6 +616,10 @@ The post-merge review of commit `c4100c3891472f704e373e22d7cd0b4057a39dd5` (Fix 
 
 The post-merge review of commit `9e8d17a89294776bc0b0b0e779f3444a81a5cfa4` (Add a kcminputrc pointer-selection uninstall diagnostic with tests and docs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a45ce0f4 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `a45ce0f477f4a115be4825a4eb620ff0b7954032` (Warn at selection time when Kvantum can only resolve our theme from the default data home) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
