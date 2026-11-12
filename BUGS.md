@@ -2276,6 +2276,10 @@ The post-merge review of commit `61ea4272f4eca1275c482028e64c96c7f525aba1` (Shar
 
 The post-merge review of commit `57bdd6e1507a69f4288954066057c080bc5a0a07` (Drop the stray `_None yet._` placeholder from PLANS.md's `## Planned`) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of abbf3246 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `abbf324683beef0f5e2792195538081e85d968ee` (Double-quote the config-file path in the kdedefaults uninstall resets' kwriteconfig6 --file words) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
