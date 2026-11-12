@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of f506bb76 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The post-merge review of commit `f506bb76d19eceb404004ab2e54faaaf08ebb265` (Share the Firefox panel declaration assertion helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** The helper in `tests/support/firefox_chrome_cases.py` iterates the supplied selectors, compares each parsed declaration mapping with `REQUIRED_RULES`, and retains per-selector subtests. The panel call sites preserve the selector-scope assertions while using the shared equality assertion; the existing panel tests and invariant rows still point to those call sites. No behavior defect was found in this test-only refactor.
+
+**Validation gap:** none — the review diff and current helper, call sites and invariant references directly establish that the extracted assertions preserve their prior comparisons.
+
 ### post-merge review of 34ca72c4 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Checked the commit's GTK 3 stylesheet change, selector assertions, and invariant entry. The four add-color overlay states declare `#000000`, the regression test checks each state and its equality with the sheet's `window` foreground, and the invariant records the missing reference surface and adaptation source. The current tree retains these declarations and checks.
