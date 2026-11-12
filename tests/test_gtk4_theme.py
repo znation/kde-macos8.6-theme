@@ -2999,11 +2999,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "assistant" in selector},
             expected,
         )
-        self.assertEqual(
-            self.rules["window.assistant .sidebar > label"],
-            {"border-radius": "0"},
-        )
-        self.assert_matches_frame("window.assistant .sidebar > label", "border-radius")
+        self.assert_square_corner("window.assistant .sidebar > label")
 
     def test_emoji_picker_cell_corners(self):
         expected = {
