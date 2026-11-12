@@ -89,6 +89,20 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual(os.path.realpath(self.root), os.path.realpath(cwd))
         self.assertEqual("m1", mark)
 
+    def test_custom_sigterm_handler_keeps_its_behavior_during_start(self):
+        received = []
+        handler = lambda number, frame: received.append(number)
+        old = signal.signal(signal.SIGTERM, handler)
+        self.addCleanup(signal.signal, signal.SIGTERM, old)
+        with mock.patch.object(
+            process_group.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(signal.SIGTERM),
+        ):
+            self.assertEqual(0, self.run_sh("exit 0"))
+        self.assertEqual([signal.SIGTERM], received)
+        self.assertIs(handler, signal.getsignal(signal.SIGTERM))
+
     def test_a_descendant_outliving_the_child_is_killed_on_normal_exit(self):
         pidfile = self.root / "pid"
         status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
