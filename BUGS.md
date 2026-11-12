@@ -1376,6 +1376,10 @@ The post-merge review of commit `863c362a357eb0cbe0809b641fadcc6790b56973` (Shar
 
 The post-merge review of commit `68f88496bd5756da1c8239b2c36fc6d19bbd9f99` (Add the Kvantum slider-dialog render gate (--slider-dialog) pinning the rendered thumb and trough o…) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 48b8857d never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `48b8857d241718dd17d7b126751f7c292c02ded3` (Delete the shadowed duplicate test_dim_label_foreground def from TestGtk4Theme) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
