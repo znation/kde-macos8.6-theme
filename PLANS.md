@@ -91,15 +91,7 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### README sampling chooser: locate the longest vertical color match (planned 2026-11-11 by the plan role)
-
-**Goal.** Help contributors locate an uninterrupted vertical segment of a chosen reference color within a rectangle without printing the complete matching interval list.
-
-**Approach and files.** Edit README.md only, outside the brief. Append one Choosing a sampling mode row using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-column-run --json`. Link its task label to a new standalone `sampling-longest-vertical-match` anchor immediately before the existing `--longest-match-column-run` paragraph in Color search options. Describe one longest vertical matching segment with absolute start and pixel length, or null if absent. Add a short chooser note explaining full-region coverage, lowest column then row tie ordering, and omission of the full vertical interval list unless separately requested. Preserve the beta-evidence caveat. The horizontal chooser entry covers a different orientation; the pending border-run recipe measures equal-color scanline runs without selecting a target. No runtime or invariant change or new prose-pinning test is needed.
-
-**Grounding.** `tools/sample_arguments.py::build_parser` exposes the flag. `tools/sample_report_search.py::_search_match` independently enables vertical summarization and emits `match.longest_column_run`. `tests/test_sample_longest_match_column_run.py::TestSampleLongestMatchColumnRun` covers offset coordinates, ties, absent matches and coexistence with interval lists. README documents the option but has no vertical-summary chooser row. Related archived headings cover the CLI implementation and other sampling chooser recipes, rather than this navigation addition. `tests/test_readme_links.py::local_link_errors` recognizes standalone anchors. These symbols are evidence anchors, not implementation targets.
-
-**Acceptance criteria.** A reader can copy the chooser command and follow its task link directly to the vertical-summary explanation. With materialized references, the command exits 0 and emits `match.longest_column_run` as absolute `x`, `y`, `length` or null, without `match.column_runs`. Adding `--match-column-runs` leaves the summary equal and adds the interval list. The chooser distinguishes vertical target-color search from horizontal matching and equal-color scanline runs, and claims no particular measured length or retail palette evidence. Existing local links resolve. Review Markdown placement, run both example variants, and run `make check` after the final edit.
+_None yet._
 
 ## Done
 

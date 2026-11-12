@@ -887,6 +887,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
 | [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
 | [Locate the longest horizontal color match](#sampling-longest-horizontal-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-run --json` | Longest horizontal matching segment's absolute start and length, or null |
+| [Locate the longest vertical color match](#sampling-longest-vertical-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-column-run --json` | Longest vertical matching segment's absolute start and length, or null |
 
 For the next palette page, change `--color-offset 0` to `--color-offset 3`.
 Offsets count eligible ranked colors, not pixel coordinates, and a later page
@@ -905,6 +906,12 @@ lists are capped or filtered. Ties select the earliest row, then column. The sum
 full interval list unless `--match-runs` is requested separately. This target-color search is
 distinct from the scanline color-run commands above, which summarize equal-color runs without
 searching for a chosen color.
+
+The longest vertical color match is the column-wise counterpart of the horizontal search
+above. It searches the complete rectangle for the chosen color, reports one segment with
+absolute start and length, and ties keep the lowest column, then the lowest row. It omits the
+full vertical interval list unless `--match-column-runs` is requested separately. It is not the
+scanline color-run command, which summarizes equal-color runs without searching for a chosen color.
 
 ### Sampling options
 
@@ -1305,6 +1312,8 @@ horizontal matching segment. JSON adds `match.longest_run` with absolute `x`,
 the earliest row-major segment. The summary uses the same tolerance and exact
 alpha filters, covers the full region regardless of `--match-pixels`, and does
 not emit the full run list unless `--match-runs` is also requested.
+
+<a id="sampling-longest-vertical-match"></a>
 
 Add `--longest-match-column-run` with `--find-color` to report the longest
 contiguous vertical matching segment. JSON adds `match.longest_column_run`
