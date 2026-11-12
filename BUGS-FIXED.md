@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9681e407 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+Reviewed commit `9681e40787d8cb3f7884d394bcd884e25d0bb2b0`. Its tests cover both installed GTK sheets and refusal when the GTK 3 sheet is missing while GTK 4 exists. The helper checks both sheets before selection and reports the missing path with the repair command; the test assertions match that behavior.
+
+**Validation gap:** none — the review was settled by inspecting the implementation and focused tests, which directly cover the helper's contract.
+
 ### post-merge review of dad5b35f never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `dad5b35f27e37625e459ae0b0d8229642a0a4d37`: the GTK 3 stylesheet adds nine disabled self-selected backdrop link selectors with `color: #888888`; its test checks exact declaration sets and uniqueness, derives the inactive-text color from the scheme, and requires the group to follow the enabled self-selected backdrop selectors. The invariant row records the missing GTK reference surface and the installed GTK resource provenance. No defect found in the reviewed change.
