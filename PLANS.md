@@ -101,6 +101,16 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** A reader can append the row's options to the documented aligned-crop command and follow its task link directly to the vertical-summary explanation. The table distinguishes one longest segment from the capped vertical interval list and states crop-relative coordinates and the possible null result. The added options parse with `build_parser().parse_args` using placeholder candidate/reference paths, without image reads or GUI activity. Existing diagnostic links still resolve. Review anchor placement and run `make check` after the final edit.
 
+### README sampling chooser: find the longest border color run (planned 2026-11-11 by the plan role)
+
+**Goal.** Help contributors find the longest uninterrupted color segment in a border scan without reading a long interval list.
+
+**Approach and files.** Edit README.md only, outside the brief. Append a Choosing a sampling mode row using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --longest-run --max-runs 5 --json`. Link its task label to a new standalone `sampling-longest-run` anchor immediately before the existing `--longest-run` paragraph in Scanline run options. Describe the longest run's absolute start, pixel length and color alongside a capped list. Add a short chooser note that the summary covers the unfiltered complete scan, even when the displayed list is capped or filtered; ties retain the first segment in scan order. Preserve the existing beta-evidence caveat and paging recipe. No runtime or invariant change or new prose-pinning test is needed.
+
+**Grounding.** `tools/sample_arguments.py::build_parser` exposes these options. `tools/sample_report_runs.py::_runs_result` computes the summary before list filtering and paging; `_longer_run` keeps the first maximum. README explains the flag in the detailed reference but offers no longest-run chooser recipe. Related archived sampling chooser plans cover palette locations, coordinate lists and pagination; the archived longest-scanline plan implements the CLI and detailed paragraph. The queued and pending fidelity chooser work concerns a different tool. `tests/test_readme_links.py::local_link_errors` supports standalone anchors. These symbols are evidence anchors, not implementation targets.
+
+**Acceptance criteria.** A reader can copy the new command and follow its task link directly to the longest-run explanation. With materialized references, the command exits 0 and emits JSON with vertical `axis`, at most five `runs`, and a `longest_run` record carrying absolute `x`, `y`, `length`, `rgb` and `hex`. Running it again without `--max-runs 5` yields the same longest-run record; the prose does not promise that the longest segment appears on the capped page or claim particular measured colors or lengths. Existing local links resolve. Review Markdown placement, run both examples, and run `make check` after the final edit.
+
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
