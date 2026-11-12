@@ -111,9 +111,11 @@ def _candidates(root: Path) -> list[Path]:
     once: the marked default is normally also a section in file order.
     """
     candidates: list[Path] = []
+    seen: set[Path] = set()
 
     def remember(candidate: Path | None) -> None:
-        if candidate is not None and candidate not in candidates:
+        if candidate is not None and candidate not in seen:
+            seen.add(candidate)
             candidates.append(candidate)
 
     installs = _read_ini(root / "installs.ini")
