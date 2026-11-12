@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 87464dad never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `87464dad9485aa5f8f9b7219ca1456b761946107`: `require_uninstall_parents` checks the fixed uninstall destinations before the removal recipe, and `TestUninstallSymlinkParents` verifies a symlinked GTK subdirectory is refused while an outside stylesheet survives. The invariant register points to that regression test.
+
+**Validation gap:** none — the existing regression test reproduces the planted parent symlink and checks the outside file remains.
+
 ### post-merge review of 95990634 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `959906348a7fa0c016b882c80af02c7a9811d631`: the GTK 3 sheet reflects only unchecked RTL disclosure arrows with `scaleX(-1)`; the regression test asserts the exact declarations and selector uniqueness while preserving collapsed and checked arrow rules. `docs/invariants.md` records the GTK 3 adaptation and distinguishes the GTK 4 behavior.
