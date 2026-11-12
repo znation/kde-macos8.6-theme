@@ -9,20 +9,18 @@ the PNG loader's own diagnostics.
 
 from __future__ import annotations
 
-import os
 import shutil
-import stat
 import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.containment import require_within_repo
+    from tools.containment import open_regular_binary, require_within_repo
     from tools.fidelity_geometry import FidelityError
     from tools.jpeg_convert import convert_jpeg, is_jpeg
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
 else:  # imported by direct execution of tools/fidelity.py
-    from containment import require_within_repo
+    from containment import open_regular_binary, require_within_repo
     from fidelity_geometry import FidelityError
     from jpeg_convert import convert_jpeg, is_jpeg
     from png import PngError, read_png
@@ -92,38 +90,21 @@ def _read_jpeg_source(path: str, crop_rect: tuple[int, int, int, int] | None):
         shutil.rmtree(directory, ignore_errors=True)
 
 
-def _read_to_eof(fd: int) -> bytes:
-    """Read *fd* to end-of-file in bounded chunks and join the chunks."""
-    chunks = []
-    while True:
-        chunk = os.read(fd, 65536)
-        if not chunk:
-            return b"".join(chunks)
-        chunks.append(chunk)
-
-
 def _read_bytes(path: str, count: int) -> bytes | None:
     """Return at most *count* leading bytes, or None when they cannot be read.
 
-    A negative *count* reads the file whole. The non-blocking open and the
-    regular-file check match ``read_png``'s own guards, so a pipe, device
-    or vanished path falls through to the PNG branch instead of blocking
-    or raising here.
+    A negative *count* reads the file whole. The path is opened through
+    :func:`containment.open_regular_binary`, the same non-blocking open and
+    regular-file check ``read_png`` uses, so a pipe, device or vanished path
+    falls through to the PNG branch instead of blocking or raising here.
     """
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
-    except OSError:
+        with open_regular_binary(path) as handle:
+            if count < 0:
+                return handle.read()
+            return handle.read(count)
+    except (OSError, ValueError):
         return None
-    try:
-        if not stat.S_ISREG(os.fstat(fd).st_mode):
-            return None
-        if count < 0:
-            return _read_to_eof(fd)
-        return os.read(fd, count)
-    except OSError:
-        return None
-    finally:
-        os.close(fd)
 
 
 def _read_png_source(path: str, crop_rect: tuple[int, int, int, int] | None):
