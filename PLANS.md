@@ -130,6 +130,89 @@ recorded here to keep the scope deliberate.
 - **Scope.** `git diff --stat` touches no cursor file outside the seven listed above.
 - `make check` passes after the final edit. This change does not close the BUGS.md cursor report. The remaining families are watch; help, progress and context-menu; resize, fleur and crosshair; and drag, grab and not-allowed. Each will get its own entry.
 
+### README split, part 1/5: let the README tests follow links into docs/ guides (planned 2026-11-12 by the director role)
+
+**Goal.** On 2026-11-12 the user asked to shorten README.md (1,934 lines) by moving its longest sections into separate markdown files and linking to them. Parts 2/5–5/5 each move one section into a `docs/<topic>.md` guide. About a dozen tests read README.md text and would fail or quietly lose coverage once that text moves. This part adds the shared reader those parts retarget to, and it extends the link checker across files. It moves no prose.
+
+**Approach.**
+- New `tests/support/user_docs.py`:
+  - `linked_guides(readme_text) -> list[str]` returns the repo-relative `docs/*.md` paths that README's inline links point at (`](docs/<name>.md)` or `](docs/<name>.md#frag)`, outside fenced code), deduplicated, in first-seen order.
+  - `read_user_docs() -> str` returns README.md's text followed by each linked guide's text, joined with `"\n\n"`. Every read goes through `containment.read_text(path, ROOT, encoding="utf-8")`, the same guard the README readers use.
+  - The corpus is whatever README links to, so a guide joins it when README links it. A guide that README does not link is not user documentation. README links neither `docs/invariants.md` nor `docs/principles-rationale.md` today, so they stay out.
+- `tests/test_readme_links.py`:
+  - Keep `local_link_errors` for same-document `(#frag)` links. Run it on README and on each linked guide.
+  - Add `cross_file_link_errors(source_path, text)`. It resolves `](<relpath>.md#frag)` and `](<relpath>.md)` targets relative to the source file and returns a target in either of two cases: the file does not exist, or the fragment matches no heading slug or explicit anchor in that file. Reuse the existing `_slug`/heading/anchor logic: refactor its destination collection into a helper that both functions call, without changing current results. Ignore links with a URL scheme.
+  - Apply it to README → guide links and to guide → `../README.md#frag` links.
+- `docs/invariants.md`: update the `tests/test_readme_links.py::TestReadmeLinks` row. It now says "no network or cross-file validation"; make it describe the cross-file check over README and its linked guides.
+
+**Files.** `tests/support/user_docs.py` (new), `tests/test_readme_links.py`, a new `tests/test_user_docs.py` (or new cases in `tests/test_readme_links.py`), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- In unit tests on temporary files, `linked_guides` returns `docs/a.md` once for text that links `docs/a.md` twice and `docs/a.md#x` once. It ignores a link inside a fenced code block and a link to `https://example.com/docs/b.md`.
+- `cross_file_link_errors` reports a link to a missing file, and a link whose fragment matches no heading in an existing file. It reports nothing for a link whose fragment matches a heading slug.
+- `read_user_docs()` on the current tree equals README.md's text, because README links no guide yet. A symlinked guide that escapes the repository is refused, like the existing README containment tests.
+- README.md is unchanged. `make check` passes after the final edit.
+
+### README split, part 2/5: move "Installation details" into docs/installing.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
+
+**Goal.** Move README's `### Installation details` subsection, the longest in the file (about 430 lines, with paragraphs that are a single very long line), into a new `docs/installing.md`. README keeps `### Quick start`, `### Staging packages`, `### Removing the theme` and `#### Restoring personal GTK 4 CSS`.
+
+**Approach.**
+- Cut the whole `### Installation details` subsection, from its heading up to `### Rendering a candidate`, and paste it verbatim into `docs/installing.md`. The new file starts with a `# Installation details` H1 and a one-line back link to `../README.md#installing`, then promotes the moved headings one level. Copy the prose and code exactly; shortening it is not this part's job.
+- In README, put a short `### Installation details` stub in the subsection's place. It has two to four lines saying what the guide covers (which files each package installs, what `make apply` changes, GTK/Firefox/cursor selection details) and a link to `docs/installing.md`.
+- Repoint every link into the moved text: README `(#frag)` links (including the Prerequisites table's "See [Installing](#installing)" links, wherever the detail now lives) become `docs/installing.md#frag`, and links in the moved text back to sections still in README become `../README.md#frag`. Part 1/5's link test checks both directions.
+- Retarget the tests whose README text moved so they read `user_docs.read_user_docs()` instead of README alone. Expected: `tests/test_readme_theme_files.py` (shipped SVG names), `tests/test_desktoptheme_legacy.py` (`README_ANCHOR`; that test reads README directly with `open`), `tests/support/firefox_chrome_cases.py` (`cls.readme`), `tests/test_make_help.py::test_readme_names_every_public_target`, and the `make`-target/tool/package-path scans in `tests/test_readme_commands.py`. Run `make check` before retargeting to find any others. Each retargeted test keeps its containment-refusal case. Update any `docs/invariants.md` row that names README as where the moved text lives.
+
+**Files.** `README.md`, `docs/installing.md` (new), the tests listed above, `docs/invariants.md` (only the rows that name the moved text).
+
+**Acceptance criteria.**
+- After the move, the moved subsection's content appears in `docs/installing.md` byte-for-byte, apart from heading levels and repointed link targets. Show that with a diff against the removed README lines that ignores those changes, and record how in VERIFIED.
+- README no longer contains the sentence beginning "The package carries no art for the twelve legacy". `tests/test_desktoptheme_legacy.py` still finds it, through the corpus.
+- README.md is at least 350 lines shorter. `make check` passes after the final edit, with no test deleted or skipped to get there.
+
+### README split, part 3/5: move "Rendering a candidate" into docs/rendering.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
+
+**Goal.** Move README's `### Rendering a candidate` subsection (about 170 lines: the `make render` modes and their dialog gates) into a new `docs/rendering.md`.
+
+**Approach.** Same mechanics as part 2/5:
+- Move the subsection verbatim into `docs/rendering.md`, from its heading up to `### Staging packages`. Give the file an H1, a back link to `../README.md`, and promote the headings one level.
+- Leave a two-to-four-line README stub that links to it.
+- Repoint links in both directions, including the Prerequisites table's `#rendering-a-candidate` link and any links from `## Fidelity checking`.
+- Retarget `tests/test_readme_render_gates.py` and `tests/test_readme_commands.py::test_readme_names_every_tool_make_render_requires` (it searches for "`make render` renders") to `user_docs.read_user_docs()`, plus any other README reader that `make check` shows failing.
+- Update the `docs/invariants.md` rows that say README's render section holds the evidence (for example the KPackage-route row) so they name `docs/rendering.md`.
+
+**Files.** `README.md`, `docs/rendering.md` (new), `tests/test_readme_render_gates.py`, `tests/test_readme_commands.py`, `docs/invariants.md`.
+
+**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README no longer contains "`make render` renders", and the render-gate test still finds each gate name through the corpus. `make check` passes after the final edit, with no test deleted or skipped.
+
+### README split, part 4/5: move "Sampling reference pixels" into docs/sampling.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
+
+**Goal.** Move README's `## Sampling reference pixels` section (about 600 lines: sampling modes, the option references and troubleshooting) into a new `docs/sampling.md`, the sampler's user guide.
+
+**Approach.** Same mechanics as part 2/5:
+- Move every subsection verbatim into `docs/sampling.md`, from the section heading up to `## Fidelity checking`, with an H1, a back link and promoted headings.
+- In README, the `## Sampling reference pixels` heading stays, so the Contents entry and the Prerequisites "Sample JPEG screenshots" link still resolve. Under it goes a short stub: one sentence on what the sampler is for, the single most common command, and a link to the guide.
+- Repoint links in both directions. Retarget any README-reading test that `make check` shows failing to `user_docs.read_user_docs()` (`grep -rn README tests/` lists the readers).
+
+**Files.** `README.md`, `docs/sampling.md` (new), plus only the tests and `docs/invariants.md` rows that name the moved text.
+
+**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 500 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
+
+### README split, part 5/5: move the fidelity diagnostics into docs/fidelity.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
+
+**Goal.** Move the bulk of README's `## Fidelity checking` section (about 400 lines) into a new `docs/fidelity.md`. That is `### Capturing a candidate`, `### Troubleshooting a render`, `### Comparing a region`, `### Troubleshooting a comparison`, `### Choosing a diagnostic` and `### Diagnostic reference`.
+
+**Approach.** Same mechanics as part 2/5:
+- README keeps the `## Fidelity checking` heading and its introductory paragraphs, up to the first `###`, followed by a link to the guide.
+- Move the six subsections verbatim, up to `## Running checks`, with an H1, a back link and promoted headings.
+- Repoint links in both directions, including links that part 3/5's `docs/rendering.md` may hold. Whichever part merges second fixes them, and part 1/5's link test catches a stale one.
+- Retarget any README-reading test that `make check` shows failing to `user_docs.read_user_docs()`.
+
+**Files.** `README.md`, `docs/fidelity.md` (new), plus only the tests and `docs/invariants.md` rows that name the moved text.
+
+**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 300 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
+
+
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
