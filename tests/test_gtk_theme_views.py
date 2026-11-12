@@ -148,7 +148,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # hard black, the checked and indeterminate glyph arms swap the
         # toolkit's recoloured symbolic dot and dash for the existing
         # black-ink shipped assets, and stock's radius and 14px-size arm
-        # restates nothing. No landing here adds a face declaration beyond
+        # restates nothing. No change here adds a face declaration beyond
         # the two answers per member spelling.
         seal = {"color": BLACK, "border-color": BLACK}
         expected = {
