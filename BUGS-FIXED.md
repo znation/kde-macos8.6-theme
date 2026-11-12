@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of dbaee0e4 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed the complete commit diff and current stylesheet/tests. The selectors restate the GTK 3 stock rounded, borderless scale-popup rules with square borders and the existing Platinum face; the dedicated test checks declarations and selector uniqueness. The change agrees with its recorded GTK invariant and introduces no separate defect.
+
+**Validation gap:** none — the existing selector regression test documents the declarations involved; review confirmation also included direct source comparison.
+
 ### post-merge review of d4609435 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The commit diff changes only a blank line in `tests/test_render_surface.py`; despite its subject, it does not remove a button-row assertion or alter behavior. The parent revision already contains the same assertions as the current file. The review record is settled: this commit introduces no code change to fix.
