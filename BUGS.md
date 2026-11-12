@@ -1384,6 +1384,10 @@ The post-merge review of commit `48b8857d241718dd17d7b126751f7c292c02ded3` (Dele
 
 The post-merge review of commit `564ccd1d96635c22b1f58587e3aa6397e99bfffb` (Pin color-offset zero, rgb shapes in validator tests; restore lost GTK swatch rule) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e4770d2e never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `e4770d2e0cdb9f8fcca32357f7006d3a2613ddb9` (Share the make-refusal suites' four-copied both-targets metacharacter assertion via one helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
