@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 9a6d0021 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed the commit diff and current GTK 4 stylesheet and test. The six disabled selected-ancestor selectors assign inactive text and appear after both ordinary disabled link rules and enabled selected-ancestor rules; the regression test checks selector uniqueness, the shared disabled-text value and cascade ordering. No defect found.
+
+**Validation gap:** none — the existing stylesheet declaration test covers each state, its exact inactive-text declaration, uniqueness and source ordering.
+
 ### post-merge review of 85d12175 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The reviewed GTK 3 backdrop selected-ancestor link group covers the nine enabled base, hover and active selectors. Its test checks exact declarations, selector uniqueness, palette-derived black and cascade order; the invariant table records the GTK resource and absent reference surface. The reviewed change adds no keyboard mapping or theme-owned branded UI.
