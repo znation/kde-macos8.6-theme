@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Antialiased cursors, part 2/3: render VectorCursor art in the cursor generator and define the arrow design (planned 2026-11-12 by the plan role; split from part 2/2 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
+
+**Goal.** Teach `tools/make_cursors.py` to render a `VectorCursor` (from part 1, `tools/cursor_vector.py`, already landed) in the art slot, and add the theme's own antialiased arrow design beside the arrow grid. Nothing is bound or regenerated here: every committed cursor file keeps its bytes. Part 3/3 binds the arrow and regenerates `left_ptr`. This split answers the feature role's 2026-11-12 "too large for one run" note on the former part 2/2.
+
+**Approach.**
+- **Arrow art.** In `tools/cursor_art_pointers.py`, add `ARROW_ART = VectorCursor(face=…, outline_width=2, design_size=32)` and `ARROW_HOTSPOT = (3, 3)` (design units), with a comment that this is this theme's own original outline. The face is this polygon, in order: tip `(3,3)`, down the vertical left edge to `(3,24)`, notch `(8,19.5)`, tail `(12,28)`, `(15,26.6)`, inner notch `(11.2,18.5)`, wing `(18,18.5)`, then back to the tip. This polygon is the design decision; the implementer may nudge a tail vertex by at most 1 unit only to keep the tail at least 2 units wide. Leave `ARROW_GRID`, `HOTSPOT` and `tools/cursor_art.py` unchanged.
+- **Generator.** In `tools/make_cursors.py`, `_build_cursor_bytes` and `cursor_bytes` accept either a grid (tuple of row strings) or a `VectorCursor` in the `rows` slot:
+  - A `VectorCursor` is rendered per size with `render_vector_rgba` and its hotspot is mapped with `vector_hotspot`. Its hotspot must lie in `[0, design_size)`. It is not passed through `_checked_rows` or `_checked_hotspot`.
+  - A grid keeps today's `render_rgba` and `_scaled_hotspot` path and its existing refusals.
+  - Any other value in the slot is refused with `ValueError`, as a malformed grid is today.
+  - Keep the `lru_cache` (`VectorCursor` is hashable), and check the vector hotspot before the cache lookup so a bad one is refused on every call, as for grids.
+  - `cursor_bytes()` defaults stay `ARROW_GRID` and `HOTSPOT`, so the committed `left_ptr` stays fresh.
+  - Update the module docstring, which today says the module scales grids nearest-neighbour.
+- **Tests.** In `tests/test_make_cursors.py`, add a test class for the vector path. Parse output with the `support.xcursor` reader the file already imports. Expected values come from the design coordinates scaled by `size/32`, not from rendered output.
+
+**Files.** `tools/cursor_art_pointers.py`, `tools/make_cursors.py`, `tests/test_make_cursors.py`.
+
+**Acceptance criteria.**
+- **Arrow frames.** `make_cursors.cursor_bytes(rows=ARROW_ART, hotspot=ARROW_HOTSPOT)` parses to three frames at nominal sizes 16, 24 and 32, with hotspots `(1,1)`, `(2,2)` and `(3,3)`. In each frame:
+  - The hotspot pixel has alpha 255.
+  - The pixel containing design point `(6,14)` is `(0,0,0,255)`: `(3,7)`, `(4,10)` and `(6,14)` respectively.
+  - The top-right `(size-1,0)` and bottom-right `(size-1,size-1)` pixels are `(0,0,0,0)`.
+  - At least one pixel has alpha strictly between 0 and 255, and at least one opaque pixel has a channel strictly between 0 and 255. This is the antialiasing evidence.
+- **Variants.** With the vector art, a moved face vertex, a dropped size or a moved hotspot each change the bytes.
+- **Refusals.** A vector hotspot of `(32, 3)` or `(-1, 3)` raises `ValueError`, also after a cached build of the same art. A `rows` value that is neither a grid nor a `VectorCursor` (for example an integer) raises `ValueError`.
+- **Scope.** `python3 tools/make_cursors.py` leaves every committed file under `theme/icons/org.macos8.desktop/cursors/` unchanged (`git status` shows none modified), and `cursor_bytes()` with no arguments still equals the committed `left_ptr`.
+- `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate scale declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 5,700 lines after the nine-part extraction series. That breaks the principle that a file is small enough to read in one sitting. Move the scale declaration checks out the same way part 9/9 moved the calendar ones. This does not depend on the cursor entries above. No stylesheet or production behavior changes.

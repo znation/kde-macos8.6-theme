@@ -10,6 +10,7 @@ committed pointer package those builders produce stays in
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import io
 import os
 import unittest
@@ -18,7 +19,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, make_cursors  # noqa: E402
+from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
+from tools.png import decode_rgba  # noqa: E402
 
 SIZES = (16, 24, 32)
 
@@ -368,6 +370,121 @@ class TestCursorBytesCache(unittest.TestCase):
                 self.assertIn(
                     "hotspot must be two integers", str(caught.exception)
                 )
+
+
+class TestVectorArrow(unittest.TestCase):
+    """The arrow's ``VectorCursor`` art renders natively at 16, 24 and 32."""
+
+    def setUp(self):
+        make_cursors._cached_cursor_bytes.cache_clear()
+        self.addCleanup(make_cursors._cached_cursor_bytes.cache_clear)
+        self.art = cursor_art_pointers.ARROW_ART
+        self.hotspot = cursor_art_pointers.ARROW_HOTSPOT
+
+    def _frames(self, data):
+        path = make_tmp_dir(self) / "arrow"
+        path.write_bytes(data)
+        frames = {}
+        for image in xcursor_reader.read_cursor(path).images:
+            width, height, rgba = decode_rgba(image.png)
+            self.assertEqual((width, height), (image.width, image.height))
+            frames[image.nominal_size] = (
+                (image.hotspot_x, image.hotspot_y),
+                width,
+                rgba,
+            )
+        return frames
+
+    def _pixel(self, rgba, width, x, y):
+        start = (y * width + x) * 4
+        return tuple(rgba[start : start + 4])
+
+    def test_frames_sit_at_the_nominal_sizes_with_scaled_hotspots(self):
+        frames = self._frames(
+            make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        )
+        self.assertEqual(sorted(frames), [16, 24, 32])
+        # The design hotspot (3, 3) on a 32-unit grid maps to (1, 1), (2, 2)
+        # and (3, 3) at the three sizes.
+        self.assertEqual(frames[16][0], (1, 1))
+        self.assertEqual(frames[24][0], (2, 2))
+        self.assertEqual(frames[32][0], (3, 3))
+        for size in SIZES:
+            with self.subTest(size=size):
+                self.assertEqual(frames[size][1], size)
+
+    def test_the_hotspot_pixel_is_opaque(self):
+        frames = self._frames(
+            make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        )
+        for size in SIZES:
+            with self.subTest(size=size):
+                (hx, hy), width, rgba = frames[size]
+                self.assertEqual(self._pixel(rgba, width, hx, hy)[3], 255)
+
+    def test_the_face_interior_is_black_and_the_corners_are_transparent(self):
+        frames = self._frames(
+            make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        )
+        # Design point (6, 14) lies inside the face at every size; its pixel
+        # is at (6, 14) scaled by size / 32, rounded down.
+        for size, (x, y) in ((16, (3, 7)), (24, (4, 10)), (32, (6, 14))):
+            with self.subTest(size=size):
+                _, width, rgba = frames[size]
+                self.assertEqual(self._pixel(rgba, width, x, y), (0, 0, 0, 255))
+                self.assertEqual(self._pixel(rgba, width, size - 1, 0), (0, 0, 0, 0))
+                self.assertEqual(
+                    self._pixel(rgba, width, size - 1, size - 1), (0, 0, 0, 0)
+                )
+
+    def test_the_edges_are_antialiased(self):
+        frames = self._frames(
+            make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        )
+        for size in SIZES:
+            with self.subTest(size=size):
+                _, width, rgba = frames[size]
+                pixels = [
+                    tuple(rgba[i : i + 4]) for i in range(0, len(rgba), 4)
+                ]
+                self.assertTrue(any(0 < p[3] < 255 for p in pixels))
+                self.assertTrue(
+                    any(p[3] == 255 and 0 < p[0] < 255 for p in pixels)
+                )
+
+    def test_a_moved_face_vertex_a_dropped_size_or_a_moved_hotspot_changes_the_bytes(self):
+        baseline = make_cursors.cursor_bytes(
+            rows=self.art, hotspot=self.hotspot
+        )
+        face = list(self.art.face)
+        face[6] = (18, 17.5)
+        moved_vertex = dataclasses.replace(self.art, face=tuple(face))
+        self.assertNotEqual(
+            make_cursors.cursor_bytes(rows=moved_vertex, hotspot=self.hotspot),
+            baseline,
+        )
+        self.assertNotEqual(
+            make_cursors.cursor_bytes(
+                rows=self.art, sizes=(16, 24), hotspot=self.hotspot
+            ),
+            baseline,
+        )
+        self.assertNotEqual(
+            make_cursors.cursor_bytes(rows=self.art, hotspot=(4, 3)), baseline
+        )
+
+    def test_a_hotspot_outside_the_design_grid_is_refused_every_time(self):
+        make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        for hotspot in ((32, 3), (-1, 3)):
+            for _ in range(2):
+                with self.subTest(hotspot=hotspot):
+                    with self.assertRaises(ValueError) as caught:
+                        make_cursors.cursor_bytes(rows=self.art, hotspot=hotspot)
+                    self.assertIn("hotspot", str(caught.exception))
+
+    def test_rows_that_are_neither_a_grid_nor_vector_art_are_refused(self):
+        with self.assertRaises(ValueError):
+            make_cursors.cursor_bytes(rows=5)
 
 
 if __name__ == "__main__":

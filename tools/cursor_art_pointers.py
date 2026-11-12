@@ -5,8 +5,14 @@ busy wristwatch, help and progress arrows, pencil, zoom magnifiers and
 context-menu arrow. ``#`` is the black face, ``.`` the white outline and a
 space is transparent. The grids in this module are bound to their canonical X
 names and aliases by ``tools/cursor_art.py``; ``tools/make_cursors.py`` scales
-and writes them.
+and writes them. The arrow is also given as a ``VectorCursor`` (``ARROW_ART``),
+which the generator rasterizes at each nominal size instead of scaling a grid.
 """
+
+if __package__:
+    from tools.cursor_vector import VectorCursor
+else:  # run directly or from tools/ on sys.path
+    from cursor_vector import VectorCursor
 
 HOTSPOT = (1, 1)
 
@@ -34,6 +40,28 @@ ARROW_GRID = (
     "    .##.        ",
     "    ....        ",
 )
+
+# The antialiased arrow: this theme's own original outline, drawn on a 32-unit
+# design grid and rasterized natively at each nominal size by
+# ``tools/cursor_vector.py``. The face runs from the tip at (3, 3) down the
+# vertical left edge to (3, 24), notches in to (8, 19.5), drops to the tail
+# tip at (12, 28), and returns through the inner notch to the wing at
+# (18, 18.5). ``ARROW_GRID`` above stays the grid reference for the tests that
+# still compare against it.
+ARROW_ART = VectorCursor(
+    face=(
+        (3, 3),
+        (3, 24),
+        (8, 19.5),
+        (12, 28),
+        (15, 26.6),
+        (11.2, 18.5),
+        (18, 18.5),
+    ),
+    outline_width=2,
+    design_size=32,
+)
+ARROW_HOTSPOT = (3, 3)
 
 # The text I-beam has serifs at the top and bottom of a centred stem; its
 # hotspot is the middle of the stem.

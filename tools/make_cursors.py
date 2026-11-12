@@ -3,8 +3,8 @@
 The grids and hotspots live in ``tools/cursor_art_pointers.py``,
 ``tools/cursor_art_resize.py`` and ``tools/cursor_art_drag.py``; the X-name
 manifest and palette live in ``tools/cursor_art.py``. This module validates a
-grid, scales it nearest-neighbour to the nominal sizes 16, 24 and 32, encodes
-each frame as an Xcursor image chunk, and writes every canonical cursor and
+grid, scales it nearest-neighbour to the nominal sizes 16, 24 and 32, or
+rasterizes a ``VectorCursor`` natively at each size, encodes each frame as an Xcursor image chunk, and writes every canonical cursor and
 alias into the icon theme package's ``cursors/``.
 
 Run ``python3 tools/make_cursors.py`` from anywhere; the output is
@@ -27,6 +27,11 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
     from tools.cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from tools.cursor_vector import (
+        VectorCursor,
+        render_vector_rgba,
+        vector_hotspot,
+    )
     from tools.cursor_vector import checked_size as _checked_size
     from tools.generated_files import write_generated_files
     from tools.ints import is_plain_int
@@ -36,6 +41,11 @@ else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
     from cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from cursor_vector import (
+        VectorCursor,
+        render_vector_rgba,
+        vector_hotspot,
+    )
     from cursor_vector import checked_size as _checked_size
     from generated_files import write_generated_files
     from ints import is_plain_int
@@ -140,12 +150,31 @@ def _scaled_hotspot(size, hotspot):
     )
 
 
+def _checked_art(rows, name="arrow"):
+    """Return *rows* if it is a ``VectorCursor`` or a checked grid, else refuse it."""
+    if isinstance(rows, VectorCursor):
+        return rows
+    return _checked_rows(rows, name)
+
+
+def _checked_vector_hotspot(hotspot, art):
+    """Return the design-unit *hotspot* of *art* after checking it lies inside."""
+    # Validation is the point here: ``vector_hotspot`` refuses a point outside
+    # ``[0, design_size)`` or a malformed pair, whatever the size it maps to.
+    vector_hotspot(hotspot, art, NOMINAL_SIZES[0])
+    return tuple(hotspot)
+
+
 def _build_cursor_bytes(rows, sizes, hotspot, name):
     """Build the Xcursor bytes for already-checked *rows* and *sizes*."""
     frames = []
     for size in _checked_sizes(sizes):
-        hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
-        rgba = render_rgba(rows, size, name)
+        if isinstance(rows, VectorCursor):
+            hotspot_x, hotspot_y = vector_hotspot(hotspot, rows, size)
+            rgba = render_vector_rgba(rows, size)
+        else:
+            hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
+            rgba = render_rgba(rows, size, name)
         frames.append((size, size, size, hotspot_x, hotspot_y, rgba))
     # The frames are already RGBA, so write them directly: encoding each one
     # to PNG for ``write_cursor`` to decode again would redo the pixel work
@@ -177,7 +206,9 @@ def cursor_bytes(
 ):
     """Return the Xcursor bytes for *rows* at every nominal *size*.
 
-    Each size must be an integer in 1..``MAX_IMAGE_SIZE``, the writer's
+    *rows* is either a 16x16 grid, scaled nearest-neighbour, or a
+    ``VectorCursor``, rasterized natively at each size with its hotspot in
+    design units. Each size must be an integer in 1..``MAX_IMAGE_SIZE``, the writer's
     frame-dimension limit. The result is cached by the validated rows, sizes, hotspot and name, so a
     caller that regenerates an unchanged cursor (the manifest checks do) does
     not redo its pixel and container work. Sizes and the hotspot are checked
@@ -185,9 +216,12 @@ def cursor_bytes(
     than being answered by an earlier build whose arguments compare equal
     (``16``, ``16.0`` and ``True`` all compare equal in a cache key).
     """
-    checked_rows = _checked_rows(rows, name)
+    checked_rows = _checked_art(rows, name)
     sizes_key = _checked_sizes(sizes)
-    hotspot_key = _checked_hotspot(hotspot)
+    if isinstance(checked_rows, VectorCursor):
+        hotspot_key = _checked_vector_hotspot(hotspot, checked_rows)
+    else:
+        hotspot_key = _checked_hotspot(hotspot)
     return _cached_cursor_bytes(checked_rows, sizes_key, hotspot_key, name)
 
 
