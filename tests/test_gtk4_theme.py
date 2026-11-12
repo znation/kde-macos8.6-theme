@@ -3172,7 +3172,8 @@ print("scrollbar pins settled")
         )
         for selector in spellings:
             with self.subTest(selector=selector):
-                self.assert_rule(selector, {"outline-color": BLACK})
+                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
+                self.assertEqual(self.selectors.count(selector), 1)
         # The restated spellings are the only row focus arms the sheet
         # declares: the scan kills renamed and stray variants. A row arm
         # must start the selector or follow a space, so the notebook
@@ -3193,7 +3194,8 @@ print("scrollbar pins settled")
             set(spellings),
         )
         # Stock's generic 300 ms outline-motion arm is removed.
-        self.assert_rule("row", {"transition": "none"})
+        self.assertEqual(self.rules["row"], {"transition": "none"})
+        self.assertEqual(self.selectors.count("row"), 1)
         # Source order: the focus group sits after the landed
         # disabled-selected backdrop group and before the landed tab-close
         # block.
