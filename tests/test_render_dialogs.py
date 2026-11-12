@@ -90,6 +90,22 @@ class TestDialogModes(unittest.TestCase):
         ]
         self.assertEqual(("gtk_dialog",), tuple(m.attr for m in gtk_modes))
 
+    def test_only_inactive_dialog_requests_the_window_rules_config(self):
+        # The workflow writes the forced-geometry rules file only when a
+        # selected mode declares it; the inactive capture needs those rules
+        # to keep both windows in frame. A missing or misplaced declaration
+        # would make the inactive render use incidental window placement.
+        self.assertEqual(
+            {
+                "inactive_dialog": ("kwinrulesrc",),
+            },
+            {
+                mode.attr: mode.extra_config_files
+                for mode in render_dialogs.DIALOG_MODES
+                if mode.extra_config_files
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
