@@ -1561,6 +1561,7 @@ answers your question:
 | [Find the enclosing mismatch rectangle](#fidelity-report-bounds) | None; this is the default report | Smallest bounds containing pixels beyond tolerance; unchanged gaps may lie inside. |
 | [Inspect the most severe individual mismatches](#fidelity-report-worst-pixels) | `--worst-pixels 5 --explain-worst --json` | Ranked pixels with positions, RGBA values and channel differences. |
 | [See horizontal mismatch segments](#fidelity-report-horizontal-runs) | `--difference-runs --max-difference-runs 20 --json` | Capped list of horizontal intervals. |
+| [Locate the longest horizontal defect](#fidelity-report-longest-horizontal-run) | `--longest-difference-run --json` | One longest horizontal mismatch segment with crop-relative start and pixel length, or null when no pixel exceeds tolerance. |
 | [See vertical mismatch segments](#fidelity-report-vertical-runs) | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
 | [Find row and column concentration](#fidelity-report-scanline-counts) | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
 | [Attribute mismatches to channels](#fidelity-report-channel-counts) | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
@@ -1571,6 +1572,9 @@ answers your question:
 
 Interval coordinates are relative to the compared crops. See [Diagnostic reference](#diagnostic-reference)
 for details about these reports and their fields.
+
+The longest horizontal segment covers the complete compared crop; ties select the earliest row,
+then column. This summary alone does not emit the full interval list.
 
 These are raw-byte diagnostics: where applicable they include zero and sub-tolerance errors,
 and none changes the comparison verdict. Opposite signed errors can cancel in channel bias.
@@ -1612,6 +1616,8 @@ aggregate budgets instead: when one is given, a run passes when each given budge
 `--max-rmse` bounds root mean square error, and `--max-delta` caps the largest absolute RGBA
 channel difference; `--max-differing` caps the absolute number of pixels whose maximum RGBA
 channel delta exceeds `--tolerance` — and the default no-differing-pixel gate no longer applies.
+<a id="fidelity-report-longest-horizontal-run"></a>
+
 `--longest-difference-run` reports the longest horizontal contiguous interval whose maximum raw
 RGBA channel delta exceeds tolerance, with crop-relative `x`, `y` and `length`; ties use the
 earliest row and then column. The JSON field is `longest_difference_run`, and an empty comparison

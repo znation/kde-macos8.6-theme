@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README fidelity chooser: locate the longest horizontal defect (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Help a contributor locate an uninterrupted horizontal border defect without choosing a full interval report.
+
+**Approach and files.** Edit README.md only, outside the brief. Append one row to Choosing a diagnostic with options `--longest-difference-run --json`, describing one longest horizontal mismatch segment with crop-relative start and pixel length, or null when no pixel exceeds tolerance. Link the task label to a new standalone `fidelity-report-longest-horizontal-run` anchor immediately before the existing `--longest-difference-run` explanation in Diagnostic reference. Add a short chooser note that this summary covers the complete compared crop, ties select the earliest row then column, and the summary alone does not emit the full interval list. Keep the existing aligned-crop recipe and report rows. This is one horizontal-summary navigation improvement; vertical summaries are outside this entry. No runtime or invariant change or new prose-pinning test is needed.
+
+**Grounding.** `tools/fidelity_cli_parser.py::build_parser` exposes the flag; `tools/fidelity.py::main` requests the horizontal summary independently of the interval list. `tools/fidelity_spatial.py::longest_difference_run` and `select_longest_run` implement stable longest selection; `tools/fidelity_reports.py::report_data` includes a requested null summary. README documents the flag in detail but its chooser offers horizontal interval lists without this summary choice. Archive searches and the related compact-guide, per-report-link, distribution/channel chooser and longest-horizontal CLI entries cover other deliverables. The pending matching-pixel chooser change and queued palette paging concern sampler recipes. `tests/test_readme_links.py::local_link_errors` recognizes standalone anchors. These symbols are evidence anchors, not change targets.
+
+**Acceptance criteria.** A reader can append the new options to the documented aligned-crop command and follow the row's link directly to the horizontal-summary explanation. The table distinguishes a single longest segment from the capped interval list and states crop-relative coordinates and the possible null result. The added options parse with `build_parser().parse_args` using placeholder candidate/reference paths, without image reads or GUI activity. Existing diagnostic links still resolve. Review the anchor placement and run `make check` after the final edit.
+
 ### README sampling chooser: page through ranked palette colors (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal.** Help contributors inspect later colors in a reference region's ranked palette without printing the complete histogram.
