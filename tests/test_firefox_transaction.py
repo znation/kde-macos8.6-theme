@@ -115,6 +115,39 @@ class TestPublishInstall(unittest.TestCase):
             self.assertEqual(
                 "previous preferences\n", user_js.read_text(encoding="utf-8")
             )
+
+    def test_a_user_js_the_transaction_created_is_removed_when_its_write_landed(self):
+        # user.js did not exist before the run. The publication write lands
+        # and then the publisher raises: the published state for a file that
+        # had no previous version is absence, so the rollback must remove the
+        # user.js it just wrote, and the sheet it created must go too.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            user_js = root / "user.js"
+
+            real_write_text = firefox_transaction.write_profile_text
+
+            def publish_then_fail(path: Path, published: str) -> None:
+                if path == user_js:
+                    real_write_text(path, published)
+                    raise OSError("simulated publication failure")
+                real_write_text(path, published)
+
+            with mock.patch.object(
+                firefox_transaction, "write_profile_text", publish_then_fail
+            ):
+                with self.assertRaisesRegex(OSError, "simulated publication failure"):
+                    firefox_transaction.publish_install(
+                        ((sheet, b"new chrome", None),),
+                        user_js,
+                        None,
+                        "published preferences\n",
+                    )
+
+            self.assertFalse(sheet.exists())
+            self.assertFalse(user_js.exists())
+
     def test_failed_user_js_write_preserves_a_concurrent_edit_and_restores_sheets(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
