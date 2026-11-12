@@ -157,6 +157,31 @@ class TestCursorArtBindings(unittest.TestCase):
                     f"{grid[y][x]!r}",
                 )
 
+    def test_every_exported_grid_is_sixteen_by_sixteen_of_face_characters(self):
+        # Each data module's docstring promises 16x16 ASCII grids whose cells
+        # are ``#`` (black face), ``.`` (white outline) or a space (transparent).
+        # make_cursors scales these grids, so a ragged or non-square grid would
+        # be drawn wrong without any test noticing.
+        allowed = set("#. ")
+        for module in MODULES:
+            for grid_name in _exported_grid_names(module):
+                if not grid_name.endswith("_GRID"):
+                    # ``*_ART`` exports are VectorCursor objects, not pixel grids.
+                    continue
+                grid = vars(module)[grid_name]
+                with self.subTest(grid=grid_name):
+                    self.assertEqual(len(grid), 16, f"{grid_name} has {len(grid)} rows")
+                    for row_index, row in enumerate(grid):
+                        self.assertEqual(
+                            len(row), 16,
+                            f"{grid_name} row {row_index} is {len(row)} cells wide",
+                        )
+                        self.assertTrue(
+                            set(row) <= allowed,
+                            f"{grid_name} row {row_index} has characters "
+                            f"outside '#', '.' and space: {row!r}",
+                        )
+
 
 if __name__ == "__main__":
     unittest.main()
