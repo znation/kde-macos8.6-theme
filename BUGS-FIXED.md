@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 67a2c172 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `67a2c172ed567098ef0f55d981b400776431f05a` and the current `tools/generated_files.py`. The default writer delegates to `write_bytes_atomically`, and `tests/test_generated_files.py::TestGeneratedFiles::test_default_writer_creates_directory_and_publishes_bytes` exercises the no-injection path, nested directory creation, success status and published bytes. The current suite also covers containment refusal, directory creation failure and a later write failure while retaining earlier files. No defect was found in the reviewed change.
+
+**Validation gap:** none — the committed regression test directly invokes the default writer and asserts its published result.
+
 ### post-merge review of b3f5b561 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `b3f5b5617e9abbfe29d60e391bce01c8c3b52d91`: its GTK 3 sheet adds nine disabled self-selected link state selectors with the inactive-text colour, and `TestGtkTheme.test_disabled_selected_inline_link_foregrounds` checks the generated selectors, disabled-text colour, colour-only declarations and ordering after both ordinary disabled and enabled self-selected rules. The invariant records the missing GTK reference surface and platform provenance.
