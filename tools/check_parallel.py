@@ -8,6 +8,7 @@ in Makefile retains serial unittest discovery.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import os
 import shutil
 import sys
@@ -74,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
             f"--tests-dir must name a directory: {options.tests_dir}",
         )
     try:
-        modules = discover_modules(tests_dir, options.pattern)
+        all_modules = discover_modules(tests_dir)
+        modules = [
+            module for module in all_modules
+            if fnmatch.fnmatch(f"{module.rsplit('.', 1)[-1]}.py", options.pattern)
+        ]
     except DiscoveryError as exc:
         # One unreadable directory (a permission error, or a directory swept
         # away while discovery walks the tree) must not abort startup as a
@@ -128,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
                     # pass above already exercised -- and its OSError or
                     # DiscoveryError keeps the save best-effort, as at
                     # startup.
-                    set(discover_modules(tests_dir)),
+                    set(all_modules),
                 ),
             )
         except (OSError, DiscoveryError) as exc:

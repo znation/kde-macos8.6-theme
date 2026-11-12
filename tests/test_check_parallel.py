@@ -831,10 +831,14 @@ class TestCoordinator(unittest.TestCase):
         tests_dir = self._project(
             {"test_one.py": OK_MODULE, "test_two.py": OK_MODULE}
         )
-        result = self._run(
-            "--tests-dir", tests_dir, "-p", "test_one.py", "--workers", "1"
-        )
+        with mock.patch.object(
+            check_parallel, "discover_modules", wraps=check_parallel.discover_modules
+        ) as discover:
+            result = self._run(
+                "--tests-dir", tests_dir, "-p", "test_one.py", "--workers", "1"
+            )
         assert_succeeded(self, result)
+        discover.assert_called_once_with(tests_dir)
         self.assertIn("check: -p 'test_one.py', 1 module, 1 worker", result.stdout)
         self.assertIn("===== test_one: exit 0 =====", result.stdout)
         self.assertNotIn("test_two", result.stdout)
