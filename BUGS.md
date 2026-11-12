@@ -1940,6 +1940,10 @@ The post-merge review of commit `b89256d3db85f6c023cf8267072c16469a5a158e` (Fix 
 
 The post-merge review of commit `586acbefa494f3f71ec160324711c2470125cbb4` (Make a flat GTK 3 frame draw no border or inset shadow and pin it) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 13146e2a never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `13146e2a198e161471366d97c4915492410d8bad` (Add the opt-in per-channel maxima fidelity diagnostic) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
