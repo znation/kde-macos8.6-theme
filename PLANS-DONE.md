@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction, part 7/9: isolate the scale probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
+
+**Goal.** Give the scale rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
+
+**Approach and files.** Move only `TestGtk4Theme.test_scale_faces_render` from `tests/test_gtk4_theme.py` into new `tests/test_gtk4_scale_probe.py::TestGtk4ScaleProbe(unittest.TestCase)`. Import required constants from `support/gtk4_sheet.py` and palette/spec modules directly; do not import the original test module or inherit its test class. Preserve the complete method, including child-source string, opt-in guard, exit-77 handling, environment and timeout. Repoint the corresponding test anchors in `docs/invariants.md` in the same change; retain historical completed-plan records. Prune imports from the old module only when unused. The recursive guard in `tests/test_no_gtk_introspection.py` already covers new Python modules; no scanner extension is needed.
+
+**Acceptance.** Discovery finds `test_scale_faces_render` once at the new dotted ID and no longer at the old one; its AST body and embedded child program match the original. Without GUI opt-in the moved probe skips, with no desktop window. The documented isolated Xvfb invocation, adapted to this new ID, either exercises the same assertions or reports the existing capability skip. The invariants checker resolves its moved anchors and `make check` passes. No probe-prelude extraction or pixel changes are part of this move.
+
+**Completion and verification.** The method moved with an identical AST to the standalone suite; routine `make check` discovered it at the new dotted ID and it skipped before launching the GTK child. The invariant anchor and isolated README Xvfb command use the new ID. Xvfb is unavailable here. `make check` ran after the move and reported only the known `test_render_surface` failures in file-dialog header/list-row and calendar-day pixel assertions; rendered probe execution is not claimed.
+
 ### GTK 4 suite extraction, part 6/9: isolate the button probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
 
 **Goal.** Give the button rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
