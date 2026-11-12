@@ -1774,10 +1774,11 @@ KWin 6.8, but upgrading KWin alone does not bypass this guard. To exercise the c
 use a GPU-backed host with the documented render tools and without software-forcing variables.
 The isolated headless rendering commands remain available under [Rendering a candidate](#rendering-a-candidate).
 
-The GTK 4 notebook, progressbar, indicator, spin-field and view-census probes skip during routine checks. To opt in
+The GTK 4 button, notebook, progressbar, indicator, spin-field and view-census probes skip during routine checks. To opt in
 without using your desktop display, run each probe under Xvfb:
 
 ```sh
+env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_button_probe.TestGtk4ButtonProbe.test_button_faces_render
 env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_notebook_probe.TestGtk4NotebookProbe.test_notebook_tab_faces_render
 env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_progressbar_probe.TestGtk4ProgressbarProbe.test_progressbar_faces_render
 env -u DISPLAY -u WAYLAND_DISPLAY xvfb-run -a -- env PLATINUM_RUN_GUI_TESTS=1 make check CHECK_TESTS=test_gtk4_indicators_probe.TestGtk4IndicatorsProbe.test_mixed_indicators_draw_black_dashes
