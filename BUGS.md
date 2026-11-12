@@ -1360,6 +1360,10 @@ The post-merge review of commit `164765255f5963927de4fd749787968cf8ad003a` (Land
 
 The post-merge review of commit `5120d36fe2d319090d0b96bcb1ba5799c2098197` (Share the GTK suites' copied scale-popup button pin via one helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 2b21968f never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `2b21968f5f1ed2b9782019950e41b3422807aee2` (Add one focused rollback test for publish_install's user.js read refusal) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
