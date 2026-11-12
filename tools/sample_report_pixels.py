@@ -6,12 +6,12 @@ import json
 
 if __package__:
     from tools.sample_report_common import (
-        hex, positioned_region_pixels, print_region_line, region_alpha,
+        hex, positioned_region_pixels, print_report_header, region_alpha,
         report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        hex, positioned_region_pixels, print_region_line, region_alpha,
+        hex, positioned_region_pixels, print_report_header, region_alpha,
         report_context,
     )
 
@@ -41,8 +41,7 @@ def report_pixels(args, image, width: int, height: int, header: str) -> None:
         print(header)
         print(f"pixel ({args.x}, {args.y}): {r},{g},{b}  {pixel['hex']}{suffix}")
         return
-    print(header)
-    print_region_line(args)
+    print_report_header(header, args)
     for pixel in _pixel_records(args, image):
         r, g, b = pixel["rgb"]
         suffix = f"  alpha={pixel['alpha']}" if args.alpha else ""

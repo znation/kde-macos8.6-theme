@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from argparse import Namespace
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_common import report_context  # noqa: E402
+from tools.sample_report_common import print_report_header, report_context  # noqa: E402
 
 
 class TestReportContext(unittest.TestCase):
@@ -21,6 +23,16 @@ class TestReportContext(unittest.TestCase):
             "image_height": 30,
             "region": {"x": 3, "y": 5, "width": 7, "height": 2},
         })
+
+    def test_plain_text_header_includes_requested_region(self):
+        args = Namespace(x=3, y=5, width=7, height=2)
+        output = StringIO()
+
+        with redirect_stdout(output):
+            print_report_header("reference.png: 40x30", args)
+
+        self.assertEqual(output.getvalue(),
+                         "reference.png: 40x30\nregion (3, 5) 7x2:\n")
 
 
 if __name__ == "__main__":

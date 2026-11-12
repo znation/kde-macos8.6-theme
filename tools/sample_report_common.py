@@ -33,6 +33,12 @@ def print_region_line(args) -> None:
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
 
 
+def print_report_header(header: str, args) -> None:
+    """Print the shared heading and region lines for plain-text reports."""
+    print(header)
+    print_region_line(args)
+
+
 def compact_json(obj) -> str:
     """Serialize obj as compact JSON, the format the sample reports embed list and
     mapping fields inside their plain-text lines. Eight call sites: six in the

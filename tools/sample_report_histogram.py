@@ -8,12 +8,12 @@ from heapq import nsmallest
 
 if __package__:
     from tools.sample_report_common import (
-        compact_json, hex, positioned_region_pixels, print_region_line,
+        compact_json, hex, positioned_region_pixels, print_report_header,
         region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        compact_json, hex, positioned_region_pixels, print_region_line,
+        compact_json, hex, positioned_region_pixels, print_report_header,
         region_alpha, region_pixels, report_context,
     )
 
@@ -183,8 +183,7 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
     if args.json:
         print(json.dumps(result, ensure_ascii=True))
         return
-    print(header)
-    print_region_line(args)
+    print_report_header(header, args)
     if "color_offset" in result:
         print(f"color offset: {result['color_offset']}")
     for color in result["colors"]:

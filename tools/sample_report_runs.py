@@ -6,11 +6,11 @@ import json
 
 if __package__:
     from tools.sample_report_common import (
-        hex, print_region_line, region_alpha, region_pixels, report_context,
+        hex, print_report_header, region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        hex, print_region_line, region_alpha, region_pixels, report_context,
+        hex, print_report_header, region_alpha, region_pixels, report_context,
     )
 
 
@@ -121,8 +121,7 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
     if args.json:
         print(json.dumps(result, ensure_ascii=True))
         return
-    print(header)
-    print_region_line(args)
+    print_report_header(header, args)
     print(f"axis: {result['axis']}")
     if "longest_run" in result:
         run = result["longest_run"]

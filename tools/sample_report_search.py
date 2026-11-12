@@ -8,7 +8,7 @@ if __package__:
     from tools.sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
-        print_region_line, region_alpha,
+        print_report_header, region_alpha,
         report_context,
     )
     from tools.sample_match_runs import ColumnRuns, MatchRuns
@@ -16,7 +16,7 @@ else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
-        print_region_line, region_alpha,
+        print_report_header, region_alpha,
         report_context,
     )
     from sample_match_runs import ColumnRuns, MatchRuns
@@ -171,8 +171,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     if args.json:
         print(json.dumps({**report_context(args, width, height), "match": match}, ensure_ascii=True))
         return
-    print(header)
-    print_region_line(args)
+    print_report_header(header, args)
     print(f"color: {color_hex}")
     if args.color_tolerance is not None:
         print(f"tolerance: {match['tolerance']}")
