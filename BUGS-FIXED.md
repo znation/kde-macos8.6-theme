@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 1341c439 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `1341c4399ed2cebe5cdb940693c54b6f449aee49`: the shared fixture preserves the previous callers' directory open, exclusive non-blocking flock and cleanup behavior. All three wrappers delegate to that fixture; GTK's distinct config-lock helper remains local.
+
+**Validation gap:** none — the existing apply-lock tests exercise each wrapper's held-lock behavior and cleanup.
+
 ### post-merge review of 9681e407 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 Reviewed commit `9681e40787d8cb3f7884d394bcd884e25d0bb2b0`. Its tests cover both installed GTK sheets and refusal when the GTK 3 sheet is missing while GTK 4 exists. The helper checks both sheets before selection and reports the missing path with the repair command; the test assertions match that behavior.

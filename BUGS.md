@@ -54,10 +54,6 @@ coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encodin
 
 ### post-merge review of 9681e407 never reached a verdict (found by the review role 2026-11-11)
 
-### post-merge review of 1341c439 never reached a verdict (found by the review role 2026-11-11)
-
-The post-merge review of commit `1341c4399ed2cebe5cdb940693c54b6f449aee49` (Share the held-directory flock fixture across apply-lock tests) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### post-merge review of 95990634 never reached a verdict (found by the review role 2026-11-11)
 
 The post-merge review of commit `959906348a7fa0c016b882c80af02c7a9811d631` (Reflect collapsed GTK 3 disclosure arrows in RTL layouts) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
