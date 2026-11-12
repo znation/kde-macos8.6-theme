@@ -91,16 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### README sampling chooser: list actual matching-color pixels (planned 2026-11-11 by the plan role)
-
-**Goal.** Help a contributor find actual occurrences of a chosen reference color when its enclosing rectangle includes unrelated pixels. This adds a bounded coordinate recipe, independent of the queued border-run paging and pending dominant-palette location recipes.
-
-**Approach and files.** Edit README.md only, outside the brief. Append one row to Choosing a sampling mode using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json`. Link its task label to a new standalone `sampling-match-coordinates` anchor immediately before the existing `--match-pixels` paragraph in Color search options. Describe up to five actual matching coordinates in row-major order, plus the full-region match count and bounds. Add a short chooser note that a coordinate list may be empty, bounds can enclose nonmatching pixels, and the cap bounds displayed coordinates rather than the searched area. Keep the existing exact-color count recipe and beta-reference caveat. No runtime, invariant or dependency change, or new prose-pinning test, is needed.
-
-**Grounding.** `tools/sample_arguments.py::build_parser` exposes `--find-color`, `--match-pixels` and `--json`; `tools/sample_report_search.py::_search_match` retains matching positions while continuing the full-region count and bounds, and `report_search` emits the JSON match mapping. README explains coordinate lists in its detailed reference but its chooser offers only count and bounds for a chosen color. The archived recipe-table plans cover the four basic tasks; the archived bounded-coordinate and coordinate-pagination plans implement the CLI rather than this chooser addition. Existing `tests/test_readme_links.py::local_link_errors` and `TestReadmeLinks` check explicit destinations, and `tests/test_readme_commands.py::TestReadmeCommands` checks named tool paths. These are evidence anchors, not change targets.
-
-**Acceptance criteria.** A reader can copy the added command and follow its task link directly to coordinate-list documentation. With materialized references the command exits 0 and emits a `match` object with at most five `pixels` records carrying absolute `x` and `y`, plus `count`, `bounds` and `omitted_pixels`; `omitted_pixels` equals `count` minus the displayed coordinate count. The prose promises neither a nonempty result nor particular measured coordinates, and distinguishes actual matching positions from enclosing bounds. Existing recipes and links remain usable. Review anchor placement, run the added command with materialized references, and run `make check` after the final edit.
-
 ### README sampling chooser: page through ranked palette colors (planned 2026-11-11 by the plan role)
 
 **Goal.** Help contributors inspect later colors in a reference region's ranked palette without printing the complete histogram.

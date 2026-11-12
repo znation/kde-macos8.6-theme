@@ -883,9 +883,11 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors, start coordinates, and lengths |
 | [Page through border color runs](#sampling-run-pages) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --max-runs 5 --run-offset 0 --run-count --json` | First five vertical runs and the full-region run count |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
+| [List matching color pixels](#sampling-match-coordinates) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-pixels 5 --json` | Up to five matching coordinates, count and enclosing bounds |
 
-Bounds can enclose disconnected occurrences, and a centroid is an arithmetic mean that need not
-be a pixel of that color.
+The coordinate list may be empty. Bounds can enclose nonmatching pixels, and a centroid is an
+arithmetic mean that need not be a pixel of that color. The match-pixel cap limits displayed
+coordinates, not the searched area.
 
 ### Sampling options
 
@@ -1127,6 +1129,8 @@ uses alpha 255 for images without transparency. JSON adds `alpha` to `match`; te
 prints `alpha: N` after the optional tolerance. RGB tolerance never relaxes this alpha
 match. This option filters matches and can be combined with `--color-tolerance`, but
 not with `--alpha`.
+
+<a id="sampling-match-coordinates"></a>
 
 Add `--match-pixels N` (1–1000) with `--find-color` to list the first N
 matching coordinates in row-major order. Coordinates are absolute image
