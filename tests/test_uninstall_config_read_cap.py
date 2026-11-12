@@ -17,6 +17,7 @@ import os
 import unittest
 
 from support import theme_install
+from support.fifo_fixtures import fifo_swap_opener
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import containment, uninstall_config, uninstall_diagnostics
@@ -104,13 +105,7 @@ class TestReaderFifo(unittest.TestCase):
         os.makedirs(os.path.dirname(fifo), exist_ok=True)
         os.mkfifo(fifo)
         body = b"[KDE]\nwidgetStyle=kvantum\n"
-        real_open = os.open
-
-        def open_the_fifo(target, flags, *args, **kwargs):
-            # O_RDWR makes the test itself independent of the flags under
-            # test (a plain O_WRONLY open would block with no reader), and
-            # O_NONBLOCK keeps the open off any waiting path.
-            return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
+        open_the_fifo = fifo_swap_opener(fifo)
 
         with mock.patch.object(os.path, "isfile", return_value=True), \
                 mock.patch.object(

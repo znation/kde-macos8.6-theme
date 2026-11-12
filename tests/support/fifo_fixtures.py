@@ -7,6 +7,7 @@ bounded timeout instead of a hung run; these helpers name the pieces of
 that::
 
     make_fifo(self, path)                     # skip the test when unsupported
+    fifo_swap_opener(fifo)                    # os.open stand-in for a swap
     assert_fifo_refused(self, result, path)
     assert_fifo_read_refused(self, result, path)
 
@@ -35,6 +36,25 @@ def make_fifo(case, path):
         os.mkfifo(path)
     except OSError as exc:
         case.skipTest(f"cannot create a FIFO: {exc}")
+
+
+def fifo_swap_opener(fifo):
+    """Return an ``os.open`` replacement that opens *fifo* instead of the path.
+
+    For a ``mock.patch.object(..., "open", side_effect=...)`` that makes a
+    regular file look swapped for a FIFO between a path check and the open.
+    The replacement opens *fifo* ``O_RDWR | O_NONBLOCK``: ``O_RDWR`` keeps the
+    test independent of the flags under test, so a missing ``O_NONBLOCK``
+    fails the assertion instead of blocking, and ``O_NONBLOCK`` keeps the open
+    off any waiting path. Call this before patching ``os.open``: it captures
+    the real ``os.open`` at call time.
+    """
+    real_open = os.open
+
+    def open_the_fifo(target, flags, *args, **kwargs):
+        return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
+
+    return open_the_fifo
 
 
 def assert_fifo_refused(case, result, path):

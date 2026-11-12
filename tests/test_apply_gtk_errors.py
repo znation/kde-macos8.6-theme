@@ -15,7 +15,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.fifo_fixtures import assert_fifo_refused, make_fifo
+from support.fifo_fixtures import assert_fifo_refused, fifo_swap_opener, make_fifo
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
@@ -436,12 +436,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.write(gtk4, "[Settings]\ngtk-theme-name=Adwaita\n")
         fifo = self.root / "pipe"
         os.mkfifo(fifo)
-        real_open = os.open
-
-        def open_the_fifo(target, flags, *args, **kwargs):
-            # O_RDWR makes the test itself independent of the flags under
-            # test, so a missing O_NONBLOCK fails the assertion, not the run.
-            return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
+        open_the_fifo = fifo_swap_opener(fifo)
 
         with mock.patch.object(gtk_user_files.os, "open", side_effect=open_the_fifo):
             with self.assertRaises(gtk_user_files.ConfigError) as caught:
