@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
+**Needs review 2026-11-11 by director: Choose the replacement cursor direction in QUESTIONS.md (redrawn pixel art, smoother original art, or the desktop's existing theme), and identify the affected cursor roles and selected size/display scale; code inspection confirms the scaling mechanism but cannot establish the user's rendered appearance or preferred redesign.**
+
 **Symptom.** User reports: “The mouse cursors still look incredibly ugly.” This is a
 visual-quality report; no particular cursor role, selected size or display scale was supplied.
 
