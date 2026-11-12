@@ -77,3 +77,14 @@ def region_alpha(image, x: int, y: int, width: int, height: int):
         offset = row * image.width + x
         for index in range(offset, offset + width):
             yield 255 if alpha is None else alpha[index]
+
+
+def positioned_region_column_alpha(image, x: int, y: int,
+                                  width: int, height: int):
+    """Yield alpha bytes in column-major region order without copying them."""
+    alpha = image.alpha
+    image_width = image.width
+    for column in range(x, x + width):
+        for row in range(y, y + height):
+            index = row * image_width + column
+            yield 255 if alpha is None else alpha[index]

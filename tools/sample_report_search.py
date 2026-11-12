@@ -7,14 +7,16 @@ import json
 if __package__:
     from tools.sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
-        positioned_region_pixels, print_region_line, region_alpha,
+        positioned_region_column_alpha, positioned_region_pixels,
+        print_region_line, region_alpha,
         report_context,
     )
     from tools.sample_match_runs import ColumnRuns, MatchRuns
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
-        positioned_region_pixels, print_region_line, region_alpha,
+        positioned_region_column_alpha, positioned_region_pixels,
+        print_region_line, region_alpha,
         report_context,
     )
     from sample_match_runs import ColumnRuns, MatchRuns
@@ -101,14 +103,10 @@ def _search_match(args, image) -> dict:
     if capped_columns:
         column_alphas = None
         if args.match_alpha is not None:
-            # region_alpha yields row-major, but the column scan below walks
-            # the region column-major: serve alphas in the scan's order so each
-            # pixel keeps its own alpha value.
-            region_alphas = list(region_alpha(image, args.x, args.y, args.width, args.height))
-            column_alphas = iter(
-                region_alphas[(row - args.y) * args.width + column - args.x]
-                for column in range(args.x, args.x + args.width)
-                for row in range(args.y, args.y + args.height))
+            # The column scan needs a different order from the first pass;
+            # stream alpha bytes in that order instead of copying the region.
+            column_alphas = positioned_region_column_alpha(
+                image, args.x, args.y, args.width, args.height)
         for x, y, rgb in positioned_region_column_pixels(
                 image, args.x, args.y, args.width, args.height):
             column_collector.observe(
