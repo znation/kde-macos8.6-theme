@@ -395,7 +395,7 @@
    TestLineEditReference), and the checkbox reuses the existing
    about:preferences check-box face and its shipped check-mark data URI
    (the #DDDDDD face with the inset 1px 1px #FFFFFF, inset -1px -1px
-   #888888 bevel, whose provenance the landing checkbox paragraph
+   #888888 bevel, whose provenance the existing checkbox paragraph
    records; a checked box, #autorefcheck:checked, overlays the shipped
    glyph; #autorefcheck's stock --checkbox-size sizing from
    in-content/common-shared.css stays Firefox's). The #sectionTitle
