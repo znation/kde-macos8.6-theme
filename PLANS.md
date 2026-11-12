@@ -92,13 +92,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 recorded here to keep the scope deliberate.
 
 
-### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed")
-
-**Goal.** Give the progressbar rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
-
-**Approach and files.** Move only `TestGtk4Theme.test_progressbar_faces_render` from `tests/test_gtk4_theme.py` into new `tests/test_gtk4_progressbar_probe.py::TestGtk4ProgressbarProbe(unittest.TestCase)`. Import required constants from `support/gtk4_sheet.py` and palette/spec modules directly; do not import the original test module or inherit its test class. Preserve the complete method, including child-source string, opt-in guard, exit-77 handling, environment and timeout. Repoint the corresponding test anchors in `docs/invariants.md` in the same change; retain historical completed-plan records. Prune imports from the old module only when unused. The recursive guard in `tests/test_no_gtk_introspection.py` already covers new Python modules; no scanner extension is needed.
-
-**Acceptance.** Discovery finds `test_progressbar_faces_render` once at the new dotted ID and no longer at the old one; its AST body and embedded child program match the original. Without GUI opt-in the moved probe skips, with no desktop window. The documented isolated Xvfb invocation, adapted to this new ID, either exercises the same assertions or reports the existing capability skip. The invariants checker resolves its moved anchors and `make check` passes. No probe-prelude extraction or pixel changes are part of this move.
 
 ### GTK 4 suite extraction, part 6/9: isolate the button probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed")
 
@@ -133,6 +126,17 @@ recorded here to keep the scope deliberate.
 **Acceptance.** Calendar declaration and disabled-grey reference methods each appear once under the new module in discovery, retain their assertion bodies and reference coordinates, and pass or report the same missing-reference skip as before. Existing non-calendar tests remain discoverable. The invariants checker resolves the calendar anchors, and `make check` passes. No stylesheet or production behavior changes.
 
 ## Done
+
+### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
+
+**Goal.** Give the progressbar rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
+
+**Approach and files.** Move only `TestGtk4Theme.test_progressbar_faces_render` from `tests/test_gtk4_theme.py` into new `tests/test_gtk4_progressbar_probe.py::TestGtk4ProgressbarProbe(unittest.TestCase)`. Import required constants from `support/gtk4_sheet.py` and palette/spec modules directly; do not import the original test module or inherit its test class. Preserve the complete method, including child-source string, opt-in guard, exit-77 handling, environment and timeout. Repoint the corresponding test anchors in `docs/invariants.md` in the same change; retain historical completed-plan records. Prune imports from the old module only when unused. The recursive guard in `tests/test_no_gtk_introspection.py` already covers new Python modules; no scanner extension is needed.
+
+**Acceptance.** Discovery finds `test_progressbar_faces_render` once at the new dotted ID and no longer at the old one; its AST body and embedded child program match the original. Without GUI opt-in the moved probe skips, with no desktop window. The documented isolated Xvfb invocation, adapted to this new ID, either exercises the same assertions or reports the existing capability skip. The invariants checker resolves its moved anchors and `make check` passes. No probe-prelude extraction or pixel changes are part of this move.
+
+**Completion and verification.** The probe moved intact to its standalone unittest class; the invariant anchor and isolated README invocation use the new ID. Focused unittest discovery without GUI opt-in found the new test and skipped before launching a child; the old module no longer defines it. The child source, environment, timeout and pixel assertions are unchanged. Xvfb is unavailable here, so the isolated render invocation was not executed; no new rendered-pixel verification is claimed. Tumwater owns the full project check.
+
 
 ### Reference-pixel sampler: select named colors in scanline runs (planned 2026-11-03 by the plan role) — done 2026-11-03 by the feature role
 
