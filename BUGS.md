@@ -1088,6 +1088,10 @@ The post-merge review of commit `d66162202b4e356940b06c6532c5e904d17ff9c8` (Give
 
 The post-merge review of commit `a0b84eed52ae047da5d5e4f467c3db8f4cf9dd11` (Preserve disabled GTK 4 progress-bar colors) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of aaa0f0d6 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `aaa0f0d63653b1c7deed497623fa00a38de69665` (Keep GTK 4 directional progress fill corners square) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
