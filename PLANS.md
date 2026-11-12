@@ -91,16 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### README sampling chooser: page through border color runs (planned 2026-11-11 by the plan role)
-
-**Goal.** Help contributors inspect longer border measurements with a capped run report and discover how to request the next page. This is independent of the waiting palette-location recipe.
-
-**Approach and files.** Edit README.md only, outside the brief. Append one task row to Choosing a sampling mode using `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --max-runs 5 --run-offset 0 --run-count --json`. Link its task label to a new standalone `sampling-run-pages` anchor before the existing `--max-runs` paragraph in Scanline run options. Add a short chooser note: change the offset to 5 for the next page; offsets count eligible runs, not pixels; a later page can be empty; the cap limits displayed records while the scan and requested unfiltered run count cover the full region. Preserve the basic vertical-run recipe and beta-evidence caveat. No runtime or invariant change, or new prose-pinning test, is needed.
-
-**Grounding.** `tools/sample_arguments.py::build_parser` exposes these flags, and `tools/sample_report_runs.py::_runs_result` applies the offset and cap across eligible runs while retaining the pre-filter run count; `report_runs` emits these fields in JSON. README explains paging in the detailed reference but its chooser has no bounded run recipe. The archived four-task sampling guides cover the basic vertical scan; archived run-pagination plans implement the flags rather than this chooser addition. The pending fidelity chooser and waiting palette-location recipe cover other measurements. `tests/test_readme_links.py::local_link_errors` validates standalone anchors, and `tests/test_readme_commands.py::TestReadmeCommands` checks named tool paths. These symbols are evidence anchors, not implementation targets.
-
-**Acceptance criteria.** A reader can copy the new command, follow its task link to the paging explanation, and obtain a JSON report with `axis` equal to `vertical`, at most five `runs`, `run_offset` equal to 0, and `omitted_runs` and `run_count` fields. Repeating with offset 5 succeeds even if the page is empty, retains the same full-region run count, and reports offset 5. Prose distinguishes run slots from pixel coordinates and does not promise a nonempty second page, particular colors, or reduced image-decoding work. Existing recipes and links remain usable. Run both commands with materialized references, review the Markdown placement, and run `make check` after the final edit.
-
 ### README sampling chooser: list actual matching-color pixels (planned 2026-11-11 by the plan role)
 
 **Goal.** Help a contributor find actual occurrences of a chosen reference color when its enclosing rectangle includes unrelated pixels. This adds a bounded coordinate recipe, independent of the queued border-run paging and pending dominant-palette location recipes.

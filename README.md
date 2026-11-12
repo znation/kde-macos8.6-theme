@@ -881,6 +881,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | Rank a small region's palette | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3` | Up to three colors, ranked by count |
 | [Locate dominant palette colors](#sampling-palette-locations) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --histogram --top-colors 3 --color-bounds --color-positions --color-centroids --json` | Up to three ranked colors with absolute enclosing bounds, first row-major positions and mean pixel coordinates |
 | Measure vertical color runs | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 4 --runs` | Run colors, start coordinates, and lengths |
+| [Page through border color runs](#sampling-run-pages) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 40 --runs --max-runs 5 --run-offset 0 --run-count --json` | First five vertical runs and the full-region run count |
 | Locate an exact color | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C'` | Match count and enclosing bounds |
 
 Bounds can enclose disconnected occurrences, and a centroid is an arithmetic mean that need not
@@ -1371,6 +1372,14 @@ columns for the vertical, and the earliest run within a scanline. Every
 scanline yields at least one run, so the summary is never null. What `runs`
 lists does not change; omitting the flag omits the JSON key, the text line and
 the comparison. The flag requires `--runs`.
+
+<a id="sampling-run-pages"></a>
+
+For a longer vertical border scan, start with `--max-runs 5 --run-offset 0 --run-count --json`
+as in the chooser above. Change the offset to 5 for the
+next page. Offsets count eligible run slots, not pixels; a later page can be
+empty. The cap limits displayed records, while the scan and requested
+unfiltered run count cover the full region.
 
 Pass `--max-runs N` with `--runs` to display only the first N eligible runs
 across the complete scan in its existing row or column order. Named color
