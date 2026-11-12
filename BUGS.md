@@ -444,6 +444,10 @@ The post-merge review of commit `9d3d5305b6a01cb3d9027d9d0d64337e640bc86f` (Reti
 
 The post-merge review of commit `da851084834acb61b4c2f3d7728c05cb9c3f7ab1` (Pin the zenity GTK dialog's Cancel push-button cell byte-1:1 beside the landed OK pin) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 4dd5c4db never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `4dd5c4db8ccfc7d8fe6b496fb15737dd264cc715` (Pin the GTK dialog capture's CSD window-shell edge with a fourth 1:1 byte-compare test) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
