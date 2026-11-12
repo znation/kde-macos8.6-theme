@@ -120,6 +120,10 @@ The post-merge review of commit `9a6d0021b5058be907c5a006ccca6220216243bc` (Add 
 
 The post-merge review of commit `99b67519d9813a07490c14f4a00888ed2fb61cc9` (Restate disabled GTK 3 links inside selected ancestors) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a7288806 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `a728880630507ddeb44ff134ad1cf126f78126c4` (Add disabled backdrop-link rules inside selected GTK 3 ancestors) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
