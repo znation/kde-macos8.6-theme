@@ -1,14 +1,15 @@
 """Direct tests for tools/session_bus.py.
 
 The `apply_theme` suite exercises the defaulted address
-through their command stubs; these pin the helper's own contract. The branch
-no caller test reaches is an absolute `XDG_RUNTIME_DIR` whose `bus` socket
-does not exist: the environment must be returned unchanged instead of pointing
+through its command stubs; these pin the helper's own contract directly.
+For an absolute `XDG_RUNTIME_DIR` whose `bus` socket does not exist,
+the environment must be returned unchanged instead of pointing
 a session tool at a socket that is not there.
 """
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -78,9 +79,11 @@ class TestSessionEnv(unittest.TestCase):
     def test_a_relative_runtime_dir_is_left_unchanged(self):
         # A relative runtime dir cannot name the session's socket, so no
         # address is defaulted even when a sibling 'bus' path would resolve.
+        (self.directory / "bus").write_text("", encoding="utf-8")
+        runtime = os.path.relpath(self.directory)
         self.assertEqual(
-            {"XDG_RUNTIME_DIR": "relative/rt"},
-            session_bus.session_env({"XDG_RUNTIME_DIR": "relative/rt"}),
+            {"XDG_RUNTIME_DIR": runtime},
+            session_bus.session_env({"XDG_RUNTIME_DIR": runtime}),
         )
 
     def test_an_empty_runtime_dir_is_left_unchanged(self):
