@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of d4609435 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The commit diff changes only a blank line in `tests/test_render_surface.py`; despite its subject, it does not remove a button-row assertion or alter behavior. The parent revision already contains the same assertions as the current file. The review record is settled: this commit introduces no code change to fix.
+
+**Validation gap:** none — the committed check was reported passing, and comparing the test file with its parent confirms the whitespace-only diff leaves the assertions unchanged.
+
 ### post-merge review of 08224293 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix:** Reviewed the commit's GTK 3 OSD stepper selector arms against the toolkit claims documented in the stylesheet and confirmed the current `test_osd_spinbutton_buttons` pins all twelve expected arms and declaration sets. The vertical active arm alone inverts its bevel; disabled arms omit the outline; vertical arms clear the stock background clip. The reviewed change is consistent with its recorded invariant.
