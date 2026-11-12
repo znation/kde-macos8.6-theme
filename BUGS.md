@@ -904,6 +904,10 @@ The post-merge review of commit `656c72479e8229ba89482d4f6f8f9cde28b1896c` (Make
 
 The post-merge review of commit `820df718427d54fcb2451a4e4ece6626384c00e7` (Land GTK 3 entry-image ink/margin arms with a clean PLANS move) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 4c38f516 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `4c38f516434be433bc7697b81355c85c87c3b5b7` (Fix the landed GTK 4 entry-icon change's backlog placement) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
