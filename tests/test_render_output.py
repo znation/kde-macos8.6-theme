@@ -121,6 +121,8 @@ class TestPublishSourceFailure(unittest.TestCase):
 
 
 class TestPublishFdopen(unittest.TestCase):
+    """A failed stream wrapper closes the temporary output descriptor."""
+
     def test_failed_fdopen_closes_descriptor(self):
         root = make_tmp_dir(self)
         source = root / "src.png"
@@ -176,6 +178,8 @@ class TestOutputProblem(unittest.TestCase):
 
 
 class TestOutputProblemTypeGuard(unittest.TestCase):
+    """`output_problem` refuses values that are not `Path` instances."""
+
     def test_non_path_output_raises_naming_type(self):
         with self.assertRaisesRegex(
             ValueError,
@@ -186,6 +190,8 @@ class TestOutputProblemTypeGuard(unittest.TestCase):
 
 
 class TestPublishTypeGuards(unittest.TestCase):
+    """`publish` refuses source and destination values that are not paths."""
+
     def test_non_path_source_raises_naming_type(self):
         with self.assertRaisesRegex(
             ValueError,
