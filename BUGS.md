@@ -1404,6 +1404,10 @@ The post-merge review of commit `ca74551fedabd7e058a7a07813c60a46e346d116` (Shar
 
 The post-merge review of commit `7e28b2d4104aeac7229cd1e99f456d682c6bc1dd` (Consolidate the GTK 3 selected-row swatch ring declaration) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a3327528 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `a3327528d4a36b17389760e8d588092fa1155670` (Add TestReconfigureKwin covering the qdbus-found branch of theme_apply_optional.reconfigure_kwin) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
