@@ -5,6 +5,22 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 file-chooser breadcrumbs: preserve black keyboard focus (planned 2026-11-03 by the plan role; independent of the queued emoji-section focus plan) — done 2026-11-11 by the review role
+
+**Goal and grounding.** Give the file chooser's breadcrumb buttons the landed black keyboard-focus colour. A 2026-11-03 `gresource extract` probe of `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` found these three arms grouped with `outline-color: color-mix(in srgb, var(--accent-color) 50%, transparent); outline-width: 2px; outline-offset: -2px`:
+
+- `filechooser #pathbarbox > stack > box > button:focus:focus-visible`
+- `filechooser #pathbarbox > stack > box > box > button:focus:focus-visible`
+- `filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible`
+
+Their ID-qualified specificity outranks the shipped `button:focus:focus-visible` colour. The corresponding `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` has no `pathbar` focus-visible arm. Searches of the shipped GTK 4 sheet, its tests, PLANS.md, PLANS-DONE.md and the invariant register found no `pathbarbox` treatment. The landed `pathbar > scrolledwindow > viewport` recipe targets a different node hierarchy. No collected reference shows GTK file-chooser breadcrumb focus; black is a platform adaptation reusing the landed generic button focus policy.
+
+**Approach and files.** Append one grouped rule with exactly the three selectors above and only `outline-color: #000000` to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Use a dated adaptation comment naming the missing reference surface and reused button focus colour; keep the library name out of CSS comments because `TestGtk4Theme::test_stands_alone` rejects it. In the supported GTK 4 user-import path, later user CSS wins against each exact stock twin. Width and offset stay inherited.
+
+In `tests/test_gtk4_theme.py`, add `TestGtk4Theme::test_filechooser_breadcrumb_focus_outline_color` beside `test_button_focus_outline_color`. For each exact selector, assert its complete parsed dictionary equals `{"outline-color": BLACK}`, its count in `self.selectors` is one, and its colour equals the generic button focus colour. Assert the set of parsed selectors containing `pathbarbox` equals these three spellings. Add a dated row under `## gtk` in `docs/invariants.md` linking this test, recording the full resource probe above, missing reference surface, chosen colour's source and user-import scope. Limit implementation to these three files; GTK 3, toolbar focus and breadcrumb face geometry are outside this plan.
+
+**Acceptance criteria.** The shipped stylesheet declares opaque black once for each of the three exact breadcrumb keyboard-focus arms, with no width or offset declaration in those rules. The new test fails if a selector is omitted or renamed, an accent colour is substituted, an extra declaration is added, or another `pathbarbox` spelling appears. Existing generic button focus and `pathbar` face tests remain green. The invariant register resolves the new test reference and records the adaptation provenance. Declaration checks establish neither rendered pixels nor keyboard traversal. Run `make check` after the final edit.
+
 ### README fidelity diagnostic table: link each report to its explanation (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal and grounding.** Let contributors jump from a chosen diagnostic to its detailed semantics. README.md's `### Choosing a diagnostic` table currently has six plain-text Need cells and one shared link to `#diagnostic-reference`; its detailed explanations have no individual destinations. The finished report-selection guide added the table, and the finished cropped-comparison workflow added command recipes; neither supplies per-report links. `tests/test_readme_links.py::local_link_errors` already recognizes standalone explicit HTML anchors, and `TestReadmeLinks.test_local_links_resolve` validates README fragments. `tools/fidelity_cli_parser.py::build_parser` defines the documented options and is an evidence anchor, not an implementation target. This task is independent of the waiting sampler navigation and the two entries being edited by the pending feature branch.

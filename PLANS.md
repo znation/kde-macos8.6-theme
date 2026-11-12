@@ -91,7 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-
 ### GTK 4 suite extraction, part 1/9: share fixture state (planned 2026-11-11 by the plan role)
 
 **Goal.** Enable small suite moves without importing a discoverable test class. This replaces the held all-at-once split with parts 1–9; the remaining declaration suites stay in `tests/test_gtk4_theme.py` for later planning. The push-button, scale and scrollbar probes already exist in that file. Prelude deduplication and archive rewriting are excluded from this series.
