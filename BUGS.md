@@ -18,7 +18,30 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-_None yet._
+### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
+
+**Symptom.** User reports: “The mouse cursors still look incredibly ugly.” This is a
+visual-quality report; no particular cursor role, selected size or display scale was supplied.
+
+**Reproduction / evidence.** On an explicitly requested desktop inspection, select the
+installed Platinum cursor theme with `make apply-cursor`, restart the inspected application,
+and compare the arrow, text and pointing-hand roles. Do not apply it or open windows in the
+user's session during routine triage. The reported appearance has not been independently
+reproduced. For inspection without changing settings, examine `ARROW_GRID`, `XTERM_GRID` and
+`HAND2_GRID` in `tools/cursor_art_pointers.py` and their shipped Xcursor frames under
+`theme/icons/org.macos8.desktop/cursors/`.
+
+**Suspected cause.** `tools/make_cursors.py::render_rgba` enlarges a shared 16×16 source grid
+using nearest-neighbour sampling for `NOMINAL_SIZES = (16, 24, 32)`. At 24 pixels this gives
+unequal source-pixel widths; coarse silhouettes and outlines are also possible contributors.
+These are code observations and hypotheses, not a diagnosis of the user's selected cursor.
+
+**Routing.** The open cursor-direction question in QUESTIONS.md records the aesthetic fork.
+Do not close this report merely because frame encoding, aliases or grid-equality tests pass.
+After direction is settled, route a redraw as small per-family PLANS.md entries, with original
+artwork, explicit size/hotspot expectations, regression tests and provenance for the reference
+surface that is missing. Investigate selection or scale defects separately if demonstrated;
+this report does not establish either defect.
 
 ## Won't fix
 
