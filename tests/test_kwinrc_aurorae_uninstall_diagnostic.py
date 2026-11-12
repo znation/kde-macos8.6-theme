@@ -10,10 +10,10 @@ leaves those keys, and KWin keeps drawing
 its built-in default window decoration; `_uninstall` prints a diagnostic
 naming the `kwriteconfig6 --delete` reset for the two keys when the last
 values of both still trim to exactly that pair, without editing the file.
-The scanner it runs on mirrors the shared `_uninstall` reads the landed
+The scanner it runs on mirrors the shared `_uninstall` reads the existing
 kwinrc button-layout diagnostic sits beside, so that suite keeps its own
 exact wordings and this module must not touch them or their files (the
-both-diagnostics staged case only asserts the landed wording and its
+both-diagnostics staged case only asserts the existing wording and its
 position before this one on stderr).
 The window-decoration theme key also carries its own later diagnostic,
 whose line fires even when this pair stays silent; the silent shapes below
@@ -303,8 +303,8 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
 
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
-    def test_silent_for_a_group_holding_only_the_landed_button_pair(self):
-        # The landed button-layout diagnostic covers the ButtonsOn pair; a
+    def test_silent_for_a_group_holding_only_the_existing_button_pair(self):
+        # The existing button-layout diagnostic covers the ButtonsOn pair; a
         # group with only that pair holds no decoration selection of ours.
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")

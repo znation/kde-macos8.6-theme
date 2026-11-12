@@ -2,17 +2,17 @@
 
 `make apply` applies the shipped look-and-feel, whose defaults publish
 `[kwinrc][org.kde.kdecoration2]` with `theme=org.macos8.desktop`
-beside `library=org.kde.kwin.aurorae` -- along with the button pair the landed
+beside `library=org.kde.kwin.aurorae` -- along with the button pair the existing
 kwinrc suites cover. After `make uninstall` removes the installed packages
 (the aurorae theme and the kwin/decorations/org.macos8.desktop decoration
 package), that
 theme id names a decoration package that no longer exists, and KWin silently
 falls back on the next start; `_uninstall` prints a diagnostic naming the
 `kwriteconfig6 --delete` reset for the two keys when the last value of `theme`
-trims to exactly that id, without editing the file. The landed pair diagnostic
+trims to exactly that id, without editing the file. The existing pair diagnostic
 stays silent when `library` is missing or foreign, and it remains owned by its
 own module, whose wordings and files this one must not touch (the staged
-case below asserts only the landed wordings, their relative order on stderr
+case below asserts only the existing wordings, their relative order on stderr
 and the byte identity of the file).
 """
 
@@ -80,7 +80,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             unchanged=path,
         )
 
-    def test_warns_with_the_landed_keys_staged_beside(self):
+    def test_warns_with_the_existing_keys_staged_beside(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_kwinrc(
@@ -166,7 +166,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
 
     def test_warns_when_the_library_key_is_missing_or_foreign(self):
-        # The landed pair diagnostic names both keys, so these shapes belong
+        # The existing pair diagnostic names both keys, so these shapes belong
         # to this read: the decoration id survives through `theme` alone.
         for body in (
             "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n",
@@ -278,7 +278,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
                 result = self.uninstall_with_config(tmp, config)
 
                 assert_succeeded(self, result)
-                # The landed pair diagnostic still fires on its own pair; this
+                # The existing pair diagnostic still fires on its own pair; this
                 # suite only forbids its own line.
                 self.assertNotIn(rule_for(path), result.stderr)
                 self.assertEqual(original, read_bytes(path))

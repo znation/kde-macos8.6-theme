@@ -15,7 +15,7 @@ subclass item itself (and on the `AppMenuButton` fallback); the base copy's
 gate stays as the package's copy of the engine file.
 These pins are parse/grep-level statements about the shipped copies in the
 style of the splash QML pins; they need no reference image and no engine
-render. The landed aurorae button SVG art stays byte-identical -- the pin
+render. The existing aurorae button SVG art stays byte-identical -- the pin
 is a digest set, the same content pin `tests/test_fonts.py` spells -- so
 any art change fails here beside the paintless `inactive-center` pins in
 `tests/test_aurorae_buttons.py`, which they keep true.
@@ -33,7 +33,7 @@ from support.repo_root import ROOT
 PACKAGE_UI = f"{ROOT}/theme/kwin-decoration/{AURORAE_ID}/contents/ui"
 BUTTON_SVG_DIR = f"{ROOT}/theme/aurorae/themes/{AURORAE_ID}"
 
-# The landed button art set, re-digested 2026-11-05 after each button's
+# The existing button art set, re-digested 2026-11-05 after each button's
 # `inactive-center` group gained the paintless full-canvas path that makes
 # `supportsInactive` resolve true (an empty group drew the active box on
 # unfocused bars); the gating edits only QML.

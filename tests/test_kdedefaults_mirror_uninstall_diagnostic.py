@@ -2,19 +2,19 @@
 
 The same look-and-feel apply that writes the live-config selections also
 left defaults-layer mirrors under `kdedefaults/`: the scratch-home apply
-recorded on the landed kdedefaults diagnostics wrote `kdedefaults/kdeglobals`
+recorded on the existing kdedefaults diagnostics wrote `kdedefaults/kdeglobals`
 holding `[Icons] Theme=org.macos8.desktop` and `[KDE] widgetStyle=kvantum`,
 `kdedefaults/kwinrc` holding `[org.kde.kdecoration2]` `NoPlugin=false` beside
 the `library=org.kde.kwin.aurorae` and
 `theme=org.macos8.desktop` pair, and `kdedefaults/plasmarc`
 holding `[Theme] name=org.macos8.desktop`. After `make uninstall` removes
-the installed packages and the landed resets `--delete` the live keys, a
+the installed packages and the existing resets `--delete` the live keys, a
 start still re-resolves the removed ids from these untouched mirrors.
 `_uninstall` prints one diagnostic per still-standing selection (up to two
 from the kdeglobals mirror) at its recipe tail, after part 1/2's splash and
 package checks, naming the `kwriteconfig6 --delete` reset against the
 mirror's literal path without editing any file. The scanners mirror the
-landed live-config diagnostics', so this module must not change their
+existing live-config diagnostics', so this module must not change their
 wordings or their files, and asserts their lines still read back unchanged.
 """
 
@@ -587,9 +587,9 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             "kdedefaults/plasmarc",
         )
 
-    # -- one run with the landed diagnostics ---------------------------------
+    # -- one run with the existing diagnostics ---------------------------------
 
-    def test_one_run_carries_the_landed_and_mirror_lines_in_recipe_order(self):
+    def test_one_run_carries_the_existing_and_mirror_lines_in_recipe_order(self):
         tmp, config = scratch_home(self)
         ksplash = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
@@ -612,7 +612,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
             ),
         )
         write_file(plasma_path, "[Theme]\nname=" + LNF_ID + "\n")
-        # A live-config diagnostic, from the landed kwinrc aurorae pair.
+        # A live-config diagnostic, from the existing kwinrc aurorae pair.
         live_kwinrc = os.path.join(config, "kwinrc")
         write_file(
             live_kwinrc,

@@ -168,10 +168,10 @@ class TestPlasmarcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # is no config home to read, so the diagnostic must be skipped.
         assert_no_config_home(self, RESET)
 
-    def test_both_diagnostics_share_one_run_with_their_landed_wordings(self):
+    def test_both_diagnostics_share_one_run_with_their_existing_wordings(self):
         # The staged plasmarc selection and the pointer diagnostic's
         # kcminputrc selection can both warn in one run; each keeps its own
-        # landed wording.
+        # existing wording.
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         plasmarc = write_selection(config, "[Theme]\nname=" + DTHEME_ID + "\n")

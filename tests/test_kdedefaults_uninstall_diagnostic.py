@@ -5,14 +5,14 @@ tool also writes the defaults layer of the KDE config search path: a
 scratch-home apply on this host left `kdedefaults/ksplashrc` holding
 `[KSplash] Engine=KSplashQML` and `Theme=org.macos8.desktop`, and a flat
 `kdedefaults/package` file holding exactly `org.macos8.desktop`. After
-`make uninstall` removes the installed packages and the landed resets
+`make uninstall` removes the installed packages and the existing resets
 `--delete` the live keys, a start still resolves those defaults, naming
 removed ids silently; the splash selection appears nowhere else in any read
 config. `_uninstall` prints one diagnostic per still-standing selection at
 its recipe tail, naming the reset (`kwriteconfig6 --file <ksplashrc path>
 --group KSplash --key Theme --delete` for the splash, `rm "<package path>"`
 for the flat package default) without editing either file. The scanner
-mirrors the shared `_uninstall` reads, so the landed diagnostics' suites
+mirrors the shared `_uninstall` reads, so the existing diagnostics' suites
 keep their exact wordings and this module must not touch them or their
 files.
 """
@@ -325,9 +325,9 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_without_a_config_home_nothing_is_checked(self):
         assert_no_config_home(self, "kdedefaults/ksplashrc", "kdedefaults/package")
 
-    # -- one run with the landed diagnostics ---------------------------------
+    # -- one run with the existing diagnostics ---------------------------------
 
-    def test_recipe_order_keeps_the_landed_aurorae_wordings_ahead(self):
+    def test_recipe_order_keeps_the_existing_aurorae_wordings_ahead(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         ksplash = write_file(

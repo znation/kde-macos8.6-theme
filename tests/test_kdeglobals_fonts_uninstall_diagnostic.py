@@ -11,7 +11,7 @@ naming the matching `kwriteconfig6 --delete` reset when that key's last
 value in its own section still trims to exactly the published one, without
 editing the file. The five conditions are independent: one key's match
 never gates another's line. The scanner it runs on mirrors the shared
-`_uninstall` read the landed kdeglobals widget-style/icon-theme diagnostic
+`_uninstall` read the existing kdeglobals widget-style/icon-theme diagnostic
 pins, so that suite keeps its exact wording and this module must not touch
 it or its other files.
 """
@@ -230,7 +230,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
                 self.assertNotIn(reset_for(section, key), result.stderr)
 
     def test_not_warned_for_a_case_mismatch(self):
-        # Keys are case-sensitive, as the landed kdeglobals diagnostics are.
+        # Keys are case-sensitive, as the existing kdeglobals diagnostics are.
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(config, "[General]\nFont=Lato,10\n[WM]\nActiveFont=Lato,10\n")
@@ -319,7 +319,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
 
     def test_all_kdeglobals_diagnostics_share_one_run_in_recipe_order(self):
         # The staged color-scheme and look-and-feel selections and the five
-        # font keys warn in one run; each keeps its landed wording and the
+        # font keys warn in one run; each keeps its existing wording and the
         # lines appear in recipe order (color scheme, widget style, icon
         # theme, then the five font lines).
         tmp = str(make_tmp_dir(self))

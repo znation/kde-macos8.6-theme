@@ -11,7 +11,7 @@ to exactly that pair, without editing the file. The scanner it runs on
 mirrors the shared `_uninstall` reads the color scheme, GTK, kvconfig and
 kcminputrc diagnostics already pin, so those suites keep their own exact
 wordings and this module must not touch them or their files (the both-files
-staged case only asserts the landed pointer wording stays intact).
+staged case only asserts the existing pointer wording stays intact).
 """
 
 import os
@@ -39,7 +39,7 @@ from support.kwinrc_uninstall_wording import (
 
 
 def POINTER_RULE(path):
-    """The landed pointer diagnostic's line (wording owned by that suite)."""
+    """The existing pointer diagnostic's line (wording owned by that suite)."""
     return (
         "uninstall: the pointer selection still names org.macos8.desktop "
         f"after removal in {path}; Xcursor applications cannot load the "
@@ -55,7 +55,7 @@ def write_kwinrc(config, body):
 
 
 def write_kcminputrc(config):
-    """Stage the landed pointer selection in `<config>/kcminputrc`."""
+    """Stage the existing pointer selection in `<config>/kcminputrc`."""
     return write_config_file(
         config, "kcminputrc", "[Mouse]\ncursorTheme=org.macos8.desktop\n"
     )
@@ -280,7 +280,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_without_a_config_home_nothing_is_checked(self):
         assert_no_config_home(self, LEFT_KEY)
 
-    def test_both_diagnostics_share_one_run_with_their_landed_wordings(self):
+    def test_both_diagnostics_share_one_run_with_their_existing_wordings(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         pointer_path = write_kcminputrc(config)

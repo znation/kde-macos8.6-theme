@@ -257,7 +257,7 @@ class TestKdeglobalsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
 
     def test_all_three_kdeglobals_diagnostics_share_one_run_in_recipe_order(self):
         # The staged color-scheme selection and the two look-and-feel keys
-        # warn in one run; each keeps its landed wording and the lines appear
+        # warn in one run; each keeps its existing wording and the lines appear
         # in recipe order (color scheme, widget style, icon theme).
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")

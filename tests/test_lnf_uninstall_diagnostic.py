@@ -9,7 +9,7 @@ global theme. `_uninstall` prints one diagnostic naming the matching
 `kwriteconfig6 --delete` reset when the key's last value inside `[KDE]`
 still trims to exactly the published one, without editing the file. The
 command runs through the shared `_uninstall` kdeglobals scanner the
-landed widget-style/icon-theme diagnostic pins, so that suite keeps its
+existing widget-style/icon-theme diagnostic pins, so that suite keeps its
 exact wording and this module must not touch it or its other files.
 """
 
@@ -139,7 +139,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
                 self.assertNotIn(RESET, result.stderr)
 
     def test_not_warned_for_a_case_mismatch(self):
-        # Keys are case-sensitive, as the landed kdeglobals diagnostics are.
+        # Keys are case-sensitive, as the existing kdeglobals diagnostics are.
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         write_selection(
@@ -216,7 +216,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
 
     def test_all_kdeglobals_diagnostics_share_one_run_in_recipe_order(self):
         # The staged color-scheme, widget-style, icon-theme and global-theme
-        # selections warn in one run; each keeps its landed wording and the
+        # selections warn in one run; each keeps its existing wording and the
         # lines appear in recipe order (color scheme, widget style, icon
         # theme, then the global theme).
         tmp = str(make_tmp_dir(self))
@@ -245,7 +245,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         self.assertEqual(original, read_bytes(path))
 
     def test_the_font_diagnostics_keep_their_own_lines_beside_ours(self):
-        # The landed five Lato font lines share the same kdeglobals reads
+        # The existing five Lato font lines share the same kdeglobals reads
         # in one run; the font block sits before this block, so the five
         # font lines appear before the global-theme line, whose own
         # wording stays unchanged.
