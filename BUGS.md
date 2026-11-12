@@ -1180,6 +1180,10 @@ The post-merge review of commit `7e4f9e34d9470c7ee3939fb35da73e853dbe84e9` (Hand
 
 The post-merge review of commit `9dd07beb32cd5a3b8a03fa1fa5d8ae9452cf4e1c` (Add reference-derived minimum sizes for GTK 3 overlay thumbs) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of ed3452b6 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `ed3452b6c48d4efc9ef5c45e73f1efd765d5826d` (Add a focused outline for GTK 3 radio buttons) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
