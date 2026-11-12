@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of fad0a08b never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed the test refactor: the shared helper creates an executable with a missing interpreter, restricts `PATH` to prevent fallback to a host command, and checks exit status, command-specific diagnostic, absence of traceback/output, and scratch cleanup. Both callers preserve their distinct command names and diagnostics; the surrounding fixture supplies isolated paths and cleanup assertions.
+
+**Validation gap:** none — the existing suite exercises the shared helper through both command-specific failure tests.
+
 ### post-merge review of c0de12d5 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `c0de12d5925a8a2cfead6a245e02b0f3633d9e76` (Add GTK 3 view-specific rubberband recipes and coverage) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
