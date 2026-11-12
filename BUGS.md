@@ -1764,6 +1764,10 @@ The post-merge review of commit `3ec2f6638b84fde394761e335689eea005df6d7f` (Inst
 
 The post-merge review of commit `cd95cb79005af319eb7531d16b748fc680c25959` (Ignore `@define-color` text inside stylesheet rule blocks) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 401b81c9 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `401b81c94379249092313c28b3f6acabdf3cdc5b` (Preserve escaped colons in shared stylesheet property names) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
