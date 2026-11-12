@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction, part 1/9: share fixture state (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
+
+**Goal.** Enable small suite moves without importing a discoverable test class. This replaces the held all-at-once split with parts 1–9; the remaining declaration suites stay in `tests/test_gtk4_theme.py` for later planning. The push-button, scale and scrollbar probes already exist in that file. Prelude deduplication and archive rewriting are excluded from this series.
+
+**Approach and files.** Move `THEME_ID`, `THEME_DIR`, `CSS`, `DEFINED_COLOURS`, `SCALE_FOCUS`, `SCALE_SLIDER`, `_rgb` and the assertion-only methods `assert_scale_focus_outline`, `assert_black_focus_outline`, `assert_scale_anchored_focus_outline`, `assert_scale_slider_transition`, `assert_matches_frame`, `assert_plain_action_arms` and `_assert_toast_matches_popover` from `tests/test_gtk4_theme.py` into new `tests/support/gtk4_sheet.py`. Define `Gtk4SheetRuleCases(GtkSharedControlCases)` there with `CSS_PATH = CSS`; inherit the existing guarded parser setup in `support/gtk_rule_cases.py`, rather than adding a second setup. Update `TestGtk4Theme` to inherit that base and import the moved constants it uses. Keep assertion bodies unchanged and prune unused imports. No test methods belong in the support class. Read helper bodies before moving their imports.
+
+**Acceptance.** Routine discovery exposes the same test methods and skip outcomes as before; support-module imports expose no discoverable test cases. A before/after AST comparison shows unchanged bodies for the moved assertions, and `make check` passes. The guarded CSS read and repository-relative parse diagnostics remain in force. Parts 2–9 each require this part and can then merge in either order.
+
 ### README sampler filters: document contradictory-window refusal (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal and grounding.** Bring the sampling reference into agreement with the user-approved refusal implemented in `tools/sample_arguments.py::option_error` (commit `2fd4e2452`). README's maximum histogram count/fraction and horizontal/vertical match-run passages still promised empty output for contradictory bounds. The scanline-run passage described combining bounds without explaining the refusal. This documentation correction is independent of the GTK 4 extraction series; its README edits concern Sampling reference pixels only.
