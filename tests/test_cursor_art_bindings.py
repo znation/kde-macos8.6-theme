@@ -79,26 +79,26 @@ class TestCursorArtBindings(unittest.TestCase):
         for module in MODULES:
             for grid_name in _exported_grid_names(module):
                 grid = vars(module)[grid_name]
+                binding_count = sum(bound is grid for bound in bound_grids)
                 with self.subTest(module=module.__name__, grid=grid_name):
                     self.assertEqual(
-                        bound_grids.count(grid),
+                        binding_count,
                         1,
-                        f"{grid_name} is bound {bound_grids.count(grid)} times "
+                        f"{grid_name} is bound {binding_count} times "
                         "in cursor_art.CURSORS; each data module's grid must "
                         "bind exactly once",
                     )
 
     def test_every_cursor_entry_binds_a_grid_a_data_module_exports(self):
-        module_grids = {
+        module_grids = [
             vars(module)[grid_name]
             for module in MODULES
             for grid_name in _exported_grid_names(module)
-        }
+        ]
         for name, grid, _hotspot, _aliases in cursor_art.CURSORS:
             with self.subTest(cursor=name):
-                self.assertIn(
-                    grid,
-                    module_grids,
+                self.assertTrue(
+                    any(grid is exported for exported in module_grids),
                     f"{name} binds a grid no cursor-art data module exports",
                 )
 
