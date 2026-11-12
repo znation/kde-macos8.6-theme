@@ -27,7 +27,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.flock_fixtures import hold_directory_flock
+from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from tools.file_lock import (
     POLL_SECONDS,
     exclusive_flock,
@@ -283,11 +283,7 @@ class TestInstalledDataLock(unittest.TestCase):
             finally:
                 os.close(holder)
         self.assertTrue(body_ran, "the wrapper did not run its body")
-        descriptor = open_directory(self.data_home)
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        finally:
-            os.close(descriptor)
+        assert_directory_flock_free(self.data_home)
 
     def test_a_missing_data_home_is_refused_not_created(self):
         """A data home that does not exist yet raises *error*, not a mkdir.
