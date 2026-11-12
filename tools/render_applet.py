@@ -3,8 +3,8 @@
 ``plasmawindowed <applet>`` opens a Plasma applet package from the XDG data
 directories: KPackage searches ``<data root>/plasma/plasmoids/<id>/`` and reads
 its ``metadata.json``. A package is not a command, so a missing-tool check
-never sees its absence -- a host without the default applet used to waste a
-full scratch KWin session on a capture that never painted and timed out.
+never sees its absence -- on a host without the default applet, the capture
+would waste a full scratch KWin session and time out before anything paints.
 :func:`applet_problem` is the pre-flight check that closes that wart: it
 returns a diagnostic string when the package cannot be found, or ``None`` when
 one of the searched roots holds it.

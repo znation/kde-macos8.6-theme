@@ -9,7 +9,7 @@ content to a failing test's diagnostic.
 This is the one implementation of the guard. The ``tools/`` scripts and the
 test suite both import it -- tests reach it as ``tools.containment`` with the
 repository root on ``sys.path`` -- so a refinement here reaches every reader
-instead of the private copies the guard used to be reimplemented in.
+rather than being copied into each one.
 
 :func:`require_within_repo` resolves the path and refuses one that is lexically
 inside the repository but lands outside it; a path that is not inside the
