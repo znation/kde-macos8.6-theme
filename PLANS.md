@@ -101,6 +101,16 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** A reader can append the new options to the documented aligned-crop command and follow the row's link directly to the horizontal-summary explanation. The table distinguishes a single longest segment from the capped interval list and states crop-relative coordinates and the possible null result. The added options parse with `build_parser().parse_args` using placeholder candidate/reference paths, without image reads or GUI activity. Existing diagnostic links still resolve. Review the anchor placement and run `make check` after the final edit.
 
+### README fidelity chooser: locate the longest vertical defect (planned 2026-11-11 by the plan role)
+
+**Goal.** Help contributors locate an uninterrupted side-border defect using the existing vertical summary without requesting a full interval list.
+
+**Approach and files.** Edit README.md only, outside the brief. Append one row to Choosing a diagnostic with options `--longest-difference-column-run --json`, describing one longest vertical mismatch segment with crop-relative start and pixel length, or null when no pixel exceeds tolerance. Link its task label to a new standalone `fidelity-report-longest-vertical-run` anchor immediately before the existing vertical-summary explanation in Diagnostic reference. Add a short chooser note that the summary covers the complete compared crop, ties select the earliest column then row, and the summary alone does not emit the interval list. Preserve the aligned-crop recipe and existing report rows. This is independently mergeable alongside the queued horizontal-summary navigation entry; the pending sampler palette-page guide concerns a different section. No runtime or invariant change or new prose-pinning test is needed.
+
+**Grounding.** `tools/fidelity_cli_parser.py::build_parser` exposes the flag; `tools/fidelity.py::main` requests the column summary independently of its interval list. `tools/fidelity_spatial.py::longest_difference_column_run` and `select_longest_run` select the first maximum in column scan order; `tools/fidelity_reports.py::report_data` emits a requested null summary. README documents this flag in detail but its chooser offers vertical interval lists without the summary choice. Related archived compact-guide, per-report-link, distribution/channel chooser and vertical-summary CLI plans cover other deliverables. `tests/test_readme_links.py::local_link_errors` recognizes standalone anchors. These symbols are evidence anchors, not implementation targets.
+
+**Acceptance criteria.** A reader can append the row's options to the documented aligned-crop command and follow its task link directly to the vertical-summary explanation. The table distinguishes one longest segment from the capped vertical interval list and states crop-relative coordinates and the possible null result. The added options parse with `build_parser().parse_args` using placeholder candidate/reference paths, without image reads or GUI activity. Existing diagnostic links still resolve. Review anchor placement and run `make check` after the final edit.
+
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
