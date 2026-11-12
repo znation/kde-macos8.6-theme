@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README split, part 1/5: let the README tests follow links into docs/ guides (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
+
+**Goal.** On 2026-11-12 the user asked to shorten README.md (1,934 lines) by moving its longest sections into separate markdown files and linking to them. Parts 2/5–5/5 each move one section into a `docs/<topic>.md` guide. About a dozen tests read README.md text and would fail or quietly lose coverage once that text moves. This part adds the shared reader those parts retarget to, and it extends the link checker across files. It moves no prose.
+
+**Approach.**
+- New `tests/support/user_docs.py`:
+  - `linked_guides(readme_text) -> list[str]` returns the repo-relative `docs/*.md` paths that README's inline links point at (`](docs/<name>.md)` or `](docs/<name>.md#frag)`, outside fenced code), deduplicated, in first-seen order.
+  - `read_user_docs() -> str` returns README.md's text followed by each linked guide's text, joined with `"\n\n"`. Every read goes through `containment.read_text(path, ROOT, encoding="utf-8")`, the same guard the README readers use.
+  - The corpus is whatever README links to, so a guide joins it when README links it. A guide that README does not link is not user documentation. README links neither `docs/invariants.md` nor `docs/principles-rationale.md` today, so they stay out.
+- `tests/test_readme_links.py`:
+  - Keep `local_link_errors` for same-document `(#frag)` links. Run it on README and on each linked guide.
+  - Add `cross_file_link_errors(source_path, text)`. It resolves `](<relpath>.md#frag)` and `](<relpath>.md)` targets relative to the source file and returns a target in either of two cases: the file does not exist, or the fragment matches no heading slug or explicit anchor in that file. Reuse the existing `_slug`/heading/anchor logic: refactor its destination collection into a helper that both functions call, without changing current results. Ignore links with a URL scheme.
+  - Apply it to README → guide links and to guide → `../README.md#frag` links.
+- `docs/invariants.md`: update the `tests/test_readme_links.py::TestReadmeLinks` row. It now says "no network or cross-file validation"; make it describe the cross-file check over README and its linked guides.
+
+**Files.** `tests/support/user_docs.py` (new), `tests/test_readme_links.py`, a new `tests/test_user_docs.py` (or new cases in `tests/test_readme_links.py`), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- In unit tests on temporary files, `linked_guides` returns a linked guide once for text that links it twice, once bare and once with a fragment (the fixtures name the real `docs/principles-rationale.md` and `docs/invariants.md` rather than hypothetical guides). It ignores a link inside a fenced code block and links with a URL scheme (`https://example.com/elsewhere/b.md`, `mailto:`).
+- `cross_file_link_errors` reports a link to a missing file, and a link whose fragment matches no heading in an existing file. It reports nothing for a link whose fragment matches a heading slug.
+- `read_user_docs()` on the current tree equals README.md's text, because README links no guide yet. A symlinked guide that escapes the repository is refused, like the existing README containment tests.
+- README.md is unchanged. `make check` passes after the final edit.
+
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
 
 **Goal.** Give the progressbar rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.

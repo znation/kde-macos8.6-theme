@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import re
 import unittest
+from pathlib import Path
 
 from support import containment
 from support.repo_root import ROOT
+from support.tmp_dir import make_tmp_dir
+from support.user_docs import linked_guides
 
 _HEADING = re.compile(r"^ {0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$")
 _LINK = re.compile(r"\[[^\]]*\]\(#([^\s)]+)\)")
+_CROSS_LINK = re.compile(r"\]\(([^)\s#]+\.md)(?:#([^\s)]+))?\)")
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 _ANCHOR = re.compile(r"^\s{0,3}<a\s+id\s*=\s*(['\"])([^'\"]+)\1\s*>\s*</a>\s*$")
 _PUNCTUATION = re.compile(r"[^\w\s-]", re.UNICODE)
 _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
@@ -26,13 +31,10 @@ def _slug(text: str) -> str:
     return re.sub(r"\s+", "-", text.strip())
 
 
-def local_link_errors(text: str) -> list[str]:
-    """Return unresolved local fragments outside fenced code blocks."""
-    destinations: set[str] = set()
-    links: list[str] = []
+def _prose_lines(text: str):
+    """Yield the lines of *text* outside fenced code blocks, fences excluded."""
     fence_char = None
     fence_size = 0
-    used: set[str] = set()
     for line in text.splitlines():
         fence = _FENCE.match(line)
         if fence:
@@ -44,6 +46,14 @@ def local_link_errors(text: str) -> list[str]:
             continue
         if fence_char is not None:
             continue
+        yield line
+
+
+def _destinations(text: str) -> set[str]:
+    """Return the fragment destinations *text* defines: heading slugs and explicit anchors."""
+    destinations: set[str] = set()
+    used: set[str] = set()
+    for line in _prose_lines(text):
         heading = _HEADING.match(line)
         if heading:
             base = _slug(heading.group(1))
@@ -57,8 +67,42 @@ def local_link_errors(text: str) -> list[str]:
         anchor = _ANCHOR.match(line)
         if anchor:
             destinations.add(anchor.group(2))
+    return destinations
+
+
+def local_link_errors(text: str) -> list[str]:
+    """Return unresolved local fragments outside fenced code blocks."""
+    destinations = _destinations(text)
+    links: list[str] = []
+    for line in _prose_lines(text):
         links.extend(_LINK.findall(line))
     return [target for target in links if target not in destinations]
+
+
+def cross_file_link_errors(source_path, text: str, root=ROOT) -> list[str]:
+    """Return ``](<file>.md)`` and ``](<file>.md#frag)`` links that do not resolve.
+
+    A target resolves relative to *source_path*'s directory. It is an error when
+    the file is missing, or when the fragment names no heading slug or explicit
+    anchor in that file. URL-scheme targets are ignored. Files are read through
+    the containment reader bounded by *root*.
+    """
+    source_dir = Path(source_path).parent
+    errors: list[str] = []
+    for line in _prose_lines(text):
+        for target, fragment in _CROSS_LINK.findall(line):
+            if _SCHEME.match(target):
+                continue
+            path = source_dir / target
+            label = f"{target}#{fragment}" if fragment else target
+            if not path.is_file():
+                errors.append(label)
+                continue
+            if fragment:
+                linked = containment.read_text(path, root, encoding="utf-8")
+                if fragment not in _destinations(linked):
+                    errors.append(label)
+    return errors
 
 
 class TestReadmeLinks(unittest.TestCase):
@@ -136,6 +180,57 @@ class TestReadmeLinks(unittest.TestCase):
         self.assertIn("navigation", local_link_errors(removed + "\n[legacy](#navigation)"))
         self.assertIn("navigation", local_link_errors(renamed + "\n[legacy](#navigation)"))
         self.assertGreater(navigation_position(moved)[0], navigation_position(moved)[1])
+
+    def test_cross_file_missing_file_and_unmatched_fragment_are_reported(self):
+        root = make_tmp_dir(self)
+        (root / "docs").mkdir()
+        (root / "README.md").write_text(
+            "# Real heading\n\n[missing](docs/invariants.md) [bad fragment](docs/principles-rationale.md#nope)\n",
+            encoding="utf-8",
+        )
+        (root / "docs" / "principles-rationale.md").write_text("# Real heading\n", encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        self.assertEqual(
+            ["docs/invariants.md", "docs/principles-rationale.md#nope"],
+            cross_file_link_errors(root / "README.md", readme, root),
+        )
+
+    def test_cross_file_fragment_matching_heading_slug_or_anchor_resolves(self):
+        root = make_tmp_dir(self)
+        (root / "docs").mkdir()
+        readme = "[h](docs/principles-rationale.md#real-heading) [a](docs/principles-rationale.md#explicit)\n"
+        (root / "README.md").write_text(readme, encoding="utf-8")
+        (root / "docs" / "principles-rationale.md").write_text(
+            "# Real heading\n<a id='explicit'></a>\n", encoding="utf-8"
+        )
+        self.assertEqual([], cross_file_link_errors(root / "README.md", readme, root))
+
+    def test_cross_file_targets_resolve_relative_to_the_source_directory(self):
+        root = make_tmp_dir(self)
+        (root / "docs").mkdir()
+        guide = "# Guide\n\n[back](../README.md#installing)\n"
+        (root / "README.md").write_text("# Installing\n", encoding="utf-8")
+        (root / "docs" / "guide.md").write_text(guide, encoding="utf-8")
+        self.assertEqual([], cross_file_link_errors(root / "docs" / "guide.md", guide, root))
+        moved = guide.replace("../README.md", "README.md")
+        self.assertEqual(
+            ["README.md#installing"],
+            cross_file_link_errors(root / "docs" / "guide.md", moved, root),
+        )
+
+    def test_cross_file_scheme_targets_are_ignored(self):
+        root = make_tmp_dir(self)
+        text = "[web](https://example.com/elsewhere/b.md) [other scheme](mailto:b.md)\n"
+        self.assertEqual([], cross_file_link_errors(root / "README.md", text, root))
+
+    def test_cross_file_links_resolve_in_readme_and_its_linked_guides(self):
+        readme = read_readme()
+        readme_path = Path(ROOT) / "README.md"
+        self.assertEqual([], cross_file_link_errors(readme_path, readme))
+        for guide in linked_guides(readme):
+            guide_text = containment.read_text(f"{ROOT}/{guide}", ROOT, encoding="utf-8")
+            errors = cross_file_link_errors(Path(ROOT) / guide, guide_text)
+            self.assertEqual([], errors, f"unresolved links in {guide}: {errors}")
 
 
 if __name__ == "__main__":
