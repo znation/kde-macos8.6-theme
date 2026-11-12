@@ -7,7 +7,42 @@ each run.
 
 ## Open
 
-_None yet._
+### Which monospaced font should the theme ship for fixed-width text?
+
+(asked 2026-11-12 by the director role)
+
+**Context.** The user asked on 2026-11-12 for a fixed-width face that sits with the
+Charcoal/Chicago look, naming Courier Prime (Bold), JetBrains Mono (Medium/Bold), IBM Plex Mono
+and Space Mono as options. Today the theme sets no fixed font: `theme/look-and-feel/org.macos8.desktop/contents/defaults`
+writes `font`, `menuFont`, `toolBarFont`, `smallestReadableFont` and `[WM] activeFont` (all Lato)
+but no `[General] fixed` key, so monospaced text keeps the user's own fixed font (README.md and
+`theme/fonts/org.macos8.desktop/PROVENANCE.md` say so). Shipping one means vendoring the face
+into `theme/fonts/org.macos8.desktop/` with its licence and a provenance row, adding a
+`fixed=<Family>,10` default, and extending `make uninstall`'s leftover-key diagnostic to the
+`fixed` key. All four candidates are SIL OFL 1.1. Lato was vendored as a byte copy of a Debian
+package; on this machine `apt-cache policy` (checked 2026-11-12) offers `fonts-jetbrains-mono`,
+`fonts-ibm-plex` and `fonts-courier-prime` (none installed), but no Space Mono package, so Space
+Mono would come from an upstream download with its own recorded digest.
+
+**Options.**
+1. JetBrains Mono, selected at a heavier weight (Medium, Bold for emphasis). A grotesque with a
+   tall x-height and even strokes — the closest to Charcoal's sturdy, legible screen look; Debian
+   packaged.
+2. IBM Plex Mono, heavier weight. Similar reasoning to option 1, slightly more humanist and
+   narrower; Debian packaged.
+3. Space Mono. Geometric, quirky retro-tech shapes that echo Chicago's 1980s character more than
+   Charcoal's; not Debian packaged, so provenance is an upstream download.
+4. Courier Prime Bold. A typewriter slab serif: clearly "retro", but its serifs and shapes are
+   unlike both Chicago and Charcoal, which are sans faces; Debian packaged.
+5. Keep the user's own fixed font (current behaviour).
+
+**Recommendation.** Option 1: JetBrains Mono, with the Regular and Bold files vendored and Bold
+(or Medium if you prefer slightly lighter) selected as the fixed font at 10 pt. Its tall
+lowercase and thick strokes match Charcoal's weight on screen, it carries a clear OFL licence, and
+it follows Lato's Debian byte-copy provenance pattern. Note that a theme-selected fixed font
+overrides the font every terminal and editor using KDE's fixed font shows — say if you would
+rather it only apply when the user has not chosen one. Once answered, the director writes the
+vendoring plan.
 
 ## Answered
 
