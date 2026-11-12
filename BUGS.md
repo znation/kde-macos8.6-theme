@@ -1412,6 +1412,10 @@ The post-merge review of commit `a3327528d4a36b17389760e8d588092fa1155670` (Add 
 
 The post-merge review of commit `42c774f2975f3f1815718561d3fe907e0ad3c9ef` (Share the colorchooser suite's 8-copied add-color selector tuple via one helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 418d2458 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `418d2458ca80c504b389df1669ddc11213e8aa59` (Declare the GTK 3 content-view field and backdrop) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
