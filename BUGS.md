@@ -896,6 +896,10 @@ The post-merge review of commit `e7c86286db280ad75cbbe9ff7b72f964bc5cee06` (Shar
 
 The post-merge review of commit `a3889479920db3b9219ac7b5c5f04a7e4b48a7e1` (Use the shared exit-2/no-traceback refusal assertion in two suites) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 656c7247 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `656c72479e8229ba89482d4f6f8f9cde28b1896c` (Make uninstall diagnostics refuse a FIFO swapped in after the path check) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
