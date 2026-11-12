@@ -223,7 +223,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # while it captures a key -- with its accent. No collected
         # reference screenshot shows accelerator editing, so the pinned
         # selection fill answers it, as for the selected rows and the
-        # drop header arm (see the sheet's
+        # drop header arm (see the sheet's adaptation
         # comment); the one stock arm was probed fresh 2026-11-09 with
         # gresource extract of the toolkit resource in
         # /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (its resource path is
@@ -843,10 +843,10 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # The four marked-scale fine-tune thumb arms also name
         # the token and are pinned with the marked-scale thumbs by
         # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
-        # same date's fine-tuned container geometry restatement adds the
+        # fine-tuned container geometry restatement adds the
         # two orientation container spellings, pinned by
         # test_gtk_theme_controls.TestGtkThemeControls::
-        # test_scale_fine_tune_container_geometry; and the same date's
+        # test_scale_fine_tune_container_geometry; and the
         # marked-node geometry restatement adds the six fine-tuned tick
         # margin and minimum spellings, pinned by
         # test_gtk_theme_controls.TestGtkThemeControls::

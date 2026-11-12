@@ -1917,7 +1917,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # while it captures a key -- with its accent. No collected
         # reference screenshot shows accelerator editing, so the pinned
         # selection fill answers it, as for the selected rows and the
-        # drop header arm (see the sheet's
+        # drop header arm (see the sheet's adaptation
         # comment). The three stock arms were probed fresh 2026-11-09
         # with gresource extract of Default-light.css and Default-dark.css
         # in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6,
