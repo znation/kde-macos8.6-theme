@@ -145,6 +145,33 @@ Decoration {
             rightMargin: decoration.client.maximized ? AuroraeTheme.titleEdgeRightMaximized : (AuroraeTheme.titleEdgeRight + root.padding.right)
         }
     }
+    // 2026-11-12, caption gap: Mac OS 8.6 clears the title-bar pinstripes
+    // behind the caption -- the reference screenshots draw a solid #CCCCCC
+    // band the width of the painted caption plus about 4px each side,
+    // spanning the stripe rows while the frame's top highlight and bottom
+    // rule stay (apps_macrumors8.6.jpg "About This Computer", pixel columns
+    // sampled 2026-11-12) -- so the title reads over the stripes. The band
+    // shows only on an active window: the inactive art is stripe-free.
+    Rectangle {
+        id: captionGap
+        color: "#cccccc"
+        visible: decoration.client.active
+        // The band is the painted caption plus 4px each side, never wider
+        // than the space between the button groups.
+        property real bandWidth: Math.min(caption.width, caption.contentWidth + 8)
+        x: {
+            if (caption.horizontalAlignment === Text.AlignRight) {
+                return caption.x + caption.width - bandWidth;
+            }
+            if (caption.horizontalAlignment === Text.AlignHCenter) {
+                return caption.x + (caption.width - bandWidth) / 2;
+            }
+            return caption.x;
+        }
+        y: caption.y + 2
+        width: bandWidth
+        height: caption.height - 4
+    }
     Text {
         id: caption
         text: decoration.client.caption

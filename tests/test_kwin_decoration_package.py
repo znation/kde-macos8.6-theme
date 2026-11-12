@@ -210,6 +210,58 @@ def expected_gated_aurorae_maximize_button(engine):
     )
 
 
+# The 2026-11-12 caption gap: the package main.qml copy adds a solid band
+# behind the caption, the way Mac OS 8.6 clears the title-bar pinstripes
+# behind the title text (reference apps_macrumors8.6.jpg, columns sampled
+# 2026-11-12). The engine caption Text is untouched; the band sits before it
+# so the Text paints on top.
+CAPTION_HEAD = "    Text {\n        id: caption\n"
+CAPTION_GAP_BLOCK = """\
+    // 2026-11-12, caption gap: Mac OS 8.6 clears the title-bar pinstripes
+    // behind the caption -- the reference screenshots draw a solid #CCCCCC
+    // band the width of the painted caption plus about 4px each side,
+    // spanning the stripe rows while the frame's top highlight and bottom
+    // rule stay (apps_macrumors8.6.jpg "About This Computer", pixel columns
+    // sampled 2026-11-12) -- so the title reads over the stripes. The band
+    // shows only on an active window: the inactive art is stripe-free.
+    Rectangle {
+        id: captionGap
+        color: "#cccccc"
+        visible: decoration.client.active
+        // The band is the painted caption plus 4px each side, never wider
+        // than the space between the button groups.
+        property real bandWidth: Math.min(caption.width, caption.contentWidth + 8)
+        x: {
+            if (caption.horizontalAlignment === Text.AlignRight) {
+                return caption.x + caption.width - bandWidth;
+            }
+            if (caption.horizontalAlignment === Text.AlignHCenter) {
+                return caption.x + (caption.width - bandWidth) / 2;
+            }
+            return caption.x;
+        }
+        y: caption.y + 2
+        width: bandWidth
+        height: caption.height - 4
+    }
+"""
+
+
+def expected_gated_main(engine):
+    """The package main.qml copy: rename, then the caption gap band."""
+    renamed = engine.replace("auroraeTheme.", "AuroraeTheme.")
+    assert renamed.count(CAPTION_HEAD) == 1, ENGINE_DIR
+    return renamed.replace(CAPTION_HEAD, CAPTION_GAP_BLOCK + CAPTION_HEAD, 1)
+
+
+# Renamed copies that carry a gated addition on top of the theme-token
+# rename; the plain rename-only expectation does not apply to them.
+RENAMED_GATED_COPIES = {
+    "AuroraeMaximizeButton.qml": expected_gated_aurorae_maximize_button,
+    "main.qml": expected_gated_main,
+}
+
+
 GATED_COPIES = (
     ("DecorationButton.qml", expected_gated_decoration_button),
     ("MenuButton.qml", expected_gated_menu_button),
@@ -282,10 +334,8 @@ class TestCopies(unittest.TestCase):
             engine = read_text(f"{ENGINE_DIR}/{engine_name}")
             copy = read_text(f"{PACKAGE_DIR}/contents/ui/{copy_name}")
             expected = engine.replace("auroraeTheme.", "AuroraeTheme.")
-            if copy_name == "AuroraeMaximizeButton.qml":
-                # Part 3/3 additionally gates this copy's standalone MouseArea;
-                # its expected text spells that added difference (above).
-                expectation = dict(GATED_COPIES)[copy_name]
+            if copy_name in RENAMED_GATED_COPIES:
+                expectation = RENAMED_GATED_COPIES[copy_name]
                 with self.subTest(name=copy_name):
                     self.assertEqual(copy, expectation(engine))
                 continue
