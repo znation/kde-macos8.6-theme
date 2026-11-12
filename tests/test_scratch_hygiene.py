@@ -101,6 +101,23 @@ def scan_repo(tracked, untracked=None):
         yield directory
 
 
+@contextlib.contextmanager
+def symlink_repo(target_data):
+    """Yield a new git repository that tracks ``link``, a symlink to ``target``.
+
+    *target_data* is written to ``target``, which is not tracked; only the
+    symlink is staged. The repository lives in a temporary directory removed
+    on exit.
+    """
+    with tempfile.TemporaryDirectory() as directory:
+        subprocess.run(["git", "init", "-q", directory], check=True)
+        with open(os.path.join(directory, "target"), "wb") as fh:
+            fh.write(target_data)
+        os.symlink("target", os.path.join(directory, "link"))
+        subprocess.run(["git", "-C", directory, "add", "link"], check=True)
+        yield directory
+
+
 class _TrackFailure(AssertionError):
     """A failure that names the one offending path, not the whole tree."""
 
@@ -202,29 +219,13 @@ class TestNoTrackedScratchFiles(unittest.TestCase):
             )
 
     def test_check_capture_scan_does_not_follow_a_tracked_symlink(self):
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            target = os.path.join(directory, "target")
-            with open(target, "wb") as fh:
-                fh.write(b"python3 tools/check_parallel.py\\n")
-            link = os.path.join(directory, "link")
-            os.symlink("target", link)
-            subprocess.run(["git", "-C", directory, "add", "link"], check=True)
-
+        with symlink_repo(b"python3 tools/check_parallel.py\\n") as directory:
             # Git records the symlink target text, not the target file's
             # contents; the check-capture scan must not follow the link.
             self.assertEqual(tracked_check_output_files(directory), [])
 
     def test_scan_does_not_follow_a_tracked_symlink(self):
-        with tempfile.TemporaryDirectory() as directory:
-            subprocess.run(["git", "init", "-q", directory], check=True)
-            target = os.path.join(directory, "target")
-            with open(target, "wb") as fh:
-                fh.write(b"/tmp/tumwater-run-example/tmp.work\n")
-            link = os.path.join(directory, "link")
-            os.symlink("target", link)
-            subprocess.run(["git", "-C", directory, "add", "link"], check=True)
-
+        with symlink_repo(b"/tmp/tumwater-run-example/tmp.work\n") as directory:
             # Git records a symlink's target text, not the target file's
             # contents, so the scanner must not treat it as leaked bookkeeping.
             self.assertEqual(tracked_run_scratch_files(directory), [])
