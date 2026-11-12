@@ -1698,7 +1698,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {"color": BLACK},
         )
         # The drag-session arms restate the stock drop strip and drag-over
-        # row twins on the landed selection lavender with black ink
+        # row twins on the landed selection lavender with black ink;
         # each keeps stock's own
         # geometry members so the byte-equal spelling wins the cascade by
         # later user-sheet source order.
