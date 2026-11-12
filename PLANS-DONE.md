@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction, part 9/9: isolate calendar declarations (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
+
+**Goal.** Establish one complete declaration-surface suite alongside the probe moves; this part is independent of parts 2–8.
+
+**Approach and files.** Move the declaration methods whose names start `test_calendar` from `TestGtk4Theme` into new `tests/test_gtk4_calendar.py::TestGtk4Calendar(Gtk4SheetRuleCases, unittest.TestCase)`, importing their constants from `support/gtk4_sheet.py` and existing palette/spec modules. Move `TestCalendarDisabledGreyReference` whole into that module with its reference imports. Preserve method bodies and class reference limits. Update the moved anchors in `docs/invariants.md`, prune unused original-module imports, and leave the scrollbar reference class and its calendar-color cross-check where they are. Keep the original module for the remaining surfaces; do not rewrite historical `PLANS-DONE.md` records or promise removal of every old path mention.
+
+**Acceptance.** Calendar declaration and disabled-grey reference methods each appear once under the new module in discovery, retain their assertion bodies and reference coordinates, and pass or report the same missing-reference skip as before. Existing non-calendar tests remain discoverable. The invariants checker resolves the calendar anchors, and `make check` passes. No stylesheet or production behavior changes.
+
 ### README fidelity troubleshooting: distinguish mismatches from input refusals (planned 2026-11-11 by the plan role) — done 2026-11-11 by the feature role
 
 **Goal.** Give contributors a short corrective path when a comparison cannot run, alongside the existing aligned-crop and diagnostic-selection guides. This is independent of the waiting GTK 4 calendar extraction and pending scrollbar extraction.

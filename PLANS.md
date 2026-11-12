@@ -91,14 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### GTK 4 suite extraction, part 9/9: isolate calendar declarations (planned 2026-11-11 by the plan role; "requires part 1/9 landed")
-
-**Goal.** Establish one complete declaration-surface suite alongside the probe moves; this part is independent of parts 2–8.
-
-**Approach and files.** Move the declaration methods whose names start `test_calendar` from `TestGtk4Theme` into new `tests/test_gtk4_calendar.py::TestGtk4Calendar(Gtk4SheetRuleCases, unittest.TestCase)`, importing their constants from `support/gtk4_sheet.py` and existing palette/spec modules. Move `TestCalendarDisabledGreyReference` whole into that module with its reference imports. Preserve method bodies and class reference limits. Update the moved anchors in `docs/invariants.md`, prune unused original-module imports, and leave the scrollbar reference class and its calendar-color cross-check where they are. Keep the original module for the remaining surfaces; do not rewrite historical `PLANS-DONE.md` records or promise removal of every old path mention.
-
-**Acceptance.** Calendar declaration and disabled-grey reference methods each appear once under the new module in discovery, retain their assertion bodies and reference coordinates, and pass or report the same missing-reference skip as before. Existing non-calendar tests remain discoverable. The invariants checker resolves the calendar anchors, and `make check` passes. No stylesheet or production behavior changes.
-
 ### README fidelity chooser: expose distribution and channel tuning reports (planned 2026-11-11 by the plan role)
 
 **Goal.** Help a contributor investigating palette drift choose the existing distribution and channel reports from the compact diagnostic table, rather than searching the long flag reference. This is independent of the waiting comparison-refusal guide.
