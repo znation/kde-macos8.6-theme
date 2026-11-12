@@ -78,7 +78,6 @@ from support.platinum_palette import (
 from support.reference_image import ReferenceScreenshotMixin
 from support.gui_tests import require_gui_opt_in
 from support.symlink_fixtures import symlinked_repo
-
 class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
     def test_header_subtitle_foreground(self):
         selectors = ("headerbar .subtitle", "windowtitle .subtitle")

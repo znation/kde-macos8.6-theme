@@ -238,5 +238,3 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         self.assertEqual(
             self.rules[selector]["color"], self.rules["window"]["color"]
         )
-
-
