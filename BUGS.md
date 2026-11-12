@@ -2048,6 +2048,10 @@ The post-merge review of commit `e65ad7f2dac54332b32c2467c30dc0722dba9343` (Land
 
 The post-merge review of commit `1113b785f9dd3cbf4b2d28a6acb9d119404377de` (Record the Makefile environment expansion vulnerability) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of e26df9ad never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `e26df9adbb843bd6b56716fa9104134d08f4098d` (Pin the two untested fidelity run-offset converters; fix stale writer stub) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
