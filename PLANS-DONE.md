@@ -5,6 +5,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reject contradictory sampler min/max filters (planned 2026-11-11 by the improve role) — done 2026-11-12 by the steward role
+
+The answered sampler decision is implemented: `option_error` rejects minimums above maximums for all five filter pairs, and `test_contradictory_min_max_filter_windows_are_rejected_before_png_reads` pins the diagnostics and pre-read behavior.
+
 ### README split, part 1/5: let the README tests follow links into docs/ guides (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
 
 **Goal.** On 2026-11-12 the user asked to shorten README.md (1,934 lines) by moving its longest sections into separate markdown files and linking to them. Parts 2/5–5/5 each move one section into a `docs/<topic>.md` guide. About a dozen tests read README.md text and would fail or quietly lose coverage once that text moves. This part adds the shared reader those parts retarget to, and it extends the link checker across files. It moves no prose.
