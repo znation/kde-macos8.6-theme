@@ -1554,7 +1554,8 @@ offline in `tests/test_backlog_placeholders.py::TestShippedBacklogs`
 ### A successful required-command read is discarded when its stderr log cannot be removed (found by the bugfix role 2026-11-03) — fixed 2026-11-03 by the bugfix role
 
 **Validation gap:** no-fake — the suite had no way to make a log removal fail, so the
-regression test forces one by hand (chmod a read-only home directory around the read).
+regression test injects a PermissionError for each log deletion independently and
+checks that the other log is still removed.
 
 Symptom: `run_required_output` read the stdout bytes successfully, then removed both split
 logs inside the same `try`; an `OSError` from the `stderr_log.unlink()` (for example a

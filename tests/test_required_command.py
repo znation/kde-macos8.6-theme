@@ -212,19 +212,29 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         def succeed(command, env, stdout_log, stderr_log, timeout, cwd):
             stdout_log.write_bytes(b"recorded")
             stderr_log.write_bytes(b"warning")
-            os.chmod(self.root, 0o500)  # removal in the read-only home fails
             return 0
 
-        try:
-            with mock.patch.object(
-                required_command, "run_logged_split", side_effect=succeed
-            ):
-                value, status, stderr = self.run_output()
-        finally:
-            os.chmod(self.root, 0o700)
-        self.assertIsNone(status)
-        self.assertEqual(b"recorded", value)
-        self.assertEqual("", stderr)
+        path_type = type(self.root)
+        unlink = path_type.unlink
+        for blocked_name in ("read.log", "read.stderr.log"):
+            with self.subTest(blocked=blocked_name):
+                def remove(log, *args, **kwargs):
+                    if log == self.root / blocked_name:
+                        raise PermissionError("log removal denied")
+                    return unlink(log, *args, **kwargs)
+
+                with mock.patch.object(
+                    required_command, "run_logged_split", side_effect=succeed
+                ), mock.patch.object(path_type, "unlink", new=remove):
+                    value, status, stderr = self.run_output()
+                self.assertIsNone(status)
+                self.assertEqual(b"recorded", value)
+                self.assertEqual("", stderr)
+                # A failure on either stream must not skip the other's cleanup.
+                self.assertEqual(
+                    [blocked_name], sorted(p.name for p in self.root.glob("*.log"))
+                )
+                (self.root / blocked_name).unlink()
 
     def test_a_stdout_log_that_cannot_be_removed_still_cleans_stderr(self):
         """Failure removing the first log does not skip the second one."""
