@@ -82,12 +82,12 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
                 self.assert_rule(selector, expected)
 
     def test_scrollbar_thumb_state_faces(self):
-        """The thumb keeps the landed face through hover, drag and disabled.
+        """The thumb keeps the existing face through hover, drag and disabled.
 
         Stock repaints the thumb in three states whose arms each carry more
-        pseudo-classes than the landed bare group, so each restated rule
+        pseudo-classes than the existing bare group, so each restated rule
         spells its stock twin byte-equal and wins the equal-specificity tie
-        by later user-sheet source order, declaring only the landed face.
+        by later user-sheet source order, declaring only the existing face.
         """
         self.assert_rule_group(
             {
@@ -165,7 +165,7 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
         window's two scrollbars meet with its own grey and draws a trough
         line through one edge of the band; no collected reference screenshot
         shows a GTK scrollbar corner, and the junction reads as the same
-        flat band the landed scrollbar rule pins. The stock left-to-right
+        flat band the existing scrollbar rule pins. The stock left-to-right
         mirror arm only re-slices the now-empty border-image, so the sheet
         must stop at the two rules and carry no such arm.
         """
@@ -180,14 +180,14 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
         self.assertNotIn("junction:dir", self.css)
 
     def test_scrollbar_backdrop_faces(self):
-        """The scrollbar band and thumb keep the landed faces in backdrop.
+        """The scrollbar band and thumb keep the existing faces in backdrop.
 
         The stock toolkit resource repaints a scrollbar's band and thumb
         through its own backdrop arms in an unfocused window; no collected
         reference screenshot shows a GTK scrollbar in an unfocused window,
-        so the sheet restates the landed TROUGH band and FACE thumb through
+        so the sheet restates the existing TROUGH band and FACE thumb through
         byte-equal stock twins and erases the bare bar's and thumb's 300ms
-        repaint ease with the landed no-transition policy.
+        repaint ease with the existing no-transition policy.
         """
         self.assert_rule_group(
             {
@@ -205,7 +205,7 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
         # a sweep catches copy or variant spellings instead: exactly these
         # two scrollbar-rooted backdrop spellings exist in the sheet and none
         # carries foreign paint (the bare `scrollbar` selectors above use
-        # assert_rule because the parser merges their landed group with the
+        # assert_rule because the parser merges their existing group with the
         # transition restate; the slider spelling starts with "scrollbar"
         # too, so one combined sweep covers both root and descendant roots).
         self.assertEqual(
@@ -217,7 +217,7 @@ class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
             {"scrollbar:backdrop", "scrollbar slider:backdrop"},
         )
         # Both new groups sit at the sheet tail, after the junction's
-        # backdrop restate and the landed places-view link-button arm.
+        # backdrop restate and the existing places-view link-button arm.
         self.assertLess(
             self.selectors.index("scrolledwindow junction:backdrop"),
             self.selectors.index("scrollbar:backdrop"),

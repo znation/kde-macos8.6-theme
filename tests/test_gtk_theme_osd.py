@@ -120,12 +120,12 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a field inside a GTK OSD
         overlay, so the sheet restates the toolkit resource's four grouped
-        `.osd spinbutton:not(.vertical), .osd entry` arms with the landed
+        `.osd spinbutton:not(.vertical), .osd entry` arms with the existing
         entry recipe (``ENTRY_FIELD`` in ``support.gtk_theme_spec.py``) plus
         the stock arms' own shadow claims, cleared. The arm selectors,
         states and shadow claims come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49). Each
-        state's spin-button arm also carries its RTL twin, the landed etch
+        state's spin-button arm also carries its RTL twin, the existing etch
         mirror restated beside the group, because the record's
         equal-or-higher specificity kept the plain RTL mirror from ever
         reaching an OSD spin field.
@@ -152,7 +152,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             ".osd entry:backdrop": field,
             ".osd spinbutton:disabled:not(.vertical)": disabled,
             ".osd entry:disabled": disabled,
-            # The RTL twins restate the landed etch mirror
+            # The RTL twins restate the existing etch mirror
             # beside each base state group: the groups' equal-or-higher
             # specificity kept the plain RTL mirror from reaching an OSD
             # spin field.
@@ -204,7 +204,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
     def test_osd_spin_field_mirrors_the_etch_in_rtl(self):
         # The four OSD field groups restate the etch at equal-or-higher
-        # specificity than the landed plain RTL mirror, so each state
+        # specificity than the existing plain RTL mirror, so each state
         # carries its own twin, spelled one class higher than its base
         # group so the win does not depend on source position. Each twin
         # sits directly after its base state group in the comment-stripped
@@ -296,7 +296,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a GTK OSD overlay or a
         flat button inside one, so the sheet restates the toolkit
         resource's grouped ``.app-notification button.flat, …, .osd
-        button.flat`` arms with the landed plain push-button recipe (the
+        button.flat`` arms with the existing plain push-button recipe (the
         base ``button`` dictionary ``test_osd_button`` pins):
         the raised ``#DDDDDD`` face with its 1px black border and zero
         radius, ``BUTTON_BEVEL``, and black labels; the ``:hover`` and
@@ -304,7 +304,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         and checked arms swap only ``box-shadow`` to
         ``INVERTED_BUTTON_BEVEL``; the disabled arms keep
         ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and no
-        ``outline-color``, as the landed disabled arms also claim none.
+        ``outline-color``, as the existing disabled arms also claim none.
         The arm selectors and states come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
         restated arm sets on-disk geometry, so the stock
@@ -404,7 +404,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # keeping only the named prefix sets. 2026-10-31: the notebook
             # tab-close restatements (pinned by
             # test_notebook_tab_close_button_arms) get their own exclusion.
-            # 2026-11-04: the landed round-button face corners carry the bare
+            # 2026-11-04: the existing round-button face corners carry the bare
             # ``modelbutton.flat`` and ``.menuitem.button.flat`` stock twins
             # (menu rows, not overlay bands, pinned by
             # test_gtk_theme.TestGtkTheme::test_round_button_face_corners),
@@ -439,7 +439,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a GTK OSD overlay or a
         push button inside one, so the sheet restates the toolkit
         resource's stock ``button.osd`` and grouped ``.app-notification
-        button, …, .osd button`` arms with the landed plain push-button
+        button, …, .osd button`` arms with the existing plain push-button
         recipe (the base ``button`` dictionary pinned by
         ``support.gtk_rule_cases.py::GtkSheetRuleCases::test_button``):
         the raised ``#DDDDDD`` face with its 1px black border and zero
@@ -554,22 +554,22 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a GTK OSD overlay or a
         suggested-action button inside one, so the sheet restates the
         toolkit resource's ``.osd button.suggested-action`` arms with
-        the landed plain push-button recipe (the base ``button``
+        the existing plain push-button recipe (the base ``button``
         dictionary ``test_osd_button`` pins), with one clearance stock's
         own arms force: every one of the five stock arms claims
         ``background-clip: padding-box``, which left standing under the
         equal-specificity restatement would clip the restated face to
         the padding box, so every restated arm declares
         ``background-clip: border-box`` and the face paints exactly like
-        the landed plain and flat restatements'. The restated arms are
+        the existing plain and flat restatements'. The restated arms are
         the raised ``#DDDDDD`` face with its 1px black border and zero
         radius, ``BUTTON_BEVEL``, and black labels; the ``:hover`` and
         ``:backdrop`` arms repeat the base recipe byte-equal, recipe
-        ``outline-color`` included, as the landed plain and flat
+        ``outline-color`` included, as the existing plain and flat
         backdrop restatements do; the active and checked arms swap only
         ``box-shadow`` to ``INVERTED_BUTTON_BEVEL``; the disabled arms
         keep ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and
-        no ``outline-color``, as the landed disabled arms claim none.
+        no ``outline-color``, as the existing disabled arms claim none.
         The arm selectors and states come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
         restated arm sets on-disk geometry, so the stock ``button.osd``
@@ -640,23 +640,23 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a GTK OSD overlay or a
         destructive-action button inside one, so the sheet restates the
         toolkit resource's ``.osd button.destructive-action`` arms with
-        the landed plain push-button recipe (the base ``button``
+        the existing plain push-button recipe (the base ``button``
         dictionary ``test_osd_button`` pins), with one clearance stock's
         own arms force: every one of the five stock arms claims
         ``background-clip: padding-box``, which left standing under the
         equal-specificity restatement would clip the restated face to
         the padding box, so every restated arm declares
         ``background-clip: border-box`` and the face paints exactly like
-        the landed plain, flat and suggested-action restatements'. The
+        the existing plain, flat and suggested-action restatements'. The
         restated arms are the raised ``#DDDDDD`` face with its 1px black
         border and zero radius, ``BUTTON_BEVEL``, and black labels; the
         ``:hover`` and ``:backdrop`` arms repeat the base recipe
-        byte-equal, recipe ``outline-color`` included, as the landed
+        byte-equal, recipe ``outline-color`` included, as the existing
         plain and suggested-action backdrop restatements do; the active
         and checked arms swap only ``box-shadow`` to
         ``INVERTED_BUTTON_BEVEL``; the disabled arms keep
         ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and no
-        ``outline-color``, as the landed disabled arms claim none. The
+        ``outline-color``, as the existing disabled arms claim none. The
         arm selectors and states come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
         restated arm sets on-disk geometry, so the stock ``button.osd``
@@ -726,7 +726,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a check or radio inside a GTK
         OSD overlay, so the sheet restates the toolkit resource's five `.osd`
-        indicator arms with the landed plain check and radio recipes (CHECK
+        indicator arms with the existing plain check and radio recipes (CHECK
         and RADIO in ``support.gtk_theme_spec.py``) plus two clearances the
         stock arms claim: the white-on-dark text and icon shadows, cleared,
         and a black focus-outline colour in place of the stock
@@ -772,19 +772,19 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a meter inside a GTK OSD
         overlay, so the sheet restates the toolkit resource's six `.osd`
-        trough/fill/progress groups with the landed plain progress-bar and
+        trough/fill/progress groups with the existing plain progress-bar and
         scale recipes (``PROGRESSBAR_TROUGH``, ``PROGRESSBAR_PROGRESS``,
         ``SCALE_TROUGH`` and ``SCALE_EMPTY_FILL`` in
         ``support.gtk_theme_spec.py``): the flat ``#EEEEEE`` trough face with
         its black border, zero radius and ``inset 1px 1px #999999`` etch at
-        the landed minimums, the transparent scale fill and highlight face,
-        and the landed ``#CCCCFF`` progress fill. The disabled groups repeat
-        the landed paints byte-for-byte, and the disabled progress fill is
-        the landed grey (``GREY`` from ``support.platinum_palette``). The
+        the existing minimums, the transparent scale fill and highlight face,
+        and the existing ``#CCCCFF`` progress fill. The disabled groups repeat
+        the existing paints byte-for-byte, and the disabled progress fill is
+        the existing grey (``GREY`` from ``support.platinum_palette``). The
         arm selectors and states come from gtk-contained.css in
         /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); the
         stock arms claim no geometry, glyph source or box-shadow, so the
-        landed plain meter rules keep governing size and every state an arm
+        existing plain meter rules keep governing size and every state an arm
         does not restate.
         """
         trough = PROGRESSBAR_TROUGH
@@ -863,20 +863,20 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         inside one or a self-class ``.osd`` thin bar (a ``progressbar.osd``,
         the thin Epiphany-style headerbar indicator), so the sheet restates
         the toolkit resource's stock ``progressbar.osd trough`` and
-        ``progressbar.osd progress`` arms with the landed plain progress-bar
+        ``progressbar.osd progress`` arms with the existing plain progress-bar
         recipes (``PROGRESSBAR_TROUGH`` and ``PROGRESSBAR_PROGRESS`` in
-        ``support.gtk_theme_spec.py``), the same reuse the landed GTK 4
+        ``support.gtk_theme_spec.py``), the same reuse the existing GTK 4
         sheet's ``progressbar.osd > trough`` face makes (pinned by
         ``TestGtk4Theme::test_progressbar_osd_trough_paint``). The equal
         specificity restatements append after the toolkit resource, so they
-        pre-empt exactly the stock arms they restate, and the landed
+        pre-empt exactly the stock arms they restate, and the existing
         ``.osd progressbar trough, progressbar .osd trough`` ancestor arms
         stay disjoint. The bare ``progressbar.osd`` node arm stays
         undeclared: its ``3px`` minimum is dominated by the trough's
         ``10px`` minimum and its transparent node background stays beneath
         the trough face. The arm selectors and stock claims come from
         gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
-        (libgtk-3 3.24.49); no stock arm claims geometry, so the landed
+        (libgtk-3 3.24.49); no stock arm claims geometry, so the existing
         plain rules keep governing every state an arm does not restate.
         """
         with self.subTest(selector="progressbar.osd trough"):
@@ -894,7 +894,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a scale thumb inside a GTK
         OSD overlay, so the sheet restates the toolkit resource's six
-        ``.osd scale slider`` arms with the landed plain scale-thumb recipes
+        ``.osd scale slider`` arms with the existing plain scale-thumb recipes
         (``SCALE_THUMB`` in ``support.gtk_theme_spec.py``) plus two
         clearances the stock arms claim: the white-on-dark text and icon
         shadows, cleared, and a black focus-outline colour in place of the
@@ -933,7 +933,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             self.rules[".osd scale slider:disabled"],
             self.rules["scale slider:disabled"],
         )
-        # The plain knob's landed no-fade amendment is specific to the bare
+        # The plain knob's existing no-fade amendment is specific to the bare
         # arm's stock animating members; stock's .osd thumb arms claim no
         # transition, so the shared recipe excludes that one member.
         self.assertEqual(
@@ -962,10 +962,10 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_queued_claims_track_the_sheet(self):
-        """Provenance prose names landed rules, never queued future plans.
+        """Provenance prose names existing rules, never queued future plans.
 
         The sheet comments and the register rows may say an arm is
-        restated (naming the landed groups that restate it) or absent
+        restated (naming the existing groups that restate it) or absent
         (naming the residual) — never that one awaits a queued plan.
         """
         banned = (
@@ -981,7 +981,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         for text, source in ((sheet, CSS), (register, "docs/invariants.md")):
             for phrase in banned:
                 self.assertNotIn(phrase, text, f"{source}: {phrase!r}")
-        # The residual arm stays recorded, not silently landed: no rule
+        # The residual arm stays recorded, not silently in place: no rule
         # in the parsed sheet carries an .osd-qualified colorswatch
         # selector.
         self.assertEqual(
@@ -992,7 +992,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             },
             set(),
         )
-        # The landed groups the rewritten prose cross-references really
+        # The existing groups the rewritten prose cross-references really
         # exist in the parsed sheet.
         for selector in (
             ".osd spinbutton:not(.vertical) button",

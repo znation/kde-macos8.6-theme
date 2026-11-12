@@ -168,7 +168,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # with the flat-button family — transparent at rest, a toolkit
         # gradient plus a highlighted glyph on hover, 5px-rounded corners —
         # and no collected reference screenshot shows the arrows, so each
-        # state arm below restates the landed plain `button.flat` family's
+        # state arm below restates the existing plain `button.flat` family's
         # dictionary at the arrow's own exact stock spelling, later source
         # order winning the tie per-property.
         face = {
@@ -197,7 +197,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         }
         # The radius addition is the base twin's alone: in the hovered and
         # pressed states stock's own later re-square arm (line 912) already
-        # squares the arrow, so the other twins carry the landed
+        # squares the arrow, so the other twins carry the existing
         # `button.flat` dictionaries byte-equal.
         flat = {
             "background-color": FACE,
@@ -248,14 +248,14 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             f"{arrow}:disabled:checked": disabled,
             f"{arrow}:hover:not(:active):not(:backdrop)": hover,
         })
-        # Source order: the base arrow group files after the landed
+        # Source order: the base arrow group files after the existing
         # plain `button.flat` family's tail group, so every arrow twin
         # decides the equal-specificity race against the stock arms.
         self.assert_rule_after(
             f"{arrow},\n{arrow}.flat {{",
             "button.flat:disabled:active, button.flat:disabled:checked {",
         )
-        # The token sweep keys on a substring no other landed selector
+        # The token sweep keys on a substring no other existing selector
         # carries: a dropped twin, a renamed spelling, a lost comma member
         # or a stray extra rule fails.
         self.assertEqual(
@@ -322,7 +322,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_rtl_spin_field_mirrors_the_etch(self):
-        # No reference shows a GTK spin button; the landed field rule etches
+        # No reference shows a GTK spin button; the existing field rule etches
         # with `inset 1px 1px #999999`, and GTK 3 does not mirror box-shadow
         # for text direction. Measured 2026-11-11 in a GTK 3 offscreen child:
         # in a horizontal RTL spin button the steppers cover that arm at the
@@ -388,7 +388,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_disabled_view_face_and_ink(self):
         """Pin the restated disabled view field and ink stock-twins."""
-        # 2026-11-11: an insensitive view's stock arms out-specify the landed
+        # 2026-11-11: an insensitive view's stock arms out-specify the existing
         # `.view, textview text, list` view-field group, so stock would wash
         # each member with the toolkit's warm near-white field and grey ink
         # without the restatements; see the dated block beside the rules.
@@ -410,9 +410,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 self.assert_rule(selector, DISABLED_TEXT)
                 self.assertEqual(self.rules[selector], {**DISABLED_TEXT}, selector)
                 self.assertEqual(self.selectors.count(selector), 1, selector)
-        # Token sweeps keyed on substrings no other landed selector carries,
+        # Token sweeps keyed on substrings no other existing selector carries,
         # so a stray state twin, a renamed spelling or a dropped member
-        # fails; the treeview family sweep pins the landed disabled-selected
+        # fails; the treeview family sweep pins the existing disabled-selected
         # pair as the only other treeview disabled spellings.
         self.assertEqual(
             {s for s in self.rules if "iconview:disabled" in s},
@@ -455,7 +455,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 "treeview.view:disabled:selected:backdrop",
             },
         )
-        # The restatements sit after the landed disabled-selected groups in
+        # The restatements sit after the existing disabled-selected groups in
         # the sheet, the source-order position the cascade tie needs. The
         # order pin runs on the comment-stripped sheet because the dated
         # comment quotes the comma group's own spelling.
@@ -486,7 +486,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # the restatement carries the opacity-free, shadow-free dict whole.
         self.assertEqual(self.rules[selector], {**DISABLED_TEXT})
         self.assertEqual(self.selectors.count(selector), 1)
-        # The stock-twin spelling lands after the landed menu-row hover
+        # The stock-twin spelling lands after the existing menu-row hover
         # face, the source position that beats the toolkit arm on the tie.
         self.assertGreater(
             self.selectors.index(selector),
@@ -853,7 +853,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_round_button_face_corners(self):
         # The five class-qualified stock arms sit later in source order than
-        # the landed unclassed `button`, window-control and `scrollbar button`
+        # the existing unclassed `button`, window-control and `scrollbar button`
         # restatements, so the exact stock twins appended at the sheet tail
         # win every radius tie: square faces, and for the two arms stock
         # rounds with an equal outline radius, square keyboard focus rings.
@@ -865,10 +865,10 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 },
                 # Joined 2026-11-08: the five byte-equal stock geometry
                 # declarations (probe of the toolkit resource, libgtk-3
-                # 3.24.49, arm at resource line 1687) joined the landed
+                # 3.24.49, arm at resource line 1687) joined the existing
                 # corner record's bare sidebar-button rule to pin the
                 # button's box geometry against upstream drift; the radius
-                # pair is the landed pair.
+                # pair is the existing pair.
                 "button.sidebar-button": {
                     "border-radius": "0",
                     "-gtk-outline-radius": "0",
@@ -887,7 +887,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             },
         )
         # A stray twin under one of the corner-bearing tokens would steal a
-        # tie from the exact spellings above; the landed selected-row
+        # tie from the exact spellings above; the existing selected-row
         # sidebar-button arms are excluded because they begin with
         # `row:selected` and own colours only.
         for token, expected in (
@@ -909,7 +909,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
                 if token in selector and "row:selected" not in selector
             }
             self.assertEqual(sweep, expected, token)
-        # Source order: after the landed plain `button` and `scrollbar button`
+        # Source order: after the existing plain `button` and `scrollbar button`
         # groups and at the sheet tail behind the backdrop link block.
         uncommented = gtk_css.strip_comments(self.css)
         circular = uncommented.index("button.circular {")
@@ -947,10 +947,10 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
     def test_calendar_state_arms(self):
         # No reference screenshot shows a GTK calendar header, navigation
         # button, day highlight or backdrop state, so the nine stock arms
-        # rest on landed faces: ETCH_DARK for the header rule and day
+        # rest on existing faces: ETCH_DARK for the header rule and day
         # highlights, BLACK for the navigation glyphs (the erase
         # precedents, with no hover motion) and the disabled grey, and the
-        # landed button:backdrop keep-the-landed-face policy for the
+        # existing button:backdrop keep-the-existing-face policy for the
         # backdrop window.
         expected = {
             "calendar.header": {"border-bottom-color": ETCH_DARK},
@@ -991,13 +991,13 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         """The bar's typed stock button, selection and link arms restated.
 
         gtk-contained.css's four typed infobar button families out-token
-        the landed plain ``button`` rule inside an infobar, and the bar's
-        ``selection`` and ``*:link`` arms out-token the landed selection
+        the existing plain ``button`` rule inside an infobar, and the bar's
+        ``selection`` and ``*:link`` arms out-token the existing selection
         and link records, so the sheet restates them with the untyped
-        band-chain spellings: the landed surface-button face/pressed/
-        insensitive/backdrop recipes (the landed ``.app-notification``
-        and ``.osd`` button groups), the landed selection fill and the
-        landed link ink. All twelve spellings embed the landed measured
+        band-chain spellings: the existing surface-button face/pressed/
+        insensitive/backdrop recipes (the existing ``.app-notification``
+        and ``.osd`` button groups), the existing selection fill and the
+        existing link ink. All twelve spellings embed the existing measured
         chain ``infobar > revealer > box`` and name no message type, so
         ``test_infobar``'s ban stays green uncited here.
         """
@@ -1013,7 +1013,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             "-gtk-icon-shadow": "none",
         }
         pressed = {**face, "box-shadow": INVERTED_BUTTON_BEVEL}
-        # The landed `.osd button:disabled` shape: no ``outline-color``,
+        # The existing `.osd button:disabled` shape: no ``outline-color``,
         # the Inactive grey (DISABLED_TEXT) label ink.
         disabled = {
             **{k: v for k, v in face.items() if k != "outline-color"},
@@ -1037,13 +1037,13 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertEqual(self.selectors.count(selector), 1, selector)
                 self.assertEqual(self.rules[selector], declarations, selector)
-        # The family sweep: the landed band rule plus exactly these
+        # The family sweep: the existing band rule plus exactly these
         # twelve restatements — no respelling escapes the family.
         self.assertEqual(
             {s for s in self.selectors if "infobar" in s},
             {"infobar > revealer > box", *expected},
         )
-        # Source order: every group follows the landed band rule at the
+        # Source order: every group follows the existing band rule at the
         # sheet tail (after the marked-scale thumb blocks).
         sheet = gtk_css.strip_comments(self.css)
         band = sheet.index("\ninfobar > revealer > box {")
@@ -1062,13 +1062,13 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_assistant_sidebar_arms(self):
         # No reference screenshot shows a GTK assistant sidebar, so the
-        # five stock sidebar arms rest on landed faces: WHITE for the
-        # sidebar field, ETCH_DARK for the top edge (the landed etched
+        # five stock sidebar arms rest on existing faces: WHITE for the
+        # sidebar field, ETCH_DARK for the top edge (the existing etched
         # band edge the infobar reuses) and FACE for the active-step
         # label — a wizard's current page is not a selected row, so no
         # selection blue applies. Stock's own padding and csd shape stay
-        # byte-equal, and the backdrop window keeps the landed face per
-        # the landed button:backdrop keep-the-landed-face policy.
+        # byte-equal, and the backdrop window keeps the existing face per
+        # the existing button:backdrop keep-the-existing-face policy.
         expected = {
             "assistant .sidebar": {
                 "background-color": WHITE,
@@ -1117,7 +1117,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         )
 
     def test_band_backdrop_faces(self):
-        # An unfocused window keeps the landed band face: the grouped
+        # An unfocused window keeps the existing band face: the grouped
         # backdrop record spells each stock backdrop twin byte-equal and
         # wins every tie by later user-sheet source order.
         declarations = {
@@ -1141,7 +1141,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             {s for s in self.rules if s.startswith("actionbar") and ":backdrop" in s},
             {"actionbar > revealer > box:backdrop"},
         )
-        # The landed inline-toolbar record keeps stock's own face in
+        # The existing inline-toolbar record keeps stock's own face in
         # focused and unfocused windows alike, so stock's grouped
         # `.inline-toolbar:backdrop` membership stays stock.
         self.assertNotIn(".inline-toolbar:backdrop", self.rules)
