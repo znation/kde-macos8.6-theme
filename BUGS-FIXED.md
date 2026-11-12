@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 1e91fbe6 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+The post-merge review of commit `1e91fbe64d2652d35818f679635dcb7672b0ae6e` (Restate GTK 4 OSD progress and scale paints) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix.** Reviewed the complete commit diff: it adds the ten GTK 4 OSD progress and scale paint arms, a matching `test_osd_progress_scale` assertion for each declaration and the selector inventory, and an invariant note describing the missing reference surface and recipe provenance. The assertions match the stylesheet declarations; the review found no defect to repair.
+
+**Validation gap:** none — the existing GTK 4 stylesheet test pins the added declarations and selector inventory, and the diff review found them consistent.
+
 ### post-merge review of dbaee0e4 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed the complete commit diff and current stylesheet/tests. The selectors restate the GTK 3 stock rounded, borderless scale-popup rules with square borders and the existing Platinum face; the dedicated test checks declarations and selector uniqueness. The change agrees with its recorded GTK invariant and introduces no separate defect.
