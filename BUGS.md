@@ -172,6 +172,10 @@ The post-merge review of commit `3a3d2033b87b5c71e2a41de7624ad007b1bd23be` (Mirr
 
 The post-merge review of commit `b776336ce7500ea9a334f65d29901698f6338a1a` (Add and test GTK 4 view-specific rubberband recipes) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of c0de12d5 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `c0de12d5925a8a2cfead6a245e02b0f3633d9e76` (Add GTK 3 view-specific rubberband recipes and coverage) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
