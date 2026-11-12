@@ -2,13 +2,94 @@
 
 from __future__ import annotations
 
+import json
 import unittest
 from argparse import Namespace
+from contextlib import redirect_stdout
+from io import StringIO
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_pixels import _pixel_records  # noqa: E402
+from tools.sample_report_pixels import _pixel_records, report_pixels  # noqa: E402
 from tools.sample_report_common import positioned_region_pixels  # noqa: E402
+
+
+class _TwoByTwoImage:
+    """A 2x2 image: row-major RGB and an optional alpha plane."""
+
+    width = 2
+    rgb = bytes((
+        1, 2, 3, 10, 11, 12,
+        20, 21, 22, 255, 0, 16,
+    ))
+    alpha = bytes((0, 64, 128, 255))
+
+
+class TestReportPixels(unittest.TestCase):
+    """The ordinary pixel report's text and JSON output shapes."""
+
+    def _run(self, **fields):
+        defaults = {"x": 0, "y": 0, "width": 1, "height": 1, "alpha": False}
+        defaults.update(fields)
+        args = Namespace(image="reference.png", json=False, **defaults)
+        output = StringIO()
+        with redirect_stdout(output):
+            report_pixels(args, _TwoByTwoImage(), 2, 2, "reference.png: 2x2")
+        return output.getvalue()
+
+    def test_single_pixel_text_prints_header_then_one_pixel_line(self):
+        self.assertEqual(
+            self._run(x=1, y=0),
+            "reference.png: 2x2\n"
+            "pixel (1, 0): 10,11,12  #0A0B0C\n",
+        )
+
+    def test_single_pixel_text_appends_alpha_when_requested(self):
+        self.assertEqual(
+            self._run(x=1, y=0, alpha=True),
+            "reference.png: 2x2\n"
+            "pixel (1, 0): 10,11,12  #0A0B0C  alpha=64\n",
+        )
+
+    def test_one_wide_rectangle_is_a_region_report_not_a_single_pixel(self):
+        self.assertEqual(
+            self._run(x=1, y=0, width=1, height=2),
+            "reference.png: 2x2\n"
+            "region (1, 0) 1x2:\n"
+            "(1, 0): 10,11,12  #0A0B0C\n"
+            "(1, 1): 255,0,16  #FF0010\n",
+        )
+
+    def test_rectangle_text_lists_rows_row_major_with_alpha_suffix(self):
+        self.assertEqual(
+            self._run(width=2, height=2, alpha=True),
+            "reference.png: 2x2\n"
+            "region (0, 0) 2x2:\n"
+            "(0, 0): 1,2,3  #010203  alpha=0\n"
+            "(1, 0): 10,11,12  #0A0B0C  alpha=64\n"
+            "(0, 1): 20,21,22  #141516  alpha=128\n"
+            "(1, 1): 255,0,16  #FF0010  alpha=255\n",
+        )
+
+    def test_json_document_carries_context_region_and_pixel_records(self):
+        args = Namespace(image="reference.png", json=True, alpha=True,
+                         x=0, y=0, width=2, height=2)
+        output = StringIO()
+        with redirect_stdout(output):
+            report_pixels(args, _TwoByTwoImage(), 2, 2, "reference.png: 2x2")
+
+        self.assertEqual(json.loads(output.getvalue()), {
+            "image": "reference.png",
+            "image_width": 2,
+            "image_height": 2,
+            "region": {"x": 0, "y": 0, "width": 2, "height": 2},
+            "pixels": [
+                {"x": 0, "y": 0, "rgb": [1, 2, 3], "hex": "#010203", "alpha": 0},
+                {"x": 1, "y": 0, "rgb": [10, 11, 12], "hex": "#0A0B0C", "alpha": 64},
+                {"x": 0, "y": 1, "rgb": [20, 21, 22], "hex": "#141516", "alpha": 128},
+                {"x": 1, "y": 1, "rgb": [255, 0, 16], "hex": "#FF0010", "alpha": 255},
+            ],
+        })
 
 
 class TestPixelRecords(unittest.TestCase):
