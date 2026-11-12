@@ -77,6 +77,8 @@ class TestSampleValidators(unittest.TestCase):
              "--min-color-fraction must be between 0 and 1: '1.1'"),
             (validators.color_fraction, "1e9999",
              "--min-color-fraction must be between 0 and 1: '1e9999'"),
+            (validators.color_fraction, "-0.1",
+             "--min-color-fraction must be between 0 and 1: '-0.1'"),
             (validators.max_color_fraction, "-0.1",
              "--max-color-fraction must be between 0 and 1: '-0.1'"),
         )
@@ -90,6 +92,22 @@ class TestSampleValidators(unittest.TestCase):
         self.assertEqual(validators.max_color_fraction("0"), 0.0)
         self.assertEqual(validators.max_color_fraction("0.25"), 0.25)
         self.assertEqual(validators.max_color_fraction("1"), 1.0)
+
+    def test_max_color_fraction_rejects_out_of_range_nonfinite_and_python_only_text(self):
+        # The maximum fraction shares the minimum's contract: a plain ASCII
+        # finite number in [0, 1]. Each case below is a different way to
+        # leave that set; the parser must refuse every one.
+        cases = (
+            "1.1",       # above the inclusive upper bound
+            "nan",       # not a number, so no range test can accept it
+            "inf",       # non-finite
+            " 0.5",      # surrounding whitespace, a Python-only spelling
+            "0.5_0",     # underscore separator, a Python-only spelling
+            "٠.5",  # non-ASCII decimal digit, a Python-only spelling
+        )
+        for value in cases:
+            with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):
+                validators.max_color_fraction(value)
 
     def test_color_offset_accepts_zero_and_a_plain_count(self):
         # Zero is a legal offset (start at the first ranked color); a
