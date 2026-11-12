@@ -1920,6 +1920,10 @@ The post-merge review of commit `50c7bb8ebc1fe64dd7944e2662fd06c6aa3244c1` (Refu
 
 The post-merge review of commit `77034173b743754578c02530e3c97598130bf2ad` (Share image detector input validation through one helper) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of a84ce1c6 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `a84ce1c6b49cd44761b11dd1cbccaaca63ce8b16` (recovered leftover work from feature: Resolve PLANS.md conflict so the scrolled-viewport change can merge) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
