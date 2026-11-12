@@ -360,6 +360,25 @@ class TestRenderText(unittest.TestCase):
         self.assertEqual(render_text(data, candidate, reference)[-1],
                          "PASS: max-mae=1.5000 max-frac=0.250000 tolerance=7")
 
+    def test_rmse_delta_and_differing_budgets_print_in_order_before_tolerance(self):
+        candidate, _ = solid_rgb(2, 2)
+        reference, _ = solid_rgb(2, 2)
+        data = report_data("c", "r", None, None, 0, None, None,
+                           compare(candidate, candidate), passed=False,
+                           max_rmse=1.5, max_delta=9, max_differing=3)
+        self.assertEqual(render_text(data, candidate, reference)[-1],
+                         "FAIL: max-mae=unset max-frac=unset max-rmse=1.5000 "
+                         "max-delta=9 max-differing=3 tolerance=0")
+
+    def test_a_lone_delta_budget_prints_its_own_segment(self):
+        candidate, _ = solid_rgb(2, 2)
+        reference, _ = solid_rgb(2, 2)
+        data = report_data("c", "r", None, None, 0, None, None,
+                           compare(candidate, candidate), passed=True,
+                           max_delta=9)
+        self.assertEqual(render_text(data, candidate, reference)[-1],
+                         "PASS: max-mae=unset max-frac=unset max-delta=9 tolerance=0")
+
 
 if __name__ == "__main__":
     unittest.main()
