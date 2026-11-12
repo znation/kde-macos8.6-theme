@@ -165,6 +165,23 @@ recorded here to keep the scope deliberate.
 - **Scope.** `git diff --stat` touches no cursor file outside the seven listed above.
 - `make check` passes after the final edit. This change does not close the BUGS.md cursor report. The remaining families are watch; help, progress and context-menu; resize, fleur and crosshair; and drag, grab and not-allowed. Each will get its own entry.
 
+### GTK 4 suite extraction: isolate scale declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still about 5,700 lines after the nine-part extraction series. That breaks the principle that a file is small enough to read in one sitting. Move the scale declaration checks out the same way part 9/9 moved the calendar ones. This does not depend on the cursor entries above. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_scale.py` with `class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line module docstring. Move every `TestGtk4Theme` method in `tests/test_gtk4_theme.py` whose name starts with `test_scale` into it, keeping each method's body and docstring unchanged. That is `test_scale_focus_outline_color`, `test_scale_focus_transition`, `test_scale_popup_buttons`, `test_scale` and the contiguous `test_scale_marks_value_ink` … `test_scale_parent_interaction_highlight_image` block. Methods that only mention scales but are named otherwise (for example `test_osd_progress_scale` and `test_osd_scale_thumbs`) stay where they are.
+- Import the names the moved bodies use straight from the support modules the original imports them from: `SCALE_FOCUS` and `SCALE_SLIDER` from `support/gtk4_sheet.py`, palette names such as `BLACK`, `FACE`, `TROUGH` and `RAISED_BEVEL` from `support/platinum_palette.py`, and spec names such as `BUTTON_BEVEL` from `support/gtk_theme_spec.py`. Never import `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. The helpers `assert_rule`, `assert_rule_group`, `assert_rule_after` and `assert_scale` come with `Gtk4SheetRuleCases`.
+- Prune any import in `tests/test_gtk4_theme.py` that the remaining code no longer uses, and only those.
+- In `docs/invariants.md`, rewrite each `tests/test_gtk4_theme.py::TestGtk4Theme::test_scale…` anchor to `tests/test_gtk4_scale.py::TestGtk4Scale::test_scale…`. Leave the rows' prose alone. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each moved method exactly once, under `test_gtk4_scale.TestGtk4Scale`. None of them is still listed under `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still listed there.
+- For each moved method, the AST of its function definition is identical to the original's at this plan's base commit, checked once during the run (for example by comparing `ast.dump` output). This is a run-time check, not a new committed test.
+- `grep -n 'test_gtk4_theme.py::TestGtk4Theme::test_scale' docs/invariants.md` prints nothing, and the invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and `tests/test_gtk4_scale.py` stays under about 450 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_scale.py` and `docs/invariants.md`. `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
