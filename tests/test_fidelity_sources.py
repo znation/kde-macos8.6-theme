@@ -255,9 +255,8 @@ class TestWholeFileRead(unittest.TestCase):
 
     def test_negative_count_reads_a_file_bigger_than_one_chunk_whole(self):
         # _read_bytes promises that a negative count reads the file whole;
-        # a file over the 65536-byte chunk bound forces the chunked append
-        # path and the end-of-file branch, so a truncated whole-read cannot
-        # survive here.
+        # a file over 64 KiB is larger than any single raw read or buffer
+        # fill, so a whole-read truncated to one read cannot survive here.
         payload = bytes(range(256)) * 257  # 65792 bytes: 65536 + 256
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "large.bin"
@@ -265,8 +264,8 @@ class TestWholeFileRead(unittest.TestCase):
             self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
 
     def test_negative_count_reads_a_single_chunk_file_whole(self):
-        # A file at exactly the chunk bound must still terminate: the next
-        # read returns end-of-file and the loop joins without appending it.
+        # A file of exactly 64 KiB must still be read whole and terminate
+        # at end-of-file without a trailing empty or duplicated read.
         payload = bytes(range(256)) * 256  # exactly 65536 bytes
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "bounded.bin"
