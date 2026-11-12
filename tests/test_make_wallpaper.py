@@ -26,7 +26,9 @@ from tools.png.write import encode_png  # noqa: E402
 
 SMALL_RESOLUTIONS = ((130, 3), (5, 2))
 TILE = make_wallpaper.TILE_SIZE
-X0, Y0 = make_wallpaper.TILE_ORIGIN
+# Where the fixture reference writes its tile: the tile sits at (X0, Y0) in the image.
+TILE_ORIGIN = (0, 128)
+X0, Y0 = TILE_ORIGIN
 
 
 @functools.lru_cache(maxsize=16)

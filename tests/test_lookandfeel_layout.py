@@ -45,6 +45,8 @@ BAR_GREY = (221, 221, 221)
 BEVEL_GREY = (153, 153, 153)
 BLACK = (0, 0, 0)
 SAMPLE_COLUMN = 400
+# Where the wallpaper tile sits in the rendered image that differing_columns reads.
+TILE_ORIGIN = (0, 128)
 
 
 def _read_layout(path=LAYOUT):
@@ -281,7 +283,7 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
     def differing_columns(self, y, left, right):
         """The x in ``[left, right)`` whose pixel in row *y* is not the tiled wallpaper."""
         rgb, width = self.image.rgb, self.image.width
-        tile_x, tile_y = make_wallpaper.TILE_ORIGIN
+        tile_x, tile_y = TILE_ORIGIN
         size = make_wallpaper.TILE_SIZE
         start = ((tile_y + y % size) * width + tile_x) * 3
         expected = rgb[start : start + size * 3] * (width // size + 1)

@@ -35,7 +35,6 @@ else:  # run directly: python3 tools/make_wallpaper.py
 
 TOOL = "make_wallpaper"
 TILE_SIZE = 128
-TILE_ORIGIN = (0, 128)  # legacy test fixture coordinates; generation does not read them
 REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"
 RESOLUTIONS = (
     (1024, 768),
