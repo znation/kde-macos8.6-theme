@@ -889,6 +889,7 @@ carries no alpha channel. For common refusals, see [Troubleshooting a sample](#t
 | [Locate the longest horizontal color match](#sampling-longest-horizontal-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-run --json` | Longest horizontal matching segment's absolute start and length, or null |
 | [Locate the longest vertical color match](#sampling-longest-vertical-match) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --longest-match-column-run --json` | Longest vertical matching segment's absolute start and length, or null |
 | [Locate a near color within an RGB tolerance](#sampling-color-tolerance) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --color-tolerance 8 --json` | Match count and enclosing bounds for pixels whose red, green and blue each differ from the target by at most the tolerance, with the tolerance echoed in the report |
+| [Measure a color's coverage and center](#sampling-match-coverage) | `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --height 4 --find-color '#63639C' --match-fraction --match-centroid --json` | Match count, enclosing bounds, the fraction of the requested region's pixels that match, and the mean absolute coordinate of the matching pixels (`null` when none match) |
 
 For the next palette page, change `--color-offset 0` to `--color-offset 3`.
 Offsets count eligible ranked colors, not pixel coordinates, and a later page
@@ -920,6 +921,11 @@ each of its red, green and blue values differs from the target by at most N. Alp
 unless `--match-alpha` is also given. The tolerance applies to every match report the search
 produces, including coordinates, intervals and longest-match summaries. Beta reference evidence
 is still not retail palette evidence, so treat the count as a demonstration rather than a claim.
+
+The coverage and centroid reports use the same match predicate as the count. The fraction divides
+by the full requested region area, including nonmatching pixels. The centroid uses pixel indices
+with no half-pixel offset and need not land on a matching pixel. Both honor `--color-tolerance`
+and `--match-alpha`, and `--match-pixels` truncates neither.
 
 ### Sampling options
 
@@ -1183,6 +1189,8 @@ the coordinate list. `omitted_pixels` includes both skipped matches and matches
 after the current page. Count, bounds and optional match diagnostics still cover
 the full region, and an offset at or beyond the match count returns an empty
 coordinate list.
+
+<a id="sampling-match-coverage"></a>
 
 Add `--match-fraction` with `--find-color` to report the match count divided
 by the full requested region area. JSON adds numeric `fraction` to `match`;
