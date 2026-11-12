@@ -220,11 +220,8 @@ class TestGeneratorValidation(unittest.TestCase):
 class TestMainErrors(unittest.TestCase):
     """``main`` must report a creation or write failure and stop, exiting 2."""
 
-    def test_reports_a_cursors_path_that_is_a_file(self):
-        tmp = make_tmp_dir(self)
-        blocked = tmp / make_cursors.PACKAGE_DIR / make_cursors.CURSORS_DIR
-        blocked.parent.mkdir(parents=True)
-        blocked.write_text("occupied", encoding="utf-8")
+    def _run_main_refused_before_render(self, tmp):
+        """Run ``main`` rooted at *tmp*, forbidding any render; return (status, stderr)."""
         stderr = io.StringIO()
         with mock.patch.object(make_cursors, "ROOT", tmp), mock.patch.object(
             make_cursors, "cursor_bytes",
@@ -232,8 +229,16 @@ class TestMainErrors(unittest.TestCase):
         ):
             with contextlib.redirect_stderr(stderr):
                 status = make_cursors.main([])
+        return status, stderr.getvalue()
+
+    def test_reports_a_cursors_path_that_is_a_file(self):
+        tmp = make_tmp_dir(self)
+        blocked = tmp / make_cursors.PACKAGE_DIR / make_cursors.CURSORS_DIR
+        blocked.parent.mkdir(parents=True)
+        blocked.write_text("occupied", encoding="utf-8")
+        status, stderr = self._run_main_refused_before_render(tmp)
         self.assertEqual(status, 2)
-        self.assertIn(f"cannot create {blocked}", stderr.getvalue())
+        self.assertIn(f"cannot create {blocked}", stderr)
         self.assertEqual("occupied", blocked.read_text(encoding="utf-8"))
 
     def test_generator_refuses_a_cursors_directory_that_escapes_the_repository(self):
@@ -242,15 +247,9 @@ class TestMainErrors(unittest.TestCase):
         directory = tmp / make_cursors.PACKAGE_DIR / make_cursors.CURSORS_DIR
         directory.parent.mkdir(parents=True)
         os.symlink(outside, directory)
-        stderr = io.StringIO()
-        with mock.patch.object(make_cursors, "ROOT", tmp), mock.patch.object(
-            make_cursors, "cursor_bytes",
-            side_effect=AssertionError("rendered before destination was accepted"),
-        ):
-            with contextlib.redirect_stderr(stderr):
-                status = make_cursors.main([])
+        status, stderr = self._run_main_refused_before_render(tmp)
         self.assertEqual(status, 2)
-        self.assertIn(str(directory), stderr.getvalue())
+        self.assertIn(str(directory), stderr)
         self.assertEqual(list(outside.iterdir()), [])
 
     def test_reports_a_failed_write_and_stops_at_that_cursor(self):
