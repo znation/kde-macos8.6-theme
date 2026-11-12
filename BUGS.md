@@ -2140,6 +2140,10 @@ The post-merge review of commit `1f493f69e3f71839357377e71d4a92c7d2d97e8d` (Add 
 
 The post-merge review of commit `63fd49a284e9d9822afcda52ed14d19289a282fa` (Refuse "." and ".." as plasmoid ids in the render CLI's applet-package preflight) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 800d55eb never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `800d55eb87260d565b84d110934e280104c04fe1` (Pin histogram result assembly and output behavior with focused tests) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
