@@ -46,6 +46,23 @@ def _run_reader_in_child(reader, path, root):
     )
 
 
+def _assert_fifo_refused_by_child(case, reader, name):
+    """Create a FIFO named *name* and assert *reader* refuses it in a child.
+
+    Used by the FIFO tests of :func:`containment.read_bytes` and
+    :func:`containment.read_text`; the skip guard and the temporary FIFO are
+    the same for both, only the reader and the file name differ.
+    """
+    if not hasattr(os, "mkfifo"):
+        case.skipTest("os.mkfifo is not available on this platform")
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        fifo = tmp / name
+        os.mkfifo(fifo)
+        child = _run_reader_in_child(reader, fifo, tmp)
+    assert_fifo_read_refused(case, child, fifo)
+
+
 class TestReadBytes(unittest.TestCase):
     def test_rejects_a_symlink_that_escapes_the_root(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -135,14 +152,7 @@ class TestReadBytes(unittest.TestCase):
         # no timeout, so a stray pipe at a contributor-file path would stall
         # make check with no diagnostic. Refuse it by name in a child process
         # so the pre-fix hang is a bounded timeout, not a stalled suite.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            fifo = tmp / "asset.svg"
-            os.mkfifo(fifo)
-            child = _run_reader_in_child("read_bytes", fifo, tmp)
-        assert_fifo_read_refused(self, child, fifo)
+        _assert_fifo_refused_by_child(self, "read_bytes", "asset.svg")
 
     def test_rejects_a_fifo_opened_in_place_of_a_regular_path(self):
         # A regular file can be swapped for a FIFO between a check of the path
@@ -287,14 +297,7 @@ class TestReadText(unittest.TestCase):
     def test_refuses_a_fifo_instead_of_blocking(self):
         # A FIFO at a register or colour-scheme path would block the text
         # reader's open() forever; refuse it by name in a child process.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            fifo = tmp / "MacOS8.colors"
-            os.mkfifo(fifo)
-            child = _run_reader_in_child("read_text", fifo, tmp)
-        assert_fifo_read_refused(self, child, fifo)
+        _assert_fifo_refused_by_child(self, "read_text", "MacOS8.colors")
 
     def test_matches_text_mode_newline_and_bom_handling(self):
         # read_text reads bytes to bound the allocation, then decodes through
