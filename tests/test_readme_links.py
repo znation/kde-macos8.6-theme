@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import containment
 from support.repo_root import ROOT
@@ -223,12 +224,26 @@ class TestReadmeLinks(unittest.TestCase):
         text = "[web](https://example.com/elsewhere/b.md) [other scheme](mailto:b.md)\n"
         self.assertEqual([], cross_file_link_errors(root / "README.md", text, root))
 
+    def test_linked_guide_with_unresolved_local_fragment_is_rejected(self):
+        root = make_tmp_dir(self)
+        (root / "docs").mkdir()
+        (root / "README.md").write_text("[guide](docs/invariants.md)\n", encoding="utf-8")
+        guide_path = root / "docs" / "invariants.md"
+        guide_path.write_text("# Guide\n[broken](#missing)\n", encoding="utf-8")
+        with mock.patch.dict(globals(), ROOT=root):
+            with self.assertRaisesRegex(AssertionError, "unresolved local links in docs/invariants.md"):
+                self.test_cross_file_links_resolve_in_readme_and_its_linked_guides()
+            guide_path.write_text("# Guide\n[working](#guide)\n", encoding="utf-8")
+            self.test_cross_file_links_resolve_in_readme_and_its_linked_guides()
+
     def test_cross_file_links_resolve_in_readme_and_its_linked_guides(self):
         readme = read_readme()
         readme_path = Path(ROOT) / "README.md"
         self.assertEqual([], cross_file_link_errors(readme_path, readme))
         for guide in linked_guides(readme):
             guide_text = containment.read_text(f"{ROOT}/{guide}", ROOT, encoding="utf-8")
+            local_errors = local_link_errors(guide_text)
+            self.assertEqual([], local_errors, f"unresolved local links in {guide}: {local_errors}")
             errors = cross_file_link_errors(Path(ROOT) / guide, guide_text)
             self.assertEqual([], errors, f"unresolved links in {guide}: {errors}")
 
