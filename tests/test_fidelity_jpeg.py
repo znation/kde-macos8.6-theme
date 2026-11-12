@@ -115,7 +115,7 @@ class TestJpegCallRouting(FidelityCliTestCase):
         """A PNG comparison runs unchanged even if the converter would fire."""
         candidate, reference = self._png_pair()
         with mock.patch.object(
-            fidelity_sources,
+            jpeg_convert,
             "convert_jpeg",
             side_effect=AssertionError("PNG input converted"),
         ) as convert:
@@ -209,7 +209,7 @@ class TestJpegSourcePolicy(unittest.TestCase):
             with (
                 mock.patch.object(fidelity_sources, "ROOT", repo),
                 mock.patch.object(fidelity_sources, "read_png") as read,
-                mock.patch.object(fidelity_sources, "convert_jpeg") as convert,
+                mock.patch.object(jpeg_convert, "convert_jpeg") as convert,
                 mock.patch.object(fidelity_sources, "is_jpeg") as sniff,
             ):
                 with self.assertRaisesRegex(ValueError, "resolves outside"):

@@ -9,20 +9,16 @@ the PNG loader's own diagnostics.
 
 from __future__ import annotations
 
-import shutil
-import tempfile
-from pathlib import Path
-
 if __package__:
     from tools.containment import open_regular_binary, require_within_repo
     from tools.fidelity_geometry import FidelityError
-    from tools.jpeg_convert import convert_jpeg, is_jpeg
+    from tools.jpeg_convert import JpegDecodeError, decoded_png, is_jpeg
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
 else:  # imported by direct execution of tools/fidelity.py
     from containment import open_regular_binary, require_within_repo
     from fidelity_geometry import FidelityError
-    from jpeg_convert import convert_jpeg, is_jpeg
+    from jpeg_convert import JpegDecodeError, decoded_png, is_jpeg
     from png import PngError, read_png
     from repo_root import ROOT
 
@@ -76,18 +72,14 @@ def _read_jpeg_source(path: str, crop_rect: tuple[int, int, int, int] | None):
         # between the sniff and this read: fall through to the PNG
         # branch, whose open produces the standing diagnostic for it.
         return _read_png_source(path, crop_rect)
-    directory = tempfile.mkdtemp(prefix="fidelity-jpeg-")
     try:
-        temp_png = Path(directory) / "decoded.png"
-        problem = convert_jpeg(jpeg, temp_png)
-        if problem is not None:
-            raise FidelityError(f"cannot decode {path}: {problem}")
-        try:
-            return _decode(str(temp_png), crop_rect)
-        except PngError as exc:
-            raise PngError(str(exc).replace(str(temp_png), path)) from exc
-    finally:
-        shutil.rmtree(directory, ignore_errors=True)
+        with decoded_png(jpeg, "fidelity-jpeg-") as temp_png:
+            try:
+                return _decode(str(temp_png), crop_rect)
+            except PngError as exc:
+                raise PngError(str(exc).replace(str(temp_png), path)) from exc
+    except JpegDecodeError as problem:
+        raise FidelityError(f"cannot decode {path}: {problem}") from None
 
 
 def _read_bytes(path: str, count: int) -> bytes | None:

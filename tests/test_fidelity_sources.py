@@ -15,7 +15,7 @@ from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.png_fixtures import rgb_image
 from support.repo_root import ROOT
 from support import snippet_child
-from tools import fidelity_sources, png
+from tools import fidelity_sources, jpeg_convert, png
 
 
 class TestFidelitySources(unittest.TestCase):
@@ -235,7 +235,7 @@ class TestVanishedJpegFallThrough(unittest.TestCase):
             path.write_bytes(jpeg)
             with mock.patch("os.open", flaky_open), \
                     mock.patch.object(
-                        fidelity_sources, "convert_jpeg",
+                        jpeg_convert, "convert_jpeg",
                         side_effect=AssertionError("converted vanished bytes"),
                     ):
                 with self.assertRaisesRegex(png.PngError, "not a PNG file") as caught:
@@ -290,7 +290,7 @@ class TestWholeFileRead(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "large.jpg"
             path.write_bytes(payload)
-            with mock.patch.object(fidelity_sources, "convert_jpeg", fake_convert):
+            with mock.patch.object(jpeg_convert, "convert_jpeg", fake_convert):
                 image = fidelity_sources.read_source(str(path), None)
         self.assertEqual(seen["bytes"], payload)
         self.assertEqual((image.width, image.height), (1, 1))

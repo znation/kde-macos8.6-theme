@@ -410,7 +410,7 @@ class TestJpegCallRouting(CliTestCase):
     def test_png_input_never_enters_the_jpeg_branch(self):
         path = self._png()
         with mock.patch.object(
-            sample, "convert_jpeg", side_effect=AssertionError("PNG input converted")
+            jpeg_convert, "convert_jpeg", side_effect=AssertionError("PNG input converted")
         ) as convert:
             result = self._run(path, "0", "0")
         self._assert_success(result)
@@ -419,7 +419,7 @@ class TestJpegCallRouting(CliTestCase):
     def test_png_alpha_flags_still_work_exactly(self):
         path = self._write(self._tmp_dir(), "alpha.png", _rgba_png_bytes())
         with mock.patch.object(
-            sample, "convert_jpeg", side_effect=AssertionError("PNG input converted")
+            jpeg_convert, "convert_jpeg", side_effect=AssertionError("PNG input converted")
         ) as convert:
             result = self._run(path, "0", "0", "--width", "2", "--alpha")
         self._assert_success(result)
@@ -430,7 +430,7 @@ class TestJpegCallRouting(CliTestCase):
     def test_jpeg_with_alpha_refuses_before_conversion(self):
         path = self._image()
         with mock.patch.object(
-            sample, "convert_jpeg", side_effect=AssertionError("alpha JPEG converted")
+            jpeg_convert, "convert_jpeg", side_effect=AssertionError("alpha JPEG converted")
         ) as convert:
             result = self._run(path, "0", "0", "--alpha")
         convert.assert_not_called()
@@ -440,7 +440,7 @@ class TestJpegCallRouting(CliTestCase):
     def test_jpeg_with_match_alpha_refuses_before_conversion(self):
         path = self._image()
         with mock.patch.object(
-            sample, "convert_jpeg", side_effect=AssertionError("alpha JPEG converted")
+            jpeg_convert, "convert_jpeg", side_effect=AssertionError("alpha JPEG converted")
         ) as convert:
             result = self._run(path, "0", "0", "--match-alpha", "255", "--find-color", "#000000")
         convert.assert_not_called()

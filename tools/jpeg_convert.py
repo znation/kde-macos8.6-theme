@@ -11,6 +11,8 @@ and nothing else about the bridge.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 import os
 import re
 import shutil
@@ -98,6 +100,30 @@ def convert_jpeg(input_bytes: bytes, temp_png: Path) -> str | None:
     if not temp_png.exists() or temp_png.stat().st_size == 0:
         return "convert wrote no PNG for the JPEG input"
     return None
+
+
+class JpegDecodeError(Exception):
+    """A JPEG that :func:`convert_jpeg` could not decode; ``str()`` is its diagnostic."""
+
+
+@contextmanager
+def decoded_png(input_bytes: bytes, prefix: str) -> Iterator[Path]:
+    """Decode *input_bytes* into a private temporary PNG and yield its path.
+
+    The PNG lives in a directory created here with *prefix* and removed when
+    the ``with`` block exits, whether it returns, raises, or fails to decode.
+    A decode failure raises :class:`JpegDecodeError` carrying the converter's
+    diagnostic, before the block runs.
+    """
+    directory = tempfile.mkdtemp(prefix=prefix)
+    try:
+        temp_png = Path(directory) / "decoded.png"
+        problem = convert_jpeg(input_bytes, temp_png)
+        if problem is not None:
+            raise JpegDecodeError(problem)
+        yield temp_png
+    finally:
+        shutil.rmtree(directory, ignore_errors=True)
 
 
 def _failed_output(headline: str, temp_png: Path, *logs: Path) -> str:
