@@ -298,6 +298,54 @@ class TestGitFailures(unittest.TestCase):
                 local_hook_git.hooks_dir()
 
 
+class TestGitEnvironment(unittest.TestCase):
+    """Pin the environment ``_git`` hands to git.
+
+    Repository-override and ``GIT_CONFIG_*`` variables must not reach git,
+    because an inherited value would select another repository or redirect
+    ``core.hooksPath`` away from the checkout the installer operates on. Every
+    other variable (PATH, HOME) must still pass through unchanged, or git
+    cannot be found or configured. The command is patched, so the test
+    observes the ``env`` keyword without running git.
+    """
+
+    OVERRIDES = (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_CEILING_DIRECTORIES",
+        "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_VALUE_0",
+        "GIT_CONFIG_GLOBAL",
+    )
+
+    def _env_seen_by_git(self, inherited):
+        """Run ``_git`` with *inherited* as the whole environment; return git's env."""
+        run = mock.Mock(
+            return_value=mock.Mock(returncode=0, stderr="", stdout="/hooks\n")
+        )
+        with mock.patch.dict(os.environ, inherited, clear=True):
+            with mock.patch.object(local_hook_git.subprocess, "run", run):
+                local_hook_git._git("rev-parse", "--git-path", "hooks")
+        return run.call_args.kwargs["env"]
+
+    def test_repository_override_and_config_variables_are_withheld(self):
+        inherited = {"PATH": "/usr/bin:/bin", "HOME": "/home/tester"}
+        inherited.update({name: "/elsewhere" for name in self.OVERRIDES})
+        env = self._env_seen_by_git(inherited)
+        for name in self.OVERRIDES:
+            with self.subTest(name=name):
+                self.assertNotIn(name, env)
+
+    def test_ordinary_variables_pass_through_unchanged(self):
+        inherited = {"PATH": "/usr/bin:/bin", "HOME": "/home/tester"}
+        inherited["GIT_DIR"] = "/elsewhere"
+        env = self._env_seen_by_git(inherited)
+        self.assertEqual(env, {"PATH": "/usr/bin:/bin", "HOME": "/home/tester"})
+
+
 class TestGitDiscovery(unittest.TestCase):
     """Pin the Git path discovery ``local_hook_git`` documents.
 
