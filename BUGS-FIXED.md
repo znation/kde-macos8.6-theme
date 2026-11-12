@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of acaedf4e never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+Fix: Checked the refactor against its parent: all four GTK 3 OSD cases still flatten selector groups into a set, assert the expected inventory size, and return that set for the existing scope comparison. The helper preserves that behavior, and the split OSD tests retain the same four count checks.
+
+**Validation gap:** none — the review was hard to confirm only because it was interrupted; the helper and its four callers directly preserve the prior assertions.
+
 ### post-merge review of 2c699158 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `2c699158366a181189a5a0485597813534def357`: all four add-color overlay states declare `box-shadow: none`; `test_add_color_box_shadows` pins those states, and the existing image-reset and square-corner checks retain their declarations. The GTK invariant names the missing reference surface, toolkit resource provenance and declaration-test limitation. No defect found in the reviewed change.
