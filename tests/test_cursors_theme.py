@@ -135,8 +135,8 @@ VECTOR_CURSORS = frozenset(
 )
 HOTSPOTS = {
     "left_ptr": {16: (1, 1), 24: (2, 2), 32: (3, 3)},
-    "xterm": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "hand2": {16: (7, 2), 24: (11, 3), 32: (14, 4)},
+    "xterm": {16: (7, 7), 24: (11, 11), 32: (15, 15)},
+    "hand2": {16: (7, 2), 24: (10, 3), 32: (14, 4)},
     "watch": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "fleur": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "size_hor": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
@@ -158,8 +158,6 @@ HOTSPOTS = {
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
 PINNED_PIXELS = {
-    "xterm": {"face": (7, 7), "outline": (6, 7)},
-    "hand2": {"face": (7, 2), "outline": (7, 1)},
     "watch": {"face": (7, 4), "outline": (6, 5)},
     "fleur": {"face": (7, 7), "outline": (7, 0)},
     "size_hor": {"face": (7, 7), "outline": (7, 6)},
@@ -317,6 +315,86 @@ class TestCursorArtifact(unittest.TestCase):
             with self.subTest(name=name):
                 with self.assertRaises(ValueError):
                     _read_cursor(path)
+
+
+class TestVectorPointerArtifacts(unittest.TestCase):
+    """Pin the committed I-beam and pointing-hand vector artifacts per size.
+
+    Each design point maps to the pixel that contains it at a nominal size:
+    ``floor(coordinate * size / 32)``. The expectations below come from the
+    design coordinates in ``tools/cursor_art_pointers.py``, not from the
+    rendered output.
+    """
+
+    # (name, design points that must be black, design points that must be
+    # white). The hotspot is checked separately, as its alpha.
+    EXPECTATIONS = {
+        "xterm": {"black": ((15, 15),), "white": ((17, 15),), "grey": (24,)},
+        "hand2": {"black": ((14, 8),), "white": ((17, 7),), "grey": SIZES},
+    }
+
+    def _frames(self, name):
+        cursor = _read_cursor(CURSORS / name)
+        for image in cursor.images:
+            width, height, rgba = decode_rgba(image.png)
+            yield image, width, height, rgba
+
+    def test_each_frame_has_the_pinned_hotspot_and_face_and_outline(self):
+        for name, points in self.EXPECTATIONS.items():
+            for image, width, _height, rgba in self._frames(name):
+                size = image.nominal_size
+                with self.subTest(name=name, size=size):
+                    self.assertEqual(
+                        (image.hotspot_x, image.hotspot_y), HOTSPOTS[name][size]
+                    )
+                    self.assertEqual(
+                        _pixel(rgba, width, *HOTSPOTS[name][size])[3], 255
+                    )
+                    for x, y in points["black"]:
+                        self.assertEqual(
+                            _pixel(rgba, width, x * size // 32, y * size // 32),
+                            BLACK,
+                        )
+                    for x, y in points["white"]:
+                        self.assertEqual(
+                            _pixel(rgba, width, x * size // 32, y * size // 32),
+                            WHITE,
+                        )
+
+    def test_each_frame_has_transparent_corners(self):
+        for name in self.EXPECTATIONS:
+            for image, width, height, rgba in self._frames(name):
+                with self.subTest(name=name, size=image.nominal_size):
+                    for x, y in (
+                        (0, 0),
+                        (width - 1, 0),
+                        (0, height - 1),
+                        (width - 1, height - 1),
+                    ):
+                        self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+
+    def test_each_frame_is_antialiased(self):
+        for name, points in self.EXPECTATIONS.items():
+            for image, width, height, rgba in self._frames(name):
+                size = image.nominal_size
+                with self.subTest(name=name, size=size):
+                    pixels = [
+                        _pixel(rgba, width, x, y)
+                        for y in range(height)
+                        for x in range(width)
+                    ]
+                    self.assertTrue(
+                        any(0 < p[3] < 255 for p in pixels),
+                        "no partly covered edge pixel",
+                    )
+                    # Only the sizes the design pins: the I-beam's stem edges
+                    # fall inside a pixel at 24 but on pixel boundaries at 16
+                    # and 32, so only its 24 frame has a grey-level edge.
+                    if size in points["grey"]:
+                        self.assertTrue(
+                            any(p[3] == 255 and 0 < p[0] < 255 for p in pixels),
+                            "no opaque pixel with an intermediate grey level",
+                        )
 
 
 class TestCursorSet(unittest.TestCase):

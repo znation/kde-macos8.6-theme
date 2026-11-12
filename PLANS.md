@@ -92,44 +92,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 recorded here to keep the scope deliberate.
 
 
-### Antialiased text and hand cursors: draw the I-beam and pointing hand as vector art (planned 2026-11-12 by the plan role; "requires Antialiased cursors part 3/3 landed")
-
-**Goal.** This is the next cursor family the BUGS.md cursor report routes: the text I-beam (`xterm`, aliases `text` and `ibeam`) and the pointing hand (`hand2`, aliases `hand1`, `pointer` and `pointing_hand`). They are the cursors users see most after the arrow. Redraw both as smooth, original, antialiased vector art, rendered natively at 16, 24 and 32 through the `VectorCursor` path that part 2/3 adds to `tools/make_cursors.py`. This entry adds no generator change.
-
-**Approach.**
-- **Art.** In `tools/cursor_art_pointers.py`, replace `XTERM_GRID` and `HAND2_GRID` with `XTERM_ART` and `HAND2_ART`. Both are `VectorCursor(face=…, outline_width=2, design_size=32)`. Set `XTERM_HOTSPOT = (15, 15)` and `HAND2_HOTSPOT = (14, 4)` in design units. Delete the two grids: they are bound only in `tools/cursor_art.py` (checked with grep), and no other grid reuses their cells. Rewrite their comments. These polygons are the design decision, listed in order:
-  - I-beam: `(10,4) (20,4) (20,6) (16,6) (16,26) (20,26) (20,28) (10,28) (10,26) (14,26) (14,6) (10,6)`. The stem is 2 units wide, with serifs 10 units wide, and the shape is symmetric about x=15. The stem edges fall on pixel boundaries at 16 and 32, so it stays crisp there.
-  - Hand: `(13,3) (15,3) (16,5) (16,12) (17,11) (19,11) (20,12) (21,11.5) (23,12) (24,14) (24,24) (21,28) (12,28) (9,25) (9,21) (6.5,17) (6.5,15.5) (8,14.5) (12,17) (12,5)`. This is a raised index finger 4 units wide, with knuckle bumps along the palm top, a thumb on the left and a rounded heel. The implementer may move a vertex by at most 1 unit, and only to satisfy a criterion below.
-- **Binding.** In `tools/cursor_art.py`, import the two `*_ART` constants and bind `xterm` and `hand2` to them with the same aliases. Update the module docstring to say these two are also antialiased vector art.
-- **Regenerate** with `python3 tools/make_cursors.py`.
-- **Tests.**
-  - `tests/test_cursors_theme.py`:
-    - Update `HOTSPOTS` for both cursors to the values below.
-    - Move `xterm` and `hand2` out of the grid-cell `PINNED_PIXELS` check into the per-size vector pins below. Use the same mechanism part 3/3 uses for `left_ptr`; if part 3/3 kept `left_ptr` in `PINNED_PIXELS` some other way, follow that shape.
-    - In every `cursor_art.CURSORS`-wide test, treat both entries the same way part 3/3 treats the `left_ptr` vector entry: the corrupted-glyph variant, the shield-grid check and the differs-from-arrow check.
-    - Add one test per cursor for the criteria below.
-  - `tests/test_cursor_art_bindings.py`: the two `*_ART` constants pair with their `*_HOTSPOT` constants, under the rule part 3/3 added.
-  - `docs/invariants.md`: update the cursor-set row and the hotspot row so they list `xterm` and `hand2` as vector-rendered.
-
-**Files.** `tools/cursor_art_pointers.py`, `tools/cursor_art.py`, `tests/test_cursors_theme.py`, `tests/test_cursor_art_bindings.py`, `docs/invariants.md`, and the seven regenerated files `xterm`, `text`, `ibeam`, `hand2`, `hand1`, `pointer` and `pointing_hand` under `theme/icons/org.macos8.desktop/cursors/`.
-
-**Acceptance criteria.** The values below are measured from the planned polygons with `tools/cursor_vector.py` on main. Tests derive their expectations from the design coordinates, not from the rendered output.
-- **xterm.** The committed `xterm` parses to frames at 16, 24 and 32 with hotspots `(7,7)`, `(11,11)` and `(15,15)`. In each frame:
-  - The hotspot pixel and the pixel containing design point `(15,15)` are `(0,0,0,255)`.
-  - The pixel containing design point `(17,15)` is `(255,255,255,255)`: that is `(8,7)`, `(12,11)` and `(17,15)`.
-  - All four corners are `(0,0,0,0)`.
-  - At least one pixel has alpha strictly between 0 and 255.
-  - The 24-pixel frame also has an opaque pixel with a channel strictly between 0 and 255, where the stem edge falls inside a pixel.
-- **hand2.** The committed `hand2` parses to frames at 16, 24 and 32 with hotspots `(7,2)`, `(10,3)` and `(14,4)`. In each frame:
-  - The hotspot pixel has alpha 255.
-  - The pixel containing design point `(14,8)` (the finger) is `(0,0,0,255)`.
-  - The pixel containing design point `(17,7)` (the outline beside the finger) is `(255,255,255,255)`.
-  - All four corners are `(0,0,0,0)`.
-  - At least one pixel has alpha strictly between 0 and 255, and at least one opaque pixel has a channel strictly between 0 and 255.
-- **Freshness and aliases.** Each committed canonical file equals `make_cursors.cursor_bytes` for its entry, and each alias is byte-identical to its canonical file. A moved face vertex, a dropped size or a moved hotspot each change the bytes.
-- **Scope.** `git diff --stat` touches no cursor file outside the seven listed above.
-- `make check` passes after the final edit. This change does not close the BUGS.md cursor report. The remaining families are watch; help, progress and context-menu; resize, fleur and crosshair; and drag, grab and not-allowed. Each will get its own entry.
-
 ### README split, part 1/5: let the README tests follow links into docs/ guides (planned 2026-11-12 by the director role)
 
 **Goal.** On 2026-11-12 the user asked to shorten README.md (1,934 lines) by moving its longest sections into separate markdown files and linking to them. Parts 2/5–5/5 each move one section into a `docs/<topic>.md` guide. About a dozen tests read README.md text and would fail or quietly lose coverage once that text moves. This part adds the shared reader those parts retarget to, and it extends the link checker across files. It moves no prose.

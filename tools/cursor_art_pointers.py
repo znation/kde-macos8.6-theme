@@ -1,12 +1,13 @@
 """The pointer and magnifier cursor grids for the Platinum pointer set.
 
-The 16x16 ASCII grids and hotspots for the arrow, text I-beam, pointing hand,
-busy wristwatch, help and progress arrows, pencil, zoom magnifiers and
-context-menu arrow. ``#`` is the black face, ``.`` the white outline and a
-space is transparent. The grids in this module are bound to their canonical X
-names and aliases by ``tools/cursor_art.py``; ``tools/make_cursors.py`` scales
-and writes them. The arrow is also given as a ``VectorCursor`` (``ARROW_ART``),
-which the generator rasterizes at each nominal size instead of scaling a grid.
+The 16x16 ASCII grids and hotspots for the busy wristwatch, help and progress
+arrows, pencil, zoom magnifiers and context-menu arrow. ``#`` is the black
+face, ``.`` the white outline and a space is transparent. The grids in this
+module are bound to their canonical X names and aliases by
+``tools/cursor_art.py``; ``tools/make_cursors.py`` scales and writes them. The
+arrow, text I-beam and pointing hand are given as ``VectorCursor`` art
+(``ARROW_ART``, ``XTERM_ART``, ``HAND2_ART``), which the generator rasterizes
+at each nominal size instead of scaling a grid.
 """
 
 if __package__:
@@ -63,49 +64,61 @@ ARROW_ART = VectorCursor(
 )
 ARROW_HOTSPOT = (3, 3)
 
-# The text I-beam has serifs at the top and bottom of a centred stem; its
-# hotspot is the middle of the stem.
-XTERM_HOTSPOT = (7, 7)
-XTERM_GRID = (
-    "   ..........   ",
-    "   .########.   ",
-    "   ....#.....   ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "   ....#.....   ",
-    "   .########.   ",
-    "   ..........   ",
+# The antialiased text I-beam: a centred stem 2 design units wide with 10-unit
+# serifs at the top and bottom, drawn on the 32-unit design grid and rasterized
+# natively at each nominal size. Its hotspot is the middle of the stem, a point
+# inside the face rather than a vertex.
+XTERM_ART = VectorCursor(
+    face=(
+        (10, 4),
+        (20, 4),
+        (20, 6),
+        (16, 6),
+        (16, 26),
+        (20, 26),
+        (20, 28),
+        (10, 28),
+        (10, 26),
+        (14, 26),
+        (14, 6),
+        (10, 6),
+    ),
+    outline_width=2,
+    design_size=32,
 )
+XTERM_HOTSPOT = (15, 15)
 
-# The pointing hand raises its index finger and holds the thumb to the right;
-# its hotspot is the fingertip.
-HAND2_HOTSPOT = (7, 2)
-HAND2_GRID = (
-    "                ",
-    "      ...       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#....    ",
-    "      .####.    ",
-    "      .####.    ",
-    "     .#####.    ",
-    "     .#####.    ",
-    "     .#####.    ",
-    "     .......    ",
-    "                ",
-    "                ",
-    "                ",
+# The antialiased pointing hand: a raised index finger 4 design units wide,
+# knuckle bumps along the top of the palm, a thumb on the left and a rounded
+# heel, on the 32-unit design grid. Its hotspot is the fingertip, a point
+# inside the finger rather than a vertex.
+HAND2_ART = VectorCursor(
+    face=(
+        (13, 3),
+        (15, 3),
+        (16, 5),
+        (16, 12),
+        (17, 11),
+        (19, 11),
+        (20, 12),
+        (21, 11.5),
+        (23, 12),
+        (24, 14),
+        (24, 24),
+        (21, 28),
+        (12, 28),
+        (9, 25),
+        (9, 21),
+        (6.5, 17),
+        (6.5, 15.5),
+        (8, 14.5),
+        (12, 17),
+        (12, 5),
+    ),
+    outline_width=2,
+    design_size=32,
 )
+HAND2_HOTSPOT = (14, 4)
 
 # The busy watch is a small round-faced wristwatch: a crown above a round
 # ring that surrounds a white face carrying two black hands; its hotspot is

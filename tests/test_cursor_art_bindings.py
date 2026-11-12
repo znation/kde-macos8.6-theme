@@ -62,6 +62,29 @@ def _hotspot_name(grid_name):
     return grid_name[: -len("_GRID")] + "_HOTSPOT"
 
 
+def _strictly_inside(face, point):
+    """Return True if *point* lies inside polygon *face* and off its edges.
+
+    Even-odd ray cast: a horizontal ray from *point* crosses the face's edges
+    an odd number of times exactly when the point is inside. Points on an edge
+    are rejected by a separate segment test, so only interior points pass.
+    """
+    px, py = point
+    vertices = [tuple(v) for v in face]
+    edges = list(zip(vertices, vertices[1:] + vertices[:1]))
+    for (x1, y1), (x2, y2) in edges:
+        cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
+        if cross == 0 and min(x1, x2) <= px <= max(x1, x2) and min(y1, y2) <= py <= max(y1, y2):
+            return False
+    inside = False
+    for (x1, y1), (x2, y2) in edges:
+        if (y1 > py) != (y2 > py):
+            crossing_x = x1 + (py - y1) * (x2 - x1) / (y2 - y1)
+            if px < crossing_x:
+                inside = not inside
+    return inside
+
+
 def _module_exporting_grid(grid):
     """Return the ``(module, grid name)`` exporting *grid*, or ``None``."""
     for module in MODULES:
@@ -131,17 +154,20 @@ class TestCursorArtBindings(unittest.TestCase):
             x, y = hotspot
             if isinstance(grid, VectorCursor):
                 # Vector art measures its hotspot in design units, so it must
-                # lie inside the design grid and on the face's own outline.
+                # lie inside the design grid and on the face: either a vertex
+                # or a point strictly inside the face (the stem's middle and
+                # the finger's tip are interior points, not vertices).
                 with self.subTest(cursor=name):
                     self.assertTrue(
                         0 <= x < grid.design_size and 0 <= y < grid.design_size,
                         f"{name}'s hotspot {(x, y)} lies outside its "
                         f"{grid.design_size}-unit design grid",
                     )
-                    self.assertIn(
-                        (x, y),
-                        [tuple(vertex) for vertex in grid.face],
-                        f"{name}'s hotspot {(x, y)} is not a vertex of its face",
+                    on_vertex = (x, y) in [tuple(v) for v in grid.face]
+                    self.assertTrue(
+                        on_vertex or _strictly_inside(grid.face, (x, y)),
+                        f"{name}'s hotspot {(x, y)} is neither a vertex of "
+                        "its face nor strictly inside it",
                     )
                 continue
             with self.subTest(cursor=name):
