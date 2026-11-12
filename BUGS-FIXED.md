@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of bf4b438d never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
+
+The post-merge review of commit `bf4b438d6482579932cfc95ad173137307266f0c` (Preserve non-ASCII spacing in shared stylesheet tokens) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+Settled by reading the commit's diff on main, with no code change needed. The commit replaces `char.isspace()` in `_collapse_whitespace` (`tests/support/gtk_css.py`) with the CSS whitespace set `" \t\n\r\f"`, so U+00A0 and U+2003 stay in tokens, as CSS defines them. It adds `tests/test_gtk_css.py::TestRuleBlockSemantics::test_only_css_ascii_whitespace_collapses_between_tokens`, and the `docs/invariants.md` row matches the new behavior. Ran `cd tests && python3 -m unittest test_gtk_css`: 64 tests OK.
+
+**Validation gap:** none — the existing suite covers the change; the review only never ran.
+
 ### post-merge review of c7f27403 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
 
 The post-merge review of commit `c7f27403487e0d97b6f8dfb05f99b6139f0ac477` (Preserve important declarations when the stylesheet parser merges repeated selectors) never reached a verdict because the review run hit a usage limit.
