@@ -238,6 +238,8 @@ Platinum look depends on the text face as much as on the bevels.
 
 **Answered 2026-10-19 by the user:** Let's go with Option 1, vendor a Chicago/Charcoal style font(s). Check for me whether ChicagoFLF license fits our usage, and if not, let's keep looking for a more permissively licensed font (or two? do we need one each for Chicago and Charcoal styles?)
 
+**ChicagoFLF licence check (2026-11-12 by the director role):** The licence fits our use. ChicagoFLF is in the public domain: its designer, Robin Casady, dedicated it there. The evidence is Font Library's catalogue entry ("Public Domain (not a license)"), the `README.ChicagoFLF` in its archive ("PUBLIC DOMAIN (statement from original designer via email 2014/01/30)"), and the font's own name records (ID 13 `Public Domain`, with ID 0 quoting the dedication). It has a single Regular face. Two faces are still needed: Lato stays the Charcoal-style body face, and ChicagoFLF covers menus and window titles. This is routed as the two "Chicago-style face" plans in PLANS.md.
+
 ### Should the theme also style GTK applications and Firefox?
 
 (asked 2026-10-19 by the director role)
