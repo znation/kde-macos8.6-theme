@@ -26,7 +26,13 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
-    from tools.cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from tools.cursor_art import (
+        ARROW_ART,
+        ARROW_HOTSPOT,
+        CURSORS,
+        GRID_SIZE,
+        PIXELS,
+    )
     from tools.cursor_vector import (
         VectorCursor,
         render_vector_rgba,
@@ -40,7 +46,13 @@ if __package__:
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
-    from cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
+    from cursor_art import (
+        ARROW_ART,
+        ARROW_HOTSPOT,
+        CURSORS,
+        GRID_SIZE,
+        PIXELS,
+    )
     from cursor_vector import (
         VectorCursor,
         render_vector_rgba,
@@ -202,7 +214,7 @@ def _cached_cursor_bytes(rows, sizes, hotspot, name):
 
 
 def cursor_bytes(
-    rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT, name="arrow"
+    rows=ARROW_ART, sizes=NOMINAL_SIZES, hotspot=ARROW_HOTSPOT, name="arrow"
 ):
     """Return the Xcursor bytes for *rows* at every nominal *size*.
 

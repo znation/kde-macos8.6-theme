@@ -27,7 +27,10 @@ Each file holds the same art at nominal sizes 16, 24 and 32. No reference
 screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
 our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
 not traced from Apple's artwork; the nominal sizes, the Xcursor container and
-the X names are KDE/X-required values. The pixel grids and hotspots live
+the X names are KDE/X-required values. The arrow (``left_ptr`` and its
+aliases) is antialiased vector art, ``ARROW_ART`` with ``ARROW_HOTSPOT`` in
+``tools/cursor_art_pointers.py``, rasterized natively at each size; every
+other cursor is still a pixel grid. The pixel grids and hotspots live
 in ``tools/cursor_art_pointers.py``, ``tools/cursor_art_resize.py`` and
 ``tools/cursor_art_drag.py``; this module
 binds each canonical name to its grid and hotspot and lists the aliases that
@@ -37,7 +40,10 @@ and writes the files.
 
 from __future__ import annotations
 
+# The arrow grid and its hotspot stay exported: the tests and the grid-cell
+# checks compare against them, though CURSORS binds the vector art.
 if __package__:
+    from tools.cursor_art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
     from tools.cursor_art_drag import (
         DND_COPY_GRID,
         DND_COPY_HOTSPOT,
@@ -49,14 +55,14 @@ if __package__:
         NOT_ALLOWED_HOTSPOT,
     )
     from tools.cursor_art_pointers import (
-        ARROW_GRID,
+        ARROW_ART,
         CONTEXT_MENU_GRID,
         CONTEXT_MENU_HOTSPOT,
         HAND2_GRID,
         HAND2_HOTSPOT,
         HELP_GRID,
         HELP_HOTSPOT,
-        HOTSPOT,
+        ARROW_HOTSPOT,
         PENCIL_GRID,
         PENCIL_HOTSPOT,
         PROGRESS_GRID,
@@ -85,6 +91,7 @@ if __package__:
         SIZE_VER_HOTSPOT,
     )
 else:  # imported from a directly run tool
+    from cursor_art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
     from cursor_art_drag import (
         DND_COPY_GRID,
         DND_COPY_HOTSPOT,
@@ -96,14 +103,14 @@ else:  # imported from a directly run tool
         NOT_ALLOWED_HOTSPOT,
     )
     from cursor_art_pointers import (
-        ARROW_GRID,
+        ARROW_ART,
         CONTEXT_MENU_GRID,
         CONTEXT_MENU_HOTSPOT,
         HAND2_GRID,
         HAND2_HOTSPOT,
         HELP_GRID,
         HELP_HOTSPOT,
-        HOTSPOT,
+        ARROW_HOTSPOT,
         PENCIL_GRID,
         PENCIL_HOTSPOT,
         PROGRESS_GRID,
@@ -145,8 +152,8 @@ GRID_SIZE = 16
 CURSORS = (
     (
         "left_ptr",
-        ARROW_GRID,
-        HOTSPOT,
+        ARROW_ART,
+        ARROW_HOTSPOT,
         ("arrow", "default", "top_left_arrow", "dnd-none"),
     ),
     ("xterm", XTERM_GRID, XTERM_HOTSPOT, ("text", "ibeam")),

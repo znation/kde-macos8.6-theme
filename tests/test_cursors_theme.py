@@ -19,7 +19,8 @@ from support import containment  # noqa: E402
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, make_cursors  # noqa: E402
+from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
+from tools.cursor_vector import VectorCursor  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
 PACKAGE = make_cursors.ROOT / make_cursors.PACKAGE_DIR
@@ -125,8 +126,15 @@ ALIASES = {
 CURSOR_FILES = tuple(
     name for canonical in CANONICAL for name in (canonical, *ALIASES[canonical])
 )
+# The arrow is vector art rasterized at each size, so its hotspot is the
+# design tip (3, 3) mapped to each size's pixel: floor(3 * size / 32).
+VECTOR_CURSORS = frozenset(
+    canonical
+    for canonical, art, _hotspot, _aliases in cursor_art.CURSORS
+    if isinstance(art, VectorCursor)
+)
 HOTSPOTS = {
-    "left_ptr": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
+    "left_ptr": {16: (1, 1), 24: (2, 2), 32: (3, 3)},
     "xterm": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "hand2": {16: (7, 2), 24: (11, 3), 32: (14, 4)},
     "watch": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
@@ -150,7 +158,6 @@ HOTSPOTS = {
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
 PINNED_PIXELS = {
-    "left_ptr": {"face": (1, 1), "outline": (0, 0)},
     "xterm": {"face": (7, 7), "outline": (6, 7)},
     "hand2": {"face": (7, 2), "outline": (7, 1)},
     "watch": {"face": (7, 4), "outline": (6, 5)},
@@ -247,19 +254,29 @@ class TestCursorArtifact(unittest.TestCase):
 
     def test_each_frame_pins_the_hotspot_outline_tip_and_transparency(self):
         for image in self.cursor.images:
-            with self.subTest(size=image.nominal_size):
+            size = image.nominal_size
+            with self.subTest(size=size):
                 width, height, rgba = decode_rgba(image.png)
                 hotspot = (image.hotspot_x, image.hotspot_y)
-                self.assertEqual(hotspot, HOTSPOTS["left_ptr"][image.nominal_size])
+                self.assertEqual(hotspot, HOTSPOTS["left_ptr"][size])
+                # Design point (6, 14) of the 32-unit grid lies in the face;
+                # the pixel covering it is floor(coordinate * size / 32).
                 self.assertEqual(
-                    _pixel(rgba, width, 0, 0), (255, 255, 255, 255)
+                    _pixel(rgba, width, 6 * size // 32, 14 * size // 32), BLACK
                 )
+                self.assertEqual(_pixel(rgba, width, *hotspot)[3], 255)
+                self.assertEqual(_pixel(rgba, width, width - 1, 0)[3], 0)
                 self.assertEqual(
-                    _pixel(rgba, width, *hotspot), (0, 0, 0, 255)
+                    _pixel(rgba, width, width - 1, height - 1)[3], 0
                 )
-                self.assertEqual(
-                    _pixel(rgba, width, width - 1, height - 1),
-                    (0, 0, 0, 0),
+                alphas = {
+                    _pixel(rgba, width, x, y)[3]
+                    for y in range(height)
+                    for x in range(width)
+                }
+                self.assertTrue(
+                    any(0 < alpha < 255 for alpha in alphas),
+                    "no antialiased edge pixel in the frame",
                 )
 
     def test_aliases_are_byte_identical_to_left_ptr(self):
@@ -272,12 +289,18 @@ class TestCursorArtifact(unittest.TestCase):
         self.assertEqual(_repo_bytes(LEFT_PTR), make_cursors.cursor_bytes())
 
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_the_artifact(self):
-        rows = list(cursor_art.ARROW_GRID)
-        rows[1] = rows[1][0] + "." + rows[1][2:]
+        art = cursor_art_pointers.ARROW_ART
+        face = list(art.face)
+        face[3] = (face[3][0], face[3][1] - 1)  # the tail tip moves up one unit
+        moved_vertex = VectorCursor(
+            face=tuple(face),
+            outline_width=art.outline_width,
+            design_size=art.design_size,
+        )
         variants = {
-            "corrupted grid": make_cursors.cursor_bytes(rows=tuple(rows)),
+            "moved face vertex": make_cursors.cursor_bytes(rows=moved_vertex),
             "dropped size": make_cursors.cursor_bytes(sizes=(16, 24)),
-            "moved hotspot": make_cursors.cursor_bytes(hotspot=(2, 2)),
+            "moved hotspot": make_cursors.cursor_bytes(hotspot=(4, 3)),
         }
         expected = _repo_bytes(LEFT_PTR)
         for name, data in variants.items():
@@ -309,6 +332,10 @@ class TestCursorSet(unittest.TestCase):
 
     def test_every_frame_pins_its_hotspot_face_and_outline(self):
         for name in CANONICAL:
+            if name in VECTOR_CURSORS:
+                # Vector art has no grid cells; its frames are pinned by
+                # TestCursorArtifact instead.
+                continue
             cursor = _read_cursor(CURSORS / name)
             face = PINNED_PIXELS[name]["face"]
             outline = PINNED_PIXELS[name]["outline"]
@@ -389,14 +416,30 @@ class TestCursorSet(unittest.TestCase):
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_each_glyph(self):
         for canonical, rows, hotspot, _ in cursor_art.CURSORS:
             committed = _repo_bytes(CURSORS / canonical)
-            mutated = list(rows)
-            y = next(index for index, row in enumerate(mutated) if "#" in row)
-            x = mutated[y].index("#")
-            mutated[y] = mutated[y][:x] + "." + mutated[y][x + 1 :]
-            variants = {
-                "corrupted grid": make_cursors.cursor_bytes(
+            if canonical in VECTOR_CURSORS:
+                # A vector entry has no grid cells; a moved face vertex stands
+                # in for the corrupted cell.
+                face = list(rows.face)
+                face[3] = (face[3][0], face[3][1] - 1)
+                corrupted = make_cursors.cursor_bytes(
+                    rows=VectorCursor(
+                        face=tuple(face),
+                        outline_width=rows.outline_width,
+                        design_size=rows.design_size,
+                    ),
+                    hotspot=hotspot,
+                    name=canonical,
+                )
+            else:
+                mutated = list(rows)
+                y = next(index for index, row in enumerate(mutated) if "#" in row)
+                x = mutated[y].index("#")
+                mutated[y] = mutated[y][:x] + "." + mutated[y][x + 1 :]
+                corrupted = make_cursors.cursor_bytes(
                     rows=tuple(mutated), hotspot=hotspot, name=canonical
-                ),
+                )
+            variants = {
+                "corrupted grid": corrupted,
                 "dropped size": make_cursors.cursor_bytes(
                     rows=rows,
                     sizes=(16, 24),
@@ -655,6 +698,8 @@ class TestCursorSet(unittest.TestCase):
         # separates every black cell from transparent pixels and from the
         # frame edge, orthogonal on every side, in every shipped grid.
         for canonical, rows, _, _ in cursor_art.CURSORS:
+            if canonical in VECTOR_CURSORS:
+                continue
             with self.subTest(canonical=canonical):
                 self._assert_grid_is_shielded(canonical, rows)
 
@@ -680,29 +725,6 @@ class TestCursorSet(unittest.TestCase):
             image for image in cursor.images if image.nominal_size == 16
         )
         return (image,) + decode_rgba(image.png)
-
-    def test_left_ptr_draws_the_classic_silhouette(self):
-        image, width, _, rgba = self._sixteen_pixel_image("left_ptr")
-        self.assertEqual((image.hotspot_x, image.hotspot_y), (1, 1))
-        # The vertical left edge rises to the untouched tip at the hotspot.
-        for y in range(1, 12):
-            with self.subTest(edge=y):
-                self.assertEqual(_pixel(rgba, width, 1, y), BLACK)
-                self.assertEqual(_pixel(rgba, width, 0, y), WHITE)
-        for x in range(9, 11):
-            with self.subTest(trailing=x):
-                self.assertEqual(_pixel(rgba, width, x, 10), BLACK)
-        self.assertEqual(_pixel(rgba, width, 11, 10), WHITE)
-        # The two-cell black tail hangs below the notch.
-        for y in range(12, 15):
-            with self.subTest(tail=y):
-                self.assertEqual(_pixel(rgba, width, 5, y), BLACK)
-                self.assertEqual(_pixel(rgba, width, 6, y), BLACK)
-                self.assertEqual(_pixel(rgba, width, 4, y), WHITE)
-                self.assertEqual(_pixel(rgba, width, 7, y), WHITE)
-        for x in range(4, 8):
-            with self.subTest(tail_base=x):
-                self.assertEqual(_pixel(rgba, width, x, 15), WHITE)
 
     def test_watch_draws_the_round_faced_wristwatch(self):
         image, width, _, rgba = self._sixteen_pixel_image("watch")

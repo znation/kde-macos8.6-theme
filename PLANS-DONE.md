@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Antialiased cursors, part 3/3: bind the arrow pointer to its vector art and regenerate it (planned 2026-11-12 by the plan role; split from part 2/2 2026-11-12 by the plan role; "requires part 2/3 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Replace the arrow (`left_ptr` and its aliases `arrow`, `default`, `top_left_arrow` and `dnd-none`), the pointer users see most, with part 2/3's `ARROW_ART`, rendered natively at each nominal size. The other cursor families keep their grids until their own plans; they are routed per family as the BUGS.md cursor report asks.
+
+**Approach.**
+- **Binding.** In `tools/cursor_art.py`, import `ARROW_ART` and `ARROW_HOTSPOT` and bind `left_ptr` to them with the same aliases. Keep `ARROW_GRID` and `HOTSPOT` exported: the help, progress and context-menu tests in `tests/test_cursors_theme.py` still compare against those cells, though `CURSORS` no longer binds them. Update the module docstring: the arrow is now antialiased vector art.
+- **Generator defaults.** In `tools/make_cursors.py`, the `cursor_bytes()` defaults become `ARROW_ART` and `ARROW_HOTSPOT`, so the default call still equals the committed `left_ptr`. Tests in `tests/test_make_cursors.py` that relied on the default being a grid pass `rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT` explicitly.
+- **Regenerate** with `python3 tools/make_cursors.py`. Only `left_ptr` and its four alias files change.
+- **Tests.**
+  - `tests/test_cursor_art_bindings.py`: admit exported `*_ART` constants beside `*_GRID`; `ARROW_ART` pairs with `ARROW_HOTSPOT`. Exempt `ARROW_GRID` from the bound-exactly-once rule through an explicit, commented set of reference grids that must be bound zero times. The hotspot-inside check uses design units for vector entries.
+  - `tests/test_cursors_theme.py`:
+    - Rewrite `test_each_frame_pins_the_hotspot_outline_tip_and_transparency` and `test_left_ptr_draws_the_classic_silhouette` to the frame criteria below, read from the committed file. Rewrite `test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_the_artifact` so a moved face vertex replaces the corrupted grid.
+    - Update the `HOTSPOTS["left_ptr"]` row.
+    - In the `cursor_art.CURSORS`-wide tests (`test_every_frame_pins_its_hotspot_face_and_outline`, `test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_each_glyph`, `test_every_cursor_grid_shields_its_black_from_transparent`), give vector entries an explicit branch: grid-cell pins and the shield check apply to grid entries only; the variant check moves a face vertex for vector entries. The "Antialiased text and hand cursors" entry reuses this shape.
+  - `docs/invariants.md`: update the cursor-set row (the icon theme's `cursors/` row) and the nearest-neighbour hotspot row so they say which entries are vector-rendered.
+
+**Files.** `tools/cursor_art.py`, `tools/make_cursors.py`, `tests/test_make_cursors.py` (only for default-argument tests), `tests/test_cursors_theme.py`, `tests/test_cursor_art_bindings.py`, `docs/invariants.md`, and the five regenerated files under `theme/icons/org.macos8.desktop/cursors/`.
+
+**Acceptance criteria.**
+- **Frames.** The committed `left_ptr` parses to three frames at nominal sizes 16, 24 and 32 with hotspots `(1,1)`, `(2,2)` and `(3,3)`, and meets part 2/3's per-frame arrow criteria: opaque hotspot pixel, `(0,0,0,255)` at the pixel containing design point `(6,14)`, transparent top-right and bottom-right corners, and antialiasing evidence.
+- **Freshness and aliases.** The committed `left_ptr` equals `make_cursors.cursor_bytes()`, and each of its four aliases is byte-identical to it. A moved face vertex, a dropped size or a moved hotspot each change the bytes.
+- **Bindings.** Removing `ARROW_ART` from `CURSORS`, or binding `ARROW_GRID` again, fails `tests/test_cursor_art_bindings.py`.
+- **Scope.** `git diff --stat` touches no other cursor file: the grid-drawn cursors, including help, progress and context-menu, keep their committed bytes.
+- `make check` passes after the final edit. This change does not close the BUGS.md cursor report: the user's visual verdict on the arrow, plus the remaining families, decide that.
+
+**Landed.** Deviation from the approach: `test_left_ptr_draws_the_classic_silhouette` was removed rather than rewritten; its frame criteria (hotspot, design point (6, 14), transparent top-right and bottom-right corners, antialiased edge pixels) now live in `test_each_frame_pins_the_hotspot_outline_tip_and_transparency`, which runs on every frame. The vector arrow is excluded from the grid-cell pins and the shield check through `VECTOR_CURSORS`; the corrupted-grid variant moves a face vertex for vector entries.
+
 ### Antialiased cursors, part 2/3: render VectorCursor art in the cursor generator and define the arrow design (planned 2026-11-12 by the plan role; split from part 2/2 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** Teach `tools/make_cursors.py` to render a `VectorCursor` (from part 1, `tools/cursor_vector.py`, already landed) in the art slot, and add the theme's own antialiased arrow design beside the arrow grid. Nothing is bound or regenerated here: every committed cursor file keeps its bytes. Part 3/3 binds the arrow and regenerates `left_ptr`. This split answers the feature role's 2026-11-12 "too large for one run" note on the former part 2/2.

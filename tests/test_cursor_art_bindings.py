@@ -29,26 +29,36 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import cursor_art, cursor_art_drag, cursor_art_pointers, cursor_art_resize  # noqa: F401
+from tools.cursor_vector import VectorCursor
 
 # Each data module, in the order cursor_art imports them, and the exported
-# grid each contributes. The arrow's hotspot predates the sibling modules'
-# naming rule, so its constant is simply ``HOTSPOT``; every other ``*_GRID``
-# pairs with ``<grid>_HOTSPOT`` after stripping the ``_GRID`` suffix.
+# art each contributes: a ``*_GRID`` pixel grid or a ``*_ART`` VectorCursor.
+# Every ``*_GRID`` pairs with ``<grid>_HOTSPOT`` after stripping the ``_GRID``
+# suffix, except the arrow's grid, whose hotspot predates that naming rule and
+# is ``HOTSPOT``; ``ARROW_ART`` pairs with ``ARROW_HOTSPOT``.
 MODULES = (cursor_art_pointers, cursor_art_resize, cursor_art_drag)
-ARROW_HOTSPOT_NAME = "HOTSPOT"
+# Grids kept exported as the grid reference for the tests that compare the
+# arrow's cells. ``cursor_art.CURSORS`` no longer binds them, so each must be
+# bound zero times; every other exported art must be bound exactly once.
+REFERENCE_GRIDS = frozenset({"ARROW_GRID"})
+ARROW_GRID_HOTSPOT_NAME = "HOTSPOT"
 
 
 def _exported_grid_names(module):
-    """Return the exported ``*_GRID`` names of *module*, sorted."""
+    """Return the exported ``*_GRID`` and ``*_ART`` names of *module*, sorted."""
     return sorted(
-        name for name, value in vars(module).items() if name.endswith("_GRID")
+        name
+        for name in vars(module)
+        if name.endswith(("_GRID", "_ART"))
     )
 
 
 def _hotspot_name(grid_name):
     """Return the hotspot constant name paired with *grid_name*."""
     if grid_name == "ARROW_GRID":
-        return ARROW_HOTSPOT_NAME
+        return ARROW_GRID_HOTSPOT_NAME
+    if grid_name.endswith("_ART"):
+        return grid_name[: -len("_ART")] + "_HOTSPOT"
     return grid_name[: -len("_GRID")] + "_HOTSPOT"
 
 
@@ -80,13 +90,15 @@ class TestCursorArtBindings(unittest.TestCase):
             for grid_name in _exported_grid_names(module):
                 grid = vars(module)[grid_name]
                 binding_count = sum(bound is grid for bound in bound_grids)
+                expected = 0 if grid_name in REFERENCE_GRIDS else 1
                 with self.subTest(module=module.__name__, grid=grid_name):
                     self.assertEqual(
                         binding_count,
-                        1,
+                        expected,
                         f"{grid_name} is bound {binding_count} times "
-                        "in cursor_art.CURSORS; each data module's grid must "
-                        "bind exactly once",
+                        "in cursor_art.CURSORS; each data module's art must "
+                        f"bind exactly {expected} time(s), reference grids "
+                        "zero",
                     )
 
     def test_every_cursor_entry_binds_a_grid_a_data_module_exports(self):
@@ -117,6 +129,21 @@ class TestCursorArtBindings(unittest.TestCase):
     def test_every_hotspot_lies_inside_its_grid_and_names_the_black_face(self):
         for name, _module, grid, _grid_name, hotspot in _bindings():
             x, y = hotspot
+            if isinstance(grid, VectorCursor):
+                # Vector art measures its hotspot in design units, so it must
+                # lie inside the design grid and on the face's own outline.
+                with self.subTest(cursor=name):
+                    self.assertTrue(
+                        0 <= x < grid.design_size and 0 <= y < grid.design_size,
+                        f"{name}'s hotspot {(x, y)} lies outside its "
+                        f"{grid.design_size}-unit design grid",
+                    )
+                    self.assertIn(
+                        (x, y),
+                        [tuple(vertex) for vertex in grid.face],
+                        f"{name}'s hotspot {(x, y)} is not a vertex of its face",
+                    )
+                continue
             with self.subTest(cursor=name):
                 self.assertTrue(
                     0 <= x < len(grid) and 0 <= y < len(grid),

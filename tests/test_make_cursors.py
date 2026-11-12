@@ -20,16 +20,29 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
 from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
+from tools.cursor_vector import VectorCursor  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
 SIZES = (16, 24, 32)
+
+
+def _grid_cursors():
+    """Yield the ``CURSORS`` entries drawn as pixel grids.
+
+    The grid checks (row count, row width, cell glyphs) do not apply to the
+    arrow's ``VectorCursor`` art, which TestVectorArrow and the committed-file
+    checks cover instead.
+    """
+    for entry in cursor_art.CURSORS:
+        if not isinstance(entry[1], VectorCursor):
+            yield entry
 
 
 class TestGridValidation(unittest.TestCase):
     """The grid checks turn a bad contributor edit into a named ValueError."""
 
     def test_refuses_a_grid_with_the_wrong_row_count(self):
-        for name, rows, _, _ in cursor_art.CURSORS:
+        for name, rows, _, _ in _grid_cursors():
             with self.subTest(name=name):
                 with self.assertRaises(ValueError) as caught:
                     make_cursors._checked_rows(rows[:-1], name)
@@ -39,7 +52,7 @@ class TestGridValidation(unittest.TestCase):
                 )
 
     def test_refuses_a_row_that_is_not_a_grid_width_string(self):
-        for name, rows, _, _ in cursor_art.CURSORS:
+        for name, rows, _, _ in _grid_cursors():
             short = list(rows)
             short[0] = short[0][:-1]
             non_text = list(rows)
@@ -62,11 +75,13 @@ class TestGridValidation(unittest.TestCase):
         rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
         with self.assertRaises(ValueError) as caught:
-            make_cursors.cursor_bytes(rows=tuple(rows))
+            make_cursors.cursor_bytes(
+                rows=tuple(rows), hotspot=cursor_art.HOTSPOT
+            )
         self.assertIn("(0, 3)", str(caught.exception))
 
     def test_an_unknown_cell_names_the_glyph(self):
-        for canonical, rows, hotspot, _ in cursor_art.CURSORS:
+        for canonical, rows, hotspot, _ in _grid_cursors():
             mutated = list(rows)
             mutated[0] = "x" + mutated[0][1:]
             with self.subTest(name=canonical):
@@ -163,7 +178,7 @@ class TestGeneratorValidation(unittest.TestCase):
         for size, expected in ((1, 0), (8, 7), (15, 14)):
             with self.subTest(size=size):
                 data = make_cursors.cursor_bytes(
-                    sizes=(size,), hotspot=(15, 15)
+                    rows=cursor_art.ARROW_GRID, sizes=(size,), hotspot=(15, 15)
                 )
                 path = make_tmp_dir(self) / f"arrow-{size}"
                 path.write_bytes(data)
@@ -207,7 +222,7 @@ class TestGeneratorValidation(unittest.TestCase):
                     path = tmp / f"arrow-{size}-{hotspot[0]}-{hotspot[1]}"
                     path.write_bytes(
                         make_cursors.cursor_bytes(
-                            sizes=(size,), hotspot=hotspot
+                            rows=cursor_art.ARROW_GRID, sizes=(size,), hotspot=hotspot
                         )
                     )
                     image = xcursor_reader.read_cursor(path).images[0]
@@ -293,8 +308,12 @@ class TestCursorBytesCache(unittest.TestCase):
         with mock.patch.object(
             make_cursors, "render_rgba", wraps=make_cursors.render_rgba
         ) as render:
-            first = make_cursors.cursor_bytes()
-            second = make_cursors.cursor_bytes()
+            first = make_cursors.cursor_bytes(
+            rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT
+        )
+            second = make_cursors.cursor_bytes(
+            rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT
+        )
         self.assertEqual(first, second)
         self.assertEqual(render.call_count, len(SIZES))
 
@@ -302,8 +321,12 @@ class TestCursorBytesCache(unittest.TestCase):
         with mock.patch.object(
             make_cursors, "render_rgba", wraps=make_cursors.render_rgba
         ) as render:
-            default = make_cursors.cursor_bytes()
-            moved = make_cursors.cursor_bytes(hotspot=(2, 2))
+            default = make_cursors.cursor_bytes(
+            rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT
+        )
+            moved = make_cursors.cursor_bytes(
+                rows=cursor_art.ARROW_GRID, hotspot=(2, 2)
+            )
         self.assertNotEqual(default, moved)
         self.assertEqual(render.call_count, 2 * len(SIZES))
 
@@ -314,8 +337,12 @@ class TestCursorBytesCache(unittest.TestCase):
         with mock.patch.object(
             make_cursors, "render_rgba", wraps=make_cursors.render_rgba
         ) as render:
-            listed = make_cursors.cursor_bytes(sizes=[16, 24], hotspot=[1, 1])
-            tupled = make_cursors.cursor_bytes(sizes=(16, 24), hotspot=(1, 1))
+            listed = make_cursors.cursor_bytes(
+                rows=cursor_art.ARROW_GRID, sizes=[16, 24], hotspot=[1, 1]
+            )
+            tupled = make_cursors.cursor_bytes(
+                rows=cursor_art.ARROW_GRID, sizes=(16, 24), hotspot=(1, 1)
+            )
         self.assertEqual(listed, tupled)
         self.assertEqual(render.call_count, 2)
 
@@ -346,11 +373,15 @@ class TestCursorBytesCache(unittest.TestCase):
         rows[3] = "x" + rows[3][1:]
         for _ in range(2):
             with self.assertRaises(ValueError) as caught:
-                make_cursors.cursor_bytes(rows=tuple(rows))
+                make_cursors.cursor_bytes(
+                rows=tuple(rows), hotspot=cursor_art.HOTSPOT
+            )
             self.assertIn("(0, 3)", str(caught.exception))
 
     def test_a_bad_size_is_refused_after_a_cached_build(self):
-        make_cursors.cursor_bytes()
+        make_cursors.cursor_bytes(
+            rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT
+        )
         for sizes in ((16.0, 24.0, 32.0), (True,), ([16], 24, 32)):
             with self.subTest(sizes=sizes):
                 with self.assertRaises(ValueError) as caught:
@@ -361,11 +392,15 @@ class TestCursorBytesCache(unittest.TestCase):
                 )
 
     def test_a_bad_hotspot_is_refused_after_a_cached_build(self):
-        make_cursors.cursor_bytes()
+        make_cursors.cursor_bytes(
+            rows=cursor_art.ARROW_GRID, hotspot=cursor_art.HOTSPOT
+        )
         for hotspot in ((1.0, 1.0), (True, True), ([1], 1)):
             with self.subTest(hotspot=hotspot):
                 with self.assertRaises(ValueError) as caught:
-                    make_cursors.cursor_bytes(hotspot=hotspot)
+                    make_cursors.cursor_bytes(
+                        rows=cursor_art.ARROW_GRID, hotspot=hotspot
+                    )
                 self.assertIn(
                     "hotspot must be two integers", str(caught.exception)
                 )
