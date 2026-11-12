@@ -4453,6 +4453,7 @@ print("scrollbar pins settled")
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {"border-radius": "0"})
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
                 self.assertEqual(self.selectors.count(selector), 1)
                 for reference in ("button", "frame > border", ".frame"):
                     self.assertEqual(
