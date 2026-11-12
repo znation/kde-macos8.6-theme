@@ -1296,6 +1296,10 @@ The post-merge review of commit `4c104c31c41d16291e53f69d68776e1ba432c4b3` (Pin 
 
 The post-merge review of commit `1d36ea1a56ffa6315c87491dffc443ab1ccedcb2` (Restate GTK 3 OSD flat-button arms with the landed button recipe) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 8bd187d4 never reached a verdict (found by the review role 2026-11-11)
+
+The post-merge review of commit `8bd187d4e4ba81e958ee22eccebbfd5278d3f597` (Bind CI rendering environment assertions to the check job) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
