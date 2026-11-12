@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of a40e72a9 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
+
+The post-merge review of commit `a40e72a92cff87032258f8c0cccd092ecbb2cff9` (Move render dialog argv recipes into `tools/render_clients.py`) never reached a verdict. Settled by reading the commit diff; no code change, because the commit is correct. Checked: `tools/render_clients.py` holds `checkbox_dialog_client`, `combobox_dialog_client` and `menu_dialog_client`, with argv identical to the definitions removed from `tools/render_session.py`; `tools/render_workflow.py` imports them from `render_clients` in both the package and direct-run branches; `tools/render_dialogs.py` already imports them from `render_clients`; no definitions remain in `render_session.py`; the two test docstring updates match the new ownership.
+
+**Validation gap:** none — the settlement was a read of the diff, and the project's check covers the moved recipes through the render unit tests.
+
 ### post-merge review of bf4b438d never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
 
 The post-merge review of commit `bf4b438d6482579932cfc95ad173137307266f0c` (Preserve non-ASCII spacing in shared stylesheet tokens) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 8:49 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.

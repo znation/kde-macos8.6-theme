@@ -91,8 +91,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-_None yet._
-
 ## Done
 
 ### GTK 4 suite extraction, part 5/9: isolate the progressbar probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the review role
