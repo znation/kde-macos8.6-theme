@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 95990634 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `959906348a7fa0c016b882c80af02c7a9811d631`: the GTK 3 sheet reflects only unchecked RTL disclosure arrows with `scaleX(-1)`; the regression test asserts the exact declarations and selector uniqueness while preserving collapsed and checked arrow rules. `docs/invariants.md` records the GTK 3 adaptation and distinguishes the GTK 4 behavior.
+
+**Validation gap:** none — the existing GTK 3 test directly checks the RTL declarations, and the current source and invariant documentation match the reviewed change.
+
 ### post-merge review of 1341c439 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `1341c4399ed2cebe5cdb940693c54b6f449aee49`: the shared fixture preserves the previous callers' directory open, exclusive non-blocking flock and cleanup behavior. All three wrappers delegate to that fixture; GTK's distinct config-lock helper remains local.
