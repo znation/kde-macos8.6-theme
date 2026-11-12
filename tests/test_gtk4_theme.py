@@ -3850,7 +3850,7 @@ print("scrollbar pins settled")
         # restated byte-twin arms square the row like the square popover
         # contents shell above.
         for selector in ("popover.menu modelbutton", "modelbutton.flat"):
-            self.assert_rule(selector, {"border-radius": "0"})
+            self.assertEqual(self.rules[selector], {"border-radius": "0"})
             self.assertEqual(
                 self.rules[selector]["border-radius"],
                 self.rules["popover > contents"]["border-radius"],
