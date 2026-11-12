@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 57a8984e never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `57a8984e37e3074a46798216af2b0bab3caa35bf`: the base `button.color colorswatch:only-child` rule clears the decorative shadow, its exact declaration test pins the reset, the swatch corner selector inventory includes the rule, and the GTK invariant records the missing reference surface and toolkit resource provenance. The change preserves swatch color and geometry and limits its guarantee to declarations.
+
+**Validation gap:** none — the exact declaration and selector inventory tests cover the reviewed stylesheet contract, and the invariant explicitly limits the claim to declarations rather than rendered pixels.
+
 ### post-merge review of 085434b9 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 The post-merge review of commit `085434b9b0941a66380649c457baeb22eb780888` (Restate GTK 4 OSD scale thumbs with Platinum recipes) found the four OSD slider state declarations use the shared `SCALE_THUMB` paint; the disabled state matches the ordinary disabled border and flat shadow. The focused test asserts the four complete rule dictionaries and selector inventory, while `docs/invariants.md` records the missing reference surface and GTK resource provenance. The broader `make check` noted in the commit's own record passed; no discrepancy was found in the diff.
