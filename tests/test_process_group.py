@@ -483,6 +483,20 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(payload, self.stdout_log.read_bytes())
         self.assertEqual(b"", self.stderr_log.read_bytes())
 
+    def test_split_custom_sigint_handler_keeps_its_behavior_during_start(self):
+        received = []
+        handler = lambda number, frame: received.append(number)
+        old = signal.signal(signal.SIGINT, handler)
+        self.addCleanup(signal.signal, signal.SIGINT, old)
+        with mock.patch.object(
+            process_group.subprocess,
+            "Popen",
+            side_effect=signal_into_popen(signal.SIGINT),
+        ):
+            self.assertEqual(0, self.run_sh("exit 0"))
+        self.assertEqual([signal.SIGINT], received)
+        self.assertIs(handler, signal.getsignal(signal.SIGINT))
+
     def test_thread_start_failure_kills_the_child(self):
         child = {}
         real_popen = subprocess.Popen
