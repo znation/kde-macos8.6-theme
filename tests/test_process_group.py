@@ -253,6 +253,16 @@ class TestRunLogged(unittest.TestCase):
         with ThreadPoolExecutor(max_workers=1) as executor:
             self.assertEqual(3, executor.submit(self.run_sh, "exit 3").result(10))
 
+    def test_custom_sigint_handler_allows_running_from_a_worker_thread(self):
+        received = []
+        handler = lambda number, frame: received.append(number)
+        old = signal.signal(signal.SIGINT, handler)
+        self.addCleanup(signal.signal, signal.SIGINT, old)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            self.assertEqual(0, executor.submit(self.run_sh, "exit 0").result(10))
+        self.assertEqual([], received)
+        self.assertIs(handler, signal.getsignal(signal.SIGINT))
+
     def _run_while_handlers_are_restored(self, number, raises):
         """Run the logged runner while *number* arrives as handlers swap back.
 
