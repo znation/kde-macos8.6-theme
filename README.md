@@ -1487,12 +1487,12 @@ answers your question:
 
 | Need | Additional options | Result |
 | --- | --- | --- |
-| Find the enclosing mismatch rectangle | None; this is the default report | Smallest bounds containing pixels beyond tolerance; unchanged gaps may lie inside. |
-| Inspect the most severe individual mismatches | `--worst-pixels 5 --explain-worst --json` | Ranked pixels with positions, RGBA values and channel differences. |
-| See horizontal mismatch segments | `--difference-runs --max-difference-runs 20 --json` | Capped list of horizontal intervals. |
-| See vertical mismatch segments | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
-| Find row and column concentration | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
-| Attribute mismatches to channels | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
+| [Find the enclosing mismatch rectangle](#fidelity-report-bounds) | None; this is the default report | Smallest bounds containing pixels beyond tolerance; unchanged gaps may lie inside. |
+| [Inspect the most severe individual mismatches](#fidelity-report-worst-pixels) | `--worst-pixels 5 --explain-worst --json` | Ranked pixels with positions, RGBA values and channel differences. |
+| [See horizontal mismatch segments](#fidelity-report-horizontal-runs) | `--difference-runs --max-difference-runs 20 --json` | Capped list of horizontal intervals. |
+| [See vertical mismatch segments](#fidelity-report-vertical-runs) | `--difference-column-runs --max-difference-column-runs 20 --json` | Capped list of vertical intervals. |
+| [Find row and column concentration](#fidelity-report-scanline-counts) | `--difference-rows --difference-columns --json` | Per-row and per-column mismatch counts. |
+| [Attribute mismatches to channels](#fidelity-report-channel-counts) | `--channel-counts --json` | Per-channel counts; a pixel may count in multiple channels, so do not sum them. |
 
 Interval coordinates are relative to the compared crops. See [Diagnostic reference](#diagnostic-reference)
 for details about these reports and their fields.
@@ -1504,6 +1504,8 @@ pixels' RGBA values and their channel differences. A mismatch is a useful report
 reports.
 
 ### Diagnostic reference
+
+<a id="fidelity-report-bounds"></a>
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
@@ -1540,6 +1542,8 @@ reports `null`. When combined with `--difference-runs`, it reuses those interval
 comparison rule, with crop-relative coordinates; ties use the earliest column and then row. Its
 JSON field is `longest_difference_column_run`, and an empty comparison reports `null`. When
 combined with `--difference-column-runs`, it reuses those intervals.
+<a id="fidelity-report-worst-pixels"></a>
+
 The mean, RMSE and maximum-delta metrics use comparison raw bytes and are independent of
 `--tolerance`; the differing-pixel fraction and the `--max-differing` count are measured beyond
 `--tolerance`. RMSE is not a perceptual error measure. Add `--worst-pixels N` (1–1000) to list
@@ -1560,6 +1564,8 @@ to the compared surfaces; `candidate_position` and `reference_position` add each
 and point into the original images. The diagnostic appears as `worst_pixel` in JSON or as a
 JSON-formatted `worst pixel:` line immediately before the verdict. It is reported on passing
 comparisons too, including identical images, where the selected position is `(0, 0)`.
+<a id="fidelity-report-channel-counts"></a>
+
 Add `--channel-counts` to report, per channel, how many compared pixels exceed `--tolerance`
 on that channel alone. `--json` adds the counts as a top-level `channel_counts` object
 and text prints one `channel differing pixels (R, G, B, A)` line immediately before the
@@ -1591,6 +1597,8 @@ Add `--channel-maxima` to report the largest absolute byte delta seen in each RG
 JSON adds a `channel_maxima` object and text prints a labelled RGBA maximum-delta line before
 the verdict. It includes RGB bytes beneath transparent pixels, treats missing alpha as opaque,
 and is independent of tolerance and verdict.
+<a id="fidelity-report-horizontal-runs"></a>
+
 Add `--difference-runs` to report maximal contiguous horizontal runs of pixels whose maximum
 raw RGBA channel delta exceeds `--tolerance`. JSON adds row-major `difference_runs` records
 with crop-relative `x`, `y` and `length`; text prints the same array after column bounds.
@@ -1628,6 +1636,8 @@ filters, in global row-major order. The offset must be a nonnegative ASCII integ
 requires the cap. JSON adds `difference_run_offset`, and text prints `difference run offset: K`
 immediately before the interval list. The omitted count includes skipped intervals and eligible
 intervals beyond the page.
+<a id="fidelity-report-vertical-runs"></a>
+
 Add `--difference-column-runs` for maximal vertical runs, ordered left-to-right and then
 top-to-bottom. JSON adds crop-relative `difference_column_runs` records with `x`, `y` and
 `length`; text prints them after horizontal runs. Runs end at each column boundary and adjacent
@@ -1661,6 +1671,8 @@ Add `--difference-centroid` to report the equal-weight mean `(x, y)` of pixels w
 RGBA channel delta exceeds tolerance. Coordinates are crop-relative integer pixel indices; delta
 magnitude does not affect weight. JSON includes `difference_centroid` and text prints it immediately
 before the verdict, with `null` when no pixel differs. The scan is opt-in.
+<a id="fidelity-report-scanline-counts"></a>
+
 Add `--difference-rows` to count compared pixels beyond tolerance in each row. A pixel counts
 once when any RGBA channel exceeds tolerance; missing alpha is opaque and RGB beneath
 transparency is compared as stored. JSON adds a dense `difference_rows` array, and text prints
