@@ -20,14 +20,15 @@ Decoding itself lives in
 from __future__ import annotations
 
 import os
-import stat
 from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
 
 try:
+    from tools.containment import open_regular_binary
     from tools.image_format import LFS_POINTER_MAGIC, PNG_MAGIC
 except ImportError:  # imported as the top-level package `png` by a directly run tool
+    from containment import open_regular_binary
     from image_format import LFS_POINTER_MAGIC, PNG_MAGIC
 
 from .chunks import iter_chunks
@@ -70,34 +71,30 @@ def _read_png_data(
     :func:`read_png_size` uses this so reporting a large screenshot's declared
     size does not load the whole file.
     """
-    # Open with O_NONBLOCK so a path naming a pipe (FIFO) cannot block in
-    # open() waiting for a writer; a regular file is unaffected. The byte cap
-    # below bounds memory but not time: read() on a pipe whose writer stays
-    # open without sending data blocks forever. Reject any non-regular file
-    # (pipe, device) outright. fstat on the open fd also avoids a stat/open
-    # race where a regular file is swapped for a FIFO between the two.
+    # open_regular_binary opens with O_NONBLOCK so a FIFO cannot block in
+    # open(), and fstat-checks the open descriptor so a pipe or device is
+    # refused by name. The byte cap below bounds memory but not time, which
+    # is why the non-regular refusal has to happen before any read.
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+        handle = open_regular_binary(path)
+    except ValueError as exc:
+        # open_regular_binary raises ValueError only for a non-regular file.
+        raise PngError(f"cannot read {path}: not a regular file") from exc
     except OSError as exc:
         raise PngError(f"cannot read {path}: {exc}") from exc
     try:
-        file_stat = os.fstat(fd)
-        if not stat.S_ISREG(file_stat.st_mode):
-            raise PngError(f"cannot read {path}: not a regular file")
-        # A whole read stops at one byte past the cap: enough to detect an
-        # oversize file without loading the rest of it. A prefix read is
-        # bounded by its caller and relies on the fstat size checked below.
-        with os.fdopen(fd, "rb") as handle:
-            fd = -1
+        with handle:
+            file_stat = os.fstat(handle.fileno())
+            # A whole read stops at one byte past the cap: enough to detect
+            # an oversize file without loading the rest of it. A prefix read
+            # is bounded by its caller and relies on the fstat size checked
+            # below.
             if prefix_bytes is None:
                 data = handle.read(_MAX_FILE_BYTES + 1)
             else:
                 data = handle.read(prefix_bytes)
     except OSError as exc:
         raise PngError(f"cannot read {path}: {exc}") from exc
-    finally:
-        if fd >= 0:
-            os.close(fd)
     if len(data) > _MAX_FILE_BYTES or (
         prefix_bytes is not None and file_stat.st_size > _MAX_FILE_BYTES
     ):
