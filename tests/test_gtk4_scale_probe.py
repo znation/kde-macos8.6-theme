@@ -18,16 +18,16 @@ class TestGtk4ScaleProbe(unittest.TestCase):
         # from rendered pixels, with the disabled thumb's flat grey twin:
         # a trough rule that never matches the rendered node tree, a thumb
         # that never paints or loses its bevel, or stock's accent-coloured
-        # fill or highlight leaking through the landed transparent faces
+        # fill or highlight leaking through the existing transparent faces
         # would otherwise ship green under the declaration tests alone.
         # Pins measured 2026-11-11 in child renders; a dropped band, rim
         # or bevel arm, a leaked fill or a disabled twin keeping the raised
         # bevel or the black rim leaves a pinned pixel wrong and fails.
-        # The pressed state stays out: the landed hover/active group
+        # The pressed state stays out: the existing hover/active group
         # repaints the same face, border and raised bevel as the resting
         # thumb, so pressed pins would be byte-identical and add nothing
         # discriminating; the spelling stays held by test_scale. The
-        # disabled trough keeps the landed band, black rim and inset arm
+        # disabled trough keeps the existing band, black rim and inset arm
         # (the `scale > trough:disabled` group repaints only the face and
         # border colour byte-equal), so its pins repeat the resting ones.
         # The child's literal expectations are formatted from the same
@@ -117,13 +117,13 @@ def painted(widget, w, h):
 # widget's allocation reads relative to its parent's content-box origin,
 # so the trough's painted border box is the content origin plus the
 # trough's allocation. The thumb's allocation is its margin box — the
-# landed `-5px` thumb margin shrinks it — so its painted border box sits
+# existing `-5px` thumb margin shrinks it — so its painted border box sits
 # 5px outside that box on every side and measures 10px more each way,
-# overhanging the trough's band the way the landed recipe states. Each
+# overhanging the trough's band the way the existing recipe states. Each
 # pin sits clear of every border row and antialiasing edge, positions
 # unchanged from the allocations the capture itself used.
 CONTENT = 12  # the sheet's bare `scale` padding
-MARGIN = 5    # the landed thumb margin's -5px magnitude
+MARGIN = 5    # the existing thumb margin's -5px magnitude
 
 def pins(t, s, disabled):
     tx, ty = CONTENT + t.x, CONTENT + t.y

@@ -8,7 +8,7 @@ The census runs GTK 4 child interpreters under the suite's own
 ``GDK_BACKEND=x11`` / ``GSK_RENDERER=cairo`` pattern (see
 ``tests/test_gtk4_theme.py::test_mixed_indicators_draw_black_dashes``):
 each child exits 77 without GTK 4 introspection or an X11 display, and the
-test skips instead of failing. Sheet loading uses the landed ``../assets/``
+test skips instead of failing. Sheet loading uses the existing ``../assets/``
 URI replacement, so ``tests/test_icon_sources_resolve_to_shipped_files``'s
 URL grep stays untouched.
 
@@ -19,7 +19,7 @@ Census findings, recorded 2026-11-05 during the probe run:
   each node's ``get_css_name()`` and ``get_css_classes()``; every one of the
   three view-family widget nodes carried the ``view`` class and no others
   (``['view']``), and a presented window's own node reported ``['background']``
-  (its CSS node name is ``window``). This extends the landed icon-view
+  (its CSS node name is ``window``). This extends the existing icon-view
   record's census to the whole view family.
 
 - **Probe 1b (text-node reachability).** The same child walked a presented
@@ -36,7 +36,7 @@ Census findings, recorded 2026-11-05 during the probe run:
   ``Gtk.WidgetPaintable`` + ``Gtk.Snapshot.to_node()`` + the window
   renderer's ``render_texture`` + ``Gdk.pixbuf_get_from_texture``, computed
   the band of exact ``#CCCCFF`` pixels
-  (``tests/support/platinum_palette.py::SELECTION``, the landed
+  (``tests/support/platinum_palette.py::SELECTION``, the existing
   ``textview > text > selection`` fill), and found all four extreme pixels
   of the band's bounding box inside that exact band: the selected text face
   is flat and unrounded today. Stock's ``textview > text:selected`` radius
@@ -46,8 +46,8 @@ Census findings, recorded 2026-11-05 during the probe run:
   ``/usr/lib/x86_64-linux-gnu/libgtk-4.so.1``'s line-21 ``border-radius:
   3px`` group, whose comma group carries the byte-twin members
   ``textview > text:selected:focus`` and ``textview > text:selected``) ride
-  no visible corner ship here today: the landed sheet's flat selection fill
-  owns the face and the landed selection-surface corner records square the
+  no visible corner ship here today: the existing sheet's flat selection fill
+  owns the face and the existing selection-surface corner records square the
   compound members.
 
 - **Historical Probe 2b (rendered census, before the white restatement).** The
@@ -58,7 +58,7 @@ Census findings, recorded 2026-11-05 during the probe run:
   textview > text:disabled { color: #929595; background-color: #faf9f8; }``,
   quoted in resource order; 60% of ``@window_bg_color #DDDDDD`` over
   ``@view_bg_color #FFFFFF`` would compute ``#EBEBEB`` instead), not the
-  landed white field. This was the historical finding that motivated the
+  existing white field. This was the historical finding that motivated the
   disabled text-node restatement; the isolated probe now pins plain GTK
   pixels to white. It does not measure libadwaita's later transparent rule.
 """
@@ -343,7 +343,7 @@ class TestSelectedViewFace(unittest.TestCase):
 
 
 class TestDisabledViewFace(unittest.TestCase):
-    """Pin the rendered insensitive text field to the landed white face."""
+    """Pin the rendered insensitive text field to the existing white face."""
 
     def test_disabled_text_field_is_white(self):
         result = _run_child(DISABLED_FACE_CHILD, THEME_DIR)

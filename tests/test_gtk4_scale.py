@@ -26,13 +26,13 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a GTK scale popup, so the
         sheet restates the toolkit resource's stock arms (probed from
-        Default-light.css in libgtk-4 4.18.6) with the landed plain
+        Default-light.css in libgtk-4 4.18.6) with the existing plain
         push-button recipe (the base ``button`` dictionary pinned by
         ``support.gtk_rule_cases.py::GtkSheetRuleCases::test_button``).
         The recipe is restated in full at each arm because this sheet has
         no restated ``.osd button.flat`` family: the stock
         ``.osd button``/``button.flat`` arms claim a transparent face and
-        border and no bevel at (0,2,1)/(0,1,1), outranking the landed
+        border and no bevel at (0,2,1)/(0,1,1), outranking the existing
         base ``button`` group's (0,0,1) face, border and bevel.
         """
         recipe = {
@@ -55,7 +55,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_scale_marks_value_ink(self):
-        """Scale tick marks and the value label read the landed black ink.
+        """Scale tick marks and the value label read the existing black ink.
 
         The toolkit dilutes both through `currentColor`-alpha arms; the
         restated comma group wins the per-property tie under lower-sheet
@@ -117,7 +117,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         minimums, value-label orientation margins, fine-tune halves) are
         restated byte-equal behind this block, so both cascade loading
         readings carry the same spacing — the keep-both-readings parity
-        restate the landed plain-container record set, with the indicator
+        restate the existing plain-container record set, with the indicator
         currentColor member carried byte-equal so the arm survives the
         replacement reading too.
         """
@@ -159,7 +159,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         minimums, value-label orientation margins, fine-tune halves) are
         restated byte-equal behind this block, so both cascade loading
         readings carry the same spacing — the keep-both-readings parity
-        restate the landed plain-container record set, companion to the
+        restate the existing plain-container record set, companion to the
         horizontal twin block above, with the indicator currentColor
         member carried byte-equal so the arm survives the replacement
         reading too.
@@ -265,17 +265,17 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
             self.assert_rule(selector, {"margin": "0"})
 
     def test_scale_fine_tune_radius(self):
-        """A held modifier never re-rounds the scale's landed square faces.
+        """A held modifier never re-rounds the scale's existing square faces.
 
         The toolkit's `scale.fine-tune` radius arm re-rounds the trough,
         fill and highlight with border-radius: 5px while the modifier is
         held; the sheet restates the group byte-equal with a zero radius
-        so a fine-tuned scale stays on the landed square-corner policy
+        so a fine-tuned scale stays on the existing square-corner policy
         under either loading reading. The whole-dict read kills a restored
         stock 5px, a dropped or extra member and any second rule reusing a
         spelling; the family sweep kills renames, state-armed twins and
         strays; the raw-text order pins keep the restate between the
-        landed fine-tune trough-margin group and the landed parent-state
+        existing fine-tune trough-margin group and the existing parent-state
         trough-face group.
         """
         radius_spellings = (
@@ -290,7 +290,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         )
         # (b) The sweep: the bare `scale.fine-tune` prefix selects exactly
         # these three spellings — a restored state twin, an orientation
-        # suffix (`scale.horizontal.fine-tune...` from the landed margin
+        # suffix (`scale.horizontal.fine-tune...` from the existing margin
         # groups does not satisfy the bare prefix) or a renamed spelling
         # fails before any value is read.
         self.assertEqual(
@@ -298,8 +298,8 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
             set(radius_spellings),
         )
         # (c) Order pins on raw sheet text: the restate sits directly
-        # after the landed fine-tune trough-margin group and before the
-        # landed parent-state trough-face comma-group start.
+        # after the existing fine-tune trough-margin group and before the
+        # existing parent-state trough-face comma-group start.
         self.assert_rule_after(
             "scale.fine-tune > trough > fill,\n"
             "scale.fine-tune > trough > highlight,\n"
