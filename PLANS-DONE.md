@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction, part 3/9: isolate the spin probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
+
+**Goal.** Give the spin rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
+
+**Approach and files.** Move only `TestGtk4Theme.test_spin_field_renders_the_mirrored_etch_in_rtl` from `tests/test_gtk4_theme.py` into new `tests/test_gtk4_spin_probe.py::TestGtk4SpinProbe(unittest.TestCase)`. Import required constants from `support/gtk4_sheet.py` and palette/spec modules directly; do not import the original test module or inherit its test class. Preserve the complete method, including child-source string, opt-in guard, exit-77 handling, environment and timeout. Repoint the corresponding test anchors in `docs/invariants.md` in the same change; retain historical completed-plan records. Prune imports from the old module only when unused. The recursive guard in `tests/test_no_gtk_introspection.py` already covers new Python modules; no scanner extension is needed.
+
+**Acceptance.** Discovery finds `test_spin_field_renders_the_mirrored_etch_in_rtl` once at the new dotted ID and no longer at the old one; its AST body and embedded child program match the original. Without GUI opt-in the moved probe skips, with no desktop window. The documented isolated Xvfb invocation, adapted to this new ID, either exercises the same assertions or reports the existing capability skip. The invariants checker resolves its moved anchors and `make check` passes. No probe-prelude extraction or pixel changes are part of this move.
+
 ### GTK 4 suite extraction, part 2/9: isolate the indicators probe (planned 2026-11-11 by the plan role; "requires part 1/9 landed") — done 2026-11-11 by the feature role
 
 **Goal.** Give the indicators rendered check its own small suite; sibling parts 2–8 move different probes and do not depend on each other.
