@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 3a3d2033 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
+
+**Fix.** Reviewed commit `3a3d2033b87b5c71e2a41de7624ad007b1bd23be`: the GTK 4 transform is guarded to collapsed RTL expanders, leaves checked arrows on the down asset, and keeps the shared source and size declarations intact. `tests/test_gtk4_theme.py::TestGtk4Theme::test_rtl_collapsed_expander_arrows` pins both selectors and exact declarations; the GTK 4 disclosure invariant and recorded installed GTK resource provenance were updated with the change.
+
+**Validation gap:** none — the committed declaration regression test and project check cover the change; its recorded risk is that they do not establish rendered RTL arrow pixels.
+
 ### post-merge review of 87464dad never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-11 by the bugfix role
 
 **Fix.** Reviewed commit `87464dad9485aa5f8f9b7219ca1456b761946107`: `require_uninstall_parents` checks the fixed uninstall destinations before the removal recipe, and `TestUninstallSymlinkParents` verifies a symlinked GTK subdirectory is refused while an outside stylesheet survives. The invariant register points to that regression test.
