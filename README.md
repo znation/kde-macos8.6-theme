@@ -991,7 +991,7 @@ omitted.
 Add `--max-color-count N` with `--histogram` to omit colors occurring more
 than N times. The inclusive cutoff combines with minimum count, minimum
 fraction and named-color exclusions before `--top-colors`; contradictory
-minimum and maximum counts produce an empty palette. Explicit use reports the
+minimum and maximum counts are refused when the minimum exceeds the maximum. Explicit use reports the
 original `total_colors` and `omitted_pixels`, even when every color remains.
 Fractions still use the full region area, and spatial diagnostics describe
 only emitted colors.
@@ -1005,10 +1005,21 @@ The share uses the full region area, and explicit filtering reports the original
 Add `--max-color-fraction F` with `--histogram` to omit colors whose share of
 the requested region is above F (0 through 1 inclusive). This inclusive cutoff
 combines with minimum fraction, count filters and named-color exclusions before
-`--top-colors`; contradictory fraction cutoffs return an empty palette. The
+`--top-colors`. A minimum above the maximum is refused before image reading. The
 share uses the full region area, including pixels later omitted by other
 filters. Explicit use reports the original `total_colors` and `omitted_pixels`,
 and spatial diagnostics describe only emitted colors.
+
+For color count, color fraction, scanline run length, horizontal match-run
+length and vertical match-run length, a supplied minimum above its paired
+maximum exits 2 before image reading with an error naming both flags and
+values. Equal bounds are valid and inclusive; valid windows with no qualifying
+values still produce an empty result.
+
+```sh
+python3 tools/sample.py missing.png 0 0 --runs --min-run-length 3 --max-run-length 2
+python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --width 4 --runs --min-run-length 4 --max-run-length 4
+```
 
 Add repeatable `--exclude-color RRGGBB` with `--histogram` to omit named RGB
 colors before minimum-count, minimum-fraction and top-color selection. Values
@@ -1161,7 +1172,8 @@ segment reports an empty `match.runs` array (or `matching runs: []` in text).
 Add `--max-match-run-length N` with `--match-runs` to omit horizontal match
 segments longer than `N` pixels. The inclusive cutoff filters completed
 segments; match counts and summaries still use the full search. Minimum and
-maximum cutoffs combine, and contradictory cutoffs report an empty run list.
+maximum cutoffs combine inclusively. A minimum above the maximum is refused
+before image reading.
 
 Add `--max-match-runs N` with `--match-runs` to report only the first `N`
 eligible horizontal intervals in row-major order after both length filters.
@@ -1201,9 +1213,9 @@ longest segment reports an empty `match.column_runs` array (or
 
 Add `--max-match-column-run-length N` with `--match-column-runs` to omit
 vertical match segments longer than `N` pixels. The inclusive maximum filters
-only the reported list and combines with the minimum cutoff; contradictory
-cutoffs produce an empty list while match counts and longest-run diagnostics
-still cover the full search.
+only the reported list and combines with the minimum cutoff. A minimum above
+the maximum is refused before image reading; match counts and longest-run
+diagnostics still cover the full search for valid windows.
 
 Add `--max-match-column-runs N` with `--match-column-runs` to report only the
 first `N` eligible vertical intervals in column-major order, after both
@@ -1306,6 +1318,8 @@ separated runs of the same color. A minimum cutoff of 1 keeps the unfiltered res
 Pass `--max-run-length N` to omit completed runs longer than `N`; it combines
 inclusively with the minimum cutoff after segmentation and does not join separated runs.
 A maximum at least as large as the scanline keeps the unfiltered result.
+If both bounds are supplied and the minimum exceeds the maximum, the sampler
+exits 2 with an error naming both flags and values before reading the image.
 Pass repeatable `--run-color RRGGBB` to retain runs whose RGB value is named;
 values accept an optional `#` and are case-insensitive. Color selection follows
 segmentation, so distinct adjacent selected colors and separated runs stay
