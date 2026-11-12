@@ -359,14 +359,47 @@ class TestRunRequiredOutput(RunRequiredOutputCase):
         self.assertIn("\n  partial\n", stderr)
 
     def test_a_timeout_returns_one_with_what_did_reach_the_logs(self):
-        with mock.patch.object(
-            required_command, "run_logged_split", return_value=None
-        ) as runner:
-            value, status, stderr = self.run_output(timeout=0.25)
-        runner.assert_called_once()
+        value, status, stderr = self.run_output(
+            [sys.executable, "-c",
+             "import sys, time; print('partial value', flush=True); "
+             "print('still reading', file=sys.stderr, flush=True); "
+             "time.sleep(60)"],
+            timeout=3,
+        )
         self.assertEqual(b"", value)
         self.assertEqual(1, status)
-        self.assertIn("a_tool: error: slowcmd timed out after 0.25s", stderr)
+        self.assertIn(
+            f"a_tool: error: {sys.executable} timed out after 3s", stderr
+        )
+        self.assertIn("\n  still reading\n", stderr)
+        self.assertNotIn("partial value", stderr)
+
+    def test_absolute_executable_uses_the_callers_log_paths(self):
+        value, status, stderr = self.run_output([
+            sys.executable, "-c",
+            "import sys; print('failed read', file=sys.stderr); sys.exit(3)",
+        ])
+        self.assertEqual(b"", value)
+        self.assertEqual(1, status)
+        self.assertIn("\n  failed read\n", stderr)
+        self.assertEqual(b"", (self.root / "read.log").read_bytes())
+        self.assertEqual(
+            b"failed read\n", (self.root / "read.stderr.log").read_bytes()
+        )
+
+    def test_uncreatable_log_returns_two_before_starting_the_command(self):
+        (self.root / "read.stderr.log").mkdir()
+        marker = self.cwd / "started"
+        value, status, stderr = self.run_output([
+            sys.executable, "-c",
+            "from pathlib import Path; Path('started').touch()",
+        ])
+        self.assertEqual(b"", value)
+        self.assertEqual(2, status)
+        self.assertIn("cannot run", stderr)
+        self.assertIn("read.stderr.log", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(marker.exists())
 
     def test_an_unstartable_command_returns_two_without_a_traceback(self):
         error = FileNotFoundError(
