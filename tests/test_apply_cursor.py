@@ -352,6 +352,26 @@ class TestSelection(CursorCase):
         assert_exit_2_without_traceback(self, result)
         self.assertIn(cursor_selection.SELECT_TOOL, result.stderr)
 
+    def test_optional_install_still_selects_when_the_selector_is_present(self):
+        # --optional skips only the selection when the KDE selector is absent.
+        # With the selector on PATH it must still run the selection, and must
+        # not print the "not on PATH" note.
+        self.install_theme()
+        self.stub_selector()
+        result = self.run_tool("--optional")
+        assert_succeeded(self, result)
+        self.assertEqual([cursor_selection.CURSOR_THEME], self.recorded())
+        self.assertNotIn("is not on PATH", result.stdout)
+
+    def test_optional_install_still_fails_when_the_selector_fails(self):
+        # --optional must not swallow a selector that is present but fails.
+        self.install_theme()
+        self.stub_selector("echo selector exploded >&2\nexit 3")
+        result = self.run_tool("--optional")
+        assert_failed(self, result)
+        self.assertEqual(1, result.returncode)
+        self.assertIn(f"{cursor_selection.SELECT_TOOL} exited 3", result.stderr)
+
     def test_failed_selector_exits_1_with_the_log_tail(self):
         self.install_theme()
         self.stub_selector("echo selector exploded >&2\nexit 3")
