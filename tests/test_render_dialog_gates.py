@@ -356,7 +356,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
-    literal the guards otherwise all repeat. The thirteen widget gates'
+    literal the guards otherwise all repeat. The fourteen widget gates'
     flags are pinned here; ``tests/test_render_file_dialog.py`` pins its
     own gate's.
     """
@@ -420,6 +420,7 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestMenuDialogRender,
             TestRadioDialogRender,
             TestCalendarDialogRender,
+            TestCalendarLocaleDialogRender,
             TestColorDialogRender,
             TestIconDialogRender,
             TestProgressbarDialogRender,

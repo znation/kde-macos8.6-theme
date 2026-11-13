@@ -43,7 +43,8 @@ class TestCiWorkflow(unittest.TestCase):
         # gates (TestCheckboxDialogRender, TestComboboxDialogRender,
         # TestLineInputDialogRender, TestMenuDialogRender,
         # TestRadioDialogRender,
-        # TestCalendarDialogRender, TestColorDialogRender,
+        # TestCalendarDialogRender, TestCalendarLocaleDialogRender,
+        # TestColorDialogRender,
         # TestIconDialogRender, TestProgressbarDialogRender,
         # TestSliderDialogRender, TestTextboxDialogRender,
         # TestGtkDialogRender, TestInactiveDialogRender and
