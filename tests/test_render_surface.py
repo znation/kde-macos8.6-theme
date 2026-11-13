@@ -144,6 +144,8 @@ def _keypad_rows(width):
         [*head, *([body] * (width - 6)), *tail]
         for head, body, tail in KEYPAD_ROW_ENDS
     ]
+
+
 @unittest.skipIf(
     software_renderer_skip_reason() is not None,
     software_renderer_skip_reason() or "",
