@@ -79,6 +79,19 @@ class TestRenderOutline(unittest.TestCase):
 
 
 class TestRenderValidation(unittest.TestCase):
+    def test_checked_size_names_custom_noun_as_rejected_field(self):
+        with self.assertRaisesRegex(
+            ValueError, r"frame width must be a positive integer: frame width=0"
+        ):
+            cursor_vector.checked_size(0, noun="frame width")
+
+    def test_checked_size_names_custom_noun_above_limit(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            rf"frame width must be at most {MAX_IMAGE_SIZE} .*: frame width={MAX_IMAGE_SIZE + 1}",
+        ):
+            cursor_vector.checked_size(MAX_IMAGE_SIZE + 1, noun="frame width")
+
     def test_rejects_a_size_below_one(self):
         art = VectorCursor(face=SQUARE)
         with self.assertRaisesRegex(ValueError, "size"):

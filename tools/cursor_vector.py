@@ -45,11 +45,11 @@ def checked_size(size, noun="size"):
     :func:`tools.xcursor.write_rgba_cursor`.
     """
     if not is_plain_int(size) or size < 1:
-        raise ValueError(f"{noun} must be a positive integer: size={size!r}")
+        raise ValueError(f"{noun} must be a positive integer: {noun}={size!r}")
     if size > MAX_IMAGE_SIZE:
         raise ValueError(
             f"{noun} must be at most {MAX_IMAGE_SIZE} (the Xcursor frame "
-            f"limit): size={size}"
+            f"limit): {noun}={size}"
         )
     return size
 
