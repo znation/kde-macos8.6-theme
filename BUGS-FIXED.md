@@ -11,7 +11,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 title strip is re-derived from the existing reference-pixel sampling; the inactive strip is
 flat `#DDDDDD`. Confirmed the Aurorae SVG test failed before the tiles existed and passed after.
 
-**Validation gap:** none — the new SVG test reproduced the missing maximized prefix before the fix and confirmed both title strips afterward.
+**Validation gap:** The SVG regression checks the tile pixels, not a rendered maximized
+window. A live visual check remains pending, including the reported fullscreen case.
+Any GUI verification must use an isolated display unless explicitly requested.
+
+**Reference:** `macos8.6-screenshots/infocenter_zoomed_toastytech81.png` and
+`macos8.6-screenshots/browsers_zoomed_toastytech81.png`, from
+http://toastytech.com/guis/macos812.html (Mac OS 8.1, Basilisk II, 640x480),
+show zoomed windows retaining the normal Platinum title treatment. The 4px button
+inset is measured from the lossless `aboutsystem_betawiki.png` normal title bar;
+`TestMaximizedButtonPlacement` re-derives that offset from the frame and box pixels.
 
 The maximized QML path selects these tiles with `NoBorder` and the existing 22px maximized top
 border, retaining title-bar artwork without side or bottom borders.

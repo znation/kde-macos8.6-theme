@@ -26,7 +26,7 @@ import os
 import re
 import unittest
 
-from support.aurorae_fixtures import AURORAE_DIR, AURORAE_ID
+from support.aurorae_fixtures import AURORAE_DIR, AURORAE_ID, ReferenceImageCase
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.installed_paths import (
     installed_kwin_decoration,
@@ -605,3 +605,20 @@ class TestInstall(InstallLifecycleCases, unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMaximizedButtonPlacement(ReferenceImageCase, unittest.TestCase):
+    def test_maximized_margin_matches_reference_pixels(self):
+        # Zoomed windows retain the normal title treatment; measure the
+        # normal lossless reference rather than duplicating the QML literal.
+        top = next(y for y in range(20, 60)
+                   if self.reference_pixel(250, y) == (0, 0, 0))
+        box_top = min(y for y in range(26, 44) for x in range(8, 26)
+                      if self.reference_pixel(x, y) == (136, 136, 136))
+        properties = singleton_properties(
+            f"{PACKAGE_DIR}/contents/ui/AuroraeTheme.qml"
+        )
+        offset = sum(int(properties[name][1]) for name in (
+            "titleEdgeTopMaximized", "buttonMarginTopMaximized"
+        ))
+        self.assertEqual(offset, box_top - top)
