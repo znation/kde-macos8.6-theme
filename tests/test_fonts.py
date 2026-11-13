@@ -143,9 +143,10 @@ def _name_table(path):
 def _is_fixed_pitch(path):
     """Return the sfnt ``post`` table's ``isFixedPitch`` flag.
 
-    The flag sits at offset 12 of the version-3 ``post`` header (version,
-    italic angle, underline position and thickness come first). A zero means
-    the font admits it is proportionally spaced.
+    The flag sits at offset 12 of the ``post`` header (version, italic angle,
+    underline position and thickness come first), in every version the fonts
+    use (2.0 and 3.0 share this layout). A zero means the font admits it is
+    proportionally spaced.
     """
     data = containment.read_bytes(path, ROOT)
     table_count = struct.unpack(">H", data[4:6])[0]
