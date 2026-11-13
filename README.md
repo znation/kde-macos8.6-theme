@@ -92,8 +92,8 @@ inside the scratch root — `DATA_HOME` is `DESTDIR` followed by `XDG_DATA_HOME`
 install into the live system.
 
 `INSTALL_PACKAGES` takes a space-separated list of the package families the Makefile knows:
-`color-scheme`, `look-and-feel`, `desktop-theme`, `aurorae`, `wallpaper`, `icon-theme`,
-`kvantum`, `fonts` and `gtk`. Omit the selector and the install copies every family; name a
+`color-scheme`, `look-and-feel`, `desktop-theme`, `aurorae`, `kwin-decoration`, `wallpaper`,
+`icon-theme`, `kvantum`, `fonts` and `gtk`. Omit the selector and the install copies every family; name a
 subset and the install copies only that subset into the scratch root. A subset install is
 additive: staging another family into the same scratch root later copies its files beside what
 is already there and deletes nothing from earlier installs.
