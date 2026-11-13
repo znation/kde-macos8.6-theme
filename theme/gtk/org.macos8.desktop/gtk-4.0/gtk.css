@@ -119,9 +119,9 @@
    same etched bottom rule, and on GTK 3 its shadowless internal frame
    border stays flat; no reference screenshot shows a GTK status bar, and
    the statusbar node name is GTK-required. A stack switcher's page buttons
-   paint as the landed tab recipe byte-for-byte; no reference screenshot shows
+   paint as the existing tab recipe byte-for-byte; no reference screenshot shows
    a GTK stack switcher, and the stackswitcher and button node names are
-   GTK-required. A file chooser's path bar paints its buttons as the landed
+   GTK-required. A file chooser's path bar paints its buttons as the existing
    tab recipe byte-for-byte; no reference screenshot shows a GTK path bar,
    and the path-bar and linked classes and the pathbar, scrolledwindow,
    viewport and box node names are GTK-required. A linked group shares one
@@ -314,20 +314,20 @@ entry, spinbutton:not(.vertical), spinbutton.vertical > text {
 }
 
 /* Adaptation (2026-11-11): no reference screenshot shows a GTK spin
-   button in either direction; this mirrors the landed etch above onto a
+   button in either direction; this mirrors the existing etch above onto a
    horizontal spin field's exposed edge in right-to-left text direction,
    because GTK 4 does not mirror box-shadow for direction. Measured
    2026-11-11 in a GTK 4 child render before this edit: in a horizontal
-   RTL spin button the landed :dir(rtl) stepper arms sit at the field's
+   RTL spin button the existing :dir(rtl) stepper arms sit at the field's
    left edge and cover the etch's vertical arm there, so the exposed
    field drew only the horizontal top arm — a half-etched field, where
    the LTR field shows the full L; the mirror puts the vertical arm at
    the exposed right edge, the corner where the LTR field's arm sits.
    Vertical spin fields stay out (no horizontal stepper covers the arm —
-   the landed GTK 3 exclusion's reason stands), plain entry fields stay
-   out (no steppers, the landed GTK 3 plain-entry exclusion) and the
+   the existing GTK 3 exclusion's reason stands), plain entry fields stay
+   out (no steppers, the existing GTK 3 plain-entry exclusion) and the
    treeview-embedded entry group stays out (an entry, not a spin field).
-   The landed GTK 3 sheet carries the same mirror
+   The existing GTK 3 sheet carries the same mirror
    (spinbutton:dir(rtl):not(.vertical) in the gtk-3.0 sheet). The
    :not(.vertical) arm keeps the vertical spin fields out. */
 spinbutton:dir(rtl):not(.vertical) {
@@ -356,9 +356,9 @@ entry:focus-within {
  * outline geometry remains inherited. Recorded 2026-10-29; extended
  * 2026-11-03 with the stock state-spelled twins the toolkit resource groups
  * in one arm — `spinbutton.vertical > text:focus-within` and
- * `spinbutton:focus-within:not(.vertical)` (each above the landed spelling
+ * `spinbutton:focus-within:not(.vertical)` (each above the existing spelling
  * through the extra compound or `:not()`), so each byte-equal twin restates
- * the stock arm below in the same shape the landed error/warning class
+ * the stock arm below in the same shape the existing error/warning class
  * twins already follow. */
 spinbutton.vertical > text:focus-within, spinbutton:focus-within:not(.vertical),
 spinbutton:focus-within {
@@ -367,8 +367,8 @@ spinbutton:focus-within {
 
 /* No collected reference screenshot shows a GTK flat entry, the standing
  * GTK-scope adaptation premise: restating the stock transparent flat field
- * with the landed entry recipe above (the same erased stock
- * flat-versus-raised distinction the landed flat-button arms follow).
+ * with the existing entry recipe above (the same erased stock
+ * flat-versus-raised distinction the existing flat-button arms follow).
  * Stock grouped arm probed 2026-11-03 with gresource from
  * /org/gtk/libgtk/theme/Default/Default-light.css inside
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
@@ -377,7 +377,7 @@ spinbutton:focus-within {
  * entry.flat { min-height: 0; padding: 2px;
  * background-color: transparent; border-color: transparent;
  * border-radius: 0 }`. Each restated selector is the byte-equal stock twin
- * and the group sits after the landed base arms, so later source order wins
+ * and the group sits after the existing base arms, so later source order wins
  * every state tie and a focused, backdrop or disabled flat entry keeps the
  * raised field; stock's min-height and padding stay in force because the
  * cascade is per-property. */
@@ -392,9 +392,9 @@ entry.flat {
 }
 
 /* No collected reference screenshot shows a GTK error- or warning-classed
- * entry, the standing GTK-scope adaptation premise: the landed entry policy
+ * entry, the standing GTK-scope adaptation premise: the existing entry policy
  * takes no colour class, so an entry carrying the `error` or `warning`
- * class paints the landed recipe above instead of stock's red or orange.
+ * class paints the existing recipe above instead of stock's red or orange.
  * Stock colour-class arms probed 2026-11-03 with gresource from
  * /org/gtk/libgtk/theme/Default/Default-light.css inside
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
@@ -406,7 +406,7 @@ entry.flat {
  * `:focus-within` twin declaring `outline-color: rgba(204, 0, 0, 0.5);
  * outline-width: 2px; outline-offset: -2px;` (warning:
  * `rgba(245, 121, 0, 0.5)`). Each restated selector is the byte-equal
- * stock twin and each group sits after the landed base arms, so later
+ * stock twin and each group sits after the existing base arms, so later
  * source order wins every colour-class tie and the class keeps its place
  * in the cascade while its paint falls back to the raised field. Stock's
  * `animation-timing-function: ease-in-out` stays in force but is inert:
@@ -415,7 +415,7 @@ entry.flat {
  * outline-offset: 4px`) is per-property identical to the stock generic
  * base arm at the plain `entry` spellings, so nothing deviates there, and
  * the focused `outline-width: 2px; outline-offset: -2px` geometry is what
- * the landed `entry:focus-within` arm already inherits. The resource's
+ * the existing `entry:focus-within` arm already inherits. The resource's
  * later error repeat colour arm is per-property identical to its first,
  * and this sheet sits entirely after the stock resource, so one twin
  * group per class and one per class-state covers every order tie. */
@@ -443,9 +443,9 @@ spinbutton.warning:focus-within:not(.vertical), entry.warning:focus-within {
 
 /* 2026-11-03: no collected reference screenshot shows a GTK spinbutton
    stepper in any state, the standing GTK-scope adaptation premise: the
-   plain horizontal stepper arms outside the landed .osd overlay restate
+   plain horizontal stepper arms outside the existing .osd overlay restate
    the toolkit resource's seven plain `spinbutton ... button` stepper
-   arms with the landed raised push-button face, mirroring the landed .osd
+   arms with the existing raised push-button face, mirroring the existing .osd
    stepper restate further down this sheet (pinned by the same suite). The
    stock transparent faces, the left-edge rgba(205, 199, 194, 0.3)
    separator and its :dir flip, the hover #ebe8e6 recolour, the
@@ -455,8 +455,8 @@ spinbutton.warning:focus-within:not(.vertical), entry.warning:focus-within {
    undeclared so stock keeps governing the steppers' geometry. Stock
    declares the :active arm only in this plain horizontal family, and the
    plain vertical spinbutton.vertical > button geometry arms stay stock:
-   their face flows from the landed generic button restate and their
-   shared-edge mechanics are the landed linked-group policy. Stock
+   their face flows from the existing generic button restate and their
+   shared-edge mechanics are the existing linked-group policy. Stock
    selectors probed from Default-light.css and Default-dark.css in
    libgtk-4 4.18.6 with gresource on 2026-11-03. */
 spinbutton:not(.vertical) > button.image-button.up:not(.flat),
@@ -551,7 +551,7 @@ spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-c
 
 /* No collected reference screenshot shows a GTK treeview-embedded entry,
  * the standing GTK-scope adaptation premise: restating the stock
- * treeview-embedded entry arms with the landed entry recipe above. Stock
+ * treeview-embedded entry arms with the existing entry recipe above. Stock
  * grouped arms probed 2026-11-03 with gresource from
  * /org/gtk/libgtk/theme/Default/Default-light.css inside
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
@@ -562,7 +562,7 @@ spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-c
  * entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr)
  * { background-color: #ffffff; transition-property: color, background }`.
  * Each restated selector is the byte-equal stock twin and the groups sit
- * after the landed base arms, so later source order wins every tie inside
+ * after the existing base arms, so later source order wins every tie inside
  * a treeview: the field recipe, a black focus border and the entry motion
  * policy apply there too, while stock's `background-image: none` stays in
  * force because the cascade is per-property. */
@@ -584,8 +584,8 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
 
 /* No collected reference screenshot shows a text field inside a GTK OSD
  * overlay, the standing GTK-scope adaptation premise: restating the stock
- * translucent dark `.osd` field bubbles with the landed entry recipe above,
- * mirroring the shipped GTK 3 sheet's landed OSD entry restate. Stock
+ * translucent dark `.osd` field bubbles with the existing entry recipe above,
+ * mirroring the shipped GTK 3 sheet's existing OSD entry restate. Stock
  * grouped arms probed 2026-11-03 with gresource from both
  * /org/gtk/libgtk/theme/Default/Default-light.css and
  * /org/gtk/libgtk/theme/Default/Default-dark.css inside
@@ -601,12 +601,12 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
  * the toolkit's companion library stylesheet declares no `.osd` field arm
  * at all. Each
  * restated selector is the byte-equal stock twin and the groups sit after
- * the landed base arms, so later source order wins every stock tie: every
+ * the existing base arms, so later source order wins every stock tie: every
  * state redraws the same raised field, because stock's own state twins set
  * no geometry stock could keep. Stock's leftover
  * `background-clip: padding-box` stays in force, harmless behind the
- * opaque 1px black border, exactly as the landed `.osd` check/radio
- * restate argues. Stock claims no `.osd` focus outline, so the landed
+ * opaque 1px black border, exactly as the existing `.osd` check/radio
+ * restate argues. Stock claims no `.osd` focus outline, so the existing
  * `entry:focus-within` outline colour and motion policy cascade
  * unchanged. */
 .osd spinbutton.vertical > text, .osd spinbutton:not(.vertical), .osd entry {
@@ -620,10 +620,10 @@ treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
   -gtk-icon-shadow: none;
 }
 
-/* Adaptation (2026-11-11): the landed OSD field groups above restate the
+/* Adaptation (2026-11-11): the existing OSD field groups above restate the
    same etch, so a horizontal RTL spin field inside the overlay keeps the
    same half-etched defect and carries its own mirror, one class above
-   the landed plain RTL mirror so the OSD record governs the overlay.
+   the existing plain RTL mirror so the OSD record governs the overlay.
    Plain OSD entry fields stay out (no steppers), and the vertical OSD
    spin fields stay out (no horizontal stepper covers the arm); the
    focused and disabled state twins mirror the same arm directly after
@@ -689,7 +689,7 @@ checkbutton:focus:focus-visible {
 
 /* The platform library rounds the check-button wrapper. No collected
  * reference screenshot shows a GTK check-button wrapper, so this
- * theme's square-corner policy applies: the landed `check` face
+ * theme's square-corner policy applies: the existing `check` face
  * restatement squares the check-mark itself and `radio` keeps its
  * 50% circle as the reference-grounded exception, so only the wrapper
  * arms are squared. The stock rounded wrapper arms come from the
@@ -846,7 +846,7 @@ tabbar .box:backdrop > .end-action {
    `tabbar tabbox > tabboxchild` and
    `tabgrid > tabgridchild .card` with 2px accent outlines at offsets -2px
    and 0; each focus arm uses the accent colour and each base arm transitions
-   outline colour, width and offset over 200ms. Use the landed black focus
+   outline colour, width and offset over 200ms. Use the existing black focus
    colour policy and no transition; stock outline geometry remains inherited. */
 tabbar tabbox > tabboxchild {
   border-radius: 0;
@@ -869,7 +869,7 @@ tabgrid > tabgridchild:focus:focus-visible .card {
    bar, a dragged tab, a tab-overview thumbnail button or a page indicator,
    so the corners are a platform value the reference set does not show and
    the chosen value is this theme's square-corner policy — `frame > border`,
-   `.frame` and the landed `button` and card restatements all carry
+   `.frame` and the existing `button` and card restatements all carry
    `border-radius: 0`. The stock rounded arms come from the platform style
    library's `base.css` resource (probe path recorded in docs/invariants.md),
    extracted 2026-11-04 with `gresource extract`; it declares seven
@@ -907,7 +907,7 @@ tabbar tabbox > revealer > indicator {
   border-radius: 0;
 }
 
-/* A stack switcher's page buttons draw as the landed tab recipe, the active
+/* A stack switcher's page buttons draw as the existing tab recipe, the active
    page's button included; :backdrop stays out of scope. */
 stackswitcher > button {
   background-color: #DDDDDD;
@@ -1033,8 +1033,8 @@ modelbutton.flat {
 
 /* No reference screenshot shows a GTK popover menu row or a standalone
  * flat modelbutton (the standing GTK-scope adaptation premise), so the
- * hover, disabled and pressed-selected fills reuse the landed
- * popover-menu `#CCCCFF` selection fill and the landed `#888888`
+ * hover, disabled and pressed-selected fills reuse the existing
+ * popover-menu `#CCCCFF` selection fill and the existing `#888888`
  * inactive-text grey, not new samples. Stock's grey arms declare what
  * the restatements erase (probed 2026-11-03 with gresource from
  * /org/gtk/libgtk/theme/Default/Default-light.css inside
@@ -1063,7 +1063,7 @@ modelbutton.flat:disabled {
    menubar item highlight or a popover-menu list row (no Mac OS 8.6 surface
    has one), so the corners are a platform value the reference set does not
    show and the chosen value is this theme's square-corner policy — the
-   landed `popover > contents`, `button`, card, tab-family, toggle-group and
+   existing `popover > contents`, `button`, card, tab-family, toggle-group and
    cursor-handle restatements all carry `border-radius: 0`. The stock
    rounded arms come from the platform style library's `base.css` resource
    inside the integration library (probe path recorded in
@@ -1074,7 +1074,7 @@ modelbutton.flat:disabled {
    `menubar > item popover.menu popover.menu > contents { margin: 0; border-radius: 15px; }` —
    the stock hover, active and has-open-popup row arms beside the base arm
    carry no radius of their own, so squaring the base arms reaches them.
-   The landed `menubar > item` group above squares its own radius beside
+   The existing `menubar > item` group above squares its own radius beside
    the reference-derived padding. Each group below is byte-equal to its
    stock spelling, wins by later user-sheet source order at stock's own
    specificity, and states nothing else: stock's paddings, min-heights,
@@ -1237,7 +1237,7 @@ menubutton.opaque.pill {
 
 /* No reference screenshot shows a circular icon button. Square corners
  * adapt the frame > border, .frame and button recipes above, and the
- * landed pill-button corner treatment reuses the same zero radius. The
+ * existing pill-button corner treatment reuses the same zero radius. The
  * platform theme resource ships the stock arm
  * "menubutton.circular button, button.circular { min-width: 32px;
  * min-height: 32px; padding: 0; border-radius: 9999px; }" (probed inside
@@ -1364,19 +1364,19 @@ columnview.view:selected:backdrop, listview > row.activatable:selected:backdrop 
    row.activatable:selected, combobox popover listview >
    row.activatable:selected:hover { outline-color: rgba(255, 255, 255, 0.8);
    color: black; background-color: #e8e6e3; box-shadow: none; border-radius:
-   5px; }`. The dropdown/combobox ancestors out-rank the landed row groups by
+   5px; }`. The dropdown/combobox ancestors out-rank the existing row groups by
    specificity, so an open dropdown list today shows 8px-padded rows, twice the
    height of this sheet's other list rows, and a selected row painted stock's
-   warm grey with rounded corners inside the landed lavender-square selection
+   warm grey with rounded corners inside the existing lavender-square selection
    policy (`background-color: #CCCCFF; color: #000000; border-radius: 0`).
-   Each rule below is the byte-equal stock twin and sits after the landed
+   Each rule below is the byte-equal stock twin and sits after the existing
    selection-backdrop group, so later source order wins every tie: the padding
    twin restates the 2px list-row padding stock's own generic arm
    `listview > row, list > row { padding: 2px; }` keeps in force (this sheet
    never restates that generic arm), so dropdown rows use the same cell padding
-   as every other landed view row, and the selected twin restates the landed
+   as every other existing view row, and the selected twin restates the existing
    selection recipe. Stock's `outline-color: rgba(255, 255, 255, 0.8)` and
-   `box-shadow: none` stay in force per-property, matching every landed
+   `box-shadow: none` stay in force per-property, matching every existing
    selection surface, and the stock selected-row outline colour stays
    unrestated. Recorded 2026-11-03 by the feature role. */
 
@@ -1400,7 +1400,7 @@ combobox popover listview > row.activatable:selected:hover {
    the asked-for lines pale -- the separator colour field between a tree view's
    or column view's rows, a left border for a horizontal list's lines, a bottom
    border for a vertical list's lines and a left colour for a column view's
-   column lines -- inside the landed white view field. Platinum's etched
+   column lines -- inside the existing white view field. Platinum's etched
    separator is the pinned paint: the dark half of the etched line art paints
    each asked-for line. Each rule below names one of the stock painting arms
    verbatim in a group and restates only the tone; stock's separator height
@@ -1490,7 +1490,7 @@ window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd {
    stock twin, wins the per-property tie by later user-sheet source
    order under a lower stock sheet and stands as the spelling's only
    holder when this sheet replaces stock entirely. The label's ink
-   stays inherited from the landed view field per-property; geometry
+   stays inherited from the existing view field per-property; geometry
    and shadings stay inherited per-property too, and grep-fact no
    `:backdrop`, `:disabled` or `.osd` sibling acceleditor arm exists in
    any of the three sources. Recorded 2026-11-09 by the feature role.
@@ -1586,11 +1586,11 @@ scrolledwindow > overshoot.right {
    fill and two 1px grey trough-line gradients —
    scrolledwindow > junction { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to right, transparent 1px, #cecece 1px); }
    scrolledwindow > junction:dir(rtl) { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to left, transparent 1px, #cecece 1px); }
-   — while the landed scrollbar trough is a flat #EEEEEE band with a 1px
+   — while the existing scrollbar trough is a flat #EEEEEE band with a 1px
    black border and no gradient lines. Restate both arms (the right-to-left
    twin must be restated too: its opposite-direction gradient line otherwise
    wins over the plain twin there and leaves a leftover line in that
-   corner) with the landed trough band colour and no image, so the corner
+   corner) with the existing trough band colour and no image, so the corner
    square reads as the same flat scrollbar band in both directions. */
 scrolledwindow > junction,
 scrolledwindow > junction:dir(rtl) {
@@ -1659,10 +1659,10 @@ scrollbar > range > trough > slider:disabled {
 }
 
 /* A meter's show-text percentage label — the text the toolkit paints
- * over the bar itself when `show-text` is enabled — keeps the landed
+ * over the bar itself when `show-text` is enabled — keeps the existing
  * black window ink here, 2026-11-09. No collected reference screenshot in
  * macos8.6-screenshots/ shows a GTK meter's percentage label, so the bare
- * `progressbar` widget node's ink is platform-required and the landed
+ * `progressbar` widget node's ink is platform-required and the existing
  * `progressbar > trough`, `progressbar > trough > progress`,
  * `progressbar.osd > trough` and headerbar-descended meter groups — other
  * nodes or other bars — can reach it in no plain context. The installed
@@ -1682,19 +1682,19 @@ scrollbar > range > trough > slider:disabled {
  * arm (line 1858) — no resource carries a `progressbar > text` color, so
  * the label rides inheritance from the bare node, and the restatement
  * below owns it in one group. It wins the single per-property
- * equal-specificity tie by later user-sheet source order, so one landed
+ * equal-specificity tie by later user-sheet source order, so one existing
  * ink answers light and dark deliveries and the `.osd` meter contexts
- * the plain node reaches alike; the value source is the landed black
- * window ink, the same policy the landed GTK 3 meter percentage-label
+ * the plain node reaches alike; the value source is the existing black
+ * window ink, the same policy the existing GTK 3 meter percentage-label
  * record in the toolkit's other sheet applies to toolkit-painted text.
  * The two stock typography members stay inherited: `font-size: smaller`
- * is stock-only label sizing the landed theme synthesizes for no other
+ * is stock-only label sizing the existing theme synthesizes for no other
  * control and `font-feature-settings: "tnum"` likewise, and neither has
  * a toolkit, integration or user counter-arm to tie; the integration
  * library's dilution and disabled-filter members (`.dimmed` opacity,
  * `.numeric`
  * figures, and the meter's disabled filter arm at base line 1860,
- * already answered by the landed opaque-disabled `filter: none` group)
+ * already answered by the existing opaque-disabled `filter: none` group)
  * stay outside this restatement, and so does a `progressbar >
  * text` spelling, which would add a node arm the resources never
  * declare. The toolkit's `columnview.view.progressbar,
@@ -1710,20 +1710,20 @@ progressbar {
 }
 
 /* A view row's progress cell — the meter GTK paints inside a columnview
- * or treeview row's cell node — keeps the landed meter's faces here,
+ * or treeview row's cell node — keeps the existing meter's faces here,
  * 2026-11-09. No collected reference screenshot in
  * macos8.6-screenshots/ shows a treeview or columnview progress cell, so
- * the cell meters are platform-required and answer to the landed GTK 3
- * treeview progress-cell record's faces — the landed meter's lavender
- * fill, the landed trough face with its black rim and sunken bevel,
+ * the cell meters are platform-required and answer to the existing GTK 3
+ * treeview progress-cell record's faces — the existing meter's lavender
+ * fill, the existing trough face with its black rim and sunken bevel,
  * black cell text either way, and a selected or backdropped selection
- * keeping the white fill and black text — the one-landed-face-set policy
- * answering light and dark alike, with the landed white selected-cell
+ * keeping the white fill and black text — the one-existing-face-set policy
+ * answering light and dark alike, with the existing white selected-cell
  * fill (not the stock selected accent-over-fill choice) standing, per
- * the stance the landed selected-row face records apply. The landed
+ * the stance the existing selected-row face records apply. The existing
  * meter groups' child-combinator spellings reach no cell's internal
  * paint, so the restatement below owns the cell family in its own record
- * beside the landed groups it neighbours. The installed GTK 4 theme
+ * beside the existing groups it neighbours. The installed GTK 4 theme
  * resource Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
  * (extracted with `gresource`) declares the cell family's five arms at
  * its resource lines 702 (the bare cell meter: a foreign white cell ink
@@ -1737,7 +1737,7 @@ progressbar {
  * lines 694–702, every line shifted by −8, its bare cell arm dropping
  * the ink member, its selected cell arm adding a foreign inset shadow
  * over the foreign paper choice and its selected backdrop settling on
- * the foreign deep paper, so the landed faces answer dark too; the
+ * the foreign deep paper, so the existing faces answer dark too; the
  * integration library's `base.css` resource (probe path recorded in
  * docs/invariants.md) rides the bare trough (a colour-mix translucent
  * face), the bare meter (nothing extruded) and its selected member (the
@@ -1749,13 +1749,13 @@ progressbar {
  * cell family, and the integration resource's disabled view arms speak
  * for the view node, not the cells. No size declaration follows: stock's
  * cell family declares no minimum at all, cell size is the view's own
- * allocation, and the landed bare meter groups keep owning the plain
- * meter's minimums (the landed GTK 3 record's same exclusion). Each of
+ * allocation, and the existing bare meter groups keep owning the plain
+ * meter's minimums (the existing GTK 3 record's same exclusion). Each of
  * the five rules below restates one stock comma-group spelling keyed per
  * member and wins the per-property equal-specificity tie by later
  * user-sheet source order. Selected rules explicitly clear the dark
  * selected arm's inset shadow at matching specificity; trough members not the stock face colour are
- * fills the stock arm never spoke of, carried byte-equal from the landed
+ * fills the stock arm never spoke of, carried byte-equal from the existing
  * trough face recipe the child-combinator spelling keeps for the plain
  * bar. Declaration checks do not establish rendered pixels. */
 
@@ -1859,11 +1859,11 @@ progressbar > trough > progress:disabled {
 }
 
 /* 2026-11-09: a disabled GTK 4 meter (a progress bar or a scale) keeps the
-   landed trough face and rim. No collected reference screenshot in
+   existing trough face and rim. No collected reference screenshot in
    macos8.6-screenshots/ shows a disabled GTK meter (the GTK scope's standing
-   adaptation premise), so the kept values are the landed faces this sheet
+   adaptation premise), so the kept values are the existing faces this sheet
    already pins: the #EEEEEE trough face and its #000000 rim, the values the
-   landed GTK 3 meter-state record restated on its toolkit's disabled trough
+   existing GTK 3 meter-state record restated on its toolkit's disabled trough
    arm (tests/test_gtk_theme_controls.py::TestGtkThemeControls::
    test_meter_state_and_backdrop_faces). The toolkit resource
    /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
@@ -1878,27 +1878,27 @@ progressbar > trough > progress:disabled {
    base.css resource (probe paths, resource paths and versions recorded
    verbatim in docs/invariants.md) — where `trough:disabled` appears
    nowhere — declares no disabled trough face arm at all. The `:disabled` pseudo-class raises
-   the arm above the landed plain meter groups, so the trough face repaints
+   the arm above the existing plain meter groups, so the trough face repaints
    stock's pale face and the rim stock's per-appearance rim ink under
-   lower-sheet riding, and the group below restates the landed face and rim
+   lower-sheet riding, and the group below restates the existing face and rim
    colours at stock's specificity, winning the single per-property tie by
-   later user-sheet source order; under the replacement reading the landed
+   later user-sheet source order; under the replacement reading the existing
    plain groups already govern these spellings and the restate changes
    nothing. Exclusions, each with its per-property reason: the stock arm's
    `scale > trough > fill:disabled` member — stock's own later arm (light
-   1119, dark 1107) ties the landed transparent fill at equal specificity
+   1119, dark 1107) ties the existing transparent fill at equal specificity
    and wins inside the resource, and under the
-   replacement reading the landed `scale > trough > fill, scale > trough >
+   replacement reading the existing `scale > trough > fill, scale > trough >
    highlight` group governs the spelling, so the fill stays transparent
    under either reading and no restate is quoted; the `progressbar > trough
    > progress:disabled, scale > trough > highlight:disabled {
    background-color: transparent; border-color: transparent; }` arm (light
-   1093, dark 1081) — the landed grey progress-face group at the same
+   1093, dark 1081) — the existing grey progress-face group at the same
    specificity wins the progress face by later user-sheet source order, and
-   the highlight matches the landed transparent fill/highlight face, so
+   the highlight matches the existing transparent fill/highlight face, so
    nothing repaints; the `.osd` disabled meter arms (light 1089, 1099 and
-   1123; dark 1077, 1087 and 1111, each shifted -12) — the landed `.osd`
-   meter blocks already answer them; and the landed opaque-disabled
+   1123; dark 1077, 1087 and 1111, each shifted -12) — the existing `.osd`
+   meter blocks already answer them; and the existing opaque-disabled
    `filter: none` policy groups on both bare meter states — stock claims no
    filter member on any of these arms, so that policy stands untouched.
    Declaration, count and order checks do not establish rendered
@@ -1909,16 +1909,16 @@ progressbar > trough:disabled, scale > trough:disabled {
   border-color: #000000;
 }
 
-/* 2026-11-09: a meter inside a selected GTK 4 view row keeps the landed
+/* 2026-11-09: a meter inside a selected GTK 4 view row keeps the existing
    trough and thumb rims. No collected reference screenshot in
    macos8.6-screenshots/ shows a GTK meter inside a selected row (the GTK
-   scope's standing adaptation premise), so the kept values are the landed
+   scope's standing adaptation premise), so the kept values are the existing
    rim recipes this sheet already pins: the trough's 1px solid #000000 rim
    (the `scale > trough` and `progressbar > trough` groups), the thumb's
    #000000 rim (`scale > trough > slider`) and the disabled thumb's flat
    #999999 rim (`scale > trough > slider:disabled`) — the same per-state
-   value split the landed GTK 3 meter-state record applied when stock's
-   selected-row comma group reached two landed values. The toolkit
+   value split the existing GTK 3 meter-state record applied when stock's
+   selected-row comma group reached two existing values. The toolkit
    resource /org/gtk/libgtk/theme/Default/Default-light.css (extracted
    with `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
    libgtk-4 4.18.6: a 1940-line resource) arms with
@@ -1937,7 +1937,7 @@ progressbar > trough:disabled, scale > trough:disabled {
    paths and versions recorded verbatim in docs/invariants.md) declares
    no `row:selected` meter arm at all, and the toolkit grep behind this
    restatement is exhaustive in both resources: these three arms plus the
-   landed `row:selected button` remarks' button, flat-list and backdrop
+   existing `row:selected button` remarks' button, flat-list and backdrop
    arms are the whole selected-row inventory the toolkits paint, the
    remaining `row:selected` spellings landing on non-meter nodes. Each
    appended selector is the exact stock twin and sits later in source
@@ -1946,29 +1946,29 @@ progressbar > trough:disabled, scale > trough:disabled {
    are the only holders of the spellings, none of which the shipped sheet
    parses today, and the standing `row:selected button` groups carry
    neither a trough nor a slider token. The restatement splits stock's
-   comma groups by landed value, the landed GTK 3 record's own precedent:
-   one group cannot carry the landed disabled thumb's flat grey rim and
+   comma groups by existing value, the existing GTK 3 record's own precedent:
+   one group cannot carry the existing disabled thumb's flat grey rim and
    the enabled thumb's black rim, and a comma group shares its
    declarations across every member, so the thumb states are restated as
    two single-spelling rules (the disabled thumb's grey rim first, the
    enabled thumb's black rim after) — the disabled spelling
    out-specifies the bare thumb spelling, so a selected disabled thumb
    keeps the grey rim while an enabled thumb takes the black one — while
-   the trough arm's two landed states (plain and disabled) share the
+   the trough arm's two existing states (plain and disabled) share the
    black rim and stay merged on the comma group. Exclusions, each with its
    per-property reason: stock's trough comma group carries
-   `scale > trough > fill` — the landed `scale > trough > fill,
+   `scale > trough > fill` — the existing `scale > trough > fill,
    scale > trough > highlight` group declares `border: 0`, so a
    border-colour member over the fill repaints nothing, the reason the
-   landed GTK 3 meter-state record excluded its same-shaped fill
+   existing GTK 3 meter-state record excluded its same-shaped fill
    members; stock's whole progress/highlight comma group claims only that
-   same border member — the landed `progressbar > trough > progress` and
+   same border member — the existing `progressbar > trough > progress` and
    fill/highlight groups declare `border: 0`, so nothing repaints and no
    restate is quoted; the trough comma group's `outline-color` member —
-   the stock selected-row outline ink stays per the landed selection
+   the stock selected-row outline ink stays per the existing selection
    policy ("the stock selected-row outline colour stays unrestated", the
-   stance the landed dropdown selection comment records), an outline
-   paints only under focus and no landed selection surface restates one;
+   stance the existing dropdown selection comment records), an outline
+   paints only under focus and no existing selection surface restates one;
    and no `.osd` selected-row meter arm exists in either resource, so
    none is answered here. Declaration, count and order checks do not
    establish rendered pixels. */
@@ -2122,11 +2122,11 @@ scale.vertical.fine-tune > trough {
 /* Adaptation 2026-11-09: no collected reference screenshot shows a
  * fine-tuned GTK scale in any state (the GTK scope's standing
  * adaptation premise), so the fine-tuned trough, fill and highlight
- * corners keep the landed square-corner policy — the same squared set
+ * corners keep the existing square-corner policy — the same squared set
  * this sheet already carries on `scale > trough`,
  * `scale > trough > fill, scale > trough > highlight`,
  * `scale > trough > slider`, their hover/active and disabled twins and
- * the progressbar trough/progress groups; the landed GTK 3 fine-tune
+ * the progressbar trough/progress groups; the existing GTK 3 fine-tune
  * radius record restates the libgtk-3 twin arm the same way, keeping
  * that arm's outline member inherited, while this sheet's toolkit
  * resource declares no outline-radius companion on the arm. Stock's
@@ -2146,23 +2146,23 @@ scale.vertical.fine-tune > trough {
  * where the restate is the only holder of the spellings, or the stock
  * declarations riding as a lower sheet, where the restate wins the
  * single per-property tie at equal specificity — the held modifier
- * never re-rounds the landed square faces. Exclusions with
+ * never re-rounds the existing square faces. Exclusions with
  * per-property reasons: the fine-tune trough-margin arm (light 1113,
  * dark 1101) and the fine-tune slider-margin arm (light 1115, dark
- * 1103) are answered above by the landed `margin: 0` trough-spacing
- * group and below by the landed `-5px` thumb-margin group; the desktop
+ * 1103) are answered above by the existing `margin: 0` trough-spacing
+ * group and below by the existing `-5px` thumb-margin group; the desktop
  * integration library (name and resource path recorded in
  * docs/invariants.md) declares no fine-tune radius arm at all — its
  * trough and progress rounding rides orientationless
- * `border-radius: 99px` comma groups the landed base and oriented
+ * `border-radius: 99px` comma groups the existing base and oriented
  * groups already answer per-property, and its fine-tuned marks,
  * indicator and margin arms are their own future geometry candidates,
- * its fine-tune trough and slider margins answered by the landed
+ * its fine-tune trough and slider margins answered by the existing
  * margin groups; the transparent `scale > trough > fill:disabled` and
  * `.osd scale > trough > fill:disabled` arms (light 1119 and 1123,
  * dark 1107 and 1111) answer nothing this sheet repaints over the
- * landed transparent fill; and the fine-tuned marked-slider margin
- * twins (light 1193 onward, dark 1181 onward) restate the landed
+ * existing transparent fill; and the fine-tuned marked-slider margin
+ * twins (light 1193 onward, dark 1181 onward) restate the existing
  * marked-thumb records' transform and shadow policy — margins, not a
  * corner. Declared 2026-11-09 by the feature role. */
 
@@ -2188,7 +2188,7 @@ scale > trough > fill, scale > trough > highlight {
 
 /* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
  * meter widget inside a headerbar, so a progress bar or scale under
- * the title band keeps the landed meter faces this sheet already
+ * the title band keeps the existing meter faces this sheet already
  * pins. The toolkit resource declares one headerbar-descended meter
  * arm anywhere (probed fresh 2026-11-09 with gresource extract
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
@@ -2204,16 +2204,16 @@ scale > trough > fill, scale > trough > highlight {
  * arm, and the GTK 3 resource declares none at all, so no GTK 3
  * change rides along — names and paths recorded in
  * docs/invariants.md. The restate below splits stock's comma group by
- * landed value and sits later, so under either loading reading — a
+ * existing value and sits later, so under either loading reading — a
  * theme selection replacing the stock sheet entirely, where the
  * restate is the only holder of the spellings, or the stock
  * declarations riding as a lower sheet, where the restate wins the
  * per-property tie at equal specificity — meters inside the title
- * band keep the landed `#EEEEEE` trough face and the landed
+ * band keep the existing `#EEEEEE` trough face and the existing
  * transparent fill and highlight faces, the value sources the
  * `scale > trough`/`progressbar > trough` groups and the
  * `scale > trough > fill, scale > trough > highlight` group above
- * pin. Stock's arm claims only `background-color`, so the landed
+ * pin. Stock's arm claims only `background-color`, so the existing
  * trough border, etch, radius and minimums stay governed
  * per-property. Exclusions with per-property reasons: the disabled
  * trough face arm (light 1083, dark 1071) is stock's own
@@ -2225,14 +2225,14 @@ scale > trough > fill, scale > trough > highlight {
  * -12) are selected-row ink, not headerbar meters, and their outline
  * and border members are separate ink candidates; the four `.osd`
  * meter arms (light 1087, 1089, 1097 and 1099, dark twins shifted
- * -12) are answered by the landed `.osd` block; the disabled
+ * -12) are answered by the existing `.osd` block; the disabled
  * highlight arm (light 1093, dark 1081) declares stock's own
- * transparent answer that ties the landed transparent fill on that
+ * transparent answer that ties the existing transparent fill on that
  * state's spelling, so nothing repaints; and the bare
  * `scale > trough` outline arm (light 1103), the focus-visible
  * outline arm (light 1105) and the outline-motion arm (light 1107,
- * dark twins shifted -12) are the landed scale-focus groups' focus
- * keys and the landed bare `scale` restate's motion riders. Declared
+ * dark twins shifted -12) are the existing scale-focus groups' focus
+ * keys and the existing bare `scale` restate's motion riders. Declared
  * 2026-11-09 by the feature role. */
 
 headerbar progressbar > trough, headerbar scale > trough {
@@ -2310,14 +2310,14 @@ scale:disabled {
  * 12px push-out padding that separates a scale from its neighbours,
  * with the bare node's stock outline-motion riders. Stock's bare scale
  * arm is the toolkit resource's only arm on the `scale` spelling: the
- * landed `scale > trough`, fine-tune and state groups all quote
+ * existing `scale > trough`, fine-tune and state groups all quote
  * compound spellings, so without a bare restate a plain scale loses
  * both minimums and the padding and its container collapses to the
  * toolkit's stockless defaults, crowding neighbouring controls. The
- * landed GTK 3 plain container record restates the libgtk-3 twin arm
+ * existing GTK 3 plain container record restates the libgtk-3 twin arm
  * the same way (its spelling carries no motion members); this sheet
  * restate keeps its three motion riders byte-equal because the bare
- * node reads them stock-only and no landed counter-arm carries them.
+ * node reads them stock-only and no existing counter-arm carries them.
  * Probed fresh 2026-11-09 with gresource extract
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
  * /org/gtk/libgtk/theme/Default/Default-light.css: light line 1101
@@ -2338,25 +2338,25 @@ scale:disabled {
  * per-property reasons: the `scale > trough` outline arm (light 1103,
  * dark 1091), the `scale:focus:focus-visible > trough` outline arm
  * (light 1105, dark 1093) and the `scale > trough` outline-motion arm
- * (light 1107, dark 1095) are the landed scale-focus groups' focus
+ * (light 1107, dark 1095) are the existing scale-focus groups' focus
  * keys; the `scale > trough > fill, scale > trough > highlight {
  * margin: -1px; }` arm (light 1109, dark 1097) is answered by the
- * landed same-spelling group's `margin: 0` riding the equal-specificity
- * source-order win, so the landed zero governs; the `scale > trough >
+ * existing same-spelling group's `margin: 0` riding the equal-specificity
+ * source-order win, so the existing zero governs; the `scale > trough >
  * slider { min-height: 18px; min-width: 18px; margin: -9px; }` arm
  * (light 1111, dark 1099) is the knob's own geometry, answered by the
- * landed slider groups; the fine-tune trough-margin (light 1113, dark
+ * existing slider groups; the fine-tune trough-margin (light 1113, dark
  * 1101) and slider-margin (light 1115, dark 1103) arms and the
- * fine-tune radius arm (light 1117, dark 1105) are the landed
- * fine-tune margin restates' and the landed fine-tuned radius record's
+ * fine-tune radius arm (light 1117, dark 1105) are the existing
+ * fine-tune margin restates' and the existing fine-tuned radius record's
  * deliverables, not the plain container; the integration library's knob
  * arm (its resource line 1894, 20px minimums, -8px margin, rounded) is
- * the knob too, answered per-property by the landed slider groups; and
+ * the knob too, answered per-property by the existing slider groups; and
  * the integration library's fine-tune marks, margin and indicator arms
  * (its resource lines 1926-1970) are the fine-tuned marked-scale
  * geometry, their own separate candidate outside this entry. No
  * descending group's policy changes: the motion riders ride the bare
- * node alone and the landed descendant focus groups keep their own
+ * node alone and the existing descendant focus groups keep their own
  * no-motion policy. Declared 2026-11-09 by the feature role. */
 
 scale {
@@ -2396,11 +2396,11 @@ scale.marks-after:not(.marks-before):disabled > trough > slider {
 }
 
 /* 2026-11-09: a GTK 4 scale's tick-mark lines and its value label read the
-   landed black window ink. No collected reference screenshot in
+   existing black window ink. No collected reference screenshot in
    macos8.6-screenshots/ shows GTK scale marks, tick lines or a scale value
    label (the GTK scope's standing adaptation premise), so the restated
-   value is the landed black window ink this sheet already pins (the value
-   the landed GTK 3 decoration-ink record restated on its toolkit's arms,
+   value is the existing black window ink this sheet already pins (the value
+   the existing GTK 3 decoration-ink record restated on its toolkit's arms,
    tests/test_gtk_theme_controls.py::TestGtkThemeControls,
    re-extracted 2026-11-09). The toolkit resource
    /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
@@ -2434,7 +2434,7 @@ scale.marks-after:not(.marks-before):disabled > trough > slider {
    (light 1147-1187) and the integration library's plain and fine-tuned
    marks, margin and indicator arms — allocation geometry, their own
    future candidates; and the has-marks slider arms (light 1189 onward) —
-   the landed marked-thumb records' slider faces. Declaration, count and
+   the existing marked-thumb records' slider faces. Declaration, count and
    order checks do not establish rendered pixels. */
 
 scale > value, scale.horizontal > marks, scale.vertical > marks {
@@ -2448,8 +2448,8 @@ scale > value, scale.horizontal > marks, scale.vertical > marks {
    spacing or value margins (the GTK scope's standing adaptation
    premise), so no repainted value exists and these ten restatements
    carry the toolkit's own allocation — the keep-both-readings parity
-   restate the landed plain-container record set, applied byte-equal (the
-   landed ink comment above left the indicator currentColor member
+   restate the existing plain-container record set, applied byte-equal (the
+   existing ink comment above left the indicator currentColor member
    unrestated so the tick lines would follow the restated marks ink;
    this block carries that member byte-equal anyway, on that record's
    byte-equal precedent, so the arm also survives the replacement
@@ -2483,18 +2483,18 @@ scale > value, scale.horizontal > marks, scale.vertical > marks {
    No disabled, :backdrop or .osd counter-arm reaches any of the ten
    spellings in any probed resource. Exclusions, each with its
    per-property reason: the `scale.horizontal > marks` colour arm (light
-   1145) — the landed ink comma group's own member above; the whole
+   1145) — the existing ink comma group's own member above; the whole
    vertical bank (light 1169-1187, and light 1167's vertical colour arm
-   likewise already landed by that comma group) — the queued vertical
+   likewise already existing by that comma group) — the queued vertical
    twin part's own queue, listed so no reader counts this block as the
    whole allocation; the fine-tune trough and slider margin arms
    (toolkit light 1113 -3px and 1115 -6px, and the integration library's
    base 1926 -3px 0px and 1928 -5px -8px for this orientation) —
-   answered above by the landed `margin: 0` trough-spacing group and
-   above by the landed `-5px` thumb-margin group; and the has-marks
+   answered above by the existing `margin: 0` trough-spacing group and
+   above by the existing `-5px` thumb-margin group; and the has-marks
    slider arms (light 1189 onward) alongside the integration library's
    marks-before and marks-after zero-padding container arms (base 1936
-   `padding-top: 0` and 1940 `padding-bottom: 0`) — the landed
+   `padding-top: 0` and 1940 `padding-bottom: 0`) — the existing
    marked-thumb records' slider faces, with no container-padding
    spelling in any probed resource (all three greps returned zero
    matches), so neither toolkit side carries a counter-arm and the
@@ -2550,9 +2550,9 @@ scale.horizontal.fine-tune > marks indicator {
    spacing or value margins (the GTK scope's standing adaptation
    premise), so no repainted value exists and these ten restatements
    carry the toolkit's own allocation — the keep-both-readings parity
-   restate the landed plain-container record set, applied byte-equal,
+   restate the existing plain-container record set, applied byte-equal,
    companion to the horizontal twin block above and read together with
-   it and with the landed marks/value ink comma group above it. The
+   it and with the existing marks/value ink comma group above it. The
    toolkit resource
    /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
    `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
@@ -2584,17 +2584,17 @@ scale.horizontal.fine-tune > marks indicator {
    unrepeated here. No disabled, :backdrop or .osd counter-arm reaches
    any of the ten spellings in any probed resource. Exclusions, each
    with its per-property reason: the `scale.vertical > marks` colour arm
-   (light 1167) — the landed ink comma group's own member above; the
+   (light 1167) — the existing ink comma group's own member above; the
    whole horizontal bank (light 1147-1165) — the horizontal twin block
    above, restated there so no reader counts this block as the whole
    allocation; the vertical fine-tune trough and slider margin arms (the
    integration library's base 1962 `0px -3px` trough margin and 1964
-   `-8px -5px` slider margin) — answered above by the landed `margin: 0`
-   trough-spacing group and above by the landed `-5px` thumb-margin
+   `-8px -5px` slider margin) — answered above by the existing `margin: 0`
+   trough-spacing group and above by the existing `-5px` thumb-margin
    group; and the has-marks slider arms (light 1189 onward) alongside
    the integration library's marks-before and marks-after zero-padding
    container arms (base 1972 `padding-left: 0` and 1976
-   `padding-right: 0`) — the landed marked-thumb records' slider faces,
+   `padding-right: 0`) — the existing marked-thumb records' slider faces,
    with no container-padding spelling in any probed toolkit resource
    (its grep returned zero matches), so the padded arms sit with
    whichever resource rides the sheet. Declaration, count and order
@@ -2729,7 +2729,7 @@ switch > image {
    toggle group (no Mac OS 8.6 surface has one), so the corners are a
    platform value the reference set does not show and the chosen value is
    this theme's square-corner policy — `frame > border`, `.frame` and the
-   landed `button`, card, tab-family and cursor-handle restatements all
+   existing `button`, card, tab-family and cursor-handle restatements all
    carry `border-radius: 0`. The stock rounded arms come from the platform
    style library's `base.css` resource inside the integration library (probe
    path recorded in docs/invariants.md), extracted 2026-11-04 with
@@ -2814,7 +2814,7 @@ label.dimmed {
 /* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
  * error-classed label, the standing GTK-scope adaptation premise, so the
  * stock colour-class distinction is erased and the class keeps its place
- * in the cascade while its paint falls back to the landed label policy.
+ * in the cascade while its paint falls back to the existing label policy.
  * Stock colour-class arms probed 2026-11-03 with gresource from
  * /org/gtk/libgtk/theme/Default/Default-light.css inside
  * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
@@ -2824,15 +2824,15 @@ label.dimmed {
  * arm exists, so a warning-classed label inherits black with no override
  * and needs no restatement. The disabled arm widens stock's plain
  * `label:disabled { color: #929595; }` grey to translucent red with one
- * class token, so it out-ranks the landed `label:disabled` grey.
- * The base arm conflicts with no landed rule; labels inherit black from
- * the landed `window, .background` group. Each restated selector is the
+ * class token, so it out-ranks the existing `label:disabled` grey.
+ * The base arm conflicts with no existing rule; labels inherit black from
+ * the existing `window, .background` group. Each restated selector is the
  * byte-equal stock twin and this sheet sits entirely after the stock
  * resource, so one twin per arm covers every order tie. The colours reuse
- * the landed label-policy values: the inherited window foreground
+ * the existing label-policy values: the inherited window foreground
  * (`#000000`) and the insensitive grey (`#888888`) already in the sheet.
  * `label.error > selection` and `label.error:selected` stay out of scope:
- * the resource ships no such arm, so the landed selection groups still
+ * the resource ships no such arm, so the existing selection groups still
  * govern. */
 label.error {
   color: #000000;
@@ -2952,10 +2952,10 @@ actionbar > revealer > box {
   box-shadow: inset 0 -1px #FFFFFF;
 }
 
-/* 2026-11-09: the band keeps its landed face in an unfocused window. No
+/* 2026-11-09: the band keeps its existing face in an unfocused window. No
    collected reference screenshot shows a GTK search bar or action bar in an
    unfocused window — the standing GTK-scope adaptation premise — so the
-   values restate the landed band recipe (the landed infobar band, INFOBAR
+   values restate the existing band recipe (the existing infobar band, INFOBAR
    in tests/support/gtk_theme_spec.py). Stock's own backdrop arm was probed
    2026-11-09 with `gresource extract` against the toolkit's compiled
    default light resource (Default-light.css inside libgtk-4; the full
@@ -2963,7 +2963,7 @@ actionbar > revealer > box {
    `searchbar > revealer > box:backdrop`, repainting the band to stock's
    greige face and warm-grey rim ink (both literals elided here per the
    palette convention; the verbatim values live in docs/invariants.md),
-   erasing the landed inset highlight with `box-shadow: none` and fading
+   erasing the existing inset highlight with `box-shadow: none` and fading
    the flip through a 200ms ease-out. The platform library's base.css
    resource declares neither a band arm nor a backdrop arm of its own for
    this strip (its record lives in docs/invariants.md). The selector below
@@ -2972,7 +2972,7 @@ actionbar > revealer > box {
    stock's arm touches. Exclusions: no `actionbar > revealer > box:backdrop`
    spelling — neither stock source declares it; no `.location-bar` spelling
    — stock has no location strip, the GTK 3 record owns it; no `.toolbar`
-   restate — the landed record is the strip's band, not the toolbar's; no
+   restate — the existing record is the strip's band, not the toolbar's; no
    `color` restate — stock's backdrop arm sets none. Declaration checks do
    not establish rendered pixels. */
 searchbar > revealer > box:backdrop {
@@ -2986,7 +2986,7 @@ searchbar > revealer > box:backdrop {
    the search strip's own stock rim beneath the band edge the strip's inner
    search box paints, and stock itself keeps that two-rim pair. No collected
    reference screenshot shows a GTK dropdown search strip, so the rim takes
-   the landed etched band rule. The toolkit resource
+   the existing etched band rule. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css in the GTK 4 library,
    libgtk-4 4.18.6, probed with gresource 2026-11-09: a 1940-line resource
    whose only .dropdown-searchbar colour arm is this front arm) declares on
@@ -2995,15 +2995,15 @@ searchbar > revealer > box:backdrop {
    warm-grey rim ink, recorded verbatim in docs/invariants.md>; }`; the
    integration library's base.css resource (probe path recorded in
    docs/invariants.md, re-extracted 2026-11-09: a 2622-line resource)
-   declares its `.menu` twin with padding only. No landed record reaches
-   this rim: the landed band group above answers the strip's inner search
-   box, the landed popover face group answers the popover shell, and no
-   landed rule carries the strip's class. The selectors below are
+   declares its `.menu` twin with padding only. No existing record reaches
+   this rim: the existing band group above answers the strip's inner search
+   box, the existing popover face group answers the popover shell, and no
+   existing rule carries the strip's class. The selectors below are
    byte-equal to the toolkit twin, so equal specificity falls to the later
    user-sheet source order and only the rim ink changes ownership; stock's
    `padding: 6px`, the platform library's `.menu` twin and the stock
    `.combo-searchbar` margin arm stay inherited per-property, and the
-   landed scroll-edge record keeps the undershoot spellings. Declaration
+   existing scroll-edge record keeps the undershoot spellings. Declaration
    checks do not establish rendered pixels. */
 dropdown popover .dropdown-searchbar,
 combobox popover .dropdown-searchbar {
@@ -3026,7 +3026,7 @@ statusbar {
    around the picker's band of sections: the search strip above them paints
    a bottom rim and the section toolbar beneath them paints a top rim. No
    collected reference screenshot shows a GTK emoji picker, so both rims
-   take the landed inks. The toolkit resource
+   take the existing inks. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css in the GTK 4 library,
    libgtk-4 4.18.6, probed with gresource 2026-11-09: a 1940-line resource)
    declares on line 1823 `.emoji-searchbar { padding: 6px; border-spacing:
@@ -3039,15 +3039,15 @@ statusbar {
    display-less introspection probe 2026-11-09 building Gtk.EmojiChooser()
    and walking every child shows the picker's tree: the popover carries the
    picker class, and the vertical box's first member is a horizontal box
-   wrapping the search entry directly, so no landed band rule reaches the
+   wrapping the search entry directly, so no existing band rule reaches the
    strip, and the section toolbar is the picked flat image buttons, already
-   landed elsewhere. No landed record answers either strip class: this
-   sheet's landed band group answers the searchbar-family band box, the
+   existing elsewhere. No existing record answers either strip class: this
+   sheet's existing band group answers the searchbar-family band box, the
    popover face group answers the popover shell, the completion-row and
    cell records answer other nodes, and neither strip spelling appears
-   anywhere in the sheet. The search strip's bottom rim takes the landed
-   etched band edge and the toolbar's top rim takes the landed dark
-   separator ink as a flat rim, mirroring the landing's bottom rim by
+   anywhere in the sheet. The search strip's bottom rim takes the existing
+   etched band edge and the toolbar's top rim takes the existing dark
+   separator ink as a flat rim, mirroring the merge's bottom rim by
    symmetry across the strip; stock's `padding` and `border-spacing` twins
    stay inherited per-property, and :backdrop stays out of scope. Both
    arms are quoted in docs/invariants.md. Declaration checks do not
@@ -3062,7 +3062,7 @@ statusbar {
 }
 
 /* A file chooser's path bar draws its breadcrumb buttons — the folder toggles,
-   the slider arrows and the Other Locations button alike — as the landed tab
+   the slider arrows and the Other Locations button alike — as the existing tab
    recipe, the current folder's checked tab included; :backdrop stays out of
    scope. */
 pathbar > scrolledwindow > viewport > box > button {
@@ -3118,8 +3118,8 @@ placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
    the reference set's desktop shows no places sidebar at all, so no ground
    exists for the drop strip or the drag-over row twins; the toolkit
    resource's own arms paint foreign greens the set never shows. Dropping
-   or dragging a bookmark reads the landed selection lavender with black
-   ink, the same mapping the sibling sheet's landed colour-swatch
+   or dragging a bookmark reads the existing selection lavender with black
+   ink, the same mapping the sibling sheet's existing colour-swatch
    drop-target record composes, while the strip's and the drag-over rows'
    shape keeps the resource's own geometry so the restated spellings stay
    the stock twins that win the cascade by later user-sheet source order.
@@ -3131,7 +3131,7 @@ placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
    strip keeps stock's padding, min-height and background clip and inks to
    the lavender; 1614 the drag-over row inks its label black and its two
    inset hover bands lavender; 1616 the selected drag-over row takes the
-   lavender fill with black ink, the landed selection-backdrop record's
+   lavender fill with black ink, the existing selection-backdrop record's
    pair. Declaration checks do not establish rendered pixels. Restated
    2026-11-09 by the feature role. */
 placessidebar .navigation-sidebar > row.sidebar-placeholder-row {
@@ -3154,7 +3154,7 @@ placessidebar .navigation-sidebar > row:drop(active):not(:disabled):selected {
 /* No collected screenshot in macos8.6-screenshots/ shows a GTK sidebar row
    icon, so the row icon has no reference surface to sample; give it full
    opacity by removing the toolkit's own extra transparency layer, the
-   value the sibling sheet's landed GTK 3 row-icon record pins from the
+   value the sibling sheet's existing GTK 3 row-icon record pins from the
    toolkit resource's gtk-contained.css in
    /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (added 2026-11-09). Stock arms
    probed 2026-11-09 with gresource extract of /org/gtk/libgtk/theme/
@@ -3167,7 +3167,7 @@ placessidebar .navigation-sidebar > row:drop(active):not(:disabled):selected {
    restated. The two stock directional padding twins (light 1598/1600,
    dark 1586/1588) stay stock: the shipped sheet declares no padding for
    this family, and stock's own 8px geometry governs, matching the
-   colours-only choice of the sibling sheet's landed record. Declaration
+   colours-only choice of the sibling sheet's existing record. Declaration
    checks do not establish rendered pixels. */
 row image.sidebar-icon {
   opacity: 1;
@@ -3242,7 +3242,7 @@ pathbar > scrolledwindow > viewport > box.linked > button:not(:last-child) {
 /* No collected reference screenshot shows a GTK OSD overlay surface — a
  * fullscreen video toolbar, a scale button's value bubble, an application
  * notification, a touch-selection or magnifier popover, a bare .osd
- * container — so every stock OSD container takes the landed GTK 3 OSD
+ * container — so every stock OSD container takes the existing GTK 3 OSD
  * container recipe: the menu-bar band's opaque #DDDDDD face, black text and
  * the etched bottom edge. The stock container selectors come from the
  * toolkit resources /org/gtk/libgtk/theme/Default/Default-light.css in
@@ -3289,7 +3289,7 @@ popover.magnifier > contents {
 /* No collected reference screenshot shows a check or radio inside a GTK OSD
  * overlay — a fullscreen video toolbar, a scale button's value bubble, an
  * application notification, a bare .osd container — so every stock OSD
- * indicator arm takes the landed check and radio recipes: the raised #DDDDDD
+ * indicator arm takes the existing check and radio recipes: the raised #DDDDDD
  * check face with the inset #FFFFFF/#888888 etch, square corners and the
  * flat #FFFFFF round radio, drawn at the plain indicator rules' 14px
  * geometry. The stock arm inventory and states come from the toolkit
@@ -3300,14 +3300,14 @@ popover.magnifier > contents {
  * arm — painting translucent dark bubbles, and the platform style
  * library's base.css resource (1.7.6) carries no `.osd`
  * check-radio arm at all, only the `.osd popover.menu` transparency
- * override left untouched here. The recipe values are the landed CHECK and
+ * override left untouched here. The recipe values are the existing CHECK and
  * RADIO specs (tests/support/gtk_theme_spec.py), pinned by the shared
  * GtkSheetRuleCases::test_check_and_radio; every state group repeats them
  * byte-for-byte because the stock arms set no geometry, glyph source or
  * checked spelling, so the plain `check`, `radio` and mixed/checked glyph
  * rules keep governing inside overlays. The one clearance is
  * `outline-color: #000000`, replacing the toolkit's accent-tinted focus
- * ring to match the sheet's landed black focus colour; the stock arms'
+ * ring to match the sheet's existing black focus colour; the stock arms'
  * leftover `color`, `background-clip: padding-box` and shadow claims stay
  * undeclared because the shipped glyph assets do not recolour or shadow and
  * the opaque black border already paints the clip band.
@@ -3388,7 +3388,7 @@ popover.magnifier > contents {
 /* No collected reference screenshot shows a GTK OSD meter. The stock
  * trough, fill and progress paints were probed in both Default resources
  * with gresource (libgtk-4 4.18.6, 2026-10-30); their translucent dark
- * bubbles and differing disabled fills are replaced by the landed
+ * bubbles and differing disabled fills are replaced by the existing
  * PROGRESSBAR_* and SCALE_* recipes in tests/support/gtk_theme_spec.py.
  * The GTK-required child selectors repeat those recipes across states.
  * Declaration checks do not establish rendered pixels. */
@@ -3493,7 +3493,7 @@ popover.magnifier > contents {
 /* 2026-11-03: no collected reference screenshot shows a spinbutton
    stepper inside a GTK OSD overlay, so the overlay band restates the
    toolkit resource's `.osd spinbutton ... button` stepper arms with the
-   landed raised push-button face, like the landed .osd check/radio and
+   existing raised push-button face, like the existing .osd check/radio and
    scale thumb restatements. The stock translucent dark bubbles, the
    horizontal arms' left-edge rgba(0, 0, 0, 0.4) separator and its
    :dir flip, the corner arms' 5px outer radii, the 0 1px black icon
@@ -3637,13 +3637,13 @@ popover.magnifier > contents {
    so the scale popup is a platform adaptation like the restated GTK 3
    counterpart. The toolkit resource's rounded scale-popup button arms —
    the borderless flat-button arm and the translucent-dark hover arm — are
-   restated with the landed square push-button treatment. Unlike the GTK 3
+   restated with the existing square push-button treatment. Unlike the GTK 3
    counterpart, this sheet has no restated `.osd button.flat` family, and
    the stock `.osd button`/`button.flat` arms claim a transparent face and
-   border and no bevel at (0,2,1)/(0,1,1), outranking the landed base
+   border and no bevel at (0,2,1)/(0,1,1), outranking the existing base
    `button` group's (0,0,1) face, border and bevel — so each arm restates
-   the landed plain push-button recipe itself (the base `button`
-   dictionary the suite's landed button case pins). Stock selectors probed
+   the existing plain push-button recipe itself (the base `button`
+   dictionary the suite's existing button case pins). Stock selectors probed
    from Default-light.css in libgtk-4 4.18.6 with gresource on 2026-10-31. */
 .osd .scale-popup button.flat {
   background-color: #DDDDDD;
@@ -3675,17 +3675,17 @@ popover.magnifier > contents {
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
    with gresource, 2026-10-31) declares a window.dialog.message .titlebar arm of min-height
    20px, an off-white face, no border and 7px top radii that carries one class
-   and element more than the landed headerbar, .titlebar group and so repaints
+   and element more than the existing headerbar, .titlebar group and so repaints
    the dialog's title band, a 9px-corner csd.background arm, and csd action-area
    button arms that re-pad to 10px 14px and round the end buttons to 7px. Each
-   twin below restates the stocked-out values from the landed header and button
+   twin below restates the stocked-out values from the existing header and button
    groups in this same sheet: the band takes the headerbar values plus the
-   headerbar-only 1px bottom border, the backdrop band the landed inactive
+   headerbar-only 1px bottom border, the backdrop band the existing inactive
    header values, the body corners and action buttons square, and the action
-   buttons the stock button base padding the landed button group leaves in
+   buttons the stock button base padding the existing button group leaves in
    force. Stock's shared-edge side tricks on the action buttons
    (border-left-style/border-right-style/border-bottom-style and the
-   :first-child border-left-style) already match the landed
+   :first-child border-left-style) already match the existing
    .linked:not(.vertical) > button shared-border recipe and stay untouched. */
 window.dialog.message .titlebar {
   background-color: #DDDDDD;
@@ -3722,9 +3722,9 @@ window.dialog.message.csd .dialog-action-area button:last-child {
 /* Adaptation 2026-10-31: no collected reference screenshot shows a disabled
    GTK push button or a push button in an unfocused window, so the disabled
    label reuses the recorded insensitive grey #888888 -- the colour scheme's
-   ForegroundInactive, Kvantum's disabled.text.color and the landed
+   ForegroundInactive, Kvantum's disabled.text.color and the existing
    label:disabled grey in this same sheet -- and both states restate the
-   landed `button` raised face and `button:active, button:checked` sunken
+   existing `button` raised face and `button:active, button:checked` sunken
    face. Each selector below is its exact stock twin so the later source
    order in this sheet decides every tie. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
@@ -3735,7 +3735,7 @@ window.dialog.message.csd .dialog-action-area button:last-child {
    with the #d5d0cc border, and the active, checked, backdrop:disabled and
    backdrop:active compounds with their own off-white and pressed #e9e9e3
    faces. The stock 200ms backdrop transition is restated to none like the
-   landed `button` group's transition policy. */
+   existing `button` group's transition policy. */
 button:backdrop {
   background-image: none;
   border-color: #000000;
@@ -3771,8 +3771,8 @@ button:backdrop:disabled:checked {
    resource's remaining paned arms are restated here: the stock grey grip
    images on the base, selected and wide handles lose to background-image:
    none (each selector is the exact stock twin, so sheet order decides the
-   tie like the landed image clearances do), and the stock 8px direction
-   margins the landed orientation rules cannot outrank — each :dir arm
+   tie like the existing image clearances do), and the stock 8px direction
+   margins the existing orientation rules cannot outrank — each :dir arm
    carries one class more — are reset to those rules' own margin and
    padding. Stock selectors probed from Default-light.css in libgtk-4
    4.18.6 with gresource on 2026-10-31. */
@@ -3788,15 +3788,15 @@ paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK push button in a
    checked-and-hovered state, so the stock hover and press repaints of a
-   checked button are restated with the landed sunken face pinned by the
-   landed `button:active, button:checked` group. Stock declares
+   checked button are restated with the existing sunken face pinned by the
+   existing `button:active, button:checked` group. Stock declares
    `button:checked:hover` and `button:checked:active` with rounded off-white
-   faces and no bevel; those outrank the landed one-pseudo-class group, and
+   faces and no bevel; those outrank the existing one-pseudo-class group, and
    Eastern-flavoured hovering a checked toggle-type button would flip the
    theme's square sunken face to stock's rounded one. Each selector here is
    the exact stock twin and sits later in source order, so it decides every
    tie — including the equal-specificity backdrop checked hover, consistent
-   with the landed disabled/backdrop policy that backdrop never varies the
+   with the existing disabled/backdrop policy that backdrop never varies the
    face. Stock selectors probed from Default-light.css in libgtk-4 4.18.6
    with gresource on 2026-10-31. */
 button:checked:hover, button:checked:active {
@@ -3808,11 +3808,11 @@ button:checked:hover, button:checked:active {
 
 /* 2026-10-31: no collected reference screenshot shows a hovered GTK push
    button, so the stock hover recolour of the button's glyphs is cleared to
-   keep the landed face unchanged: stock brightens every icon inside a
+   keep the existing face unchanged: stock brightens every icon inside a
    hovered button with `-gtk-icon-filter: brightness(1.2)`, and the sheet
    declared no hover value for the property, so that clause survived under
-   the landed `button:hover` face group. The selector here is the exact
-   stock twin and sits later in source order, so it wins the tie; the landed
+   the existing `button:hover` face group. The selector here is the exact
+   stock twin and sits later in source order, so it wins the tie; the existing
    `button` and `button:hover` groups above stay the face source, and the
    kept-toolkit `-gtk-icon-filter: opacity(0.5)` dimming on `button:disabled`
    stays untouched. Stock selectors probed from Default-light.css in
@@ -3823,9 +3823,9 @@ button:hover {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK icon view or
    content-view container, so a container carrying GTK's `content-view`
-   class keeps the landed white view field: the sheet named the class
+   class keeps the existing white view field: the sheet named the class
    nowhere, so stock's grey fill reached the container. The base rule below
-   restates the field of the landed `.view, list` group above
+   restates the field of the existing `.view, list` group above
    (background-color and color), and a hovered content view keeps its glyphs
    as drawn because stock brightens them with
    `-gtk-icon-filter: brightness(1.2)` on a separate `.content-view:hover`
@@ -3845,19 +3845,19 @@ button:hover {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK suggested-action
    button at all (the GTK scope's standing adaptation premise), so the plain
-   `button.suggested-action` family is restated with the landed push-button
-   recipe of this same sheet — the recipe precedent the landed
+   `button.suggested-action` family is restated with the existing push-button
+   recipe of this same sheet — the recipe precedent the existing
    `.osd button.suggested-action` plan follows, including the erased
    suggested colour distinction. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
    probed with gresource, 2026-10-31) declares a stock blue gradient family
-   with white text whose selectors each carry one class more than the landed
+   with white text whose selectors each carry one class more than the existing
    `button`, `button:hover`, `button:active, button:checked`,
    `button:focus:focus-visible` and `button:disabled…` groups, so they would
    win the cascade; each restated selector here is the exact stock twin and
    sits later in source order, so it wins every tie. The base arm restates
    `transition: none` because the stock base's 300ms outline animation
-   outranks the landed `button` group's lower-specificity transition policy,
+   outranks the existing `button` group's lower-specificity transition policy,
    and the plain `button:disabled` `-gtk-icon-filter: opacity(0.5)` dimming
    stays in force here because no restated arm names the property. */
 button.suggested-action {
@@ -3900,19 +3900,19 @@ button.suggested-action:focus:focus-visible {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK destructive-action
    button at all (the GTK scope's standing adaptation premise), so the plain
-   `button.destructive-action` family is restated with the landed push-button
+   `button.destructive-action` family is restated with the existing push-button
    recipe of this same sheet, byte-equal to the plain suggested-action
    restatement above apart from the class token, including the erased
    destructive colour distinction. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
    probed with gresource, 2026-10-31) declares a stock red gradient family with
-   white text whose selectors each carry one class more than the landed
+   white text whose selectors each carry one class more than the existing
    `button`, `button:hover`, `button:active, button:checked`,
    `button:focus:focus-visible` and `button:disabled…` groups, so they would
    win the cascade; each restated selector here is the exact stock twin and
    sits later in source order, so it wins every tie. The base arm restates
    `transition: none` because the stock base's 300ms outline animation
-   outranks the landed `button` group's lower-specificity transition policy,
+   outranks the existing `button` group's lower-specificity transition policy,
    and the plain `button:disabled` `-gtk-icon-filter: opacity(0.5)` dimming
    stays in force here because no restated arm names the property. */
 button.destructive-action {
@@ -3955,21 +3955,21 @@ button.destructive-action:focus:focus-visible {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK flat button at
    all (the GTK scope's standing adaptation premise), so the generic
-   `button.flat` family is restated with the landed push-button recipe of
-   this same sheet — the recipe precedent the landed `.osd .scale-popup
-   button.flat` square-border clearance and the landed plain suggested- and
+   `button.flat` family is restated with the existing push-button recipe of
+   this same sheet — the recipe precedent the existing `.osd .scale-popup
+   button.flat` square-border clearance and the existing plain suggested- and
    destructive-action restatements follow. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
    probed with gresource, 2026-10-31) declares a stock transparent-face flat
    family — a transparent face at rest, a grey hover and pressed fill with a
    500ms hover transition, and backdrop-first arms that repaint the bevel
    off-white in an unfocused window — whose selectors each carry one class
-   token more than the landed `button`, `button:hover`,
+   token more than the existing `button`, `button:hover`,
    `button:active, button:checked` and `button:backdrop…` groups, so they
    would win the cascade and stock's transparency would reach every flat
    arm. Each restated selector here is the exact stock twin and sits later
-   in source order, so it wins every tie; the backdrop arms keep the landed
-   face like every landed plain backdrop arm, since the landed
+   in source order, so it wins every tie; the backdrop arms keep the existing
+   face like every existing plain backdrop arm, since the existing
    `button:backdrop` group's face policy never varies, and stock's only
    spare `button:backdrop.flat:not(:disabled)` arm — a toolkit-default icon
    filter — is not restated. Stock selectors probed from Default-light.css
@@ -4045,8 +4045,8 @@ button:backdrop.flat:disabled:active, button:backdrop.flat:disabled:checked {
 
 /* 2026-10-31: no collected reference screenshot shows a GTK flat action
    button (the GTK scope's standing adaptation premise), so the colour-class
-   `.flat` members are restated with the landed push-button recipe of this
-   same sheet — part 1/2's generic `button.flat` arms and the landed plain
+   `.flat` members are restated with the existing push-button recipe of this
+   same sheet — part 1/2's generic `button.flat` arms and the existing plain
    suggested- and destructive-action restatements are the recipe sources.
    The toolkit resource (/org/gtk/libgtk/theme/Default/Default-light.css
    inside libgtk-4 4.18.6, probed with gresource, 2026-10-31) declares the
@@ -4056,11 +4056,11 @@ button:backdrop.flat:disabled:active, button:backdrop.flat:disabled:checked {
    of either class carries the flat token. Each restated selector below is
    the exact stock twin and sits later in source order, so it wins every
    tie over the stock family, whose blue and red label distinction is
-   erased by the landed recipe's black labels. Only the base, pressed and
+   erased by the existing recipe's black labels. Only the base, pressed and
    disabled states are restated: stock's colour-class arms claim no motion,
    part 1/2's `transition: none` keeps the family still at lower class
    counts, and hover, backdrop, pressed-backdrop and pressed-disabled-
-   backdrop resolve through part 1/2's generic arms and the landed plain
+   backdrop resolve through part 1/2's generic arms and the existing plain
    disabled and pressed restatements to the same faces. */
 button.suggested-action.flat {
   background-color: #DDDDDD;
@@ -4118,23 +4118,23 @@ button.destructive-action.flat:disabled {
 /* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
    push button inside a selected row (the GTK scope's standing adaptation
    premise), so the toolkit's three selected-row button arms are restated
-   against the landed selection fill and the landed plain `button` and
+   against the existing selection fill and the existing plain `button` and
    flat-family recipes of this same sheet. The toolkit resource
    (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4,
    probed with gresource on 2026-10-31, libgtk-4 4.18.6) declares a
    standing `row:selected button` arm plus the twin
    `row:selected button.sidebar-button…, row:selected button.flat…`
    white-label list and its `:backdrop` recolour, byte-equal with the GTK
-   3 toolkit resource: the standing arm's border out-ranks the landed
+   3 toolkit resource: the standing arm's border out-ranks the existing
    plain `button` group by one more element, the twin list out-ranks the
-   landed flat family and the landed colour-class `.flat` blocks on label
+   existing flat family and the existing colour-class `.flat` blocks on label
    and border at more class tokens, so a flat button on a selected row
-   would paint a white or near-white label on the landed light-lavender
+   would paint a white or near-white label on the existing light-lavender
    selection fill and lose its black at-rest bevel border. Each appended
    label selector adds a disabled-state guard and wins by specificity;
-   every restated value is the landed black — the
-   selection label the landed selection groups declare and the border and
-   flat backdrop label the landed plain `button` and flat-family blocks
+   every restated value is the existing black — the
+   selection label the existing selection groups declare and the border and
+   flat backdrop label the existing plain `button` and flat-family blocks
    already carry. Stock's chain excludes pressed and hovered states.
    Review 2026-11-11:
    :not(disabled) excludes a node name, not a state; :not(:disabled) is
@@ -4161,10 +4161,10 @@ row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):no
 /* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flow
    box, grid-view or file-chooser grid selection (the GTK scope's standing
    adaptation premise), so the view children stock paints with the stock
-   accent family are restated against the landed row-selection groups of
+   accent family are restated against the existing row-selection groups of
    this same sheet (flat #CCCCFF fill, square corners, black text, re-stated
    unchanged in an unfocused window by the rows' constant-backdrop group)
-   and the landed `outline-color: #000000` focus-outline policy. The toolkit
+   and the existing `outline-color: #000000` focus-outline policy. The toolkit
    resource (/org/gtk/libgtk/theme/Default/Default-light.css inside
    libgtk-4, probed with gresource on 2026-10-31, libgtk-4 4.18.6) paints
    `flowbox > flowboxchild:selected` and `gridview > child:selected` with
@@ -4185,7 +4185,7 @@ row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):no
    this sheet records for rows drives the same held-out family here;
    2026-10-31: the rows-and-children disabled twins are since restated at
    the sheet tail — the `:disabled:selected` disabled selected rows and
-   view children entry — with the landed inactive-text grey; the remainder
+   view children entry — with the existing inactive-text grey; the remainder
    stays stock).
    The base selected rules also cover backdrop: adding a backdrop state
    would outrank the file-chooser base tint. Keep the more specific tint
@@ -4213,7 +4213,7 @@ filechooser gridview child:selected:active {
 
 /* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
    icon-view selection (the GTK scope's standing adaptation premise), so the
-   selection stock paints into an icon view is restated against the landed
+   selection stock paints into an icon view is restated against the existing
    row-selection groups of this same sheet (flat #CCCCFF fill, square
    corners, black text, re-stated unchanged in an unfocused window by the
    rows' constant-backdrop treatment, which stands in for the backdrop arm
@@ -4227,7 +4227,7 @@ filechooser gridview child:selected:active {
    the toolkit itself never recolours a backdrop icon-view selection. Each
    appended selector names element, class and states, so it outranks every
    two-token stock twin over icon-view nodes and sits later in source
-   order, while the landed row groups keep governing the tree, list and
+   order, while the existing row groups keep governing the tree, list and
    grid nodes their selectors name. Declaration checks do not establish
    rendered pixels. The :not(:disabled) guard preserves stock
    disabled-selection paint. */
@@ -4246,7 +4246,7 @@ iconview.view:not(:disabled):backdrop:selected {
 
 /* Adaptation 2026-11-03: no collected reference screenshot shows GTK 4
    keyboard focus on an icon view, flow-box child or grid-view child. Reuse
-   the landed black focus-outline policy; stock's 2px outline width and
+   the existing black focus-outline policy; stock's 2px outline width and
    -2px offset remain inherited. The GTK 4 resource
    (/org/gtk/libgtk/theme/Default/Default-light.css in libgtk-4 4.18.6)
    and the platform style library's base.css resource were probed with
@@ -4271,10 +4271,10 @@ gridview > child:focus:focus-visible {
    (#9ac2f2) and on the dedicated column- and tree-view arms (#86b5ef cold,
    #71a8eb backdrop; no big `:backdrop` disabled-selected group exists in
    the resource, so the backdrop restatement carries the dedicated view
-   arms alone) are restated with the landed disabled-text grey (the same
+   arms alone) are restated with the existing disabled-text grey (the same
    grey the sheet's disabled label, dim-label and field-disabled arms
    paint, re-derived from the colour scheme's [Colors:Button]
-   ForegroundInactive). The landed row and view-child selection groups
+   ForegroundInactive). The existing row and view-child selection groups
    already paint the #CCCCFF fill with black enabled text in every state,
    so only the label colour changes. Each appended selector is the exact
    stock twin, so every tie is decided purely by later source order; the
@@ -4298,10 +4298,10 @@ treeview.view:disabled:selected:backdrop {
  * screenshot in macos8.6-screenshots/ shows a GTK list row's keyboard
  * focus ring (the collected lists show flat or icon selections, and a
  * tree or column view's focused row is not collected), so the ring colour
- * reuses the landed black focus-outline policy this sheet already states
+ * reuses the existing black focus-outline policy this sheet already states
  * for buttons, entries, spin buttons and check buttons; stock's outline
  * width and offset stay inherited per-property, and one bare `row` arm
- * removes stock's 300 ms outline fade the landed transition policy drops
+ * removes stock's 300 ms outline fade the existing transition policy drops
  * on the other controls. Stock arms probed 2026-11-03 with gresource —
  * four row focus arms from `/org/gtk/libgtk/theme/Default/Default-light.css`
  * inside `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6):
@@ -4327,7 +4327,7 @@ treeview.view:disabled:selected:backdrop {
  *   list.boxed-list-separate > row:focus:focus-visible,
  *   list.boxed-list-separate > row.expander row.header:focus:focus-visible
  * Eleven distinct spellings in all; each selector below is the byte-equal
- * stock twin, and the two groups sit after the landed disabled-selected
+ * stock twin, and the two groups sit after the existing disabled-selected
  * groups above, so later source order wins every tie. Declaration checks
  * do not establish rendered pixels. */
 row {
@@ -4352,8 +4352,8 @@ list.boxed-list-separate > row.expander row.header:focus:focus-visible {
  * screenshot in macos8.6-screenshots/ shows a GTK stack switcher or a stack
  * sidebar needs-attention badge (the standing GTK-scope adaptation
  * premise), so the pulse is cleared to this sheet's inherited paint and
- * landed motion policy instead of stock's accent dot; the class tokens and
- * their cascade place stay as stock put them, following the landed
+ * existing motion policy instead of stock's accent dot; the class tokens and
+ * their cascade place stay as stock put them, following the existing
  * colour-class precedent, and the labels keep the inherited text and box.
  * Stock arms probed 2026-11-03 with gresource from the toolkit's bundled
  * GTK theme resource (full library path in docs/invariants.md):
@@ -4370,7 +4370,7 @@ list.boxed-list-separate > row.expander row.header:focus:focus-visible {
  * (`background-position: left 3px, left 4px`) and a later bare
  * `stacksidebar row.needs-attention > label` arm
  * (`background-size: 6px 6px, 0 0`). One grouped rule restates the three
- * byte-equal stock twin selectors directly after the landed row-focus
+ * byte-equal stock twin selectors directly after the existing row-focus
  * outline rule: equal specificity plus later source order wins every
  * property, so the dot image and the pulse animation fall away and the
  * three residual arms govern no image anywhere. The keyframes lose their
@@ -4385,7 +4385,7 @@ stackswitcher > button.needs-attention > image {
 
 /* 2026-10-31: libgtk-4 4.18.6 tab-close ink from its bundled GTK resource
  * (full resource path in docs/invariants.md); no reference screenshot shows
- * this control. Reuse the landed black label and insensitive grey. */
+ * this control. Reuse the existing black label and insensitive grey. */
 notebook > header > tabs > tab button.flat,
 notebook > header > tabs > tab button.flat:backdrop {
   color: #000000;
@@ -4399,7 +4399,7 @@ notebook > header > tabs > tab button.flat:backdrop:disabled {
 /* Adaptation 2026-10-31: no reference screenshot shows selected, focused-
    selected or disabled-selected GTK text. libgtk-4 4.18.6 stock arms from
    /org/gtk/libgtk/theme/Default/Default-light.css (full library path in
-   docs/invariants.md) are restated with the landed selection palette and
+   docs/invariants.md) are restated with the existing selection palette and
    inactive-text grey derived from [Colors:Button] ForegroundInactive. */
 entry > text > selection,
 spinbutton:not(.vertical) > text > selection,
@@ -4438,8 +4438,8 @@ textview > text:disabled:selected:focus {
    columnview row:not(:selected) cell editablelabel.editing:focus-within { outline: 2px solid #3584e4; }
    columnview row:not(:selected) cell editablelabel.editing text selection { background-color: rgba(141, 141, 141, 0.5); color: transparent; }
    columnview row:not(:selected) cell editablelabel.editing text selection:focus-within { background-color: rgba(53, 132, 228, 0.3); color: #2e3436; }
-   are restated with the landed ENTRY_FIELD recipe, the landed focus-black
-   outline and the landed TEXT_SELECTION fill; stock's outline geometry
+   are restated with the existing ENTRY_FIELD recipe, the existing focus-black
+   outline and the existing TEXT_SELECTION fill; stock's outline geometry
    stays in force per-property. */
 
 editablelabel > stack > text {
@@ -4471,7 +4471,7 @@ calendar > grid > label.day-number:disabled:selected {
 /* Adaptation 2026-10-31: no collected reference screenshot shows a selected
    generic GTK view. libgtk-4 4.18.6's Default-light.css stock .view arms
    (resource provenance in docs/invariants.md) use blue selection, white ink
-   and rounded corners; reuse the landed GTK selection palette and frame. */
+   and rounded corners; reuse the existing GTK selection palette and frame. */
 .view:selected,
 .view:selected:focus {
   background-color: #CCCCFF;
@@ -4544,7 +4544,7 @@ link:visited:selected:disabled:active {
    shell, so the CSD top-level frames restate the stock shell arms with the
    shipped Aurorae chrome's outline instead of sampled metrics: square corners
    and a hard 1px #000000 outline on the active frame, recoloured #555555 when
-   the window is unfocused -- the same outline and recolour the landed
+   the window is unfocused -- the same outline and recolour the existing
    headerbar:backdrop pair carries, pinned on the Aurorae frame by
    tests/test_aurorae_frame.py -- and no soft shadow. The cleared stock claims
    come from the "Window Decorations" section of
@@ -4559,15 +4559,15 @@ link:visited:selected:disabled:active {
    alpha visual, which no reference screenshot shows -- pads 4px and frames
    itself with inset #cdc7c2 and white shadows. The base rules below restate
    the stock selectors so the later source position wins every
-   equal-specificity tie exactly as the landed restatements do; the
+   equal-specificity tie exactly as the existing restatements do; the
    maximized/fullscreen and tiled :backdrop arms carry their own :backdrop
    classes so they override window.csd:backdrop. Popup and message-dialog
    backdrop arms override their more specific active shell rules. Stock's
    tiled/maximized radius-zero arms already square those states' corners of
-   their own, and the landed window.dialog.message.csd.background group
+   their own, and the existing window.dialog.message.csd.background group
    already squares the message-dialog body. Stock's window.csd:backdrop
    carries a 200ms box-shadow transition of its own; it is restated to none
-   like the landed button group's transition policy, so the outline switches
+   like the existing button group's transition policy, so the outline switches
    hard between focus states instead of cross-fading. */
 window.csd {
   border-radius: 0;
@@ -4692,20 +4692,20 @@ tabthumbnail .needs-attention > widget {
 }
 
 /* GTK sidebar keyboard focus has no collected reference surface; reuse the
-   black focus colour from the landed policy. Resource base.css supplies the
+   black focus colour from the existing policy. Resource base.css supplies the
    stock button.sidebar-button:focus:focus-visible rule, inspected 2026-11-03. */
 button.sidebar-button:focus:focus-visible {
   outline-color: #000000;
 }
 
 /* GTK emoji section keyboard focus has no collected reference surface; reuse
-   the landed black focus colour. The stock selector was inspected 2026-11-03. */
+   the existing black focus colour. The stock selector was inspected 2026-11-03. */
 button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) {
   outline-color: #000000;
 }
 
 /* GTK file-chooser breadcrumb focus has no collected reference surface;
-   reuse the landed black button focus colour. */
+   reuse the existing black button focus colour. */
 filechooser #pathbarbox > stack > box > button:focus:focus-visible,
 filechooser #pathbarbox > stack > box > box > button:focus:focus-visible,
 filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible {
@@ -4713,7 +4713,7 @@ filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible 
 }
 
 /* GTK toolbar keyboard focus has no collected reference surface; reuse the
-   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
 .toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 .toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 .toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
@@ -4726,7 +4726,7 @@ filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible 
 }
 
 /* GTK headerbar keyboard focus has no collected reference surface; reuse the
-   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
 headerbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 headerbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 headerbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
@@ -4739,7 +4739,7 @@ headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-actio
 }
 
 /* GTK actionbar keyboard focus has no collected reference surface; reuse the
-   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
 actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
@@ -4752,7 +4752,7 @@ actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.
 }
 
 /* GTK searchbar keyboard focus has no collected reference surface; reuse the
-   landed black button focus colour. Stock arms were inspected 2026-11-03. */
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
 searchbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 searchbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
 searchbar > revealer > box .close:focus:focus-visible,
@@ -4767,8 +4767,8 @@ searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.
 
 /* GTK toolbar-band and flat split buttons have no collected reference
    surface: no screenshot in macos8.6-screenshots/ shows a GTK split
-   button, so their faces square to the landed square-corner policy
-   (frame > border, .frame, the landed button, card, tab-family,
+   button, so their faces square to the existing square-corner policy
+   (frame > border, .frame, the existing button, card, tab-family,
    toggle-group, menu-selection, cursor-handle and alert-dialog
    restatements; all border-radius: 0). The platform style library's
    base.css resource declares exactly one radius-bearing band arm, quoted
@@ -4792,7 +4792,7 @@ searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.
    splitbutton.flat > menubutton > button { border-radius: 9px; }
    The toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
    /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no splitbutton radius
-   of any kind (inspected 2026-11-04). The landed splitbutton container
+   of any kind (inspected 2026-11-04). The existing splitbutton container
    record already squares the splitbutton node, the .raised,
    .suggested-action, .destructive-action and .opaque variants stay stock
    by stock's own :not() exclusions, and the :dir() corner arms keep their
@@ -4814,7 +4814,7 @@ splitbutton.flat > menubutton > button {
 }
 
 /* GTK label, link, expander-title, color-swatch, plane and shortcut
-   keyboard focus has no collected reference surface; reuse the landed
+   keyboard focus has no collected reference surface; reuse the existing
    black focus colour and keep stock's inherited outline geometry. The
    toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
    /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 was inspected 2026-11-03; the
@@ -4831,7 +4831,7 @@ shortcut:focus:focus-visible {
 
 /* GTK card keyboard focus has no collected reference surface: no
    screenshot in macos8.6-screenshots/ shows a GTK card's keyboard focus,
-   so the colour follows this theme's landed black focus policy and the
+   so the colour follows this theme's existing black focus policy and the
    stock arms' outline geometry (the 2px width plus -1px offset and the
    card's outline transitions) stays inherited per-property. The platform
    style library's base.css resource inside the integration library
@@ -4854,7 +4854,7 @@ button.card:focus:focus-visible,
 
 /* GTK text-selection and insertion cursor handles have no collected
    reference surface: no screenshot in macos8.6-screenshots/ shows a GTK
-   touch text cursor handle, so the corner follows this theme's landed
+   touch text cursor handle, so the corner follows this theme's existing
    square-corner policy (the frame border, frame class and card
    restatements all declare border-radius: 0). The platform style
    library's base.css resource inside the integration library declares
@@ -4882,9 +4882,9 @@ button.card:focus:focus-visible,
    24px-by-20px hit-area padding and the base arm's min-width and
    min-height governing size untouched per-property; the accent
    background stays inherited per-property too — stock's :root maps
-   --accent-bg-color and the landed accent_bg_color redefinition in this
+   --accent-bg-color and the existing accent_bg_color redefinition in this
    sheet's palette supplies the Platinum selection fill, so the squared
-   handle paints without any background restatement, like the landed
+   handle paints without any background restatement, like the existing
    tab-indicator accent restatements that resolve through the same
    redefinition. (2026-11-04) */
 cursor-handle > contents {
@@ -4893,7 +4893,7 @@ cursor-handle > contents {
 
 /* GTK alert and message dialogs have no collected reference surface: no
    screenshot in macos8.6-screenshots/ shows a GTK message or alert dialog,
-   so the corners follow this theme's landed square-corner policy (the
+   so the corners follow this theme's existing square-corner policy (the
    frame border, frame class, card, button, tab-family, menu-selection and
    cursor-handle restatements all declare border-radius: 0). The integration
    library's base.css resource (probe path recorded in docs/invariants.md,
@@ -4910,19 +4910,19 @@ cursor-handle > contents {
    { border-top-left-radius: 18px; border-top-right-radius: 18px; } and
    window.messagedialog .response-area > button, dialog.alert
    .response-area > button { min-height: 24px; min-width: 60px; padding:
-   10px 20px; border-radius: 12px; }. Two of these actively beat landed
+   10px 20px; border-radius: 12px; }. Two of these actively beat existing
    squarings: the :not(.solid-csd) shell arm carries one class more than
-   the landed window.csd.dialog.message shell group, so the legacy
+   the existing window.csd.dialog.message shell group, so the legacy
    message-dialog shell re-rounds through it, and this > button arm
-   re-rounds every action button, since the landed
+   re-rounds every action button, since the existing
    window.dialog.message.csd .dialog-action-area
    button:first-child/last-child group squares only the end buttons, and
    the plain button record sits at the dialog-row node, not the > button
    child. The surface-colour arm window.messagedialog, dialog-host >
    dialog.alert sheet, window.dialog-window.alert { background-color:
    var(--dialog-bg-color); color: var(--dialog-fg-color); } declares no
-   radius and stays stock: the landed palette supplies the fill through
-   the dialog_bg_color and dialog_fg_color redefinitions, like the landed
+   radius and stays stock: the existing palette supplies the fill through
+   the dialog_bg_color and dialog_fg_color redefinitions, like the existing
    checked-toggle accents, and the titlebar, short-variant,
    message-area, scrollbar-padding and outline arms declare no radius.
    The restatements below are byte-equal to stock's spellings, and this
@@ -4959,7 +4959,7 @@ window.dialog-window.alert .body-scrolled-window > viewport {
 
 /* GTK expander widgets have no collected reference surface: no screenshot
    in macos8.6-screenshots/ shows a GTK expander widget, so the title bar's
-   corners follow this theme's landed square-corner policy (the frame
+   corners follow this theme's existing square-corner policy (the frame
    border, frame class, card, button, tab-family, menu-selection,
    cursor-handle and alert-dialog restatements all declare
    border-radius: 0). Two stock resources round the title through one
@@ -4968,7 +4968,7 @@ window.dialog-window.alert .body-scrolled-window > viewport {
    one radius-bearing expander-widget arm, quoted verbatim,
    expander-widget > box > title { border-radius: 6px; }, and the toolkit
    resource's expander-widget > box > title twin (the resource path the
-   landed focus and cursor-handle comments quote) carries 200ms
+   existing focus and cursor-handle comments quote) carries 200ms
    outline-width and outline-offset transitions beside border-radius: 5px,
    losing at rest to the integrated 6px arm by later equal-specificity
    source order. One byte-equal twin restated after both stock resources
@@ -4985,7 +4985,7 @@ expander-widget > box > title {
 /* GTK bottom sheets, floating sheets and their drag handles have no
    collected reference surface: no screenshot in macos8.6-screenshots/
    shows a GTK bottom sheet, floating sheet or drag handle, so the
-   corners follow this theme's landed square-corner policy (the frame
+   corners follow this theme's existing square-corner policy (the frame
    border, frame class, card, button, tab-family, menu-selection,
    cursor-handle, alert-dialog, expander-title and container-corner
    restatements all declare border-radius: 0). The integration library's
@@ -5021,7 +5021,7 @@ expander-widget > box > title {
    already; the bottom-sheet > sheet and > outline transition arms (100ms
    border-radius, 250ms box-shadow, 100ms radius transition) and the
    dialog.bottom-sheet:not(.narrow) sheet margin arm declaring no radius
-   — the dialog-mode sheet's corners are the landed alert-family
+   — the dialog-mode sheet's corners are the existing alert-family
    territory. The restated shells keep the shadows, outline and offset
    and the drag handle keeps its translucent fill, min sizes and margins
    inherited per-property; each restated spelling is byte-equal to its
@@ -5047,9 +5047,9 @@ floating-sheet > sheet {
 
 /* GTK message-item (infobar) and search-bar close buttons have no collected
    reference surface: no screenshot in macos8.6-screenshots/ shows either
-   close button, so the corners follow this theme's landed square-corner
+   close button, so the corners follow this theme's existing square-corner
    policy (the frame border, frame class, button, card, tab-family and
-   cursor-handle restatements all declare border-radius: 0, with the landed
+   cursor-handle restatements all declare border-radius: 0, with the existing
    radio button's 50% circle as the reference-grounded exception). The
    integration library's base.css resource (probe path recorded in
    docs/invariants.md, extracted 2026-11-04: a 2622-line resource) declares
@@ -5057,20 +5057,20 @@ floating-sheet > sheet {
    infobar .close { min-width: 18px; min-height: 18px; padding: 4px;
    border-radius: 50%; } and searchbar > revealer > box .close {
    min-width: 18px; min-height: 18px; padding: 4px; border-radius: 50%; }.
-   The landed restatements cannot reach these faces: the generic button
+   The existing restatements cannot reach these faces: the generic button
    group's radius arm loses both stock arms' higher specificity (a type and
-   a close class against button alone), the landed circular and pill button
+   a close class against button alone), the existing circular and pill button
    records name menubutton.circular button, button.circular and the pill
-   spellings, the landed tab-family records name the tab-page image
-   buttons, and the landed window-controls record squares only
+   spellings, the existing tab-family records name the tab-page image
+   buttons, and the existing window-controls record squares only
    headerbar windowcontrols button.close and
    .titlebar windowcontrols button.close. Each twin below is byte-equal to
    its stock spelling and wins the equal-specificity tie by later
    user-sheet source order. Extended 2026-11-09: the pair's face is no
    longer stock's transparent band — the group below also declares this
-   theme's landed `button.flat` face recipe (the same
+   theme's existing `button.flat` face recipe (the same
    background-color/background-image/border/box-shadow recipe that
-   restatement states, plus the landed immediate transition) beside the
+   restatement states, plus the existing immediate transition) beside the
    radius, answering the toolkit band arm's transparent face, transparent
    border, no image and no shadow in full for this theme; stock's
    min-width, min-height and padding geometry and :dir margins stay
@@ -5078,7 +5078,7 @@ floating-sheet > sheet {
    the close button), and the hover, pressed, checked and disabled band
    arms naming the close class are restated in the dated family comment
    that follows this group. The shipped GTK 3 sheet names no message-item
-   or search-bar close button outside the landed title-button pair, so it
+   or search-bar close button outside the existing title-button pair, so it
    needs nothing. (2026-11-04, face extended 2026-11-09) */
 
 infobar .close,
@@ -5093,7 +5093,7 @@ searchbar > revealer > box .close {
 
 /* 2026-11-09: the infobar and search-bar close-button families follow the
    extended corner pair above, restating the stock flat-band arms the
-   landed generic `button` groups' one-token selectors cannot reach. A
+   existing generic `button` groups' one-token selectors cannot reach. A
    fresh two-probe re-check at implementation time found the 2026-11-04
    corner record's same arm inventory and versions. The toolkit resource
    (Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
@@ -5102,9 +5102,9 @@ searchbar > revealer > box .close {
    transparent face, a transparent border, no image, no shadow) with its
    `:hover` twin (a stock ink, a stock border colour, a gradient face and
    a drop shadow), and arms the band around them: a geometry arm (padding
-   and border spacing, restated landed-geometry by the landed band record),
+   and border spacing, restated existing-geometry by the existing band record),
    a warm `infobar.action:hover > revealer > box` face that out-tokens the
-   landed band group's selectors, and four typed band twins the landed
+   existing band group's selectors, and four typed band twins the existing
    message-type ban keeps stock. The integration library's base.css
    resource (probe path recorded in docs/invariants.md, re-extracted
    2026-11-09: a 2622-line resource) arms the close class inside its canopy
@@ -5116,18 +5116,18 @@ searchbar > revealer > box .close {
    `:drop(active)` accent ring — beside two geometry arms and their `:dir`
    margins. Every one of these faces is restated below except the four
    typed band twins (a restatement would need a message-type token, which
-   the landed `test_infobar` ban forbids inside the infobar family, so a
+   the existing `test_infobar` ban forbids inside the infobar family, so a
    typed message item keeps its toolkit band face) and the `:drop(active)`
-   ring (no numbered rule states it; nothing landed governs a button drop
+   ring (no numbered rule states it; nothing existing governs a button drop
    arm). Each spelling below is byte-equal to its stock twin or twin
    member, so the equal-specificity tie falls to the later user-sheet
-   source order the landed records establish; stock geometry stays
+   source order the existing records establish; stock geometry stays
    inherited per-property. Declaration and source-order checks do not
    establish rendered pixels. */
 
 infobar.action:hover > revealer > box {
-  /* The toolkit's warm band-hover face carries two class tokens the landed
-   * band group lacks; this byte-equal twin re-lands the `#DDDDDD` band
+  /* The toolkit's warm band-hover face carries two class tokens the existing
+   * band group lacks; this byte-equal twin re-states the `#DDDDDD` band
    * face, and the integration library's own hover-image wash on the same
    * spelling stays inherited per-property. */
   background-color: #DDDDDD;
@@ -5136,7 +5136,7 @@ infobar.action:hover > revealer > box {
 infobar .close:hover,
 searchbar .close:hover,
 searchbar > revealer > box .close:hover {
-  /* The landed `button.flat` hover face recipe with the stock ink claim
+  /* The existing `button.flat` hover face recipe with the stock ink claim
    * cleared to black. The plain `searchbar .close:hover` member ties the
    * toolkit twin; the deep member joins because the integration library's
    * own hover arm names that deeper spelling, and its extra element
@@ -5157,7 +5157,7 @@ searchbar > revealer > box .keyboard-activating.close,
 searchbar > revealer > box .close:active,
 infobar .close:checked,
 searchbar > revealer > box .close:checked {
-  /* The landed pressed bevel for the toolkit's pressed and checked band
+  /* The existing pressed bevel for the toolkit's pressed and checked band
    * arms. */
   background-color: #DDDDDD;
   background-image: none;
@@ -5170,7 +5170,7 @@ infobar .close:checked.keyboard-activating,
 infobar .close:checked:active,
 searchbar > revealer > box .close:checked.keyboard-activating,
 searchbar > revealer > box .close:checked:active {
-  /* The same landed pressed bevel for the checked-hover and
+  /* The same existing pressed bevel for the checked-hover and
    * checked-motion arms. */
   background-color: #DDDDDD;
   background-image: none;
@@ -5179,8 +5179,8 @@ searchbar > revealer > box .close:checked:active {
 
 infobar .close:disabled:not(:checked),
 searchbar > revealer > box .close:disabled:not(:checked) {
-  /* The landed `button:disabled` group's shape, with the stock dim filter
-   * cleared under the landed preserve-the-palette policy. */
+  /* The existing `button:disabled` group's shape, with the stock dim filter
+   * cleared under the existing preserve-the-palette policy. */
   background-image: none;
   border-color: #000000;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
@@ -5189,7 +5189,7 @@ searchbar > revealer > box .close:disabled:not(:checked) {
 }
 
 infobar .close:focus:focus-visible {
-  /* The landed searchbar close focus recipe; the integration library's
+  /* The existing searchbar close focus recipe; the integration library's
    * accent ring loses the byte-equal tie and user-sheet order. */
   outline-color: #000000;
 }
@@ -5198,17 +5198,17 @@ infobar .close:focus:focus-visible {
    hung out of tab buttons, inline view switchers and toggle pills — and
    its reveal mask have no collected reference surface: no screenshot in
    macos8.6-screenshots/ shows either node, so the corners follow this
-   theme's landed square-corner policy (the frame border, frame class,
+   theme's existing square-corner policy (the frame border, frame class,
    button, card, tab-family, toggle-group and cursor-handle restatements
-   all declare border-radius: 0, with the landed radio button's 50% circle
+   all declare border-radius: 0, with the existing radio button's 50% circle
    as the reference-grounded exception). The integration library's
    base.css resource (probe path recorded in docs/invariants.md, extracted
    2026-11-04: a 2622-line resource) declares exactly one radius-bearing
    indicator-bin arm, quoted verbatim: indicatorbin > indicator,
    indicatorbin > mask { min-width: 6px; min-height: 6px; border-radius:
-   100px; }. The landed restatements cannot reach these nodes: the
+   100px; }. The existing restatements cannot reach these nodes: the
    indicator bin is not a button, so the generic button restate never
-   matches it, and the landed toggle-family and tab-family records name
+   matches it, and the existing toggle-family and tab-family records name
    the toggle shells and the tab-page indicator, never this badge widget's
    own children. Stock expects the drawn dot and its mask circular
    together, so both are squared in one comma group: squaring the mask
@@ -5236,10 +5236,10 @@ indicatorbin > mask {
    macos8.6-screenshots/ shows a GTK avatar, a GTK color scale or its
    trough, a color chooser's on-screen-display popover, a shortcuts-window
    row shell, a version pill or a preference accent swatch, so the corners
-   follow this theme's landed square-corner policy (the frame border,
+   follow this theme's existing square-corner policy (the frame border,
    frame class, button, card, tab-family, toggle-group and slider
    restatements, the popover interior and the widget-family records all
-   declare border-radius: 0, with the landed radio button's 50% circle as
+   declare border-radius: 0, with the existing radio button's 50% circle as
    the reference-grounded exception). The integration library's base.css
    resource (probe path recorded in docs/invariants.md, extracted
    2026-11-04: a 2622-line resource) still declares one radius-bearing arm
@@ -5257,16 +5257,16 @@ indicatorbin > mask {
    - .accent-color-row color { min-width: 16px; min-height: 16px;
      border-radius: 16px; } (line 1026).
 
-   The landed restatements cannot reach these faces: no landed rule names
+   The existing restatements cannot reach these faces: no existing rule names
    an avatar, an app-version, an accent-color-row, a scale.color, a
    popover.osd or a marks-before.marks-after token, and no bare shortcut
-   group exists yet — the landed keycap entry squares only
-   shortcut > .keycap, and the landed shortcut focus group matches only
+   group exists yet — the existing keycap entry squares only
+   shortcut > .keycap, and the existing shortcut focus group matches only
    shortcut:focus:focus-visible. The both-marks thumb spelling also
-   out-specifies the landed scale slider restate (its fourth class pair is
-   equal-match to the landed spelling, not equal, and stock re-declares
+   out-specifies the existing scale slider restate (its fourth class pair is
+   equal-match to the existing spelling, not equal, and stock re-declares
    the thumb after the shipped sheet's own source position anyway), and
-   the popover cap's two added classes beat the landed
+   the popover cap's two added classes beat the existing
    popover > contents, popover > arrow restate on specificity. Each twin
    below is byte-equal to its stock spelling, and later user-sheet source
    order wins stock's equal-specificity tie per-property, so only the
@@ -5276,15 +5276,15 @@ indicatorbin > mask {
    16px minimums stay inherited per-property. Left stock on purpose: the
    three marks-before/marks-after scale-slider corner longhands stock
    itself already sets to zero (restating them would be inert), the video
-   overlay face already squared by the landed block above, the
+   overlay face already squared by the existing block above, the
    developer-preview device views whose variable corner radii emulate
    handset bezels rather than a Platinum widget surface, and the CSD
-   window radius, where the desktop's own window frame draws the landed
+   window radius, where the desktop's own window frame draws the existing
    Platinum border. The shipped GTK 3 sheet needs nothing from this
    entry: its resource names no avatar, shortcut, accent-row or version
    pill token, declares zero-valued corner longhands on its color-scale
    arms, and its color chooser's popover cap is already squared by the
-   landed GTK 3 record. (2026-11-04) */
+   existing GTK 3 record. (2026-11-04) */
 
 avatar,
 scale.horizontal.marks-before.marks-after > trough > slider,
@@ -5301,11 +5301,11 @@ dialog.about .main-page .app-version,
    menu-button containers have no collected reference surface: no
    screenshot in macos8.6-screenshots/ shows a GTK color button, its
    swatch or overlay, or a suggested-action or opaque menu-button
-   container, so the corners follow this theme's landed square-corner
+   container, so the corners follow this theme's existing square-corner
    policy (the frame border, frame class, button, card, tab-family,
    toggle-group, cursor-handle and indicator-bin restatements and the
    residual widget-face group above all declare border-radius: 0, with
-   the landed radio button's 50% circle as the reference-grounded
+   the existing radio button's 50% circle as the reference-grounded
    exception). The integration library's base.css resource (probe path
    recorded in docs/invariants.md, extracted 2026-11-04: a 2622-line
    resource) declares four radius-bearing arms for these faces, quoted
@@ -5319,13 +5319,13 @@ dialog.about .main-page .app-version,
    - menubutton.suggested-action.circular,
      menubutton.suggested-action.pill, menubutton.opaque.circular,
      menubutton.opaque.pill { border-radius: 9999px; } (line 338).
-   The landed restatements cannot reach these six spellings: the landed
+   The existing restatements cannot reach these six spellings: the existing
    colorswatch family squares the generic and edge-qualified colorswatch
    and overlay spellings plus the two chooser-group members, but every
    one of them loses the swatch arms' higher specificity (the button's
-   own class and the :only-child position); the landed pill record
+   own class and the :only-child position); the existing pill record
    squares only the two .pill members of the container arm, and the
-   landed circular record squares only the children
+   existing circular record squares only the children
    menubutton.circular button and button.circular, leaving the plain
    containers and the two .circular container members unnamed. The
    coloured containers paint their own rounding: their background arms
@@ -5338,7 +5338,7 @@ dialog.about .main-page .app-version,
    toolkit's zero twin loses the equal-specificity race to the
    integration library's later arm, so byte-equal restatement after
    both wins both cascades whatever order resolves. The two .pill
-   container spellings stay out of this group: the landed pill record
+   container spellings stay out of this group: the existing pill record
    already squares them byte-for-byte. Each twin below is byte-equal to
    its stock spelling, and later user-sheet source order wins stock's
    equal-specificity tie per-property, so only the radius changes
@@ -5360,13 +5360,13 @@ menubutton.opaque.circular {
 
 /* The preference-row spin steppers, the emoji picker's section button and
    the sidebar's navigation button are radius-bearing arms stock still
-   rounds and no landed restatement squares: no collected reference
+   rounds and no existing restatement squares: no collected reference
    screenshot in macos8.6-screenshots/ shows a preference-row spin
    stepper, an emoji picker's section row or a sidebar navigation button,
-   so the corners follow this theme's landed square-corner policy (the
+   so the corners follow this theme's existing square-corner policy (the
    frame border, frame class, button, card, tab-family, toggle-group,
    slider, pill and plain-stepper restatements, the popover interior and
-   the widget-family records all declare border-radius: 0, with the landed
+   the widget-family records all declare border-radius: 0, with the existing
    radio button's 50% circle as the reference-grounded exception). The
    integration library's base.css resource (probe path recorded in
    docs/invariants.md, extracted 2026-11-04: a 2622-line resource)
@@ -5388,14 +5388,14 @@ menubutton.opaque.circular {
    - button.sidebar-button { min-height: 26px; min-width: 26px;
      margin-top: 3px; margin-bottom: 3px; padding: 0;
      border-radius: 100%; } (line 859).
-   The landed restatements cannot reach these faces: the landed generic
+   The existing restatements cannot reach these faces: the existing generic
    button restate names the one element and loses the row-spin steppers'
-   compound row.spin tie, the landed plain horizontal stepper groups name
+   compound row.spin tie, the existing plain horizontal stepper groups name
    spinbutton:not(.vertical) and cannot tie this vertical row variant,
-   and both landed records' scope statements name the non-.osd row.spin
-   variants their own future candidates; the landed emoji-section work
+   and both existing records' scope statements name the non-.osd row.spin
+   variants their own future candidates; the existing emoji-section work
    squares the picker's emoji-completion-row corners and owns only the
-   section button's focus outline, and the landed sidebar records own the
+   section button's focus outline, and the existing sidebar records own the
    focus colour and the selection-tint colours, no radius. The six
    steppers and the section button paint stock's rounding directly: the
    row-spin steppers paint the 34px-minimum round face of the line-286
@@ -5407,13 +5407,13 @@ menubutton.opaque.circular {
    the sidebar button's minimums, vertical margins and zero padding stay
    inherited per-property. Excluded on purpose: the notebook tab arrow,
    the one remaining 9px member of the line-166 group, stays stock for a
-   later planner — no landed posture names it today; the two circular
+   later planner — no existing posture names it today; the two circular
    members stock groups in the line-286 arm are already square by the
-   landed menubutton.circular button / button.circular descendant
+   existing menubutton.circular button / button.circular descendant
    spelling winning the equal-specificity race in this sheet's later
    source order, so restating them would be inert; the
    checkbutton.selection-mode check/radio 100px twins stay stock per the
-   landed sheet comment; and the emoji-picker's :hover/:checked membership
+   existing sheet comment; and the emoji-picker's :hover/:checked membership
    recolour arms declare no radius. The shipped GTK 3 sheet needs
    nothing: its resource names no row-spin token (there is no equivalent)
    and it already sets the emoji-section button stock at radius 0 itself.
@@ -5437,19 +5437,19 @@ button.sidebar-button {
 }
 
 /* The plain-axis spin-button steppers' end-corner chains stock still rounds
-   and no landed restatement squares: no collected reference screenshot in
+   and no existing restatement squares: no collected reference screenshot in
    macos8.6-screenshots/ shows a GTK spin button in any state, so the corners
-   follow this theme's landed square-corner policy (the frame border, frame
+   follow this theme's existing square-corner policy (the frame border, frame
    class, button, card, tab-family, toggle-group, menu-selection, cursor-handle,
    alert-dialog, expander-title, sheet-widget, split-button, close-button,
    indicator-bin and widget-face restatements and the row-spin steppers, the
    section button and the sidebar button all declare border-radius: 0, with
-   the landed radio button's 50% circle as the reference-grounded exception).
+   the existing radio button's 50% circle as the reference-grounded exception).
    The integration library's base.css resource (probe path recorded in
    docs/invariants.md, extracted 2026-11-04: a 2622-line resource) re-arms the
-   same steppers the landed plain-stepper record squared through chains whose
+   same steppers the existing plain-stepper record squared through chains whose
    five extra :not() class atoms raise the computed specificity above the
-   landed short restatements, so today the chains' 9px corner values win the
+   existing short restatements, so today the chains' 9px corner values win the
    cascade wherever they match. The resource declares exactly four
    radius-bearing plain-axis button.image-button arms, quoted verbatim with
    their lines in that resource:
@@ -5466,7 +5466,7 @@ button.sidebar-button {
      corners; and the two :first-child spellings — { border-bottom-width:
      1px; border-radius: 9px 9px 0 0; } (line 2167), the vertical top end
      corners.
-   The landed horizontal steppers block spells the same nodes through the
+   The existing horizontal steppers block spells the same nodes through the
    toolkit's short :not(.flat) chains, which these atoms beat; each spelling
    below is byte-equal to its stock twin and later user-sheet source order
    wins the re-armed equal-specificity tie per-property, so only the radius
@@ -5474,8 +5474,8 @@ button.sidebar-button {
    vertical paddings (lines 2153 and 2173 of the same resource), the vertical
    end halves' border-top-width and border-bottom-width shared-edge
    mechanics, the row-spin preference-row compounds (already squared), the
-   .osd steppers (landed), stock's own zero-valued tab-arrow corner arm and
-   the circular members the landed descendant spelling beats all stay
+   .osd steppers (existing), stock's own zero-valued tab-arrow corner arm and
+   the circular members the existing descendant spelling beats all stay
    inherited per-property. The shipped GTK 3 sheet needs nothing: its
    resource names no spinbutton-and-button.image-button token (grep count 0
    this run). (2026-11-04) */
@@ -5504,7 +5504,7 @@ spinbutton.vertical > button.image-button.down:not(.flat):not(.raised):not(.sugg
    square their corners. The integration library's base.css resource
    (probe path recorded in docs/invariants.md, extracted 2026-11-04: a
    2622-line resource) declares its selected-view comma arm at line
-   2507, quoted verbatim: .view:selected:focus, .view:selected, window.print:not(.ssd-frame) .dialog-action-box:selected, textview > text:selected, dialog-host > dialog.view sheet:selected, window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:selected, iconview:selected { background-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent); border-radius: 9px; } — three of whose members ride compound spellings no landed group answers: the landed .view:selected restatement carries two class tokens and the landed icon-view and row groups name their own element-node spellings, so each loses every tie against these compound arms (a `window.print…` member's single element, `.print` class, `:not(.ssd-frame)` class and `:selected` state, and a sheet member's three elements plus them), and stock still paints its 9px-rounded selected face on those members today. No collected reference screenshot in macos8.6-screenshots/ shows a print dialog's action-box selection or a platform sheet's selected state, so the zero radius follows this theme's landed square-corner policy (the frame border, frame class, button, card, tab-family, toggle-group, menu-selection, cursor-handle, alert-dialog, expander-title, sheet-widget, split-button, close-button, indicator-bin, residual widget-face and spin-button-chain restatements and the row-spin steppers, the section button and the sidebar button all declare border-radius: 0, with the landed radio button's 50% circle as the reference-grounded exception). Deliberately excluded, each with its reason: the textview > text:selected member — whether the text view's text node also carries the view class, which decides whether the landed .view:selected group's two-class spelling already beats stock's element+class spelling there, is a runtime class-list question the landed records resolve by a PyGObject class-census probe, so this member is held out for a census-gated future entry and the shipped restatement contains no member whose live-versus-inert status an evidence probe would decide; the .view:selected:focus, .view:selected and iconview:selected members — already squared in this sheet by the landed selected-generic-view, icon-view and row groups (the reported census counts GtkIconView among the widgets carrying the view class, so the landed descendant spelling's token count beats stock's bare element spelling on every icon-view node); and stock's background-color and color declarations for the restated members — the accent-tinted selection fill and its ink, palette left inherited per-property when only the radius was restated, with the fill picked up on 2026-11-04 by the palette sentence below. The 2026-11-04 palette half of this entry restates the fill: the same three selected faces paint the flat opaque #CCCCFF selection in place of the accent-tinted mix the already-quoted line-2507 arm states as background-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent) — a quarter-accent mix the shipped @define-color accent_bg_color #CCCCFF feeds, so stock would leave 75% of the underlying white view field showing through. No collected reference screenshot in macos8.6-screenshots/ shows a print dialog's action-box selection or a platform sheet's selected state, so the fill reuses the landed selection palette #CCCCFF, the SELECTION constant of tests/support/platinum_palette.py pinned to the reference selection colour by tests/test_colorscheme_reference.py and the same value tests/support/gtk_theme_spec.py's landed TEXT_SELECTION recipe and the landed .view, row, icon-view, flow-box and grid-view selection groups state. The arm's ink needs no restatement: the base view arm on the resource's next line inks every member of this family color: var(--view-fg-color), which the landed @define-color view_fg_color #000000 grounds black, matching the landed selection ink, so a restated color literal would be inert today. Left stock on purpose: the disabled twins of the same two resource lines leave a colour-mix disabled-field candidate of their own, distinct from the landed .view:disabled:selected grey; the class-only .view:selected and iconview:selected members already read the landed flat #CCCCFF through the landed same-key groups; and the census-gated textview > text:selected member stays held out for the runtime class-list probe the radius record above notes. This sheet loads after the stock resource, so each spelling below wins the equal-specificity radius tie by later user-sheet source order. (2026-11-04) */
+   2507, quoted verbatim: .view:selected:focus, .view:selected, window.print:not(.ssd-frame) .dialog-action-box:selected, textview > text:selected, dialog-host > dialog.view sheet:selected, window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:selected, iconview:selected { background-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent); border-radius: 9px; } — three of whose members ride compound spellings no existing group answers: the existing .view:selected restatement carries two class tokens and the existing icon-view and row groups name their own element-node spellings, so each loses every tie against these compound arms (a `window.print…` member's single element, `.print` class, `:not(.ssd-frame)` class and `:selected` state, and a sheet member's three elements plus them), and stock still paints its 9px-rounded selected face on those members today. No collected reference screenshot in macos8.6-screenshots/ shows a print dialog's action-box selection or a platform sheet's selected state, so the zero radius follows this theme's existing square-corner policy (the frame border, frame class, button, card, tab-family, toggle-group, menu-selection, cursor-handle, alert-dialog, expander-title, sheet-widget, split-button, close-button, indicator-bin, residual widget-face and spin-button-chain restatements and the row-spin steppers, the section button and the sidebar button all declare border-radius: 0, with the existing radio button's 50% circle as the reference-grounded exception). Deliberately excluded, each with its reason: the textview > text:selected member — whether the text view's text node also carries the view class, which decides whether the existing .view:selected group's two-class spelling already beats stock's element+class spelling there, is a runtime class-list question the existing records resolve by a PyGObject class-census probe, so this member is held out for a census-gated future entry and the shipped restatement contains no member whose live-versus-inert status an evidence probe would decide; the .view:selected:focus, .view:selected and iconview:selected members — already squared in this sheet by the existing selected-generic-view, icon-view and row groups (the reported census counts GtkIconView among the widgets carrying the view class, so the existing descendant spelling's token count beats stock's bare element spelling on every icon-view node); and stock's background-color and color declarations for the restated members — the accent-tinted selection fill and its ink, palette left inherited per-property when only the radius was restated, with the fill picked up on 2026-11-04 by the palette sentence below. The 2026-11-04 palette half of this entry restates the fill: the same three selected faces paint the flat opaque #CCCCFF selection in place of the accent-tinted mix the already-quoted line-2507 arm states as background-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent) — a quarter-accent mix the shipped @define-color accent_bg_color #CCCCFF feeds, so stock would leave 75% of the underlying white view field showing through. No collected reference screenshot in macos8.6-screenshots/ shows a print dialog's action-box selection or a platform sheet's selected state, so the fill reuses the existing selection palette #CCCCFF, the SELECTION constant of tests/support/platinum_palette.py pinned to the reference selection colour by tests/test_colorscheme_reference.py and the same value tests/support/gtk_theme_spec.py's existing TEXT_SELECTION recipe and the existing .view, row, icon-view, flow-box and grid-view selection groups state. The arm's ink needs no restatement: the base view arm on the resource's next line inks every member of this family color: var(--view-fg-color), which the existing @define-color view_fg_color #000000 grounds black, matching the existing selection ink, so a restated color literal would be inert today. Left stock on purpose: the disabled twins of the same two resource lines leave a colour-mix disabled-field candidate of their own, distinct from the existing .view:disabled:selected grey; the class-only .view:selected and iconview:selected members already read the existing flat #CCCCFF through the existing same-key groups; and the census-gated textview > text:selected member stays held out for the runtime class-list probe the radius record above notes. This sheet loads after the stock resource, so each spelling below wins the equal-specificity radius tie by later user-sheet source order. (2026-11-04) */
 
 window.print:not(.ssd-frame) .dialog-action-box:selected,
 dialog-host > dialog.view sheet:selected,
@@ -5513,7 +5513,7 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:select
   border-radius: 0;
 }
 
-/* The disabled view field keeps the landed white content field. The
+/* The disabled view field keeps the existing white content field. The
    integration library's disabled view arm includes `textview >
    text:disabled`; resource extraction and paths are recorded in
    docs/invariants.md. The census cannot walk this internal node, so its face
@@ -5522,7 +5522,7 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:select
    tests/support/platinum_palette.py. The plain GTK probe does not measure
    integration style library's later transparent rule. The remaining selectors cover the
    view class and print-dialog/sheet faces; disabled ink stayed owned by stock and
-   the landed disabled-selected rules until 2026-11-11, when this group began
+   the existing disabled-selected rules until 2026-11-11, when this group began
    co-declaring the family's insensitive ink per-property and the dated
    per-family block after it restated the integration library's six
    disabled-view arms. (2026-11-09, amended 2026-11-11) */
@@ -5540,9 +5540,9 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:disabl
    toolkit's and the integration library's disabled-view arms. No collected
    reference screenshot in macos8.6-screenshots/ shows a disabled GTK view
    (the GTK scope's standing adaptation premise), so the ink reuses the
-   landed insensitive grey #888888, the DISABLED_TEXT constant of
+   existing insensitive grey #888888, the DISABLED_TEXT constant of
    tests/support/gtk_theme_spec.py re-derived from the colour scheme's
-   [Colors:Button] ForegroundInactive — the same grey the landed
+   [Colors:Button] ForegroundInactive — the same grey the existing
    disabled-selected ink groups paint. Stock sources, probed with gresource
    on 2026-11-11 (the integration library's base.css, version 1.7.6; the
    toolkit's Default-light.css, version 4.18.6; full paths and verbatim
@@ -5554,7 +5554,7 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:disabl
    gridview at 2537 — and the toolkit's Default-light.css carries two,
    .view:disabled, iconview:disabled, textview > text:disabled at 19 and the
    column/tree pair at 672; every member of both toolkit arms already sits
-   in the landed field group above or the exclusions below, so one
+   in the existing field group above or the exclusions below, so one
    restatement serves both the integration library and plain GTK 4 apps,
    and the dark toolkit twin Default-dark.css carries the same-shaped
    family (19 and 664). Each
@@ -5562,12 +5562,12 @@ window.print:not(.ssd-frame) dialog-host > dialog.dialog-action-box sheet:disabl
    equal-specificity ties fall to this later user-sheet source order
    per-property; stock claims only `color` on these arms, so no background,
    geometry or other-state declaration is added, stock carries no :backdrop
-   twin on any of them, and where fills exist the landed field group and the
-   landed per-family face groups own them. Deliberately excluded, each with
-   its reason: the :disabled:selected combinations — the landed
+   twin on any of them, and where fills exist the existing field group and the
+   existing per-family face groups own them. Deliberately excluded, each with
+   its reason: the :disabled:selected combinations — the existing
    disabled-selected groups own their ink and stock's own
    columnview.view:disabled:selected arm (Default-light 674) is likewise
-   outranked; iconview:disabled — both generic arms carry it, but the landed
+   outranked; iconview:disabled — both generic arms carry it, but the existing
    field record already routes icon-view nodes to the census-backed
    class-only .view:disabled spelling, so no second spelling is added;
    treeview.view.expander:disabled (base 698) — its own dimmed arm mixes
@@ -5597,14 +5597,14 @@ window.print:not(.ssd-frame) gridview.dialog-action-box:disabled {
 
 /* No collected reference screenshot shows a GTK check button or radio in
    any non-rest state (the GTK scope's standing adaptation premise, the
-   same surface the landed .osd check/radio record below), so the plain
-   state arms the toolkit's own themes paint over the landed element-only
+   same surface the existing .osd check/radio record below), so the plain
+   state arms the toolkit's own themes paint over the existing element-only
    `check, radio`, `check`, `radio`, `check:checked`, `radio:checked` and
    `check:indeterminate, radio:indeterminate` face and glyph recipes are
-   restated with the landed face under every state: the landed hover
+   restated with the existing face under every state: the existing hover
    policy keeps the same face, :active and :backdrop keep the recipes
    unchanged, and :disabled changes no declaration either — the same
-   closed rule the landed .osd check/.osd radio entry spells. A
+   closed rule the existing .osd check/.osd radio entry spells. A
    2026-11-05 `gresource extract` probe of
    /org/gtk/libgtk/theme/Default/Default-light.css in
    /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 found exactly eleven
@@ -5635,24 +5635,24 @@ window.print:not(.ssd-frame) gridview.dialog-action-box:disabled {
    check:indeterminate:disabled, radio:indeterminate:disabled { box-shadow: none; color: rgba(255, 255, 255, 0.7); }
 
    The resource declares no plain `check`/`radio` :backdrop arm. Each arm
-   below lands as the exact stock-twin spelling of its own member — no
-   comma group, because the two landed faces' shadows differ — later in
-   source order, so each arm's landed-DIFFERENT state properties fall to
+   below appears as the exact stock-twin spelling of its own member — no
+   comma group, because the two existing faces' shadows differ — later in
+   source order, so each arm's existing-DIFFERENT state properties fall to
    it at equal specificity and stock's untouched properties stay
    inherited per-property: geometry, ink, glyph source, radius,
-   background-clip and transition keep the landed cascade. Every check
-   spelling repeats the landed check face's fill, border colour and
-   shadow pair (the landed `check` group's raised face colour restated
+   background-clip and transition keep the existing cascade. Every check
+   spelling repeats the existing check face's fill, border colour and
+   shadow pair (the existing `check` group's raised face colour restated
    beside them on the checked and indeterminate families, stock's press
-   and hover paint being image-only), every radio spelling the landed
+   and hover paint being image-only), every radio spelling the existing
    radio face's white-field equivalents, and stock's dimmed state inks
    are left to stock because the shipped glyph assets carry no recolour.
-   No glyph restatement: the landed `check:checked`, `radio:checked` and
+   No glyph restatement: the existing `check:checked`, `radio:checked` and
    `check:indeterminate, radio:indeterminate` glyph rules already win
    their own ties. Excluded from the restatement, each stock-handled or
-   higher-specificity: the `.osd` indicator family (landed above), the
+   higher-specificity: the `.osd` indicator family (existing above), the
    `menu menuitem`/popover-menu transparency group and the model buttons
-   (stock and the landed menu records govern menus), the 32px
+   (stock and the existing menu records govern menus), the 32px
    content-view tile-check colour family, the tree-view selected check
    colour arm, and stock's `:not(:backdrop)` dash-motion arms. The
    `GtkSharedControlCases::test_check_and_radio` support case pins the
@@ -5804,7 +5804,7 @@ radio:indeterminate:disabled {
 /* 2026-11-05: no collected reference screenshot shows a GTK content
    view's selection check in any state — a file- or icon-grid selection
    swatch (the GTK scope's standing adaptation premise) — so the toolkit
-   resource's eight class-armed tile-check state arms take the landed
+   resource's eight class-armed tile-check state arms take the existing
    check face under every state, per-property. A `gresource extract`
    probe of the toolkit's light resource
    /org/gtk/libgtk/theme/Default/Default-light.css in
@@ -5835,30 +5835,30 @@ radio:indeterminate:disabled {
    .view.content-view.check:backdrop:checked:not(list), iconview.content-view.check:backdrop:checked:not(list), .content-view .tile check:backdrop:checked:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: rgba(238, 238, 236, 0.8); background-color: #8d8d8d; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: -gtk-icontheme('object-select-symbolic'); -gtk-icon-shadow: none; }
 
    — so a content-view selection swatch painted stock takes the toolkit's
-   blue surfaces and a flat grey backdrop twin instead of the landed
-   recipe, keeps a 5px rounding where the landed square-corner policy
+   blue surfaces and a flat grey backdrop twin instead of the existing
+   recipe, keeps a 5px rounding where the existing square-corner policy
    squares checks, and shows the toolkit's symbolic select glyph instead
    of the shipped checkmark; the probe names no `:indeterminate` tile
-   arm. The landed bare `check, radio`, `check` and `check:checked`
+   arm. The existing bare `check, radio`, `check` and `check:checked`
    groups cannot reach these class-armed spellings: they name the
    element node and lose the class-armed specificity tie, so each
-   spelling below restates exactly the landed `check` recipe's face —
+   spelling below restates exactly the existing `check` recipe's face —
    the light-grey fill, the 1px solid black outline, the zero radius and
    the inset white/dark-grey relief pair — byte-equal to its stock twin
    and sitting later in source order, and the four checked spellings add
-   the landed `check:checked` glyph source on top (the landed `check`
+   the existing `check:checked` glyph source on top (the existing `check`
    group's raised face colour restates beside the glyph stock paints the
    checked swatch image-only). Stock's `margin: 4px`,
    `min-width`/`min-height: 32px`, residual colour and
    `transition: 200ms` stay inherited per-property — the swatch is a
    platform-defined surface whose 32px geometry the reference set does
    not show, a shipped-file icon source is not tinted by the element
-   colour, and the landed plain-state record makes the same transition
+   colour, and the existing plain-state record makes the same transition
    and colour choice — while stock's `border-width: 0` loses the width
    half
    of the restated `border` shorthand per-property, so the swatch keeps
-   the landed hard black outline. Backdrop keeps the face unchanged per
-   the landed `.osd` check/radio record's policy, which states no
+   the existing hard black outline. Backdrop keeps the face unchanged per
+   the existing `.osd` check/radio record's policy, which states no
    `.osd` :backdrop arm. This sheet loads after the stock resource, so
    each spelling below wins the equal-specificity tie by later user-sheet
    source order. Declaration checks do not establish rendered pixels. */
@@ -5947,12 +5947,12 @@ iconview.content-view.check:backdrop:checked:not(list),
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
-/* A popover-menu row's accelerator label keeps the landed face in every
+/* A popover-menu row's accelerator label keeps the existing face in every
    row state, 2026-11-06. No collected reference screenshot in
    macos8.6-screenshots/ shows a GTK menu accelerator or any GTK menu
-   label, so this face is platform-required and the landed `.dim-label`
+   label, so this face is platform-required and the existing `.dim-label`
    secondary-label record is the policy source. Under the dual cascade
-   reading the landed records accept, either GTK 4 toolkit resource could
+   reading the existing records accept, either GTK 4 toolkit resource could
    be in force for a presented app, and each declares the one twin arm
    that dims the row's colour — verbatim, the toolkit base stylesheet's
    `popover.menu accelerator { color: color-mix(in srgb, currentColor
@@ -5964,36 +5964,36 @@ iconview.content-view.check:backdrop:checked:not(list),
    in docs/invariants.md; `gresource extract` on libgtk-4 and the base
    library, re-probed 2026-11-06) — so at 0.55, 45% of whatever the row
    state inherits shows through, with no palette colour pinned under the
-   arm in any row state anywhere. The restatement below reuses the landed
+   arm in any row state anywhere. The restatement below reuses the existing
    `.dim-label` record's grey at full opacity (the twins dim inside the
    `color` declaration alone, so no `opacity` or `text-shadow` clamp is
    needed) with the stock spelling itself, one class token and one element
    token and no state pseudo-class, so it wins the equal-specificity tie
    by later user-sheet source order; the twins' `:dir` margin arms (12px
-   at each menu side) are geometry with no landed conflict and stay
+   at each menu side) are geometry with no existing conflict and stay
    stock. Declaration checks do not establish rendered pixels. */
 
 popover.menu accelerator {
   color: #888888;
 }
 
-/* A check's and a radio's faces on a selected treeview row keep the landed
+/* A check's and a radio's faces on a selected treeview row keep the existing
    faces under every node state, 2026-11-06. No collected reference
    screenshot in macos8.6-screenshots/ shows a GTK treeview's row check or
    radio at all, let alone on a selected row — this face is
-   platform-required, and the landed check/radio recipe plus the landed
+   platform-required, and the existing check/radio recipe plus the existing
    row-selection ink are the policy sources. Under the dual cascade reading
-   the landed records accept, either toolkit resource could style a
+   the existing records accept, either toolkit resource could style a
    presented app's treeview rows, and the toolkit base stylesheet's
    Default-light twin (libgtk-4/Default-light.css; probed 2026-11-06, exact
    library paths and probe commands in docs/invariants.md — the base
    integration stylesheet returns none of these arms) declares the four
-   treeview-class-armed selected-row arms the landed recipes cannot reach:
+   treeview-class-armed selected-row arms the existing recipes cannot reach:
    the colour arm `treeview.view check:selected:focus, treeview.view
    check:selected, treeview.view radio:selected:focus, treeview.view
    radio:selected { color: #ffffff; border-color: #185fb4; }` (Default-light
    line 1076) turns the box's ink and border to the toolkit's white and its
-   selection-accent blue over the landed `#CCCCFF` selection fill, the
+   selection-accent blue over the existing `#CCCCFF` selection fill, the
    checked glyph arm `treeview.view radio:checked:selected, radio:checked
    { -gtk-icon-source: -gtk-scaled(-gtk-recolor of the toolkit's own
    assets/bullet-symbolic.symbolic.png and its assets/bullet@2-symbolic
@@ -6006,18 +6006,18 @@ popover.menu accelerator {
    radio:selected:focus, treeview.view radio:selected, radio
    { border-radius: 100%; -gtk-icon-size: 14px; }` (line 1070) rounds and
    sizes the face. The restatement answers both members of the colour arm
-   per-property — the ink takes the landed row-selection record's black
-   text and the border the landed check/radio recipe's hard black — and
-   swaps each glyph to the landed `radio:checked` and `check:indeterminate,
+   per-property — the ink takes the existing row-selection record's black
+   text and the border the existing check/radio recipe's hard black — and
+   swaps each glyph to the existing `radio:checked` and `check:indeterminate,
    radio:indeterminate` records' own shipped black-ink assets, one group
    per lost arm, each spelling byte-equal to its Default-light twin
    statement and later in user-sheet source order, so the
-   equal-specificity tie falls the landed face's way under either cascade
+   equal-specificity tie falls the existing face's way under either cascade
    reading (a theme selection replacing the stock stylesheet entirely, or
    the resource loading first as the lower sheet). Stock's plane arm
    restates nothing: both of its members paint the same circle on the
-   square 14px box (the landed radio keeps its 50% radius) and the 14px
-   glyph size equals the landed face's own minimums, so radius and size
+   square 14px box (the existing radio keeps its 50% radius) and the 14px
+   glyph size equals the existing face's own minimums, so radius and size
    stay inherited. The shipped glyph assets carry their baked black ink, so
    the colour arm's white remnant recolours no shipped source and the glyph
    answers are source swaps, not recolours. Declaration checks do not
@@ -6042,7 +6042,7 @@ treeview.view radio:indeterminate:selected {
    adaptation premise), but two resources paint these states. The resource
    /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (extracted with gresource on
    2026-11-06, libgtk-4 4.18.6) declares four element-level row arms the
-   landed selection and hover records never answer:
+   existing selection and hover records never answer:
    row.activatable.has-open-popup, row.activatable:hover { background-color:
    rgba(46, 52, 54, 0.05); }, row.activatable:active { box-shadow: inset 0
    2px 2px -2px rgba(0, 0, 0, 0.2); }, row.activatable:selected:active {
@@ -6056,19 +6056,19 @@ treeview.view radio:indeterminate:selected {
    row.activatable:selected:hover and row.activatable:selected.has-open-popup
    in a var(--accent-bg-color) 32% mix, and row.activatable:selected:active
    in a 39% mix. Each rule below is the byte-equal stock twin appended after
-   the landed selection-backdrop groups, so later source order wins every
-   tie: the popup-holding hover pair take the landed transparent hover face
+   the existing selection-backdrop groups, so later source order wins every
+   tie: the popup-holding hover pair take the existing transparent hover face
    (the ROW_HOVER recipes), the pressed arms carry the background answers as
    well as the toolkit's shadow answers (the base stylesheet paints
    background-color on both pressed spellings while the toolkit resource
    paints only the insets) with box-shadow: none so the etched row face keeps
-   no shadow under states no landed record gives one, and the selected
-   popup-hover and pressed-selection arms take the landed #CCCCFF selection
+   no shadow under states no existing record gives one, and the selected
+   popup-hover and pressed-selection arms take the existing #CCCCFF selection
    fill (the ROW_SELECTED recipe). No color is appended: none of the painted
-   statements paints row ink, so the landed selection ink reaches the
-   selected members through the landed selected groups alone. Nothing else is
-   restated: the landed bare-row record owns row motion, and the toolkit and
-   base stylesheet declarations outside these groups keep their landed
+   statements paints row ink, so the existing selection ink reaches the
+   selected members through the existing selected groups alone. Nothing else is
+   restated: the existing bare-row record owns row motion, and the toolkit and
+   base stylesheet declarations outside these groups keep their existing
    answers. Declaration checks do not establish rendered pixels. Recorded
    2026-11-06 by the feature role. */
 
@@ -6092,23 +6092,23 @@ row.activatable:selected.has-open-popup, row.activatable:selected:hover {
 
 /* No collected reference screenshot shows an entry's or spin button's
    embedded icon child (the magnifier, clear-button or stepper glyph GTK
-   stacks inside a field), so the landed field recipe's black ink and the
-   landed button:hover erase precedent's full-strength icon stand in per
+   stacks inside a field), so the existing field recipe's black ink and the
+   existing button:hover erase precedent's full-strength icon stand in per
    the standing GTK-scope adaptation premise. Recorded 2026-11-07. The
    toolkit theme resource's own image arms (extracted the same day from
    the toolkit's compiled light stylesheet, stock lines 132, 134, 164,
    166 and 168, quoted here with the foreign inks elided) otherwise paint
    on the embedded icons: a grey-green at rest, a dark grey under hover,
    the accent hue while pressed or keyboard-active, and a 6px gap between
-   each side icon and the field's text — geometry the landed sheet repeats
+   each side icon and the field's text — geometry the existing sheet repeats
    nowhere. Each colour rule below restates its stock twin's spelling
-   exactly with the landed black ink, and the two margin twins keep
+   exactly with the existing black ink, and the two margin twins keep
    stock's own values byte-equal, later in user-sheet source order, so
    the restatement wins the equal-specificity tie under either cascade
    reading. The resource names the entry-image family with :backdrop
    nowhere, so no backdrop twin is restated. The global disabled-image
    icon-filter arm of each resource stays out: kept toolkit residue,
-   dimming a disabled entry's icon exactly as the landed button:disabled
+   dimming a disabled entry's icon exactly as the existing button:disabled
    record keeps it. Declaration checks do not establish rendered
    pixels. */
 
@@ -6149,7 +6149,7 @@ entry > image:active {
    at rest, full strength under hover, dimmed again while pressed, and
    the same 6px side gaps byte-equal as the theme resource's. The rules
    below restate those five arms in stock line order: every state's
-   opacity is the landed erase precedent's full strength so the embedded
+   opacity is the existing erase precedent's full strength so the embedded
    icon never shows either resource's dimming motion, and the two margin
    twins keep stock's own values byte-equal. The icon spelling shared
    with the theme resource (each bare `entry > image` and the two
@@ -6188,13 +6188,13 @@ entry > image.right {
 
 /* A password entry's Caps Lock indicator — the `caps-lock-indicator`
    image child GTK stacks inside a password field — carries no collected
-   reference screenshot, so the landed entry-image family's black ink and
+   reference screenshot, so the existing entry-image family's black ink and
    full-strength opacity stand in per the standing GTK-scope adaptation
-   premise, reusing the same two values the landed family restates on
+   premise, reusing the same two values the existing family restates on
    every embedded icon. Recorded 2026-11-09. A display-less introspection
    probe this run built a `Gtk.PasswordEntry` and walked every child:
    exactly two, its `Text` node and an `Image` carrying the
-   `caps-lock-indicator` class, so the landed `entry > image` element
+   `caps-lock-indicator` class, so the existing `entry > image` element
    family reaches the node but loses both its answers on stock's
    two-class specificity. Each tier paints its own look (both probed the
    same day): the toolkit theme resource
@@ -6211,7 +6211,7 @@ entry > image.right {
    entry.password image.caps-lock-indicator { opacity: 30%; }`. The two
    rules below restate these arms in stock line order, each spelling
    byte-equal to its stock twin so later user-sheet source order wins
-   the equal-specificity tie: the colour rule declares the landed black,
+   the equal-specificity tie: the colour rule declares the existing black,
    and the opacity rule restates the dim arm at full strength. Neither
    resource names the indicator family with :backdrop, so no backdrop
    twin is restated, and the node has no hover or active arms, so none
@@ -6233,8 +6233,8 @@ entry.password image.caps-lock-indicator {
    turn in stock while checked, through a 200ms ease that no collected
    reference surface has: no collected reference screenshot in
    `macos8.6-screenshots/` shows a GTK places view or its server button,
-   so the landed no-transition policy stands in (the
-   `checkbutton { transition: none; ... }` group and the landed tab-bar
+   so the existing no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the existing tab-bar
    motion record erase stock motion the same way, leaving state values
    inherited per-property). Recorded 2026-11-09. Fresh probes the same
    day: the toolkit resource
@@ -6273,8 +6273,8 @@ placesview .server-list-button:checked > image {
    boxed-list row flips when it unfolds its nested list — glides through
    a 200ms icon-transform ease in stock, and no collected reference
    screenshot in `macos8.6-screenshots/` shows the toolkit's expander
-   row or its arrow, so the landed no-transition policy stands in (the
-   `checkbutton { transition: none; ... }` group and the landed tab-bar
+   row or its arrow, so the existing no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the existing tab-bar
    motion record erase stock motion the same way, leaving state values
    inherited per-property). Recorded 2026-11-09. Fresh probe the same
    day: the platform style library's compiled base stylesheet (the
@@ -6307,7 +6307,7 @@ row.expander image.expander-row-arrow {
   padding: 13px;
 }
 
-/* The landed activatable-row selection rules outrank row alone. Name
+/* The existing activatable-row selection rules outrank row alone. Name
    their nodes and disabled state so inactive text also wins there,
    including backdrop and the selected:hover arms. */
 list row.activatable:disabled:selected,
@@ -6321,10 +6321,10 @@ listview > row.activatable:disabled:selected:backdrop {
 /* 2026-11-11: no collected reference screenshot shows a GTK notebook tab
    scroll arrow, so the notebook header's overflow arrows — the
    `notebook > header > tabs > arrow` nodes stock paints beside `button` —
-   take the landed push-button recipe: the landed generic `button` restate's
-   raised dictionary with the sheet's square-corner policy (the landed
+   take the existing push-button recipe: the existing generic `button` restate's
+   raised dictionary with the sheet's square-corner policy (the existing
    `radio` 50% circle stays the sole exception), each state arm byte-equal
-   to the landed same-sheet button arm at the arrow's own exact stock
+   to the existing same-sheet button arm at the arrow's own exact stock
    spelling, so later user-sheet source order wins stock's equal-specificity
    tie per-property. Stock groups the arrow with `button` on a 5px
    gradient-bevel arm, keeps the gradient face and `#cdc7c2` border in a
@@ -6425,14 +6425,14 @@ listview > row.activatable:disabled:selected:backdrop {
    arrow:hover:not(:active)` — { box-shadow: none; }.
    Exclusions, each inherited per-property with the kept-toolkit filters:
    stock's geometry arms (minimums, paddings, border-spacing), stock's
-   outline geometry (the landed focus policy declares the outline colour
-   only), the #2e3436 ink (the landed button family keeps it too), the two
+   outline geometry (the existing focus policy declares the outline colour
+   only), the #2e3436 ink (the existing button family keeps it too), the two
    disabled filters (the toolkit's -gtk-icon-filter: opacity(0.5) and the
-   integration library's Opacity arm, the landed button:disabled record's
+   integration library's Opacity arm, the existing button:disabled record's
    policy), the line-263 and line-204 drop arms (the shipped sheet declares
    no drop arm), and the checked-mix arms of integration lines 180 and 182
    (unreachable on a scroll arrow without :checked, restated only where the
-   landed byte-equal completeness twins already cover the spelling). The
+   existing byte-equal completeness twins already cover the spelling). The
    base group's `transition: none` beats the integration line-168
    transition list at equal specificity, and the hover wash twin below
    beats the integration line-1762 flat hover shadow; the one corner the
