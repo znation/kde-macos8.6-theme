@@ -5,6 +5,80 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate notebook declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme` class
+(about 4,400 lines at this plan's base commit). That breaks the principle that a
+file is small enough to read in one sitting. Move the five `test_notebook_*`
+declaration checks (about 135 lines at this plan's base commit) into their own
+module, the same way the landed OSD (`tests/test_gtk4_osd.py`), scale
+(`tests/test_gtk4_scale.py`), spinbutton (`tests/test_gtk4_spinbutton.py`) and
+disabled (`tests/test_gtk4_disabled.py`) parts moved theirs. This is independent
+of the waiting "GTK 4 suite extraction: isolate entry declarations" entry (that
+entry moves only `test_entry_*` methods; the two method sets do not overlap and
+neither entry edits the other's invariants rows, though both edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`). At implementation re-grep
+every anchor this entry names. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_notebook.py` with
+  `class TestGtk4Notebook(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line
+  module docstring on the landed extraction modules' pattern. Move every
+  `TestGtk4Theme` method whose name starts with `test_notebook_` into it,
+  keeping each method's body and docstring unchanged:
+  `test_notebook_focus_transition`, `test_notebook_tab_close_button_arms`,
+  `test_notebook_tab_scroll_arrow_faces`, `test_notebook_focus_outline_color`
+  and `test_notebook_header`. The first four are contiguous in the file; the
+  header check sits later. No other method shares the prefix (the
+  `test_tabbar_*`, `test_tab_thumbnail_*` and `test_tabgrid_*` names are
+  separate prefixes and stay); the landed GTK 3 notebook checks live in
+  `tests/test_gtk_theme.py` and stay there.
+- The new module imports exactly the names the moved bodies use:
+  `BLACK` and `FACE` from `support.platinum_palette`, and `BUTTON_BEVEL`,
+  `INVERTED_BUTTON_BEVEL` and `DISABLED_TEXT` from `support.gtk_theme_spec`
+  (the source module the original import block draws each name from). Every
+  assertion helper the bodies call (`assert_rule`, `assert_rule_group` in
+  `tests/support/gtk_rule_cases.py`; `assert_scale_focus_outline` and
+  `assert_scale_slider_transition` in `tests/support/gtk4_sheet.py`) and the
+  `self.rules`/`self.selectors` attributes come with `Gtk4SheetRuleCases` and
+  its base classes (grep-checked at this plan's base commit); the moved bodies
+  call no other support name (no `gtk_css`, `parse_css`, `HEX`, mock, tempfile
+  or `re` use). Each of the five constants is still referenced by remaining
+  methods after the move (whole-file grep count exceeds the moved bodies'
+  count for every name: `BLACK` 89 vs 10, `FACE` 28 vs 4, `BUTTON_BEVEL` 11
+  vs 3, `INVERTED_BUTTON_BEVEL` 7 vs 2, `DISABLED_TEXT` 12 vs 2), so
+  `tests/test_gtk4_theme.py`'s import block needs no change. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+- In `docs/invariants.md`, rewrite each dotted anchor
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_notebook_…` to
+  `tests/test_gtk4_notebook.py::TestGtk4Notebook::test_notebook_…` (`grep -n
+  'TestGtk4Theme::test_notebook' docs/invariants.md` finds four rows at this
+  plan's base commit: the focus-transition row, the focus-outline-color row,
+  the close-button row shared with the GTK 3 suite, and the scroll-arrow row).
+  On the shared close-button row, rewrite only the GTK 4 member and leave the
+  GTK 3 `tests/test_gtk_theme.py::TestGtkTheme::test_notebook_tab_close_button_arms`
+  member and the row's prose alone. `test_notebook_header` carries no
+  invariants anchor. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly once, under
+  `test_gtk4_notebook.TestGtk4Notebook`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still
+  listed there.
+- For each moved method, the AST of its function definition is identical to the
+  original's at this plan's base commit, checked once during the run (for
+  example by comparing `ast.dump` output). This is a run-time check, not a new
+  committed test.
+- `grep -n 'TestGtk4Theme::test_notebook' docs/invariants.md` prints nothing,
+  the GTK 3 member of the shared close-button row still reads
+  `tests/test_gtk_theme.py::TestGtkTheme::test_notebook_tab_close_button_arms`,
+  and the invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 130 lines, and
+  `tests/test_gtk4_notebook.py` stays under about 250 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_notebook.py` and `docs/invariants.md`. `make check` passes
+  after the final edit.
+
 ### GTK 4 suite extraction: isolate entry declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
