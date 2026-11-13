@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support.cli_fixtures import run_main_with_env
 from support.tmp_dir import make_tmp_dir
@@ -101,6 +102,27 @@ class FirefoxProfileTestCase(unittest.TestCase):
             return real_write(path, writer)
 
         return flaky_write
+
+    def run_with_failed_write(self, target, *tool_args):
+        """Run the installer with the publication write to *target* failing.
+
+        *tool_args* defaults to the install invocation; a removal caller
+        passes ``--remove`` plus its profile. The run must be refused with
+        exit status 2 and the by-name ``cannot write`` diagnostic naming
+        *target*; the result is returned so a caller can pin what the
+        rollback left behind. Seven callers in
+        ``tests/test_install_firefox.py``; the write stand-in is
+        :meth:`fail_write_to`.
+        """
+        if not tool_args:
+            tool_args = ("--profile", str(self.profile))
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", self.fail_write_to(target)
+        ):
+            result = self.run_tool(*tool_args)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {target}", result.stderr)
+        return result
 
     def interrupt_write_to(self, target, *, after_publish=False):
         """Return a ``write_atomically`` stand-in that interrupts at *target*.

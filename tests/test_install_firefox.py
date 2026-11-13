@@ -314,14 +314,7 @@ class TestInstall(FirefoxProfileTestCase):
         # A write failure must name the file that failed and stop the install.
         # The sheet is published first, so the failure must remove it again:
         # a failed install leaves neither half of the pair behind.
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.user_js_path()),
-        ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.run_with_failed_write(self.user_js_path())
         self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_js_write_restores_both_previous_sheets(self):
@@ -334,14 +327,7 @@ class TestInstall(FirefoxProfileTestCase):
         )
         _write(self.sheet_path(), previous)
         _write(self.content_sheet_path(), previous_content)
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.user_js_path()),
-        ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.run_with_failed_write(self.user_js_path())
         self.assertEqual(previous, _read(self.sheet_path()))
         self.assertEqual(previous_content, _read(self.content_sheet_path()))
         self.assert_profile_absent(self.user_js_path())
@@ -355,14 +341,7 @@ class TestInstall(FirefoxProfileTestCase):
         installed_js = _read(self.user_js_path())
         previous_sheet = f"{install_firefox.CSS_MARKER}\n/* outdated sheet */\n"
         _write(self.sheet_path(), previous_sheet)
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.user_js_path()),
-        ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.run_with_failed_write(self.user_js_path())
         self.assertEqual(previous_sheet, _read(self.sheet_path()))
         self.assertEqual(installed_js, _read(self.user_js_path()))
 
@@ -491,15 +470,9 @@ class TestInstall(FirefoxProfileTestCase):
         # must name both failures and the sheet that could not be removed
         # stays visible instead of the rollback failure being swallowed.
         with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.user_js_path()),
-        ), mock.patch.object(
             Path, "unlink", self.fail_unlink_to(self.sheet_path())
         ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+            result = self.run_with_failed_write(self.user_js_path())
         self.assertIn(f"cannot restore {self.sheet_path()}", result.stderr)
         self.assertEqual(
             containment.read_bytes(SHEET_PATH, repo_root.ROOT),
@@ -512,28 +485,14 @@ class TestInstall(FirefoxProfileTestCase):
         # first write must name the sheet and leave no user.js behind instead
         # of escaping as a traceback. The existing user.js write-failure test
         # pins the second publication; this pins the first.
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.sheet_path()),
-        ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
+        self.run_with_failed_write(self.sheet_path())
         self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_a_failed_user_content_write_removes_the_published_user_chrome(self):
         # The content sheet is published after userChrome.css; a failure on
         # that second write must name the content path and roll the already
         # published chrome sheet back, leaving no user.js behind.
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.content_sheet_path()),
-        ):
-            result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.content_sheet_path()}", result.stderr)
+        self.run_with_failed_write(self.content_sheet_path())
         self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_an_interrupt_after_the_user_content_write_takes_effect_removes_both(self):
@@ -1017,14 +976,9 @@ class TestRemove(FirefoxProfileTestCase):
         self.install()
         before_js = _read(self.user_js_path())
         before_sheet = _read(self.sheet_path())
-        with mock.patch.object(
-            firefox_user_files,
-            "write_atomically",
-            self.fail_write_to(self.user_js_path()),
-        ):
-            result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.run_with_failed_write(
+            self.user_js_path(), "--remove", "--profile", str(self.profile)
+        )
         self.assertEqual(before_js, _read(self.user_js_path()))
         self.assertEqual(before_sheet, _read(self.sheet_path()))
 
