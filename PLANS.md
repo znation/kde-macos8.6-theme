@@ -216,6 +216,115 @@ production behavior changes.
   `tests/test_gtk4_frame_corners.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### Split the 2584-line tests/test_gtk_theme_controls.py into per-surface suites (planned 2026-11-13 by the organize role; ordering clause — this entry queues behind the waiting "GTK 4 suite extraction: isolate paned, frame and corner-family declarations" entry, since both edit `docs/invariants.md`, and it is the GTK 3 analogue of the extraction series that entry continues: it may itself be decomposed into per-family entries the way that series was, each landing one family; at implementation re-grep every anchor this entry names)
+
+**Goal and cost.** `tests/test_gtk_theme_controls.py` is the repository's
+largest file — 2584 lines at this plan's base commit, 67 test methods of
+which 54 sit in the single `TestGtkThemeControls` class spanning every GTK 3
+control surface (progress bar and meter, entry progress and state faces,
+scale, switch, level bar, spinner, notebook tab faces, button arms,
+spin-button steppers, linked border pairs, frame and scrolled viewport,
+check/radio motion, menu-bar and toolbar titles), plus the trailing
+`TestCheckGlyphs` (7 methods) and `TestArrowGlyphs` (6 methods) SVG asset
+classes. Ten methods are rendered probes that run a GTK 3 child interpreter
+through `_run_gtk_child` (the helper at line 504 at this plan's base
+commit); nine share the module-level `_GTK3_SHEET_PROLOGUE` constant and one
+(the mixed-check probe) carries a different prelude. `docs/invariants.md`
+pins 67 `TestGtkThemeControls` mentions plus 4 `TestCheckGlyphs` and 4
+`TestArrowGlyphs` mentions, and five sibling files reference the module by
+name in doc comments — evidence that one file is a shared edit point for
+every new GTK 3 control check, the same cost the landed GTK 4 extraction
+series removes for `tests/test_gtk4_theme.py`. A 54-method grab-bag class
+also hides which surface a method covers. The split is not a one-run move
+(the invariants repointing alone spans ~75 mentions across ~30 rows), so it
+is planned rather than started.
+
+**Target structure.** Designed up front; no assertion, expected value, probe
+pixel or child-program byte changes — only module placement, class
+composition and imports move.
+
+1. Per-surface suites `tests/test_gtk_theme_<surface>.py`, each
+   `class TestGtkTheme<Surface>(GtkSheetRuleCases, unittest.TestCase)`
+   binding `CSS_PATH` to the shipped `gtk-3.0/gtk.css` exactly as
+   `GtkSheetRuleCases` documents (`tests/support/gtk_rule_cases.py:166`),
+   partitioning `TestGtkThemeControls`'s 54 methods by the surface each
+   asserts (the leading widget token of the test name: progress, meter,
+   button, scale, entry, spinbutton, linked, switch, check, radio,
+   notebook, levelbar, spinner, frame, viewport, menubar), grouped so no
+   module exceeds roughly one sitting (~800 lines); a cross-surface method
+   such as the shared focus-outline checks joins the suite of the surface
+   it names. A method names exactly one module, moves unchanged, and keeps
+   its method name.
+2. Each of the ten rendered probes moves with its surface's declaration
+   methods — each probe pins that surface's pixels, so co-locating avoids
+   the second module per surface the GTK 4 series needed because its probe
+   entries were independent plans appending to one file. Each child program
+   moves byte-identical.
+3. The shared `_GTK3_SHEET_PROLOGUE` moves once into
+   `tests/support/gtk_child_probe.py` beside the `_GTK3_CHILD_HEAD` it
+   assembles (the GTK 3 counterpart of the GTK 4 split's probe-prelude
+   extraction); the mixed-check probe's differing prelude stays with its
+   test. The module's `THEME_DIR`/`CSS`/asset-path constants move into the
+   suites that use them, each suite binding its own `CSS_PATH` per the base
+   class's contract — no new support fixture is needed, unlike the GTK 4
+   split's `tests/support/gtk4_sheet.py`, because
+   `GtkSheetRuleCases.setUpClass` already parses the sheet.
+4. `TestCheckGlyphs` and `TestArrowGlyphs` move into
+   `tests/test_gtk_theme_glyphs.py` with their `svg_assertions` and
+   `support.svg_case` imports: they check shipped SVG assets, not the
+   sheet.
+5. `TestGtkThemeControls` and `tests/test_gtk_theme_controls.py` disappear
+   — no half-moved state: every method lands in a suite and the file is
+   deleted at the end of the series.
+6. Reference updates in the same change as each family's move: every
+   `tests/test_gtk_theme_controls.py` anchor in `docs/invariants.md` is
+   repointed at the module and class the named test landed in (67
+   `TestGtkThemeControls` mentions, 4 `TestCheckGlyphs`, 4
+   `TestArrowGlyphs` at this plan's base commit), and the by-name doc
+   references in `tests/test_gtk_theme.py` (line 328 comment),
+   `tests/test_gtk_theme_views.py` (three comment sites around lines
+   830–852), `tests/test_gtk_theme_osd.py` (three comment sites around
+   lines 415–711), `tests/test_no_gtk_introspection.py` (docstring line 4
+   and line 96), `tests/test_gtk_child_probe_support.py` (docstring line 4)
+   and `tests/support/validation_gaps/unclear_invariant.py` (line 385,
+   naming `TestCheckGlyphs`) are repointed likewise. PLANS-DONE.md and
+   BUGS-FIXED.md history is never rewritten.
+
+**Files.** New: the per-surface `tests/test_gtk_theme_<surface>.py` suites
+and `tests/test_gtk_theme_glyphs.py`. Deleted: `tests/test_gtk_theme_controls.py`.
+Updated: `docs/invariants.md`, `tests/support/gtk_child_probe.py`,
+`tests/test_gtk_theme.py`, `tests/test_gtk_theme_views.py`,
+`tests/test_gtk_theme_osd.py`, `tests/test_no_gtk_introspection.py`,
+`tests/test_gtk_child_probe_support.py`,
+`tests/support/validation_gaps/unclear_invariant.py`. No production tool,
+sheet or GTK 4 change; the GTK 3 sibling suites (`test_gtk_theme.py`,
+`test_gtk_theme_views.py`, `test_gtk_theme_osd.py`) are outside this
+entry's scope.
+
+**Acceptance criteria.**
+
+- The split changes no behavior: the full test-set union before and after
+  is identical (same method names, same assertions, same skips; the GUI
+  probes skip identically without `PLATINUM_RUN_GUI_TESTS=1` through the
+  `run_gtk_child` exit-77 guard), and `make check` passes after the final
+  edit.
+- For each moved method, the AST of its function definition is identical to
+  the original's at this plan's base commit (for example by comparing
+  `ast.dump` output); this is a run-time check, not a new committed test.
+- Unittest discovery lists each of the 67 methods exactly once, none of
+  them under `test_gtk_theme_controls`, and every by-name reference site
+  listed above reads the landed module and class.
+- A grep over the repository (source, tests, docs) finds no remaining
+  `test_gtk_theme_controls` reference outside PLANS-DONE.md and
+  BUGS-FIXED.md: the file is gone and every invariants row names the module
+  the test landed in, with the invariants checker inside `make check`
+  resolving every new anchor.
+- Each new suite stays under roughly one sitting (~800 lines), imports only
+  names it uses (the unused-import scanner inside `make check` reports no
+  finding), and the moved `_GTK3_SHEET_PROLOGUE` is defined exactly once
+  with no duplicated prelude line remaining in any suite (a diff of the
+  moved constant against the original shows only the moved lines).
+
 ### GTK 4 suite extraction: isolate selection, focus-outline and cursor-handle declarations (planned 2026-11-13 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large
