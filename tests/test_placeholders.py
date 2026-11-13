@@ -117,6 +117,63 @@ class TestHelpers(unittest.TestCase):
             )
         self.assertEqual(markers(tmp), expected)
 
+    def test_a_json_list_string_carries_the_marker(self):
+        # The JSON marker reader walks every string value in the parsed
+        # document, and the values inside a JSON array are string values
+        # too: a marker in an array element must be found the way a marker
+        # in an object's value is, not dropped by a reader that only
+        # descends into objects.
+        tmp = make_tmp_dir(self)
+        write_file(
+            tmp / "theme" / "meta" / "thing.json",
+            '{"notes": ["' + TOKEN + ' a list icon"]}\n',
+        )
+        self.assertEqual(
+            markers(tmp),
+            {os.path.join("theme", "meta", "thing.json"): "a list icon"},
+        )
+
+    def test_a_json_marker_nested_to_any_depth_is_found(self):
+        # The JSON marker reader's walk is promised "nested to any
+        # depth": an object holding an array holding an object is two
+        # descents past the one-level object the other tests drive, and
+        # its string value must still reach the marker map.
+        tmp = make_tmp_dir(self)
+        write_file(
+            tmp / "theme" / "meta" / "thing.json",
+            '{"a": {"b": [{"c": "' + TOKEN + ' a deep icon"}]}}\n',
+        )
+        self.assertEqual(
+            markers(tmp),
+            {os.path.join("theme", "meta", "thing.json"): "a deep icon"},
+        )
+
+    def test_a_json_document_whose_strings_lack_the_token_is_no_placeholder(self):
+        # The reader's own contract: a parsed JSON document whose string
+        # values all lack the token has no marker, so the asset is omitted
+        # from the map entirely rather than registered with an empty text.
+        tmp = make_tmp_dir(self)
+        write_file(
+            tmp / "theme" / "meta" / "thing.json",
+            '{"note": "a plain string", "rows": [1, 2]}\n',
+        )
+        self.assertEqual(markers(tmp), {})
+
+    def test_a_malformed_json_asset_falls_back_to_its_line_marker(self):
+        # The JSON parse is a reader for well-formed documents, not a gate:
+        # a .json asset that fails to parse must fall through to the line
+        # scan every text format gets, so its comment marker is still read
+        # instead of the asset silently dropping out of the map.
+        tmp = make_tmp_dir(self)
+        write_file(
+            tmp / "theme" / "meta" / "thing.json",
+            f'// {TOKEN} a broken json icon\n' + '"note": "unclosed\n',
+        )
+        self.assertEqual(
+            markers(tmp),
+            {os.path.join("theme", "meta", "thing.json"): "a broken json icon"},
+        )
+
     def test_markers_rejects_a_non_utf8_asset(self):
         # A text asset committed with a stray byte (a binary file under an SVG
         # name, an editor writing Latin-1) is not valid UTF-8. Decoding it must
