@@ -71,16 +71,20 @@ import sys
 import unittest
 from pathlib import Path
 
+from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE
 from support.platinum_palette import SELECTION
 from support.repo_root import ROOT
 from support.gui_tests import require_gui_opt_in
 
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
 
-# Everything the child interpreters share: the suite's GTK 4 isolation
-# pattern (a missing gi module or version, or no X11 display, exits 77 and
-# the test skips), plus the non-blocking pending-iteration helper the
-# suite's indicator test uses instead of a blocking main-loop call.
+# The bare bootstrap the two census children share: the suite's GTK 4
+# isolation pattern (a missing gi module or version, or no X11 display,
+# exits 77 and the test skips) and the non-blocking pending-iteration
+# helper the suite's indicator test uses instead of a blocking main-loop
+# call. The class census deliberately runs without a theme selection, so
+# these children do not interpolate the shared probe prologue that the
+# two face children below use.
 _CHILD_HEAD = '''
 import sys, time
 try:
@@ -159,20 +163,25 @@ while True:
 print("text view has no widget child")
 '''
 
-SELECTED_FACE_CHILD = _CHILD_HEAD.replace(
-    "def pending():", "SELECTION_RGB = %r\n\ndef pending():" % (_selection_rgb(),)
-) + '''
-from pathlib import Path
-Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
-root = Path(sys.argv[1])
-provider = Gtk.CssProvider()
-provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
-    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
-Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
+# The two face children interpolate the shared GTK 4 probe prologue:
+# the class census above must stay bare, but a rendered pixel pin needs
+# the theme selection and the sheet's provider (Adwaita race, asset-URI
+# rewrite, priority 801) exactly as the probe suites' children get them
+# from the shared constant.
+SELECTED_FACE_CHILD = (
+    GTK4_PROBE_PROLOGUE
+    + '''
+
+def pending():
+    while GLib.MainContext.default().pending():
+        GLib.MainContext.default().iteration(False)
+
+SELECTION_RGB = %r
 
 SELECTION = SELECTION_RGB
 WIDTH, HEIGHT = 220, 60
-
+''' % (_selection_rgb(),)
+    + '''
 text_view = Gtk.TextView()
 text_view.get_buffer().set_text("Hello World", -1)
 start, end = text_view.get_buffer().get_bounds()
@@ -242,16 +251,18 @@ while True:
     time.sleep(0.01)
 window.destroy()
 '''
+)
 
-DISABLED_FACE_CHILD = _CHILD_HEAD + '''
-from pathlib import Path
-Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
-root = Path(sys.argv[1])
-provider = Gtk.CssProvider()
-provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
-    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
-Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
-WIDTH, HEIGHT = 220, 60
+DISABLED_FACE_CHILD = (
+    GTK4_PROBE_PROLOGUE
+    + '''
+
+def pending():
+    while GLib.MainContext.default().pending():
+        GLib.MainContext.default().iteration(False)
+
+WIDTH, HEIGHT = 220, 60'''
+    + '''
 text_view = Gtk.TextView()
 text_view.get_buffer().set_text("Hello World", -1)
 text_view.set_sensitive(False)
@@ -287,6 +298,7 @@ while True:
     time.sleep(0.01)
 window.destroy()
 '''
+)
 
 
 class TestViewClassCensus(unittest.TestCase):

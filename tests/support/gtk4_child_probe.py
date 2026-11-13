@@ -10,8 +10,9 @@ widget-building half, interpolated after the prologue.
 
 ``tests/test_gtk4_spin_probe.py`` deliberately keeps its own prologue: its
 child never sets ``gtk-theme-name``. ``tests/test_gtk_view_census.py``
-runs its own GTK 4 children and reads their result itself, so it does not
-use this runner (deliberately left).
+keeps its own runner (its class census must stay bare and it reads the
+children's raw results) but its two rendered-face children interpolate
+this prologue.
 """
 
 import os
@@ -20,7 +21,8 @@ import sys
 
 from support.gtk4_sheet import THEME_DIR
 
-# The bootstrap the six theme-loading probe children share, byte for byte:
+# The bootstrap the six probe-suite children and the two view-census
+# face children share, byte for byte:
 # import and init GTK 4 (a missing gi module or version, or no X11 display,
 # exits 77 and the test skips), point the theme selection at Adwaita so the
 # sheet's provider races a real theme rather than the empty default, and

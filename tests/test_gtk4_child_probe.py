@@ -91,6 +91,21 @@ class TestRunGtk4Probe(unittest.TestCase):
             )
             self.assertNotIn('provider.load_from_data', source, name)
 
+    def test_view_census_face_children_use_the_shared_prologue(self):
+        # The census suite keeps its own runner, but its two rendered-face
+        # children interpolate the shared prologue instead of an inline
+        # copy: one import plus one interpolation per child, and no copy
+        # of the sheet load or the theme-name selection left in the file
+        # (the bare census children must keep running without a theme).
+        source = (Path(__file__).parent / "test_gtk_view_census.py").read_text()
+        self.assertEqual(
+            source.count("GTK4_PROBE_PROLOGUE"),
+            3,
+            "one import plus one interpolation per face child",
+        )
+        self.assertNotIn("provider.load_from_data", source)
+        self.assertNotIn("gtk-theme-name", source)
+
     def test_spin_probe_keeps_its_own_prologue(self):
         # The spin child never sets ``gtk-theme-name``; pin that it keeps
         # its own bootstrap so a future edit cannot silently adopt the
