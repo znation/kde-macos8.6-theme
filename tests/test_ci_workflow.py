@@ -39,7 +39,7 @@ class TestCiWorkflow(unittest.TestCase):
     def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
         workflow = self.read_workflow()
         # The render gate (tests/test_render_surface.py::TestRender) silently
-        # skips wherever its six Plasma tools are absent, and the fourteen dialog
+        # skips wherever its six Plasma tools are absent, and the fifteen dialog
         # gates (TestCheckboxDialogRender, TestComboboxDialogRender,
         # TestLineInputDialogRender, TestMenuDialogRender,
         # TestRadioDialogRender,

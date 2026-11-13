@@ -82,7 +82,12 @@ the checked dot and unchecked ring cores, and the top edge of the sunken list fi
 and opens today's month), captured at the same 480x360 size; the calendar gate
 (`tests/test_render_dialog_gates.py::TestCalendarDialogRender`) pins the flat window face,
 the white day-table face with the weekday-letter inks, the selected day's `#CCCCFF`
-fill and digit ink, and the leftmost day column's red day digits there.
+fill and digit ink, and the leftmost day column's red day digits there. A sibling
+locale gate (`tests/test_render_dialog_gates.py::TestCalendarLocaleDialogRender`)
+renders the same calendar under a hostile Monday-first caller locale, because the
+day grid's first day of week is the invoking shell's locale and the render session
+pins the measurement locale over the caller's `LANG`/`LC_*` so the grid stays
+Sunday-first whatever the caller exports.
 `--color-dialog` opens a `kdialog` color picker whose basic-color swatch grid, sunken value
 fields and push buttons the engine draws with the theme's palette and the shipped push-button
 art, captured at the same 480x360 size; the color gate

@@ -882,6 +882,26 @@ class TestSessionSetup(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertNotIn(key, environment)
 
+    def test_environment_pins_the_measurement_locale(self):
+        ambient = {
+            "LANG": "de_DE.UTF-8",
+            "LANGUAGE": "de",
+            "LC_ALL": "C",
+            "LC_TIME": "de_DE.UTF-8",
+        }
+        with mock.patch.dict(os.environ, ambient):
+            with render_session.Session.create() as session:
+                environment = session.environment
+        # The caller's locale is not session state: kdialog starts the
+        # calendar's day grid on the locale's first day of week (Monday
+        # first in the C locale an unset LANG gives), so a leaked caller
+        # locale moves every calendar pin one column left. The session
+        # pins the locale the capture pins were measured under instead,
+        # and drops the message-language override with it.
+        self.assertEqual(render_session.MEASUREMENT_LOCALE, environment["LANG"])
+        self.assertEqual(render_session.MEASUREMENT_LOCALE, environment["LC_ALL"])
+        self.assertNotIn("LANGUAGE", environment)
+
     def test_a_setup_failure_removes_the_partial_scratch_root(self):
         # Session.create promises to remove the scratch root when setup fails.
         # A file where the runtime directory belongs makes the first mkdir

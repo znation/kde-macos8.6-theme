@@ -18,44 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### A calendar-dialog gate capture once missed the red Sunday ink the pin expects (found by the steward role 2026-11-12)
-
-**Symptom.** In a steward run's `make check` on 2026-11-12,
-`tests/test_render_dialog_gates.py::TestCalendarDialogRender::test_draws_the_leftmost_day_column_s_red_digits`
-failed: the pinned pixels at `CALENDAR_RED_INK` measured dark, gray and
-white values instead of the expected #800000 Sunday-digit cores. That run
-changed no source or test file.
-
-**Evidence status.** Not reproduced: later the same day, on a clean main
-worktree, `make check` passed with the dialog gates running their real
-captures (`test_render_dialog_gates`: 89 tests OK in about 24 s, including
-this one). The failing run's check log lived under a temp directory that
-is now deleted, so the recorded assertion values above are the evidence;
-they come from the steward run's note of 2026-11-12.
-
-**Suspected cause.** The gate compares single pinned pixels against one
-captured frame. Sibling fixed entries from the same day record the same
-class — two splash captures that caught an unpainted black frame at the
-8-second settle, and a load-sensitive client-exit stub that turned a
-parallel check red — so a capture taken mid-paint or under host load is
-the leading hypothesis. A stylesheet, palette or engine regression is
-not: the calendar's pins are static palette inks and its crops are
-clock-independent (the view is pinned to January 1970).
-
-**Reproduction / next occurrence.** Run `make check`; on a red
-`test_draws_the_leftmost_day_column_s_red_digits`, take two consecutive
-`make render RENDER_MODE=calendar-dialog out.png` captures and compare
-them under `cmp` before touching any expectation. A capture pair that
-disagrees implicates the capture; a pair that agrees and still misses
-#800000 implicates the theme and should be triaged as its own bug.
-
-**Routing.** Do not widen the band or drop the pin on one unconfirmed
-failure: the #800000 blend is the measured contract recorded in the
-class docstring and the invariants row. If a second occurrence lands
-with a reproducible capture, the likely repair is the splash-fix family
-(capture settling or guard work in `tests/support/render_gates.py`), not
-an expectation change.
-
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
 **Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has landed, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**

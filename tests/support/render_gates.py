@@ -188,6 +188,7 @@ class Renders:
         ("menu", ("--menu-dialog",), "dialog.png"),
         ("radiolist", ("--radiolist-dialog",), "dialog.png"),
         ("calendar", ("--calendar-dialog",), "dialog.png"),
+        ("calendar_locale", ("--calendar-dialog",), "dialog.png"),
         ("color", ("--color-dialog",), "dialog.png"),
         ("icon", ("--icon-dialog",), "dialog.png"),
         ("progressbar", ("--progressbar-dialog",), "dialog.png"),
@@ -205,6 +206,19 @@ class Renders:
     # _DESKTOP_TIMEOUT), so finishing it at 150 s would SIGKILL a legitimate
     # slow first plasmashell start the tool itself would still have served.
     FINISH_TIMEOUTS = {"desktop": 240}
+    # A kind whose render must start from a caller the gate pins itself
+    # rather than this process's environment: the calendar-locale render
+    # starts under a Monday-first caller locale, so a scratch session that
+    # leaks the caller's LANG/LC_* (a Monday-first day grid the calendar
+    # pins do not describe) fails that gate instead of on a user's shell.
+    # Every other kind inherits this process's environment unchanged.
+    HOSTILE_ENVIRONMENTS = {
+        "calendar_locale": {
+            "LANG": "de_DE.UTF-8",
+            "LC_ALL": "de_DE.UTF-8",
+            "LANGUAGE": "de",
+        },
+    }
     requested: set[str] = set()
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
@@ -244,10 +258,13 @@ class Renders:
                 continue
             directory = tempfile.mkdtemp(prefix=f"{kind}-render-test-")
             cls.directories[kind] = directory
+            hostile = cls.HOSTILE_ENVIRONMENTS.get(kind)
+            environment = dict(os.environ, **hostile) if hostile else None
             started[kind] = process_runner.start(
                 [sys.executable, SCRIPT, os.path.join(directory, filename), *flags],
                 capture_output=True,
                 text=True,
+                env=environment,
             )
         for kind, _, _ in cls.KINDS:
             if kind not in cls.requested:
@@ -271,7 +288,7 @@ class Renders:
 
 
 class DialogGate(PixelPins):
-    """Test scaffolding the fourteen dialog render gates share.
+    """Test scaffolding the fifteen dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
@@ -378,12 +395,12 @@ class DialogGate(PixelPins):
 
 
 def dialog_gate_guard():
-    """Return the skip guard the fourteen dialog render gates share.
+    """Return the skip guard the fifteen dialog render gates share.
 
     The dialog render CLI needs the same five Plasma tools as the applet
     render plus the client its requested mode opens (it exits 2 with a
     missing-tool diagnostic when one is absent: kdialog for the thirteen
-    kdialog modes, zenity for the GTK mode), so the fourteen dialog gates skip
+    kdialog modes, zenity for the GTK mode), so the fifteen dialog gates skip
     under the condition the applet gate's ``skipUnless`` guard uses
     (``tests/test_render_surface.py``),
     extended with both clients. A gate that failed rather than skipped

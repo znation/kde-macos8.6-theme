@@ -31,6 +31,21 @@ from pathlib import Path
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
 
+# The locale the scratch session pins over the caller's. A client's
+# layout follows the caller shell's LANG/LC_*: kdialog starts the
+# calendar's day grid on the locale's first day of week, and Qt's C
+# locale -- what an unset LANG gives -- is Monday-first, while every
+# dialog capture pin was measured under this host's en_US default
+# (Sunday-first grid). A caller without that default therefore shifts
+# the whole grid one column left and turns the calendar gates' red
+# Sunday-ink pins dark, gray and white. Qt derives the locale from the
+# string alone, and a host that has not generated it only degrades
+# glibc's setlocale to C with a warning, so the pin never fails a
+# render. ``LANGUAGE`` is dropped with the rest: it overrides the
+# message catalogs for Qt and KDE clients regardless of LC_ALL, and the
+# measured captures show the untranslated English client strings.
+MEASUREMENT_LOCALE = "en_US.UTF-8"
+
 # The session-log marker for a client that was alive at the settle's
 # liveness check but died before the capture command returned. Such a
 # client's window was destroyed before or while the frame was taken, so a
@@ -77,7 +92,7 @@ class Session:
             # override.
             dropped_environment = (
                 "WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS",
-                "MAKEFILES", "XDG_CONFIG_DIRS",
+                "MAKEFILES", "XDG_CONFIG_DIRS", "LANGUAGE",
             )
             environment = {
                 key: value
@@ -120,6 +135,12 @@ class Session:
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
                 HOME=str(home),
+                # The measurement locale overrides whatever the caller
+                # shell exported (LC_ALL wins over every LC_* category
+                # and over LANG), so the clients' layout does not vary
+                # with the invoking shell (see MEASUREMENT_LOCALE).
+                LANG=MEASUREMENT_LOCALE,
+                LC_ALL=MEASUREMENT_LOCALE,
             )
         except BaseException:
             shutil.rmtree(root, ignore_errors=True)

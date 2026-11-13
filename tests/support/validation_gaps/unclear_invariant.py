@@ -15,7 +15,7 @@ from collections import namedtuple
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of merging uncovered.
-UNCLEAR_INVARIANT_BASELINE = 37
+UNCLEAR_INVARIANT_BASELINE = 38
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -112,7 +112,21 @@ SELECTOR_MATCHER_ESCAPE_GUARANTEE = (
     "character or string they denote instead of being read as the string's end."
 )
 
+CALENDAR_GRID_LOCALE_GUARANTEE = (
+    "The day grid is caller-locale-independent: the scratch session pins the "
+    "measurement locale (en_US.UTF-8) over the caller's LANG and LC_* and "
+    "drops LANGUAGE, so kdialog's calendar starts its grid on Sunday whatever "
+    "the invoking shell exports, and a session that leaks the caller's locale "
+    "shifts the grid one column left and fails the red Sunday-ink pins."
+)
+
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
+    UnclearInvariant(
+        "calendar-day-grid-locale",
+        ("red Sunday ink",),
+        "tests/test_render_dialog_gates.py::TestCalendarLocaleDialogRender",
+        CALENDAR_GRID_LOCALE_GUARANTEE,
+    ),
     UnclearInvariant(
         "png-iend-payload",
         ("non-empty IEND payload",),

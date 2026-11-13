@@ -347,12 +347,12 @@ RADIO_DIALOG_FIELD_FRAME = ((112, 93), (113, 94))
 RADIO_DIALOG_VIEW_FACE = (200, 140)
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The fourteen dialog gates' shared skip guard encodes the render CLI's refusals.
+    """The fifteen dialog gates' shared skip guard encodes the render CLI's refusals.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
     opens is absent (kdialog for the thirteen kdialog modes, zenity for the
-    GTK mode), and the fourteen dialog gates' shared skip guard encodes exactly
+    GTK mode), and the fifteen dialog gates' shared skip guard encodes exactly
     that condition. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
@@ -911,6 +911,45 @@ class TestCalendarDialogRender(DialogGate, unittest.TestCase):
         the palette's negative-red role; a dropped day tint, a recoloured
         ink or a shifted day column fails on the pinned pixels, and the
         glyph-free white rows beside the digits pin the column's face.
+        """
+        image = self.candidate_image()
+        for point in CALENDAR_RED_INK:
+            with self.subTest(point=point):
+                self.assert_pixel(*point, "#800000")
+        for row in (176, 177, 178, 190, 227, 228):
+            with self.subTest(row=row):
+                self.assertEqual(
+                    ["#FFFFFF"] * 47,
+                    [hex_colour(pixel_at(image, x, row)) for x in range(114, 161)],
+                )
+
+
+@dialog_gate_guard()
+class TestCalendarLocaleDialogRender(DialogGate, unittest.TestCase):
+    """A hostile caller locale must not move the calendar's day grid.
+
+    The calendar pins describe the Sunday-first grid the measured captures
+    show, and the grid's first day of week is the caller shell's locale:
+    kdialog derives it from ``LANG``/``LC_*`` (Qt's C locale -- what an
+    unset locale gives -- is Monday-first), so a caller without the en_US
+    default shifted the whole grid one column left and turned the red-ink
+    pins below dark, gray and white (the 2026-11-12 steward failure the
+    bug ledger records). The render session therefore pins the
+    measurement locale (``tools/render_session.py``), and this render
+    starts from a Monday-first caller (``Renders.HOSTILE_ENVIRONMENTS``)
+    so a session that leaks the caller's locale again fails here instead
+    of on a user's shell.
+    """
+
+    KIND = "calendar_locale"
+
+    def test_draws_the_red_sunday_digits_under_a_monday_first_caller(self):
+        """Pin the red-ink cores and their white face rows under the hostile caller.
+
+        The same pins ``TestCalendarDialogRender`` holds: a leaked caller
+        locale moves every day one column left, so the pinned points read
+        the Monday digits' black cores, their antialias grays and the
+        white face instead of the #800000 Sunday ink.
         """
         image = self.candidate_image()
         for point in CALENDAR_RED_INK:

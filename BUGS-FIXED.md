@@ -5,6 +5,73 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A calendar-dialog gate capture once missed the red Sunday ink the pin expects (found by the steward role 2026-11-12) — fixed 2026-11-12 by the bugfix role
+
+**Symptom.** In a steward run's `make check` on 2026-11-12,
+`tests/test_render_dialog_gates.py::TestCalendarDialogRender::test_draws_the_leftmost_day_column_s_red_digits`
+failed: the pinned pixels at `CALENDAR_RED_INK` measured dark, gray and
+white values instead of the expected #800000 Sunday-digit cores. That run
+changed no source or test file.
+
+**Evidence status.** Not reproduced: later the same day, on a clean main
+worktree, `make check` passed with the dialog gates running their real
+captures (`test_render_dialog_gates`: 89 tests OK in about 24 s, including
+this one). The failing run's check log lived under a temp directory that
+is now deleted, so the recorded assertion values above are the evidence;
+they come from the steward run's note of 2026-11-12.
+
+**Suspected cause.** The gate compares single pinned pixels against one
+captured frame. Sibling fixed entries from the same day record the same
+class — two splash captures that caught an unpainted black frame at the
+8-second settle, and a load-sensitive client-exit stub that turned a
+parallel check red — so a capture taken mid-paint or under host load is
+the leading hypothesis. A stylesheet, palette or engine regression is
+not: the calendar's pins are static palette inks and its crops are
+clock-independent (the view is pinned to January 1970).
+
+**Reproduction / next occurrence.** Run `make check`; on a red
+`test_draws_the_leftmost_day_column_s_red_digits`, take two consecutive
+`make render RENDER_MODE=calendar-dialog out.png` captures and compare
+them under `cmp` before touching any expectation. A capture pair that
+disagrees implicates the capture; a pair that agrees and still misses
+#800000 implicates the theme and should be triaged as its own bug.
+
+**Routing.** Do not widen the band or drop the pin on one unconfirmed
+failure: the #800000 blend is the measured contract recorded in the
+class docstring and the invariants row. If a second occurrence lands
+with a reproducible capture, the likely repair is the splash-fix family
+(capture settling or guard work in `tests/support/render_gates.py`), not
+an expectation change.
+
+**Progress 2026-11-12 by bugfix:** Reproduced deterministically, and the
+capture hypothesis is out: the day grid's first day of week is the caller
+shell's locale, which the scratch session inherited. A
+`tools/render_surface.py --calendar-dialog` render under
+`LANG=de_DE.UTF-8` (a locale name this host's glibc has not even
+generated — Qt derives the locale from the string alone) and the same
+render under an entirely unset locale (Qt's C locale is Monday-first)
+both shifted the whole grid one column left, and the pinned
+`CALENDAR_RED_INK` points measured the recorded failure's dark, gray and
+white values (#070707, #949494, #FFFFFF among them) at the recorded
+points. The clean-main pass later the same day ran under this host's
+default `LANG=en_US.UTF-8` shell. Fix: the scratch session pins the
+measurement locale (`tools/render_session.py::MEASUREMENT_LOCALE`,
+en_US.UTF-8, over the caller's `LANG`/`LC_*`, with `LANGUAGE` dropped),
+and the new `TestCalendarLocaleDialogRender` gate renders the calendar
+under a hostile Monday-first caller (`Renders.HOSTILE_ENVIRONMENTS`) and
+pins the same red ink — watched failing 13 subtests
+(`'#800000' != '#000000'`) before the fix and green after.
+`docs/invariants.md`'s calendar row records the locale pin in the same
+change.
+
+**Validation gap:** unclear-invariant — the failure was not
+reproducible until this run reconstructed the invariant the pins always
+assumed: a dialog capture is independent of the invoking shell's locale,
+because kdialog starts the calendar's day grid on the locale's first day
+of week; the invariant is now recorded in `docs/invariants.md`'s
+calendar row and pinned by the session's locale pin plus the
+`TestCalendarLocaleDialogRender` gate.
+
 ### The client-exit stub regression is load-sensitive and can turn a parallel `make check` red (found by the organize role 2026-11-12) — fixed 2026-11-12 by the bugfix role
 
 `tests/test_render_failure_paths.py::TestFailurePaths::test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`
