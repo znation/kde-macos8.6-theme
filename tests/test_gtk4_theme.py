@@ -86,26 +86,11 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertEqual(self.colours, DEFINED_COLOURS)
 
     def test_icon_sources_resolve_to_shipped_files(self):
-        for ref in re.findall(r'url\("([^"]*)"\)', self.css):
-            self.assertTrue((CSS.parent / ref).resolve().is_file(), ref)
+        self.assert_icon_sources_resolve()
 
     def test_stands_alone(self):
         self.assertNotIn("@import", self.css)
-        self.assertEqual(
-            set(re.findall(r"url\(([^)]*)\)", self.css)),
-            {
-                '"../assets/checkmark.svg"',
-                '"../assets/bullet.svg"',
-                '"../assets/check-mixed.svg"',
-                '"../assets/arrow-down.svg"',
-                '"../assets/arrow-up.svg"',
-                '"../assets/arrow-right.svg"',
-                '"../assets/submenu-arrow.svg"',
-                '"../assets/window-close.svg"',
-                '"../assets/window-maximize.svg"',
-                '"../assets/window-minimize.svg"',
-            },
-        )
+        self.assert_shipped_asset_urls()
         self.assertNotIn("adwaita", self.css.lower())
 
     def test_only_palette_hex_literals(self):

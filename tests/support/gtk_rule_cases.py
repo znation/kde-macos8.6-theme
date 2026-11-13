@@ -33,6 +33,7 @@ from support import gtk_css
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.gtk_css import parse_css
+from support.gtk_fixtures import SHIPPED_ASSET_URLS
 from support.repo_root import ROOT
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
@@ -186,6 +187,31 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     spelled alike in both, so ``assert_separators`` and
     ``assert_paned_handles`` take none.
     """
+
+    def assert_shipped_asset_urls(self):
+        """Assert the sheet's url(...) targets are exactly the shipped assets.
+
+        The reference forms live in ``support.gtk_fixtures.SHIPPED_ASSET_URLS``
+        so both suites pin the same set; the GTK 3 and GTK 4 suites run this
+        same assertion verbatim, and nothing else calls it.
+        """
+        self.assertEqual(
+            set(re.findall(r"url\(([^)]*)\)", self.css)),
+            SHIPPED_ASSET_URLS,
+        )
+
+    def assert_icon_sources_resolve(self):
+        """Assert every ``url("...")`` reference in ``self.css`` names a shipped file.
+
+        Both shipped sheets sit one directory below the package root, so each
+        reference resolves against the sheet's own directory
+        (``self.CSS_PATH``'s parent). The GTK 3 and GTK 4 suites run this
+        same case verbatim; nothing else calls it.
+        """
+        for ref in re.findall(r'url\("([^"]*)"\)', self.css):
+            self.assertTrue(
+                (Path(self.CSS_PATH).parent / ref).resolve().is_file(), ref
+            )
 
     @classmethod
     def setUpClass(cls):

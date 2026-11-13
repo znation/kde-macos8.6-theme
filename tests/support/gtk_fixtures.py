@@ -24,3 +24,10 @@ SHIPPED_FILES = (
     "assets/window-maximize.svg",
     "assets/window-minimize.svg",
 )
+
+# The url("...") forms the two shipped sheets reference the assets with:
+# each sheet sits one directory below the package root, so every asset
+# reference is a "../"-prefixed quoted path.
+SHIPPED_ASSET_URLS = frozenset(
+    f'"../{path}"' for path in SHIPPED_FILES if path.startswith("assets/")
+)
