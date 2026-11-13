@@ -68,8 +68,8 @@ ICON_GO_NEXT = (
     / "go-next-symbolic.svg"
 )
 
-# The child program's sheet prologue, shared by all nine GTK 3 probes in
-# this module: an `import re` line first, then the gi imports with their
+# The child program's sheet prologue, shared by the nine GTK 3 probes in
+# this module that load the sheet: an `import re` line first, then the gi imports with their
 # exit-77 skip guards, then the sheet read from sys.argv[1] with every
 # url() reference stripped into `css`. The programs still differ in which
 # widget they draw, which stays in each test.
@@ -540,8 +540,7 @@ print("entry progress: the 0.5 fraction leaves the #CCCCFF strip one and two pix
         # offscreen window; see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
@@ -662,8 +661,7 @@ print("disabled text view: the allocation corners read the white field, no pixel
         # in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
@@ -740,8 +738,7 @@ print("scrolled viewport: the IN frame is 1px black with a grey inset and no sec
         # see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
@@ -1903,8 +1900,7 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         # see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
@@ -1987,8 +1983,7 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
         # for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
@@ -2051,8 +2046,7 @@ print("OSD spin field: the etch's vertical arm reads at the exposed edge column 
         # why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''
-provider = Gtk.CssProvider()
+            + r'''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(), provider, 800
