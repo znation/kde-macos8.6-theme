@@ -5,6 +5,146 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate selection, focus-outline and cursor-handle declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (100 `test_` methods at this plan's base
+commit). Move the five selection-restatement, focus-outline and
+cursor-handle declaration checks (about 150 contiguous lines at this
+plan's base commit) into their own module, the same way the landed OSD
+(`tests/test_gtk4_osd.py`), scale, spinbutton, disabled, emoji, entry,
+notebook, scrollbar, switch, progressbar, levelbar, view, selected,
+button, row, treeview, tabbar, sidebar, checkbutton, menu, expander,
+linked, dropdown and popover parts moved theirs, and the way the
+waiting "GTK 4 suite extraction: isolate paned, frame and
+corner-family declarations" entry moves its eight. The cursor-handle
+method rides in this module because its body is source-order-tied to
+the focus groups: `test_cursor_handle_corners` asserts its selector's
+parsed index against `label:focus:focus-visible` and
+`.card:focus:focus-visible`, so the checks belong together. This is
+independent of the paned entry: neither moves a method the other
+names — this entry's block starts immediately below
+`test_gridview_item_corners` (the last method the paned entry moves)
+and ends immediately above `test_assistant_step_label_corners`, which
+nothing waiting touches — but both entries delete contiguous runs in
+`tests/test_gtk4_theme.py` and rewrite rows of `docs/invariants.md`,
+and the shared rows 484-area and 497-area each name methods of both
+entries (the view-children focus-outline row names
+`test_flowbox_item_corners` and `test_gridview_item_corners` beside
+this entry's `test_iconview_selected_arms`; the card-focus row names
+`test_card_corners` beside this entry's
+`test_card_focus_outline_color`), so whichever merges later re-reads
+both files before writing and rewrites only its own member mentions
+there. This entry prunes no import: the moved bodies use `BLACK`,
+`SELECTION` and `SELECTION_CHECK_STATES`, and all three keep users in
+`tests/test_gtk4_theme.py` after the move (`BLACK` in dozens of
+staying bodies, `SELECTION` in the row-selection and view bodies,
+`SELECTION_CHECK_STATES` in `test_tile_check_faces`), so the
+unused-import scanner (`tests/test_no_unused_imports.py`, which scans
+`tests/`) needs no import block change in the source module. No
+stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_selection_focus.py` with
+  `class TestGtk4SelectionFocus(Gtk4SheetRuleCases,
+  unittest.TestCase)` and a one-line module docstring on the landed
+  extraction modules' pattern (`tests/test_gtk4_menu.py`), ending
+  with the `if __name__ == "__main__":` guard like the landed
+  modules. Move exactly five `TestGtk4Theme` methods, keeping each
+  method's body and docstring unchanged: `test_iconview_selected_arms`,
+  `test_residual_focus_outline_color`,
+  `test_card_focus_outline_color`, `test_cursor_handle_corners` and
+  `test_generic_view_selected_arms`. At this plan's base commit they
+  form one contiguous block between the staying
+  `test_gridview_item_corners` above and
+  `test_assistant_step_label_corners` below — the move touches one
+  contiguous deletion in the source module. If the paned entry merges
+  first, re-grep and delete the same five methods wherever they then
+  sit. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation re-grep every anchor this entry
+  names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`, `BLACK` and `SELECTION` from
+  `support.platinum_palette`, `SELECTION_CHECK_STATES` from
+  `support.gtk_theme_spec`, and nothing else beyond `unittest` (the
+  landed `tests/test_gtk4_menu.py` import block shows the shape).
+  Every helper the bodies call comes with the base classes:
+  `assert_rule` (`tests/support/gtk_rule_cases.py:155`) and
+  `assert_disabled_text` (`:449`) are methods of
+  `Gtk4SheetRuleCases`'s `GtkRuleCases` base;
+  `assert_scale_anchored_focus_outline`
+  (`tests/support/gtk4_sheet.py:144`), `assert_matches_frame`
+  (`:169`) and `assert_square_corner` (`:183`) are methods of
+  `Gtk4SheetRuleCases` itself; and `self.css`, `self.rules` and
+  `self.selectors` come from the shared `setUpClass`. No moved body
+  spells a palette name, a `support.gtk_theme_spec` name beyond
+  `SELECTION_CHECK_STATES`, a `support.gtk_css` name, or uses `re`,
+  `tempfile` or `mock`, so no further import moves and none is
+  pruned.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_iconview_selected_arms`,
+  `…::test_residual_focus_outline_color`,
+  `…::test_card_focus_outline_color`,
+  `…::test_cursor_handle_corners` and
+  `…::test_generic_view_selected_arms` anchor to
+  `tests/test_gtk4_selection_focus.py::TestGtk4SelectionFocus::…`,
+  wherever it appears. `grep -o
+  'TestGtk4Theme::test_iconview_selected_arms\|TestGtk4Theme::test_residual_focus_outline_color\|TestGtk4Theme::test_card_focus_outline_color\|TestGtk4Theme::test_cursor_handle_corners\|TestGtk4Theme::test_generic_view_selected_arms'
+  docs/invariants.md` finds exactly seven member mentions across
+  seven rows at this plan's base commit:
+  `test_iconview_selected_arms` twice (the view-children
+  focus-outline row and the iconview-selection row),
+  `test_generic_view_selected_arms` twice (the generic-view
+  selection row and the disabled-selected row), and
+  `test_residual_focus_outline_color`,
+  `test_card_focus_outline_color` and `test_cursor_handle_corners`
+  once each. The iconview-selection row also carries the GTK 3 twin
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_iconview_selected_arms`
+  — rewrite only the `TestGtk4Theme`-qualified mentions and leave
+  every GTK 3 anchor as it reads. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+- In `tests/support/gtk_theme_spec.py`, update the comment above
+  `SELECTION_CHECK_STATES` (the "Exactly four tests read it" block,
+  `grep -n 'test_iconview_selected_arms in'`): it names
+  `test_iconview_selected_arms in tests/test_gtk4_theme.py` — point
+  that one mention at `tests/test_gtk4_selection_focus.py`; the
+  staying `test_tile_check_faces` and the two `test_gtk_theme_views`
+  readers keep their mentions as they read.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly
+  once, under `test_gtk4_selection_focus.TestGtk4SelectionFocus`, and
+  none of them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_gridview_item_corners` (or, if the paned entry landed first,
+  `test_assistant_step_label_corners` and `test_tile_check_faces`
+  among the staying).
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n
+  'TestGtk4Theme::test_iconview_selected_arms\|TestGtk4Theme::test_residual_focus_outline_color\|TestGtk4Theme::test_card_focus_outline_color\|TestGtk4Theme::test_cursor_handle_corners\|TestGtk4Theme::test_generic_view_selected_arms'
+  docs/invariants.md` prints nothing, each of the seven touched rows
+  names its moved method under
+  `tests/test_gtk4_selection_focus.py::TestGtk4SelectionFocus`, the
+  GTK 3 anchors in those rows and the class-level
+  `tests/test_gtk4_theme.py::TestGtk4Theme` anchor row stay, and
+  the invariants checker inside `make check` resolves every new
+  anchor.
+- `git diff` leaves every import block in
+  `tests/test_gtk4_theme.py` unchanged, the new module's import
+  block names only `unittest`, `support.gtk4_sheet`,
+  `support.platinum_palette` and `support.gtk_theme_spec`, and the
+  unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 148 lines, and
+  `tests/test_gtk4_selection_focus.py` stays under about 190 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_selection_focus.py`,
+  `tests/support/gtk_theme_spec.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate paned, frame and corner-family declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large

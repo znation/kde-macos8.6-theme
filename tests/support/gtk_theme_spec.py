@@ -407,8 +407,9 @@ MIXED_GLYPH = {"-gtk-icon-source": 'url("../assets/check-mixed.svg")'}
 # The eight selection-check states the content-view check families rest,
 # shared by the GTK 3 and GTK 4 suites: the empty suffix plus the seven
 # state arms the sheets append. Exactly four tests read it --
-# test_tile_check_faces and test_iconview_selected_arms in
-# tests/test_gtk4_theme.py, test_iconview_selected_arms and
+# test_tile_check_faces in tests/test_gtk4_theme.py and
+# test_iconview_selected_arms in tests/test_gtk4_selection_focus.py,
+# test_iconview_selected_arms and
 # test_vertical_stepper_and_content_view_check_corners in
 # tests/test_gtk_theme_views.py.
 SELECTION_CHECK_STATES = (
