@@ -51,6 +51,56 @@ class TestProseLines(unittest.TestCase):
         )
         self.assertEqual(["before", "shown", "after"], list(prose_lines(text)))
 
+    def test_a_fence_indented_four_spaces_is_not_a_fence(self):
+        # A fence opens "after at most three spaces of indentation"
+        # (user_docs.prose_lines): four spaces is Markdown's indented-code
+        # form, so such a line opens nothing and the lines around it stay
+        # prose -- a link there is still found, not hidden.
+        text = (
+            "    ```\n"
+            "[indented](docs/invariants.md)\n"
+            "    ```\n"
+            "[real](docs/principles-rationale.md)\n"
+        )
+        self.assertEqual(text.splitlines(), list(prose_lines(text)))
+        self.assertEqual(
+            ["docs/invariants.md", "docs/principles-rationale.md"],
+            linked_guides(text),
+        )
+
+    def test_a_fence_indented_three_spaces_is_a_fence(self):
+        # The indentation allowance is exactly three spaces, so a fence
+        # padded to three still hides its body.
+        text = (
+            "   ```\n"
+            "[indented](docs/invariants.md)\n"
+            "   ```\n"
+            "[real](docs/principles-rationale.md)\n"
+        )
+        # The fence lines themselves are excluded too ("fences excluded").
+        self.assertEqual(
+            ["[real](docs/principles-rationale.md)"], list(prose_lines(text))
+        )
+        self.assertEqual(
+            ["docs/principles-rationale.md"], linked_guides(text)
+        )
+
+    def test_two_marker_characters_do_not_open_a_fence(self):
+        # A fence opens with "three or more" markers: a line starting with
+        # two backticks or two tildes is inline punctuation, not an opener,
+        # so nothing after it is hidden.
+        text = (
+            "``\n"
+            "[inline](docs/invariants.md)\n"
+            "~~\n"
+            "[real](docs/principles-rationale.md)\n"
+        )
+        self.assertEqual(text.splitlines(), list(prose_lines(text)))
+        self.assertEqual(
+            ["docs/invariants.md", "docs/principles-rationale.md"],
+            linked_guides(text),
+        )
+
     def test_a_fence_of_the_other_character_inside_an_open_fence_is_hidden(self):
         # While a ``` fence is open, a ~~~ line neither closes nor switches
         # the fence, and prose resumes only after the matching ``` closer.
