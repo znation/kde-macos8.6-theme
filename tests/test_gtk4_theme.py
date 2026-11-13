@@ -440,11 +440,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in selectors:
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {**DISABLED_TEXT, "background-color": WHITE})
-                self.assertEqual(
-                    self.rules[selector],
-                    {**DISABLED_TEXT, "background-color": WHITE},
-                )
-                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assert_exact_rule_once(selector, {**DISABLED_TEXT, "background-color": WHITE})
         # The token sweeps key on substrings no landed selector carries:
         # the print action-box spelling alone carries the leading-space
         # " .dialog-action-box:disabled" form (the 2026-11-11 per-family
@@ -1453,8 +1449,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "box-shadow": f"inset 0 -1px {WHITE}",
         }
         self.assert_rule(searchbar, expected)
-        self.assertEqual(self.rules[searchbar], expected)
-        self.assertEqual(self.selectors.count(searchbar), 1)
+        self.assert_exact_rule_once(searchbar, expected)
         self.assert_rule(toolbar, {"border-top": f"1px solid {ETCH_DARK}"})
         self.assertEqual(self.selectors.count(toolbar), 1)
         for prop in ("border-bottom", "box-shadow"):
@@ -1815,8 +1810,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             set(spellings),
         )
         # Stock's generic 300 ms outline-motion arm is removed.
-        self.assertEqual(self.rules["row"], {"transition": "none"})
-        self.assertEqual(self.selectors.count("row"), 1)
+        self.assert_exact_rule_once("row", {"transition": "none"})
         # Source order: the focus group sits after the landed
         # disabled-selected backdrop group and before the landed tab-close
         # block.
@@ -1839,11 +1833,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in spellings:
             with self.subTest(selector=selector):
-                self.assertEqual(
-                    self.rules[selector],
-                    {"animation": "none", "background-image": "none"},
-                )
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"animation": "none", "background-image": "none"})
         # Source order: the restated group sits after the landed row-focus
         # outline rule and before the landed tab-close block.
         self.assertGreater(
@@ -2341,8 +2331,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "columnview row:not(:selected) cell"
             " editablelabel.editing text selection:focus-within",
         )
-        self.assertEqual(self.rules[field], ENTRY_FIELD)
-        self.assertEqual(self.selectors.count(field), 1)
+        self.assert_exact_rule_once(field, ENTRY_FIELD)
         for selector in focus:
             self.assert_rule(selector, {"outline-color": BLACK})
             self.assert_exact_rule_once(selector, {"outline-color": BLACK})
