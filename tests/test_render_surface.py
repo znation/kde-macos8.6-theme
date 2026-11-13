@@ -144,17 +144,6 @@ def _keypad_rows(width):
         [*head, *([body] * (width - 6)), *tail]
         for head, body, tail in KEYPAD_ROW_ENDS
     ]
-# The dialog render's engine-drawn widget gate: `--checkbox-dialog` opens a
-# kdialog warning at the headless KWin session's centre in a 480x360 capture,
-# and its dontagain check box draws the theme's `checkbox-normal` art through
-# `[Session] check_size`. KWin centres the session's only window in the
-# virtual framebuffer, so these crops are measured on this capture size; they
-# assume the session the CLI builds for `--checkbox-dialog` (the same scratch
-# config home, the applied kdeglobals defaults and the Kvantum selection).
-DIALOG_WIDTH = 480
-DIALOG_HEIGHT = 360
-
-
 @unittest.skipIf(
     software_renderer_skip_reason() is not None,
     software_renderer_skip_reason() or "",

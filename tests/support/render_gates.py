@@ -44,11 +44,6 @@ DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog", "zenity")
 # onto its requirements for --desktop). One literal feeds the desktop gate's
 # skip guard, as DIALOG_REAL_TOOLS feeds the dialog gates'.
 DESKTOP_REAL_TOOLS = REAL_TOOLS + ("plasmashell",)
-# The splash mode's client, beside the applet render tools: the same set the
-# CLI's splash preflight requires (render_surface.py joins "ksplashqml"
-# onto its requirements for --splash). One literal feeds the splash gate's
-# skip guard, as DESKTOP_REAL_TOOLS feeds the desktop gate's.
-SPLASH_REAL_TOOLS = REAL_TOOLS + ("ksplashqml",)
 # Mesa drivers that render on the CPU. KWin's ScreenShot2 offscreen effect
 # allocates a non-software EGL buffer for its render target; on a software
 # renderer the allocation has no render engine behind it, and llvmpipe faults
