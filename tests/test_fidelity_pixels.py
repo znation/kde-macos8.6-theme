@@ -40,6 +40,17 @@ class TestWorstPixels(unittest.TestCase):
         self.assertEqual(record(4), [])
         self.assertEqual(record(100), [])
 
+    def test_none_offset_skips_nothing_like_zero(self):
+        # The offset option is None when it was not given; worst_pixels
+        # treats None as 0 instead of making every caller coerce.
+        red = [9, 5, 9, 0, 7, 9]
+        cand = Image(3, 2, bytes(channel for value in red for channel in (value, 0, 0)))
+        ref = Image(3, 2, bytes(18))
+        record = lambda offset: [(p["x"], p["y"], p["max_delta"])
+                                 for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+        self.assertEqual(record(None), [(0, 0, 9), (2, 0, 9)])
+        self.assertEqual(record(None), record(0))
+
     def test_offset_ranks_alpha_and_rgb_under_zero_alpha(self):
         cand = Image(2, 1, bytes((20, 0, 0, 0, 0, 0)), bytes((0, 10)))
         ref = Image(2, 1, bytes(6), bytes((0, 255)))

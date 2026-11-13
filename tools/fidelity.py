@@ -118,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
                           deltas=deltas)
         worst = (worst_pixels(candidate, reference, args.tolerance,
                               args.worst_pixels,
-                              offset=args.worst_pixel_offset or 0,
+                              offset=args.worst_pixel_offset,
                               deltas=deltas)
                  if args.worst_pixels is not None else None)
         # The optional records' source positions are report data, so they are
@@ -160,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
             minimum=args.min_difference_run_length,
             maximum=args.max_difference_run_length,
             cap=args.max_difference_runs,
-            offset=args.difference_run_offset or 0,
+            offset=args.difference_run_offset,
             wants_count=args.difference_run_count,
             wants_longest=args.longest_difference_run)
         column = collect_run_family(
@@ -169,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
             minimum=args.min_difference_column_run_length,
             maximum=args.max_difference_column_run_length,
             cap=args.max_difference_column_runs,
-            offset=args.difference_column_run_offset or 0,
+            offset=args.difference_column_run_offset,
             wants_count=args.difference_column_run_count,
             wants_longest=args.longest_difference_column_run)
         centroid = (difference_centroid(candidate, reference, args.tolerance,

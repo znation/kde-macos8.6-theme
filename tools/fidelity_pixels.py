@@ -84,14 +84,15 @@ def worst_pixels(
     tolerance: int,
     limit: int,
     *,
-    offset: int = 0,
+    offset: int | None = None,
     deltas: list[bytes] | None = None,
 ) -> list[dict[str, object]]:
     """Return up to *limit* pixels exceeding *tolerance*, ranked by delta.
 
     Inputs are equally sized validated images, a tolerance in 0..255, and a
     limit in 1..1000. Ties follow row-major order; coordinates are image-local.
-    The optional offset skips earlier ranked records; selection storage is
+    The optional offset skips earlier ranked records; ``None`` (the offset
+    option was not given) acts as 0 and skips nothing; selection storage is
     bounded by the image area and grows with the requested page position.
 
     The ranking walks delta values from 255 down to one past the tolerance and,
@@ -101,6 +102,7 @@ def worst_pixels(
     selection size is gathered. *deltas* shares one :func:`channel_deltas`
     pass across a run of pixel reports; ``None`` derives the list here.
     """
+    offset = 0 if offset is None else offset
     width, height = candidate.width, candidate.height
     area = width * height
     selection_size = min(offset + limit, area)

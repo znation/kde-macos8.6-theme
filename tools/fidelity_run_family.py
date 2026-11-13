@@ -111,7 +111,8 @@ def _filter_run_report(runs, minimum, maximum, limit, offset=0):
 
 
 def collect_run_family(candidate, reference, tolerance, flags, calls, *,
-                       enabled, minimum, maximum, cap, offset, wants_count,
+                       enabled, minimum, maximum, cap,
+                       offset: int | None, wants_count,
                        wants_longest) -> RunFamilyReport:
     """Assemble one family's run report from its shared or full scans.
 
@@ -119,9 +120,11 @@ def collect_run_family(candidate, reference, tolerance, flags, calls, *,
     unchanged; *flags* may be ``None`` when no spatial report asked for the
     shared scan. *minimum*/*maximum* are the paired length filters, *cap*
     the count cap whose presence turns capped paging on, *offset* the
-    resolved page offset. The count is derived before the filter, so it
-    stays a full-scan value even when the list is filtered afterwards.
+    resolved page offset -- ``None`` (the offset option was not given) acts
+    as 0. The count is derived before the filter, so it stays a full-scan
+    value even when the list is filtered afterwards.
     """
+    offset = 0 if offset is None else offset
     capped = enabled and cap is not None
     omitted = None
     if capped:

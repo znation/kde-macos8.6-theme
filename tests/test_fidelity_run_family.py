@@ -75,6 +75,37 @@ class TestCollectRunFamily(unittest.TestCase):
         self.assertEqual(report.count, 2)
         self.assertEqual(report.longest, {"x": 1, "y": 0, "length": 3})
 
+    def test_none_offset_acts_as_zero(self):
+        # The offset option is None when it was not given; the family
+        # assembly treats None as 0 instead of making every caller coerce.
+        log, calls = _stub_calls(
+            [{"x": 0, "y": 0, "length": 1}, {"x": 1, "y": 0, "length": 3}],
+            99, {"x": 9, "y": 0, "length": 8})
+        report = collect_run_family(
+            None, None, 0, None, calls, enabled=True,
+            minimum=None, maximum=None, cap=None, offset=None,
+            wants_count=True, wants_longest=True)
+        self.assertEqual(log, ["runs"])
+        self.assertEqual(report.runs, [{"x": 0, "y": 0, "length": 1},
+                                       {"x": 1, "y": 0, "length": 3}])
+        self.assertIsNone(report.omitted)
+        self.assertEqual(report.count, 2)
+        self.assertEqual(report.longest, {"x": 1, "y": 0, "length": 3})
+
+        log, calls = _stub_calls(
+            [{"x": 0, "y": 0, "length": 1}, {"x": 1, "y": 0, "length": 3}],
+            99, {"x": 9, "y": 0, "length": 8})
+        capped = collect_run_family(
+            None, None, 0, None, calls, enabled=True,
+            minimum=None, maximum=None, cap=2, offset=None,
+            wants_count=True, wants_longest=True)
+        self.assertEqual(log, ["iter_runs"])
+        self.assertEqual(capped.runs, report.runs)
+        self.assertEqual(capped.count, report.count)
+        self.assertEqual(capped.longest, report.longest)
+        # A capped page always reports omitted, so an empty page is 0.
+        self.assertEqual(capped.omitted, 0)
+
     def test_uncapped_family_scans_once_and_filters_the_list(self):
         log, calls = _stub_calls(
             [{"x": 0, "y": 0, "length": 1}, {"x": 1, "y": 0, "length": 3},
