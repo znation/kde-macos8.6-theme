@@ -19,35 +19,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_delta_fixtures import RGB_PAIR, RGBA_PAIR  # noqa: E402
 from tools import fidelity  # noqa: E402
 from tools.fidelity_metrics import compare  # noqa: E402
 from tools.fidelity_pixels import channel_deltas  # noqa: E402
 from tools.png import Image  # noqa: E402
-
-# A 4x2 RGB pair whose candidate carries one red byte 10 at pixel (0, 0)
-# and one blue byte 30 at pixel (2, 1) against an all-zero reference. With
-# three delta strings the metrics are: totals R 10, G 0, B 30 over
-# 8 pixels x 3 channels, so MAE 40/24, MAE R 1.25, MAE G 0, MAE B 3.75,
-# RMSE sqrt((100 + 900)/24); the worst channel delta 30 first reaches its
-# maximum index 6 in the blue string, pixel (2, 1); and at tolerance 9
-# exactly the two over-tolerance pixels differ.
-CANDIDATE_RGB = bytearray(24)
-CANDIDATE_RGB[0] = 10            # (0, 0) red
-CANDIDATE_RGB[3 * 6 + 2] = 30    # (2, 1) blue
-RGB_PAIR = (Image(4, 2, bytes(CANDIDATE_RGB)), Image(4, 2, bytes(24)))
-
-# A 3x2 pair whose candidate carries alpha and whose reference is RGB-only:
-# the absent reference plane is opaque 255, so the alpha byte 0 at (0, 0)
-# adds a fourth delta string of 255 there. Totals are R 40, G 0, B 0,
-# A 255 over 6 pixels x 4 channels, so MAE 295/24, MAE A 42.5, RMSE
-# sqrt((1600 + 65025)/24), worst delta 255 at pixel (0, 0), and exactly one
-# differing pixel at tolerance 100 (the red delta 40 is within it).
-ALPHA_CANDIDATE_RGB = bytearray(18)
-ALPHA_CANDIDATE_RGB[0] = 40
-ALPHA_CANDIDATE = Image(
-    3, 2, bytes(ALPHA_CANDIDATE_RGB), bytes([0, 255, 255, 255, 255, 255]),
-)
-RGBA_PAIR = (ALPHA_CANDIDATE, Image(3, 2, bytes(18)))
 
 # A 3x2 RGBA pair with an all-opaque alpha plane on both sides: the list
 # keeps three strings and the compared-alpha arithmetic still reads an

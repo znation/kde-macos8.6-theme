@@ -15,6 +15,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.fidelity_delta_fixtures import (
+    ALPHA_CANDIDATE,
+    RGB_PAIR,
+    RGBA_PAIR,
+)  # noqa: E402
 from tools import fidelity  # noqa: E402
 from tools.fidelity_metrics import compare  # noqa: E402
 from tools.fidelity_spatial import (  # noqa: E402
@@ -33,25 +38,6 @@ from tools.fidelity_spatial import (  # noqa: E402
     _axis_scanlines,
 )
 from tools.png import Image  # noqa: E402
-
-# A 4x2 RGB pair with one over-tolerance red byte in the first row and one
-# over-tolerance blue byte in the second: the union, rows, columns, bounds,
-# runs and centroid all read it apart. The reference is all zero, so each
-# candidate byte's delta is its own value. Tolerance 9 keeps both bytes.
-CANDIDATE_RGB = bytearray(24)
-CANDIDATE_RGB[0] = 10            # (0, 0) red
-CANDIDATE_RGB[3 * 6 + 2] = 30    # (2, 1) blue
-RGB_PAIR = (Image(4, 2, bytes(CANDIDATE_RGB)), Image(4, 2, bytes(24)))
-
-# A 3x2 pair whose candidate carries alpha and whose reference is RGB-only:
-# the absent reference plane is opaque 255, so the alpha byte 0 at (0, 0) is
-# that pixel's compared alpha delta.
-ALPHA_CANDIDATE_RGB = bytearray(18)
-ALPHA_CANDIDATE_RGB[0] = 40
-ALPHA_CANDIDATE = Image(
-    3, 2, bytes(ALPHA_CANDIDATE_RGB), bytes([0, 255, 255, 255, 255, 255]),
-)
-RGBA_PAIR = (ALPHA_CANDIDATE, Image(3, 2, bytes(18)))
 
 REPORTS = (
     ("difference_rows", difference_rows),
