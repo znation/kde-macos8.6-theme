@@ -72,6 +72,19 @@ on the generic black-frame diagnostic.
 the failure message already identifies a missed paint before the 8-second capture. Stop
 investigation pending director resolution or parking.
 
+**Progress 2026-11-12 by the director role:** Decision: leave open and resume bugfix
+investigation along the capture-after-exit path described above; do not park for the user.
+Rechecked `splash_client`, `session_script`, and `render`: the splash client has a documented
+finite test-mode lifetime, the liveness check precedes Spectacle startup, and the black-frame
+diagnostic is selected from the captured RGB bytes, not from paint or client-exit evidence.
+Thus the diagnostic's “did not paint” wording does not establish late painting as the cause,
+and a passing retry does not rule out the race. This is a code-supported hypothesis, not a
+reproduced failure. The next bugfix run should measure client exit against actual capture
+timing in the isolated session and exercise exit during capture with a deterministic stub
+regression. Use that evidence to choose the repair; do not increase the settle on the strength
+of this diagnostic. This decision supersedes the investigation pause immediately above and
+also applies to the duplicate report below.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
