@@ -94,7 +94,7 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Split the 2584-line tests/test_gtk_theme_controls.py into per-surface suites (planned 2026-11-13 by the organize role; ordering clause — this entry queues behind the waiting "GTK 4 suite extraction: isolate paned, frame and corner-family declarations" entry, since both edit `docs/invariants.md`, and it is the GTK 3 analogue of the extraction series that entry continues: it may itself be decomposed into per-family entries the way that series was, each landing one family; at implementation re-grep every anchor this entry names)
+### Split the 2584-line tests/test_gtk_theme_controls.py into per-surface suites (planned 2026-11-13 by the organize role; ordering clause — this entry queues behind the waiting "GTK 4 suite extraction: isolate paned, frame and corner-family declarations" entry, since both edit `docs/invariants.md`, and it is the GTK 3 analogue of the extraction series that entry continues: it may itself be decomposed into per-family entries the way that series was, each merging one family; at implementation re-grep every anchor this entry names)
 
 **Goal and cost.** `tests/test_gtk_theme_controls.py` is the repository's
 largest file — 2584 lines at this plan's base commit, 67 test methods of
@@ -111,7 +111,7 @@ commit); nine share the module-level `_GTK3_SHEET_PROLOGUE` constant and one
 pins 67 `TestGtkThemeControls` mentions plus 4 `TestCheckGlyphs` and 4
 `TestArrowGlyphs` mentions, and five sibling files reference the module by
 name in doc comments — evidence that one file is a shared edit point for
-every new GTK 3 control check, the same cost the landed GTK 4 extraction
+every new GTK 3 control check, the same cost the merged GTK 4 extraction
 series removes for `tests/test_gtk4_theme.py`. A 54-method grab-bag class
 also hides which surface a method covers. The split is not a one-run move
 (the invariants repointing alone spans ~75 mentions across ~30 rows), so it
@@ -152,11 +152,11 @@ composition and imports move.
    `support.svg_case` imports: they check shipped SVG assets, not the
    sheet.
 5. `TestGtkThemeControls` and `tests/test_gtk_theme_controls.py` disappear
-   — no half-moved state: every method lands in a suite and the file is
+   — no half-moved state: every method is moved into a suite and the file is
    deleted at the end of the series.
 6. Reference updates in the same change as each family's move: every
    `tests/test_gtk_theme_controls.py` anchor in `docs/invariants.md` is
-   repointed at the module and class the named test landed in (67
+   repointed at the module and class the named test merged into (67
    `TestGtkThemeControls` mentions, 4 `TestCheckGlyphs`, 4
    `TestArrowGlyphs` at this plan's base commit), and the by-name doc
    references in `tests/test_gtk_theme.py` (line 328 comment),
@@ -191,11 +191,11 @@ entry's scope.
   `ast.dump` output); this is a run-time check, not a new committed test.
 - Unittest discovery lists each of the 67 methods exactly once, none of
   them under `test_gtk_theme_controls`, and every by-name reference site
-  listed above reads the landed module and class.
+  listed above reads the merged module and class.
 - A grep over the repository (source, tests, docs) finds no remaining
   `test_gtk_theme_controls` reference outside PLANS-DONE.md and
   BUGS-FIXED.md: the file is gone and every invariants row names the module
-  the test landed in, with the invariants checker inside `make check`
+  the test merged into, with the invariants checker inside `make check`
   resolving every new anchor.
 - Each new suite stays under roughly one sitting (~800 lines), imports only
   names it uses (the unused-import scanner inside `make check` reports no
