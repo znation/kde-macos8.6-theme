@@ -151,37 +151,6 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 300 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
 
-### Chicago-style face, part 1/2: vendor ChicagoFLF in the font package (planned 2026-11-12 by the director role)
-
-**Goal.** On 2026-10-19 the user chose to vendor a Chicago/Charcoal-style face (QUESTIONS.md, "Which UI font should the theme select?") and asked whether ChicagoFLF's licence fits. On 2026-11-12 the user asked again whether to use ChicagoFLF where a Chicago-style face is needed. The director checked the licence: the face is in the public domain. This part ships the font file and its licence record in the existing font package. It selects nothing; part 2/2 does that.
-
-**Source (checked 2026-11-12 by the director role).** Font Library catalogue `https://fontlibrary.org/api/catalogue/chicagoflf` (family `ChicagoFLF`, designer Robin Casady, licence "Public Domain (not a license)"). Archive: `https://fontlibrary.org/assets/downloads/chicagoflf/a2e4a3d14e40fa7076a0a1bc06f3de43/chicagoflf.zip`, SHA-256 `a5c1ff8aeb06505c77e6286fb63b6350494a9b030b688c212322d331d9d2278f`. Its members:
-- `chicago/ChicagoFLF.ttf`: 50,472 bytes, SHA-256 `b442111f37639e27572d9df0c5190e7480e6a7b01ec768aea47a154efab8d50d`. Windows name records: ID 1 `ChicagoFLF`, ID 2 `Regular`, ID 5 `2.1`, ID 9 `Robin Casady`, ID 13 `Public Domain`. ID 0 quotes Casady's dedication: "You are free to use them as you wish. I consider those two in the public domain."
-- `chicago/README.ChicagoFLF`: 912 bytes, SHA-256 `60ca3e47853943cba1792103a1efbbb5b38797e6f249104b0e27b7fdc4943044`, ending in one newline. It is headed "PUBLIC DOMAIN (statement from original designer via email 2014/01/30)" and gives the 2.0 version history.
-- `chicago/ChicagoFLF.pdf`: a specimen sheet. Do not ship it.
-
-Only a Regular face exists, with no Bold. Fetch the archive into a fresh `mktemp -d` directory and verify the archive digest before extracting.
-
-**Approach and files.**
-- `theme/fonts/org.macos8.desktop/ChicagoFLF.ttf` and `theme/fonts/org.macos8.desktop/README.ChicagoFLF`: byte-for-byte copies of the two archive members. `install_package` in `Makefile` copies the whole package directory, so the Makefile does not change.
-- `theme/fonts/org.macos8.desktop/PROVENANCE.md`: add a `# ChicagoFLF font provenance` section after the Lato text. Give the archive URL and digest, a table of both shipped files and their SHA-256 digests, and the public-domain basis (the README statement and name IDs 0 and 13). Say that the face is a Chicago-style approximation by a third-party designer, not Apple's font and not traced from a reference screenshot.
-- The family name `ChicagoFLF` is upstream's internal font identifier. It is not a theme-owned UI label (PRINCIPLES.md branding principle), so keep the binary unmodified and do not rename the family. Record this in PROVENANCE.md in one sentence.
-- Leave the Lato sentence "Menus and window titles use Lato until a Chicago-style face lands" alone; part 2/2 rewrites it.
-- `tests/test_fonts.py`:
-  - Add `CHICAGO` and `CHICAGO_README` path constants.
-  - Add both file names to `INSTALLED_FILES`.
-  - Add both digests above to `DIGESTS`, so `test_files_and_provenance_pin_the_same_digests` covers them.
-  - Add `test_chicago_face_names_its_family_and_public_domain_dedication`. It asserts that `_name_table(CHICAGO)` gives ID 1 `{"ChicagoFLF"}`, ID 2 `{"Regular"}`, and an ID 13 set containing `"Public Domain"`.
-- `docs/invariants.md`: add a dated row to the font section for the new test and digests. Note that this is a Chicago-style substitute and that no reference supplies a font pixel.
-
-**Acceptance criteria.**
-- `sha256sum` of the two shipped files prints the two member digests above.
-- The new name-table test passes. It would fail on a file whose family is not `ChicagoFLF`.
-- The digest test fails if either shipped file's PROVENANCE.md digest is edited.
-- The existing `TestFontsInstall` lifecycle tests pass with the two new names in `INSTALLED_FILES`.
-- The `contents/defaults` file is unchanged.
-- `make check` passes after the final edit.
-
 ### Chicago-style face, part 2/2: select ChicagoFLF for menus and window titles (planned 2026-11-12 by the director role; "requires part 1/2 landed")
 
 **Goal.** Part 1/2 installs ChicagoFLF. This part selects it in the two KDE font roles that earlier font parts set aside for a Chicago-style face (PLANS-DONE.md, the font-selection part: "the part that vendors a Chicago-style face will update `menuFont`/`activeFont`"). Those roles are menus and active window titles. Body, toolbar and smallest-readable text stay Lato, the Charcoal-style face. Monospace keeps the user's fixed font.

@@ -38,3 +38,30 @@ This package installs the family under
 general, menu, toolbar, smallest-readable and window-title fonts at KDE's
 default point sizes (10 / 10 / 10 / 8 / 10). Monospaced text keeps the user's
 fixed font. Menus and window titles use Lato until a Chicago-style face lands.
+
+# ChicagoFLF font provenance
+
+ChicagoFLF is a Chicago-style approximation by third-party designer Robin
+Casady. It is not Apple's font and is not traced from a reference screenshot;
+the reference set supplies no font pixel. The unmodified family name
+`ChicagoFLF` is the upstream internal font identifier, not a theme-owned UI
+label.
+
+## Source
+
+The following files are byte-for-byte copies from the ChicagoFLF 2.1 archive
+at `https://fontlibrary.org/assets/downloads/chicagoflf/a2e4a3d14e40fa7076a0a1bc06f3de43/chicagoflf.zip`,
+SHA-256 `a5c1ff8aeb06505c77e6286fb63b6350494a9b030b688c212322d331d9d2278f`:
+
+| Shipped file | Archive member | SHA-256 |
+| --- | --- | --- |
+| `ChicagoFLF.ttf` | `chicago/ChicagoFLF.ttf` | `b442111f37639e27572d9df0c5190e7480e6a7b01ec768aea47a154efab8d50d` |
+| `README.ChicagoFLF` | `chicago/README.ChicagoFLF` | `60ca3e47853943cba1792103a1efbbb5b38797e6f249104b0e27b7fdc4943044` |
+
+## Public domain
+
+`README.ChicagoFLF` states “PUBLIC DOMAIN (statement from original designer
+via email 2014/01/30).” The font's name records identify ID 13 as `Public
+Domain` and ID 0 quotes Casady's dedication: “You are free to use them as you
+wish. I consider those two in the public domain.” The archive contains a
+single Regular face and no Bold face.

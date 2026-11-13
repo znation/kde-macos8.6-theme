@@ -32,12 +32,16 @@ PACKAGE_DIR = os.path.join(ROOT, "theme", "fonts", FONT_ID)
 REGULAR = os.path.join(PACKAGE_DIR, "Lato-Regular.ttf")
 BOLD = os.path.join(PACKAGE_DIR, "Lato-Bold.ttf")
 LICENSE = os.path.join(PACKAGE_DIR, "LICENSE-Lato.txt")
+CHICAGO = os.path.join(PACKAGE_DIR, "ChicagoFLF.ttf")
+CHICAGO_README = os.path.join(PACKAGE_DIR, "README.ChicagoFLF")
 PROVENANCE = os.path.join(PACKAGE_DIR, "PROVENANCE.md")
 
 INSTALLED_FILES = (
     "Lato-Regular.ttf",
     "Lato-Bold.ttf",
     "LICENSE-Lato.txt",
+    "ChicagoFLF.ttf",
+    "README.ChicagoFLF",
     "PROVENANCE.md",
 )
 
@@ -48,6 +52,8 @@ DIGESTS = {
     REGULAR: "6f6940be0835c3ddec9199e5fc42be4cbc61ebcfd58c623fdf719366253f1780",
     BOLD: "bf1b8130069b44b9148eeece35e5423bedac49777ba746615b826b8276574a7b",
     LICENSE: "1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97",
+    CHICAGO: "b442111f37639e27572d9df0c5190e7480e6a7b01ec768aea47a154efab8d50d",
+    CHICAGO_README: "60ca3e47853943cba1792103a1efbbb5b38797e6f249104b0e27b7fdc4943044",
 }
 
 # Name IDs 1 and 2 of the sfnt `name` table.
@@ -120,6 +126,12 @@ def _name_table(path):
 
 
 class TestFontFiles(unittest.TestCase):
+    def test_chicago_face_names_its_family_and_public_domain_dedication(self):
+        names = _name_table(CHICAGO)
+        self.assertEqual(set(names.get(1, ())), {"ChicagoFLF"}, CHICAGO)
+        self.assertEqual(set(names.get(2, ())), {"Regular"}, CHICAGO)
+        self.assertIn("Public Domain", names.get(13, ()), CHICAGO)
+
     def test_fonts_name_the_lato_family_and_subfamily(self):
         for path, subfamily in ((REGULAR, "Regular"), (BOLD, "Bold")):
             with self.subTest(font=os.path.basename(path)):

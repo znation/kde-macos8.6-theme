@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Chicago-style face, part 1/2: vendor ChicagoFLF in the font package (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
+
+**Goal.** On 2026-10-19 the user chose to vendor a Chicago/Charcoal-style face (QUESTIONS.md, "Which UI font should the theme select?") and asked whether ChicagoFLF's licence fits. On 2026-11-12 the user asked again whether to use ChicagoFLF where a Chicago-style face is needed. The director checked the licence: the face is in the public domain. This part ships the font file and its licence record in the existing font package. It selects nothing; part 2/2 does that.
+
+**Approach and files.** `ChicagoFLF.ttf` and `README.ChicagoFLF` are byte-for-byte archive copies in the existing font package. `PROVENANCE.md` records their archive URL and digests, the public-domain statement and name records, approximation status, and unchanged upstream family identifier. The Lato selection note remains for part 2/2. `tests/test_fonts.py` pins both digests, checks the ChicagoFLF Regular family/subfamily/public-domain name record, and includes both files in the install lifecycle. `docs/invariants.md` records the substitute and the absence of reference font pixels.
+
+**Acceptance criteria.** The two shipped file digests match the archive members; name-table and digest tests cover family, subfamily, public-domain metadata and provenance; font install lifecycle includes both files; `contents/defaults` stays unchanged; `make check` passes.
+
 ### Reject contradictory sampler min/max filters (planned 2026-11-11 by the improve role) — done 2026-11-12 by the steward role
 
 The answered sampler decision is implemented: `option_error` rejects minimums above maximums for all five filter pairs, and `test_contradictory_min_max_filter_windows_are_rejected_before_png_reads` pins the diagnostics and pre-read behavior.
