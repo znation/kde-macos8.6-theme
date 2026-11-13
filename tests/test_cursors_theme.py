@@ -730,7 +730,6 @@ class TestCursorSet(unittest.TestCase):
                     _repo_bytes(CURSORS / canonical),
                 )
 
-
     def test_context_menu_keeps_the_arrow_cells(self):
         # The panel restates, never redraws, the existing arrow: every cell the
         # arrow draws black stays black at the same grid coordinates.

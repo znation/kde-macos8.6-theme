@@ -91,8 +91,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertEqual(self.selectors.count(selector), 1)
         self.assertNotIn(".dimmed", self.selectors)
 
-
-
     def test_theme_colours(self):
         self.assertEqual(self.colours, DEFINED_COLOURS)
 
@@ -586,11 +584,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
-
-
-
-
-
     def test_button_focus_outline_color(self):
         self.assert_scale_focus_outline("button:focus:focus-visible")
 
@@ -652,7 +645,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "button:hover",
             {"background-color": FACE, "-gtk-icon-filter": "none"},
         )
-
 
     def test_suggested_action_plain_arms(self):
         self.assert_plain_action_arms("button.suggested-action")
@@ -1938,7 +1930,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertEqual(self.rules[selector], expected)
                 self._assert_toast_matches_popover(selector)
 
-
     def test_dropdown_arrow(self):
         self.assert_rule("dropdown arrow", COMBO_ARROW)
 
@@ -2680,7 +2671,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "listview > row.activatable:selected:hover",
         ):
             self.assert_rule(selector, ROW_SELECTED)
-
 
     def test_undershoot_bands_cleared(self):
         """Every stock undershoot context is mirrored, clearing its paint."""

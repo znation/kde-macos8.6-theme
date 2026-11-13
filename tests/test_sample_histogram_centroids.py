@@ -72,7 +72,6 @@ class TestSampleHistogramCentroids(CliTestCase):
         self.assertEqual(json.loads(direct.stdout), json.loads(script.stdout))
         self.assertIn("--color-centroids", self._run("--help").stdout)
 
-
     def test_crop_centroids_json_text_and_top_color_contributors(self):
         _, data = rgb_image(5, 3, lambda x, y: (
             (1, 2, 3) if (x, y) in {(1, 1), (3, 1), (1, 2)} else

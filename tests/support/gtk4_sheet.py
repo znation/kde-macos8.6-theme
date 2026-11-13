@@ -102,7 +102,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
             self.rules[SCALE_FOCUS]["outline-color"],
         )
 
-
     def assert_black_focus_outline(self, selectors):
         """Assert each of *selectors* appears once and states only the black
         focus outline, mirroring the base button focus outline's colour.
@@ -142,7 +141,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         )
         self.assert_black_focus_outline(selectors)
 
-
     def assert_scale_anchored_focus_outline(self, selectors):
         """Assert each of *selectors* occurs once and states the black focus
         outline the scale focus anchor states.
@@ -160,7 +158,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
                 )
                 self.assertEqual(self.selectors.count(selector), 1)
 
-
     def assert_scale_slider_transition(self, selector):
         """Assert *selector* keeps the no-transition the scale slider keeps."""
         self.assert_rule(selector, {"transition": "none"})
@@ -168,7 +165,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
             self.rules[selector]["transition"],
             self.rules[SCALE_SLIDER]["transition"],
         )
-
 
     def assert_matches_frame(self, selector, prop):
         """Assert *selector*'s *prop* value matches each frame arm's.
@@ -184,7 +180,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
                     self.rules[frame][prop],
                 )
 
-
     def assert_square_corner(self, selector):
         """Assert *selector* carries exactly the square-corner rule.
 
@@ -195,7 +190,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
         """
         self.assertEqual(self.rules[selector], {"border-radius": "0"}, selector)
         self.assert_matches_frame(selector, "border-radius")
-
 
     def assert_plain_action_arms(self, prefix):
         # No reference screenshot shows a GTK colour-class action button;
@@ -277,7 +271,6 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
             },
             expected_selectors,
         )
-
 
     def _assert_toast_matches_popover(self, selector):
         """Pin the toast's box properties to its popover family's."""

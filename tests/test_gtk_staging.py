@@ -442,7 +442,6 @@ class TestCommit(StagingCase):
         for _, staging in staged:
             self.assertFalse(staging.exists())
 
-
     def test_a_directory_target_is_refused_and_the_earlier_write_is_restored(
         self,
     ):

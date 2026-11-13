@@ -85,7 +85,6 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
 
-
     def test_osd_container_bands(self):
         selectors = (
             ".osd .scale-popup",
@@ -329,7 +328,6 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
             self.selectors.index(".osd scale > trough > slider:disabled"), first
         )
         self.assertLess(last, self.selectors.index(".osd .scale-popup button.flat"))
-
 
     def test_osd_progress_scale(self):
         progress_trough = PROGRESSBAR_TROUGH

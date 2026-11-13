@@ -71,9 +71,6 @@ ICON_GO_NEXT = (
 class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
 
-
-
-
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar trough",

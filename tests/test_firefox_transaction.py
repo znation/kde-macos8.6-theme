@@ -262,7 +262,6 @@ class TestPublishInstall(unittest.TestCase):
             # its previous text back before the user.js restore was attempted.
             self.assertEqual(b"previous chrome", sheet.read_bytes())
 
-
     def test_an_unreadable_published_user_js_collects_its_refusal_into_the_error(
         self,
     ):

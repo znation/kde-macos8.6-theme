@@ -43,7 +43,6 @@ class TestSampleHistogramOffset(CliTestCase):
         self.assertIsNone(args.color_offset)
         self.assertIn("--color-offset K", build_parser().format_help())
 
-
     def test_ranked_pages_filters_metadata_and_text(self):
         pixels = ((0, 0, 0),) * 3 + ((0, 1, 0),) * 2 + ((1, 0, 0),) * 2 + ((2, 0, 0),)
         path = self._write(self._tmp_dir(), "page.png", rgb_image(8, 1, lambda x, y: pixels[x])[1])

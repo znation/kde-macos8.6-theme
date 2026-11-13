@@ -70,7 +70,6 @@ class TestRequireEqualLengths(unittest.TestCase):
                 ):
                     byteops.require_equal_lengths(b"\x01", b"", name)
 
-
     def test_non_bytes_a_raises_naming_type(self):
         # A non-byte first argument must be rejected by type, not silently
         # coerced or mis-measured; the diagnostic names the caller and the

@@ -1456,7 +1456,6 @@ class TestSessionCommand(unittest.TestCase):
             gtk_dialog_client(None),
         )
 
-
     def test_carries_the_slider_dialog_client_words(self):
         with self._dialog_command(slider_dialog_client) as (_, command):
             # The slider's prompt, minimum, maximum and step travel as

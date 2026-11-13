@@ -119,7 +119,6 @@ class TestSampleRunsMaximumLength(CliTestCase):
                              "--max-run-length", "2", "--json")
         self.assertEqual(json.loads(fallback.stdout)["runs"][0]["alpha"], 255)
 
-
     def test_offset_crop_cutoffs_keep_segment_starts_and_gaps(self):
         colors = [(1, 2, 3), (1, 2, 3), (9, 8, 7), (9, 8, 7), (9, 8, 7),
                   (1, 2, 3), (4, 5, 6), (4, 5, 6)]

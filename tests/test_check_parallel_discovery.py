@@ -129,7 +129,6 @@ class TestDiscovery(unittest.TestCase):
             check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
-
     def test_files_unittest_cannot_load_are_skipped(self):
         # unittest discovery gates every file on VALID_MODULE_NAME (a valid
         # Python identifier ending in .py) before the pattern match, so a
@@ -149,7 +148,6 @@ class TestDiscovery(unittest.TestCase):
             ["test_ok"],
             check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
-
 
     def test_modules_sharing_one_log_stem_get_unique_paths(self):
         # The dotted module name becomes one _-joined log stem, and two

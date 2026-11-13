@@ -431,7 +431,6 @@ class TestWriteConfigs(unittest.TestCase):
         # no leftover temp files
         self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
 
-
     def test_failed_write_before_fdopen_closes_descriptor(self):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"

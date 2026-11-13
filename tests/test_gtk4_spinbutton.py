@@ -36,10 +36,8 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
 
-
     def test_spinbutton_focus_transition(self):
         self.assert_scale_slider_transition("spinbutton")
-
 
     def test_spinbutton_steppers(self):
         """Pin the restated stock plain spinbutton stepper arms.
@@ -168,7 +166,6 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertLess(
             last, self.selectors.index(".osd spinbutton.vertical > text")
         )
-
 
     def test_spinbutton_axis_corner_chains(self):
         """Pin the restated stock plain-axis spinbutton end-corner chains.

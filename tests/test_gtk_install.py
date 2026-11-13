@@ -175,7 +175,6 @@ class TestInstall(unittest.TestCase):
                         os.path.join(dirpath, name),
                     )
 
-
     def test_make_install_leaves_preexisting_kvantum_file_untouched(self):
         with installed_destdir(self, packages="gtk") as tmp:
             installed = _installed_dir(tmp)

@@ -79,9 +79,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         for rule in earlier:
             self.assertGreater(selected_rule, css.index(rule))
 
-
-
-
     def test_theme_read_refuses_a_symlink_escape(self):
         """A checked-in symlink must not feed a private file to a diagnostic."""
         with tempfile.TemporaryDirectory() as tmp:

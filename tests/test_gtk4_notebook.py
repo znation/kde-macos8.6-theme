@@ -15,7 +15,6 @@ class TestGtk4Notebook(Gtk4SheetRuleCases, unittest.TestCase):
             "notebook > header > tabs > tab:checked"
         )
 
-
     def test_notebook_tab_close_button_arms(self):
         for selector in (
             "notebook > header > tabs > tab button.flat",
@@ -27,7 +26,6 @@ class TestGtk4Notebook(Gtk4SheetRuleCases, unittest.TestCase):
             "notebook > header > tabs > tab button.flat:backdrop:disabled",
         ):
             self.assert_rule(selector, {"color": DISABLED_TEXT["color"]})
-
 
     def test_notebook_tab_scroll_arrow_faces(self):
         """Pin the 2026-11-11 notebook overflow-arrow restatement."""
@@ -134,12 +132,10 @@ class TestGtk4Notebook(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
 
-
     def test_notebook_focus_outline_color(self):
         self.assert_scale_focus_outline(
             "notebook:focus:focus-visible > header > tabs > tab:checked"
         )
-
 
     def test_notebook_header(self):
         self.assert_rule(

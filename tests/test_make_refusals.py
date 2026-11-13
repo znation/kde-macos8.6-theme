@@ -878,7 +878,6 @@ class TestShellUnsafeCheckVariables(unittest.TestCase):
             with self.subTest(variable=variable):
                 self._assert_check_metachar_is_refused(variable)
 
-
     def _assert_check_refused(self, variable, byte, env_value=None):
         """Drive `make check` with a control byte in *variable*; refuse it.
 

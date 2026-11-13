@@ -174,8 +174,6 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
             list(HEADER_FACE_ARMS + HEADER_HOVER_ARMS),
         )
 
-
-
     def test_library_tree_rules_match_the_required_rules(self):
         for selector in TREE_RULES:
             with self.subTest(selector=selector):

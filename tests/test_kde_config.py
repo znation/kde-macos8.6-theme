@@ -158,7 +158,6 @@ class TestReadKdeConfig(unittest.TestCase):
         )
         assert_fifo_read_refused(self, child, path)
 
-
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can
         # point at a private file; configparser's errors echo the offending

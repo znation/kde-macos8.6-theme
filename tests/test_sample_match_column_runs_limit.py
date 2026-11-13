@@ -148,7 +148,6 @@ class TestSampleMatchColumnRunsLimit(CliTestCase):
         self.assertEqual(json.loads(tolerant.stdout)["match"]["column_runs"],
                          [{"x": 0, "y": 0, "length": 2}])
 
-
     def test_cap_follows_length_filters_and_preserves_summaries(self):
         target = (1, 2, 3)
         matches = ({0, 2, 3, 5, 6, 7}, {8})
