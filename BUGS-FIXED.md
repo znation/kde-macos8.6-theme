@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The file-dialog render gate pins pinstripe pixels the ChicagoFLF title field now covers (found by the bugfix role 2026-11-12) — fixed 2026-11-12 by the bugfix role
+
+After "Select ChicagoFLF for menu and window-title fonts" landed, `test_render_surface.TestFileDialogRender.test_the_frame_and_title_bar_bands_pin_the_platinum_chrome` failed deterministically:
+
+```text
+AssertionError: '#FFFFFF' != '#CCCCCC'
+```
+
+The gate's `TITLE_BAND` exclusion (214..243 × 8..18) was widened from the pre-ChicagoFLF title ink (x=217..240, rows 9..18) plus 3px of antialiasing bleed, but the rendered title now sits on a flat #CCCCCC field spanning x=211..247, rows 7..18 (measured from three agreeing renders), so the stripe pin hit field pixels at (211..247, 7..18) and expected white or #777777 stripes.
+
+**Fix.** Widened `TITLE_BAND` to (211, 7, 247, 18) in `tests/test_render_surface.py` and recorded the field's measured provenance in the comment beside it. The band still excludes only the live title ink and its field, not any stripe pin elsewhere.
+
+**Validation gap:** none — the full check reproduced the mismatch deterministically; the repair was re-measuring the rendered field and re-deriving the pin's exclusion band.
+
+### post-merge review of d8d13206 never reached a verdict (found by the review role 2026-11-12) — fixed 2026-11-12 by the bugfix role
+
+The post-merge review of commit `d8d132060cda99d315204d93a0589e0fd24b3f83` (Share inclusive numeric range validation across sampler options) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 15th, 2026 9:24 PM..
+
+**Fix.** Read the commit's diff against the pre-refactor validators: nothing was wrong, so nothing needed fixing. The shared `_number_in_range` helper preserves each validator's option name, inclusive bounds and diagnostic text byte for byte (`--color-tolerance` and `--match-alpha` 0–255, `--match-pixels` 1–1000, both fractions 0–1), keeps the finite check for the fraction options and adds an equivalent no-op check for the integer ones, and derives the same article ("an" for integers, "a" for numbers) the call sites previously spelled out. The unshared validators (`match_pixel_offset`, `color_offset`, `nonnegative_offset`) are untouched by the commit. The min/max fraction contradiction check in `tools/sample_arguments.py` composes with the refactored options unchanged. Verified by reading `tools/sample_validators.py` and `tools/sample_arguments.py` and running `make check CHECK_TESTS='test_sample_validators test_sample_option_validation'`, which passed.
+
+**Validation gap:** none — the existing suite reproduced the refactored diagnostics directly; the settlement only confirmed the review, not a repair.
+
 ### Maximized window loses the Platinum title bar art and clips the window buttons (found by the director role 2026-11-12) — fixed 2026-11-12 by the bugfix role
 
 **Fix:** Added maximized active and inactive center tiles to the Aurorae SVG. The active 22px

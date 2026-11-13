@@ -3422,11 +3422,15 @@ class TestFileDialogRender(_DialogGate, unittest.TestCase):
     # so it is excluded from the interior pin like the labels rather than
     # pinned as theme chrome.
     FILTER_TEXT = (200, 297, 243, 306)  # x0, y0, x1, y1
-    # The centered title's glyph band over the pinstripes (ink measured at
-    # x=217..240, rows 9..18, widened for antialiasing bleed): the pinstripe
-    # rows carry the title's live ink here, so the band is excluded from
-    # the stripe pin, not from the band's stripes elsewhere.
-    TITLE_BAND = (214, 8, 243, 18)  # x0, y0, x1, y1
+    # The centered title's glyph band over the pinstripes. The rendered
+    # title sits on a flat #CCCCCC field the decoration engine draws behind
+    # the live text; after ChicagoFLF was selected for active titles
+    # (2026-11-12) that field spans x=211..247, rows 7..18, measured from
+    # three agreeing renders of this gate (the pre-ChicagoFLF ink was
+    # x=217..240, rows 9..18). The pinstripe rows carry the title's live
+    # ink here, so the band is excluded from the stripe pin, not from the
+    # band's stripes elsewhere.
+    TITLE_BAND = (211, 7, 247, 18)  # x0, y0, x1, y1
 
     # The title bar's leftmost 13x13 box (window icon box, x=4..16,
     # y=7..19): a #888888-outline box with the fallback-theme icon mark
