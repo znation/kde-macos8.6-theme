@@ -150,6 +150,71 @@ production behavior changes.
 - `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_disabled.py`
   and `docs/invariants.md`. `make check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate spinbutton declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
+class. That breaks the principle that a file is small enough to read in one sitting.
+Move the four `test_spinbutton_*` declaration checks (384 lines at this plan's base
+commit) into their own module, the same way the landed OSD (`tests/test_gtk4_osd.py`)
+and scale (`tests/test_gtk4_scale.py`) parts moved theirs. This is independent of
+"README split, part 5/5" (that entry moves user-facing prose) and of the waiting
+"GTK 4 suite extraction: isolate disabled declarations" (that entry moves only
+`test_disabled_*` methods; the two method sets do not overlap and neither entry edits
+the other's invariants rows). At implementation re-grep every anchor this entry names,
+since both extraction entries edit `tests/test_gtk4_theme.py` and `docs/invariants.md`.
+No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_spinbutton.py` with
+  `class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line
+  module docstring. Move every `TestGtk4Theme` method whose name starts with
+  `test_spinbutton_` into it, keeping each method's body and docstring unchanged:
+  `test_spinbutton_focus_outline_color`, `test_spinbutton_focus_transition`,
+  `test_spinbutton_steppers` and `test_spinbutton_axis_corner_chains`. Spin-named
+  methods that do not start with `test_spinbutton_` stay where they are:
+  `test_spin_button_field`, `test_spin_field_mirrors_the_etch_in_rtl`,
+  `test_row_spin_stepper_corners` and `test_spinner`; the spin render probe already
+  lives in `tests/test_gtk4_spin_probe.py` (landed part 3/9).
+- The new module imports exactly the names the moved bodies use:
+  `BUTTON_BEVEL`, `ENTRY_PROGRESS_GTK4`, `ETCH_DARK` and `PROGRESSBAR_TROUGH` from
+  `support.gtk_theme_spec`, and `BLACK`, `FACE`, `GREY`, `TROUGH` and `WHITE` from
+  `support.platinum_palette`. Every assertion helper the bodies call
+  (`assert_rule`, `assert_rule_group`, `assert_rule_after`, `assert_exact_rule_once`,
+  `assert_scale_focus_outline`, `assert_scale_slider_transition`,
+  `assert_matches_frame`, `assert_square_corner`) and the
+  `self.rules`/`self.selectors` attributes come with `Gtk4SheetRuleCases` and its
+  base classes. The moved bodies call no other support name (grep-checked at this
+  plan's base commit: no `gtk_css`, `strip_comments`, `parse_css`, `HEX`,
+  `DEFINED_COLOURS`, `SCALE_SLIDER`, `CSS`, mock, tempfile, re or reference-image
+  use), so `tests/test_gtk4_theme.py`'s import block needs no change: each of the
+  nine constants is still referenced by remaining methods after the move (grep count
+  per name is greater in the whole file than inside the moved bodies). Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+- In `docs/invariants.md`, rewrite each dotted anchor
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_spinbutton_…` to
+  `tests/test_gtk4_spinbutton.py::TestGtk4Spinbutton::test_spinbutton_…`
+  (`grep -n 'TestGtk4Theme::test_spinbutton' docs/invariants.md` finds them at this
+  plan's base commit). Leave the rows' prose alone, including back-ticked
+  `test_spinbutton_focus_outline_color` mentions in reuse lists that are not dotted
+  anchors and row 374's `test_spin_button_field` anchors. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four moved methods exactly once, under
+  `test_gtk4_spinbutton.TestGtk4Spinbutton`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still listed
+  there.
+- For each moved method, the AST of its function definition is identical to the
+  original's at this plan's base commit, checked once during the run (for example by
+  comparing `ast.dump` output). This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_spinbutton' docs/invariants.md` prints nothing, and
+  the invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 380 lines, and
+  `tests/test_gtk4_spinbutton.py` stays under about 450 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_spinbutton.py` and `docs/invariants.md`. `make check` passes after
+  the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
