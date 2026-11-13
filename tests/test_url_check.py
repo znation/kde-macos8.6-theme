@@ -138,6 +138,19 @@ class TestBracketedHosts(unittest.TestCase):
         ):
             self.assertTrue(is_absolute_url(url), url)
 
+    def test_ipvfuture_version_is_hex_and_the_tail_holds_the_full_set(self):
+        # RFC 3986 IPvFuture: "v" 1*HEXDIG "." 1*( unreserved / sub-delims
+        # / ":" ). The version is a run of hex digits, not decimal digits,
+        # and the tail after the dot may hold every unreserved byte, every
+        # sub-delim and the colon.
+        for url in (
+            "https://[vA.b]/x",
+            "https://[vFF.~_]/x",
+            "https://[v07.a!$&'()*+,;=]/x",
+            "https://[v1.:colon]/x",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
     def test_malformed_bracketed_hosts_are_rejected(self):
         for url in (
             "https://[]/x",
@@ -155,6 +168,20 @@ class TestBracketedHosts(unittest.TestCase):
             "https://[fe80::1%eth0]/x",
             "https://[fe80::1%25eth0]/x",
             "https://[::1%eth0]/x",
+        ):
+            self.assertFalse(is_absolute_url(url), url)
+
+    def test_malformed_ipvfuture_literals_are_rejected(self):
+        # A literal that starts like an IPvFuture but breaks its ABNF is not
+        # an IP-literal: a version holding a non-hex digit, a version with
+        # no digit at all, an empty tail and a tail byte outside the ABNF
+        # set are all refused with the same "must bracket an IPv6 or
+        # IPvFuture address" diagnostic the ``[not-an-ip]`` case pins.
+        for url in (
+            "https://[vG.a]/x",
+            "https://[v.a]/x",
+            "https://[v1.]/x",
+            "https://[v1.a<b]/x",
         ):
             self.assertFalse(is_absolute_url(url), url)
 
