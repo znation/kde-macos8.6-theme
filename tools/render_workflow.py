@@ -83,7 +83,10 @@ def _client_exited_during_capture(log: Path) -> bool:
             return CLIENT_EXITED_DURING_CAPTURE in handle.read(
                 _EXIT_MARKER_TAIL_BYTES
             ).decode("utf-8", "replace")
-    except OSError:
+    except (OSError, ValueError):
+        # ValueError names a non-regular log (the open guard's FIFO or device
+        # refusal), the same pair the failure report and the publish path
+        # catch for this guard, so the generic diagnosis survives it too.
         return False
 
 
