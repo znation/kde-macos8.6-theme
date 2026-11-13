@@ -121,5 +121,6 @@ class TestGtk4Tabbar(Gtk4SheetRuleCases, unittest.TestCase):
             self.selectors.index("stackswitcher > button"),
         )
 
+
 if __name__ == "__main__":
     unittest.main()
