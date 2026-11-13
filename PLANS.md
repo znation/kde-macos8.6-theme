@@ -103,15 +103,15 @@ commit). Move the three `test_linked`-prefixed declaration checks
 the same way the landed OSD (`tests/test_gtk4_osd.py`), scale,
 spinbutton, disabled, emoji, entry, notebook, scrollbar, switch,
 progressbar, levelbar, view, selected, button, row, treeview,
-tabbar and sidebar parts moved theirs, and the waiting "GTK 4
-suite extraction: isolate menu declarations" (a held feature branch
-moves it) and "… isolate checkbutton declarations" entries move
-their own. This is independent of both: neither moves a
-`test_linked` method, and this entry prunes no import at all (the
-moved bodies call no `support.gtk_theme_spec` name — see below),
-while the menu entry prunes `MENUBUTTON_ARROWS` and `MENU_CHECK`
-from the `support.gtk_theme_spec` block and the checkbutton entry
-prunes nothing; all three edit `tests/test_gtk4_theme.py` and
+tabbar, sidebar and checkbutton parts moved theirs, and the waiting
+"GTK 4 suite extraction: isolate menu declarations" (a held
+feature branch moves it) entry moves its own. This is independent
+of that waiting entry: neither moves a `test_linked` method, and
+this entry prunes no import at all (the moved bodies call no
+`support.gtk_theme_spec` name — see below), while the menu entry
+prunes `MENUBUTTON_ARROWS` and `MENU_CHECK` from the
+`support.gtk_theme_spec` block (the landed checkbutton part pruned
+nothing); both edit `tests/test_gtk4_theme.py` and
 `docs/invariants.md`, so whichever merges later re-reads those two
 files before writing. The source module has no other test method
 whose name contains `linked` (the staying `symlinked_repo` helper
