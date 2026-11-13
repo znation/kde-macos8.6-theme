@@ -91,6 +91,33 @@ def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
     return out
 
 
+def _still_selected(
+    kde: dict[tuple[str, str], str],
+    path: str,
+    section: str,
+    key: str,
+    expected: str,
+    subject: str,
+    consequence: str,
+) -> str | None:
+    """The warning when *key* still holds the selection the apply published.
+
+    The last value *key* holds in *section* is compared to *expected*; a
+    match yields the diagnostic line naming the ``kwriteconfig6 --delete``
+    reset, any other value yields ``None``. Callers state only the subject
+    and consequence prose; the checked key=value pair and the reset command
+    are derived from *section* and *key*.
+    """
+    if kde.get((section, key)) != expected:
+        return None
+    return (
+        f"uninstall: {subject} ([{section}] {key}={expected}) is still in"
+        f" {path} after removal; {consequence}. Reset it with:"
+        f" kwriteconfig6 --file kdeglobals --group {section} --key {key}"
+        " --delete"
+    )
+
+
 def kdeglobals_messages(
     config_home: str, scheme_id: str, icon_theme_id: str, lnf_id: str
 ) -> list[str]:
@@ -122,34 +149,41 @@ def kdeglobals_messages(
             " falls back to BreezeLight on the next start. Reset it with:"
             " plasma-apply-colorscheme BreezeLight"
         )
-    if kde.get(("KDE", "widgetStyle")) == "kvantum":
-        messages.append(
-            "uninstall: the widget-style selection the look-and-feel"
-            " apply wrote ([KDE] widgetStyle=kvantum) is still in"
-            f" {path} after removal; every Qt start keeps"
-            " selecting the style that key names whether or not it still"
-            " resolves. Reset it with: kwriteconfig6 --file kdeglobals"
-            " --group KDE --key widgetStyle --delete"
+    selections = (
+        (
+            ("KDE", "widgetStyle"),
+            "kvantum",
+            "the widget-style selection the look-and-feel apply wrote",
+            "every Qt start keeps selecting the style that key names"
+            " whether or not it still resolves",
+        ),
+        (
+            ("Icons", "Theme"),
+            icon_theme_id,
+            "the icon-theme selection the look-and-feel apply wrote",
+            "KDE and Qt applications cannot load the removed icon theme"
+            " and keep the default icons",
+        ),
+    )
+    for (section, key), expected, subject, consequence in selections:
+        warning = _still_selected(
+            kde, path, section, key, expected, subject, consequence
         )
-    if kde.get(("Icons", "Theme")) == icon_theme_id:
-        messages.append(
-            "uninstall: the icon-theme selection the look-and-feel apply"
-            f" wrote ([Icons] Theme={icon_theme_id}) is still in"
-            f" {path} after removal; KDE and Qt applications"
-            " cannot load the removed icon theme and keep the default"
-            " icons. Reset it with: kwriteconfig6 --file kdeglobals"
-            " --group Icons --key Theme --delete"
-        )
+        if warning is not None:
+            messages.append(warning)
     messages.extend(_font_diagnostics(kde, path))
-    if kde.get(("KDE", "LookAndFeelPackage")) == lnf_id:
-        messages.append(
-            "uninstall: the global theme the look-and-feel apply step"
-            f" selected ([KDE] LookAndFeelPackage={lnf_id}) is still in"
-            f" {path} after removal; Plasma keeps naming the"
-            " removed global theme and draws the stock look-and-feel on"
-            " the next start. Reset it with: kwriteconfig6 --file"
-            " kdeglobals --group KDE --key LookAndFeelPackage --delete"
-        )
+    warning = _still_selected(
+        kde,
+        path,
+        "KDE",
+        "LookAndFeelPackage",
+        lnf_id,
+        "the global theme the look-and-feel apply step selected",
+        "Plasma keeps naming the removed global theme and draws the"
+        " stock look-and-feel on the next start",
+    )
+    if warning is not None:
+        messages.append(warning)
     return messages
 
 
