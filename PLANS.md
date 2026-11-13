@@ -95,23 +95,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 recorded here to keep the scope deliberate.
 
 
-### README split, part 2/5: move "Installation details" into docs/installing.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
-
-**Goal.** Move README's `### Installation details` subsection, the longest in the file (about 430 lines, with paragraphs that are a single very long line), into a new `docs/installing.md`. README keeps `### Quick start`, `### Staging packages`, `### Removing the theme` and `#### Restoring personal GTK 4 CSS`.
-
-**Approach.**
-- Cut the whole `### Installation details` subsection, from its heading up to `### Rendering a candidate`, and paste it verbatim into `docs/installing.md`. The new file starts with a `# Installation details` H1 and a one-line back link to `../README.md#installing`, then promotes the moved headings one level. Copy the prose and code exactly; shortening it is not this part's job.
-- In README, put a short `### Installation details` stub in the subsection's place. It has two to four lines saying what the guide covers (which files each package installs, what `make apply` changes, GTK/Firefox/cursor selection details) and a link to `docs/installing.md`.
-- Repoint every link into the moved text: README `(#frag)` links (including the Prerequisites table's "See [Installing](#installing)" links, wherever the detail now lives) become `docs/installing.md#frag`, and links in the moved text back to sections still in README become `../README.md#frag`. Part 1/5's link test checks both directions.
-- Retarget the tests whose README text moved so they read `user_docs.read_user_docs()` instead of README alone. Expected: `tests/test_readme_theme_files.py` (shipped SVG names), `tests/test_desktoptheme_legacy.py` (`README_ANCHOR`; that test reads README directly with `open`), `tests/support/firefox_chrome_cases.py` (`cls.readme`), `tests/test_make_help.py::test_readme_names_every_public_target`, and the `make`-target/tool/package-path scans in `tests/test_readme_commands.py`. Run `make check` before retargeting to find any others. Each retargeted test keeps its containment-refusal case. Update any `docs/invariants.md` row that names README as where the moved text lives.
-
-**Files.** `README.md`, `docs/installing.md` (new), the tests listed above, `docs/invariants.md` (only the rows that name the moved text).
-
-**Acceptance criteria.**
-- After the move, the moved subsection's content appears in `docs/installing.md` byte-for-byte, apart from heading levels and repointed link targets. Show that with a diff against the removed README lines that ignores those changes, and record how in VERIFIED.
-- README no longer contains the sentence beginning "The package carries no art for the twelve legacy". `tests/test_desktoptheme_legacy.py` still finds it, through the corpus.
-- README.md is at least 350 lines shorter. `make check` passes after the final edit, with no test deleted or skipped to get there.
-
 ### README split, part 3/5: move "Rendering a candidate" into docs/rendering.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
 
 **Goal.** Move README's `### Rendering a candidate` subsection (about 170 lines: the `make render` modes and their dialog gates) into a new `docs/rendering.md`.

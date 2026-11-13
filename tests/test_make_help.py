@@ -16,6 +16,7 @@ from support.fifo_fixtures import assert_fifo_read_refused
 from support.process_assertions import assert_succeeded
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
+from support.user_docs import read_user_docs
 
 
 def _read_repo_file(name):
@@ -23,10 +24,9 @@ def _read_repo_file(name):
 
     ``Makefile`` and ``README.md`` are contributor-supplied, and a checked-in
     symlink at either path can point at a private file. The target and
-    variable names parsed from the Makefile, and the README text itself, reach
-    assertion diagnostics that echo them (``assertRegex`` prints the whole
-    text it searched), so a path that resolves outside the repository is
-    refused before it is opened.
+    variable names parsed from the Makefile reach assertion diagnostics that
+    echo them (``assertRegex`` prints the whole text it searched), so a path
+    that resolves outside the repository is refused before it is opened.
     """
     return containment.read_text(
         os.path.join(repo_root.ROOT, name), repo_root.ROOT,
@@ -38,9 +38,9 @@ class TestReadFileContainment(unittest.TestCase):
     """The README/Makefile read refuses a symlink that escapes the repository.
 
     A checked-in symlink at ``Makefile`` or ``README.md`` can point at a
-    private file, and the names parsed from it (and the README's whole text,
-    which ``assertRegex`` echoes) reach failure diagnostics; the read must
-    refuse such a path before it is opened rather than leak the private file.
+    private file, and the names parsed from it reach failure diagnostics; the
+    read must refuse such a path before it is opened rather than leak the
+    private file.
     """
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
@@ -63,25 +63,25 @@ class TestReadFileContainment(unittest.TestCase):
             self.assertEqual(_read_repo_file("README.md"), "make check\n")
 
     def test_refuses_a_fifo_instead_of_blocking(self):
-        # `test_readme_names_every_public_target` reads README through this
+        # `test_names_every_public_target` reads the Makefile through this
         # helper; a FIFO at that path would block open() forever. Run in a
         # child so the pre-fix hang is a bounded timeout, not a stalled suite.
         if not hasattr(os, "mkfifo"):
             self.skipTest("os.mkfifo is not available on this platform")
         root = make_tmp_dir(self) / "repo"
         root.mkdir()
-        os.mkfifo(root / "README.md")
+        os.mkfifo(root / "Makefile")
         child = snippet_child.run(
             [
                 "import sys, test_make_help; "
                 "test_make_help.repo_root.ROOT = sys.argv[1]; "
-                "test_make_help._read_repo_file('README.md')",
+                "test_make_help._read_repo_file('Makefile')",
                 str(root),
             ],
             cwd=os.path.dirname(os.path.abspath(__file__)),
             timeout=10,
         )
-        assert_fifo_read_refused(self, child, root / "README.md")
+        assert_fifo_read_refused(self, child, root / "Makefile")
 
 
 class TestHelp(unittest.TestCase):
@@ -315,21 +315,22 @@ class TestHelp(unittest.TestCase):
                 )
 
     def test_readme_names_every_public_target(self):
-        r"""README is the entry point, so it must name every public target.
+        r"""The user-docs corpus must name every public target.
 
         `make help` is only discoverable if a contributor already knows it
-        exists, so the README has to mention each target; a target added to
-        the Makefile without a README line otherwise stays invisible. The
-        `(?![-\w])` guard keeps a shorter target from matching as a prefix of
-        a longer one (`check` inside `check-references`).
+        exists, so the README or a guide it links has to mention each target;
+        a target added to the Makefile without a user-docs line otherwise
+        stays invisible. The `(?![-\w])` guard keeps a shorter target from
+        matching as a prefix of a longer one (`check` inside
+        `check-references`).
         """
-        text = _read_repo_file("README.md")
+        text = read_user_docs(repo_root.ROOT)
         for target in self._public_targets():
             with self.subTest(target=target):
                 self.assertRegex(
                     text,
                     rf"make {re.escape(target)}(?![-\w])",
-                    f"README does not name target {target!r}",
+                    f"user docs do not name target {target!r}",
                 )
 
     def test_names_every_tunable_variable_default(self):

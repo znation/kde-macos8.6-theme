@@ -21,6 +21,7 @@ from support.css_header import CommentHeaderAssertions
 from support.gtk_css import parse_css
 from support.gtk_rule_cases import SheetRuleAssertions
 from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, RAISED_BEVEL
+from support.user_docs import read_user_docs
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -42,7 +43,6 @@ SHEET = (
     / "chrome"
     / "userChrome.css"
 )
-README = Path(ROOT) / "README.md"
 SHEET_PATH = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
 
 # Firefox's stock Linux menubar > menu rule keeps a 3px transparent bottom
@@ -671,7 +671,7 @@ _chrome_fixture = None
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase
 ):
-    """Base case loading the sheet text, README and parsed rules once.
+    """Base case loading the sheet text, the user-docs corpus and parsed rules once.
 
     The ``CommentHeaderAssertions`` mixin serves the section modules'
     header-provenance tests.
@@ -689,7 +689,7 @@ class FirefoxChromeTestCase(
         global _chrome_fixture
         if _chrome_fixture is None:
             text = containment.read_text(SHEET, ROOT, encoding="utf-8")
-            readme = containment.read_text(README, ROOT, encoding="utf-8")
+            readme = read_user_docs(ROOT)
             colours, rules, selectors = parse_css(text, source=SHEET_PATH)
             _chrome_fixture = (text, readme, colours, rules, selectors)
         (cls.text, cls.readme,

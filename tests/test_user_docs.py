@@ -70,10 +70,13 @@ class TestReadUserDocs(unittest.TestCase):
             read_user_docs(root),
         )
 
-    def test_on_this_repository_readme_links_no_guide_yet(self):
+    def test_on_this_repository_readme_links_the_installing_guide(self):
         readme = containment.read_text(f"{ROOT}/README.md", ROOT, encoding="utf-8")
-        self.assertEqual([], linked_guides(readme))
-        self.assertEqual(readme, read_user_docs())
+        self.assertEqual(["docs/installing.md"], linked_guides(readme))
+        guide = containment.read_text(
+            f"{ROOT}/docs/installing.md", ROOT, encoding="utf-8"
+        )
+        self.assertEqual(readme + "\n\n" + guide, read_user_docs())
 
     def test_a_symlinked_guide_that_escapes_the_repository_is_refused(self):
         root = make_tmp_dir(self)

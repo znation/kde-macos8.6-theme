@@ -19,6 +19,7 @@ import unittest
 from support.desktoptheme_paths import PACKAGE
 from support.repo_root import ROOT
 from support.shipped_files import shipped_files
+from support.user_docs import read_user_docs
 
 LEGACY_STEMS = (
     "analog_meter",
@@ -36,7 +37,6 @@ LEGACY_STEMS = (
 )
 
 INVARIANTS_MD = os.path.join(ROOT, "docs", "invariants.md")
-README_MD = os.path.join(ROOT, "README.md")
 README_ANCHOR = (
     "The package carries no art for the twelve legacy "
     "default-theme widget names"
@@ -136,24 +136,23 @@ class TestDesktopThemeLegacy(unittest.TestCase):
             "the invariant row names a different stem set or order",
         )
 
-        with open(README_MD, encoding="utf-8") as handle:
-            readme = handle.read()
-        start = readme.find(README_ANCHOR)
+        corpus = read_user_docs()
+        start = corpus.find(README_ANCHOR)
         self.assertGreater(
             start,
-            readme.find("translucent rounded rectangle"),
-            "the README sentence sits after the anchor surface",
+            corpus.find("translucent rounded rectangle"),
+            "the corpus sentence sits after the anchor surface",
         )
-        guard = readme.find(README_GUARD_MENTION, start)
+        guard = corpus.find(README_GUARD_MENTION, start)
         self.assertEqual(
-            stem_spans(readme[start:guard]),
+            stem_spans(corpus[start:guard]),
             list(LEGACY_STEMS),
-            "the README sentence names a different stem set or order",
+            "the corpus sentence names a different stem set or order",
         )
         self.assertGreater(
-            readme.find("The window decoration ships", start),
+            corpus.find("The window decoration ships", start),
             guard,
-            "the README sentence sits after the window-decoration paragraph",
+            "the corpus sentence sits after the window-decoration paragraph",
         )
 
 

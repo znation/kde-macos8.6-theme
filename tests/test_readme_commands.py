@@ -1,8 +1,9 @@
-"""Commands and paths README tells a reader to use must exist.
+"""Commands and paths the user docs tell a reader to use must exist.
 
-README names `make` targets, `tools/*.py` scripts and a few package paths. A
-renamed target or script leaves the instruction pointing at nothing; these
-tests derive the names from README and fail when one has no counterpart.
+The user-docs corpus (README plus the guides it links) names `make` targets,
+`tools/*.py` scripts and a few package paths. A renamed target or script
+leaves the instruction pointing at nothing; these tests derive the names from
+the corpus and fail when one has no counterpart.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from unittest import mock
 from support import containment
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
+from support.user_docs import read_user_docs
 from tools import render_surface
 
 _MAKE_TARGET = re.compile(r"\bmake\s+([a-z][a-z-]*)\b")
@@ -40,37 +42,37 @@ def read(name):
 
 class TestReadmeCommands(unittest.TestCase):
     def test_every_make_target_in_readme_is_defined(self):
-        named = set(_MAKE_TARGET.findall(read("README.md")))
+        named = set(_MAKE_TARGET.findall(read_user_docs(ROOT)))
         defined = set(_MAKEFILE_TARGET.findall(read("Makefile")))
-        self.assertTrue(named, "README names no make targets")
+        self.assertTrue(named, "user docs name no make targets")
         self.assertEqual(
-            set(), named - defined, "README names make targets the Makefile lacks"
+            set(), named - defined, "user docs name make targets the Makefile lacks"
         )
 
     def test_every_tool_script_in_readme_exists(self):
-        named = set(_TOOL_SCRIPT.findall(read("README.md")))
-        self.assertTrue(named, "README names no tools/ scripts")
+        named = set(_TOOL_SCRIPT.findall(read_user_docs(ROOT)))
+        self.assertTrue(named, "user docs name no tools/ scripts")
         missing = {n for n in named if not os.path.isfile(os.path.join(ROOT, n))}
-        self.assertEqual(set(), missing, "README names tools/ scripts not on disk")
+        self.assertEqual(set(), missing, "user docs name tools/ scripts not on disk")
 
     def test_every_package_path_in_readme_exists(self):
-        named = set(_PACKAGE_PATH.findall(read("README.md")))
-        self.assertTrue(named, "README names no theme/ or contents/ paths")
+        named = set(_PACKAGE_PATH.findall(read_user_docs(ROOT)))
+        self.assertTrue(named, "user docs name no theme/ or contents/ paths")
         missing = set()
         for path in named:
             base = ROOT if path.startswith("theme/") else LOOK_AND_FEEL
             if not os.path.isfile(os.path.join(base, path)):
                 missing.add(path)
-        self.assertEqual(set(), missing, "README names package files not on disk")
+        self.assertEqual(set(), missing, "user docs name package files not on disk")
 
     def test_readme_names_every_tool_make_render_requires(self):
-        readme = read("README.md")
-        start = readme.index("`make render` renders")
-        paragraph = readme[start : readme.index("\n\n", start)]
+        corpus = read_user_docs(ROOT)
+        start = corpus.index("`make render` renders")
+        paragraph = corpus[start : corpus.index("\n\n", start)]
         # `make` is the command the paragraph documents, so it is always named.
         wanted = [t for t in render_surface.REQUIRED_TOOLS if t != "make"]
         unnamed = [t for t in wanted if f"`{t}`" not in paragraph]
-        self.assertEqual([], unnamed, "make render needs tools README does not name")
+        self.assertEqual([], unnamed, "make render needs tools the corpus does not name")
 
 
 class TestReadCommandContainment(unittest.TestCase):

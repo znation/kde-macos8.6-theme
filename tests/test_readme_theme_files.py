@@ -1,9 +1,10 @@
-"""README's list of shipped theme SVGs must match the files on disk.
+"""The user-docs corpus's list of shipped theme SVGs must match the files on disk.
 
-README names every SVG the desktop theme and the window decoration ship, in
-backticks, so a contributor can find the artwork for a surface. Adding a widget
-SVG without naming it, or deleting one and leaving its name behind, makes that
-list lie; these tests derive both sides and fail when they disagree.
+The corpus (README plus the guides it links) names every SVG the desktop theme
+and the window decoration ship, in backticks, so a contributor can find the
+artwork for a surface. Adding a widget SVG without naming it, or deleting one
+and leaving its name behind, makes that list lie; these tests derive both sides
+and fail when they disagree.
 """
 
 from __future__ import annotations
@@ -17,12 +18,12 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from support import containment
 from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
 from support.fifo_fixtures import assert_fifo_read_refused
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
+from support.user_docs import read_user_docs
 from tools import containment as tools_containment
 
 _DESKTOP_TOKEN = re.compile(r"`((?:widgets|dialogs)/[^`/]+\.svg)`")
@@ -31,7 +32,7 @@ AURORAE_DIR = os.path.join(ROOT, "theme", "aurorae", "themes", "org.macos8.deskt
 
 
 def readme_text():
-    """Return the UTF-8 text of the repository's ``README.md``.
+    """Return the corpus text: ``README.md`` plus the guides it links.
 
     ``README.md`` is contributor-supplied, and a checked-in symlink at its
     path can point at a private file. The backticked SVG names this reader
@@ -41,8 +42,7 @@ def readme_text():
     large README is refused by name instead of being loaded whole) and refuses
     a FIFO or device by name instead of blocking `make check` forever.
     """
-    path = os.path.join(ROOT, "README.md")
-    return containment.read_text(path, ROOT)
+    return read_user_docs(ROOT)
 
 
 def shipped(package, pattern):
