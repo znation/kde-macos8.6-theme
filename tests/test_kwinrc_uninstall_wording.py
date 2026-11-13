@@ -105,6 +105,23 @@ class TestAuroraePairBuilders(unittest.TestCase):
         )
 
 
+class TestComposedFourKeyBody(unittest.TestCase):
+    """The recipe-order pins' staged body: the pair plus the button layout."""
+
+    def test_the_pair_body_then_the_button_lines_compose_the_four_keys(self):
+        # The aurorae-pair and decoration suites' recipe-order tests stage
+        # this composition; a swapped concatenation order or a dropped
+        # trailing newline would silently re-order or merge the staged keys.
+        self.assertEqual(
+            aurorae_pair_body() + button_lines(),
+            "[" + REMOVAL_GROUP + "]\n"
+            "library=org.kde.kwin.aurorae\n"
+            "theme=org.macos8.desktop\n"
+            "ButtonsOnLeft=X\n"
+            "ButtonsOnRight=AL\n",
+        )
+
+
 class TestAuroraeThemeBuilders(unittest.TestCase):
     """The `theme=`-only builders' exact bytes."""
 

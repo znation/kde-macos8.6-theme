@@ -37,6 +37,7 @@ from support.kwinrc_uninstall_wording import (
     button_body,
     button_lines,
     button_rule as rule_for,
+    write_kwinrc,
 )
 
 
@@ -49,11 +50,6 @@ def POINTER_RULE(path):
         "plasma-apply-cursortheme breeze_cursors"
     )
 
-
-
-def write_kwinrc(config, body):
-    """Write *body* as `<config>/kwinrc`; return its path."""
-    return write_config_file(config, "kwinrc", body)
 
 
 def write_kcminputrc(config):

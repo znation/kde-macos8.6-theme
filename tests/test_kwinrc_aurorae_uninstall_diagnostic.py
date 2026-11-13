@@ -33,7 +33,6 @@ from support.theme_install import (
     assert_diagnostics_in_order,
     assert_make_n_uninstall_parses,
     assert_uninstall_diagnostics,
-    write_config_file,
 )
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home
@@ -47,12 +46,10 @@ from support.kwinrc_uninstall_wording import (
     aurorae_pair_lines,
     aurorae_pair_rule as rule_for,
     button_body,
+    button_lines,
     button_rule as BUTTON_RULE,
+    write_kwinrc,
 )
-
-def write_kwinrc(config, body):
-    """Write *body* as `<config>/kwinrc`; return its path."""
-    return write_config_file(config, "kwinrc", body)
 
 
 class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
@@ -253,14 +250,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
 
     def test_both_kwinrc_diagnostics_share_one_run_in_recipe_order(self):
         tmp, config = make_config_home(self)
-        path = write_kwinrc(
-            config,
-            "[" + REMOVAL_GROUP + "]\n"
-            "library=org.kde.kwin.aurorae\n"
-            "theme=org.macos8.desktop\n"
-            "ButtonsOnLeft=X\n"
-            "ButtonsOnRight=AL\n",
-        )
+        path = write_kwinrc(config, aurorae_pair_body() + button_lines())
         result = assert_uninstall_diagnostics(self, tmp, config, unchanged=path)
         assert_diagnostics_in_order(
             self, result, [BUTTON_RULE(path), rule_for(path)]

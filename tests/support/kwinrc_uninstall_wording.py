@@ -20,7 +20,15 @@ foreign values, duplicates, CRLF endings or other groups; the
 `*_lines` primitives carry only the value lines for the shapes whose header
 or surrounding keys the staging test itself owns). Their exact bytes are
 pinned by `tests/test_kwinrc_uninstall_wording.py`.
+
+The suites also share the per-file staging helper `write_kwinrc`, whose
+single call site per suite stages a whole `kwinrc` body under the scratch
+config home, and the composed four-key body `aurorae_pair_body() +
+button_lines()` the recipe-order pins stage (our pair plus the button
+layout in one file).
 """
+
+from support.theme_install import write_config_file
 
 REMOVAL_GROUP = "org.kde.kdecoration2"
 LIBRARY_KEY = "library"
@@ -74,6 +82,16 @@ def aurorae_theme_lines(*, theme=AURORAE_THEME, eol="\n"):
 def aurorae_theme_body(*, theme=AURORAE_THEME):
     """A whole `kwinrc` body: our decoration group header plus only the theme."""
     return "[" + REMOVAL_GROUP + "]\n" + aurorae_theme_lines(theme=theme)
+
+
+def write_kwinrc(config, body):
+    """Write *body* as `<config>/kwinrc`; return its path.
+
+    The three kwinrc uninstall-diagnostic suites stage their bodies
+    through this one helper; the three former per-module copies were
+    identical.
+    """
+    return write_config_file(config, "kwinrc", body)
 
 
 def button_rule(path):
