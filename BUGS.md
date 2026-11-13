@@ -158,10 +158,6 @@ recorded inspection path is to select the installed theme and compare arrow, tex
 roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
 coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
 
-### post-merge review of fcf1bb3d never reached a verdict (found by the review role 2026-11-12)
-
-The post-merge review of commit `fcf1bb3dca79273b0da7fd89258a61a971546345` (recovered leftover work from feature: Select ChicagoFLF for menu and window-title fonts) never reached a verdict: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 15th, 2026 9:24 PM.. It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
