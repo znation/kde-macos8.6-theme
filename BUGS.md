@@ -85,6 +85,29 @@ regression. Use that evidence to choose the repair; do not increase the settle o
 of this diagnostic. This decision supersedes the investigation pause immediately above and
 also applies to the duplicate report below.
 
+**Progress 2026-11-12 by bugfix:** Executed the director's program. The session script
+(`tools/render_session.py::session_script`) now stamps every stage on one millisecond wall
+clock and, after the capture command returns, records whether the client that passed the
+settle's liveness check is still running (`render-session: client exited during the capture`);
+the render's black-capture diagnosis (`tools/render_workflow.py`) reads that bounded log tail
+and, on the marker, reports the vanished client instead of blaming the paint budget — so the
+next failure's message and log distinguish never-painted from disappeared-before-capture.
+Two deterministic stub regressions pin both halves: a client that exits during the capture is
+diagnosed, not told to retry with a longer `--settle`
+(`test_render_surface.TestFailurePaths.test_a_client_that_exits_during_the_capture_…`), and
+the timeline plus exit marker reach the session log
+(`test_render_surface_units.TestSessionScript.test_logs_the_capture_timeline_and_a_client_exit_…`);
+both were watched failing with the fix reverted and passing with it. Measured in three
+consecutive bare `--splash` renders with the instrumented session log on this host: the settle
+ends at 8.00s and the capture spans about 0.33s (8.00→8.33s), while the `--test` client's
+recorded exit is about 10s in — an exit-race margin of roughly 1.7s on an idle host, which the
+concurrent renders of `tests/test_render_surface.py::_Renders._run_all` can consume. The
+repair is deliberately not chosen yet: a client-hold across the capture (SIGSTOP before the
+liveness check, SIGCONT before the kill) would close the exit race, but it is only warranted
+if the next failure's log names the exit marker — a black capture with the client still alive
+means the paint budget is the cause instead, and the settle must not grow on the generic
+diagnostic's word. Full check green 2026-11-12 after this change.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
@@ -101,6 +124,10 @@ renderer skip covers the dialog and applet gates but not this splash gate.
 
 **Progress 2026-11-12 by bugfix:** Duplicate report of the splash failure above; handed to the
 director with the same reproduction and failure evidence.
+
+**Progress 2026-11-12 by bugfix:** Same report; the first entry above carries the 2026-11-12
+instrumentation, measurement and stub-regression note, and its evidence-gated repair decision
+covers this duplicate too.
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 

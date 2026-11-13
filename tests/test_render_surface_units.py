@@ -1097,6 +1097,68 @@ class TestSessionScript(unittest.TestCase):
                 self.assertEqual(capture_status, status)
                 self.assertTrue(stopped.exists(), "session exited before client termination")
 
+    def test_logs_the_capture_timeline_and_a_client_exit_during_the_capture(self):
+        # The black-frame diagnosis needs to tell a vanished client from an
+        # unpainted window, so the script stamps every stage on one wall
+        # clock and, after the capture returns, records whether the client
+        # that passed the settle's liveness check is still running. The stub
+        # client passes the check (it is alive through the settle) and dies
+        # before the spectacle stub returns, so the session's post-capture
+        # check deterministically sees a dead client; the timing stamps and
+        # the exit marker the render's black-capture diagnosis greps for
+        # must all be in the log, and the capture status must survive.
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        ready = root / "ready"
+        pidfile = root / "client.pid"
+        client = root / "client.py"
+        client.write_text(
+            "import os, sys, time\n"
+            "from pathlib import Path\n"
+            "Path(sys.argv[1]).write_text(str(os.getpid()))\n"
+            "Path(sys.argv[2]).touch()\n"
+            "time.sleep(0.5)\n",
+            encoding="utf-8",
+        )
+        poll = (
+            "import time, sys; from pathlib import Path; "
+            "deadline = time.monotonic() + 3\n"
+            "while not Path(sys.argv[1]).exists():\n"
+            "    if time.monotonic() > deadline: sys.exit(1)\n"
+            "    time.sleep(0.01)\n"
+        )
+        # The settle's `sleep 0` polls until the client has started; the
+        # spectacle stub then spins until the client's recorded pid is gone,
+        # so the client -- alive at the liveness check -- dies mid-capture.
+        prefix = (
+            f'sleep() {{ if [ "$1" = 0 ]; then '
+            f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
+            'else command sleep "$@"; fi; }; '
+            f'spectacle() {{ pid=$(cat "{pidfile}"); n=0; '
+            'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
+            'command sleep 0.01; n=$((n + 1)); done; return 0; }; '
+        )
+        status = render_workflow.run_logged(
+            ["sh", "-c", prefix + render_session.session_script(),
+             "sh", "0", str(root / "capture.png"), sys.executable,
+             str(client), str(pidfile), str(ready)],
+            environment, root / "session.log", 10, root,
+        )
+        self.assertEqual(0, status)
+        log = (root / "session.log").read_text(encoding="utf-8")
+        for marker in (
+            "render-session: client started at ",
+            "render-session: settle done at ",
+            "render-session: capturing at ",
+            "render-session: capture status 0 at ",
+            render_session.CLIENT_EXITED_DURING_CAPTURE,
+        ):
+            self.assertIn(marker, log)
+        self.assertNotIn("client alive after the capture", log)
+
 
 class TestSessionCommand(unittest.TestCase):
     @contextlib.contextmanager

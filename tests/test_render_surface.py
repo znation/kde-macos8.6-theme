@@ -1072,6 +1072,52 @@ class TestFailurePaths(StubTools):
             "capture is entirely black", "did not paint", "8s settle",
         )
 
+    def test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget(
+        self,
+    ):
+        # A client that passes the settle's liveness check and then dies
+        # while the capture runs takes its window with it: the black frame
+        # is a vanished client, not a window that never painted. The
+        # session log's exit marker must switch the diagnosis to the
+        # vanished client -- "retry with a longer --settle" cannot fix a
+        # client that already ended, and the splash's ``--test`` lifetime
+        # ends about 10 s in, right inside this race (BUGS.md, the splash
+        # black-frame report, director direction 2026-11-12). The stub
+        # client spins on a sentinel the spectacle stub creates at capture
+        # start, so the liveness check -- before any sentinel exists --
+        # passes, and the spectacle stub then waits for the client to be
+        # gone before returning, so the session's own post-capture check
+        # deterministically sees a dead client.
+        pidfile = self.root / "client.pid"
+        sentinel = self.root / "capture-started"
+        fixture = self.root / "black.png"
+        fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
+        self.stub(
+            "plasmawindowed",
+            f"echo $$ > {shlex.quote(str(pidfile))}; "
+            f"n=0; while [ ! -f {shlex.quote(str(sentinel))} ] "
+            "&& [ $n -lt 100000 ]; do n=$((n + 1)); done; exit 0",
+        )
+        self.stub(
+            "spectacle",
+            f"pause={shlex.quote(self.real_sleep)}; "
+            'out=; while [ "$#" -gt 0 ]; do '
+            'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
+            f"touch {shlex.quote(str(sentinel))}; "
+            f'pid=$(cat {shlex.quote(str(pidfile))}); n=0; '
+            'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
+            '"$pause" 0.01; n=$((n + 1)); done; '
+            f'cp "{fixture}" "$out"',
+        )
+        self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
+        status, stderr, output = self.run_main("--settle", "0")
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "capture is entirely black",
+            "client exited during the capture",
+        )
+        self.assertNotIn("did not paint", stderr)
+
     def test_unwritable_output_is_refused_before_installing(self):
         marker = self.root / "make-ran"
         self.stub("make", f"touch {marker}")

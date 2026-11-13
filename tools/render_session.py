@@ -31,6 +31,15 @@ from pathlib import Path
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
 
+# The session-log marker for a client that was alive at the settle's
+# liveness check but died before the capture command returned. Such a
+# client's window was destroyed before or while the frame was taken, so a
+# black capture of that session is a vanished client, not an unpainted
+# one -- the render's black-capture diagnosis greps this marker (near the
+# log's end, written after the capture returns and before the reap) to
+# name that cause instead of blaming the paint budget.
+CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
+
 
 @dataclass(frozen=True)
 class Session:
@@ -157,6 +166,14 @@ def session_script() -> str:
     of this script. The script fails the session if the backgrounded
     client is no longer running after the settle; without that check
     ``spectacle`` would still publish a capture of an empty session.
+
+    Every stage logs a millisecond timestamp, so a failed capture's log
+    shows the client's start, the settle's end and the capture's span on
+    one wall clock. After the capture returns, the script records whether
+    the client was still running: a client that died between the settle's
+    liveness check and the capture's end took its window with it, and its
+    timestamped exit marker is what lets the black-capture diagnosis
+    distinguish a vanished client from a window that never painted.
     """
     # The client runs in the background, so its exit status would otherwise
     # be lost: if it cannot start or crashes during the settle wait,
@@ -173,15 +190,20 @@ def session_script() -> str:
         "export QT_QPA_PLATFORM=wayland; "
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
-        '"$@" & client=$!; '
-        'echo "render-session: client started" >&2; '
+        'started=$(date +%s%3N); "$@" & client=$!; '
+        'echo "render-session: client started at $started" >&2; '
         'sleep "$settle"; '
-        'echo "render-session: settle done" >&2; '
+        'echo "render-session: settle done at $(date +%s%3N)" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
-        'echo "render-session: capturing" >&2; '
+        'echo "render-session: capturing at $(date +%s%3N)" >&2; '
         'spectacle -b -n -f -o "$capture"; status=$?; '
-        'echo "render-session: capture status $status" >&2; '
+        'capture_done=$(date +%s%3N); '
+        'echo "render-session: capture status $status at $capture_done" >&2; '
+        'if kill -0 "$client" 2>/dev/null; then '
+        'echo "render-session: client alive after the capture at $capture_done" >&2; '
+        'else '
+        f'echo "{CLIENT_EXITED_DURING_CAPTURE} at $capture_done" >&2; fi; '
         'kill "$client" 2>/dev/null; '
         'waited=0; '
         'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
