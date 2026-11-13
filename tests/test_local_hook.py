@@ -38,13 +38,19 @@ from support.unlink_failure import unlink_failing_for
 from tools import atomic_write, local_hook, local_hook_git
 
 
+def _run_git(case, cwd, *args):
+    """Run a Git command in *cwd* and attach output if it fails."""
+    result = theme_install.run_captured(
+        ["git", *args], cwd=cwd, env=dict(os.environ)
+    )
+    assert_succeeded(case, result)
+    return result
+
+
 def make_repo(case):
     """Create a fresh ``git init`` repository and return its root path."""
     repo = tmp_dir.make_tmp_dir(case)
-    result = theme_install.run_captured(
-        ["git", "init", "-q"], cwd=repo, env=dict(os.environ)
-    )
-    assert_succeeded(case, result)
+    _run_git(case, repo, "init", "-q")
     return repo
 
 
@@ -58,10 +64,7 @@ def make_non_utf8_repo(case):
     base = os.fsencode(tmp_dir.make_tmp_dir(case))
     repo = os.fsdecode(base + b"/repo-\xff")
     os.mkdir(repo)
-    result = theme_install.run_captured(
-        ["git", "init", "-q"], cwd=repo, env=dict(os.environ)
-    )
-    assert_succeeded(case, result)
+    _run_git(case, repo, "init", "-q")
     return repo
 
 
@@ -357,10 +360,7 @@ class TestGitDiscovery(unittest.TestCase):
     """
 
     def _git(self, cwd, *args):
-        result = theme_install.run_captured(
-            ["git", *args], cwd=cwd, env=dict(os.environ)
-        )
-        assert_succeeded(self, result)
+        result = _run_git(self, cwd, *args)
         return result.stdout.strip()
 
     def test_default_hooks_dir_is_the_resolved_dot_git_hook_dir(self):
