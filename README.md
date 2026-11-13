@@ -93,9 +93,13 @@ window decoration's QML package into `kwin/decorations/` (the look-and-feel defa
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
 OFL 1.1, ChicagoFLF for menus and window titles, and the JetBrains Mono static
-Regular, Medium and Bold faces for fixed-width text, installed but not selected
-by any theme default; the global theme selects Lato for general, toolbar and
-smallest-readable fonts, while monospaced text keeps the user's fixed font),
+Regular, Medium and Bold faces for fixed-width text; the global theme
+selects Lato for general, toolbar and smallest-readable fonts, ChicagoFLF
+for menus and window titles, and JetBrains Mono Medium at 10 pt for the
+fixed-width font, so KDE clients that follow the system fixed font inherit
+that face while application-specific overrides may supersede it; the apply
+writes that selection into `kdeglobals` itself because the look-and-feel
+apply publishes no defaults' font key),
 and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor
 and ten shared assets into `themes/org.macos8.desktop/`. Applying the global
 theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at
@@ -336,13 +340,15 @@ prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 `$HOME/.icons` link and never touches `kcminputrc`; and if the font
 selections the look-and-feel apply wrote (`[kdeglobals][General]
 font=Lato,10`, `menuFont=ChicagoFLF,10`, `toolBarFont=Lato,10` and
-`smallestReadableFont=Lato,8`, and `[kdeglobals][WM] activeFont=ChicagoFLF,10` —
-the selected font families `make uninstall` deletes with the fonts) still name their
+`smallestReadableFont=Lato,8`, `[kdeglobals][WM] activeFont=ChicagoFLF,10`,
+and `[kdeglobals][General]
+fixed=JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium`, the
+fixed-width selection the apply run writes itself) still name their
 published values after the uninstall, it prints one warning per
 still-selected key, each naming that key's reset
 `kwriteconfig6 --file kdeglobals --group General --key font --delete` (and
-the analogous `menuFont`, `toolBarFont`, `smallestReadableFont` and
-`--group WM --key activeFont` resets), which deletes exactly the one key the
+the analogous `menuFont`, `toolBarFont`, `smallestReadableFont`, `fixed`
+and `--group WM --key activeFont` resets), which deletes exactly the one key the
 apply wrote and reverts it to its absence (as prose grounded against the
 fontconfig font matching KDE and Qt applications use for text rendering,
 never test-asserted: when the requested family name stops resolving inside
@@ -494,7 +500,7 @@ that cannot take that lock within its bounded wait exits 2 naming the data home,
 uninstall cannot remove the packages between the apply's selections, and a `HOME` no install could
 have resolved is refused the same way. The startup
 splash is read at login, so a splash change appears only on the next login; restart GTK applications and Firefox for their selections. `make apply-gtk` and `make apply-cursor` remain available to repair one surface alone.
-After `make install`, run `make apply-plasma` to reselect the installed global theme, color scheme and desktop theme, write the window-button placement, and request Kvantum selection and a KWin reload without applying other surfaces. It requires Python 3.10+ and `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`. The global-theme application preserves panels; Kvantum selection names its off-default data home in a note when it runs under one, and the splash change appears at the next login.
+After `make install`, run `make apply-plasma` to reselect the installed global theme, color scheme and desktop theme, write the fixed-width font selection and the window-button placement, and request Kvantum selection and a KWin reload without applying other surfaces. It requires Python 3.10+ and `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and `kwriteconfig6`. The global-theme application preserves panels; Kvantum selection names its off-default data home in a note when it runs under one, and the splash change appears at the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so

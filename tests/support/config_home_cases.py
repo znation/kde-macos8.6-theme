@@ -75,7 +75,7 @@ def assert_no_config_home(case, *absent):
     is no config home to read, so the diagnostics must be skipped: the run
     succeeds and must not mention any of *absent*. Returns the result for the
     case's extra pins (a suite that must stay silent about a list it builds,
-    such as the five font keys, loops over the returned result instead).
+    such as the six font keys, loops over the returned result instead).
     """
     env = theme_install.make_env("XDG_CONFIG_HOME", "HOME")
     result = theme_install.uninstall_recipe(

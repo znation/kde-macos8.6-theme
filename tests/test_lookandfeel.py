@@ -143,7 +143,7 @@ class TestDefaults(unittest.TestCase):
             ],
         )
         self.assertEqual(self.parser.options(STYLE_SECTION), ["widgetStyle"])
-        self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme", "font", "menuFont", "toolBarFont", "smallestReadableFont"])
+        self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme", "font", "fixed", "menuFont", "toolBarFont", "smallestReadableFont"])
         self.assertEqual(self.parser.options(WM_SECTION), ["activeFont"])
         self.assertEqual(self.parser.options(ICONS_SECTION), ["Theme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
@@ -179,6 +179,20 @@ class TestDefaults(unittest.TestCase):
             self.assertEqual(family, "ChicagoFLF", f"{section}/{key}")
             self.assertEqual(int(size_str), font_size, f"{section}/{key}")
             self.assertGreater(int(size_str), 0, f"{section}/{key}")
+
+    def test_fixed_font_selects_the_shipped_jetbrains_mono_medium(self):
+        """The fixed-width role selects the shipped JetBrains Mono at 10 pt
+        with Medium weight and the style name Medium: the Qt 6 serialized
+        QFont form (weight 500 is Qt 6's Medium; the trailing field is the
+        style name), grounded in the font package's PROVENANCE.md. Dropping
+        the key (the sections pin above) or naming another family fails
+        here, so monospaced text draws the user-approved face.
+        """
+        fields = self.parser.get(DEFAULTS_SECTION, "fixed").split(",")
+        self.assertEqual(fields[0], "JetBrains Mono")
+        self.assertEqual(int(fields[1]), 10)
+        self.assertEqual(int(fields[4]), 500)
+        self.assertEqual(fields[-1], "Medium")
 
     def test_widget_style_is_kvantum(self):
         """The global theme selects our Kvantum widget style, which draws the

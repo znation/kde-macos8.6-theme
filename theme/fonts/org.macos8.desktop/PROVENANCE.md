@@ -36,8 +36,9 @@ Debian packaging GPL-2+ text and does not cover the fonts.
 This package installs the family under
 `$XDG_DATA_HOME/fonts/org.macos8.desktop`. The global theme selects it for the
 general, toolbar and smallest-readable fonts at KDE's default point sizes
-(10 / 10 / 8). Monospaced text keeps the user's fixed font. ChicagoFLF supplies
-the menu and window-title fonts.
+(10 / 10 / 8). ChicagoFLF supplies
+the menu and window-title fonts; JetBrains Mono Medium supplies the
+fixed-width font (see its section below).
 
 # ChicagoFLF font provenance
 
@@ -74,9 +75,45 @@ JetBrains Mono is the user-approved fixed-width face (QUESTIONS.md,
 approximation, not a reference anchor: no Mac OS 8.6 screenshot in
 `macos8.6-screenshots/` supplies a terminal font surface or a font pixel, so
 the face is recorded as a user-selected approximation rather than sampled
-from a reference. This part installs the family only; no theme selection
-names it (the global theme's defaults are unchanged, and monospaced text
-still keeps the user's fixed font).
+from a reference.
+
+## Fixed-width selection
+
+The global theme's `contents/defaults` now selects JetBrains Mono at 10 pt
+for KDE's fixed-width role (`[kdeglobals][General] fixed`), replacing the
+earlier "monospaced text keeps the user's fixed font" statement. KDE clients
+that follow the system fixed font inherit this choice; application-specific
+overrides may supersede it.
+
+The selection value is the Qt 6 serialized QFont form:
+
+    JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium
+
+Contract, grounded against the installed Qt 6.9.2 (probed 2026-11-12 through
+the Debian PyQt6 6.9.0 bindings on this host):
+
+- `QFont::toString()` serializes 17 comma-separated fields; field 1 is the
+  family, field 2 the point size, field 5 the weight on Qt 6's 0-1000 scale
+  (Medium is 500) and field 17 the style name. `QFont::fromString()`
+  round-trips the string exactly (family `JetBrains Mono`, point size 10,
+  weight 500, style name `Medium`).
+- The shorter forms cannot express the weight: `JetBrains Mono,10` parses at
+  weight 400 (Regular), and a legacy 10-field string with `500` in field 5
+  is read on the pre-Qt-6 weight scale (parsing to weight 900). Only the
+  17-field form carries weight 500 and the style name.
+- Against the shipped TTFs (visible to Qt through a scratch fontconfig
+  directory), the string resolves to the Medium face: `QFontInfo` reports
+  weight 500, fixed pitch, at 10 pt, and `QFontDatabase` lists the family
+  `JetBrains Mono` with the styles Regular, Medium and Bold. The Medium face
+  is shipped as its own family (`JetBrains Mono Medium`, per the OFL naming
+  convention for non-RIBBI weights), so a request naming the `JetBrains Mono`
+  family with weight 500 and the style name `Medium` is what reaches it.
+
+The point size matches the theme's other font selections (KDE's default
+10 pt); the Medium weight and the family are the user-approved selection
+(QUESTIONS.md, answered 2026-11-12: "option 1"). No reference screenshot
+supplies a terminal font surface or a font pixel, so the weight is a
+platform-required value recorded here rather than sampled.
 
 ## Source
 

@@ -121,6 +121,8 @@ class TestCommandOrder(StubTools):
         self.assertEqual(
             [
                 "lookandfeeltool -a org.macos8.desktop",
+                "kwriteconfig6 --file kdeglobals --group General --key fixed "
+                "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium",
                 "plasma-apply-colorscheme MacOS8",
                 "plasma-apply-desktoptheme org.macos8.desktop",
                 "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
@@ -148,6 +150,20 @@ class TestCommandOrder(StubTools):
             tuple((key, section[key]) for key, _ in apply_theme.DECORATION_BUTTONS),
             apply_theme.DECORATION_BUTTONS,
         )
+
+    def test_the_fixed_font_selection_is_the_one_the_global_theme_declares(self):
+        # The apply writes the fixed-width selection the shipped
+        # contents/defaults already names, because the look-and-feel apply
+        # publishes no defaults' font key on the installed Plasma; a drift
+        # between the two would leave the selection silent or wrong.
+        self.assertEqual(
+            (apply_theme.FIXED_FILE, apply_theme.FIXED_GROUP, apply_theme.FIXED_KEY),
+            ("kdeglobals", "General", "fixed"),
+        )
+        section = theme_defaults.defaults_groups()[
+            (apply_theme.FIXED_FILE, apply_theme.FIXED_GROUP)
+        ]
+        self.assertEqual(section[apply_theme.FIXED_KEY], apply_theme.FIXED_VALUE)
 
     def test_never_passes_reset_layout(self):
         call_main(apply_theme.main)
@@ -191,10 +207,13 @@ class TestFailurePaths(StubTools):
         self,
     ):
         # The layout write is required: a kwinrc the apply cannot reach would
-        # otherwise leave the stock button cluster in place with no diagnostic.
+        # otherwise leave the stock button cluster in place with no
+        # diagnostic. The stub fails only the kwinrc writes, so the earlier
+        # fixed-width selection write succeeds and this failure path is the
+        # layout's own.
         self.stub(
             "kwriteconfig6",
-            "echo cannot write kwinrc >&2\nexit 6",
+            'case "$*" in *kwinrc*) echo cannot write kwinrc >&2\nexit 6;; esac\nexit 0',
         )
         status, stderr = call_main(apply_theme.main)
         self.assertEqual(1, status)
@@ -465,8 +484,29 @@ class TestUnrunnableTools(StubTools):
         self.assertIn("cannot run plasma-apply-colorscheme", stderr)
         self.assertIn("apply_theme: error:", stderr)
         self.assertNotIn("Traceback", stderr)
-        # The first step ran, then the unrunnable one stopped the run: no
+        # The first steps ran, then the unrunnable one stopped the run: no
         # later selection may be attempted after the failure.
+        self.assertEqual(
+            [
+                "lookandfeeltool -a org.macos8.desktop",
+                "kwriteconfig6 --file kdeglobals --group General --key fixed "
+                "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium",
+            ],
+            self.recorded(),
+        )
+
+    def test_an_unrunnable_fixed_font_write_exits_2_without_a_traceback(self):
+        # The fixed-width selection write is required too: an unrunnable
+        # kwriteconfig6 stops the run after the global-theme step with the
+        # tool's own exit-2 diagnostic, and no later selection runs.
+        self.broken_stub("kwriteconfig6")
+
+        status, stderr = call_main(apply_theme.main)
+
+        self.assertEqual(2, status)
+        self.assertIn("cannot run kwriteconfig6", stderr)
+        self.assertIn("apply_theme: error:", stderr)
+        self.assertNotIn("Traceback", stderr)
         self.assertEqual(
             ["lookandfeeltool -a org.macos8.desktop"], self.recorded()
         )

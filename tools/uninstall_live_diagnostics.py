@@ -29,14 +29,28 @@ else:  # imported from a directly run tool
     )
 
 
+# The fixed-width font selection the apply writes after the global-theme
+# step: the Qt 6 serialized QFont form naming JetBrains Mono at 10 pt,
+# Medium weight (Qt 6 weight 500) with the style name Medium (recorded in
+# theme/fonts/org.macos8.desktop/PROVENANCE.md).
+FIXED_FONT_VALUE = "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
+
+
 def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
-    """The five font warnings, one per selection the apply published."""
+    """The six font warnings, one per selection the apply published."""
     diagnoses = (
         (
             ("General", "font"),
             "the font selection [General] font=Lato,10",
             "--group General --key font --delete",
             "Lato,10",
+        ),
+        (
+            ("General", "fixed"),
+            "the font selection [General]"
+            " fixed=" + FIXED_FONT_VALUE,
+            "--group General --key fixed --delete",
+            FIXED_FONT_VALUE,
         ),
         (
             ("General", "menuFont"),
@@ -89,6 +103,7 @@ def kdeglobals_messages(
                 "ColorScheme",
                 "widgetStyle",
                 "font",
+                "fixed",
                 "menuFont",
                 "toolBarFont",
                 "smallestReadableFont",

@@ -3,6 +3,10 @@
 ``make apply`` runs ``make install`` and then this script. It re-selects the
 global theme, the color scheme and the desktop theme so Plasma and KDE
 applications reread the freshly installed files without a logout, writes the
+global theme's fixed-width font selection into `kdeglobals` (on the installed
+Plasma the look-and-feel apply publishes the defaults' color scheme and
+package selections but no `[General]` font key, verified in a scratch home
+2026-11-12, so the selection is written explicitly), writes the
 theme's window-button layout into `kwinrc` (the global theme's look-and-feel
 apply drops those two keys, leaving KWin's stock right-hand cluster instead of
 the reference's close box at the leading edge), tells Kvantum which of its
@@ -95,9 +99,31 @@ REQUIRED_TOOLS = (
 DECORATION_FILE = "kwinrc"
 DECORATION_GROUP = "org.kde.kdecoration2"
 DECORATION_BUTTONS = (("ButtonsOnLeft", "X"), ("ButtonsOnRight", "AL"))
+# The global theme's fixed-width font selection, written after the global
+# theme because the look-and-feel apply publishes no defaults' font key on
+# the installed Plasma. The value is the shipped `contents/defaults`
+# `[kdeglobals][General] fixed` string, the Qt 6 serialized QFont form
+# (weight 500 is Qt 6's Medium, the trailing `Medium` is the style name),
+# which tests/test_apply_theme.py pins to that file; the Qt 6 serialization
+# contract it is grounded against is recorded in
+# theme/fonts/org.macos8.desktop/PROVENANCE.md.
+FIXED_FILE = "kdeglobals"
+FIXED_GROUP = "General"
+FIXED_KEY = "fixed"
+FIXED_VALUE = "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
 # Each required step's argv, in the order it runs; argv[0] names the tool.
 STEPS = (
     ["lookandfeeltool", "-a", LNF_ID],
+    [
+        "kwriteconfig6",
+        "--file",
+        FIXED_FILE,
+        "--group",
+        FIXED_GROUP,
+        "--key",
+        FIXED_KEY,
+        FIXED_VALUE,
+    ],
     ["plasma-apply-colorscheme", COLOR_SCHEME],
     ["plasma-apply-desktoptheme", DTHEME_ID],
     *(

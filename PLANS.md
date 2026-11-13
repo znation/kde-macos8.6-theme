@@ -30,8 +30,9 @@ below); the `org.macos8.desktop` Kvantum widget
 style (Platinum palette and core-control art); the
 `org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
 carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`,
-and the global theme selects its `Lato` family for general, toolbar and smallest-readable fonts
-and `ChicagoFLF` for menus and window titles, while monospaced text keeps the user's fixed font);
+and the global theme selects its `Lato` family for general, toolbar and smallest-readable fonts,
+`ChicagoFLF` for menus and window titles, and the user-approved `JetBrains Mono Medium` for
+KDE's fixed-width font (`[kdeglobals][General] fixed`, part 2/3 of the fixed-width series);
 the GTK 3 and GTK 4
 Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
 selected by `apply-gtk`; `make install` copies no GTK files); the standalone Firefox Platinum
@@ -78,9 +79,10 @@ files), and the opt-in `install-firefox` target copies the Firefox `userChrome.c
 `userContent.css` sheets into a profile and writes the preference that selects them.
 **The UI font** is vendored (QUESTIONS.md, answered 2026-10-19): Lato is installed as the
 Charcoal-style body face and selected by the global theme for general, toolbar and
-smallest-readable fonts, and monospaced text keeps the user's fixed font; ChicagoFLF, a
-public-domain Chicago-style face, is selected for menus and window titles (the two
-"Chicago-style face" plans under `## Planned`; its licence was checked 2026-11-12 by the director role).
+smallest-readable fonts, and ChicagoFLF, a
+public-domain Chicago-style face, is selected for menus and window titles (its licence was checked 2026-11-12 by the director role);
+JetBrains Mono (the user-approved fixed-width face, QUESTIONS.md answered 2026-11-12)
+is selected for KDE's fixed-width font.
 GTK and Firefox applications keep their own chrome unless the opt-in GTK targets or the
 Firefox install are used. Firefox chrome work since that series landed as single-surface
 chrome plans (the downloads-panel and all-tabs rows, the sidebar frame, the menu-bar title
@@ -170,34 +172,6 @@ recorded here to keep the scope deliberate.
 - `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and `tests/test_gtk4_osd.py` stays under about 450 lines.
 - `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_osd.py` and `docs/invariants.md`. `make check` passes after the final edit.
 
-
-### KDE fixed-width font, part 2/3: select the KDE fixed role (planned 2026-11-12 by the director role; "requires part 1/3 landed")
-
-**Goal.** Select packaged JetBrains Mono Medium at 10 pt for KDE's fixed-width role.
-This replaces the earlier statement that monospaced text keeps the user's fixed font.
-Konsole profile overrides are handled separately in part 3/3.
-
-**Approach and files.** Add `[kdeglobals][General] fixed` to
-`theme/look-and-feel/org.macos8.desktop/contents/defaults`. Use Qt's serialized QFont
-form specifying family JetBrains Mono, point size 10 and Medium weight (Qt 6 weight 500),
-with the style name Medium, grounded against the installed Qt 6 serialization contract;
-record that contract and the exact chosen string in the font package's `PROVENANCE.md`.
-Use a scratch-home `lookandfeeltool` application to verify the key is actually published;
-if it is not, add an explicit `kwriteconfig6` step to `tools/apply_theme.py::STEPS` after
-the global-theme step, and test that path in `tests/test_apply_theme.py`. No visible GUI
-probe is permitted. Extend `tools/uninstall_live_diagnostics.py::_font_diagnostics` and
-`kdeglobals_messages` to read `fixed` and warn for the published value, naming the correct
-family and the `--group General --key fixed --delete` reset. Preserve other font warnings.
-
-**Acceptance criteria.** In `tests/test_lookandfeel.py::TestDefaults`, pin family, point
-size, Medium style/weight and presence of `fixed`; dropping the key or selecting Lato
-must fail. Extend `tests/test_kdeglobals_fonts_uninstall_diagnostic.py` for a matching
-fixed selection, a foreign value, later duplicate override and another group; diagnostics
-leave config bytes intact. Update the fonts/look-and-feel rows in `docs/invariants.md`,
-the installation guide, font provenance and this file's current-state preamble, replacing
-the superseded fixed-font statements. Preserve Chicago menu/title selection work. Document
-that KDE clients using the system fixed font inherit this choice; application-specific
-overrides may supersede it. `make install` remains selection-free; `make check` passes.
 
 ### KDE fixed-width font, part 3/3: apply it to the default Konsole profile (planned 2026-11-12 by the director role; "requires part 2/3 landed")
 

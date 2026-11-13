@@ -4,6 +4,7 @@ widgetStyle=kvantum
 [kdeglobals][General]
 ColorScheme=MacOS8
 font=Lato,10
+fixed=JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium
 menuFont=ChicagoFLF,10
 toolBarFont=Lato,10
 smallestReadableFont=Lato,8

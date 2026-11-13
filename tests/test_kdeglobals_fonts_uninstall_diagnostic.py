@@ -3,13 +3,18 @@
 `make apply` applies the shipped look-and-feel, whose defaults publish the
 five font selections `[General] font=Lato,10`, `menuFont=ChicagoFLF,10`,
 `toolBarFont=Lato,10` and `smallestReadableFont=Lato,8`, and
-`[WM] activeFont=ChicagoFLF,10`, into the user's `kdeglobals`; `make uninstall`
+`[WM] activeFont=ChicagoFLF,10`, into the user's `kdeglobals`, and whose
+apply run additionally writes the fixed-width selection
+`[General] fixed=JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium`
+(the Qt 6 serialized QFont form naming the shipped JetBrains Mono Medium;
+`tools/apply_theme.py` writes it because the look-and-feel apply publishes
+no defaults' font key); `make uninstall`
 then deletes the installed font package (`$(FONT_INSTALL_DIR)/$(FONT_ID)`),
 and KDE and Qt keep
 naming the removed family. `_uninstall` prints one diagnostic per key
 naming the matching `kwriteconfig6 --delete` reset when that key's last
 value in its own section still trims to exactly the published one, without
-editing the file. The five conditions are independent: one key's match
+editing the file. The six conditions are independent: one key's match
 never gates another's line. The scanner it runs on mirrors the shared
 `_uninstall` read the existing kdeglobals widget-style/icon-theme diagnostic
 pins, so that suite keeps its exact wording and this module must not touch
@@ -36,6 +41,7 @@ from support.tmp_dir import make_tmp_dir
 FONT_VALUE = "Lato,10"
 CHICAGO_VALUE = "ChicagoFLF,10"
 SMALL_VALUE = "Lato,8"
+FIXED_VALUE = "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
 FONT_RESET = "kwriteconfig6 --file kdeglobals"
 RESET_TAIL = (
     " after removal; KDE and Qt keep naming the selected font family the removal deleted and fall "
@@ -45,6 +51,7 @@ RESET_TAIL = (
 # (section, key, published value) in the order the diagnostics print.
 KEYS = [
     ("General", "font", FONT_VALUE),
+    ("General", "fixed", FIXED_VALUE),
     ("General", "menuFont", CHICAGO_VALUE),
     ("General", "toolBarFont", FONT_VALUE),
     ("General", "smallestReadableFont", SMALL_VALUE),
@@ -76,7 +83,7 @@ def reset_for(section, key):
 
 
 class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
-    """`make _uninstall` names the five font resets when the selections are ours."""
+    """`make _uninstall` names the six font resets when the selections are ours."""
 
     def assert_warns(self, result, path, *indexed):
         """Every staged key warns with its own line, no other key's line."""
@@ -107,12 +114,12 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
                 # A diagnostic must not edit the user's kdeglobals.
                 self.assertEqual(original, read_bytes(path))
 
-    def test_all_five_keys_warn_in_the_published_order(self):
+    def test_all_six_keys_warn_in_the_published_order(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(
             config,
-            "[General]\nfont=Lato,10\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
+            "[General]\nfont=Lato,10\nfixed=" + FIXED_VALUE + "\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
             "smallestReadableFont=Lato,8\n[WM]\nactiveFont=ChicagoFLF,10\n",
         )
         original = read_bytes(path)
@@ -322,12 +329,12 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         # The staged color-scheme and look-and-feel selections and the five
         # font keys warn in one run; each keeps its existing wording and the
         # lines appear in recipe order (color scheme, widget style, icon
-        # theme, then the five font lines).
+        # theme, then the six font lines).
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(
             config,
-            "[General]\nColorScheme=MacOS8\nfont=Lato,10\nmenuFont=ChicagoFLF,10\n"
+            "[General]\nColorScheme=MacOS8\nfont=Lato,10\nfixed=" + FIXED_VALUE + "\nmenuFont=ChicagoFLF,10\n"
             "toolBarFont=Lato,10\nsmallestReadableFont=Lato,8\n"
             "[KDE]\nwidgetStyle=kvantum\n"
             "[Icons]\nTheme=" + ICON_THEME_ID + "\n"
@@ -347,6 +354,22 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             self.assertIn(fragment, result.stderr)
         for earlier, later in zip(order, order[1:]):
             self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
+        self.assertEqual(original, read_bytes(path))
+
+    def test_the_fixed_selection_warns_with_its_own_value(self):
+        # The fixed-width selection's published value is the Qt 6 serialized
+        # QFont form naming JetBrains Mono, not a short family,size form: a
+        # diagnostic keyed on `JetBrains Mono,10` would miss the real line.
+        self.assertIn(("General", "fixed", FIXED_VALUE), KEYS)
+        tmp = str(make_tmp_dir(self))
+        config = os.path.join(tmp, "config")
+        path = write_selection(config, "[General]\nfixed=" + FIXED_VALUE + "\n")
+        original = read_bytes(path)
+
+        result = self.uninstall_with_config(tmp, config)
+
+        assert_succeeded(self, result)
+        self.assertIn(rule_for(path, "General", "fixed", FIXED_VALUE), result.stderr)
         self.assertEqual(original, read_bytes(path))
 
     def test_make_n_uninstall_still_parses(self):

@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### KDE fixed-width font, part 2/3: select the KDE fixed role (planned 2026-11-12 by the director role; "requires part 1/3 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Select packaged JetBrains Mono Medium at 10 pt for KDE's fixed-width role.
+This replaces the earlier statement that monospaced text keeps the user's fixed font.
+Konsole profile overrides are handled separately in part 3/3.
+
+**Approach and files.** Add `[kdeglobals][General] fixed` to
+`theme/look-and-feel/org.macos8.desktop/contents/defaults`. Use Qt's serialized QFont
+form specifying family JetBrains Mono, point size 10 and Medium weight (Qt 6 weight 500),
+with the style name Medium, grounded against the installed Qt 6 serialization contract;
+record that contract and the exact chosen string in the font package's `PROVENANCE.md`.
+Use a scratch-home `lookandfeeltool` application to verify the key is actually published;
+if it is not, add an explicit `kwriteconfig6` step to `tools/apply_theme.py::STEPS` after
+the global-theme step, and test that path in `tests/test_apply_theme.py`. No visible GUI
+probe is permitted. Extend `tools/uninstall_live_diagnostics.py::_font_diagnostics` and
+`kdeglobals_messages` to read `fixed` and warn for the published value, naming the correct
+family and the `--group General --key fixed --delete` reset. Preserve other font warnings.
+
+**Acceptance criteria.** In `tests/test_lookandfeel.py::TestDefaults`, pin family, point
+size, Medium style/weight and presence of `fixed`; dropping the key or selecting Lato
+must fail. Extend `tests/test_kdeglobals_fonts_uninstall_diagnostic.py` for a matching
+fixed selection, a foreign value, later duplicate override and another group; diagnostics
+leave config bytes intact. Update the fonts/look-and-feel rows in `docs/invariants.md`,
+the installation guide, font provenance and this file's current-state preamble, replacing
+the superseded fixed-font statements. Preserve Chicago menu/title selection work. Document
+that KDE clients using the system fixed font inherit this choice; application-specific
+overrides may supersede it. `make install` remains selection-free; `make check` passes.
+
+**Landed as.** `[kdeglobals][General]
+fixed=JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium`, the Qt 6 serialized QFont
+form (contract and string grounded against the installed Qt 6.9.2 and recorded in the font
+package's `PROVENANCE.md`; a scratch-home `lookandfeeltool` apply published no defaults'
+font key, so `tools/apply_theme.py::STEPS` writes the selection explicitly after the
+global-theme step, tested in `tests/test_apply_theme.py`). (added 2026-11-12 by the
+feature role)
+
 ### KDE fixed-width font, part 1/3: package JetBrains Mono (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
 
 **Goal.** Ship the user's approved JetBrains Mono family with the theme, like Lato
