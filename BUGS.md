@@ -74,6 +74,34 @@ recorded inspection path is to select the installed theme and compare arrow, tex
 roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
 coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
 
+### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13)
+
+In one full `make check` run of 2026-11-13 (worktree one PLANS.md edit away
+from main, no test or theme file touched),
+`tests/test_render_surface.py::TestInactiveDialogRender` failed five pins:
+`test_left_window_client_edge_is_the_recoloured_inner_rectangle`,
+`test_left_window_field_is_the_flat_buttonless_bar`,
+`test_left_window_outline_is_the_inactive_outline`,
+`test_right_window_keeps_its_active_frame` and
+`test_title_ink_is_the_inactive_text_colour`. The client-edge ring read
+`#000000` where the pin expects `INACTIVE_OUTLINE`
+(`#555555`, `tests/support/platinum_palette.py:42`) — the left window's
+outline, field and title ink all read in the active family instead of the
+inactive one.
+
+Reproduce: run the full `make check` on the shared host. The module is not
+red in isolation: `make check CHECK_TESTS='test_render_dialog_gates'`
+immediately after the failing run passed all 92 of its tests, so no shipped
+art, palette or test expectation is wrong on its own.
+
+Suspected cause: the two-window `--inactive-dialog` capture races the
+window manager's focus state under the parallel suite's load — the capture
+appears to have caught the left window while KWin treated it as active (or
+while the capture interleaved with another module's render session), so
+every inactive pin met the active decoration instead. Not a SIGKILL case;
+the ordinary-failure guarantee stands. A fix belongs to the capture
+(settling the windows' focus state before reading pixels), not to the pins.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
