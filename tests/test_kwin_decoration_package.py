@@ -603,10 +603,6 @@ class TestInstall(InstallLifecycleCases, unittest.TestCase):
         return installed_kwin_decoration(tmp, self.PACKAGE_ID)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestMaximizedButtonPlacement(ReferenceImageCase, unittest.TestCase):
     def test_maximized_margin_matches_reference_pixels(self):
         # Zoomed windows retain the normal title treatment; measure the
@@ -622,3 +618,7 @@ class TestMaximizedButtonPlacement(ReferenceImageCase, unittest.TestCase):
             "titleEdgeTopMaximized", "buttonMarginTopMaximized"
         ))
         self.assertEqual(offset, box_top - top)
+
+
+if __name__ == "__main__":
+    unittest.main()
