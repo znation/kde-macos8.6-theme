@@ -1085,9 +1085,12 @@ class TestFailurePaths(StubTools):
         # black-frame report, director direction 2026-11-12). The stub
         # client spins on a sentinel the spectacle stub creates at capture
         # start, so the liveness check -- before any sentinel exists --
-        # passes, and the spectacle stub then waits for the client to be
-        # gone before returning, so the session's own post-capture check
-        # deterministically sees a dead client.
+        # passes, and the session then freezes it for the capture, so it
+        # cannot exit on its own mid-capture; the spectacle stub therefore
+        # ends it with SIGKILL -- the only thing that can stop a frozen
+        # client -- and waits for it to be gone before returning, so the
+        # session's own post-capture check deterministically sees a dead
+        # client.
         pidfile = self.root / "client.pid"
         sentinel = self.root / "capture-started"
         fixture = self.root / "black.png"
@@ -1104,7 +1107,8 @@ class TestFailurePaths(StubTools):
             'out=; while [ "$#" -gt 0 ]; do '
             'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
             f"touch {shlex.quote(str(sentinel))}; "
-            f'pid=$(cat {shlex.quote(str(pidfile))}); n=0; '
+            f'pid=$(cat {shlex.quote(str(pidfile))}); '
+            'kill -9 "$pid" 2>/dev/null; n=0; '
             'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
             '"$pause" 0.01; n=$((n + 1)); done; '
             f'cp "{fixture}" "$out"',

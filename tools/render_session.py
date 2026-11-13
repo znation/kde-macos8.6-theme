@@ -174,6 +174,16 @@ def session_script() -> str:
     liveness check and the capture's end took its window with it, and its
     timestamped exit marker is what lets the black-capture diagnosis
     distinguish a vanished client from a window that never painted.
+
+    The client that passed the liveness check is frozen with SIGSTOP
+    before the capture starts and resumed with SIGCONT immediately before
+    the post-capture termination: Spectacle's startup latency is unbounded
+    under concurrent renders, while a client such as ``ksplashqml --test``
+    has a finite lifetime, so an unfrozen client could take its window
+    down mid-capture. A stopped client keeps its last-painted buffer —
+    the compositor captures from it — and the aliveness check after the
+    capture still reads it (a stopped process answers ``kill -0``), so
+    the diagnosis and the ``kill -9`` fallback are unchanged.
     """
     # The client runs in the background, so its exit status would otherwise
     # be lost: if it cannot start or crashes during the settle wait,
@@ -196,6 +206,8 @@ def session_script() -> str:
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
+        'if kill -STOP "$client" 2>/dev/null; then '
+        'echo "render-session: client held at $(date +%s%3N)" >&2; fi; '
         'echo "render-session: capturing at $(date +%s%3N)" >&2; '
         'spectacle -b -n -f -o "$capture"; status=$?; '
         'capture_done=$(date +%s%3N); '
@@ -204,6 +216,7 @@ def session_script() -> str:
         'echo "render-session: client alive after the capture at $capture_done" >&2; '
         'else '
         f'echo "{CLIENT_EXITED_DURING_CAPTURE} at $capture_done" >&2; fi; '
+        'kill -CONT "$client" 2>/dev/null; '
         'kill "$client" 2>/dev/null; '
         'waited=0; '
         'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '

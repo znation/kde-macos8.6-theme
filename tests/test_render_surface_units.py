@@ -1045,6 +1045,27 @@ class TestSessionScript(unittest.TestCase):
         # capture; the bounded wait escalates to SIGKILL before reaping.
         self.assertIn("waited=0; ", script)
         self.assertIn('kill -9 "$client"', script)
+        # The client that passed the settle's liveness check is frozen
+        # before the capture and resumed before the termination:
+        # Spectacle's unbounded startup latency must not outlive a client
+        # with a finite lifetime (BUGS.md, the splash black-frame report,
+        # director decision 2026-11-12). A stopped client only acts on the
+        # termination signal once the resume reaches it, so the resume
+        # must precede the kill.
+        self.assertIn('kill -STOP "$client" 2>/dev/null; ', script)
+        self.assertIn('kill -CONT "$client" 2>/dev/null; ', script)
+        self.assertLess(
+            script.index('"$1 exited before the capture"'),
+            script.index('kill -STOP "$client"'),
+        )
+        self.assertLess(
+            script.index('kill -STOP "$client"'),
+            script.index("spectacle -b"),
+        )
+        self.assertLess(
+            script.index('kill -CONT "$client"'),
+            script.index('kill "$client"'),
+        )
         self.assertLess(
             script.index('kill "$client"'), script.index('kill -9 "$client"')
         )
@@ -1112,11 +1133,14 @@ class TestSessionScript(unittest.TestCase):
         # unpainted window, so the script stamps every stage on one wall
         # clock and, after the capture returns, records whether the client
         # that passed the settle's liveness check is still running. The stub
-        # client passes the check (it is alive through the settle) and dies
-        # before the spectacle stub returns, so the session's post-capture
-        # check deterministically sees a dead client; the timing stamps and
-        # the exit marker the render's black-capture diagnosis greps for
-        # must all be in the log, and the capture status must survive.
+        # client passes the check (it is alive through the settle) and the
+        # session then freezes it for the capture, so it cannot exit on its
+        # own mid-capture; the spectacle stub therefore ends it with
+        # SIGKILL -- the only thing that can stop a frozen client -- before
+        # returning, so the session's post-capture check deterministically
+        # sees a dead client; the timing stamps and the exit marker the
+        # render's black-capture diagnosis greps for must all be in the
+        # log, and the capture status must survive.
         root = tmp_dir.make_tmp_dir(self)
         apply = root / "plasma-apply-colorscheme"
         apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
@@ -1141,13 +1165,15 @@ class TestSessionScript(unittest.TestCase):
             "    time.sleep(0.01)\n"
         )
         # The settle's `sleep 0` polls until the client has started; the
-        # spectacle stub then spins until the client's recorded pid is gone,
+        # spectacle stub then SIGKILLs the held client (a frozen client
+        # cannot exit on its own) and spins until the recorded pid is gone,
         # so the client -- alive at the liveness check -- dies mid-capture.
         prefix = (
             f'sleep() {{ if [ "$1" = 0 ]; then '
             f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
             'else command sleep "$@"; fi; }; '
-            f'spectacle() {{ pid=$(cat "{pidfile}"); n=0; '
+            f'spectacle() {{ pid=$(cat "{pidfile}"); '
+            'kill -9 "$pid" 2>/dev/null; n=0; '
             'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
             'command sleep 0.01; n=$((n + 1)); done; return 0; }; '
         )
@@ -1168,6 +1194,81 @@ class TestSessionScript(unittest.TestCase):
         ):
             self.assertIn(marker, log)
         self.assertNotIn("client alive after the capture", log)
+
+    def test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination(
+        self,
+    ):
+        # The client that passes the settle's liveness check is frozen with
+        # SIGSTOP before the capture and resumed with SIGCONT immediately
+        # before the post-capture termination, so Spectacle's unbounded
+        # startup latency cannot outlive a client with a finite lifetime
+        # (BUGS.md, the splash black-frame report, director decision
+        # 2026-11-12). The spectacle stub records the client's scheduler
+        # state at capture start, which must be "T" (stopped) while the
+        # capture runs; a trapped SIGTERM that writes its own file pins the
+        # resume, because a still-stopped client cannot run its termination
+        # handler inside the session's bounded wait.
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        ready = root / "ready"
+        pidfile = root / "client.pid"
+        captured_state = root / "captured-state"
+        terminated = root / "terminated"
+        client = root / "client.py"
+        client.write_text(
+            "import os, signal, sys\n"
+            "from pathlib import Path\n"
+            "Path(sys.argv[1]).write_text(str(os.getpid()))\n"
+            "Path(sys.argv[2]).touch()\n"
+            "def terminate(*args):\n"
+            "    Path(sys.argv[3]).write_text('terminated')\n"
+            "    sys.exit(0)\n"
+            "signal.signal(signal.SIGTERM, terminate)\n"
+            "signal.pause()\n",
+            encoding="utf-8",
+        )
+        poll = (
+            "import time, sys; from pathlib import Path; "
+            "deadline = time.monotonic() + 3\n"
+            "while not Path(sys.argv[1]).exists():\n"
+            "    if time.monotonic() > deadline: sys.exit(1)\n"
+            "    time.sleep(0.01)\n"
+        )
+        # The spectacle stub reads the client's scheduler state at capture
+        # start and returns only once that state is "T" (stopped), so a
+        # capture that starts without the hold cannot satisfy the test.
+        state_of = 'state=$(awk \'{print $3}\' "/proc/$pid/stat" 2>/dev/null); '
+        prefix = (
+            f'sleep() {{ if [ "$1" = 0 ]; then '
+            f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
+            'else command sleep "$@"; fi; }; '
+            f'spectacle() {{ pid=$(cat "{pidfile}"); n=0; '
+            f'{state_of} printf %s "$state" > "{captured_state}"; '
+            'while [ "$state" != T ] && [ $n -lt 200 ]; do '
+            f'command sleep 0.01; n=$((n + 1)); {state_of} done; '
+            'return 0; }; '
+        )
+        status = render_workflow.run_logged(
+            ["sh", "-c", prefix + render_session.session_script(),
+             "sh", "0", str(root / "capture.png"), sys.executable,
+             str(client), str(pidfile), str(ready), str(terminated)],
+            environment, root / "session.log", 10, root,
+        )
+        self.assertEqual(0, status)
+        self.assertEqual("T", captured_state.read_text(encoding="utf-8"))
+        self.assertTrue(
+            terminated.exists(),
+            "the held client was never resumed for its termination",
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertIn("render-session: client held at ", log)
+        # The post-capture aliveness check runs while the client is still
+        # frozen, before the resume, so a held client reads as alive.
+        self.assertIn("client alive after the capture", log)
+        self.assertNotIn(render_session.CLIENT_EXITED_DURING_CAPTURE, log)
 
 
 class TestSessionCommand(unittest.TestCase):

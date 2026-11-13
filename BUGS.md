@@ -144,6 +144,27 @@ branch — and to check whether any merge-gate run since the instrumentation lan
 with a black capture, whose message wording would settle the branch question outright. See
 the queued request; the entry is with the director until resolved or parked.
 
+**Progress 2026-11-12 by bugfix:** Implemented the client-hold per the director's decision
+above, which landed (a4f988d3b) minutes after the handoff note above and resolves the
+repair choice it poses. `tools/render_session.py::session_script` now runs `kill -STOP
+"$client"` immediately after the settle's liveness check passes (logging
+`render-session: client held at <ms>` so a failure log shows whether the hold landed) and
+`kill -CONT "$client"` immediately before the post-capture `kill`; the `kill -9` fallback,
+the bounded reap and the black-capture diagnosis are unchanged, and the post-capture
+aliveness check still runs while the client is frozen, so the diagnosis semantics are
+intact. Because a frozen client cannot exit on its own mid-capture, the two
+exit-during-capture stub regressions now end the client with SIGKILL mid-capture (the only
+thing that can stop a frozen client) and still pin the vanished-client diagnosis; a new
+real-process regression pins the hold itself — the client's scheduler state read at capture
+start is `T` (stopped), and a trapped SIGTERM can only run its handler after the resume —
+and the script-order pins require STOP after the liveness check and before the capture,
+CONT before the TERM. All were watched failing with the hold reverted (`'T' != 'S'`, the
+capture started with the client still running) and passing with it.
+`docs/invariants.md`'s splash row pinned nothing about the client running freely through
+the capture, and now records the hold in the same change. Left open per the director's
+decision: this entry closes only when a real splash capture succeeds under gate load with
+the hold in place.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
