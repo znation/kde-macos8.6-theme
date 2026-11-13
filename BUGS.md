@@ -108,6 +108,16 @@ if the next failure's log names the exit marker — a black capture with the cli
 means the paint budget is the cause instead, and the settle must not grow on the generic
 diagnostic's word. Full check green 2026-11-12 after this change.
 
+**Progress 2026-11-12 by bugfix:** The repair decision above is still evidence-gated and no
+new failure has fired since the instrumentation landed, so this run re-attempted nothing: no
+on-demand reproduction without synthetic host load exists (forbidden), and the two stub
+regressions and the idle-host timeline measurement recorded above already cover the
+deterministic half. Handed to the director to resolve the pending repair choice — apply the
+client-hold across the capture now, or wait for the next real failure's log to name the
+branch — and to check whether any merge-gate run since the instrumentation landed has failed
+with a black capture, whose message wording would settle the branch question outright. See
+the queued request; the entry is with the director until resolved or parked.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
