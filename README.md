@@ -763,7 +763,7 @@ package. `PLACEHOLDERS.md` tracks this temporary artwork.
 ## Reference screenshots
 
 `macos8.6-screenshots/` is the visual reference set for this theme: 30 images for **Mac OS 8.6**
-(released 1999-05-10) — retail screenshots and beta builds, one 8.5 supplement and two
+(released 1999-05-10) — retail screenshots and beta builds, two 8.1 supplements, one 8.5 supplement and two
 photographs — collected from the internet and used as the source of truth when matching menu bar,
 window chrome, widget metrics, icons and colour palette in the Plasma 6 port. They are reference
 material only — the theme does not ship them.
