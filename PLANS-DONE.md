@@ -5,6 +5,112 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate selected declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class (149 `test_` methods at this plan's base commit). Move the five
+`test_selected`-prefixed declaration checks (about 115 lines at this
+plan's base commit) into their own module, the same way the landed OSD
+(`tests/test_gtk4_osd.py`), scale, spinbutton, disabled, emoji, entry,
+notebook, scrollbar, switch, progressbar and levelbar parts moved
+theirs. This is independent of the waiting "GTK 4 suite extraction:
+isolate view declarations" entry (that one moves only
+`test_view`-prefixed methods; the method sets do not overlap and their
+invariants-rewrite rows name different members, though both entries
+edit `tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever
+merges later re-reads those two files before writing). Methods that
+only contain `selected` mid-name (`test_text_selection`,
+`test_row_selection_backdrop`,
+`test_treeview_selected_check_radio_faces`,
+`test_generic_view_selected_arms`, `test_iconview_selected_arms`,
+`test_view_child_selected_arms`, the already-split
+`tests/test_gtk4_disabled.py` selected-row and child checks and the
+GTK 3 checks elsewhere) stay where they are. No stylesheet or
+production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_selected.py` with
+  `class TestGtk4Selected(Gtk4SheetRuleCases, unittest.TestCase)` and
+  a one-line module docstring on the landed extraction modules'
+  pattern. Move every `TestGtk4Theme` method whose name starts with
+  `test_selected_`, keeping each method's body and docstring
+  unchanged: `test_selected_text_arms`,
+  `test_selected_inline_link_foregrounds`,
+  `test_selected_ancestor_inline_link_foregrounds`,
+  `test_selected_row_button_arms` and `test_selected_row_meter_rims`.
+  The two inline-link methods are contiguous, sitting together between
+  `test_inline_link_interaction_colours` and
+  `test_link_button_follows_the_button_state_rules`, which stay;
+  `test_selected_text_arms` sits between `test_text_selection` and
+  `test_label_error_colour_class`, `test_selected_row_button_arms`
+  between `test_list_row_press_and_popup_faces` and
+  `test_places_sidebar`, and `test_selected_row_meter_rims` between
+  `test_headerbar_meter_faces` and `test_spinner` — all of which stay.
+  Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation re-grep every anchor this entry
+  names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`, `gtk_css` from `support`, `strip_comments`
+  from `support.gtk_css`, `BLACK` and `GREY` from
+  `support.platinum_palette` and `TEXT_SELECTION` from
+  `support.gtk_theme_spec` (the moved bodies use each:
+  `TEXT_SELECTION` in the two inline-link checks and the text-arms
+  check, `BLACK` and `GREY` in `test_selected_row_meter_rims`,
+  `gtk_css.inline_link_state_selectors` and `strip_comments` in the
+  two inline-link checks; grep-checked at this plan's base commit, the
+  source module still references every one of these names after the
+  move — `TEXT_SELECTION` in the text-field selection checks,
+  `GREY` in the meter-arm f-strings, `gtk_css` and `strip_comments`
+  in the palette-sweep and render-verification helpers — so its
+  import block needs no pruning). Every assertion helper the moved
+  bodies call comes with the base classes: `assert_rule`,
+  `assert_rule_group`, `assert_rule_after`, `assert_disabled_text`
+  and `assert_selected_row_button_arms` are methods on
+  `tests/support/gtk_rule_cases.py`'s `GtkSheetRuleCases` (which
+  `Gtk4SheetRuleCases` extends through `GtkSharedControlCases`), and
+  `self.css`, `self.rules` and `self.selectors` come from its shared
+  `setUpClass`; none of them is imported as a name anywhere, so no
+  import line moves or is pruned. The moved bodies call no other
+  support name (no `HEX`, `parse_css`, mock, tempfile, symlink helper
+  or `re` use).
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_selected…` anchor to
+  `tests/test_gtk4_selected.py::TestGtk4Selected::test_selected…`,
+  wherever it appears — in the anchor column and in provenance prose.
+  `grep -o 'TestGtk4Theme::test_selected[a-z_]*' docs/invariants.md`
+  finds five member mentions at this plan's base commit, one per row
+  (one each of the five moved names), and no mention in row prose.
+  One of those rows also names staying anchors — the selected-text
+  row lists `test_text_selection` and
+  `tests/test_gtk4_disabled.py::TestGtk4Disabled::
+  test_disabled_selected_row_and_child_arms` beside the moved member
+  — so rewrite only the moved anchor in place and leave every other
+  anchor as it reads. The rows naming `test_row_selection_backdrop`,
+  `test_row_drop_borders`,
+  `test_row_drop_directional_arms_undeclared` and
+  `test_row_spin_stepper_corners` stay untouched: those methods are
+  not part of this move. Do not rewrite history in PLANS-DONE.md or
+  BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly
+  once, under `test_gtk4_selected.TestGtk4Selected`, and none of them
+  under `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme`
+  method is still listed there.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked once
+  during the run (for example by comparing `ast.dump` output). This
+  is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_selected' docs/invariants.md` prints
+  nothing, the selected-text row still names its two staying anchors
+  under their original modules, and the invariants checker inside
+  `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 100 lines, and
+  `tests/test_gtk4_selected.py` stays under about 160 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_selected.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate view declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
