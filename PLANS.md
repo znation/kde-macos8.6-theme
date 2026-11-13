@@ -308,6 +308,111 @@ member mentions. No stylesheet or production behavior changes.
   `tests/test_gtk4_splitbutton.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate the navigation-sidebar, boxed-list and swatch corner declarations (planned 2026-11-13 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class. Move the contiguous run of four square-corner
+restate methods — `test_navigation_sidebar_item_corners`,
+`test_boxed_list_corners`, `test_separate_boxed_row_corners` and
+`test_color_swatch_corners` — into their own module, the way the
+merged frame-corner, dropdown, popover, paned, widget-corner and
+split-button extractions moved theirs. All four pin the same
+`border-radius: 0` restatement family — three over list-row surfaces
+(navigation sidebar, boxed lists, separate boxed rows) and one over
+the colour-button swatch, which also carries the 2026-11-04 container
+restatement's `extra_declarations` — and each carries its focus-twin
+comment naming the test that pins the focus spelling, so one module
+houses the family and no pair of them is ever split across two
+entries. This entry is independent of the waiting "GTK 4 suite
+extraction: isolate the split-button container and band corner
+declarations" entry: that entry moves the two split-button methods
+immediately above this run and states it never touches these four,
+while this one moves only the four below the block that entry
+deletes — but both delete contiguous runs in
+`tests/test_gtk4_theme.py` and rewrite rows of `docs/invariants.md`,
+so whichever merges later re-reads the file and the rows before
+writing and rewrites only its own member mentions. No stylesheet or
+production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_row_corners.py` with `class
+  TestGtk4RowCorners(Gtk4SheetRuleCases, unittest.TestCase)`, a
+  one-line module docstring on the existing extraction modules'
+  pattern (`tests/test_gtk4_widget_corners.py`), and the `if __name__
+  == "__main__":` guard. Move exactly four `TestGtk4Theme` methods,
+  keeping each body, comment and docstring unchanged:
+  `test_navigation_sidebar_item_corners`, `test_boxed_list_corners`,
+  `test_separate_boxed_row_corners` and `test_color_swatch_corners`.
+  At this plan's base commit they form one contiguous run between the
+  `test_splitbutton_band_corners` method above (which the waiting
+  split-button entry moves) and the staying
+  `test_columnview_and_listview_rows` below — the move touches one
+  contiguous deletion in the source module. If the split-button entry
+  merges first, re-grep and delete the same four methods wherever
+  they then sit. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation re-grep every anchor this entry
+  names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`, `BLACK` from `support.platinum_palette`, and
+  nothing else beyond `unittest`. Every helper the four bodies call
+  comes with the base classes: `assert_rule` (a method of
+  `GtkRuleCases`, `tests/support/gtk_rule_cases.py`),
+  `assert_square_corner` (`tests/support/gtk4_sheet.py`) and
+  `assert_color_swatch_corners` (a method of `GtkRuleCases`,
+  `tests/support/gtk_rule_cases.py`), and `self.rules` comes from the
+  shared `setUpClass`. No body spells a palette or spec constant
+  beyond `BLACK` or uses `re`, `tempfile` or `mock`; `BLACK` stays
+  imported in `tests/test_gtk4_theme.py` (other methods use it), so
+  no import is pruned from the source module.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_navigation_sidebar_item_corners`,
+  `…::test_boxed_list_corners`, `…::test_separate_boxed_row_corners`
+  and `…::test_color_swatch_corners` anchor to
+  `tests/test_gtk4_row_corners.py::TestGtk4RowCorners::…`, wherever
+  it appears. `grep -o
+  'TestGtk4Theme::test_navigation_sidebar_item_corners\|TestGtk4Theme::test_boxed_list_corners\|TestGtk4Theme::test_separate_boxed_row_corners\|TestGtk4Theme::test_color_swatch_corners'
+  docs/invariants.md` finds exactly six member mentions across six
+  rows at this plan's base commit: the boxed-list row names
+  `test_boxed_list_corners` once, the separate-row row names
+  `test_separate_boxed_row_corners` once, the navigation-sidebar
+  corner row and the places-sidebar row each name
+  `test_navigation_sidebar_item_corners` once, and the swatch-corner
+  row and the colour-button container row each name
+  `test_color_swatch_corners` once. Rewrite only those six member
+  mentions and leave every other anchor in those rows as it reads
+  (the places-sidebar row also anchors `test_places_sidebar`, which
+  stays). Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four moved methods exactly
+  once, under `test_gtk4_row_corners.TestGtk4RowCorners`, and none
+  of them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_columnview_and_listview_rows`, `test_undershoot_bands_cleared`
+  and `test_split_button_container_corners` until the split-button
+  entry merges.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n
+  'TestGtk4Theme::test_navigation_sidebar_item_corners\|TestGtk4Theme::test_boxed_list_corners\|TestGtk4Theme::test_separate_boxed_row_corners\|TestGtk4Theme::test_color_swatch_corners'
+  docs/invariants.md` prints nothing, each of the six touched member
+  mentions reads `tests/test_gtk4_row_corners.py::TestGtk4RowCorners`,
+  every other anchor in the six touched rows stays as it reads, and
+  the invariants checker inside `make check` resolves every new
+  anchor.
+- `git diff` leaves the import block of `tests/test_gtk4_theme.py`
+  unchanged (no import becomes unused there), the new module's
+  import block names only `unittest`, `support.gtk4_sheet` and
+  `support.platinum_palette`, and the unused-import scanner inside
+  `make check` reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 100 lines, and
+  `tests/test_gtk4_row_corners.py` stays under about 150 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_row_corners.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
