@@ -19,6 +19,28 @@ from support.popen_signal import signal_into_popen  # noqa: E402
 from tools import process_group  # noqa: E402
 
 
+def assert_custom_handler_keeps_its_behavior_during_start(case, number):
+    """Pin the start race for a custom *number* handler.
+
+    Shared by the four custom-handler tests in :class:`TestRunLogged` and
+    :class:`TestRunLoggedSplit`: a signal arriving while ``Popen`` starts
+    must reach the handler the caller installed, the run must still
+    succeed, and the runner must restore the handler afterwards.
+    """
+    received = []
+    handler = lambda delivered, frame: received.append(delivered)  # noqa: E731
+    old = signal.signal(number, handler)
+    case.addCleanup(signal.signal, number, old)
+    with mock.patch.object(
+        process_group.subprocess,
+        "Popen",
+        side_effect=signal_into_popen(number),
+    ):
+        case.assertEqual(0, case.run_sh("exit 0"))
+    case.assertEqual([number], received)
+    case.assertIs(handler, signal.getsignal(number))
+
+
 class TestKillGroup(unittest.TestCase):
     def test_ignores_a_process_group_that_is_already_gone(self):
         # run_logged's finally block calls kill_group after the child has
@@ -215,32 +237,14 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual(128 + signal.SIGHUP, caught.code)
 
     def test_a_custom_sigint_handler_keeps_its_behavior_during_start(self):
-        received = []
-        handler = lambda number, frame: received.append(number)
-        old = signal.signal(signal.SIGINT, handler)
-        self.addCleanup(signal.signal, signal.SIGINT, old)
-        with mock.patch.object(
-            process_group.subprocess,
-            "Popen",
-            side_effect=signal_into_popen(signal.SIGINT),
-        ):
-            self.assertEqual(0, self.run_sh("exit 0"))
-        self.assertEqual([signal.SIGINT], received)
-        self.assertIs(handler, signal.getsignal(signal.SIGINT))
+        assert_custom_handler_keeps_its_behavior_during_start(
+            self, signal.SIGINT
+        )
 
     def test_a_custom_sigterm_handler_keeps_its_behavior_during_start(self):
-        received = []
-        handler = lambda number, frame: received.append(number)
-        old = signal.signal(signal.SIGTERM, handler)
-        self.addCleanup(signal.signal, signal.SIGTERM, old)
-        with mock.patch.object(
-            process_group.subprocess,
-            "Popen",
-            side_effect=signal_into_popen(signal.SIGTERM),
-        ):
-            self.assertEqual(0, self.run_sh("exit 0"))
-        self.assertEqual([signal.SIGTERM], received)
-        self.assertIs(handler, signal.getsignal(signal.SIGTERM))
+        assert_custom_handler_keeps_its_behavior_during_start(
+            self, signal.SIGTERM
+        )
 
     def test_default_signal_handlers_allow_running_from_a_worker_thread(self):
         for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
@@ -455,18 +459,9 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual("m1", mark)
 
     def test_custom_sigterm_handler_keeps_its_behavior_during_start(self):
-        received = []
-        handler = lambda number, frame: received.append(number)
-        old = signal.signal(signal.SIGTERM, handler)
-        self.addCleanup(signal.signal, signal.SIGTERM, old)
-        with mock.patch.object(
-            process_group.subprocess,
-            "Popen",
-            side_effect=signal_into_popen(signal.SIGTERM),
-        ):
-            self.assertEqual(0, self.run_sh("exit 0"))
-        self.assertEqual([signal.SIGTERM], received)
-        self.assertIs(handler, signal.getsignal(signal.SIGTERM))
+        assert_custom_handler_keeps_its_behavior_during_start(
+            self, signal.SIGTERM
+        )
 
     def test_a_descendant_outliving_the_child_is_killed_on_normal_exit(self):
         pidfile = self.root / "pid"
@@ -494,18 +489,9 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(b"", self.stderr_log.read_bytes())
 
     def test_split_custom_sigint_handler_keeps_its_behavior_during_start(self):
-        received = []
-        handler = lambda number, frame: received.append(number)
-        old = signal.signal(signal.SIGINT, handler)
-        self.addCleanup(signal.signal, signal.SIGINT, old)
-        with mock.patch.object(
-            process_group.subprocess,
-            "Popen",
-            side_effect=signal_into_popen(signal.SIGINT),
-        ):
-            self.assertEqual(0, self.run_sh("exit 0"))
-        self.assertEqual([signal.SIGINT], received)
-        self.assertIs(handler, signal.getsignal(signal.SIGINT))
+        assert_custom_handler_keeps_its_behavior_during_start(
+            self, signal.SIGINT
+        )
 
     def test_thread_start_failure_kills_the_child(self):
         child = {}
