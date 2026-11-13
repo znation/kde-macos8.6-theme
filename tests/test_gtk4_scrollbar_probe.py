@@ -2,7 +2,7 @@
 
 import unittest
 
-from support.gtk4_child_probe import run_gtk4_probe
+from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
 from support.gtk4_sheet import _rgb
 from support.gui_tests import require_gui_opt_in
 from support.platinum_palette import BLACK, FACE, GREY, TROUGH, WHITE
@@ -37,24 +37,7 @@ class TestGtk4ScrollbarProbe(unittest.TestCase):
             f"GREY, BLACK, FACE, WHITE, TROUGH = {_rgb(GREY)}, {_rgb(BLACK)}, "
             f"{_rgb(FACE)}, {_rgb(WHITE)}, {_rgb(TROUGH)}"
         )
-        run_gtk4_probe(self, palette + '''
-import sys, time
-from pathlib import Path
-try:
-    import gi
-    gi.require_version("Gtk", "4.0")
-    from gi.repository import Gtk, Gdk, GLib, Graphene
-except (ImportError, ValueError):
-    sys.exit(77)
-Gtk.init()
-if Gdk.Display.get_default() is None:
-    sys.exit(77)
-Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
-root = Path(sys.argv[1])
-provider = Gtk.CssProvider()
-provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
-    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
-Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
+        run_gtk4_probe(self, palette + GTK4_PROBE_PROLOGUE + '''
 
 window = Gtk.Window()
 window.set_default_size(160, 320)

@@ -2,32 +2,14 @@
 
 import unittest
 
-from support.gtk4_child_probe import run_gtk4_probe
+from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
 from support.gui_tests import require_gui_opt_in
 
 
 class TestGtk4NotebookProbe(unittest.TestCase):
     def test_notebook_tab_faces_render(self):
         require_gui_opt_in()
-        run_gtk4_probe(self, '''
-import sys, time
-from pathlib import Path
-try:
-    import gi
-    gi.require_version("Gtk", "4.0")
-    from gi.repository import Gtk, Gdk, GLib, Graphene
-except (ImportError, ValueError):
-    sys.exit(77)
-Gtk.init()
-display = Gdk.Display.get_default()
-if display is None:
-    sys.exit(77)
-Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
-root = Path(sys.argv[1])
-provider = Gtk.CssProvider()
-provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
-    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
-Gtk.StyleContext.add_provider_for_display(display, provider, 801)
+        run_gtk4_probe(self, GTK4_PROBE_PROLOGUE + '''
 window = Gtk.Window()
 window.set_default_size(240, 90)
 notebook = Gtk.Notebook()

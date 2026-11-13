@@ -2,7 +2,7 @@
 
 import unittest
 
-from support.gtk4_child_probe import run_gtk4_probe
+from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
 from support.gui_tests import require_gui_opt_in
 
 
@@ -23,24 +23,7 @@ class TestGtk4ProgressbarProbe(unittest.TestCase):
         # which a plain toolkit child never loads — so the filter spelling
         # is held by test_progressbar_disabled_filter, and the disabled
         # bar's full-strength faces are what this probe establishes.
-        run_gtk4_probe(self, '''
-import sys, time
-from pathlib import Path
-try:
-    import gi
-    gi.require_version("Gtk", "4.0")
-    from gi.repository import Gtk, Gdk, GLib, Graphene
-except (ImportError, ValueError):
-    sys.exit(77)
-Gtk.init()
-if Gdk.Display.get_default() is None:
-    sys.exit(77)
-Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
-root = Path(sys.argv[1])
-provider = Gtk.CssProvider()
-provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
-    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
-Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
+        run_gtk4_probe(self, GTK4_PROBE_PROLOGUE + '''
 
 GREY, BLACK, FACE, SELECTION, TROUGH = (
     (153, 153, 153), (0, 0, 0), (221, 221, 221),
