@@ -20,7 +20,7 @@ user 2026-11-01; recorded by the director role.)
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
-**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has landed, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
+**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has merged, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
 
 **User evidence 2026-11-12 (recorded by the director role).** The user sent three photos of the
 screen, showing the cursors installed at `~/.local/share/icons/org.macos8.desktop/cursors/`.

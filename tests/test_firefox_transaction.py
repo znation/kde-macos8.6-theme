@@ -116,8 +116,8 @@ class TestPublishInstall(unittest.TestCase):
                 "previous preferences\n", user_js.read_text(encoding="utf-8")
             )
 
-    def test_a_user_js_the_transaction_created_is_removed_when_its_write_landed(self):
-        # user.js did not exist before the run. The publication write lands
+    def test_a_user_js_the_transaction_created_is_removed_when_its_write_completes(self):
+        # user.js did not exist before the run. The publication write completes
         # and then the publisher raises: the published state for a file that
         # had no previous version is absence, so the rollback must remove the
         # user.js it just wrote, and the sheet it created must go too.

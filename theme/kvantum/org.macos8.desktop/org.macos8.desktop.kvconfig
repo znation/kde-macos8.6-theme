@@ -82,7 +82,7 @@ inherits=PanelButtonCommand
 # generic `button` family the at-rest field paints the pressed sunken bevel;
 # no collected reference screenshot shows a pressed or disabled combo popup,
 # so every combofield state slice carries the reference's raised arrangement
-# (the landed `button-normal` slices) whatever state the engine settles on.
+# (the existing `button-normal` slices) whatever state the engine settles on.
 # The toolbar combo box keeps the generic button family it inherits today by
 # restating its element keys explicitly in [ToolbarComboBox].
 frame.element=combofield

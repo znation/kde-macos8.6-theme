@@ -37,7 +37,7 @@ BUTTON_SVG_DIR = f"{ROOT}/theme/aurorae/themes/{AURORAE_ID}"
 # `inactive-center` group gained the paintless full-canvas path that makes
 # `supportsInactive` resolve true (an empty group drew the active box on
 # unfocused bars); the gating edits only QML.
-LANDED_SVG_DIGESTS = {
+PINNED_SVG_DIGESTS = {
     "close.svg": "50bb86821206753fa1c7410a411ed1cce2d51012b2c7c097df26102bb1a7d592",
     "maximize.svg": "7c8f955bc3aeb032655c1128ca6cc1d4a68009e1feff09e614caa9628c05dc82",
     "restore.svg": "1552ce5806120f8e1273c70108567451a89f6f40015df2c20d7b2f7e7177d76e",
@@ -164,7 +164,7 @@ class TestHitSurfaces(unittest.TestCase):
         )
 
     def test_independent_button_art_went_untouched(self):
-        for name, digest in LANDED_SVG_DIGESTS.items():
+        for name, digest in PINNED_SVG_DIGESTS.items():
             with open(f"{BUTTON_SVG_DIR}/{name}", "rb") as handle:
                 self.assertEqual(
                     hashlib.sha256(handle.read()).hexdigest(), digest, name

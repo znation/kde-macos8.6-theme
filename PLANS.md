@@ -7,12 +7,12 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
-font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
+font facts re-trimmed 2026-10-22 by the steward role; merged-plan facts re-trimmed 2026-10-23
 by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
 and content-surface status updated 2026-10-26 by the steward role; install-firefox
 file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
 2026-10-27 by the feature role; Firefox content scope refreshed
-2026-10-29 by the steward role; landed-series narration trimmed 2026-11-11 by the
+2026-10-29 by the steward role; merged-series narration trimmed 2026-11-11 by the
 steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
@@ -60,7 +60,7 @@ NW-SE and NE-SW diagonal resize arrows, crosshair, circle-slash, drag-and-drop c
 open and closed hands, the help question-mark arrow, the progress arrow with a small hourglass,
 a pencil, the `zoom-in`/`zoom-out` magnifiers, and the drag-and-drop/forbidden aliases, not
 traced from Apple's artwork), it
-has landed inside the icon theme package with its provenance exception recorded in
+has merged inside the icon theme package with its provenance exception recorded in
 `docs/invariants.md`, and `make apply-cursor`/`make remove-cursor` link it into the Xcursor path
 and select it; Xcursor roles the theme does not name still come from the fallback cursor
 theme; **system sounds** are out
@@ -69,8 +69,8 @@ out of scope unless a broader login/lock-screen plan is taken up (QUESTIONS.md, 
 2026-10-21). The
 shipped work should not be treated as the whole of the prompt.
 
-Two answers on 2026-10-19 widened the scope, and both are recorded below in their landed
-state (their landed-series entry narration trimmed 2026-11-11 by the steward role;
+Two answers on 2026-10-19 widened the scope, and both are recorded below in their merged
+state (their merged-series entry narration trimmed 2026-11-11 by the steward role;
 the entries themselves are archived in PLANS-DONE.md).
 **GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19): the GTK 3
 and GTK 4/libadwaita Platinum stylesheets under `theme/gtk/` are installed — and selected —
@@ -84,7 +84,7 @@ public-domain Chicago-style face, is selected for menus and window titles (its l
 JetBrains Mono (the user-approved fixed-width face, QUESTIONS.md answered 2026-11-12)
 is selected for KDE's fixed-width font.
 GTK and Firefox applications keep their own chrome unless the opt-in GTK targets or the
-Firefox install are used. Firefox chrome work since that series landed as single-surface
+Firefox install are used. Firefox chrome work since that series merged as single-surface
 chrome plans (the downloads-panel and all-tabs rows, the sidebar frame, the menu-bar title
 box, the tab faces and the app-menu rows). The `userContent.css` sheet styles surfaces
 within six internal pages — about:downloads, about:config, about:preferences,
@@ -209,7 +209,7 @@ entry's scope.
 `TestGtk4Theme` class (100 `test_` methods at this plan's base
 commit). Move the five selection-restatement, focus-outline and
 cursor-handle declaration checks (about 150 contiguous lines at this
-plan's base commit) into their own module, the same way the landed OSD
+plan's base commit) into their own module, the same way the existing OSD
 (`tests/test_gtk4_osd.py`), scale, spinbutton, disabled, emoji, entry,
 notebook, scrollbar, switch, progressbar, levelbar, view, selected,
 button, row, treeview, tabbar, sidebar, checkbutton, menu, expander,
@@ -245,9 +245,9 @@ stylesheet or production behavior changes.
 **Approach and files.**
 - Create `tests/test_gtk4_selection_focus.py` with
   `class TestGtk4SelectionFocus(Gtk4SheetRuleCases,
-  unittest.TestCase)` and a one-line module docstring on the landed
+  unittest.TestCase)` and a one-line module docstring on the existing
   extraction modules' pattern (`tests/test_gtk4_menu.py`), ending
-  with the `if __name__ == "__main__":` guard like the landed
+  with the `if __name__ == "__main__":` guard like the existing
   modules. Move exactly five `TestGtk4Theme` methods, keeping each
   method's body and docstring unchanged: `test_iconview_selected_arms`,
   `test_residual_focus_outline_color`,
@@ -265,7 +265,7 @@ stylesheet or production behavior changes.
   `support.gtk4_sheet`, `BLACK` and `SELECTION` from
   `support.platinum_palette`, `SELECTION_CHECK_STATES` from
   `support.gtk_theme_spec`, and nothing else beyond `unittest` (the
-  landed `tests/test_gtk4_menu.py` import block shows the shape).
+  existing `tests/test_gtk4_menu.py` import block shows the shape).
   Every helper the bodies call comes with the base classes:
   `assert_rule` (`tests/support/gtk_rule_cases.py:155`) and
   `assert_disabled_text` (`:449`) are methods of
@@ -314,7 +314,7 @@ stylesheet or production behavior changes.
   once, under `test_gtk4_selection_focus.TestGtk4SelectionFocus`, and
   none of them under `test_gtk4_theme.TestGtk4Theme`. Every other
   `TestGtk4Theme` method is still listed there, including
-  `test_gridview_item_corners` (or, if the paned entry landed first,
+  `test_gridview_item_corners` (or, if the paned entry merges first,
   `test_assistant_step_label_corners` and `test_tile_check_faces`
   among the staying).
 - For each moved method, the AST of its function definition is

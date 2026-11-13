@@ -2580,7 +2580,7 @@
   <!-- Adaptation 2026-11-03: the combo box's dedicated field-frame element
        family. No collected reference screenshot shows a pressed, focused or
        disabled combo popup, so every state slice keeps the reference's
-       at-rest raised arrangement: these four families clone the landed
+       at-rest raised arrangement: these four families clone the existing
        `button-normal` slices byte-equal (same canvas cells, same palette
        hexes), the art `tests/test_kvantum_button_reference.py` pins to the
        reference's own pop-up buttons (aboutsystem_betawiki.png).

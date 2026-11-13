@@ -4,7 +4,7 @@ Prose counts the dialog render gates in words: ``docs/invariants.md``'s
 skip-guard and software-renderer rows, ``tests/test_ci_workflow.py``'s
 workflow-install comment, and the skip-guard comments and gate-scaffold
 docstrings the capture suites carry. Those files count the kdialog modes too.
-When a dialog gate lands (as the color gate did), those words must move with it:
+When a dialog gate is added (as the color gate was), those words must move with it:
 a count that lags the code quietly under-reports the gates the shared skip guard
 covers. The shift to the color gate left the defining suite's own
 comment and docstring stale, so the defining files are scanned beside the surfaces
@@ -13,8 +13,8 @@ The expected gate count derives from the live ``Test...DialogRender`` gate
 classes in the render capture suites, never from the prose, so the
 two cannot drift in opposite directions.
 The kdialog-mode count derives from the live ``DIALOG_MODES`` table in
-``tools/render_dialogs.py``, not from the gate classes: a mode can land before
-its gate (the file-dialog series' part 1/2 added the mode, part 2/2 its gate),
+``tools/render_dialogs.py``, not from the gate classes: a mode can be added
+before its gate (the file-dialog series' part 1/2 added the mode, part 2/2 its gate),
 and the words that say how many kdialog clients the render CLI demands must
 track the CLI's table from the moment the mode exists, not wait for the gate.
 ``tests/test_render_dialogs.py``'s table docstring counts the dialog modes
