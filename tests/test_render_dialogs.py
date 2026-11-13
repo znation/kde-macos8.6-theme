@@ -52,6 +52,18 @@ class TestDialogModes(unittest.TestCase):
                 self.assertEqual("--" + mode.attr.replace("_dialog", "-dialog"), mode.flag)
                 self.assertTrue(mode.help)
 
+    def test_every_one_window_mode_ends_its_help_with_the_shared_capture_tail(self):
+        # Every mode except the inactive pair capture tails its help text with
+        # the module's shared capture tail, so the capture size is declared in
+        # one place beside the gate it feeds; a mode that re-spelled the tail
+        # would advertise another size the widget gate does not byte-compare.
+        tail = "and capture it at the 480x360 size the widget gate byte-compares"
+        for mode in render_dialogs.DIALOG_MODES:
+            if mode.attr == "inactive_dialog":
+                continue
+            with self.subTest(flag=mode.flag):
+                self.assertTrue(mode.help.endswith(tail), mode.help)
+
     def test_pairs_each_mode_with_its_render_clients_factory(self):
         # The workflow builds the mode's window through mode.client, so a
         # swapped factory would open one dialog while its flag's help text

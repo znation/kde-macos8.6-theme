@@ -71,6 +71,13 @@ class DialogMode(NamedTuple):
     extra_config_files: tuple[str, ...] = ()
 
 
+# The help-text tail every one-window dialog mode shares: the mode opens one
+# dialog and the CLI captures it at 480x360, the size the widget gate
+# byte-compares. Declared once so the capture size is edited in one place;
+# the inactive pair capture tails differently and keeps its own wording.
+_CAPTURE_TAIL = "and capture it at the 480x360 size the widget gate byte-compares"
+
+
 # One entry per dialog mode, in the order the CLI lists the flags: the parser
 # adds one ``--*-dialog`` flag per entry in this order, and the workflow walks
 # it to pick the client for the flag set on the command line. The CLI accepts
@@ -80,9 +87,8 @@ DIALOG_MODES = (
         "checkbox_dialog",
         "--checkbox-dialog",
         (
-            "open a KDialog warning box whose dontagain check box the Kvantum "
-            "engine draws with the theme's checkbox art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
+            f"open a KDialog warning box whose dontagain check box the Kvantum "
+            f"engine draws with the theme's checkbox art, {_CAPTURE_TAIL}"
         ),
         checkbox_dialog_client,
         "kdialog",
@@ -91,9 +97,8 @@ DIALOG_MODES = (
         "combobox_dialog",
         "--combobox-dialog",
         (
-            "open a KDialog chooser whose combo box the Kvantum engine draws "
-            "with the theme's comboarrow art, and capture it at the 480x360 "
-            "size the widget gate byte-compares"
+            f"open a KDialog chooser whose combo box the Kvantum engine draws "
+            f"with the theme's comboarrow art, {_CAPTURE_TAIL}"
         ),
         combobox_dialog_client,
         "kdialog",
@@ -102,9 +107,8 @@ DIALOG_MODES = (
         "lineedit_dialog",
         "--lineedit-dialog",
         (
-            "open a KDialog input box whose line edit the Kvantum engine "
-            "draws with the theme's sunken-field art, and capture it at the "
-            "480x360 size the widget gate byte-compares"
+            f"open a KDialog input box whose line edit the Kvantum engine "
+            f"draws with the theme's sunken-field art, {_CAPTURE_TAIL}"
         ),
         lineedit_dialog_client,
         "kdialog",
@@ -113,9 +117,8 @@ DIALOG_MODES = (
         "menu_dialog",
         "--menu-dialog",
         (
-            "open a KDialog menu list whose item-view frame the Kvantum "
-            "engine draws with the theme's GenericFrame art, and capture it "
-            "at the 480x360 size the widget gate byte-compares"
+            f"open a KDialog menu list whose item-view frame the Kvantum "
+            f"engine draws with the theme's GenericFrame art, {_CAPTURE_TAIL}"
         ),
         menu_dialog_client,
         "kdialog",
@@ -124,11 +127,10 @@ DIALOG_MODES = (
         "radiolist_dialog",
         "--radiolist-dialog",
         (
-            "open a KDialog radio list whose sunken list field, selected- "
-            "row selection band and checked and unchecked radio indicators "
-            "the Kvantum engine draws with the theme's palette and radio "
-            "art, and capture it at the 480x360 size the widget gate "
-            "byte-compares"
+            f"open a KDialog radio list whose sunken list field, selected- "
+            f"row selection band and checked and unchecked radio indicators "
+            f"the Kvantum engine draws with the theme's palette and radio "
+            f"art, {_CAPTURE_TAIL}"
         ),
         radio_dialog_client,
         "kdialog",
@@ -137,9 +139,8 @@ DIALOG_MODES = (
         "calendar_dialog",
         "--calendar-dialog",
         (
-            "open a KDialog calendar whose day table the Kvantum engine "
-            "paints with the theme's colorscheme palette, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
+            f"open a KDialog calendar whose day table the Kvantum engine "
+            f"paints with the theme's colorscheme palette, {_CAPTURE_TAIL}"
         ),
         calendar_dialog_client,
         "kdialog",
@@ -148,10 +149,9 @@ DIALOG_MODES = (
         "color_dialog",
         "--color-dialog",
         (
-            "open a KDialog color picker whose swatch grid, line edits and "
-            "push buttons the Kvantum engine draws with the theme's palette "
-            "and art, and capture it at the 480x360 size the widget gate "
-            "byte-compares"
+            f"open a KDialog color picker whose swatch grid, line edits and "
+            f"push buttons the Kvantum engine draws with the theme's palette "
+            f"and art, {_CAPTURE_TAIL}"
         ),
         color_dialog_client,
         "kdialog",
@@ -160,9 +160,8 @@ DIALOG_MODES = (
         "progressbar_dialog",
         "--progressbar-dialog",
         (
-            "open a KDialog progress meter whose at-rest trough the Kvantum "
-            "engine draws with the theme's progress art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
+            f"open a KDialog progress meter whose at-rest trough the Kvantum "
+            f"engine draws with the theme's progress art, {_CAPTURE_TAIL}"
         ),
         progressbar_dialog_client,
         "kdialog",
@@ -171,9 +170,8 @@ DIALOG_MODES = (
         "slider_dialog",
         "--slider-dialog",
         (
-            "open a KDialog slider whose QSlider the Kvantum engine draws "
-            "with the theme's slider and slidercursor art, and capture it "
-            "at the 480x360 size the widget gate byte-compares"
+            f"open a KDialog slider whose QSlider the Kvantum engine draws "
+            f"with the theme's slider and slidercursor art, {_CAPTURE_TAIL}"
         ),
         slider_dialog_client,
         "kdialog",
@@ -182,9 +180,8 @@ DIALOG_MODES = (
         "textbox_dialog",
         "--textbox-dialog",
         (
-            "open a KDialog text box whose vertical scrollbar the Kvantum "
-            "engine draws with the theme's scrollbar art, and capture it at "
-            "the 480x360 size the widget gate byte-compares"
+            f"open a KDialog text box whose vertical scrollbar the Kvantum "
+            f"engine draws with the theme's scrollbar art, {_CAPTURE_TAIL}"
         ),
         textbox_dialog_client,
         "kdialog",
@@ -193,9 +190,9 @@ DIALOG_MODES = (
         "gtk_dialog",
         "--gtk-dialog",
         (
-            "open a zenity text-entry dialog whose content-area GtkEntry the "
-            "GTK 4 toolkit draws with the published theme selection, and "
-            "capture it at the 480x360 size the widget gate byte-compares"
+            f"open a zenity text-entry dialog whose content-area GtkEntry the "
+            f"GTK 4 toolkit draws with the published theme selection, "
+            f"{_CAPTURE_TAIL}"
         ),
         gtk_dialog_client,
         "zenity",
@@ -204,10 +201,9 @@ DIALOG_MODES = (
         "icon_dialog",
         "--icon-dialog",
         (
-            "open a KDialog icon chooser whose sunken icon-list field, search "
-            "field and push buttons the Kvantum engine draws with the theme's "
-            "palette and art, and capture it at the 480x360 size the widget "
-            "gate byte-compares"
+            f"open a KDialog icon chooser whose sunken icon-list field, search "
+            f"field and push buttons the Kvantum engine draws with the theme's "
+            f"palette and art, {_CAPTURE_TAIL}"
         ),
         icon_dialog_client,
         "kdialog",
@@ -230,10 +226,9 @@ DIALOG_MODES = (
         "file_dialog",
         "--file-dialog",
         (
-            "open a KDialog file chooser whose places sidebar, file list "
-            "view, toolbar and name-filter surfaces the Kvantum engine draws "
-            "with the theme's palette and art, and capture it at the 480x360 "
-            "size the widget gate byte-compares"
+            f"open a KDialog file chooser whose places sidebar, file list "
+            f"view, toolbar and name-filter surfaces the Kvantum engine draws "
+            f"with the theme's palette and art, {_CAPTURE_TAIL}"
         ),
         file_dialog_client,
         "kdialog",
