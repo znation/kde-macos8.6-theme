@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### KDE fixed-width font, part 1/3: package JetBrains Mono (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
+
+**Goal.** Ship the user's approved JetBrains Mono family with the theme, like Lato
+(QUESTIONS.md, "Which monospaced font should the theme ship for fixed-width text?").
+The user's 2026-11-12 follow-up requires its use in Konsole and KDE fixed-width roles;
+parts 2/3 and 3/3 select it. This part installs assets without selecting them.
+
+**Approach and files.** Obtain the static Regular, Medium and Bold TTFs and the copyright
+file from Debian's `fonts-jetbrains-mono` package, using a downloaded package extracted
+in scratch space rather than installing system packages. Vendor unmodified copies as
+`theme/fonts/org.macos8.desktop/JetBrainsMono-{Regular,Medium,Bold}.ttf` and
+`LICENSE-JetBrainsMono.txt`. Extend that directory's `PROVENANCE.md` with the package
+version, download URL, archive and shipped-file SHA-256 digests, upstream author/source,
+OFL-1.1 redistribution basis, and internal family/subfamily names read from the files.
+Record this as a user-selected approximation: the references supply no terminal font
+surface or font pixel. Keep Lato and ChicagoFLF assets intact. The existing Makefile
+font-package directory install is the intended install path.
+
+**Acceptance criteria.** Extend `tests/test_fonts.py`, reusing `_name_table`, to verify
+the three faces' family/subfamily identities, pinned digests and provenance/licence
+records; include a fixed-pitch check of the TTF `post` table's `isFixedPitch` field using
+the standard library. Extend its install lifecycle expectations to cover byte-preserving
+staged installation and removal of the new files while preserving a foreign font sibling.
+Update the fonts section of `docs/invariants.md` and the font inventory in the installation
+guide (README.md or its extracted `docs/installing.md`). `make check` passes. No selection
+changes belong to this part.
+
 ### Chicago-style face, part 2/2: select ChicagoFLF for menus and window titles (planned 2026-11-12 by the director role; "requires part 1/2 landed") — done 2026-11-12 by the feature role
 
 **Goal.** Select the installed ChicagoFLF face for menus and active window titles. Body, toolbar and smallest-readable text stay Lato, and monospace keeps the user's fixed font.

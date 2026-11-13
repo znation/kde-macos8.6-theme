@@ -92,7 +92,14 @@ window decoration's QML package into `kwin/decorations/` (the look-and-feel defa
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
-OFL 1.1 and ChicagoFLF for menus and window titles; the global theme selects Lato for general, toolbar and smallest-readable fonts, while monospaced text keeps the user's fixed font), and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor and ten shared assets into `themes/org.macos8.desktop/`. Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
+OFL 1.1, ChicagoFLF for menus and window titles, and the JetBrains Mono static
+Regular, Medium and Bold faces for fixed-width text, installed but not selected
+by any theme default; the global theme selects Lato for general, toolbar and
+smallest-readable fonts, while monospaced text keeps the user's fixed font),
+and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor
+and ten shared assets into `themes/org.macos8.desktop/`. Applying the global
+theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at
+fixed resolutions.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
 (`widgetStyle=kvantum`). Kvantum is a separate engine the theme cannot install, so when it is absent

@@ -65,3 +65,53 @@ via email 2014/01/30).” The font's name records identify ID 13 as `Public
 Domain` and ID 0 quotes Casady's dedication: “You are free to use them as you
 wish. I consider those two in the public domain.” The archive contains a
 single Regular face and no Bold face.
+
+# JetBrains Mono font provenance
+
+JetBrains Mono is the user-approved fixed-width face (QUESTIONS.md,
+“Which monospaced font should the theme ship for fixed-width text?”, answered
+2026-11-12: “option 1 … package it with the theme, like Lato”). It is an
+approximation, not a reference anchor: no Mac OS 8.6 screenshot in
+`macos8.6-screenshots/` supplies a terminal font surface or a font pixel, so
+the face is recorded as a user-selected approximation rather than sampled
+from a reference. This part installs the family only; no theme selection
+names it (the global theme's defaults are unchanged, and monospaced text
+still keeps the user's fixed font).
+
+## Source
+
+The four files are byte-for-byte copies of the Debian source package
+`fonts-jetbrains-mono` version `2.304+ds-5` (trixie/main, all), downloaded
+from
+`http://deb.debian.org/debian/pool/main/f/fonts-jetbrains-mono/fonts-jetbrains-mono_2.304+ds-5_all.deb`,
+SHA-256 `a3b42e1de29a93d8e78ae14ea6898a4534af5838ce946234ec3d8c7ab8ac271d`:
+
+| Shipped file | Archive member | SHA-256 |
+| --- | --- | --- |
+| `JetBrainsMono-Regular.ttf` | `usr/share/fonts/truetype/jetbrains-mono/JetBrainsMono-Regular.ttf` | `9fd21a629ec73a93d1665b6d8bbb73928040a290b49d2f6772505b8129e68cdc` |
+| `JetBrainsMono-Medium.ttf` | `usr/share/fonts/truetype/jetbrains-mono/JetBrainsMono-Medium.ttf` | `a3735d53e905b3898a23dedb2f118757be11858979e254865dc1b30ea63c0de6` |
+| `JetBrainsMono-Bold.ttf` | `usr/share/fonts/truetype/jetbrains-mono/JetBrainsMono-Bold.ttf` | `10389fb114512e1df7ca54f791b9f83572e2785e9ff1946c8197d5e5faaafd7a` |
+| `LICENSE-JetBrainsMono.txt` | `usr/share/doc/fonts-jetbrains-mono/copyright` | `af1f9fe50b20580bbe159f3e7f88b0a5a201c2f7f71a0eb61ba6b39b867d1c72` |
+
+Upstream: JetBrains s.r.o.; Debian's copyright file names the author as
+Phillip Nurullin <philipp.nurullin@jetbrains.com> with source
+`https://github.com/JetBrains/JetBrainsMono`, packaged as
+`fonts-jetbrains-mono`. The shipped files carry the internal names the fonts'
+own name tables read: `JetBrains Mono` Regular, `JetBrains Mono Medium`
+Regular (Medium is exposed as its own family name, per the OFL naming
+convention for non-RIBBI weights), and `JetBrains Mono` Bold. Every face's
+`post` table records `isFixedPitch = 1`.
+
+## Licence
+
+JetBrains Mono is dual-licensed upstream: SIL Open Font License 1.1 and
+Apache 2.0. This theme redistributes it under OFL-1.1, which the shipped
+fonts themselves declare in their `name` table licence records (name IDs 13
+and 14 name the SIL OFL licence text and `https://scripts.sil.org/OFL`);
+unmodified redistribution is also permitted under the copyright file's
+Apache-2 grant. `LICENSE-JetBrainsMono.txt` is the Debian package's
+`copyright` file copied byte for byte (1,822 bytes). Debian records
+Apache-2 as the package licence for `Files: *`; the file does not restate
+the OFL grant, so the fonts' own licence records are the shipped evidence of
+the OFL-1.1 basis. The trailing `Files: debian/*` stanza is Debian
+packaging GPL-3+ text and does not cover the fonts.

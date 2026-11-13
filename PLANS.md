@@ -170,32 +170,6 @@ recorded here to keep the scope deliberate.
 - `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and `tests/test_gtk4_osd.py` stays under about 450 lines.
 - `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_osd.py` and `docs/invariants.md`. `make check` passes after the final edit.
 
-### KDE fixed-width font, part 1/3: package JetBrains Mono (planned 2026-11-12 by the director role)
-
-**Goal.** Ship the user's approved JetBrains Mono family with the theme, like Lato
-(QUESTIONS.md, "Which monospaced font should the theme ship for fixed-width text?").
-The user's 2026-11-12 follow-up requires its use in Konsole and KDE fixed-width roles;
-parts 2/3 and 3/3 select it. This part installs assets without selecting them.
-
-**Approach and files.** Obtain the static Regular, Medium and Bold TTFs and the copyright
-file from Debian's `fonts-jetbrains-mono` package, using a downloaded package extracted
-in scratch space rather than installing system packages. Vendor unmodified copies as
-`theme/fonts/org.macos8.desktop/JetBrainsMono-{Regular,Medium,Bold}.ttf` and
-`LICENSE-JetBrainsMono.txt`. Extend that directory's `PROVENANCE.md` with the package
-version, download URL, archive and shipped-file SHA-256 digests, upstream author/source,
-OFL-1.1 redistribution basis, and internal family/subfamily names read from the files.
-Record this as a user-selected approximation: the references supply no terminal font
-surface or font pixel. Keep Lato and ChicagoFLF assets intact. The existing Makefile
-font-package directory install is the intended install path.
-
-**Acceptance criteria.** Extend `tests/test_fonts.py`, reusing `_name_table`, to verify
-the three faces' family/subfamily identities, pinned digests and provenance/licence
-records; include a fixed-pitch check of the TTF `post` table's `isFixedPitch` field using
-the standard library. Extend its install lifecycle expectations to cover byte-preserving
-staged installation and removal of the new files while preserving a foreign font sibling.
-Update the fonts section of `docs/invariants.md` and the font inventory in the installation
-guide (README.md or its extracted `docs/installing.md`). `make check` passes. No selection
-changes belong to this part.
 
 ### KDE fixed-width font, part 2/3: select the KDE fixed role (planned 2026-11-12 by the director role; "requires part 1/3 landed")
 
