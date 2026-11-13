@@ -57,7 +57,7 @@ two captures differ instead of silently passing. A wholly
 black capture — the screen before the window has painted — is refused with a diagnostic
 naming the settle wait rather than published as a render. A failed install, render or
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
-For help diagnosing a failed capture, see [Troubleshooting a render](../README.md#troubleshooting-a-render).
+For help diagnosing a failed capture, see [Troubleshooting a render](fidelity.md#troubleshooting-a-render).
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
 (`kdialog` must be on `PATH` in the kdialog dialog modes) and captures it as a 480x360 PNG

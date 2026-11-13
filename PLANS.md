@@ -95,20 +95,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 recorded here to keep the scope deliberate.
 
 
-### README split, part 5/5: move the fidelity diagnostics into docs/fidelity.md (planned 2026-11-12 by the director role; "requires part 1/5 landed")
-
-**Goal.** Move the bulk of README's `## Fidelity checking` section (about 400 lines) into a new `docs/fidelity.md`. That is `### Capturing a candidate`, `### Troubleshooting a render`, `### Comparing a region`, `### Troubleshooting a comparison`, `### Choosing a diagnostic` and `### Diagnostic reference`.
-
-**Approach.** Same mechanics as part 2/5:
-- README keeps the `## Fidelity checking` heading and its introductory paragraphs, up to the first `###`, followed by a link to the guide.
-- Move the six subsections verbatim, up to `## Running checks`, with an H1, a back link and promoted headings.
-- Repoint links in both directions, including links that part 3/5's `docs/rendering.md` may hold. Whichever part merges second fixes them, and part 1/5's link test catches a stale one.
-- Retarget any README-reading test that `make check` shows failing to `user_docs.read_user_docs()`.
-
-**Files.** `README.md`, `docs/fidelity.md` (new), plus only the tests and `docs/invariants.md` rows that name the moved text.
-
-**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 300 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
-
 ### GTK 4 suite extraction: isolate disabled declarations (planned 2026-11-12 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`

@@ -73,11 +73,11 @@ class TestReadUserDocs(unittest.TestCase):
     def test_on_this_repository_readme_links_the_installed_guides(self):
         readme = containment.read_text(f"{ROOT}/README.md", ROOT, encoding="utf-8")
         self.assertEqual(
-            ["docs/rendering.md", "docs/installing.md", "docs/sampling.md"],
+            ["docs/rendering.md", "docs/installing.md", "docs/sampling.md", "docs/fidelity.md"],
             linked_guides(readme),
         )
         parts = [readme]
-        for guide in ("docs/rendering.md", "docs/installing.md", "docs/sampling.md"):
+        for guide in ("docs/rendering.md", "docs/installing.md", "docs/sampling.md", "docs/fidelity.md"):
             parts.append(
                 containment.read_text(f"{ROOT}/{guide}", ROOT, encoding="utf-8")
             )
