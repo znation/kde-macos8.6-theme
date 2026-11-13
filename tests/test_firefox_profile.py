@@ -73,6 +73,17 @@ class TestProfileResolution(FirefoxProfileTestCase):
         self.assertNotIn("'.'", message)
         self.assertNotIn(": .", message)
 
+    def test_named_profile_with_nul_is_refused_before_filesystem_inspection(self):
+        named = f"{self.profile}\0suffix"
+        with mock.patch.object(firefox_profile, "_is_directory") as inspect:
+            with self.assertRaises(firefox_user_files.ConfigError) as caught:
+                self.resolve(named)
+        self.assertEqual(
+            f"Firefox profile path contains a NUL byte: {named!r}",
+            str(caught.exception),
+        )
+        inspect.assert_not_called()
+
     def test_missing_named_profile_is_refused(self):
         missing = self.root / "missing"
         with self.assertRaises(firefox_user_files.ConfigError) as caught:

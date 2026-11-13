@@ -183,6 +183,10 @@ def resolve_profile(
                 "the named Firefox profile is empty; name an absolute profile "
                 "directory with --profile or FIREFOX_PROFILE"
             )
+        if "\0" in named:
+            raise ConfigError(
+                f"Firefox profile path contains a NUL byte: {named!r}"
+            )
         path = Path(named)
         if not path.is_absolute():
             raise ConfigError(f"Firefox profile must be an absolute path: {path}")
