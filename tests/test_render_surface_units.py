@@ -65,6 +65,16 @@ class TestCapturePaintCheck(unittest.TestCase):
     def test_any_nonblack_rgb_byte_marks_capture_as_painted(self):
         self.assertFalse(render_workflow._capture_is_unpainted(b"\x00\x00\x01"))
 
+    def test_a_non_regular_log_keeps_the_generic_diagnosis(self):
+        # The bounded tail read goes through the open guard, which raises
+        # ValueError -- not OSError -- for a non-regular log, so a session
+        # log swapped for a FIFO must leave the black-capture diagnosis
+        # with its generic verdict instead of tracebacking out of the run.
+        root = tmp_dir.make_tmp_dir(self)
+        fifo = root / "session.log"
+        os.mkfifo(fifo)
+        self.assertFalse(render_workflow._client_exited_during_capture(fifo))
+
 
 def assert_dialog_capture_size(case, flag):
     """Assert a plain *flag* run delegates a 480x360 capture to the workflow.
