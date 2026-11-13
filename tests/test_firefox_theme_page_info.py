@@ -135,7 +135,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             element("toolbar", "navigator-toolbox", parent=top_bar),
         )
 
-        for name, tab in tabs.items(): 
+        for name, tab in tabs.items():
             with self.subTest(tab=name):
                 self.assertTrue(matches(tab_selectors[0], tab))
                 self.assertFalse(matches(tab_selectors[1], tab))
