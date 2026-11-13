@@ -32,6 +32,20 @@ missing capture. Re-running that same test with the same environment passed in 3
 This establishes an intermittent splash capture failure; its cause is unknown. The software
 renderer skip covers the dialog and applet gates but not this splash gate.
 
+### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
+
+**Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
+`test_render_surface.TestSplashRender.test_exits_zero` failed with:
+
+```text
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+```
+
+The render did not publish `splash.png`, so the six pixel tests also errored while opening the
+missing capture. Re-running that same test with the same environment passed in 36.226 seconds.
+This establishes an intermittent splash capture failure; its cause is unknown. The software
+renderer skip covers the dialog and applet gates but not this splash gate.
+
 ### Maximized window loses the Platinum title bar art and clips the window buttons (found by the director role 2026-11-12)
 
 **User evidence 2026-11-12 (recorded by the director role).** The user sent a screenshot of a
