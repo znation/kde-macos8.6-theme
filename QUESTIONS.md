@@ -86,14 +86,14 @@ screenshots", whose next step needs a reference image the repo does not have.
 3. Accept a non-retail source (an 8.5 or emulator screenshot) as weak evidence for the tooltip
    colour only — conflicts with the retail-only reference policy.
 
-**Recommendation.** Option 1 if a trustworthy retail screenshot can be supplied; the bugfix loop
+**Recommendation.** Option 1 if a trustworthy retail screenshot can be supplied; the bugfix role
 could not source one it could visually verify. Otherwise option 2: the tooltip is the one palette
 token with no Mac OS 8.6 ground truth, and saying so is better than an unverifiable anchor.
 
 **Decision (2026-10-08):** Option 2. With no retail 8.6 tooltip screenshot available, keep
 `[Colors:Tooltip] BackgroundNormal=255,255,204` but drop the claim that it is sampled: record
 `[Colors:Tooltip]` as a KDE-required semantic role whose value comes from the classic Platinum
-palette, with no Mac OS 8.6 reference in the set. Applied in this tick:
+palette, with no Mac OS 8.6 reference in the set. Applied in the same run:
 `theme/color-schemes/MacOS8.colors`, `tests/test_colorscheme.py`, and the color-scheme plan's
 implementation note in `PLANS.md` now say so; the BUGS.md entry moved to Fixed. A human who can
 supply a retail balloon screenshot can still re-ground the anchor (option 1) and reopen the entry.
