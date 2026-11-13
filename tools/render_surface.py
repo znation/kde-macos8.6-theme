@@ -131,6 +131,34 @@ def _applet(value: str) -> str:
     return value
 
 
+def _refuse_mode_overrides(
+    parser: EscapingArgumentParser,
+    args: argparse.Namespace,
+    label: str,
+    applet_clause: str,
+    size_clause: str,
+    capture: tuple[int, int],
+) -> None:
+    """Refuse --applet and a custom size, then fix the capture size.
+
+    The dialog, desktop and splash modes each open their own client at a
+    fixed capture size, so the three share this refusal shape: an --applet
+    override has no window to open the client in, and a --width/--height
+    override moves the capture the pinned gate crops assume. The messages
+    differ only in the mode *label* and the two reason clauses the caller
+    passes; three call sites, one per mode.
+    """
+    if args.applet != _DEFAULT_APPLET:
+        parser.error(
+            f"{label} {applet_clause}: do not combine it with --applet"
+        )
+    if args.width is not None or args.height is not None:
+        parser.error(
+            f"{label} {size_clause}: do not combine it with --width/--height"
+        )
+    args.width, args.height = capture
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the render CLI; *argv* is the argument list without a program name."""
     parser = EscapingArgumentParser(
@@ -242,44 +270,34 @@ def main(argv: list[str] | None = None) -> int:
             f"it with {partner}"
         )
     if dialog_flags:
-        flag = dialog_flags[0]
-        if args.applet != _DEFAULT_APPLET:
-            parser.error(
-                f"{flag} opens its own dialog client: do not combine it "
-                "with --applet"
-            )
-        if args.width is not None or args.height is not None:
-            parser.error(
-                f"{flag} captures at 480x360, the size the widget gate "
-                "byte-compares: do not combine it with --width/--height"
-            )
-        args.width, args.height = _DIALOG_CAPTURE
+        _refuse_mode_overrides(
+            parser,
+            args,
+            dialog_flags[0],
+            "opens its own dialog client",
+            "captures at 480x360, the size the widget gate byte-compares",
+            _DIALOG_CAPTURE,
+        )
     elif args.desktop:
-        if args.applet != _DEFAULT_APPLET:
-            parser.error(
-                "--desktop captures the shell's own menu bar, not an applet "
-                "window: do not combine it with --applet"
-            )
-        if args.width is not None or args.height is not None:
-            parser.error(
-                "--desktop captures at 640x400, the menu-bar panel size the "
-                "queued desktop gate crops: do not combine it with "
-                "--width/--height"
-            )
-        args.width, args.height = _DESKTOP_CAPTURE
+        _refuse_mode_overrides(
+            parser,
+            args,
+            "--desktop",
+            "captures the shell's own menu bar, not an applet window",
+            "captures at 640x400, the menu-bar panel size the queued "
+            "desktop gate crops",
+            _DESKTOP_CAPTURE,
+        )
     elif args.splash:
-        if args.applet != _DEFAULT_APPLET:
-            parser.error(
-                "--splash opens the splash client, not an applet window: do "
-                "not combine it with --applet"
-            )
-        if args.width is not None or args.height is not None:
-            parser.error(
-                "--splash captures at 640x400, the probe framebuffer size "
-                "the later splash gate crops: do not combine it with "
-                "--width/--height"
-            )
-        args.width, args.height = _SPLASH_CAPTURE
+        _refuse_mode_overrides(
+            parser,
+            args,
+            "--splash",
+            "opens the splash client, not an applet window",
+            "captures at 640x400, the probe framebuffer size the later "
+            "splash gate crops",
+            _SPLASH_CAPTURE,
+        )
     else:
         if args.width is None:
             args.width = 320
