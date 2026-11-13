@@ -5,6 +5,75 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate emoji declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
+class. That breaks the principle that a file is small enough to read in one sitting.
+Move the five `test_emoji_*` declaration checks (112 lines at implementation; the
+plan-base figure of about 405 had gone stale by then, so every span below was
+re-measured as this entry directs) into their own module, the same way the landed OSD (`tests/test_gtk4_osd.py`)
+and scale (`tests/test_gtk4_scale.py`) parts moved theirs. This is independent of
+"README split, part 5/5" (that entry moves user-facing prose) and of the waiting
+"GTK 4 suite extraction: isolate spinbutton declarations" (that entry moves only
+`test_spinbutton_*` methods; the two method sets do not overlap and neither entry
+edits the other's invariants rows). At implementation re-grep every anchor this
+entry names, since both extraction entries edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_emoji.py` with
+  `class TestGtk4Emoji(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line
+  module docstring. Move every `TestGtk4Theme` method whose name starts with
+  `test_emoji_` into it, keeping each method's body and docstring unchanged:
+  `test_emoji_section_button_focus_outline_color`, `test_emoji_strip_rims`,
+  `test_emoji_completion_row_corners`, `test_emoji_picker_cell_corners` and
+  `test_emoji_section_button_corners`. No spin-, view- or GTK 3-named method shares
+  the prefix: the GTK 3 emoji check (`test_emoji_section_label_opacity`) already
+  lives in `tests/test_gtk_theme.py` and stays there.
+- The new module imports exactly the names the moved bodies use:
+  `ETCH_DARK` from `support.gtk_theme_spec` and `WHITE` from
+  `support.platinum_palette` (re-grepping the moved bodies at implementation
+  found only these two of the plan base's six listed names in use; both remain
+  imported from their plan-base source modules). Every assertion helper the
+  bodies call (`assert_rule`, `assert_exact_rule_once`, `assert_square_corner`,
+  `assert_matches_frame`, `assert_black_focus_outline` — re-grepped at
+  implementation; the plan base listed eleven) and the
+  `self.rules`/`self.selectors` attributes come with `Gtk4SheetRuleCases`
+  and its base classes (the moved bodies use a subset of the plan base's
+  grep-checked eleven, all defined in `tests/support/gtk4_sheet.py` or
+  `tests/support/gtk_rule_cases.py`).
+  The moved bodies call no other support name (no `gtk_css`, `strip_comments`,
+  `parse_css`, `HEX`, mock, tempfile or `re` use), so `tests/test_gtk4_theme.py`'s
+  import block needs no change: both constants stay referenced by remaining
+  methods after the move (whole-file grep counts at implementation: `ETCH_DARK`
+  10, `WHITE` 6, against 1 use in each moved body). Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+- In `docs/invariants.md`, rewrite each dotted anchor
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_emoji_…` to
+  `tests/test_gtk4_emoji.py::TestGtk4Emoji::test_emoji_…` (`grep -n
+  'TestGtk4Theme::test_emoji' docs/invariants.md` finds five rows at this plan's
+  base commit). In the corners row whose anchor list also names the row-spin
+  steppers and the sidebar button, rewrite only the emoji member and leave the
+  other two members and the row's prose alone. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly once, under
+  `test_gtk4_emoji.TestGtk4Emoji`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still listed
+  there.
+- For each moved method, the AST of its function definition is identical to the
+  original's at this plan's base commit, checked once during the run (for example by
+  comparing `ast.dump` output). This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_emoji' docs/invariants.md` prints nothing, and the
+  invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 100 lines (112 at
+  implementation; the plan base said 400), and `tests/test_gtk4_emoji.py` stays
+  under about 500 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_emoji.py` and `docs/invariants.md`. `make check` passes after
+  the final edit.
+
 ### GTK 4 suite extraction: isolate spinbutton declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 4,600 lines in one `TestGtk4Theme`
