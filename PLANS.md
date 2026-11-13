@@ -223,6 +223,96 @@ Only a Regular face exists, with no Bold. Fetch the archive into a fresh `mktemp
 - `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and `tests/test_gtk4_osd.py` stays under about 450 lines.
 - `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_osd.py` and `docs/invariants.md`. `make check` passes after the final edit.
 
+### KDE fixed-width font, part 1/3: package JetBrains Mono (planned 2026-11-12 by the director role)
+
+**Goal.** Ship the user's approved JetBrains Mono family with the theme, like Lato
+(QUESTIONS.md, "Which monospaced font should the theme ship for fixed-width text?").
+The user's 2026-11-12 follow-up requires its use in Konsole and KDE fixed-width roles;
+parts 2/3 and 3/3 select it. This part installs assets without selecting them.
+
+**Approach and files.** Obtain the static Regular, Medium and Bold TTFs and the copyright
+file from Debian's `fonts-jetbrains-mono` package, using a downloaded package extracted
+in scratch space rather than installing system packages. Vendor unmodified copies as
+`theme/fonts/org.macos8.desktop/JetBrainsMono-{Regular,Medium,Bold}.ttf` and
+`LICENSE-JetBrainsMono.txt`. Extend that directory's `PROVENANCE.md` with the package
+version, download URL, archive and shipped-file SHA-256 digests, upstream author/source,
+OFL-1.1 redistribution basis, and internal family/subfamily names read from the files.
+Record this as a user-selected approximation: the references supply no terminal font
+surface or font pixel. Keep Lato and ChicagoFLF assets intact. The existing Makefile
+font-package directory install is the intended install path.
+
+**Acceptance criteria.** Extend `tests/test_fonts.py`, reusing `_name_table`, to verify
+the three faces' family/subfamily identities, pinned digests and provenance/licence
+records; include a fixed-pitch check of the TTF `post` table's `isFixedPitch` field using
+the standard library. Extend its install lifecycle expectations to cover byte-preserving
+staged installation and removal of the new files while preserving a foreign font sibling.
+Update the fonts section of `docs/invariants.md` and the font inventory in the installation
+guide (README.md or its extracted `docs/installing.md`). `make check` passes. No selection
+changes belong to this part.
+
+### KDE fixed-width font, part 2/3: select the KDE fixed role (planned 2026-11-12 by the director role; "requires part 1/3 landed")
+
+**Goal.** Select packaged JetBrains Mono Medium at 10 pt for KDE's fixed-width role.
+This replaces the earlier statement that monospaced text keeps the user's fixed font.
+Konsole profile overrides are handled separately in part 3/3.
+
+**Approach and files.** Add `[kdeglobals][General] fixed` to
+`theme/look-and-feel/org.macos8.desktop/contents/defaults`. Use Qt's serialized QFont
+form specifying family JetBrains Mono, point size 10 and Medium weight (Qt 6 weight 500),
+with the style name Medium, grounded against the installed Qt 6 serialization contract;
+record that contract and the exact chosen string in the font package's `PROVENANCE.md`.
+Use a scratch-home `lookandfeeltool` application to verify the key is actually published;
+if it is not, add an explicit `kwriteconfig6` step to `tools/apply_theme.py::STEPS` after
+the global-theme step, and test that path in `tests/test_apply_theme.py`. No visible GUI
+probe is permitted. Extend `tools/uninstall_live_diagnostics.py::_font_diagnostics` and
+`kdeglobals_messages` to read `fixed` and warn for the published value, naming the correct
+family and the `--group General --key fixed --delete` reset. Preserve other font warnings.
+
+**Acceptance criteria.** In `tests/test_lookandfeel.py::TestDefaults`, pin family, point
+size, Medium style/weight and presence of `fixed`; dropping the key or selecting Lato
+must fail. Extend `tests/test_kdeglobals_fonts_uninstall_diagnostic.py` for a matching
+fixed selection, a foreign value, later duplicate override and another group; diagnostics
+leave config bytes intact. Update the fonts/look-and-feel rows in `docs/invariants.md`,
+the installation guide, font provenance and this file's current-state preamble, replacing
+the superseded fixed-font statements. Preserve Chicago menu/title selection work. Document
+that KDE clients using the system fixed font inherit this choice; application-specific
+overrides may supersede it. `make install` remains selection-free; `make check` passes.
+
+### KDE fixed-width font, part 3/3: apply it to the default Konsole profile (planned 2026-11-12 by the director role; "requires part 2/3 landed")
+
+**Goal.** Ensure new Konsole sessions use the packaged face even when the default
+profile has an explicit font override, while preserving shell, colors, shortcuts and
+other profile settings. This completes the user's 2026-11-12 request alongside part 2/3.
+
+**Approach and files.** Add a focused `tools/apply_konsole_font.py` helper and call it
+from `tools/apply_theme.py::_apply` after required Plasma selections, under the existing
+data-home lock. Resolve homes through `tools/xdg_homes.py`. Read Konsole's
+`konsolerc [Desktop Entry] DefaultProfile` and resolve that profile through XDG data
+search directories; ground these platform keys against upstream Konsole source and
+record the source/version in the installation guide. Write only `[Appearance] Font`,
+using part 2/3's exact QFont value and the existing bounded `run_required`/`kwriteconfig6`
+command pattern. For a profile in a system data directory, first copy it to the user's
+`konsole/` directory with the same basename, then modify that copy. For an absent default
+or the built-in fallback, create `konsole/Platinum.profile` with `[General] Name=Platinum`,
+`Parent=FALLBACK/` and the font, then select that filename in `konsolerc`. Refuse unsafe
+profile names (absolute paths, separators or traversal), symlink destinations and an
+unresolvable explicitly named profile, with an actionable diagnostic rather than guessing.
+Do not edit non-default profiles. Do not start Konsole or require its binary; the helper
+prepares its config even on systems where it is not installed. Fail apply on a config
+write error using the existing required-step error conventions.
+
+**Acceptance criteria.** Add `tests/test_apply_konsole_font.py` with scratch XDG homes
+and stubbed commands, covering a user default with a foreign font, a system default copied
+locally, fallback creation, repeated apply, unsafe names, symlink refusal and command
+failure. Assert unrelated profile keys, shell and keyboard mappings are preserved, and
+system source files and non-default profiles stay byte-identical. Extend
+`tests/test_apply_theme.py` to prove helper invocation, ordering and failure propagation.
+Document new-session/restart requirements and the exact manual reset for the selected
+profile's font; uninstall continues to preserve user configuration. Update
+`docs/invariants.md` with the helper's guarantees and tests. `make check` passes without
+opening a window in the user's session. Keep this run to the helper, wiring, tests and
+their documentation; extra terminal/editor integrations are outside this part.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
