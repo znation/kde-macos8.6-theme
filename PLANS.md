@@ -161,6 +161,85 @@ entry names, since both extraction entries edit `tests/test_gtk4_theme.py` and
   `tests/test_gtk4_emoji.py` and `docs/invariants.md`. `make check` passes after
   the final edit.
 
+### GTK 4 suite extraction: isolate entry declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
+class. That breaks the principle that a file is small enough to read in one sitting.
+Move the five `test_entry_*` declaration checks (about 140 lines at this plan's base
+commit) into their own module, the same way the landed OSD (`tests/test_gtk4_osd.py`)
+and scale (`tests/test_gtk4_scale.py`) parts moved theirs. This is independent of
+"README split, part 5/5" (that entry moves user-facing prose) and of the two waiting
+"GTK 4 suite extraction: isolate spinbutton declarations" and "… isolate emoji
+declarations" entries (those move only `test_spinbutton_*` and `test_emoji_*`
+methods; no method set overlaps and neither entry edits this entry's invariants
+rows). This is the one extraction entry that prunes a `tests/test_gtk4_theme.py`
+import, so at implementation re-grep every anchor and every constant this entry
+names. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_entry.py` with
+  `class TestGtk4Entry(Gtk4SheetRuleCases, unittest.TestCase)` and a one-line
+  module docstring (model it on `tests/test_gtk4_scale.py`). Move every
+  `TestGtk4Theme` method whose name starts with `test_entry_` into it, keeping
+  each method's body and comments unchanged: `test_entry_focus_outline_color`,
+  `test_entry_focus_transition`, `test_entry_colour_classes`,
+  `test_entry_image_inks` and `test_entry_progress`. Entry-named methods that do
+  not start with `test_entry_` stay where they are: `test_flat_entry_fields`,
+  `test_treeview_entry_fields` and `test_caps_lock_indicator` (plus the spin
+  field methods the spinbutton plan already scoped out). `test_label_error_colour_class`
+  stays in `tests/test_gtk4_theme.py`: the label colour-class row keeps its
+  anchor to it and only swaps this entry's member.
+- The new module imports exactly the names the moved bodies use:
+  `ENTRY_PROGRESS_GTK4` from `support.gtk_theme_spec` and `BLACK` from
+  `support.platinum_palette`. Every assertion helper the bodies call
+  (`assert_rule`, `assert_rule_after`, `assert_exact_rule_once`,
+  `assert_scale_focus_outline`, `assert_scale_slider_transition`) and the
+  `self.rules`/`self.selectors` attributes come with `Gtk4SheetRuleCases` and its
+  base classes (grep-checked at this plan's base commit: all five helpers are
+  defined in `tests/support/gtk4_sheet.py` or `tests/support/gtk_rule_cases.py`).
+  The moved bodies call no other support name (no `gtk_css`, `strip_comments`,
+  `parse_css`, `HEX`, mock, tempfile or `re` use), and no other constant:
+  unlike the spinbutton and emoji extractions, this move empties one import —
+  `grep -n 'ENTRY_PROGRESS_GTK4' tests/test_gtk4_theme.py` at this plan's base
+  commit prints only the import and the one moved use in `test_entry_progress` —
+  so prune `ENTRY_PROGRESS_GTK4` from `tests/test_gtk4_theme.py`'s
+  `support.gtk_theme_spec` import in the same change and import it in the new
+  module. `BLACK` stays in `tests/test_gtk4_theme.py`'s import block: the whole
+  file still far out-references the moved bodies' five uses. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+- In `docs/invariants.md`, rewrite each dotted anchor
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_entry_…` to
+  `tests/test_gtk4_entry.py::TestGtk4Entry::test_entry_…` (`grep -n
+  'TestGtk4Theme::test_entry' docs/invariants.md` finds six anchors across five
+  rows at this plan's base commit: the focus-outline row, the focus-transition
+  row, the entry-progress row, the entry colour-class row, the label colour-class
+  row and the entry-icon-ink row). In the entry-progress row rewrite only the
+  GTK 4 member and leave its two GTK 3 `tests/test_gtk_theme_controls.py`
+  anchors and the row's prose alone; in the label colour-class row rewrite only
+  this entry's member and leave the `test_label_error_colour_class` anchor alone.
+  Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly once, under
+  `test_gtk4_entry.TestGtk4Entry`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still
+  listed there, including `test_flat_entry_fields`, `test_treeview_entry_fields`,
+  `test_caps_lock_indicator` and `test_label_error_colour_class`.
+- For each moved method, the AST of its function definition is identical to the
+  original's at this plan's base commit, checked once during the run (for example
+  by comparing `ast.dump` output). This is a run-time check, not a new committed
+  test.
+- `grep -n 'TestGtk4Theme::test_entry' docs/invariants.md` prints nothing, and
+  the invariants checker inside `make check` resolves every new anchor; the
+  progress row's GTK 3 anchors and the label row's `test_label_error_colour_class`
+  anchor are still present and resolve.
+- `grep -n 'ENTRY_PROGRESS_GTK4' tests/test_gtk4_theme.py` prints nothing.
+- `tests/test_gtk4_theme.py` shrinks by at least 130 lines, and
+  `tests/test_gtk4_entry.py` stays under about 300 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_entry.py` and `docs/invariants.md`. `make check` passes after
+  the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
