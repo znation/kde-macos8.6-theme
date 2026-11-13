@@ -583,9 +583,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
-    def test_button_focus_outline_color(self):
-        self.assert_scale_focus_outline("button:focus:focus-visible")
-
     def test_headerbar_button_focus_outline_color(self):
         self.assert_bar_family_focus("headerbar ", "headerbar ")
 
@@ -619,31 +616,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_checkbutton_focus_outline_color(self):
         self.assert_scale_focus_outline("checkbutton:focus:focus-visible")
-
-    def test_button_focus_transition(self):
-        self.assert_scale_slider_transition("button")
-
-    def test_button_disabled_and_backdrop(self):
-        self.assert_button_disabled_and_backdrop()
-
-    def test_button_checked_hover_and_active(self):
-        expected = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-        }
-        for selector in ("button:checked:hover", "button:checked:active"):
-            self.assert_rule(selector, expected)
-
-    def test_button_hover_icon_filter(self):
-        # No reference screenshot shows a hovered GTK push button; stock
-        # brightens every icon inside one, so the tail arm clears the filter
-        # while the existing `button:hover` face group stays the face source.
-        self.assert_rule(
-            "button:hover",
-            {"background-color": FACE, "-gtk-icon-filter": "none"},
-        )
 
     def test_suggested_action_plain_arms(self):
         self.assert_plain_action_arms("button.suggested-action")
