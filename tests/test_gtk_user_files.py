@@ -54,46 +54,47 @@ class TestReadConfigText(unittest.TestCase):
             gtk_user_files.read_config_text(path)
         self.assertIn(str(path), str(caught.exception))
 
-    def test_a_failed_fstat_is_refused_naming_the_file_and_closes_the_descriptor(
-        self,
-    ):
-        # The descriptor is opened before the mode is inspected, so a failed
-        # fstat must still reach the finally: a regression there leaks one
-        # descriptor per unreadable file.
+    def _assert_failed_syscall_refuses_and_closes(
+        self, function: str, failure: str
+    ) -> None:
+        """Pin the read_config_text refusal when ``gtk_user_files.os``
+        *function* raises ``failure``.
+
+        The descriptor is opened before the mode is inspected, so a failure
+        after the open must still reach the finally: a regression there
+        leaks one descriptor per unreadable file. Two call sites, one per
+        patched syscall (fstat, read); the close tracking asserts exactly
+        the one descriptor the open handed out was closed.
+        """
         path = self.directory / "settings.ini"
         path.write_text("[Settings]\n", encoding="utf-8")
         with tracking_closes() as closed:
             with mock.patch.object(
                 gtk_user_files.os,
-                "fstat",
-                side_effect=OSError(errno.EIO, "simulated fstat failure"),
+                function,
+                side_effect=OSError(errno.EIO, failure),
             ):
                 with self.assertRaises(gtk_user_files.ConfigError) as caught:
                     gtk_user_files.read_config_text(path)
         self.assertIn(f"cannot read {path}", str(caught.exception))
-        self.assertIn("simulated fstat failure", str(caught.exception))
+        self.assertIn(failure, str(caught.exception))
         self.assertEqual(1, len(closed))
         with self.assertRaises(OSError):
             os.fstat(closed[0])
 
+    def test_a_failed_fstat_is_refused_naming_the_file_and_closes_the_descriptor(
+        self,
+    ):
+        self._assert_failed_syscall_refuses_and_closes(
+            "fstat", "simulated fstat failure"
+        )
+
     def test_a_failed_read_is_refused_naming_the_file_and_closes_the_descriptor(
         self,
     ):
-        path = self.directory / "settings.ini"
-        path.write_text("[Settings]\n", encoding="utf-8")
-        with tracking_closes() as closed:
-            with mock.patch.object(
-                gtk_user_files.os,
-                "read",
-                side_effect=OSError(errno.EIO, "simulated read failure"),
-            ):
-                with self.assertRaises(gtk_user_files.ConfigError) as caught:
-                    gtk_user_files.read_config_text(path)
-        self.assertIn(f"cannot read {path}", str(caught.exception))
-        self.assertIn("simulated read failure", str(caught.exception))
-        self.assertEqual(1, len(closed))
-        with self.assertRaises(OSError):
-            os.fstat(closed[0])
+        self._assert_failed_syscall_refuses_and_closes(
+            "read", "simulated read failure"
+        )
 
     def test_a_failed_close_is_reported_as_a_config_error(self):
         path = self.directory / "settings.ini"
