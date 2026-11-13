@@ -184,7 +184,6 @@ SLIDER_DIALOG_TROUGH = (162, 182, 171, 8)
 # calls none of it -- so no striped progress-pattern tile and no busy
 # animation enters any crop, and a progress meter has no caret: no
 # phase-dependent column to steer around.
-PROGRESSBAR_DIALOG_TROUGH = (146, 172, 188, 24)
 # The trough's face interior band: rows clear of every frame row (the arms
 # end at the face's row 174 above 193) and of the "Working:" label glyphs
 # (rows 153..163, above the trough), so the whole band must stay the flat
@@ -218,7 +217,6 @@ PROGRESSBAR_DIALOG_LEFT_BAND = (144, 178, 5, 8)
 # cannot be steered to the art's native width here (the interior width is
 # fixed by the shipped section itself), and the bars the grip band pins
 # below are the drawn result of the shipped recipe.
-TEXTBOX_DIALOG_HANDLE = (352, 95, 16, 36)
 # Narrow bands over the handle's edges and its grip: each spans the outline
 # row/column and the bevel arm inside it, so a lost outline row, a swapped
 # arm colour, a resampled or dropped grip, or an off-by-one edge fails.
