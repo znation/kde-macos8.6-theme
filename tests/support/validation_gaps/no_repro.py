@@ -11,10 +11,10 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The four ``no-repro`` records the archive held when this entry joined. Each
-# failure was not deterministic when filed; its test now reproduces it every run.
-# A new record must name such a test instead of raising this.
-NO_REPRO_BASELINE = 4
+# The five ``no-repro`` records the archive held when the newest entry joined.
+# Each failure was not deterministic when filed; its test now reproduces it every
+# run. A new record must name such a test instead of raising this.
+NO_REPRO_BASELINE = 5
 
 NO_REPRO_REPRODUCTIONS = (
     Reproduction(
@@ -37,6 +37,15 @@ NO_REPRO_REPRODUCTIONS = (
         ),
         "tests/test_make_refusals.py::TestShellUnsafeInstallPaths"
         "::test_make_function_text_in_HOME_is_refused_without_evaluation",
+    ),
+    Reproduction(
+        "client-exit-stub-pidfile-race",
+        (
+            "The client-exit stub regression is load-sensitive and can turn a "
+            "parallel `make check` red",
+        ),
+        "tests/test_render_failure_paths.py::TestFailurePaths"
+        "::test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget",
     ),
     Reproduction(
         "desktoptheme-session-theme",

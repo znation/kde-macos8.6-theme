@@ -183,7 +183,12 @@ def session_script() -> str:
     down mid-capture. A stopped client keeps its last-painted buffer —
     the compositor captures from it — and the aliveness check after the
     capture still reads it (a stopped process answers ``kill -0``), so
-    the diagnosis and the ``kill -9`` fallback are unchanged.
+    the diagnosis and the ``kill -9`` fallback are unchanged. The shell
+    also exports the client's pid as ``RENDER_SESSION_CLIENT_PID``: a
+    capture-side helper can only target the client through a pid the
+    session shell owns, because the freeze can land before the client's
+    first instruction and a pidfile the client was meant to write then
+    never appears.
     """
     # The client runs in the background, so its exit status would otherwise
     # be lost: if it cannot start or crashes during the settle wait,
@@ -201,6 +206,7 @@ def session_script() -> str:
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
         'started=$(date +%s%3N); "$@" & client=$!; '
+        'export RENDER_SESSION_CLIENT_PID="$client"; '
         'echo "render-session: client started at $started" >&2; '
         'sleep "$settle"; '
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '

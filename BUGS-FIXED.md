@@ -5,6 +5,52 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The client-exit stub regression is load-sensitive and can turn a parallel `make check` red (found by the organize role 2026-11-12) — fixed 2026-11-12 by the bugfix role
+
+`tests/test_render_failure_paths.py::TestFailurePaths::test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`
+(the stub regression the bugfix role landed 2026-11-12 beside the black-capture diagnosis)
+fails intermittently when it runs through the parallel coordinator while the render capture
+gates hold their real KWin sessions. The failing stderr names "capture is entirely black ... did
+not paint" and the session log shows the client-exit marker missing:
+
+    render-session: client started at 1794546257354
+    render-session: settle done at 1794546257356
+    render-session: client held at 1794546257357
+    render-session: capturing at 1794546257358
+    cat: .../render-surface-test-77b6vyak/client.pid: No such file or directory
+    render-session: capture status 0 at 1794546257362
+    render-session: client alive after the capture at 1794546257362
+    render-session: client reaped
+
+Reproduce by running `make check CHECK_PATTERN='test_render_*.py'` (or the full `make check`)
+on a loaded host while the capture gates render: on 2026-11-12 the race turned two of three
+parallel runs red (one 16-worker, one 10-worker run), while the module passed alone (`make check
+CHECK_TESTS=test_render_failure_paths`) and once green inside another 10-worker run.
+Suspected cause: under load, the plasmawindowed stub's `echo $$` pidfile write and the spectacle
+stub's SIGKILL-and-wait sequence race the session script's own `cat client.pid` liveness check and
+post-capture liveness check — the failing log shows the session's `cat` missing the pidfile
+entirely and the post-capture check seeing the client alive, so the "client exited during the
+capture" marker never forms and the CLI falls back to blaming the paint budget. No real render
+session is involved; the stubs are deterministic shells, so the race is reproducible without
+SIGKILL recovery machinery.
+
+**Resolution 2026-11-12 by the bugfix role.** Cause confirmed as read: the session's
+freeze (`SIGSTOP`) can land before the stub client's first instruction, so the pidfile
+the stub spectacle read never appeared, the kill never landed, and the post-capture
+aliveness check saw a frozen client as alive -- so the CLI blamed the paint budget.
+`tools/render_session.py::session_script` now exports the client pid as
+`RENDER_SESSION_CLIENT_PID` immediately after backgrounding it, the stub spectacle
+takes the pid from that export, and the pidfile write is gone. The session script is
+the only party that owns `$!`, so the pid needs no client-side cooperation the freeze
+can preempt. Tests: a new session-script unit test pins the export and its position
+before the stop; the stub regression itself now fails without the export (the stub
+spectacle's `${RENDER_SESSION_CLIENT_PID:?}` refuses to run).
+
+**Validation gap:** no-repro — the race only fired under concurrent render-gate load
+on the shared host (two of three parallel runs red, the module green alone), so it was
+fixed by removing the pidfile dependency by construction rather than by a
+deterministic reproduction.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12) — fixed 2026-11-12 by the bugfix role
 
 **Progress 2026-11-12 by bugfix:** Focused reproduction `CHECK_TESTS='test_render_surface.TestSplashRender.test_exits_zero' make check` passed; the earlier failure message already identifies that the splash window did not paint before the 8s settle. Handed to the director to resolve or park this intermittent render report; see the queued request.

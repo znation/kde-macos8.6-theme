@@ -999,6 +999,21 @@ class TestSessionScript(unittest.TestCase):
             script.index('kill "$client"'), script.index('wait "$client"')
         )
 
+    def test_exports_the_client_pid_before_the_freeze(self):
+        # A capture-side helper cannot learn the client pid from a pidfile
+        # the client writes: under load the freeze can land before the
+        # client's first instruction, and a pidfile read then sees nothing
+        # (BUGS.md, the client-exit stub regression, 2026-11-12). The
+        # session shell owns ``$!``, so it must publish the pid itself,
+        # and it must do so before the stop that can predate any client
+        # code.
+        script = render_session.session_script()
+        self.assertIn('export RENDER_SESSION_CLIENT_PID="$client"; ', script)
+        self.assertLess(
+            script.index('export RENDER_SESSION_CLIENT_PID="$client"'),
+            script.index('kill -STOP "$client"'),
+        )
+
     def test_waits_for_client_termination_and_preserves_capture_status(self):
         root = tmp_dir.make_tmp_dir(self)
         apply = root / "plasma-apply-colorscheme"

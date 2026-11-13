@@ -646,14 +646,16 @@ class TestFailurePaths(StubTools):
         # ends it with SIGKILL -- the only thing that can stop a frozen
         # client -- and waits for it to be gone before returning, so the
         # session's own post-capture check deterministically sees a dead
-        # client.
-        pidfile = self.root / "client.pid"
+        # client. The stub spectacle takes the pid from the session
+        # shell's RENDER_SESSION_CLIENT_PID export, not from a pidfile the
+        # client writes: under load the freeze can land before the
+        # client's first instruction, and a pidfile read then sees nothing
+        # (the 2026-11-12 parallel-gate red runs, BUGS.md).
         sentinel = self.root / "capture-started"
         fixture = self.root / "black.png"
         fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
         self.stub(
             "plasmawindowed",
-            f"echo $$ > {shlex.quote(str(pidfile))}; "
             f"n=0; while [ ! -f {shlex.quote(str(sentinel))} ] "
             "&& [ $n -lt 100000 ]; do n=$((n + 1)); done; exit 0",
         )
@@ -663,7 +665,7 @@ class TestFailurePaths(StubTools):
             'out=; while [ "$#" -gt 0 ]; do '
             'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
             f"touch {shlex.quote(str(sentinel))}; "
-            f'pid=$(cat {shlex.quote(str(pidfile))}); '
+            'pid=${RENDER_SESSION_CLIENT_PID:?}; '
             'kill -9 "$pid" 2>/dev/null; n=0; '
             'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
             '"$pause" 0.01; n=$((n + 1)); done; '
