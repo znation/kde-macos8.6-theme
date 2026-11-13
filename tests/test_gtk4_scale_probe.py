@@ -2,7 +2,9 @@
 
 import unittest
 
-from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
+from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
+                                      GTK4_PROBE_PROLOGUE,
+                                      run_gtk4_probe)
 from support.gtk4_sheet import _rgb
 from support.gui_tests import require_gui_opt_in
 from support.platinum_palette import BLACK, FACE, GREY, TROUGH, WHITE
@@ -74,24 +76,8 @@ for disabled in (False, True):
     built.append((scale, trough, slider, disabled))
 window.present()
 
-def painted(widget, w, h):
-    snapshot = Gtk.Snapshot()
-    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, w, h)
-    node = snapshot.to_node()
-    renderer = window.get_renderer()
-    if node is None or renderer is None or w <= 0 or h <= 0:
-        return None
-    viewport = Graphene.Rect()
-    viewport.init(0, 0, w, h)
-    texture = renderer.render_texture(node, viewport)
-    pixbuf = Gdk.pixbuf_get_from_texture(texture)
-    data, stride = pixbuf.get_pixels(), pixbuf.get_rowstride()
-    channels = pixbuf.get_n_channels()
-    def at(x, y):
-        start = y * stride + x * channels
-        return tuple(data[start:start + 3])
-    return at
-
+'''
+    + GTK4_PROBE_PAINTED + '''
 # Every position derives from the fresh allocations. The scale's content
 # origin is the sheet's bare `scale` group's 12px padding, and a child
 # widget's allocation reads relative to its parent's content-box origin,

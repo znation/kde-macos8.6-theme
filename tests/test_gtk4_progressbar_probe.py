@@ -2,7 +2,9 @@
 
 import unittest
 
-from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
+from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
+                                      GTK4_PROBE_PROLOGUE,
+                                      run_gtk4_probe)
 from support.gui_tests import require_gui_opt_in
 
 
@@ -59,24 +61,8 @@ window.present()
 WANT = {"fill": SELECTION, "border": BLACK, "arm": GREY, "face": TROUGH}
 WANT_DISABLED = {"fill": GREY, "border": BLACK, "arm": GREY, "face": TROUGH}
 
-def painted(widget, w, h):
-    snapshot = Gtk.Snapshot()
-    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, w, h)
-    node = snapshot.to_node()
-    renderer = window.get_renderer()
-    if node is None or renderer is None or w <= 0 or h <= 0:
-        return None
-    viewport = Graphene.Rect()
-    viewport.init(0, 0, w, h)
-    texture = renderer.render_texture(node, viewport)
-    pixbuf = Gdk.pixbuf_get_from_texture(texture)
-    data, stride = pixbuf.get_pixels(), pixbuf.get_rowstride()
-    channels = pixbuf.get_n_channels()
-    def at(x, y):
-        start = y * stride + x * channels
-        return tuple(data[start:start + 3])
-    return at
-
+'''
+    + GTK4_PROBE_PAINTED + '''
 # Pins for one meter capture. The capture is the bar widget's own
 # allocation, whose painted box it equals 1:1 (the trough fills the bar's
 # box). The filled half spans the progress child's allocation width from

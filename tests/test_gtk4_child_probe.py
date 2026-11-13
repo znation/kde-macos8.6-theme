@@ -9,11 +9,21 @@ child receives, and nothing about the rendered pixels.
 import unittest
 from pathlib import Path
 
-from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
+from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
+                                      GTK4_PROBE_PROLOGUE,
+                                      run_gtk4_probe)
 from support.gtk4_sheet import THEME_DIR
 
 # The six suites whose child programs interpolate the shared prologue; the
 # spin probe's child never sets ``gtk-theme-name``, so it keeps its own.
+# The four suites whose children pin pixels from fresh allocations share
+# the painted-pixel capture helper; each interpolates it exactly once.
+_PAINTED_SUITES = (
+    "test_gtk4_button_probe.py",
+    "test_gtk4_progressbar_probe.py",
+    "test_gtk4_scale_probe.py",
+    "test_gtk4_scrollbar_probe.py",
+)
 _PROLOGUE_SUITES = (
     "test_gtk4_button_probe.py",
     "test_gtk4_indicators_probe.py",
@@ -79,10 +89,7 @@ class TestRunGtk4Probe(unittest.TestCase):
         for name in _PROLOGUE_SUITES:
             source = (Path(__file__).parent / name).read_text()
             self.assertIn(
-                "from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE,"
-                " run_gtk4_probe",
-                source,
-                name,
+                "from support.gtk4_child_probe import", source, name
             )
             self.assertEqual(
                 source.count("GTK4_PROBE_PROLOGUE"),
@@ -90,6 +97,38 @@ class TestRunGtk4Probe(unittest.TestCase):
                 f"{name} must interpolate the prologue exactly once",
             )
             self.assertNotIn('provider.load_from_data', source, name)
+
+    def test_painted_helper_snapshots_the_widget_to_a_pixbuf(self):
+        # The capture's contract: snapshot the widget at the border-box
+        # size it is handed, render the node through the window's
+        # renderer, and read a pixel triple at y*stride + x*channels.
+        self.assertTrue(
+            GTK4_PROBE_PAINTED.startswith("def painted(widget, w, h):\n"))
+        self.assertIn(
+            "Gtk.WidgetPaintable.new(widget).snapshot(snapshot, w, h)",
+            GTK4_PROBE_PAINTED,
+        )
+        self.assertIn("node = snapshot.to_node()", GTK4_PROBE_PAINTED)
+        self.assertIn("renderer.render_texture(node, viewport)", GTK4_PROBE_PAINTED)
+        self.assertIn("Gdk.pixbuf_get_from_texture(texture)", GTK4_PROBE_PAINTED)
+        self.assertIn("y * stride + x * channels", GTK4_PROBE_PAINTED)
+        self.assertTrue(GTK4_PROBE_PAINTED.endswith("    return at\n"))
+
+    def test_allocation_probe_suites_use_the_shared_painted_helper(self):
+        # A suite that copy-pastes the painted-pixel capture back into its
+        # child program would drift from the shared constant; each of the
+        # four allocation-pinned suites must interpolate it exactly once
+        # and keep no inline copy of the snapshot-to-pixbuf body.
+        for name in _PAINTED_SUITES:
+            source = (Path(__file__).parent / name).read_text()
+            self.assertEqual(
+                source.count("GTK4_PROBE_PAINTED"),
+                2,
+                f"{name} must interpolate the painted helper exactly once",
+            )
+            self.assertNotIn(
+                "Gtk.WidgetPaintable.new(widget).snapshot", source, name
+            )
 
     def test_view_census_face_children_use_the_shared_prologue(self):
         # The census suite keeps its own runner, but its two rendered-face
