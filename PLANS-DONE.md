@@ -5,6 +5,120 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate popover and toast declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (110 `test_` methods at this plan's base
+commit). Move the three popover/toast declaration checks (about 124
+contiguous lines at this plan's base commit) into their own module,
+the same way the landed OSD (`tests/test_gtk4_osd.py`), scale,
+spinbutton, disabled, emoji, entry, notebook, scrollbar, switch,
+progressbar, levelbar, view, selected, button, row, treeview,
+tabbar, sidebar, checkbutton and menu parts moved theirs, and the
+way the waiting "GTK 4 suite extraction: isolate dropdown
+declarations" entry moves its three (a held merge-pin change moves
+the landed expander entry out of `## Planned`, so this entry is
+written against main without it). This is independent of the
+waiting dropdown entry: neither moves a method the other names —
+this entry's block ends immediately above `test_dropdown_arrow`,
+which the dropdown entry moves, so both entries edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md` and whichever
+merges later re-reads those two files before writing. Unlike the
+dropdown entry, this one prunes no import: every palette and spec
+name the moved bodies spell (`FACE`, `BLACK`, `SELECTION`,
+`DISABLED_TEXT`, `ETCH_DARK`) keeps many staying users in
+`tests/test_gtk4_theme.py` (for example `FACE` in
+`test_banner_surface` and `test_toolbar_and_menubar`, `BLACK` in
+`test_links` and `test_places_sidebar`, `SELECTION` in
+`test_dropdown_list_rows` and `test_iconview_drop_border`,
+`DISABLED_TEXT` in `test_header_subtitle_foreground` and
+`test_inline_link_interaction_colours`, `ETCH_DARK` in
+`test_label_error_colour_class` and `test_search_bar`), and the
+unused-import scanner (`tests/test_no_unused_imports.py`, which
+scans `tests/`) keeps requiring all five in the source module. No
+stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_popover.py` with
+  `class TestGtk4Popover(Gtk4SheetRuleCases, unittest.TestCase)`
+  and a one-line module docstring on the landed extraction
+  modules' pattern (`tests/test_gtk4_menu.py`), ending with the
+  `if __name__ == "__main__":` guard like the landed modules. Move
+  exactly three `TestGtk4Theme` methods, keeping each method's
+  body and docstring unchanged: `test_popover`,
+  `test_popover_menu_accelerator_foreground` and
+  `test_toast_surface`. At this plan's base commit they form one
+  contiguous block between the staying `test_message_dialog_action_area`
+  above and `test_dropdown_arrow` below (which the waiting dropdown
+  entry moves, so at implementation the staying neighbor below is
+  whatever then follows the block) — the move touches one
+  contiguous deletion in the source module. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`; `DISABLED_TEXT` and `ETCH_DARK` from
+  `support.gtk_theme_spec`; `BLACK`, `FACE` and `SELECTION` from
+  `support.platinum_palette`; and nothing else beyond `unittest`
+  (the landed `tests/test_gtk4_menu.py` import block shows the
+  split between the two name sources). Every helper the bodies
+  call comes with the base classes: `assert_rule` and
+  `assert_exact_rule_once` are methods of `Gtk4SheetRuleCases`'
+  bases (`tests/support/gtk_rule_cases.py:155` and
+  `tests/support/gtk4_sheet.py:92`), `assert_disabled_text` is a
+  method of `tests/support/gtk_rule_cases.py:449`,
+  `_assert_toast_matches_popover` is a method of
+  `tests/support/gtk4_sheet.py:275`, and `self.css`, `self.rules`
+  and `self.selectors` come from the shared `setUpClass`. No moved
+  body spells a `support.gtk_css` name or uses `re`, `tempfile` or
+  `mock`, so no other import moves.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_popover…` and
+  `…::TestGtk4Theme::test_toast_surface` anchor to
+  `tests/test_gtk4_popover.py::TestGtk4Popover::…`, wherever it
+  appears. `grep -o 'TestGtk4Theme::test_popover[a-z_]*\|TestGtk4Theme::test_toast[a-z_]*'
+  docs/invariants.md` finds exactly four member mentions at this
+  plan's base commit across four rows: `test_popover` in the
+  modelbutton-corners row and again (as `test_popover` (extended))
+  in the modelbutton-colour-states row,
+  `test_popover_menu_accelerator_foreground` alone in the
+  accelerator row, and `test_toast_surface` alone in the toast
+  row. Prose back-references that spell the bare name
+  `` `test_popover` `` (the "pinned by the same `test_popover`"
+  phrases in the corners and colour-states rows) stay as they
+  read: the method keeps its name in the new module, so the
+  references stay true. Rewrite only the module-qualified anchors
+  in place and leave every staying anchor as it reads. Do not
+  rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_popover.TestGtk4Popover`, and none of
+  them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_message_dialog_action_area`, `test_dropdown_arrow` and
+  `test_separator` (or, if the dropdown entry landed first,
+  `test_message_dialog_action_area` and `test_separator`).
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_popover\|TestGtk4Theme::test_toast'
+  docs/invariants.md` prints nothing, each of the four touched
+  rows names its moved method under
+  `tests/test_gtk4_popover.py::TestGtk4Popover`, the
+  class-level `tests/test_gtk4_theme.py::TestGtk4Theme` anchor row
+  stays, and the invariants checker inside `make check` resolves
+  every new anchor.
+- `grep -n 'COMBO_ARROW\|ETCH_DARK\|DISABLED_TEXT\|\bFACE\b\|\bBLACK\b\|\bSELECTION\b'
+  tests/test_gtk4_theme.py` still finds each name's staying import
+  and users, and the unused-import scanner inside `make check`
+  reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 120 lines, and
+  `tests/test_gtk4_popover.py` stays under about 160 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_popover.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate dropdown declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large
