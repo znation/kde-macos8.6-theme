@@ -35,7 +35,7 @@ overrides may supersede it. `make install` remains selection-free; `make check` 
 
 **Landed as.** `[kdeglobals][General]
 fixed=JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium`, the Qt 6 serialized QFont
-form (contract and string grounded against the installed Qt 6.9.2 and recorded in the font
+form (contract and string grounded against the installed Qt 6.8.2 and recorded in the font
 package's `PROVENANCE.md`; a scratch-home `lookandfeeltool` apply published no defaults'
 font key, so `tools/apply_theme.py::STEPS` writes the selection explicitly after the
 global-theme step, tested in `tests/test_apply_theme.py`). (added 2026-11-12 by the

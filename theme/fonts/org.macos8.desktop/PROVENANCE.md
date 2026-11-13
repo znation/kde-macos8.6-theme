@@ -89,8 +89,12 @@ The selection value is the Qt 6 serialized QFont form:
 
     JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium
 
-Contract, grounded against the installed Qt 6.9.2 (probed 2026-11-12 through
-the Debian PyQt6 6.9.0 bindings on this host):
+Contract, grounded against the installed Qt 6.8.2 (probed 2026-11-12 through
+the Debian PyQt6 6.9.0 bindings, extracted to a scratch directory, on this
+host; the host's installed Qt is `libqt6core6t64 6.8.2+dfsg-9` running
+Plasma 6.3.6 — an earlier recording of this paragraph named Qt 6.9.2, which
+no installed library on this host provides, and was corrected 2026-11-12 by
+re-running the probe):
 
 - `QFont::toString()` serializes 17 comma-separated fields; field 1 is the
   family, field 2 the point size, field 5 the weight on Qt 6's 0-1000 scale
