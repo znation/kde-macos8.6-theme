@@ -129,6 +129,17 @@ class TestCommandOrder(StubTools):
                 "--key ButtonsOnLeft X",
                 "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
                 "--key ButtonsOnRight AL",
+                f"kreadconfig6 --file {self.home}/.config/konsolerc --group "
+                "Desktop Entry --key DefaultProfile --default ",
+                f"kwriteconfig6 --file {self.data}/konsole/Platinum.profile "
+                "--group General --key Name Platinum",
+                f"kwriteconfig6 --file {self.data}/konsole/Platinum.profile "
+                "--group General --key Parent FALLBACK/",
+                f"kwriteconfig6 --file {self.data}/konsole/Platinum.profile "
+                "--group Appearance --key Font "
+                "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium",
+                f"kwriteconfig6 --file {self.home}/.config/konsolerc --group "
+                "Desktop Entry --key DefaultProfile Platinum.profile",
                 "kvantummanager --set org.macos8.desktop",
                 "qdbus6 org.kde.KWin /KWin reconfigure",
             ],
@@ -798,6 +809,69 @@ class TestReconfigureKwin(unittest.TestCase):
             "decoration on its next start",
             text,
         )
+
+
+class TestKonsoleFontStep(StubTools):
+    """The apply runs the Konsole font helper between the steps and the
+    best-effort selections, and propagates its failure.
+
+    The helper itself is mocked: its own behavior is
+    ``tests/test_apply_konsole_font.py``'s subject, so these pin only the
+    call -- its arguments, its place in the sequence and the failure
+    propagation -- by appending a marker line to the recorded-calls log
+    while the stubs record theirs.
+    """
+
+    def helper_marker(self, *args):
+        with open(self.calls, "a", encoding="utf-8") as handle:
+            handle.write("konsole-font-helper\n")
+        return None
+
+    def _run_with_marker(self):
+        with mock.patch.object(
+            apply_theme.apply_konsole_font,
+            "apply",
+            side_effect=self.helper_marker,
+        ) as helper:
+            status, stderr = call_main(apply_theme.main)
+        return status, stderr, helper
+
+    def test_the_helper_runs_with_the_fixed_font_after_the_steps(self):
+        status, stderr, helper = self._run_with_marker()
+        self.assertEqual(0, status, stderr)
+        helper.assert_called_once_with(
+            mock.ANY,
+            mock.ANY,
+            self.data,
+            apply_theme.FIXED_VALUE,
+            apply_theme.ApplyError,
+            apply_theme.COMMAND_TIMEOUT,
+        )
+        recorded = self.recorded()
+        self.assertLess(
+            recorded.index(
+                "kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 "
+                "--key ButtonsOnRight AL"
+            ),
+            recorded.index("konsole-font-helper"),
+            recorded,
+        )
+        self.assertLess(
+            recorded.index("konsole-font-helper"),
+            recorded.index("kvantummanager --set org.macos8.desktop"),
+            recorded,
+        )
+
+    def test_a_failing_konsole_step_stops_before_the_optional_selections(
+        self,
+    ):
+        with mock.patch.object(
+            apply_theme.apply_konsole_font, "apply", return_value=1
+        ) as helper:
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(1, status)
+        self.assertNotIn("kvantummanager --set", " ".join(self.recorded()))
+        helper.assert_called_once()
 
 
 class TestMakeApply(unittest.TestCase):

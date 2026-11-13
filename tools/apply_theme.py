@@ -9,9 +9,11 @@ package selections but no `[General]` font key, verified in a scratch home
 2026-11-12, so the selection is written explicitly), writes the
 theme's window-button layout into `kwinrc` (the global theme's look-and-feel
 apply drops those two keys, leaving KWin's stock right-hand cluster instead of
-the reference's close box at the leading edge), tells Kvantum which of its
-installed themes to draw, and asks KWin to reconfigure so the window
-decoration reloads. The startup splash is read at login, so a splash change
+the reference's close box at the leading edge), points Konsole's
+default profile at the same fixed-width face (a profile font overrides the
+``kdeglobals`` selection in every new Konsole session; see
+``apply_konsole_font``), tells Kvantum which of its installed themes to
+draw, and asks KWin to reconfigure so the window decoration reloads. The startup splash is read at login, so a splash change
 appears only on the next login.
 
 The global theme is applied without ``--resetLayout``: Plasma replaces the
@@ -56,6 +58,7 @@ if __package__:
     from tools.required_command import run_required
     from tools.session_bus import session_env
     from tools.apply_optional import run_optional_selections
+    from tools import apply_konsole_font
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
@@ -70,6 +73,7 @@ else:  # run directly: python3 tools/apply_theme.py
     from required_command import run_required
     from session_bus import session_env
     from apply_optional import run_optional_selections
+    import apply_konsole_font
 
 TOOL = "apply_theme"
 LNF_ID = "org.macos8.desktop"
@@ -89,6 +93,7 @@ REQUIRED_TOOLS = (
     "plasma-apply-colorscheme",
     "plasma-apply-desktoptheme",
     "kwriteconfig6",
+    "kreadconfig6",
 )
 # The window decoration's button layout, written after the global theme so a
 # look-and-feel apply cannot reset it. The values are the global theme's own
@@ -148,7 +153,7 @@ LOCK_TIMEOUT = 60.0
 
 
 def _apply(data_home: Path, environ: dict[str, str]) -> int:
-    """Run the required steps, then the best-effort selections."""
+    """Run the required steps, then the Konsole font, then the best efforts."""
     with scratch_directory(TOOL, "apply-theme-") as scratch:
         if scratch is None:
             return 2
@@ -164,6 +169,14 @@ def _apply(data_home: Path, environ: dict[str, str]) -> int:
         ):
             env = session_env(environ)
             status = _run_required_steps(scratch, env)
+            if status is not None:
+                return status
+            # The Konsole default profile carries its own font that
+            # overrides the fixed selection kdeglobals now holds, so it is
+            # pointed at the same face before the best-effort selections.
+            status = apply_konsole_font.apply(
+                scratch, env, data_home, FIXED_VALUE, ApplyError, COMMAND_TIMEOUT
+            )
             if status is not None:
                 return status
             run_optional_selections(scratch, env, COMMAND_TIMEOUT)

@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### KDE fixed-width font, part 3/3: apply it to the default Konsole profile (planned 2026-11-12 by the director role; "requires part 2/3 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Ensure new Konsole sessions use the packaged face even when the default
+profile has an explicit font override, while preserving shell, colors, shortcuts and
+other profile settings. This completes the user's 2026-11-12 request alongside part 2/3.
+
+**Approach and files.** Add a focused `tools/apply_konsole_font.py` helper and call it
+from `tools/apply_theme.py::_apply` after required Plasma selections, under the existing
+data-home lock. Resolve homes through `tools/xdg_homes.py`. Read Konsole's
+`konsolerc [Desktop Entry] DefaultProfile` and resolve that profile through XDG data
+search directories; ground these platform keys against upstream Konsole source and
+record the source/version in the installation guide. Write only `[Appearance] Font`,
+using part 2/3's exact QFont value and the existing bounded `run_required`/`kwriteconfig6`
+command pattern. For a profile in a system data directory, first copy it to the user's
+`konsole/` directory with the same basename, then modify that copy. For an absent default
+or the built-in fallback, create `konsole/Platinum.profile` with `[General] Name=Platinum`,
+`Parent=FALLBACK/` and the font, then select that filename in `konsolerc`. Refuse unsafe
+profile names (absolute paths, separators or traversal), symlink destinations and an
+unresolvable explicitly named profile, with an actionable diagnostic rather than guessing.
+Do not edit non-default profiles. Do not start Konsole or require its binary; the helper
+prepares its config even on systems where it is not installed. Fail apply on a config
+write error using the existing required-step error conventions.
+
+**Acceptance criteria.** Add `tests/test_apply_konsole_font.py` with scratch XDG homes
+and stubbed commands, covering a user default with a foreign font, a system default copied
+locally, fallback creation, repeated apply, unsafe names, symlink refusal and command
+failure. Assert unrelated profile keys, shell and keyboard mappings are preserved, and
+system source files and non-default profiles stay byte-identical. Extend
+`tests/test_apply_theme.py` to prove helper invocation, ordering and failure propagation.
+Document new-session/restart requirements and the exact manual reset for the selected
+profile's font; uninstall continues to preserve user configuration. Update
+`docs/invariants.md` with the helper's guarantees and tests. `make check` passes without
+opening a window in the user's session. Keep this run to the helper, wiring, tests and
+their documentation; extra terminal/editor integrations are outside this part.
+
 ### README split, part 4/5: move "Sampling reference pixels" into docs/sampling.md (planned 2026-11-12 by the director role; "requires part 1/5 landed") — done 2026-11-12 by the feature role
 
 **Goal.** Move README's `## Sampling reference pixels` section (about 600 lines: sampling modes, the option references and troubleshooting) into a new `docs/sampling.md`, the sampler's user guide.

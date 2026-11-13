@@ -109,9 +109,6 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 300 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
 
-
-### KDE fixed-width font, part 3/3: apply it to the default Konsole profile (planned 2026-11-12 by the director role; "requires part 2/3 landed")
-
 **Goal.** Ensure new Konsole sessions use the packaged face even when the default
 profile has an explicit font override, while preserving shell, colors, shortcuts and
 other profile settings. This completes the user's 2026-11-12 request alongside part 2/3.
