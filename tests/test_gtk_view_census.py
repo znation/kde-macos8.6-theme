@@ -71,7 +71,8 @@ import sys
 import unittest
 from pathlib import Path
 
-from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE
+from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
+                                      GTK4_PROBE_PROLOGUE)
 from support.platinum_palette import SELECTION
 from support.repo_root import ROOT
 from support.gui_tests import require_gui_opt_in
@@ -191,25 +192,9 @@ window.set_child(text_view)
 window.present()
 text_view.grab_focus()
 
-def at_function():
-    snapshot = Gtk.Snapshot()
-    Gtk.WidgetPaintable.new(text_view).snapshot(snapshot, WIDTH, HEIGHT)
-    node = snapshot.to_node()
-    renderer = window.get_renderer()
-    if node is None or renderer is None:
-        # Not allocated or realized yet: no frame to inspect.
-        return None
-    viewport = Graphene.Rect()
-    viewport.init(0, 0, WIDTH, HEIGHT)
-    texture = renderer.render_texture(node, viewport)
-    pixbuf = Gdk.pixbuf_get_from_texture(texture)
-    data, stride = pixbuf.get_pixels(), pixbuf.get_rowstride()
-    channels = pixbuf.get_n_channels()
-    def at(x, y):
-        pos = y * stride + x * channels
-        return tuple(data[pos:pos + 3])
-    return at
-
+'''
+    + GTK4_PROBE_PAINTED
+    + '''
 def band_and_corners(at):
     matches = [
         (x, y) for y in range(HEIGHT) for x in range(WIDTH)
@@ -229,7 +214,7 @@ def band_and_corners(at):
 deadline = time.monotonic() + 30
 while True:
     pending()
-    at = at_function()
+    at = painted(text_view, WIDTH, HEIGHT)
     result = band_and_corners(at) if at is not None else None
     if result is not None:
         matches, corners = result
@@ -270,26 +255,16 @@ window = Gtk.Window()
 window.set_child(text_view)
 window.present()
 
-def pixels():
-    snapshot = Gtk.Snapshot()
-    Gtk.WidgetPaintable.new(text_view).snapshot(snapshot, WIDTH, HEIGHT)
-    node = snapshot.to_node()
-    renderer = window.get_renderer()
-    if node is None or renderer is None:
-        return None
-    viewport = Graphene.Rect()
-    viewport.init(0, 0, WIDTH, HEIGHT)
-    texture = renderer.render_texture(node, viewport)
-    pixbuf = Gdk.pixbuf_get_from_texture(texture)
-    data, stride = pixbuf.get_pixels(), pixbuf.get_rowstride()
-    channels = pixbuf.get_n_channels()
-    return [tuple(data[y * stride + x * channels:y * stride + x * channels + 3])
-            for x, y in ((0, 0), (219, 0), (0, 59), (219, 59), (110, 55))]
-
+'''
+    + GTK4_PROBE_PAINTED
+    + '''
 deadline = time.monotonic() + 30
 while True:
     pending()
-    result = pixels()
+    at = painted(text_view, WIDTH, HEIGHT)
+    result = None if at is None else [
+        at(x, y)
+        for x, y in ((0, 0), (219, 0), (0, 59), (219, 59), (110, 55))]
     if result is not None and all(pixel == (255, 255, 255) for pixel in result):
         print("disabled field pixels %r" % result)
         break

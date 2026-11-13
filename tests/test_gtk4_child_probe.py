@@ -16,14 +16,16 @@ from support.gtk4_sheet import THEME_DIR
 
 # The six suites whose child programs interpolate the shared prologue; the
 # spin probe's child never sets ``gtk-theme-name``, so it keeps its own.
-# The four suites whose children pin pixels from fresh allocations share
-# the painted-pixel capture helper; each interpolates it exactly once.
-_PAINTED_SUITES = (
-    "test_gtk4_button_probe.py",
-    "test_gtk4_progressbar_probe.py",
-    "test_gtk4_scale_probe.py",
-    "test_gtk4_scrollbar_probe.py",
-)
+# The files whose children pin pixels from fresh allocations share the
+# painted-pixel capture helper; the value is how many times each file
+# names the constant (one import plus one interpolation per child).
+_PAINTED_SUITES = {
+    "test_gtk4_button_probe.py": 2,
+    "test_gtk4_progressbar_probe.py": 2,
+    "test_gtk4_scale_probe.py": 2,
+    "test_gtk4_scrollbar_probe.py": 2,
+    "test_gtk_view_census.py": 3,
+}
 _PROLOGUE_SUITES = (
     "test_gtk4_button_probe.py",
     "test_gtk4_indicators_probe.py",
@@ -115,16 +117,17 @@ class TestRunGtk4Probe(unittest.TestCase):
         self.assertTrue(GTK4_PROBE_PAINTED.endswith("    return at\n"))
 
     def test_allocation_probe_suites_use_the_shared_painted_helper(self):
-        # A suite that copy-pastes the painted-pixel capture back into its
-        # child program would drift from the shared constant; each of the
-        # four allocation-pinned suites must interpolate it exactly once
-        # and keep no inline copy of the snapshot-to-pixbuf body.
-        for name in _PAINTED_SUITES:
+        # A file that copy-pastes the painted-pixel capture back into its
+        # child program would drift from the shared constant; each file
+        # must name the constant once per import and per child and keep no
+        # inline copy of the snapshot-to-pixbuf body.
+        for name, uses in _PAINTED_SUITES.items():
             source = (Path(__file__).parent / name).read_text()
             self.assertEqual(
                 source.count("GTK4_PROBE_PAINTED"),
-                2,
-                f"{name} must interpolate the painted helper exactly once",
+                uses,
+                f"{name} must interpolate the painted helper exactly once "
+                f"per child",
             )
             self.assertNotIn(
                 "Gtk.WidgetPaintable.new(widget).snapshot", source, name

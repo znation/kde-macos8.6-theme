@@ -50,15 +50,15 @@ provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
 Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)'''  # no trailing newline: suites interpolate after it verbatim.
 
 
-# The painted-pixel capture helper the four allocation-pinned children
-# (``button``, ``scale``, ``scrollbar`` and ``progressbar``) share, byte
-# for byte: snapshot the widget at its given border-box size, render the
-# node through the window's renderer, and return the ``at(x, y)`` closure
-# that reads a pixel triple straight out of the pixbuf. It ends with a
-# trailing newline so a suite interpolates it between its own literals.
-# No other child shares it: spin, indicators and notebook capture at
-# inline sites with different guards, and the census face children name
-# their sampler differently, so each keeps its own text.
+# The painted-pixel capture helper six rendered-face children share, byte
+# for byte: the four allocation-pinned probe children (``button``,
+# ``scale``, ``scrollbar`` and ``progressbar``) and the two view-census
+# face children. Snapshot the widget at its given border-box size, render
+# the node through the window's renderer, and return the ``at(x, y)``
+# closure that reads a pixel triple straight out of the pixbuf. It ends
+# with a trailing newline so a suite interpolates it between its own
+# literals. No other child shares it: spin, indicators and notebook
+# capture at inline sites with different guards or return shapes.
 GTK4_PROBE_PAINTED = '''\
 def painted(widget, w, h):
     snapshot = Gtk.Snapshot()
