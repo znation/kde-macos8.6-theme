@@ -35,6 +35,7 @@ from support.kwinrc_uninstall_wording import (
     LEFT_KEY,
     REMOVAL_GROUP,
     button_body,
+    button_lines,
     button_rule as rule_for,
 )
 
@@ -90,10 +91,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         path = write_kwinrc(
             config,
             "\ufeff[" + REMOVAL_GROUP + "]\r\n; a comment\r\n# another\r\n"
-            + LEFT_KEY
-            + "=X\r\n"
-            + RIGHT_KEY
-            + "=AL\r\n",
+            + button_lines(eol="\r\n"),
         )
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
