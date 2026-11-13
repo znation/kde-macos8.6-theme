@@ -209,7 +209,7 @@ entry's scope.
 `TestGtk4Theme` class (95 `test_` methods at this plan's base
 commit, after the paned extraction). Move the five corner-declaration
 checks (86 contiguous lines at this plan's base commit) into their own
-module, the way the landed frame-corner
+module, the way the merged frame-corner
 (`tests/test_gtk4_frame_corners.py`) and dropdown, popover, expander
 extractions moved theirs, and the way the waiting "GTK 4 suite
 extraction: isolate selection, focus-outline and cursor-handle
