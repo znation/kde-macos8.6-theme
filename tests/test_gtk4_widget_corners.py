@@ -94,5 +94,6 @@ class TestGtk4WidgetCorners(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assert_rule(selector, {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
 
+
 if __name__ == "__main__":
     unittest.main()
