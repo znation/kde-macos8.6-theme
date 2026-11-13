@@ -5,6 +5,19 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README split, part 4/5: move "Sampling reference pixels" into docs/sampling.md (planned 2026-11-12 by the director role; "requires part 1/5 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Move README's `## Sampling reference pixels` section (about 600 lines: sampling modes, the option references and troubleshooting) into a new `docs/sampling.md`, the sampler's user guide.
+
+**Approach.** Same mechanics as part 2/5:
+- Move every subsection verbatim into `docs/sampling.md`, from the section heading up to `## Fidelity checking`, with an H1, a back link and promoted headings.
+- In README, the `## Sampling reference pixels` heading stays, so the Contents entry and the Prerequisites "Sample JPEG screenshots" link still resolve. Under it goes a short stub: one sentence on what the sampler is for, the single most common command, and a link to the guide.
+- Repoint links in both directions. Retarget any README-reading test that `make check` shows failing to `user_docs.read_user_docs()` (`grep -rn README tests/` lists the readers).
+
+**Files.** `README.md`, `docs/sampling.md` (new), plus only the tests and `docs/invariants.md` rows that name the moved text.
+
+**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 500 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
+
 ### README split, part 3/5: move "Rendering a candidate" into docs/rendering.md (planned 2026-11-12 by the director role; "requires part 1/5 landed") — done 2026-11-12 by the feature role
 
 **Goal.** Move README's `### Rendering a candidate` subsection (about 170 lines: the `make render` modes and their dialog gates) into a new `docs/rendering.md`.
