@@ -30,7 +30,7 @@ else:  # imported from a directly run tool
 
 
 def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
-    """The five Lato warnings, one per selection the apply published."""
+    """The five font warnings, one per selection the apply published."""
     diagnoses = (
         (
             ("General", "font"),
@@ -40,9 +40,9 @@ def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
         ),
         (
             ("General", "menuFont"),
-            "the font selection [General] menuFont=Lato,10",
+            "the font selection [General] menuFont=ChicagoFLF,10",
             "--group General --key menuFont --delete",
-            "Lato,10",
+            "ChicagoFLF,10",
         ),
         (
             ("General", "toolBarFont"),
@@ -58,9 +58,9 @@ def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
         ),
         (
             ("WM", "activeFont"),
-            "the font selection [WM] activeFont=Lato,10",
+            "the font selection [WM] activeFont=ChicagoFLF,10",
             "--group WM --key activeFont --delete",
-            "Lato,10",
+            "ChicagoFLF,10",
         ),
     )
     out = []
@@ -69,9 +69,9 @@ def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
             continue
         out.append(
             f"uninstall: {wording} the look-and-feel apply wrote is still"
-            f" in {path} after removal; KDE and Qt keep naming the Lato face"
-            " the removal deleted and fall back to a default where no other"
-            " copy of the family remains installed. Reset it with:"
+            f" in {path} after removal; KDE and Qt keep naming the selected"
+            " font family the removal deleted and fall back to a default where"
+            " no other copy of that family remains installed. Reset it with:"
             f" kwriteconfig6 --file kdeglobals {reset_tail}"
         )
     return out

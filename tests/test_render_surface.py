@@ -3269,15 +3269,10 @@ class TestInactiveDialogRender(_DialogGate, unittest.TestCase):
     RIGHT_TITLE_BAND = (253, 9, 222, 20)  # rows y=9..28, x=253..474
     # The centered title "Inactive window"'s glyph band, the one region of
     # the between-rings field the text's antialiasing may bleed into.
-    # Measured 2026-11-11 on a consecutive pair of full
-    # ``tools/render_surface.py --inactive-dialog`` runs on this host whose
-    # two 480x360 captures agreed byte for byte under ``cmp``: the ink's
-    # ``#777777`` pixels span x=60..128 at y=14..23, and the antialiasing
-    # bleeds beyond them to x=59..151 (wider than the planned re-derivation
-    # note's x=58..130, so the band was widened to the fresh capture), all
-    # inside x=58..152 at y=13..24. Rows y=9..12 and y=25..28 measured flat
-    # outside the band in the same pair.
-    GLYPH_BAND = (58, 13, 95, 12)  # x=58..152, y=13..24
+    # Measured 2026-11-12 from the isolated render after selecting ChicagoFLF:
+    # full-strength #777777 ink spans x=48..163 at y=14..23; antialiasing
+    # extends to x=47..164, within this padded band.
+    GLYPH_BAND = (46, 13, 120, 12)  # x=46..165, y=13..24
 
     def assert_ring(self, rect, colour):
         """Pin every border-ring pixel of *rect* at *colour*."""
@@ -3335,17 +3330,21 @@ class TestInactiveDialogRender(_DialogGate, unittest.TestCase):
         )
 
     def test_title_ink_is_the_inactive_text_colour(self):
-        # The title stem's deterministic core: the leftmost column of the
-        # centered "Inactive window" title (x=60, rows y=14..23 in the
-        # measured run) carries the full-strength ink, not an antialiased
-        # blend. The value is quoted from
-        # theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc's
-        # InactiveTextColor=119,119,119, which tests/test_aurorae_rc.py
-        # already pins against the reference title-core samples. The full
-        # antialiased glyph set is deliberately not byte-compared; the stem
-        # column is the ink's deterministic core.
-        for y in range(14, 24):
-            self.assert_pixel(60, y, "#777777")
+        # The centered title carries full-strength InactiveTextColor ink
+        # somewhere in its measured glyph bounds. The title font is ChicagoFLF;
+        # pinning a fixed stem column would couple this check to one face's
+        # glyph layout. The full antialiased glyph set is deliberately not
+        # byte-compared.
+        image = self.candidate_image()
+        gx, gy, gw, gh = self.GLYPH_BAND
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, x, y)) == "#777777"
+                for x in range(gx, gx + gw)
+                for y in range(gy, gy + gh)
+            ),
+            "the inactive title has no full-strength text ink",
+        )
 
     def test_right_window_keeps_its_active_frame(self):
         # The right window's border ring stays the active BLACK frame, and

@@ -92,7 +92,7 @@ window decoration's QML package into `kwin/decorations/` (the look-and-feel defa
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
-OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands), and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor and ten shared assets into `themes/org.macos8.desktop/`. Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
+OFL 1.1 and ChicagoFLF for menus and window titles; the global theme selects Lato for general, toolbar and smallest-readable fonts, while monospaced text keeps the user's fixed font), and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor and ten shared assets into `themes/org.macos8.desktop/`. Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
 (`widgetStyle=kvantum`). Kvantum is a separate engine the theme cannot install, so when it is absent
@@ -328,9 +328,9 @@ prints a warning naming `plasma-apply-cursortheme breeze_cursors` as the reset
 — that command must be run by hand, because `make remove-cursor` owns only the
 `$HOME/.icons` link and never touches `kcminputrc`; and if the font
 selections the look-and-feel apply wrote (`[kdeglobals][General]
-font=Lato,10`, `menuFont=Lato,10`, `toolBarFont=Lato,10` and
-`smallestReadableFont=Lato,8`, and `[kdeglobals][WM] activeFont=Lato,10` —
-the Lato family `make uninstall` deletes with the fonts) still name their
+font=Lato,10`, `menuFont=ChicagoFLF,10`, `toolBarFont=Lato,10` and
+`smallestReadableFont=Lato,8`, and `[kdeglobals][WM] activeFont=ChicagoFLF,10` —
+the selected font families `make uninstall` deletes with the fonts) still name their
 published values after the uninstall, it prints one warning per
 still-selected key, each naming that key's reset
 `kwriteconfig6 --file kdeglobals --group General --key font --delete` (and
@@ -459,7 +459,7 @@ target that runs a Python tool requires Python 3.10 or newer (the fidelity tool 
 lists the same `PYTHON` floor.
 `make apply` installs every artifact exactly as `make install` does and then applies all of them: it re-applies the theme to
 the running Plasma session (`make apply` re-applies the global theme, which
-selects Lato; a bare `make install` only copies the family), so the just-built theme becomes current without a logout: it re-selects
+selects Lato for general, toolbar and smallest-readable text and ChicagoFLF for menus and window titles; a bare `make install` only copies the families), so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
 `MacOS8` color scheme and the `org.macos8.desktop` desktop theme, writes the theme's
 window-button layout into `kwinrc` (close box at the leading edge, zoom and collapse at the

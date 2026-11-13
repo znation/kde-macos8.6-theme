@@ -153,13 +153,11 @@ class TestDefaults(unittest.TestCase):
         )
         self.assertEqual(self.parser.options(WALLPAPER_SECTION), ["Image"])
 
-    def test_fonts_name_the_installed_lato_family(self):
+    def test_body_and_toolbar_fonts_name_the_installed_lato_family(self):
         pairs = [
             (DEFAULTS_SECTION, "font"),
-            (DEFAULTS_SECTION, "menuFont"),
             (DEFAULTS_SECTION, "toolBarFont"),
             (DEFAULTS_SECTION, "smallestReadableFont"),
-            (WM_SECTION, "activeFont"),
         ]
         font_value = self.parser.get(DEFAULTS_SECTION, "font")
         font_size = int(font_value.split(",", 1)[1])
@@ -170,6 +168,17 @@ class TestDefaults(unittest.TestCase):
             self.assertGreater(int(size_str), 0, f"{section}/{key}")
         smallest = int(self.parser.get(DEFAULTS_SECTION, "smallestReadableFont").split(",", 1)[1])
         self.assertLessEqual(smallest, font_size)
+
+    def test_menu_and_title_fonts_name_the_installed_chicago_face(self):
+        font_size = int(self.parser.get(DEFAULTS_SECTION, "font").split(",", 1)[1])
+        for section, key in (
+            (DEFAULTS_SECTION, "menuFont"),
+            (WM_SECTION, "activeFont"),
+        ):
+            family, size_str = self.parser.get(section, key).split(",", 1)
+            self.assertEqual(family, "ChicagoFLF", f"{section}/{key}")
+            self.assertEqual(int(size_str), font_size, f"{section}/{key}")
+            self.assertGreater(int(size_str), 0, f"{section}/{key}")
 
     def test_widget_style_is_kvantum(self):
         """The global theme selects our Kvantum widget style, which draws the

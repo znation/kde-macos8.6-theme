@@ -1,11 +1,11 @@
-"""Makefile tests for the `_uninstall` kdeglobals Lato-font diagnostics.
+"""Makefile tests for the `_uninstall` kdeglobals font diagnostics.
 
 `make apply` applies the shipped look-and-feel, whose defaults publish the
-five Lato font selections `[General] font=Lato,10`, `menuFont=Lato,10`,
+five font selections `[General] font=Lato,10`, `menuFont=ChicagoFLF,10`,
 `toolBarFont=Lato,10` and `smallestReadableFont=Lato,8`, and
-`[WM] activeFont=Lato,10`, into the user's `kdeglobals`; `make uninstall`
-then deletes the installed font package (`$(FONT_INSTALL_DIR)/$(FONT_ID)`,
-the theme's only shipped copies of the Lato faces), and KDE and Qt keep
+`[WM] activeFont=ChicagoFLF,10`, into the user's `kdeglobals`; `make uninstall`
+then deletes the installed font package (`$(FONT_INSTALL_DIR)/$(FONT_ID)`),
+and KDE and Qt keep
 naming the removed family. `_uninstall` prints one diagnostic per key
 naming the matching `kwriteconfig6 --delete` reset when that key's last
 value in its own section still trims to exactly the published one, without
@@ -34,20 +34,21 @@ from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
 FONT_VALUE = "Lato,10"
+CHICAGO_VALUE = "ChicagoFLF,10"
 SMALL_VALUE = "Lato,8"
 FONT_RESET = "kwriteconfig6 --file kdeglobals"
 RESET_TAIL = (
-    " after removal; KDE and Qt keep naming the Lato face the removal deleted and fall "
-    "back to a default where no other copy of the family remains installed. "
+    " after removal; KDE and Qt keep naming the selected font family the removal deleted and fall "
+    "back to a default where no other copy of that family remains installed. "
     "Reset it with: " + FONT_RESET
 )
 # (section, key, published value) in the order the diagnostics print.
 KEYS = [
     ("General", "font", FONT_VALUE),
-    ("General", "menuFont", FONT_VALUE),
+    ("General", "menuFont", CHICAGO_VALUE),
     ("General", "toolBarFont", FONT_VALUE),
     ("General", "smallestReadableFont", SMALL_VALUE),
-    ("WM", "activeFont", FONT_VALUE),
+    ("WM", "activeFont", CHICAGO_VALUE),
 ]
 COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
 ICON_THEME_ID = "org.macos8.desktop"
@@ -75,7 +76,7 @@ def reset_for(section, key):
 
 
 class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
-    """`make _uninstall` names the five Lato resets when the selections are ours."""
+    """`make _uninstall` names the five font resets when the selections are ours."""
 
     def assert_warns(self, result, path, *indexed):
         """Every staged key warns with its own line, no other key's line."""
@@ -111,8 +112,8 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         config = os.path.join(tmp, "config")
         path = write_selection(
             config,
-            "[General]\nfont=Lato,10\nmenuFont=Lato,10\ntoolBarFont=Lato,10\n"
-            "smallestReadableFont=Lato,8\n[WM]\nactiveFont=Lato,10\n",
+            "[General]\nfont=Lato,10\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
+            "smallestReadableFont=Lato,8\n[WM]\nactiveFont=ChicagoFLF,10\n",
         )
         original = read_bytes(path)
 
@@ -129,8 +130,8 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
-        path = write_selection(config, "[General]\n  menuFont = Lato,10  \n")
-        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "menuFont", FONT_VALUE), unchanged=path)
+        path = write_selection(config, "[General]\n  menuFont = ChicagoFLF,10  \n")
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "menuFont", CHICAGO_VALUE), unchanged=path)
 
     def test_warns_for_a_bom_prefixed_file_with_comments_crlf_and_indents(self):
         # The apply would never write this shape, but an editor BOM-save plus
@@ -166,9 +167,9 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(
-            config, "[WM]\nactiveFont=Salsa\nactiveFont=Lato,10\n"
+            config, "[WM]\nactiveFont=Salsa\nactiveFont=ChicagoFLF,10\n"
         )
-        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "WM", "activeFont", FONT_VALUE), unchanged=path)
+        assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "WM", "activeFont", CHICAGO_VALUE), unchanged=path)
 
     def test_warns_when_an_unterminated_header_leaves_the_section(self):
         # A header that never closes is skipped without changing the
@@ -176,14 +177,14 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         tmp = str(make_tmp_dir(self))
         config = os.path.join(tmp, "config")
         path = write_selection(
-            config, "[General]\nfont=Lato,10\n[KDE\nmenuFont=Lato,10\n"
+            config, "[General]\nfont=Lato,10\n[KDE\nmenuFont=ChicagoFLF,10\n"
         )
         assert_uninstall_diagnostics(
             self,
             tmp,
             config,
             rule_for(path, "General", "font", FONT_VALUE),
-            rule_for(path, "General", "menuFont", FONT_VALUE),
+            rule_for(path, "General", "menuFont", CHICAGO_VALUE),
             unchanged=path,
         )
 
@@ -213,8 +214,8 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_not_warned_for_a_foreign_or_empty_last_value(self):
         for section, key, value, last in [
             ("General", "font", FONT_VALUE, "Salsa"),
-            ("General", "menuFont", FONT_VALUE, ""),
-            ("WM", "activeFont", FONT_VALUE, "Salsa"),
+            ("General", "menuFont", CHICAGO_VALUE, ""),
+            ("WM", "activeFont", CHICAGO_VALUE, "Salsa"),
         ]:
             with self.subTest(key=key, last=last):
                 tmp = str(make_tmp_dir(self))
@@ -243,8 +244,8 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         config = os.path.join(tmp, "config")
         path = write_selection(
             config,
-            "[WM]\nfont=Lato,10\nmenuFont=Lato,10\ntoolBarFont=Lato,10\n"
-            "smallestReadableFont=Lato,8\n[General]\nactiveFont=Lato,10\n",
+            "[WM]\nfont=Lato,10\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
+            "smallestReadableFont=Lato,8\n[General]\nactiveFont=ChicagoFLF,10\n",
         )
         original = read_bytes(path)
 
@@ -296,8 +297,8 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         # XDG_CONFIG_HOME and reads `$HOME/.config`.
         assert_home_fallback(
             self,
-            lambda config: write_selection(config, "[WM]\nactiveFont=Lato,10\n"),
-            lambda path: rule_for(path, "WM", "activeFont", FONT_VALUE),
+            lambda config: write_selection(config, "[WM]\nactiveFont=ChicagoFLF,10\n"),
+            lambda path: rule_for(path, "WM", "activeFont", CHICAGO_VALUE),
         )
 
     def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
@@ -326,11 +327,11 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         config = os.path.join(tmp, "config")
         path = write_selection(
             config,
-            "[General]\nColorScheme=MacOS8\nfont=Lato,10\nmenuFont=Lato,10\n"
+            "[General]\nColorScheme=MacOS8\nfont=Lato,10\nmenuFont=ChicagoFLF,10\n"
             "toolBarFont=Lato,10\nsmallestReadableFont=Lato,8\n"
             "[KDE]\nwidgetStyle=kvantum\n"
             "[Icons]\nTheme=" + ICON_THEME_ID + "\n"
-            "[WM]\nactiveFont=Lato,10\n",
+            "[WM]\nactiveFont=ChicagoFLF,10\n",
         )
         original = read_bytes(path)
 

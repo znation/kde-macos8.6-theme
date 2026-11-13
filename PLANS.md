@@ -30,8 +30,9 @@ below); the `org.macos8.desktop` Kvantum widget
 style (Platinum palette and core-control art); the
 `org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
 carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`,
-and the global theme selects its `Lato` family for the general, menu, toolbar, smallest-readable
-and window-title fonts, while monospaced text keeps the user's fixed font); the GTK 3 and GTK 4
+and the global theme selects its `Lato` family for general, toolbar and smallest-readable fonts
+and `ChicagoFLF` for menus and window titles, while monospaced text keeps the user's fixed font);
+the GTK 3 and GTK 4
 Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
 selected by `apply-gtk`; `make install` copies no GTK files); the standalone Firefox Platinum
 sheets under `theme/firefox/` (its `userChrome.css` and `userContent.css` copied, and its
@@ -76,9 +77,9 @@ only by the opt-in `install-gtk` and `apply-gtk` targets (`make install` copies 
 files), and the opt-in `install-firefox` target copies the Firefox `userChrome.css` and
 `userContent.css` sheets into a profile and writes the preference that selects them.
 **The UI font** is vendored (QUESTIONS.md, answered 2026-10-19): Lato is installed as the
-Charcoal-style body face and selected by the global theme for the general, menu, toolbar,
-smallest-readable and window-title fonts, and monospaced text keeps the user's fixed font;
-ChicagoFLF, a public-domain Chicago-style face, is planned for menus and window titles (the two
+Charcoal-style body face and selected by the global theme for general, toolbar and
+smallest-readable fonts, and monospaced text keeps the user's fixed font; ChicagoFLF, a
+public-domain Chicago-style face, is selected for menus and window titles (the two
 "Chicago-style face" plans under `## Planned`; its licence was checked 2026-11-12 by the director role).
 GTK and Firefox applications keep their own chrome unless the opt-in GTK targets or the
 Firefox install are used. Firefox chrome work since that series landed as single-surface
@@ -150,29 +151,6 @@ recorded here to keep the scope deliberate.
 **Files.** `README.md`, `docs/fidelity.md` (new), plus only the tests and `docs/invariants.md` rows that name the moved text.
 
 **Acceptance criteria.** The verbatim-move check from part 2/5 applies. README is at least 300 lines shorter. `make check` passes after the final edit, with no test deleted or skipped.
-
-### Chicago-style face, part 2/2: select ChicagoFLF for menus and window titles (planned 2026-11-12 by the director role; "requires part 1/2 landed")
-
-**Goal.** Part 1/2 installs ChicagoFLF. This part selects it in the two KDE font roles that earlier font parts set aside for a Chicago-style face (PLANS-DONE.md, the font-selection part: "the part that vendors a Chicago-style face will update `menuFont`/`activeFont`"). Those roles are menus and active window titles. Body, toolbar and smallest-readable text stay Lato, the Charcoal-style face. Monospace keeps the user's fixed font.
-
-**Approach and files.**
-- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: set `[kdeglobals][General] menuFont=ChicagoFLF,10` and `[kdeglobals][WM] activeFont=ChicagoFLF,10`. 10 is the KDE default size the Lato keys already use. Change no other key.
-- `tests/test_lookandfeel.py`: split `test_fonts_name_the_installed_lato_family` into two tests:
-  - One asserts that `font`, `toolBarFont` and `smallestReadableFont` name `Lato`.
-  - `test_menu_and_title_fonts_name_the_installed_chicago_face` asserts that `menuFont` and `activeFont` name `ChicagoFLF` at a positive size equal to `font`'s size.
-  - Keep the smallest ≤ general size check.
-- Text that says menus and window titles use Lato must now name ChicagoFLF for those two roles:
-  - `theme/fonts/org.macos8.desktop/PROVENANCE.md`: the Selection section and the "until a Chicago-style face lands" sentence.
-  - `README.md`: the install paragraph describing the font package. It must not touch the brief block between the tumwater:prompt markers.
-  - `docs/invariants.md`: the two rows naming `tests/test_lookandfeel.py::TestDefaults` and the font selection.
-  - `PLANS.md`: the `## Planned` preamble's font sentence.
-  - Find every such line with `grep -n "Lato" README.md docs/invariants.md theme/fonts/org.macos8.desktop/PROVENANCE.md PLANS.md`, excluding the archives.
-
-**Acceptance criteria.**
-- `grep -c "ChicagoFLF" theme/look-and-feel/org.macos8.desktop/contents/defaults` prints `2`.
-- The new test fails if either key is reverted to Lato. The Lato test fails if `font` is set to ChicagoFLF.
-- No remaining line outside the archives says menus or window titles use Lato.
-- `make check` passes after the final edit.
 
 
 ### GTK 4 suite extraction: isolate OSD overlay declarations (planned 2026-11-12 by the plan role)

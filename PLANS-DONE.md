@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Chicago-style face, part 2/2: select ChicagoFLF for menus and window titles (planned 2026-11-12 by the director role; "requires part 1/2 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Select the installed ChicagoFLF face for menus and active window titles. Body, toolbar and smallest-readable text stay Lato, and monospace keeps the user's fixed font.
+
+**Changes.** `contents/defaults` selects `ChicagoFLF,10` for `menuFont` and `activeFont`. `tests/test_lookandfeel.py` checks Lato on the body/toolbar roles and ChicagoFLF on menu/title roles, with matching positive font sizes. Updated README, font provenance, invariants and the PLANS preamble. Updated uninstall diagnostics and their tests to match the two ChicagoFLF values while preserving the per-key reset behavior. Updated the inactive-title render gate to allow ChicagoFLF's measured glyph bounds while continuing to check its full-strength ink.
+
+**Acceptance criteria.** The defaults contain two ChicagoFLF selections; tests fail if either is reverted or if the general font changes from Lato. Documentation names ChicagoFLF for menu and title roles. `make check` was run after the final edits; see the feature run report for its result.
+
 ### Chicago-style face, part 1/2: vendor ChicagoFLF in the font package (planned 2026-11-12 by the director role) — done 2026-11-12 by the feature role
 
 **Goal.** On 2026-10-19 the user chose to vendor a Chicago/Charcoal-style face (QUESTIONS.md, "Which UI font should the theme select?") and asked whether ChicagoFLF's licence fits. On 2026-11-12 the user asked again whether to use ChicagoFLF where a Chicago-style face is needed. The director checked the licence: the face is in the public domain. This part ships the font file and its licence record in the existing font package. It selects nothing; part 2/2 does that.
