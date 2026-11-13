@@ -112,6 +112,7 @@ class TestGtk4Scrollbar(Gtk4SheetRuleCases, unittest.TestCase):
             "scrollbar > range > trough",
             {"transition": "none"},
         )
+
+
 if __name__ == "__main__":
     unittest.main()
-
