@@ -5,6 +5,21 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### README split, part 3/5: move "Rendering a candidate" into docs/rendering.md (planned 2026-11-12 by the director role; "requires part 1/5 landed") — done 2026-11-12 by the feature role
+
+**Goal.** Move README's `### Rendering a candidate` subsection (about 170 lines: the `make render` modes and their dialog gates) into a new `docs/rendering.md`.
+
+**Approach.** Same mechanics as part 2/5:
+- Move the subsection verbatim into `docs/rendering.md`, from its heading up to `### Staging packages`. Give the file an H1, a back link to `../README.md`, and promote the headings one level.
+- Leave a two-to-four-line README stub that links to it.
+- Repoint links in both directions, including the Prerequisites table's `#rendering-a-candidate` link and any links from `## Fidelity checking`.
+- Retarget `tests/test_readme_render_gates.py` and `tests/test_readme_commands.py::test_readme_names_every_tool_make_render_requires` (it searches for "`make render` renders") to `user_docs.read_user_docs()`, plus any other README reader that `make check` shows failing.
+- Update the `docs/invariants.md` rows that say README's render section holds the evidence (for example the KPackage-route row) so they name `docs/rendering.md`.
+
+**Files.** `README.md`, `docs/rendering.md` (new), `tests/test_readme_render_gates.py`, `tests/test_readme_commands.py`, `docs/invariants.md`.
+
+**Acceptance criteria.** The verbatim-move check from part 2/5 applies. README no longer contains "`make render` renders", and the render-gate test still finds each gate name through the corpus. `make check` passes after the final edit, with no test deleted or skipped.
+
 ### README split, part 2/5: move "Installation details" into docs/installing.md (planned 2026-11-12 by the director role; "requires part 1/5 landed") — done 2026-11-12 by the feature role
 
 **Goal.** Move README's `### Installation details` subsection, the longest in the file (about 430 lines, with paragraphs that are a single very long line), into a new `docs/installing.md`. README keeps `### Quick start`, `### Staging packages`, `### Removing the theme` and `#### Restoring personal GTK 4 CSS`.

@@ -94,8 +94,8 @@ class SheetFixtureMemo(unittest.TestCase):
             first.setUpClass()
             second.setUpClass()
         self.assertEqual(parse_calls["parse"], 1)
-        # The sheet read plus the corpus read (README and the guide it links).
-        self.assertEqual(reads.count, 3)
+        # The sheet read plus the corpus read (README and the guides it links).
+        self.assertEqual(reads.count, 4)
         self.assertIs(first.text, second.text)
         self.assertIs(first.readme, second.readme)
         self.assertIs(first.rules, second.rules)

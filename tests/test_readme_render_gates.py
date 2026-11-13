@@ -1,11 +1,12 @@
-"""README's dialog-gate prose must name the gates that ship.
+"""The user docs' dialog-gate prose must name the gates that ship.
 
 Two staleness shapes: a `Test...DialogRender` gate class present in
-``tests/test_render_surface.py`` that README's render prose omits, and a
-``tests/test_render_surface.py::Test...`` token whose class no longer exists
-(a renaming or removal that leaves the prose pointing at nothing). The
-expectations are derived from the live test module and README, not copied
-from either, so prose and code cannot drift in opposite directions.
+``tests/test_render_surface.py`` that the user-docs corpus' render prose
+omits, and a ``tests/test_render_surface.py::Test...`` token whose class no
+longer exists (a renaming or removal that leaves the prose pointing at
+nothing). The expectations are derived from the live test module and the
+corpus (README plus the guides it links, docs/rendering.md among them), not
+copied from either, so prose and code cannot drift in opposite directions.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ import unittest
 
 from support import containment
 from support.repo_root import ROOT
+from support.user_docs import read_user_docs
 
 # Gate classes ship as top-level definitions, so a class name present
 # anywhere in ``tests/test_render_surface.py`` as a definition is the live
@@ -38,14 +40,18 @@ def read(name):
     return containment.read_text(os.path.join(ROOT, name), ROOT, encoding="utf-8")
 
 
+def corpus():
+    """Return README plus the guides it links, through the containment reader."""
+    return read_user_docs(ROOT)
+
+
 class TestReadmeDialogGateProse(unittest.TestCase):
     def test_readme_names_every_dialog_render_gate(self):
         module = read(os.path.join("tests", "test_render_surface.py"))
         gates = set(_GATE_CLASS.findall(module))
-        readme = read("README.md")
         named = {
             name
-            for name in _README_TOKEN.findall(readme)
+            for name in _README_TOKEN.findall(corpus())
             if name.endswith(("DialogRender",))
         }
         self.assertTrue(gates, "test_render_surface defines no dialog gates")
@@ -60,18 +66,18 @@ class TestReadmeDialogGateProse(unittest.TestCase):
         # The menu item-view's gate landed; the prose that once said the pin
         # was missing must not return, and the dialog-render summary paragraph
         # must keep naming the menu gate beside the two older ones.
-        readme = read("README.md")
-        self.assertNotIn("no gate compares", readme)
-        self.assertNotIn("BUGS.md tracks adding that pin", readme)
+        text = corpus()
+        self.assertNotIn("no gate compares", text)
+        self.assertNotIn("BUGS.md tracks adding that pin", text)
         summary = next(
             block
-            for block in readme.split("\n\n")
+            for block in text.split("\n\n")
             if "TestCheckboxDialogRender" in block and "suite runs" in block
         )
         self.assertIn("TestMenuDialogRender", summary)
         bullet = next(
             block
-            for block in readme.split("\n\n")
+            for block in text.split("\n\n")
             if "GenericFrame" in block and "--menu-dialog" in block
         )
         self.assertIn("TestMenuDialogRender", bullet)
@@ -81,10 +87,10 @@ class TestReadmeDialogGateProse(unittest.TestCase):
         # pair the scratch home takes from the look-and-feel defaults and
         # points at the session-level A/B equality evidence recorded in
         # docs/invariants.md.
-        readme = read("README.md")
+        text = corpus()
         paragraph = next(
             block
-            for block in readme.split("\n\n")
+            for block in text.split("\n\n")
             if "scratch data home" in block and "byte-identical" in block
         )
         self.assertIn("theme=org.macos8.desktop", paragraph)
