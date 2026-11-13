@@ -121,6 +121,5 @@ class TestGtk4FrameCorners(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assert_matches_frame(selector, "border-radius")
 
 
-
 if __name__ == "__main__":
     unittest.main()
