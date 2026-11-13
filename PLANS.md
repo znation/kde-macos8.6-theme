@@ -198,7 +198,7 @@ stylesheet or production behavior changes.
 ### GTK 4 suite extraction: isolate dropdown declarations (planned 2026-11-13 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large
-`TestGtk4Theme` class (113 `test_` methods at this plan's base
+`TestGtk4Theme` class (107 `test_` methods at this plan's base
 commit). Move the three dropdown/combobox declaration checks (about
 85 lines at this plan's base commit) into their own module, the same
 way the landed OSD (`tests/test_gtk4_osd.py`), scale, spinbutton,
@@ -206,9 +206,9 @@ disabled, emoji, entry, notebook, scrollbar, switch, progressbar,
 levelbar, view, selected, button, row, treeview, tabbar, sidebar,
 checkbutton and menu parts moved theirs, and the way the waiting
 "GTK 4 suite extraction: isolate expander declarations" entry moves
-its four (the held merge-pin change for the landed linked part is
-removing that entry from `## Planned`, so this entry is written
-against main without it). This is independent of the waiting
+its four (the change that landed the linked part removed that
+entry from `## Planned`, so this entry is written against main
+without it). This is independent of the waiting
 expander entry: neither moves a method the other names. Unlike the
 expander and linked entries, this one does prune an import: after
 the move, `test_gtk4_theme.py`'s `test_dropdown_arrow` is gone, and
