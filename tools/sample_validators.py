@@ -12,6 +12,18 @@ else:
     from argument_parsing import plain_number
 
 
+def _number_in_range(value: str, option: str, noun: str, low: int | float,
+                     high: int | float, parse):
+    """Parse a finite plain number and enforce an inclusive option range."""
+    article = "an" if noun == "integer" else "a"
+    parsed = plain_number(value, option, noun, article, parse)
+    if not math.isfinite(parsed) or not low <= parsed <= high:
+        raise argparse.ArgumentTypeError(
+            f"{option} must be between {low} and {high}: {value!r}"
+        )
+    return parsed
+
+
 def rgb_argument(value: str) -> tuple[int, int, int]:
     """Parse a six-digit RGB color, optionally prefixed by ``#``."""
     digits = value[1:] if value.startswith("#") else value
@@ -24,32 +36,17 @@ def rgb_argument(value: str) -> tuple[int, int, int]:
 
 def color_tolerance(value: str) -> int:
     """Parse a plain ASCII RGB channel tolerance from 0 through 255."""
-    parsed = plain_number(value, "--color-tolerance", "integer", "an", int)
-    if not 0 <= parsed <= 255:
-        raise argparse.ArgumentTypeError(
-            f"--color-tolerance must be between 0 and 255: {value!r}"
-        )
-    return parsed
+    return _number_in_range(value, "--color-tolerance", "integer", 0, 255, int)
 
 
 def match_alpha(value: str) -> int:
     """Parse an exact PNG alpha byte from 0 through 255."""
-    parsed = plain_number(value, "--match-alpha", "integer", "an", int)
-    if not 0 <= parsed <= 255:
-        raise argparse.ArgumentTypeError(
-            f"--match-alpha must be between 0 and 255: {value!r}"
-        )
-    return parsed
+    return _number_in_range(value, "--match-alpha", "integer", 0, 255, int)
 
 
 def match_pixels(value: str) -> int:
     """Parse a bounded count of matching positions to report."""
-    parsed = plain_number(value, "--match-pixels", "integer", "an", int)
-    if not 1 <= parsed <= 1000:
-        raise argparse.ArgumentTypeError(
-            f"--match-pixels must be between 1 and 1000: {value!r}"
-        )
-    return parsed
+    return _number_in_range(value, "--match-pixels", "integer", 1, 1000, int)
 
 
 def match_pixel_offset(value: str) -> int:
@@ -74,12 +71,7 @@ def color_offset(value: str) -> int:
 
 def color_fraction(value: str) -> float:
     """Parse a finite histogram fraction from zero through one."""
-    parsed = plain_number(value, "--min-color-fraction", "number", "a", float)
-    if not math.isfinite(parsed) or not 0 <= parsed <= 1:
-        raise argparse.ArgumentTypeError(
-            f"--min-color-fraction must be between 0 and 1: {value!r}"
-        )
-    return parsed
+    return _number_in_range(value, "--min-color-fraction", "number", 0, 1, float)
 
 
 def nonnegative_offset(option: str):
@@ -105,9 +97,4 @@ def nonnegative_offset(option: str):
 
 def max_color_fraction(value: str) -> float:
     """Parse a finite maximum histogram fraction from zero through one."""
-    parsed = plain_number(value, "--max-color-fraction", "number", "a", float)
-    if not math.isfinite(parsed) or not 0 <= parsed <= 1:
-        raise argparse.ArgumentTypeError(
-            f"--max-color-fraction must be between 0 and 1: {value!r}"
-        )
-    return parsed
+    return _number_in_range(value, "--max-color-fraction", "number", 0, 1, float)
