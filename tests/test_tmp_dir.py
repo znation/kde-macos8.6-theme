@@ -35,7 +35,7 @@ class TestMakeConfigHome(unittest.TestCase):
         self.doCleanups()
         self.assertFalse(os.path.exists(tmp))
 
-    def test_make_tmp_dir_cleanup_carries_to_config_home(self):
+    def test_make_tmp_dir_removes_its_scratch_dir_at_cleanup(self):
         # The config-home helper reuses make_tmp_dir, so the same case-cleanup
         # registration applies; pin the underlying helper's own contract too.
         tmp = make_tmp_dir(self)
