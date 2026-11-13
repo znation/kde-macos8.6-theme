@@ -31,7 +31,7 @@ from support.theme_install import (
     write_config_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 from support.kwinrc_uninstall_wording import (
     AURORAE_LIBRARY,
     AURORAE_THEME,
@@ -65,8 +65,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
     """`make _uninstall` names the two-key reset while the theme id is ours."""
 
     def test_warns_and_names_the_reset_for_the_theme_key(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
         )
@@ -81,8 +80,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         )
 
     def test_warns_with_the_existing_keys_staged_beside(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -98,8 +96,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "  [" + REMOVAL_GROUP + "]  \n "
@@ -113,8 +110,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
     def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
         # Editors add BOMs and CRLF endings; the scanner strips the first
         # line's BOM and trims every line, so the selection stays visible.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "\ufeff[" + REMOVAL_GROUP + "]\r\n; a comment\r\n# another\r\n"
@@ -127,8 +123,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_an_earlier_foreign_theme_precedes_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -146,8 +141,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_a_later_duplicate_theme_renames_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -190,8 +184,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + "\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_kwinrc(config, body)
                 original = read_bytes(path)
 
@@ -202,22 +195,19 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
                 self.assertEqual(original, read_bytes(path))
 
     def test_silent_when_there_is_no_kwinrc(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_when_the_path_is_a_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(os.path.join(config, "kwinrc"))
 
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
     def test_silent_without_a_decoration_group(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config, "[Other]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
         )
@@ -243,8 +233,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             "[" + REMOVAL_GROUP + "]\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_kwinrc(config, body)
                 original = read_bytes(path)
 
@@ -257,8 +246,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
     def test_silent_when_the_theme_value_is_foreign(self):
         for value in ("__aurorae__svg__somethingelse", "Breeze"):
             with self.subTest(value=value):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_kwinrc(
                     config,
                     "["
@@ -284,8 +272,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
                 self.assertEqual(original, read_bytes(path))
 
     def test_silent_when_the_theme_value_is_empty(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "["
@@ -303,8 +290,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
     def test_silent_when_a_later_foreign_duplicate_overrides_ours(self):
         # The scanner takes the last duplicate's value, as the other
         # diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "["
@@ -324,8 +310,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_uninstall_diagnostics(self, tmp, config, absent=rule_for(path), unchanged=path)
 
     def test_silent_when_the_key_sits_in_another_group(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "["
@@ -367,8 +352,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         assert_no_config_home(self, "window-decoration")
 
     def test_all_kwinrc_diagnostics_share_one_run_in_recipe_order(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"

@@ -28,7 +28,7 @@ from support.theme_install import (
     write_config_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 
 LNF_VALUE = "org.macos8.desktop"
 RESET = (
@@ -62,8 +62,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the global-theme reset when the selection is ours."""
 
     def test_warns_and_names_the_reset_when_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n"
         )
@@ -71,8 +70,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "  [KDE]  \n LookAndFeelPackage = " + LNF_VALUE + "  \n"
         )
@@ -82,8 +80,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # The apply would never write this shape, but an editor BOM-save plus
         # CRLF endings must not hide the selection from the scanner: it
         # strips the first line's BOM and trims every line.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "\ufeff# header\r\n; another comment\r\n[KDE]\r\n"
@@ -94,8 +91,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
         # The scanner takes the last duplicate's value, as the other
         # uninstall diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[KDE]\nLookAndFeelPackage=BreezeDark\n"
             "LookAndFeelPackage=" + LNF_VALUE + "\n"
@@ -105,8 +101,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warns_when_an_unterminated_header_leaves_the_section(self):
         # A header that never closes is skipped without changing the
         # section, so the keys stay in the group they opened.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n[KDE\n"
             "LookAndFeelPackage=" + LNF_VALUE + "\n"
@@ -114,8 +109,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_not_warned_for_a_later_foreign_duplicate_overriding_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n"
             "LookAndFeelPackage=BreezeDark\n"
@@ -126,8 +120,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_not_warned_for_a_foreign_or_empty_last_value(self):
         for last in ["BreezeDark", ""]:
             with self.subTest(last=last):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_selection(
                     config, "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n"
                     "LookAndFeelPackage=" + last + "\n"
@@ -140,8 +133,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
 
     def test_not_warned_for_a_case_mismatch(self):
         # Keys are case-sensitive, as the existing kdeglobals diagnostics are.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config, "[KDE]\nlookandfeelpackage=" + LNF_VALUE + "\n"
         )
@@ -149,8 +141,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_independent_of_the_key_living_in_another_group(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config,
             "[General]\nLookAndFeelPackage=" + LNF_VALUE + "\n",
@@ -159,15 +150,13 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_there_is_no_kdeglobals(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_silent_when_the_path_is_a_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(os.path.join(config, "kdeglobals"), exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
@@ -179,8 +168,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[KDE]\nsingleClick=true\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_selection(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -219,8 +207,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # selections warn in one run; each keeps its existing wording and the
         # lines appear in recipe order (color scheme, widget style, icon
         # theme, then the global theme).
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[General]\nColorScheme=" + COLOR_SCHEME_ID + "\n"
@@ -249,8 +236,7 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # in one run; the font block sits before this block, so the five
         # font lines appear before the global-theme line, whose own
         # wording stays unchanged.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[General]\nfont=Lato,10\n"

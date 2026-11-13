@@ -29,7 +29,7 @@ from support.theme_install import (
     write_config_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 from support.kwinrc_uninstall_wording import (
     RIGHT_KEY,
     LEFT_KEY,
@@ -65,8 +65,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the layout reset when both keys are ours."""
 
     def test_warns_and_names_the_reset_for_a_kept_layout(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n",
@@ -75,8 +74,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_values_only_trim_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "  [" + REMOVAL_GROUP + "]  \n "
@@ -90,8 +88,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warns_for_a_bom_prefixed_file_with_comments_and_crlf(self):
         # Editors add BOMs and CRLF endings; the scanner strips the first
         # line's BOM and trims every line, so the selection stays visible.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "\ufeff[" + REMOVAL_GROUP + "]\r\n; a comment\r\n# another\r\n"
@@ -103,8 +100,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_pair_precedes_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -120,8 +116,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warned_when_a_later_duplicate_pair_names_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -142,22 +137,19 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
 
     def test_silent_when_there_is_no_kwinrc(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent=LEFT_KEY)
 
     def test_silent_when_the_path_is_a_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(os.path.join(config, "kwinrc"))
 
         assert_uninstall_diagnostics(self, tmp, config, absent=LEFT_KEY)
 
     def test_silent_without_a_decoration_group(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_kwinrc(config, "[Other]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=AL\n")
         assert_uninstall_diagnostics(self, tmp, config, absent=LEFT_KEY, unchanged=path)
 
@@ -167,8 +159,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[" + REMOVAL_GROUP + "]\n" + RIGHT_KEY + "=AL\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -182,8 +173,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=B\n" + RIGHT_KEY + "=AL\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -197,8 +187,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[" + REMOVAL_GROUP + "]\n" + LEFT_KEY + "=X\n" + RIGHT_KEY + "=\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_kwinrc(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -209,8 +198,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_when_a_later_foreign_duplicate_overrides_ours(self):
         # The scanner takes the last duplicate's value, as the other four
         # diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
@@ -227,8 +215,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=LEFT_KEY)
 
     def test_silent_when_our_keys_are_split_across_groups(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_kwinrc(
             config,
             "["
@@ -281,8 +268,7 @@ class TestKwinrcUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_no_config_home(self, LEFT_KEY)
 
     def test_both_diagnostics_share_one_run_with_their_existing_wordings(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         pointer_path = write_kcminputrc(config)
         kwin_path = write_kwinrc(
             config,

@@ -22,7 +22,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
 from support.theme_install import read_bytes, write_file
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import uninstall_diagnostics
 from tools.gtk_user_files import GTK4_CSS_MARKER
 
@@ -145,8 +145,7 @@ class TestUninstallDiagnosticOrder(unittest.TestCase):
     """`diagnostics` prints one line per handler, in the recipe's order."""
 
     def test_the_eleven_handlers_print_in_the_recipe_order(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         stage_every_surface(config)
 
         messages = uninstall_diagnostics.diagnostics(config, **IDS)
@@ -166,8 +165,7 @@ class TestUninstallDiagnosticOrder(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
 
     def test_a_full_scan_edits_no_staged_file(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         paths = stage_every_surface(config)
         original = {path: read_bytes(path) for path in paths}
 

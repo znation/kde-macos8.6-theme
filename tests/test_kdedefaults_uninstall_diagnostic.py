@@ -32,7 +32,7 @@ from support.theme_install import (
     write_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home, make_tmp_dir
 
 LNF_ID = "org.macos8.desktop"
 
@@ -72,8 +72,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     # -- warn shapes ---------------------------------------------------------
 
     def test_warns_for_a_staged_splash_selection(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nEngine=KSplashQML\nTheme=" + LNF_ID + "\n",
@@ -89,8 +88,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         )
 
     def test_warns_for_a_staged_package_default(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(os.path.join(config, "kdedefaults", "package"), LNF_ID)
         assert_uninstall_diagnostics(
             self,
@@ -102,8 +100,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         )
 
     def test_both_staged_selections_warn_in_recipe_order(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         ksplash = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nTheme=" + LNF_ID + "\n",
@@ -121,8 +118,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         self.assertEqual(package_bytes, read_bytes(package))
 
     def test_warns_for_a_bom_prefixed_file_with_comments_and_indentation(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "﻿[KSplash]\r\n# a comment line\r\n  Theme = " + LNF_ID + "  \r\n",
@@ -130,8 +126,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, splash_rule(path), unchanged=path)
 
     def test_warns_when_the_theme_value_only_trims_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\n  Theme = " + LNF_ID + "  \n",
@@ -141,8 +136,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warns_when_an_earlier_foreign_value_precedes_ours(self):
         # The scanner takes the last duplicate's value, as the other
         # uninstall diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nTheme=breeze\nTheme=" + LNF_ID + "\n",
@@ -165,8 +159,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warns_for_a_padded_or_newline_terminated_package(self):
         for body in (" " + LNF_ID + " ", LNF_ID + "\n", "  " + LNF_ID + " \n\n"):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_file(os.path.join(config, "kdedefaults", "package"), body)
                 original = read_bytes(path)
 
@@ -180,8 +173,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # flat_text strips only the first line's byte-order mark, so a
         # BOM-prefixed flat package name still trims back to ours: the flat
         # scanner warns exactly as it does without the mark.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_file(
             os.path.join(config, "kdedefaults", "package"), "\ufeff" + LNF_ID
         )
@@ -190,8 +182,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     # -- silent shapes -------------------------------------------------------
 
     def test_silent_without_a_kdedefaults_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         result = assert_uninstall_diagnostics(self, tmp, config, absent=splash_rule(self.defaults_paths(config)[0]))
@@ -200,8 +191,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_when_a_path_is_a_non_regular_file(self):
         for name in ("ksplashrc", "package"):
             with self.subTest(name=name):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 os.makedirs(os.path.join(config, "kdedefaults", name), exist_ok=True)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -215,8 +205,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[KSplash]\nEngine=KSplashQML\n",  # no Theme key
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_file(os.path.join(config, "kdedefaults", "ksplashrc"), body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -227,8 +216,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_for_a_foreign_or_empty_theme_value(self):
         for body in ("[KSplash]\nTheme=breeze\n", "[KSplash]\nTheme=\n"):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_file(os.path.join(config, "kdedefaults", "ksplashrc"), body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -237,8 +225,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
                 self.assertNotIn(splash_rule(self.defaults_paths(config)[0]), result.stderr)
 
     def test_silent_when_matching_engine_leaves_a_foreign_theme(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nEngine=KSplashQML\nTheme=breeze\n",
@@ -247,8 +234,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=splash_rule(self.defaults_paths(config)[0]))
 
     def test_silent_when_a_later_foreign_value_overrides_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nTheme=" + LNF_ID + "\nTheme=breeze\n",
@@ -259,8 +245,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_when_an_unterminated_header_starts_no_group(self):
         # `[KSplash` is not a header, so it starts no section: the Theme line
         # that follows sits in no group and cannot warn.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash\nTheme=" + LNF_ID + "\n",
@@ -271,8 +256,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_for_a_foreign_or_empty_package_file(self):
         for body in ("breeze", "", LNF_ID + " is the id", "x " + LNF_ID + " y"):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_file(os.path.join(config, "kdedefaults", "package"), body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -287,8 +271,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # match and the diagnostic stays silent. Nothing is edited either way.
         for body in (LNF_ID + "\n\ufeff", "\n\ufeff" + LNF_ID + "\n", "\n" + LNF_ID + "\ufeff"):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_file(
                     os.path.join(config, "kdedefaults", "package"), body
                 )
@@ -328,8 +311,7 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     # -- one run with the existing diagnostics -------------------------------
 
     def test_recipe_order_keeps_the_existing_aurorae_wordings_ahead(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         ksplash = write_file(
             os.path.join(config, "kdedefaults", "ksplashrc"),
             "[KSplash]\nTheme=" + LNF_ID + "\n",

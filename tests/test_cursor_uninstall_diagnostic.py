@@ -24,7 +24,7 @@ from support.theme_install import (
     assert_uninstall_diagnostics,
     write_config_file,
 )
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 
 CURSOR_ID = "org.macos8.desktop"
 RESET = "plasma-apply-cursortheme breeze_cursors"
@@ -49,15 +49,13 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the pointer reset when the selection is ours."""
 
     def test_warns_and_names_the_reset_for_a_kept_selection(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(config, "[Mouse]\ncursorTheme=" + CURSOR_ID + "\n")
         # A diagnostic must not edit the user's kcminputrc.
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_warns_when_the_value_only_trims_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[Mouse]\n  cursorTheme = " + CURSOR_ID + "  \n"
         )
@@ -67,8 +65,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         # plasma-apply-cursortheme would never write this shape, but an
         # editor BOM-save plus CRLF endings must not hide the selection from
         # the scanner: it strips the first line's BOM and trims every line.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "\ufeff[Mouse]\r\n# a comment line\r\ncursorTheme=" + CURSOR_ID + "\r\n",
@@ -76,22 +73,19 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
     def test_not_warned_for_a_foreign_value(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(config, "[Mouse]\ncursorTheme=breeze_cursors\n")
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_an_empty_value(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(config, "[Mouse]\ncursorTheme=\n")
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_when_the_key_sits_in_another_section(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config, "[Mouse]\ncursorSize=1\n[Other]\ncursorTheme=" + CURSOR_ID + "\n"
         )
@@ -99,8 +93,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_not_warned_for_a_different_key_in_the_mouse_section(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(config, "[Mouse]\ncursorSize=" + CURSOR_ID + "\n")
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
@@ -108,8 +101,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
         # The scanner takes the last duplicate's value, as the color-scheme
         # and kvconfig diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config,
             "[Mouse]\ncursorTheme=" + CURSOR_ID + "\ncursorTheme=breeze_cursors\n",
@@ -118,8 +110,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
 
     def test_warned_when_a_later_duplicate_names_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[Mouse]\ncursorTheme=breeze_cursors\ncursorTheme=" + CURSOR_ID + "\n",
@@ -128,8 +119,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
 
     def test_silent_when_there_is_no_kcminputrc(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent=RESET)
@@ -137,8 +127,7 @@ class TestCursorUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_silent_for_an_unreadable_kcminputrc(self):
         if os.geteuid() == 0:
             self.skipTest("root bypasses file permissions")
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(config, "[Mouse]\ncursorTheme=" + CURSOR_ID + "\n")
         os.chmod(path, 0o000)
 

@@ -22,7 +22,7 @@ import unittest
 from support import theme_install
 from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import uninstall_config, uninstall_diagnostics
 from tools.gtk_user_files import GTK4_CSS_MARKER
 
@@ -134,8 +134,7 @@ class TestGtkLatchThroughTheRecipe(unittest.TestCase):
     """`make _uninstall` keeps the warning on the latched file, untouched."""
 
     def test_warns_when_the_last_duplicate_names_a_foreign_theme(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_settings(
             config, "gtk-3.0", f"[Settings]\n{OURS}\n{FOREIGN}\n"
         )

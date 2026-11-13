@@ -22,7 +22,7 @@ from support.theme_install import (
 )
 from support.config_home_cases import assert_home_fallback
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 
 KVANTUM_ID = "org.macos8.desktop"
 DIAGNOSTIC = (
@@ -53,8 +53,7 @@ class TestMakeTarget(unittest.TestCase):
         self.assertRegex(result.stdout, r"  remove-kvantum .*Kvantum")
 
     def test_the_target_clears_a_selection_in_the_temp_config_home(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(config, "[General]\nBuilder=kvantummanager\ntheme=org.macos8.desktop\n")
 
         result = theme_install.run_make(
@@ -71,8 +70,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     """`make _uninstall` names the reset when the selection still names ours."""
 
     def test_warns_and_names_the_reset_for_a_kept_selection(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[General]\ntheme=" + KVANTUM_ID + "\n"
         )
@@ -82,15 +80,13 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         )
 
     def test_not_warned_for_a_foreign_selection(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(config, "[General]\ntheme=KvBreezeDark\n")
 
         assert_uninstall_diagnostics(self, tmp, config, absent=DIAGNOSTIC)
 
     def test_not_warned_when_a_later_foreign_value_overrides_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config,
             "[General]\ntheme=org.macos8.desktop\ntheme=KvBreezeDark\n",
@@ -101,8 +97,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
     def test_warned_when_a_later_duplicate_names_ours(self):
         # KDE's config reader takes a later key's value, so the diagnostic
         # must read the same way the color-scheme one does.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(
             config,
             "[General]\ntheme=KvBreezeDark\ntheme=org.macos8.desktop\n",
@@ -120,8 +115,7 @@ class TestUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         )
 
     def test_silent_when_there_is_no_kvconfig(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         assert_uninstall_diagnostics(self, tmp, config, absent=DIAGNOSTIC)

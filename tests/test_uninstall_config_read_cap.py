@@ -19,7 +19,7 @@ import unittest
 from support import theme_install
 from support.fifo_fixtures import fifo_swap_opener
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import containment, uninstall_config, uninstall_diagnostics
 from tools.gtk_user_files import GTK4_CSS_MARKER
 
@@ -162,8 +162,7 @@ class TestReaderMalformedBytes(unittest.TestCase):
 class TestRecipeCap(theme_install.UninstallRecipeTestCase):
     def test_a_config_at_the_cap_still_warns(self):
         cap = uninstall_config._MAX_CONFIG_BYTES
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_bytes(
             os.path.join(config, "kdeglobals"), kdeglobals_bytes(cap, False)
         )
@@ -180,8 +179,7 @@ class TestRecipeCap(theme_install.UninstallRecipeTestCase):
 
     def test_an_over_cap_config_stays_silent_and_the_recipe_succeeds(self):
         cap = uninstall_config._MAX_CONFIG_BYTES
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_bytes(
             os.path.join(config, "kdeglobals"), kdeglobals_bytes(cap, True)
         )
@@ -205,8 +203,7 @@ class TestRecipeMalformedBytes(theme_install.UninstallRecipeTestCase):
         # The unmapped bytes stand before the selection line, so a strict
         # decode would raise on the whole file and stop the scan before any
         # diagnostic; the non-strict decode keeps the reset visible.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_bytes(
             os.path.join(config, "kdeglobals"),
             b"\xff\xfe\n[KDE]\nwidgetStyle=kvantum\n",
@@ -226,8 +223,7 @@ class TestRecipeMalformedBytes(theme_install.UninstallRecipeTestCase):
     def test_an_unmapped_selection_value_is_never_reported_and_the_recipe_succeeds(self):
         # The escaped value cannot equal one of the ids, so the file stays
         # silent; the recipe must still succeed without a traceback.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_bytes(
             os.path.join(config, "kdeglobals"), b"[KDE]\nwidgetStyle=\xff\xfe\n"
         )
@@ -242,8 +238,7 @@ class TestRecipeMalformedBytes(theme_install.UninstallRecipeTestCase):
 
 class TestGtkMarkerSharesTheCap(unittest.TestCase):
     def messages_for(self, css_bytes):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_bytes(os.path.join(config, "gtk-4.0", "gtk.css"), css_bytes)
         return uninstall_diagnostics.diagnostics(config, **IDS)
 

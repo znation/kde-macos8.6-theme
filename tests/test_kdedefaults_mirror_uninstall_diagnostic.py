@@ -32,7 +32,7 @@ from support.theme_install import (
     write_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home, make_tmp_dir
 
 LNF_ID = "org.macos8.desktop"
 
@@ -93,8 +93,7 @@ def mirror_plasmarc_rule(path):
 
 def scratch_home(case):
     """A temporary config home with the `kdedefaults/` directory created."""
-    tmp = str(make_tmp_dir(case))
-    config = os.path.join(tmp, "config")
+    tmp, config = make_config_home(case)
     os.makedirs(os.path.join(config, "kdedefaults"), exist_ok=True)
     return tmp, config
 
@@ -370,8 +369,7 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
     # -- silent shapes -------------------------------------------------------
 
     def test_silent_without_a_kdedefaults_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         result = run_uninstall(tmp, config)

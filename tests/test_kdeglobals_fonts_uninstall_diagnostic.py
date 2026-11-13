@@ -36,7 +36,7 @@ from support.theme_install import (
     write_config_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_config_home
 
 FONT_VALUE = "Lato,10"
 CHICAGO_VALUE = "ChicagoFLF,10"
@@ -97,8 +97,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_warns_and_names_the_reset_for_each_kept_key(self):
         for section, key, value in KEYS:
             with self.subTest(key=key):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 path = write_selection(
                     config, "[" + section + "]\n" + key + "=" + value + "\n"
                 )
@@ -115,8 +114,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
                 self.assertEqual(original, read_bytes(path))
 
     def test_all_six_keys_warn_in_the_published_order(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[General]\nfont=Lato,10\nfixed=" + FIXED_VALUE + "\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
@@ -135,8 +133,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         self.assertEqual(original, read_bytes(path))
 
     def test_warns_when_the_value_only_trims_to_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(config, "[General]\n  menuFont = ChicagoFLF,10  \n")
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "menuFont", CHICAGO_VALUE), unchanged=path)
 
@@ -144,8 +141,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         # The apply would never write this shape, but an editor BOM-save plus
         # CRLF endings must not hide the selections from the scanner: it
         # strips the first line's BOM and trims every line.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "\ufeff[General]\r\n# a comment\r\n; another\r\n  font = Lato,10  \r\n",
@@ -153,8 +149,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path, "General", "font", FONT_VALUE), unchanged=path)
 
     def test_warned_when_an_earlier_foreign_value_precedes_ours(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[General]\ntoolBarFont=Salsa\ntoolBarFont=Lato,10\n"
         )
@@ -171,8 +166,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_warned_when_a_later_duplicate_names_ours(self):
         # The scanner takes the last duplicate's value, as the other
         # uninstall diagnostics already do.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[WM]\nactiveFont=Salsa\nactiveFont=ChicagoFLF,10\n"
         )
@@ -181,8 +175,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_warns_when_an_unterminated_header_leaves_the_section(self):
         # A header that never closes is skipped without changing the
         # section, so the keys stay in the group they opened.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config, "[General]\nfont=Lato,10\n[KDE\nmenuFont=ChicagoFLF,10\n"
         )
@@ -198,8 +191,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
     def test_not_warned_for_a_later_foreign_value_overriding_ours(self):
         for section, key, value in KEYS:
             with self.subTest(key=key):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_selection(
                     config,
                     "["
@@ -225,8 +217,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             ("WM", "activeFont", CHICAGO_VALUE, "Salsa"),
         ]:
             with self.subTest(key=key, last=last):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_selection(
                     config,
                     "[" + section + "]\n" + key + "=" + value + "\n" + key + "=" + last + "\n",
@@ -239,16 +230,14 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
 
     def test_not_warned_for_a_case_mismatch(self):
         # Keys are case-sensitive, as the existing kdeglobals diagnostics are.
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         write_selection(config, "[General]\nFont=Lato,10\n[WM]\nActiveFont=Lato,10\n")
 
         result = assert_uninstall_diagnostics(self, tmp, config, absent=reset_for("General", "font"))
         self.assertNotIn(reset_for("WM", "activeFont"), result.stderr)
 
     def test_independence_each_key_silent_outside_its_own_group(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[WM]\nfont=Lato,10\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
@@ -263,8 +252,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         self.assertEqual(original, read_bytes(path))
 
     def test_silent_when_there_is_no_kdeglobals(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(config, exist_ok=True)
 
         result = self.uninstall_with_config(tmp, config)
@@ -273,8 +261,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         self.assert_warns(result, os.path.join(config, "kdeglobals"))
 
     def test_silent_when_the_path_is_a_directory(self):
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         os.makedirs(os.path.join(config, "kdeglobals"), exist_ok=True)
 
         result = self.uninstall_with_config(tmp, config)
@@ -289,8 +276,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             "[WM]\nfoo=bar\n",
         ):
             with self.subTest(body=body):
-                tmp = str(make_tmp_dir(self))
-                config = os.path.join(tmp, "config")
+                tmp, config = make_config_home(self)
                 write_selection(config, body)
 
                 result = self.uninstall_with_config(tmp, config)
@@ -330,8 +316,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         # font keys warn in one run; each keeps its existing wording and the
         # lines appear in recipe order (color scheme, widget style, icon
         # theme, then the six font lines).
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(
             config,
             "[General]\nColorScheme=MacOS8\nfont=Lato,10\nfixed=" + FIXED_VALUE + "\nmenuFont=ChicagoFLF,10\n"
@@ -361,8 +346,7 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
         # QFont form naming JetBrains Mono, not a short family,size form: a
         # diagnostic keyed on `JetBrains Mono,10` would miss the real line.
         self.assertIn(("General", "fixed", FIXED_VALUE), KEYS)
-        tmp = str(make_tmp_dir(self))
-        config = os.path.join(tmp, "config")
+        tmp, config = make_config_home(self)
         path = write_selection(config, "[General]\nfixed=" + FIXED_VALUE + "\n")
         original = read_bytes(path)
 
