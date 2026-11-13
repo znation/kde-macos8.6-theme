@@ -95,7 +95,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 recorded here to keep the scope deliberate.
 
 
-
 ### GTK 4 suite extraction: isolate view declarations (planned 2026-11-12 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
