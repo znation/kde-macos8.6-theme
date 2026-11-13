@@ -59,5 +59,7 @@ class TestGtk4Switch(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_switch_track_padding(self):
         self.assert_rule("switch", {"padding": "0"})
+
+
 if __name__ == "__main__":
     unittest.main()
