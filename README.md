@@ -405,7 +405,7 @@ a scratch-home apply on this host, and the flat file's writer/removal story
 is a prose ground against the upstream Plasma sources the project reads for
 its Plasma-tool adaptations; the reference screenshots show no uninstall
 warning to sample them from); and if the defaults layer also mirrors the
-live selections the landed diagnostics cover -- a `kdedefaults/kdeglobals`
+live selections the existing diagnostics cover -- a `kdedefaults/kdeglobals`
 file whose `[KDE]` group's last `widgetStyle` value is `kvantum` and whose
 `[Icons]` group's last `Theme` value is `org.macos8.desktop` (the two
 conditions independent), a `kdedefaults/kwinrc` file whose
@@ -422,7 +422,7 @@ the apply also wrote is not a match condition), and a
 above left all three mirrors on this host, and the fallback claim -- that a
 start whose live key is absent or reset away re-resolves the selection
 from the defaults layer -- is recorded as prose grounded against the KDE
-config-cascade sources the landed live-config diagnostics already ground;
+config-cascade sources the existing live-config diagnostics already ground;
 the reference screenshots show no uninstall warning to sample it from).
 No such warning edits the
 user's configuration.
