@@ -150,28 +150,30 @@ def worst_pixel_limit(value: str) -> int:
     return number
 
 
-def worst_pixel_offset(value: str) -> int:
-    """Return a nonnegative ASCII decimal ``--worst-pixel-offset`` value."""
+def _nonnegative_ascii_int(value: str, option: str) -> int:
+    """Return *value* parsed as a nonnegative ASCII decimal for *option*.
+
+    The three offset options share this grammar: an empty value, non-ASCII
+    digits, a sign or a fractional part is refused with a diagnostic naming
+    *option*; anything else is a nonnegative decimal integer.
+    """
     if not value or not value.isascii() or not value.isdecimal():
         raise argparse.ArgumentTypeError(
-            "--worst-pixel-offset must be a nonnegative ASCII integer"
+            f"{option} must be a nonnegative ASCII integer"
         )
     return int(value)
+
+
+def worst_pixel_offset(value: str) -> int:
+    """Return a nonnegative ASCII decimal ``--worst-pixel-offset`` value."""
+    return _nonnegative_ascii_int(value, "--worst-pixel-offset")
 
 
 def difference_run_offset(value: str) -> int:
     """Return a nonnegative ASCII decimal ``--difference-run-offset``."""
-    if not value or not value.isascii() or not value.isdecimal():
-        raise argparse.ArgumentTypeError(
-            "--difference-run-offset must be a nonnegative ASCII integer"
-        )
-    return int(value)
+    return _nonnegative_ascii_int(value, "--difference-run-offset")
 
 
 def difference_column_run_offset(value: str) -> int:
     """Return a nonnegative ASCII decimal ``--difference-column-run-offset``."""
-    if not value or not value.isascii() or not value.isdecimal():
-        raise argparse.ArgumentTypeError(
-            "--difference-column-run-offset must be a nonnegative ASCII integer"
-        )
-    return int(value)
+    return _nonnegative_ascii_int(value, "--difference-column-run-offset")
