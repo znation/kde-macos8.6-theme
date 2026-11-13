@@ -126,7 +126,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "nested-session-portal-crash-loop",
         ("crash-loop xdg-desktop-portal-kde with SIGABRT",),
-        "tests/test_render_surface.py::TestFailurePaths"
+        "tests/test_render_failure_paths.py::TestFailurePaths"
         "::test_session_pins_the_nested_bus_to_a_display_free_qt_platform",
     ),
     Reproduction(

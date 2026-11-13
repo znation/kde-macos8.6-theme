@@ -200,7 +200,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "render-config-search-path",
         ("leaks the caller's `XDG_CONFIG_DIRS`",),
-        "tests/test_render_surface.py::TestFailurePaths"
+        "tests/test_render_failure_paths.py::TestFailurePaths"
         "::test_session_ignores_a_config_search_path_from_the_environment",
         "The render session resolves configuration only from its scratch "
         "data and config homes and the system defaults, never the caller's "

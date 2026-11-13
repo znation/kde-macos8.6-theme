@@ -36,7 +36,7 @@ SLOW_CHECK_REPRODUCTIONS = (
     Reproduction(
         "crashed-applet-setup-wait",
         ("setup wait expires before its crashed applet starts",),
-        "tests/test_render_surface.py"
+        "tests/test_render_failure_paths.py"
         "::TestFailurePaths"
         "::test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch",
     ),
