@@ -18,62 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
-
-**Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has merged, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**
-
-**User evidence 2026-11-12 (recorded by the director role).** The user sent three photos of the
-screen, showing the cursors installed at `~/.local/share/icons/org.macos8.desktop/cursors/`.
-The photos are evidence only. Keep them out of the repo.
-- *Arrow (gray desktop):* a small solid-black triangle with a staircase diagonal edge and a stubby
-  square tail. No antialiasing is visible, and the white outline cannot be seen against the light
-  gray. The installed `left_ptr` (installed 2026-11-12 01:38) differs from main's file
-  (`cmp`), so this photo shows the old `ARROW_GRID` art, not the vector arrow from 01f2f3184.
-  The installed `hand2`, `xterm` and `pointer` match main byte for byte.
-- *I-beam (over body text):* a serifed black I-beam that is legible. It is crisp but plain, about
-  1.3× the text's cap height.
-- *Pointing hand (over a white page):* it does not read as a hand. It shows as a black comb-like
-  block (vertical prongs above a solid bar). That is consistent with `HAND2_GRID`'s single
-  1-cell finger and rectangular palm after nearest-neighbour enlargement. Moiré in the photo may
-  add some of the striping.
-- The user did not state the selected size or display scale, and the photos do not establish
-  either.
-
-**Direction.** QUESTIONS.md is answered: Option 2, smoother original antialiased art (user,
-2026-11-12). The arrow is done (PLANS-DONE.md, "Antialiased cursors, part 3/3"). The I-beam and
-hand are done too (PLANS-DONE.md, "Antialiased text and hand cursors"). The photos confirm that the
-hand is the worst of the three.
-
-**Symptom.** User reports: “The mouse cursors still look incredibly ugly.” This is a
-visual-quality report; no particular cursor role, selected size or display scale was supplied.
-
-**Reproduction / evidence.** On an explicitly requested desktop inspection, select the
-installed Platinum cursor theme with `make apply-cursor`, restart the inspected application,
-and compare the arrow, text and pointing-hand roles. Do not apply it or open windows in the
-user's session during routine triage. The reported appearance has not been independently
-reproduced. For inspection without changing settings, examine `ARROW_ART`, `XTERM_ART` and
-`HAND2_ART` in `tools/cursor_art_pointers.py` and their shipped Xcursor frames under
-`theme/icons/org.macos8.desktop/cursors/`.
-
-**Suspected cause.** `tools/make_cursors.py::render_rgba` enlarges a shared 16×16 source grid
-using nearest-neighbour sampling for `NOMINAL_SIZES = (16, 24, 32)`. At 24 pixels this gives
-unequal source-pixel widths; coarse silhouettes and outlines are also possible contributors.
-These are code observations and hypotheses, not a diagnosis of the user's selected cursor.
-
-**Routing.** The open cursor-direction question in QUESTIONS.md records the aesthetic fork.
-Do not close this report merely because frame encoding, aliases or grid-equality tests pass.
-After direction is settled, route a redraw as small per-family PLANS.md entries, with original
-artwork, explicit size/hotspot expectations, regression tests and provenance for the reference
-surface that is missing. Investigate selection or scale defects separately if demonstrated;
-this report does not establish either defect.
-
-**Progress 2026-11-11 by bugfix:** Handed to the director because the reported visual defect
-cannot be reproduced without an explicitly requested desktop inspection, and the replacement
-direction is still an open user decision. No desktop selection or rendering was attempted. The
-recorded inspection path is to select the installed theme and compare arrow, text and pointing-hand
-roles; static source inspection identifies nearest-neighbour enlargement from 16×16 to 24/32 and
-coarse silhouettes as hypotheses, not a confirmed cause. Do not close on encoding or grid tests.
-
 ### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13)
 
 In one full `make check` run of 2026-11-13 (worktree one PLANS.md edit away
