@@ -114,6 +114,10 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
     # and falls back to the `decoration-inactive-*` element sizes, which
     # mirror the active tiles. So its tiles are placed by the active hints.
     HINT_ALIASES = {"decoration-inactive": "decoration"}
+    EXTRA_GROUPS = {
+        "decoration-maximized-center": (6, 0),
+        "decoration-maximized-inactive-center": (6, 0),
+    }
 
     def test_root_canvas(self):
         assert_root_canvas(self, self.tree, 18, 34)
@@ -138,6 +142,23 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         )
         assert_unique_ids(self, self.tree)
         assert_no_script_elements(self, self.tree)
+
+    def test_maximized_title_tiles_preserve_active_and_inactive_bars(self):
+        slices = render_slices(self.tree)
+        active = slices["decoration-maximized-center"]
+        inactive = slices["decoration-maximized-inactive-center"]
+        expected_active = {
+            (x, y): hex_colour(self.reference_pixel(250, 25 + y))
+            for x in range(6)
+            for y in range(22)
+        }
+        expected_inactive = {
+            (x, y): INACTIVE_FRAME_GREY
+            for x in range(6)
+            for y in range(22)
+        }
+        self.assertEqual(active, expected_active)
+        self.assertEqual(inactive, expected_inactive)
 
     def test_inactive_frame_matches_reference(self):
         # The reference's inactive frame (desktop_fandom.png) is the active

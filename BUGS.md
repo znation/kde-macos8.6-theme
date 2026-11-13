@@ -46,46 +46,6 @@ missing capture. Re-running that same test with the same environment passed in 3
 This establishes an intermittent splash capture failure; its cause is unknown. The software
 renderer skip covers the dialog and applet gates but not this splash gate.
 
-### Maximized window loses the Platinum title bar art and clips the window buttons (found by the director role 2026-11-12)
-
-**User evidence 2026-11-12 (recorded by the director role).** The user sent a screenshot of a
-maximized Konsole window (`Screenshot_20261112_155645.png`, 3840x2160; evidence only, keep it
-out of the repo). The maximized title bar renders as a thin plain-white strip: no pinstripes on
-either side of the title, no visible close box on the left and no collapse/zoom boxes on the
-right (only tiny clipped artifacts at the bar's edges), and the title floats in the bare bar.
-The user reports the same defect in full screen.
-
-**Reference.** The repo's reference set had no screenshot of a truly zoomed classic-Mac-OS
-window, so two were collected from toastytech's GUI gallery (Mac OS 8.1, the same Platinum
-appearance as 8.6) and saved as
-`macos8.6-screenshots/infocenter_zoomed_toastytech81.png` and
-`macos8.6-screenshots/browsers_zoomed_toastytech81.png`
-(source: `http://toastytech.com/guis/macos812.html`, Basilisk II, 640x480). They show that
-classic Mac OS draws a zoomed window's title bar identically to a normal window — centered bold
-title, pinstripes both sides, close box left, collapse/zoom right — with only the side/bottom
-bevel gone because the window fills the screen. There is no separate "maximized" artwork.
-`macos8.6-screenshots/apps_macrumors8.6.jpg` corroborates the title-bar treatment on large 8.6
-windows.
-
-**Suspected cause.** `theme/aurorae/themes/org.macos8.desktop/decoration.svg` defines only the
-`decoration` and `decoration-inactive` nine-slices — no `decoration-maximized` or
-`decoration-maximized-inactive` elements. In
-`theme/kwin-decoration/org.macos8.desktop/contents/ui/main.qml`, `supportsMaximized` is then
-false, so the maximized state falls back to `decorationActive` drawn with
-`enabledBorders: KSvg.FrameSvg.NoBorder`, which renders only the stretched centre tile
-(#FFFFFF) and drops the 22px pinstriped top border. The button group anchors at
-`titleEdgeTopMaximized (0) + buttonMarginTopMaximized`, i.e. y=0, which clips the buttons.
-`AuroraeTheme.qml` already expects `borderTopMaximized: 22`, so the geometry side is ready; only
-the artwork is missing.
-
-**Direction.** Add a `decoration-maximized` (and `-inactive`) nine-slice to `decoration.svg`
-that reuses the existing `decoration-top` pinstripe tiles as the top border with no side/bottom
-borders, matching `borderTopMaximized: 22`. Do not invent a distinct maximized look; the
-reference shows the normal title bar.
-
-**Reproduction.** Maximize any decorated window (or full-screen it) in the user's Plasma
-session and compare the title bar against `infocenter_zoomed_toastytech81.png`.
-
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
 **Needs review 2026-11-12 by director: The user re-inspects the arrow, I-beam and hand now that "Antialiased text and hand cursors" (PLANS-DONE.md) has landed, once they reinstall with `make apply-cursor`; a role cannot judge the rendered appearance, so keep this report open until the user confirms or names what is still wrong.**

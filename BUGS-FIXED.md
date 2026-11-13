@@ -5,6 +5,17 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Maximized window loses the Platinum title bar art and clips the window buttons (found by the director role 2026-11-12) — fixed 2026-11-12 by the bugfix role
+
+**Fix:** Added maximized active and inactive center tiles to the Aurorae SVG. The active 22px
+title strip is re-derived from the existing reference-pixel sampling; the inactive strip is
+flat `#DDDDDD`. Confirmed the Aurorae SVG test failed before the tiles existed and passed after.
+
+**Validation gap:** none — the new SVG test reproduced the missing maximized prefix before the fix and confirmed both title strips afterward.
+
+The maximized QML path selects these tiles with `NoBorder` and the existing 22px maximized top
+border, retaining title-bar artwork without side or bottom borders.
+
 ### post-merge review of a40e72a9 never reached a verdict (found by the review role 2026-11-11) — fixed 2026-11-12 by the bugfix role
 
 The post-merge review of commit `a40e72a92cff87032258f8c0cccd092ecbb2cff9` (Move render dialog argv recipes into `tools/render_clients.py`) never reached a verdict. Settled by reading the commit diff; no code change, because the commit is correct. Checked: `tools/render_clients.py` holds `checkbox_dialog_client`, `combobox_dialog_client` and `menu_dialog_client`, with argv identical to the definitions removed from `tools/render_session.py`; `tools/render_workflow.py` imports them from `render_clients` in both the package and direct-run branches; `tools/render_dialogs.py` already imports them from `render_clients`; no definitions remain in `render_session.py`; the two test docstring updates match the new ownership.

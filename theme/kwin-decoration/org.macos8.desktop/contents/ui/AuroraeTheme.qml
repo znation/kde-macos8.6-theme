@@ -106,8 +106,8 @@ QtObject {
     property int buttonSpacing: 0
     // rc: ButtonMarginTop=4
     property int buttonMarginTop: 4
-    // engine: upstream defaultButtonMarginTopMaximized() = 0
-    property int buttonMarginTopMaximized: 0
+    // Reference: title-bar boxes begin 4px below the maximized bar's top edge.
+    property int buttonMarginTopMaximized: 4
 
     // Layout group: borders -- upstream AuroraeTheme::borders() derives the
     // exposed values from the rc metrics and never reads the rc BorderTop

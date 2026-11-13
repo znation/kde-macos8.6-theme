@@ -466,8 +466,8 @@ class TestSingleton(unittest.TestCase):
             self.assertEqual(self.value(name), "0", name)
 
     def test_engine_derived_defaults_match_upstream(self):
-        # upstream themeconfig.h's default* functions and
-        # auroraetheme.cpp's buttonSizeFactor() when the rc names no key.
+        # Engine defaults from upstream KWin, except the maximized button
+        # margin: the zoomed reference places title boxes 4px below the edge.
         expected = {
             "buttonSizeFactor": "1.0",
             "explicitButtonSpacer": "10",
@@ -476,7 +476,7 @@ class TestSingleton(unittest.TestCase):
             "titleEdgeTopMaximized": "0",
             "titleEdgeLeftMaximized": "0",
             "titleEdgeRightMaximized": "0",
-            "buttonMarginTopMaximized": "0",
+            "buttonMarginTopMaximized": "4",
             "paddingTop": "0",
             "paddingBottom": "0",
             "paddingLeft": "0",
