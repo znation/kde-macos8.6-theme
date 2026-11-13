@@ -22,6 +22,7 @@ from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
+    assert_lock_time_out,
     assert_succeeded,
 )
 from tools import apply_gtk
@@ -45,10 +46,12 @@ class TestConfigLock(ApplyGtkTestCase):
         with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool()
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
-        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
-        self.assertIn(str(self.config), result.stderr)
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another apply-gtk/remove-gtk",
+            self.config,
+        )
         self.assertFalse(self.settings("gtk-4.0").exists())
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
         self.assertEqual(before, self.settings("gtk-3.0").read_text(encoding="utf-8"))
@@ -74,10 +77,12 @@ class TestConfigLock(ApplyGtkTestCase):
         with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool("--remove")
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
-        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
-        self.assertIn(str(self.config), result.stderr)
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another apply-gtk/remove-gtk",
+            self.config,
+        )
         self.assertEqual(
             before, self.settings("gtk-3.0").read_text(encoding="utf-8")
         )
@@ -88,10 +93,12 @@ class TestConfigLock(ApplyGtkTestCase):
         with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool("--remove")
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
-        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
-        self.assertIn(str(self.config), result.stderr)
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another apply-gtk/remove-gtk",
+            self.config,
+        )
         self.assertFalse(self.config.exists())
 
     def test_remove_creates_only_the_containing_directory_it_locks(self):
@@ -147,10 +154,12 @@ class TestDataHomeLock(ApplyGtkTestCase):
         with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool()
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
-        self.assertIn("waiting for another install or uninstall", result.stderr)
-        self.assertIn(str(self.data), result.stderr)
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another install or uninstall",
+            self.data,
+        )
         self.assertFalse(self.settings("gtk-4.0").exists())
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
         self.assertEqual(before, self.settings("gtk-3.0").read_text(encoding="utf-8"))

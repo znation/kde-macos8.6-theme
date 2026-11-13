@@ -22,6 +22,7 @@ from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase
 from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
+from support.process_assertions import assert_lock_time_out
 from tools import (
     file_lock,
     firefox_profile_actions,
@@ -654,11 +655,12 @@ class TestProfileLock(FirefoxProfileTestCase):
         with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool("--profile", str(self.profile))
 
-        self.assertEqual(2, result.returncode)
-        self.assertIn(
-            "waiting for another install-firefox/remove-firefox", result.stderr
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another install-firefox/remove-firefox",
+            self.profile,
         )
-        self.assertIn(str(self.profile), result.stderr)
         self.assert_profile_absent(*self.owned_profile_paths())
 
     def test_remove_times_out_without_clearing_the_install(self):
@@ -671,9 +673,11 @@ class TestProfileLock(FirefoxProfileTestCase):
         with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool("--remove", "--profile", str(self.profile))
 
-        self.assertEqual(2, result.returncode)
-        self.assertIn(
-            "waiting for another install-firefox/remove-firefox", result.stderr
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another install-firefox/remove-firefox",
+            self.profile,
         )
         self.assertEqual(before_sheet, self.sheet_path().read_bytes())
         self.assertEqual(before_js, self.user_js_path().read_bytes())

@@ -7,6 +7,7 @@ names that expectation once::
     assert_succeeded(self, result)   # result.returncode == 0
     assert_failed(self, result)      # result.returncode != 0
     assert_exit_2_without_traceback(self, result)  # refusal, not a crash
+    assert_lock_time_out(self, result, message, path)  # bounded-wait refusal
 
 *result* is a ``subprocess.CompletedProcess`` with decoded-text
 ``stdout``/``stderr``: the suites get one from ``theme_install.run_captured``,
@@ -39,3 +40,18 @@ def assert_exit_2_without_traceback(case, result):
     assert_failed(case, result)
     case.assertEqual(result.returncode, 2, result.stderr)
     case.assertNotIn("Traceback", result.stderr)
+
+
+def assert_lock_time_out(case, result, message, path):
+    """Assert *result* is a bounded-wait refusal on a held directory flock.
+
+    The apply and selection suites patch a tool's ``LOCK_TIMEOUT`` short
+    while a fixture holds the lock, then assert the shared timeout
+    diagnostic once here: exit 2 with no traceback, the holder refusal
+    (*message*) and the locked *path* on stderr. Every holder diagnostic in
+    ``tools/file_lock.py`` names its path, so the *path* assertion repeats
+    the diagnostic's own wording as separate insurance.
+    """
+    assert_exit_2_without_traceback(case, result)
+    case.assertIn(message, result.stderr)
+    case.assertIn(str(path), result.stderr)

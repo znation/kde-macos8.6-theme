@@ -20,7 +20,11 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
 from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
-from support.process_assertions import assert_failed, assert_succeeded
+from support.process_assertions import (
+    assert_failed,
+    assert_lock_time_out,
+    assert_succeeded,
+)
 from support.tmp_dir import make_tmp_dir
 from tools import apply_theme
 
@@ -81,10 +85,12 @@ class TestDataHomeLock(ThemeLockCase):
         with mock.patch.object(apply_theme, "LOCK_TIMEOUT", 0.05):
             result = self.run_tool()
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
-        self.assertIn("waiting for another install or uninstall", result.stderr)
-        self.assertIn(str(self.data), result.stderr)
+        assert_lock_time_out(
+            self,
+            result,
+            "waiting for another install or uninstall",
+            self.data,
+        )
         # No selection step ran: the refusal precedes lookandfeeltool.
         self.assertFalse(self.calls.exists())
 
