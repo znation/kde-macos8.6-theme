@@ -201,6 +201,105 @@ production behavior changes.
   `tests/test_gtk4_selected.py` and `docs/invariants.md`. `make
   check` passes after the final edit.
 
+
+### GTK 4 suite extraction: isolate row declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (139 `test_` methods at this plan's base
+commit). Move the four `test_row`-prefixed declaration checks (about
+65 lines at this plan's base commit) into their own module, the same
+way the landed OSD (`tests/test_gtk4_osd.py`), scale, spinbutton,
+disabled, emoji, entry, notebook, scrollbar, switch, progressbar,
+levelbar and view parts moved theirs, and the waiting
+"GTK 4 suite extraction: isolate selected declarations" entry moves
+its own. This is independent of that waiting selected entry (it moves
+only `test_selected`-prefixed methods; the method sets do not overlap
+and their invariants-rewrite rows name different members, though both
+entries edit `tests/test_gtk4_theme.py` and `docs/invariants.md`, so
+whichever merges later re-reads those two files before writing).
+Methods that only contain `row` mid-name (`test_list_row_press_and_popup_faces`,
+`test_dropdown_list_rows`, `test_columnview_and_listview_rows`,
+`test_treeview_selected_check_radio_faces`, the GTK 3 row checks in
+`tests/test_gtk_theme_views.py::TestGtkThemeViews` and the GTK 3
+`test_row_selection_backdrop` there) stay where they are. No
+stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_row.py` with
+  `class TestGtk4Row(Gtk4SheetRuleCases, unittest.TestCase)` and a
+  one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_view.py`). Move every `TestGtk4Theme`
+  method whose name starts with `test_row_`, keeping each method's
+  body and docstring unchanged:
+  `test_row_selection_backdrop`, `test_row_drop_borders`,
+  `test_row_drop_directional_arms_undeclared` and
+  `test_row_spin_stepper_corners`. At this plan's base commit they
+  sit between, respectively, `test_path_bar_tabs` and
+  `test_list_row_press_and_popup_faces`, `test_iconview_drop_border`
+  and `test_dropdown_list_rows`, `test_header_drop_indicator` and
+  `test_spin_button_field`, and `test_circular_button_corners` and
+  `test_sidebar_button_corners` — all of which stay. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet` and `SELECTION` from
+  `support.platinum_palette` (the moved bodies use each:
+  `SELECTION` in `test_row_drop_borders`'s `border-color`; only base
+  helpers and `self.css`/`self.rules`/`self.selectors` in the other
+  three). Every assertion helper the bodies call comes with the base
+  classes: `assert_row_selection_backdrop` and `assert_rule_after`
+  are methods of `tests/support/gtk_rule_cases.py`'s
+  `GtkSheetRuleCases` (which `Gtk4SheetRuleCases` extends through
+  `GtkSharedControlCases`), `assert_rule` and `assert_matches_frame`
+  come from `GtkSheetRuleCases`/`tests/support/gtk4_sheet.py`, and
+  `self.css`, `self.rules` and `self.selectors` come from the shared
+  `setUpClass`; none of them is imported as a name anywhere, so no
+  import line moves or is pruned. Grep-checked at this plan's base
+  commit, the source module still references `SELECTION` after the
+  move (`test_list_row_press_and_popup_faces` and
+  `test_places_sidebar` use it), so its import block needs
+  no pruning. The moved bodies call no other support name (no `HEX`,
+  `parse_css`, `strip_comments`, `gtk_css`, mock, tempfile or `re`
+  use).
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_row…` anchor to
+  `tests/test_gtk4_row.py::TestGtk4Row::test_row…`, wherever it
+  appears — in the anchor column and in provenance prose.
+  `grep -o 'TestGtk4Theme::test_row[a-z_]*' docs/invariants.md`
+  finds four member mentions at this plan's base commit, one per row
+  across three invariant rows: `test_row_selection_backdrop` alone in
+  its selection row, `test_row_drop_borders` and
+  `test_row_drop_directional_arms_undeclared` together in the drag-
+  and-drop row, and `test_row_spin_stepper_corners` alone in the
+  sheet-tail corners row. Each of the three rows also names staying
+  anchors (the selection row names
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::
+  test_row_selection_backdrop`; the drop row names
+  `test_iconview_drop_border` and `test_header_drop_indicator`; the
+  corners row names `tests/test_gtk4_emoji.py`'s section-button check
+  and `test_sidebar_button_corners`), so rewrite only the moved
+  anchors in place and leave every other anchor as it reads. Do not
+  rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four moved methods exactly
+  once, under `test_gtk4_row.TestGtk4Row`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme`
+  method is still listed there.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_row' docs/invariants.md` prints
+  nothing, each of the three touched rows still names its staying
+  anchors under their original modules, and the invariants checker
+  inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 60 lines, and
+  `tests/test_gtk4_row.py` stays under about 120 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_row.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
