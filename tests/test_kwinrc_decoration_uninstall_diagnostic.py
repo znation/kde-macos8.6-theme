@@ -40,6 +40,8 @@ from support.kwinrc_uninstall_wording import (
     THEME_KEY,
     aurorae_pair_body,
     aurorae_pair_rule as AURORAE_PAIR_RULE,
+    button_body,
+    button_lines,
     aurorae_theme_body,
     aurorae_theme_lines,
     button_rule as BUTTON_RULE,
@@ -86,7 +88,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
-            aurorae_pair_body() + "ButtonsOnLeft=X\nButtonsOnRight=AL\n",
+            aurorae_pair_body() + button_lines(),
         )
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
@@ -206,8 +208,8 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + LIBRARY_KEY
             + "="
             + AURORAE_LIBRARY
-            + "\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
-            "[" + REMOVAL_GROUP + "]\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
+            + "\n" + button_lines(),
+            button_body(),
         ):
             with self.subTest(body=body):
                 tmp, config = make_config_home(self)

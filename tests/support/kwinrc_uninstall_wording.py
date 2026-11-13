@@ -11,15 +11,15 @@ id change lands in one place: `button_rule` feeds all three suites and
 modules' names (`REMOVAL_GROUP`, `LEFT_KEY`, `RIGHT_KEY`); the builders
 derive the reset wordings from them.
 
-The two decoration suites also stage whole `kwinrc` bodies made of the group
-header and the `library=`/`theme=` value lines, plain and around foreign
-values, duplicates, CRLF endings or other groups; the `aurorae_pair_body`,
-`aurorae_pair_lines`, `aurorae_theme_body` and `aurorae_theme_lines`
-builders share those bytes (`aurorae_pair_body` and `aurorae_theme_body`
-compose the real `[org.kde.kdecoration2]` header; the `_lines` primitives
-carry only the value lines for the shapes whose header or surrounding keys
-the staging test itself owns). Their exact bytes are pinned by
-`tests/test_kwinrc_uninstall_wording.py`.
+The button-layout, decoration and aurorae suites also stage whole `kwinrc`
+bodies made of the group header and two value lines, plain and around
+foreign values, duplicates, CRLF endings or other groups; the
+`button_body`/`button_lines`, `aurorae_pair_body`/`aurorae_pair_lines` and
+`aurorae_theme_body`/`aurorae_theme_lines` builders share those bytes (the
+`*_body` builders compose the real `[org.kde.kdecoration2]` header; the
+`*_lines` primitives carry only the value lines for the shapes whose header
+or surrounding keys the staging test itself owns). Their exact bytes are
+pinned by `tests/test_kwinrc_uninstall_wording.py`.
 """
 
 REMOVAL_GROUP = "org.kde.kdecoration2"
@@ -29,6 +29,24 @@ AURORAE_LIBRARY = "org.kde.kwin.aurorae"
 AURORAE_THEME = "org.macos8.desktop"
 LEFT_KEY = "ButtonsOnLeft"
 RIGHT_KEY = "ButtonsOnRight"
+BUTTON_LEFT = "X"
+BUTTON_RIGHT = "AL"
+
+
+def button_lines(*, left=BUTTON_LEFT, right=BUTTON_RIGHT, eol="\n"):
+    """The `ButtonsOnLeft=` then `ButtonsOnRight=` value lines with *eol*.
+
+    The `X`/`AL` values are the pair `tools/apply_theme.py::
+    DECORATION_BUTTONS` writes; feeds the whole-body builder and the suite
+    bodies that put the pair in another header, end the lines differently
+    or stage a foreign or empty value on either key.
+    """
+    return LEFT_KEY + "=" + left + eol + RIGHT_KEY + "=" + right + eol
+
+
+def button_body(*, left=BUTTON_LEFT, right=BUTTON_RIGHT):
+    """A whole `kwinrc` body: our decoration group header plus the pair."""
+    return "[" + REMOVAL_GROUP + "]\n" + button_lines(left=left, right=right)
 
 
 def aurorae_pair_lines(*, library=AURORAE_LIBRARY, theme=AURORAE_THEME, eol="\n"):

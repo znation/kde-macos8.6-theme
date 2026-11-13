@@ -46,6 +46,7 @@ from support.kwinrc_uninstall_wording import (
     aurorae_pair_body,
     aurorae_pair_lines,
     aurorae_pair_rule as rule_for,
+    button_body,
     button_rule as BUTTON_RULE,
 )
 
@@ -226,10 +227,7 @@ class TestKwinrcAuroraeUninstallDiagnostic(theme_install.UninstallRecipeTestCase
         # The existing button-layout diagnostic covers the ButtonsOn pair; a
         # group with only that pair holds no decoration selection of ours.
         tmp, config = make_config_home(self)
-        write_kwinrc(
-            config,
-            "[" + REMOVAL_GROUP + "]\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
-        )
+        write_kwinrc(config, button_body())
 
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration")
 
