@@ -91,7 +91,8 @@ The selection value is the Qt 6 serialized QFont form:
 
 Contract, grounded against the installed Qt 6.8.2 (probed 2026-11-12 through
 the Debian PyQt6 6.9.0 bindings, extracted to a scratch directory, on this
-host; the host's installed Qt is `libqt6core6t64 6.8.2+dfsg-9` running
+host; the host's installed Qt is `libqt6core6t64 6.8.2+dfsg-9+deb13u2`
+running
 Plasma 6.3.6 — an earlier recording of this paragraph named Qt 6.9.2, which
 no installed library on this host provides, and was corrected 2026-11-12 by
 re-running the probe):
