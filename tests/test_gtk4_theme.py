@@ -514,8 +514,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in members:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], dict(DISABLED_TEXT))
-                self.assertEqual(self.selectors.count(selector), 1, selector)
+                self.assert_exact_rule_once(selector, dict(DISABLED_TEXT))
         # Source order: each member files after the landed field group's
         # `.view:disabled` key and after the landed
         # `columnview.view:disabled:selected` ink key.
@@ -1277,9 +1276,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         selectors = ("infobar .close", "searchbar > revealer > box .close")
         for selector in selectors:
             with self.subTest(selector=selector):
-                self.assert_rule(selector, self.CLOSE_CORNER_PAIR_RULE)
-                self.assertEqual(self.rules[selector], self.CLOSE_CORNER_PAIR_RULE)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, self.CLOSE_CORNER_PAIR_RULE)
                 self.assert_matches_frame(selector, "border-radius")
                 self.assertGreater(
                     self.selectors.index(selector),
@@ -1509,9 +1506,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "combobox popover .dropdown-searchbar",
         ):
             with self.subTest(selector=selector):
-                self.assert_rule(selector, expected)
-                self.assertEqual(self.rules[selector], expected)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, expected)
                 self.assertGreater(
                     self.selectors.index(selector),
                     self.selectors.index("actionbar > revealer > box"),
@@ -1715,8 +1710,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         drop_order = self.selectors.index("columnview.view > dndtarget:drop(active)")
         for selector, expected_rule in expected:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected_rule)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, expected_rule)
                 self.assertGreater(self.selectors.index(selector), backdrop_order)
                 self.assertLess(self.selectors.index(selector), drop_order)
         # The restated tone is the only separator paint at these view spellings:
@@ -1767,8 +1761,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             + [(selector, ROW_SELECTED) for selector in selected_spellings]
         ):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected_rule)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, expected_rule)
                 self.assertGreater(self.selectors.index(selector), backlog_order)
                 self.assertLess(self.selectors.index(selector), separator_order)
         # Exactly the stocked dropdown twin spellings exist and nothing else:
@@ -1801,8 +1794,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in spellings:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"outline-color": BLACK})
         # The restated spellings are the only row focus arms the sheet
         # declares: the scan kills renamed and stray variants. A row arm
         # must start the selector or follow a space, so the notebook
@@ -1968,8 +1960,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "entry.flat",
         )
         for selector in selectors:
-            self.assertEqual(self.rules[selector], ENTRY_FIELD)
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, ENTRY_FIELD)
         # No other flat entry or spinbutton spelling exists beyond the
         # treeview-embedded flat twins the treeview entry restatement adds:
         # the family scan kills renamed and stray variants alike. The stock
@@ -2026,8 +2017,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         selectors = tuple(chain.from_iterable(states))
         for selector in selectors:
-            self.assertEqual(self.rules[selector], field)
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, field)
         # No other `.osd`-prefixed entry or spinbutton spelling exists
         # beyond the restated field arms and the landed RTL spin-field
         # mirrors the OSD record carries (three `:dir(rtl)` twins, one
@@ -2080,8 +2070,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in (plain, *twins):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"box-shadow": mirror})
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"box-shadow": mirror})
         # Each mirror sits directly after its base group in the sheet text.
         self.assert_rule_after(
             "\nspinbutton:dir(rtl):not(.vertical) {",
@@ -2143,11 +2132,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "entry.warning:focus-within",
         )
         for selector in bases:
-            self.assertEqual(self.rules[selector], {"color": BLACK, "transition": "none"})
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, {"color": BLACK, "transition": "none"})
         for selector in focus:
-            self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, {"outline-color": BLACK})
         # No other error or warning selector exists in the sheet: the
         # family scan kills renamed, dropped and stray class spellings
         # alike (including the stock '> selection' arms, out of scope).
@@ -2321,14 +2308,11 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "treeview entry:focus-within:dir(ltr)",
         )
         for selector in fields:
-            self.assertEqual(self.rules[selector], ENTRY_FIELD)
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, ENTRY_FIELD)
         for selector in focus:
-            self.assertEqual(self.rules[selector], {"border-color": BLACK})
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, {"border-color": BLACK})
         for selector in motion:
-            self.assertEqual(self.rules[selector], {"transition": "none"})
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, {"transition": "none"})
         # No other treeview entry spelling exists in the sheet: the family
         # scan kills renamed and stray variants alike.
         self.assertEqual(
@@ -2361,12 +2345,10 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertEqual(self.selectors.count(field), 1)
         for selector in focus:
             self.assert_rule(selector, {"outline-color": BLACK})
-            self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, {"outline-color": BLACK})
         for selector in selection:
             self.assert_rule(selector, TEXT_SELECTION)
-            self.assertEqual(self.rules[selector], TEXT_SELECTION)
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, TEXT_SELECTION)
         # No other editablelabel spelling exists beyond the landed selection
         # restatement and the five new spellings, and no other columnview row
         # spelling exists at all: the family scans kill renamed and stray
@@ -2555,8 +2537,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_rule(selector, {**DISABLED_TEXT})
         # Stock dims the accelerator inside the color declaration alone, so
         # the restatement carries the opacity-free, shadow-free dict whole.
-        self.assertEqual(self.rules[selector], {**DISABLED_TEXT})
-        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_exact_rule_once(selector, {**DISABLED_TEXT})
         # The stock-twin spelling lands after the landed popover-menu
         # modelbutton faces, the source position that beats either toolkit
         # arm on the tie.
@@ -3059,9 +3040,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
-                self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"border-radius": "0"})
                 for reference in ("button", "frame > border", ".frame"):
                     self.assertEqual(
                         self.rules[selector]["border-radius"],
@@ -3225,7 +3204,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 )
         for selector in band:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_exact_rule_once(selector, {"border-radius": "0"})
 
     def test_splitbutton_band_corners(self):
         """Pin the toolbar-band and flat split-button face corners.
@@ -3592,8 +3571,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "scrolledwindow > junction:dir(rtl)",
         ):
             self.assert_rule(selector, expected)
-            self.assertEqual(self.rules[selector], expected)
-            self.assertEqual(self.selectors.count(selector), 1)
+            self.assert_exact_rule_once(selector, expected)
             self.assertLess(
                 self.selectors.index("scrolledwindow > overshoot.right"),
                 self.selectors.index(selector),
@@ -4092,8 +4070,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertEqual(len(expected), 14)
         for selector, declarations in expected.items():
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], declarations)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, declarations)
         # No other non-.osd ``spinbutton … button`` spelling exists in the
         # sheet: the landed .linked group members pair the two names but
         # carry no `` button`` token, and the landed OSD steppers are
@@ -4130,8 +4107,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector in chain:
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"border-radius": "0"})
         self.assertEqual(
             {
                 s
@@ -4806,9 +4782,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         }
         for selector in sorted(selectors):
             with self.subTest(selector=selector):
-                self.assert_rule(selector, {"border-radius": "0"})
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, {"border-radius": "0"})
                 self.assert_matches_frame(selector, "border-radius")
                 self.assertGreater(
                     self.selectors.index(selector),
@@ -4932,8 +4906,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # longhand the frame rule never declares.
         for selector, rule in members.items():
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], rule)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, rule)
                 if "border-radius" in rule:
                     self.assert_matches_frame(selector, "border-radius")
                 for prop in rule:
@@ -4995,9 +4968,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         for selector, rule in members.items():
             with self.subTest(selector=selector):
-                self.assert_rule(selector, rule)
-                self.assertEqual(self.rules[selector], rule)
-                self.assertEqual(self.selectors.count(selector), 1)
+                self.assert_exact_rule_once(selector, rule)
                 self.assert_matches_frame(selector, "border-radius")
                 # The landed frame pair declares no background-color, so
                 # the fill anchors to the pinned SELECTION constant the

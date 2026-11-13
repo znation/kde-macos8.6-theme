@@ -89,6 +89,11 @@ class Gtk4SheetRuleCases(GtkSharedControlCases):
 
     CSS_PATH = CSS
 
+    def assert_exact_rule_once(self, selector, expected):
+        """Assert *selector* has exactly *expected* and occurs once."""
+        self.assertEqual(self.rules[selector], expected, selector)
+        self.assertEqual(self.selectors.count(selector), 1, selector)
+
     def assert_scale_focus_outline(self, focus):
         """Assert *focus* states the black outline the scale focus states."""
         self.assert_rule(focus, {"outline-color": BLACK})
