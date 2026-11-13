@@ -126,7 +126,7 @@ class TestGeneratorValidation(unittest.TestCase):
                 assert_error_names(
                     self, ValueError, make_cursors.cursor_bytes, sizes=sizes,
                     needles=(
-                        f"nominal size must be a positive integer: size={sizes[0]!r}",
+                        f"nominal size must be a positive integer: nominal size={sizes[0]!r}",
                     ),
                 )
 
@@ -150,7 +150,7 @@ class TestGeneratorValidation(unittest.TestCase):
             self, ValueError, make_cursors._checked_sizes, (0x8000,),
             needles=(
                 "nominal size must be at most 32767 (the Xcursor frame limit): "
-                "size=32768",
+                "nominal size=32768",
             ),
         )
 
