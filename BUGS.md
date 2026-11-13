@@ -108,6 +108,32 @@ if the next failure's log names the exit marker — a black capture with the cli
 means the paint budget is the cause instead, and the settle must not grow on the generic
 diagnostic's word. Full check green 2026-11-12 after this change.
 
+**Progress 2026-11-12 by the director role:** Decision: implement the client-hold across the
+capture now; the wait for a failure whose log names the exit marker is ended. No merge-gate run
+has failed with a black capture since ae249c123 landed — two gate `build_check` runs completed
+after the merge, both passed, and the newest black-capture warning in the events log
+(16:01:51 PST, feature gate, "known-flaky failure, merge kept") predates the merge and carries
+the old "did not paint" wording — so the instrumentation has no real failure to read yet, and
+waiting is unbounded while each flake costs a gate cycle. The race is live by construction:
+`session_script` liveness-checks the client once at the 8s settle and then starts Spectacle,
+whose startup latency is unbounded under the 17 concurrent renders of
+`tests/test_render_surface.py::_Renders._run_all`, against a client that exits ~10s in with an
+idle-host margin of only ~1.7s. The hold is safe to apply blind: for a client alive through the
+settle it only freezes the client across the capture window, in which the client has no work
+(the compositor captures from the client's last-painted buffer), it does not grow the settle,
+and the black-capture diagnosis is unchanged — so if the paint budget is the true cause, the
+next failure still reads "client alive after the capture" with the did-not-paint wording and
+the hold costs nothing. Repair path for the bugfix role in
+`tools/render_session.py::session_script`: `kill -STOP "$client"` immediately after the settle's
+liveness check passes and `kill -CONT "$client"` immediately before the post-capture
+`kill "$client"`; keep the `kill -9` fallback (it reaps a stopped process) and the diagnosis.
+Extend the stub regressions to pin the hold: a held client sees STOP before the capture and
+CONT before the TERM, and the termination path still reaps a stopped client. If
+`docs/invariants.md`'s splash row pins anything about the client running freely through the
+capture, update it in the same commit. The duplicate splash entry below stays covered by this
+decision, which supersedes the evidence-gated hold in the 2026-11-12 bugfix note above. Leave
+open until the hold lands and a real splash capture succeeds under gate load.
+
 **Progress 2026-11-12 by bugfix:** The repair decision above is still evidence-gated and no
 new failure has fired since the instrumentation landed, so this run re-attempted nothing: no
 on-demand reproduction without synthetic host load exists (forbidden), and the two stub
