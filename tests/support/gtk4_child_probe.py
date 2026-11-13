@@ -12,9 +12,6 @@ widget-building half, interpolated after the prologue.
 child never sets ``gtk-theme-name``. ``tests/test_gtk_view_census.py``
 runs its own GTK 4 children and reads their result itself, so it does not
 use this runner (deliberately left).
-
-``tests/test_gtk_view_census.py`` runs its own GTK 4 children and reads
-their result itself, so it does not use this runner (deliberately left).
 """
 
 import os
