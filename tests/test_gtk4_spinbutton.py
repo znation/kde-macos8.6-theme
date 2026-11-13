@@ -47,18 +47,18 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a GTK spinbutton stepper
         in any state, so the sheet restates the toolkit resource's seven
         plain (non-``.osd``) horizontal ``spinbutton ... button`` stepper
-        arms with the landed raised push-button face — the same dictionary
-        the landed OSD stepper record pins — so a horizontal stepper
+        arms with the existing raised push-button face — the same dictionary
+        the existing OSD stepper record pins — so a horizontal stepper
         outside the OSD overlay paints the raised #DDDDDD face with a 1px
         black border, zero radius, the BUTTON_BEVEL etch, black labels and
         no icon shadow. This plain family is the only family stock gives
         an ``:active`` arm, and the pressed arm swaps to the inverted
-        bevel; the disabled arms take the landed grey Etch colour
+        bevel; the disabled arms take the existing grey Etch colour
         (ETCH_DARK) and keep no outline colour. Stock's min-height and
         padding geometry are not restated, and stock's plain vertical
         ``spinbutton.vertical > button`` geometry arms stay stock: the
-        landed generic button restate paints them and their shared-edge
-        mechanics are the landed linked-group policy. The arm selectors
+        existing generic button restate paints them and their shared-edge
+        mechanics are the existing linked-group policy. The arm selectors
         and states come from
         /org/gtk/libgtk/theme/Default/Default-dark.css and
         Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
@@ -109,12 +109,12 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_exact_rule_once(selector, declarations)
         # No other non-.osd ``spinbutton … button`` spelling exists in the
-        # sheet: the landed .linked group members pair the two names but
-        # carry no `` button`` token, and the landed OSD steppers are
+        # sheet: the existing .linked group members pair the two names but
+        # carry no `` button`` token, and the existing OSD steppers are
         # excluded here, so the scan kills renamed and stray variants.
         # The 2026-11-04 residual radii record adds the six byte-equal
         # row-spin steppers (the vertical preference-row variant stock
-        # gives its own 9px and 9999px arms) to this scan; the landed
+        # gives its own 9px and 9999px arms) to this scan; the existing
         # plain-steppers record named those variants its own future
         # candidates, and their selectors carry the `` button`` token the
         # scan keys on.
@@ -128,7 +128,7 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         )
         # The 2026-11-04 axis-chain record adds the eight byte-equal
         # libadwaita spin-button end-corner chains (five extra :not() atoms
-        # beat these landed short restatements' specificity, so the chains
+        # beat these existing short restatements' specificity, so the chains
         # needed their own zero-radius restatement) to this scan; their
         # selectors carry the `` button`` token the scan keys on, and each
         # rule is the bare zero radius the new record restates.
@@ -155,8 +155,8 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
             },
             set(expected) | set(row_spin) | set(chain),
         )
-        # The seven groups sit between the landed entry.warning focus arm
-        # and the landed OSD entry-field block.
+        # The seven groups sit between the existing entry.warning focus arm
+        # and the existing OSD entry-field block.
         first = self.selectors.index(up)
         last = self.selectors.index(
             "spinbutton:not(.vertical)"
@@ -177,16 +177,16 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         state, so the sheet restates the integration resource's four
         radius-bearing plain-axis ``button.image-button`` arms with a bare
         zero radius — each byte-equal to its stock twin and winning the
-        equal-specificity tie by later user-sheet source order. The landed
+        equal-specificity tie by later user-sheet source order. The existing
         plain-stepper record squared these same nodes through the toolkit
         resource's short :not(.flat) chains, but the integration chains
         carry five extra :not() class atoms whose higher specificity beat
         those short restatements, so the corner radii stayed stock's 9px
-        cuts until these four groups landed; the arms were probed
+        cuts until these four groups were added; the arms were probed
         2026-11-04 from /org/gnome/Adwaita/styles/base.css (lines 2157,
         2159, 2165 and 2167, quoted verbatim in the sheet comment whose
         probe path is recorded in docs/invariants.md), and the toolkit's
-        Default resources carry only the short spelling the landed short
+        Default resources carry only the short spelling the existing short
         restatements are byte-equal to. The vertical end halves'
         border-top-width and
         border-bottom-width shared-edge mechanics stay inherited
@@ -208,7 +208,7 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_matches_frame(selector, "border-radius")
         # The sweep keys on the :not() atom count stock's chains alone
-        # carry: every landed spinbutton-rooted key carries at most two
+        # carry: every existing spinbutton-rooted key carries at most two
         # :not() atoms and the row-spin keys start with the row compound,
         # so the scan kills a dropped, renamed or de-qualified chain.
         self.assertEqual(
@@ -220,7 +220,7 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
             },
             set(chains),
         )
-        # Every chain sits after the landed short corner twin in source
+        # Every chain sits after the existing short corner twin in source
         # order, so the additions are tail-resident whatever merges first.
         for selector in chains:
             with self.subTest(selector=selector):

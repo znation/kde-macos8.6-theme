@@ -15,7 +15,7 @@ class TestGtk4SpinProbe(unittest.TestCase):
         # own states: the probe captures the plain field, the resting .osd
         # field, the focused .osd field and the insensitive .osd field.
         # Pins measured 2026-11-11 in child renders on this host, after
-        # the mirrors landed; a dropped plain, .osd or focused mirror, a
+        # the mirrors were added; a dropped plain, .osd or focused mirror, a
         # foreign value, a mirror that loses its specificity race or a
         # state twin spelled with the LTR arm leaves the exposed edge
         # field-white and fails. One mask: a dropped resting .osd twin is

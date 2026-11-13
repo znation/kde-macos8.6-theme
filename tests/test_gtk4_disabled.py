@@ -16,9 +16,9 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
         )
     def test_disabled_view_face(self):
         """Pin the restated disabled view field stock-twin."""
-        # 2026-11-04: disabled views keep the landed white content field —
-        # stock's (0,2,0) disabled view arm beats the landed (0,1,0)
-        # `.view, list` group and no landed rule names its compound twins,
+        # 2026-11-04: disabled views keep the existing white content field —
+        # stock's (0,2,0) disabled view arm beats the existing (0,1,0)
+        # `.view, list` group and no existing rule names its compound twins,
         # so stock would wash each member grey without the group.
         # 2026-11-11: the group also co-declares the family's insensitive
         # ink per-property, so each member's whole dict is the DISABLED_TEXT
@@ -36,7 +36,7 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {**DISABLED_TEXT, "background-color": WHITE})
                 self.assert_exact_rule_once(selector, {**DISABLED_TEXT, "background-color": WHITE})
-        # The token sweeps key on substrings no landed selector carries:
+        # The token sweeps key on substrings no existing selector carries:
         # the print action-box spelling alone carries the leading-space
         # " .dialog-action-box:disabled" form (the 2026-11-11 per-family
         # block's print twins name element nodes instead), and both sheet
@@ -53,15 +53,15 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
                 "dialog.dialog-action-box sheet:disabled",
             },
         )
-        # The landed frame pair declares no background-color, so the fill
-        # anchors to the pinned WHITE constant the landed `.view, list`
+        # The existing frame pair declares no background-color, so the fill
+        # anchors to the pinned WHITE constant the existing `.view, list`
         # view-field test uses.
         self.assertEqual(self.rules[".view:disabled"]["background-color"], WHITE)
-        # The sheet parser splits the landed comma group into per-selector
-        # keys, so the landed field anchor reads under its .view key.
+        # The sheet parser splits the existing comma group into per-selector
+        # keys, so the existing field anchor reads under its .view key.
         self.assertEqual(self.rules[".view"]["background-color"], WHITE)
-        # Source order: the restated group files after the landed
-        # ``.view:disabled:selected`` ink key, then after the landed
+        # Source order: the restated group files after the existing
+        # ``.view:disabled:selected`` ink key, then after the existing
         # selection-surface group that ended the sheet tail before it.
         for selector in selectors:
             self.assertGreater(
@@ -81,7 +81,7 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
         """Pin the 2026-11-11 per-family disabled-view ink restatement."""
         # 2026-11-11: the integration library's six disabled-view arms and
         # the toolkit's two each carry a foreign ink; the per-family block
-        # restates them with the landed insensitive grey. The landed field
+        # restates them with the existing insensitive grey. The existing field
         # group's count-one pin on `.view:disabled` forces the generic arm
         # to be co-declared there, so the per-family block names only the
         # fourteen byte-equal members below, each declaring exactly the
@@ -105,8 +105,8 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in members:
             with self.subTest(selector=selector):
                 self.assert_exact_rule_once(selector, dict(DISABLED_TEXT))
-        # Source order: each member files after the landed field group's
-        # `.view:disabled` key and after the landed
+        # Source order: each member files after the existing field group's
+        # `.view:disabled` key and after the existing
         # `columnview.view:disabled:selected` ink key.
         for selector in members:
             self.assertGreater(
@@ -119,7 +119,7 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
                 self.selectors.index("columnview.view:disabled:selected"),
                 selector,
             )
-        # The token sweeps key on substrings no other landed selector
+        # The token sweeps key on substrings no other existing selector
         # carries (the :selected twins of the column- and tree-view
         # spellings contain those bare spellings, so those two members are
         # pinned above by the exact-key assertions instead): a dropped
@@ -235,17 +235,17 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
     def test_disabled_meter_trough_faces(self):
-        """A disabled meter keeps the landed trough face and rim.
+        """A disabled meter keeps the existing trough face and rim.
 
         Stock's disabled trough arm (libgtk-4 light resource line 1083, dark
         twin line 1071) carries a pale face and a per-appearance rim ink and
-        the `:disabled` pseudo-class raises it above the landed plain groups,
-        so the restated group repeats the landed #EEEEEE face and #000000
+        the `:disabled` pseudo-class raises it above the existing plain groups,
+        so the restated group repeats the existing #EEEEEE face and #000000
         rim at stock's specificity and wins the per-property tie by later
         user-sheet source order under lower-sheet riding; the replacement
-        reading keeps the landed plain groups already governing these
+        reading keeps the existing plain groups already governing these
         spellings. The selected-row meter rims record restates the
-        landed disabled thumb rim at higher specificity beside this
+        existing disabled thumb rim at higher specificity beside this
         sweep, but its `row:selected scale > trough > slider:disabled`
         spelling carries no `trough:disabled` substring, so the sweep
         and its non-`.osd` count stay unchanged.
@@ -257,8 +257,8 @@ class TestGtk4Disabled(Gtk4SheetRuleCases, unittest.TestCase):
                 "scale > trough:disabled": dict(expected),
             }
         )
-        # The restated colours sit after the landed grey disabled face, and
-        # the landed opaque disabled policy still follows them, so the
+        # The restated colours sit after the existing grey disabled face, and
+        # the existing opaque disabled policy still follows them, so the
         # source-order tie and the filter policy both hold on the raw sheet.
         self.assert_rule_after(
             "progressbar > trough:disabled",

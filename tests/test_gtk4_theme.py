@@ -196,7 +196,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # The appended tail block is a family bound: every shell top-level
         # selector (a window.-prefixed node selector without descendant
         # combinators, plus tooltip.csd) is one of the restated twinned arms
-        # or the landed message-dialog body squaring, and none beyond them.
+        # or the existing message-dialog body squaring, and none beyond them.
         family = {
             selector
             for selector in self.selectors
@@ -204,7 +204,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         }
         self.assertEqual(family, {*expected, "window.dialog.message.csd.background"})
 
-        # Each appended arm sits after the landed window group it out-ranks,
+        # Each appended arm sits after the existing window group it out-ranks,
         # and the backdrop arms sit after window.csd:backdrop, which otherwise
         # ties them on specificity: without that order an unfocused maximized
         # or tiled window would paint the active outline. The solid-csd arms
@@ -386,12 +386,12 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_label_error_colour_class(self):
-        # The landed label policy takes no colour class: the sheet restates
+        # The existing label policy takes no colour class: the sheet restates
         # the two stock error colour-class arms with byte-equal twins
-        # declaring the landed inherited black text and the landed
-        # insensitive grey, so an error-classed label paints the landed
+        # declaring the existing inherited black text and the existing
+        # insensitive grey, so an error-classed label paints the existing
         # policy instead of stock's red, and its disabled twin paints the
-        # landed grey instead of stock's translucent red. Stock ships no
+        # existing grey instead of stock's translucent red. Stock ships no
         # `label.warning` arm, so there is nothing to restate there.
         for selector in ("label.error", "label.error:disabled"):
             self.assertEqual(self.selectors.count(selector), 1)
@@ -416,7 +416,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
         The 2026-11-05 sheet-tail record restates the toolkit resource's
         eight class-armed comma triples (probed verbatim in the sheet
-        comment and docs/invariants.md) with the landed check face under
+        comment and docs/invariants.md) with the existing check face under
         every state: the four unchecked spellings carry the raised
         etched face with the zero radius and hard black outline, the
         four checked ones the same under the shipped checkmark glyph.
@@ -463,11 +463,11 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {s for s in self.rules if ".tile check" in s},
             set(tile_members),
         )
-        # Provenance guards: the landed `.content-view` field and hover
-        # arms, the landed element `check`/`radio` recipes, the four merged
+        # Provenance guards: the existing `.content-view` field and hover
+        # arms, the existing element `check`/`radio` recipes, the four merged
         # checked and indeterminate glyph unions the plain-state record
         # pins and the merged zero-radius `check` key stay byte-equal, so
-        # the tile record added no declaration to any landed key.
+        # the tile record added no declaration to any existing key.
         self.assert_rule(".content-view", VIEW_BACKGROUND)
         self.assert_rule(".content-view:hover", {"-gtk-icon-filter": "none"})
         self.assert_rule("check", CHECK)
@@ -494,16 +494,16 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_treeview_selected_check_radio_faces(self):
-        """Pin the selected-row check and radio restated off the landed faces.
+        """Pin the selected-row check and radio restated off the existing faces.
 
         The 2026-11-06 sheet-tail record answers the Default-light
         resource's four treeview-class-armed selected-row arms (probed
         verbatim in the sheet comment and docs/invariants.md) per-property:
-        the colour arm's ink and border return to the landed check recipe's
+        the colour arm's ink and border return to the existing check recipe's
         hard black, the checked and indeterminate glyph arms swap the
-        toolkit's recoloured symbolic dot and dash for the landed black-ink
+        toolkit's recoloured symbolic dot and dash for the existing black-ink
         shipped assets, and stock's radius and 14px-size arm restates
-        nothing. No landing here adds a face declaration beyond the two
+        nothing. No merge here adds a face declaration beyond the two
         answers per member spelling.
         """
         seal = {"color": BLACK, "border-color": BLACK}
@@ -527,7 +527,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             },
             set(expected),
         )
-        # Source order: each restated spelling lands after the landed
+        # Source order: each restated spelling lands after the existing
         # plain-state `radio:checked` glyph rule's parsed position.
         for selector in expected:
             self.assertGreater(
@@ -648,7 +648,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
     def test_button_hover_icon_filter(self):
         # No reference screenshot shows a hovered GTK push button; stock
         # brightens every icon inside one, so the tail arm clears the filter
-        # while the landed `button:hover` face group stays the face source.
+        # while the existing `button:hover` face group stays the face source.
         self.assert_rule(
             "button:hover",
             {"background-color": FACE, "-gtk-icon-filter": "none"},
@@ -663,9 +663,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_action_class_flat_arms(self):
         # No reference screenshot shows a GTK flat action button; the tail
-        # arms restate the landed push-button recipe over the stock
+        # arms restate the existing push-button recipe over the stock
         # transparent colour-class flat family, so every checked
-        # relationship below anchors the landed face constants and the two
+        # relationship below anchors the existing face constants and the two
         # family inventories keep the arms to stock's own spellings.
         face = {
             "background-color": FACE,
@@ -709,9 +709,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_flat_button_arms(self):
         # No reference screenshot shows a GTK flat button; the tail arms
-        # restate the landed plain push-button recipe over the stock
+        # restate the existing plain push-button recipe over the stock
         # transparent flat family, so every checked relationship below
-        # anchors the landed face constants and the family inventory keeps
+        # anchors the existing face constants and the family inventory keeps
         # the arms to stock's own spellings.
         raised = {
             "background-color": FACE,
@@ -786,8 +786,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_checkbutton_corners(self):
         # The 2026-11-04 wrapper-corner restatement squares the
-        # check-button wrapper under the landed square-corner policy: the
-        # base arm on the landed no-transition group and two byte-equal
+        # check-button wrapper under the existing square-corner policy: the
+        # base arm on the existing no-transition group and two byte-equal
         # stock twin spellings at the checked-indicator seam.
         self.assertEqual(
             {selector for selector in self.rules if "checkbutton" in selector},
@@ -836,7 +836,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # orientations (half a turn at rest, upright while checked) while
         # the 200ms icon-transform ease is erased: the byte-equal stock
         # twin spelling declares only `transition: none`, sitting after
-        # the landed caps-lock groups at the sheet tail.
+        # the existing caps-lock groups at the sheet tail.
         selector = "row.expander image.expander-row-arrow"
         self.assertEqual(self.selectors.count(selector), 1, selector)
         self.assert_rule(selector, {"transition": "none"})
@@ -859,7 +859,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # orientations (upright at rest, half a turn while checked) while
         # the 200ms rotation ease is erased: the two byte-equal stock twin
         # spellings declare only `transition: none`, sitting after the
-        # landed caps-lock groups at the sheet tail.
+        # existing caps-lock groups at the sheet tail.
         selectors = (
             "placesview .server-list-button > image",
             "placesview .server-list-button:checked > image",
@@ -904,7 +904,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # with the plain button family — rounded grey-gradient bevels and a
         # brightness-boosted hover glyph — and no collected reference
         # screenshot shows the arrows, so each state arm below restates the
-        # landed same-sheet button arm at the arrow's own exact stock
+        # existing same-sheet button arm at the arrow's own exact stock
         # spelling, later source order winning the tie per-property.
         raised = {
             "background-color": FACE,
@@ -969,14 +969,14 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 "transition": "none",
             }),
         })
-        # Source order: the base arrow group files after the landed
+        # Source order: the base arrow group files after the existing
         # `button.flat` family's tail block, so every arrow twin decides
         # the equal-specificity race against the stock arms.
         self.assertGreater(
             self.selectors.index(arrow),
             self.selectors.index("button.flat:backdrop"),
         )
-        # The token sweep keys on a substring no other landed selector
+        # The token sweep keys on a substring no other existing selector
         # carries: a dropped twin, a renamed spelling, a lost comma member
         # or a stray extra rule fails.
         self.assertEqual(
@@ -1014,7 +1014,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # lives on the shared sweep helper.
         self.assert_infobar_message_type_ban()
 
-    # The 2026-11-09 face extension gives the corner pair the whole landed
+    # The 2026-11-09 face extension gives the corner pair the whole existing
     # `button.flat` face recipe beside the radius, so the exact-dict checks
     # below assert the merged dict instead of the radius alone.
     CLOSE_CORNER_PAIR_RULE = {
@@ -1029,8 +1029,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
     def test_close_button_corners(self):
         # Stock circles the infobar and search-bar close buttons; the
         # square-corner policy squares both faces, and the added
-        # 2026-11-09 face extension paints the landed `button.flat` recipe
-        # on them. The landed window-controls close pair is the sibling
+        # 2026-11-09 face extension paints the existing `button.flat` recipe
+        # on them. The existing window-controls close pair is the sibling
         # this test's radius sweep expects beside them.
         selectors = ("infobar .close", "searchbar > revealer > box .close")
         for selector in selectors:
@@ -1057,15 +1057,15 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_close_button_family(self):
         # The 2026-11-09 family restates every stock flat-band face the
-        # close class carries except the typed-band twins (the landed
+        # close class carries except the typed-band twins (the existing
         # message-type ban needs no type token) and the `:drop(active)`
-        # ring (nothing landed governs a button drop arm). The four
-        # raised-hover recipe faces share the landed `button.flat:hover`
+        # ring (nothing existing governs a button drop arm). The four
+        # raised-hover recipe faces share the existing `button.flat:hover`
         # recipe minus its radius declaration (the corner pair keeps the
-        # radius ownership alone), with the stock ink claim re-landed
-        # black; the pressed and checked faces share the landed inverted
-        # bevel; the disabled face keeps the landed `button:disabled`
-        # shape and clears the stock dim filter under the landed
+        # radius ownership alone), with the stock ink claim re-pinned
+        # black; the pressed and checked faces share the existing inverted
+        # bevel; the disabled face keeps the existing `button:disabled`
+        # shape and clears the stock dim filter under the existing
         # preserve-the-palette policy.
         hover = {
             "background-color": FACE,
@@ -1110,8 +1110,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         }
         self.assert_rule_group(expected)
         # The family sweep: every sheet selector naming a close class against
-        # an infobar or a search bar is exactly the landed corner pair, the
-        # landed searchbar close focus spelling and this family.
+        # an infobar or a search bar is exactly the existing corner pair, the
+        # existing searchbar close focus spelling and this family.
         self.assertEqual(
             {
                 selector
@@ -1135,7 +1135,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in expected:
             with self.subTest(selector=selector):
                 self.assertGreater(self.selectors.index(selector), corner_index)
-        # The landed message-type ban already reads every infobar carrier
+        # The existing message-type ban already reads every infobar carrier
         # through test_infobar; restate it over the family's own members so
         # a future edit cannot add a type token inside this group.
         self.assert_infobar_message_type_ban(expected)
@@ -1166,7 +1166,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_infobar(("actionbar > revealer > box",))
 
     def test_search_bar_backdrop(self):
-        # An unfocused window keeps the landed band face: the
+        # An unfocused window keeps the existing band face: the
         # backdrop record spells its stock twin byte-equal and wins the tie
         # by later user-sheet source order.
         declarations = {
@@ -1201,8 +1201,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
     def test_dropdown_searchbar_rim(self):
         # A dropdown's or combobox's searchable list popover draws the
         # search strip's own stock rim beneath the band edge the strip's
-        # inner search box paints; the landed band group answers the inner
-        # box, so this rim restates the strip itself with the landed etched
+        # inner search box paints; the existing band group answers the inner
+        # box, so this rim restates the strip itself with the existing etched
         # band edge.
         expected = {
             "border-bottom": f"1px solid {ETCH_DARK}",
@@ -1227,7 +1227,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                         self.rules[selector][prop],
                         self.rules["infobar > revealer > box"][prop],
                     )
-        # The landed scroll-edge spellings end with undershoot.top /
+        # The existing scroll-edge spellings end with undershoot.top /
         # undershoot.bottom and stay out of this suffix family.
         self.assertEqual(
             {s for s in self.rules if s.endswith("dropdown-searchbar")},
@@ -1237,7 +1237,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
         # The strip's arm inventory must not grow a .combo-searchbar rule:
-        # stock's margin arm and the landed undershoot twins (which contain
+        # stock's margin arm and the existing undershoot twins (which contain
         # the token but end with an undershoot suffix) stay the only ones.
         self.assertEqual(
             {s for s in self.rules if s.endswith("combo-searchbar")},
@@ -1268,10 +1268,10 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_list_row_press_and_popup_faces(self):
-        # The pressed and popup-holding row states restate the landed
+        # The pressed and popup-holding row states restate the existing
         # faces: stock's toolkit resource and the integration library's
         # base.css resource would paint a tinted hover-wash, pressed
-        # insets-wash-or-an-accent fill on rows the landed records paint
+        # insets-wash-or-an-accent fill on rows the existing records paint
         # transparent or with the flat lavender selection, and the
         # integration library paints background colors on the pressed
         # spellings as well as the toolkit's insets.
@@ -1284,8 +1284,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "row.activatable:selected:hover": {"background-color": SELECTION},
         }
         self.assert_rule_group(expected)
-        # The landed row spellings are all list-, listview-, columnview-
-        # or popover-armed, and the landed bare-row groups spell `row` and
+        # The existing row spellings are all list-, listview-, columnview-
+        # or popover-armed, and the existing bare-row groups spell `row` and
         # `row:focus:focus-visible`, so this element-level family is
         # exactly six.
         self.assertEqual(
@@ -1298,7 +1298,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_selected_row_button_arms(self):
-        # The selected-row button arms restate the landed black: see
+        # The selected-row button arms restate the existing black: see
         # assert_selected_row_button_arms in support.gtk_rule_cases.
         self.assert_selected_row_button_arms("button:backdrop.flat")
 
@@ -1316,7 +1316,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {"color": BLACK},
         )
         # The drag-session arms restate the stock drop strip and drag-over
-        # row twins on the landed selection lavender with black ink;
+        # row twins on the existing selection lavender with black ink;
         # each keeps stock's own
         # geometry members so the byte-equal spelling wins the cascade by
         # later user-sheet source order.
@@ -1421,7 +1421,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertGreater(self.selectors.index(selector), backdrop_order)
                 self.assertLess(self.selectors.index(selector), drop_order)
         # The restated tone is the only separator paint at these view spellings:
-        # no landed selector carries any of the stock arm's tokens, and every
+        # no existing selector carries any of the stock arm's tokens, and every
         # selector ending on one of them is one of the restated spellings.
         self.assertEqual(
             {selector for selector in self.rules
@@ -1450,7 +1450,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_dropdown_list_rows(self):
-        """Open dropdown and combobox popover lists use the landed row recipes."""
+        """Open dropdown and combobox popover lists use the existing row recipes."""
         padding_spellings = (
             "dropdown popover listview > row.activatable",
             "combobox popover listview > row.activatable",
@@ -1472,7 +1472,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertGreater(self.selectors.index(selector), backlog_order)
                 self.assertLess(self.selectors.index(selector), separator_order)
         # Exactly the stocked dropdown twin spellings exist and nothing else:
-        # no landed rule elsewhere in the sheet names a popover listview, so the
+        # no existing rule elsewhere in the sheet names a popover listview, so the
         # family scan kills renamed and stray variants.
         self.assertEqual(
             {selector for selector in self.rules if "popover listview" in selector},
@@ -1485,7 +1485,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_list_row_focus_outlines(self):
-        """Keyboard-focused rows paint the landed black focus colour."""
+        """Keyboard-focused rows paint the existing black focus colour."""
         spellings = (
             "row:focus:focus-visible",
             ".boxed-list > row:focus:focus-visible",
@@ -1523,8 +1523,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         # Stock's generic 300 ms outline-motion arm is removed.
         self.assert_exact_rule_once("row", {"transition": "none"})
-        # Source order: the focus group sits after the landed
-        # disabled-selected backdrop group and before the landed tab-close
+        # Source order: the focus group sits after the existing
+        # disabled-selected backdrop group and before the existing tab-close
         # block.
         self.assertGreater(
             self.selectors.index("row:focus:focus-visible"),
@@ -1546,8 +1546,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in spellings:
             with self.subTest(selector=selector):
                 self.assert_exact_rule_once(selector, {"animation": "none", "background-image": "none"})
-        # Source order: the restated group sits after the landed row-focus
-        # outline rule and before the landed tab-close block.
+        # Source order: the restated group sits after the existing row-focus
+        # outline rule and before the existing tab-close block.
         self.assertGreater(
             self.selectors.index("stacksidebar row.needs-attention > label"),
             self.selectors.index("row:focus:focus-visible"),
@@ -1629,7 +1629,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {s for s in self.rules if "acceleditor" in s},
             set(spellings),
         )
-        # Order pin: the restated group sits directly after the landed
+        # Order pin: the restated group sits directly after the existing
         # drag-drop header-button group and before the expander group.
         self.assertGreater(
             self.selectors.index("columnview.view acceleditor > label"),
@@ -1648,7 +1648,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_flat_entry_fields(self):
-        # The landed entry recipe governs the stock flat entry family: the
+        # The existing entry recipe governs the stock flat entry family: the
         # sheet restates the stock grouped transparent-face arm with one
         # byte-equal six-selector twin declaring ENTRY_FIELD, so a resting,
         # focused, backdrop or disabled flat entry (and a spin button's flat
@@ -1667,7 +1667,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # treeview-embedded flat twins the treeview entry restatement adds:
         # the family scan kills renamed and stray variants alike. The stock
         # `.osd` stepper spellings carry `:not(.flat)` (a not-flat
-        # exclusion, not a flat field); the landed OSD stepper record adds
+        # exclusion, not a flat field); the existing OSD stepper record adds
         # them byte-equal to stock, so the scan holds them out.
         self.assertEqual(
             {
@@ -1682,14 +1682,14 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_spin_field_mirrors_the_etch_in_rtl(self):
         # GTK does not mirror box-shadow for text direction, so a horizontal
-        # RTL spin field kept the landed etch's horizontal top arm only: the
-        # landed :dir(rtl) stepper arms cover the etch's vertical arm at the
+        # RTL spin field kept the existing etch's horizontal top arm only: the
+        # existing :dir(rtl) stepper arms cover the etch's vertical arm at the
         # field's left edge, leaving the exposed right edge half-etched
         # where the LTR field shows the full L (measured 2026-11-11 in a
         # child render before the fix). The sheet mirrors the arm onto the
-        # exposed edge — the landed GTK 3 spinbutton:dir(rtl) record — with
+        # exposed edge — the existing GTK 3 spinbutton:dir(rtl) record — with
         # one plain mirror directly after the plain field rule and one twin
-        # directly after each of the three landed `.osd` state groups, each
+        # directly after each of the three existing `.osd` state groups, each
         # declaring exactly the mirrored arm. Each mirror out-ranks its
         # base group by one class (the `:dir(rtl)` pseudo-class), so the
         # win does not depend on source position; the focused and disabled
@@ -1727,7 +1727,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             ".osd spinbutton.vertical > text:disabled, "
             ".osd spinbutton:disabled:not(.vertical), .osd entry:disabled {",
         )
-        # Token sweeps keyed on substrings no other landed selector
+        # Token sweeps keyed on substrings no other existing selector
         # carries: the plain token matches the plain mirror and its OSD
         # twin (the twin is a superstring), the two state tokens match
         # exactly their own twin, so a dropped mirror, a lost twin, a
@@ -1746,15 +1746,15 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_caps_lock_indicator(self):
-        # The landed entry recipe never names the `caps-lock-indicator`
+        # The existing entry recipe never names the `caps-lock-indicator`
         # image child GTK stacks inside a password entry, so the two toolkit
-        # tiers paint their own look on it even though the landed `entry >
+        # tiers paint their own look on it even though the existing `entry >
         # image` family reaches the node: each stock arm carries the extra
-        # `password` classes that out-specify the landed element pair, so
+        # `password` classes that out-specify the existing element pair, so
         # the toolkit's tint and the base tier's 30% dim stay in force.
         # The sheet tail restates both stock arms byte-equal: the
-        # indicator takes the landed field's black ink (the family's own
-        # pinned source) at the landed button:hover erase precedent's full
+        # indicator takes the existing field's black ink (the family's own
+        # pinned source) at the existing button:hover erase precedent's full
         # strength, so later user-sheet source order wins every
         # equal-specificity tie under either cascade reading.
         for selector in (
@@ -1770,7 +1770,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         # The `entry.password image.caps-lock-indicator` spelling merges
         # one declaration from both restated rules on one key, like the
-        # landed `entry > image` merge keys: the colour rule's landed
+        # existing `entry > image` merge keys: the colour rule's existing
         # black and the opacity rule's full strength, asserted with
         # occurrence count two.
         self.assert_rule(
@@ -1793,7 +1793,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
         # The restated pair holds the entry-image family tail, not a
-        # detached sheet head: the colour arm sits after the landed
+        # detached sheet head: the colour arm sits after the existing
         # margin twin that ends the family and its own comment group.
         self.assertGreater(
             self.selectors.index(
@@ -1803,10 +1803,10 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_treeview_entry_fields(self):
-        # The landed entry recipe governs the stock treeview-embedded entry
+        # The existing entry recipe governs the stock treeview-embedded entry
         # family too: the sheet restates the three stock grouped arms with
         # byte-equal twins declaring ENTRY_FIELD, a black focus border and
-        # the landed no-motion policy, so a resting, focused, flat or
+        # the existing no-motion policy, so a resting, focused, flat or
         # plain editable cell paints the raised field instead of stock's
         # blue focus border and stock's color/background focus transition.
         fields = ("treeview entry.flat", "treeview entry")
@@ -1832,12 +1832,12 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_editable_label_cells(self):
-        # The landed entry recipe governs the stock editable-label family:
+        # The existing entry recipe governs the stock editable-label family:
         # the sheet restates the stock field arm and the four column-view
         # cell-editing arms with byte-equal twins declaring ENTRY_FIELD, the
-        # landed focus-black outline and TEXT_SELECTION, so an editable
+        # existing focus-black outline and TEXT_SELECTION, so an editable
         # label and a column view's cell being edited paint the raised
-        # field, the black focus ring and the landed selection fill instead
+        # field, the black focus ring and the existing selection fill instead
         # of stock's warm-grey border and blue accent tints.
         field = "editablelabel > stack > text"
         focus = (
@@ -1859,7 +1859,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in selection:
             self.assert_rule(selector, TEXT_SELECTION)
             self.assert_exact_rule_once(selector, TEXT_SELECTION)
-        # No other editablelabel spelling exists beyond the landed selection
+        # No other editablelabel spelling exists beyond the existing selection
         # restatement and the five new spellings, and no other columnview row
         # spelling exists at all: the family scans kill renamed and stray
         # variants alike.
@@ -1877,18 +1877,18 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {s for s in self.rules if s.startswith("columnview row")},
             set(focus + selection),
         )
-        # The restatements sit between the landed selected-text groups and
-        # the landed calendar disabled-selected day group: source order is
+        # The restatements sit between the existing selected-text groups and
+        # the existing calendar disabled-selected day group: source order is
         # part of what lets the restatements govern the cell arms, which
-        # outrank the landed editable-label selection twins by specificity.
-        landed_tail = self.selectors.index(
+        # outrank the existing editable-label selection twins by specificity.
+        existing_tail = self.selectors.index(
             "editablelabel > stack > text > selection:focus-within"
         )
         calendar = self.selectors.index(
             "calendar > grid > label.day-number:disabled:selected"
         )
         for selector in (field, *focus, *selection):
-            self.assertGreater(self.selectors.index(selector), landed_tail)
+            self.assertGreater(self.selectors.index(selector), existing_tail)
             self.assertGreater(calendar, self.selectors.index(selector))
 
     def test_title_buttons(self):
@@ -1907,11 +1907,11 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 )
 
     def test_message_dialog_header_band(self):
-        # The message dialog's title band repaints the landed headerbar.
-        # The band restates the landed headerbar, .titlebar group plus its
+        # The message dialog's title band repaints the existing headerbar.
+        # The band restates the existing headerbar, .titlebar group plus its
         # headerbar-only 1px bottom border, the backdrop band restates the
-        # landed headerbar:backdrop, .titlebar:backdrop group, and the
-        # dialog body corners go square; tying through the landed groups'
+        # existing headerbar:backdrop, .titlebar:backdrop group, and the
+        # dialog body corners go square; tying through the existing groups'
         # dictionaries keeps the bands in step with any future header
         # change.
         self.assert_rule(
@@ -1981,7 +1981,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # Stock's grey colour arms still govern the hover, disabled and
         # pressed-selected states of a standalone flat modelbutton and the
         # pressed-selected state inside a popover menu; the byte-twin
-        # restatements paint the landed selection fill and disabled text
+        # restatements paint the existing selection fill and disabled text
         # there (Default-light.css in libgtk-4 4.18.6, probed 2026-11-03).
         for selector in (
             "popover.menu modelbutton:selected:active",
@@ -1993,7 +1993,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.rules["popover.menu modelbutton:hover"]["background-color"],
             )
         self.assertEqual(self.rules["modelbutton.flat:disabled"], {"color": ETCH_DARK})
-        # The landed sheet carries no other modelbutton arm: any stray,
+        # The existing sheet carries no other modelbutton arm: any stray,
         # renamed or removed kind fails the family bound.
         self.assertEqual(
             {selector for selector in self.rules if "modelbutton" in selector},
@@ -2012,7 +2012,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 "modelbutton.flat:disabled",
             },
         )
-        # Both squaring arms sit after the landed hover/select block, the
+        # Both squaring arms sit after the existing hover/select block, the
         # source position that beats any same-theme arm on the corner.
         for selector in ("popover.menu modelbutton", "modelbutton.flat"):
             self.assertGreater(
@@ -2023,7 +2023,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.selectors.index(selector),
                 self.selectors.index("popover.menu modelbutton:selected"),
             )
-        # Each colour arm sits after the landed hover/select blocks and the
+        # Each colour arm sits after the existing hover/select blocks and the
         # squaring radius arms, the source position that beats stock's
         # equal-specificity grey arms and keeps the family together.
         for selector in (
@@ -2048,7 +2048,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # Stock dims the accelerator inside the color declaration alone, so
         # the restatement carries the opacity-free, shadow-free dict whole.
         self.assert_exact_rule_once(selector, {**DISABLED_TEXT})
-        # The stock-twin spelling lands after the landed popover-menu
+        # The stock-twin spelling lands after the existing popover-menu
         # modelbutton faces, the source position that beats either toolkit
         # arm on the tie.
         self.assertGreater(
@@ -2106,8 +2106,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_paned_handle_stock_clearances(self):
         # Exact stock twins from Default-light.css (libgtk-4 4.18.6, probed
-        # 2026-10-31) so sheet order decides every tie like the landed
-        # image clearances do, plus the :dir margins the landed orientation
+        # 2026-10-31) so sheet order decides every tie like the existing
+        # image clearances do, plus the :dir margins the existing orientation
         # rules cannot outrank because each :dir arm carries one class more.
         for selector in (
             "paned > separator",
@@ -2176,7 +2176,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_matches_frame("flowbox > flowboxchild", "border-radius")
 
     def test_view_child_selected_arms(self):
-        """Pin the view children restated off the landed row selection."""
+        """Pin the view children restated off the existing row selection."""
         self.assert_rule(
             "flowbox > flowboxchild:selected",
             {
@@ -2251,7 +2251,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assert_matches_frame(selector, "border-radius")
 
     def test_iconview_selected_arms(self):
-        """Pin the selected icon view restated off the landed row selection."""
+        """Pin the selected icon view restated off the existing row selection."""
         for selector in (
             "iconview.view:not(:disabled):selected",
             "iconview.view:not(:disabled):selected:focus",
@@ -2268,7 +2268,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 )
         self.assert_matches_frame("iconview.view:not(:disabled):selected", "border-radius")
         # Exact guarded spellings also prevent overriding disabled selections.
-        # The family keeps the landed DND drop border as its only other
+        # The family keeps the existing DND drop border as its only other
         # icon-view rule: a renamed restated arm leaves exactly its successor.
         # 2026-11-05: the tile-check face record restates eight more
         # iconview arms -- the selection-check state faces
@@ -2330,7 +2330,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in selectors:
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"outline-color": BLACK})
-        # The landed calendar label arm sits under ``calendar``, the link
+        # The existing calendar label arm sits under ``calendar``, the link
         # state arms carry no focus twin, and the label selection arm is a
         # ``:focus-within`` selection rule, so matching ``:focus-visible``
         # pins exactly the six stock twins and rejects renames or strays.
@@ -2348,13 +2348,13 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_card_focus_outline_color(self):
-        """Pin the card focus arms to the landed black focus colour."""
+        """Pin the card focus arms to the existing black focus colour."""
         selectors = (
             "button.card:focus:focus-visible",
             ".card:focus:focus-visible",
         )
         self.assert_scale_anchored_focus_outline(selectors)
-        # The landed tabgrid card arm ends with ``.card``, not
+        # The existing tabgrid card arm ends with ``.card``, not
         # ``:focus-visible``, so the two ``:focus-visible``-ending card
         # spellings pin exactly the two stock twins and reject renames,
         # strays or a dropped arm.
@@ -2391,8 +2391,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {s for s in self.rules if "cursor-handle" in s},
             {selector},
         )
-        # The group closes the sheet's landed cursor-handle comment block
-        # after the residual focus group and the landed card focus colour
+        # The group closes the sheet's existing cursor-handle comment block
+        # after the residual focus group and the existing card focus colour
         # group, so the later source order wins the equal-specificity
         # cascade tie against the stock resource: the 2026-11-04 alert-dialog
         # comment and corner groups follow it without speaking to any
@@ -2455,7 +2455,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                     )
 
     def test_circular_button_corners(self):
-        # The landed circular record squares the two children the toolkit
+        # The existing circular record squares the two children the toolkit
         # arms name; the 2026-11-04 container entry adds the two .circular
         # container members stock groups with the pill pair, so the
         # .circular sweep covers all four spellings.
@@ -2484,9 +2484,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a preference-row spin
         stepper, so the sheet restates the six row-spin members stock's
         34px-minimum arm (and its earlier 9px arm) declares byte-equal,
-        each carrying exactly the zero radius: the landed generic button
+        each carrying exactly the zero radius: the existing generic button
         restate names the one element and loses the compound row.spin tie,
-        and the landed plain horizontal stepper groups name
+        and the existing plain horizontal stepper groups name
         spinbutton:not(.vertical), so stock paints these steppers 9px and
         9999px round today. The six spellings sit in one comma group at the
         sheet tail with their dated comment.
@@ -2514,7 +2514,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a sidebar navigation
         button, so the sheet restates stock's 16px-minimum 100%-radius arm
-        byte-equal with exactly the zero radius: the landed sidebar records
+        byte-equal with exactly the zero radius: the existing sidebar records
         own the focus outline colour and the selection-tint colours only,
         so stock keeps this button's face round today.
         """
@@ -2548,7 +2548,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_tab_thumbnail_corners(self):
         # The 2026-11-04 tab-family corner row adds three stock-spelling
-        # tab-overview members beside the landed tab-preview shell spellings.
+        # tab-overview members beside the existing tab-preview shell spellings.
         expected = {
             "tabthumbnail",
             "tabthumbnail .card picture",
@@ -2605,7 +2605,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             {container} | set(band),
         )
         splitbutton = self.rules[container]
-        # The landed container record keeps its frame-equal radius; the
+        # The existing container record keeps its frame-equal radius; the
         # 2026-11-04 band group squares the absolute-band and .flat faces
         # beside it, and test_splitbutton_band_corners pins their spellings.
         self.assertEqual(splitbutton, {"border-radius": "0"})
@@ -2623,7 +2623,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         """Pin the toolbar-band and flat split-button face corners.
 
         The band arm carries four :not() classes behind every band prefix,
-        so the landed generic button radius restate loses on it; the group
+        so the existing generic button radius restate loses on it; the group
         restates every spelling byte-equal to stock so later user-sheet
         source order wins the equal-specificity cascade tie.
         """
@@ -2655,7 +2655,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "splitbutton.flat > button",
             "splitbutton.flat > menubutton > button",
         ]
-        # The landed band focus twins end with :focus:focus-visible, so
+        # The existing band focus twins end with :focus:focus-visible, so
         # they stay out of this suffix scan, and the bare container key
         # never ends with these suffixes either. Exactly ten face spellings
         # square to the policy; nothing else in the sheet touches a
@@ -2674,8 +2674,8 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 self.assertEqual(self.selectors.count(selector), 1)
                 self.assert_rule(selector, {"border-radius": "0"})
                 self.assert_square_corner(selector)
-                # The group sits between the landed searchbar band focus
-                # group and the residual focus group: after the landed
+                # The group sits between the existing searchbar band focus
+                # group and the residual focus group: after the existing
                 # splitbutton container key, before label:focus:focus-visible.
                 self.assertGreater(
                     self.selectors.index(selector),
@@ -2719,7 +2719,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
         self.assert_rule("row image.sidebar-icon", {"opacity": "1"})
         self.assertEqual(self.selectors.count("row image.sidebar-icon"), 1)
-        # Held in the landed sidebar neighbourhood, not a detached tail.
+        # Held in the existing sidebar neighbourhood, not a detached tail.
         self.assertGreater(
             self.selectors.index("row image.sidebar-icon"),
             self.selectors.index(
@@ -2977,7 +2977,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             self.assert_rule(selector, {"background-image": "none"})
 
     def test_scrolled_corner_junction_shares_the_scrollbar_band(self):
-        """Both scrollbar-corner junction arms paint the landed trough band."""
+        """Both scrollbar-corner junction arms paint the existing trough band."""
         expected = {"background-color": TROUGH, "background-image": "none"}
         for selector in (
             "scrolledwindow > junction",
@@ -3011,7 +3011,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_progressbar_label_ink(self):
-        """A meter's show-text percentage label keeps the landed window ink."""
+        """A meter's show-text percentage label keeps the existing window ink."""
         self.assert_rule_group({"progressbar": {"color": BLACK}})
         self.assertEqual(
             {
@@ -3026,7 +3026,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_rule_after("progressbar > trough {", "progressbar {")
 
     def test_treeview_progress_cell_faces(self):
-        """A view row's progress cell keeps the landed meter faces."""
+        """A view row's progress cell keeps the existing meter faces."""
         selected_cell = (
             "columnview.view.progressbar:selected:focus",
             "columnview.view.progressbar:selected",
@@ -3121,18 +3121,18 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_headerbar_meter_faces(self):
-        """A meter embedded in the title band keeps the landed faces.
+        """A meter embedded in the title band keeps the existing faces.
 
         Stock's one headerbar-descended meter arm repaints troughs and
         scale fills inside a headerbar with the stock band face; the
-        sheet restates the arm's spellings split by landed value so a
-        headerbar progress bar or scale keeps the landed `#EEEEEE`
-        trough face and the landed transparent fill and highlight
+        sheet restates the arm's spellings split by existing value so a
+        headerbar progress bar or scale keeps the existing `#EEEEEE`
+        trough face and the existing transparent fill and highlight
         faces under either loading reading. The whole-dict reads kill
         a stock band value, a dropped or added spelling, a merged
         single group carrying one value and any value drift; the
         occurrence sweep kills a stray twin or per-state split; the
-        order pin fixes the block between the landed fill/highlight
+        order pin fixes the block between the existing fill/highlight
         and hover/active highlight groups.
         """
         trough_expected = {"background-color": TROUGH}
@@ -3218,26 +3218,26 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_selected_row_meter_rims(self):
-        """A meter in a selected row keeps the landed rims over the selection.
+        """A meter in a selected row keeps the existing rims over the selection.
 
         Stock's selected-row meter arms (libgtk-4 light resource lines
         1085, 1095 and 1133, dark twins at 1073, 1083 and 1121) repaint
         the trough rim with the stock accent-deep ink under the stock
         translucent white selection outline and both thumb states with
         the accent-deep ink, and the `row:selected` prefix out-specifies
-        the landed plain meter groups, so inside the landed lavender
+        the existing plain meter groups, so inside the existing lavender
         selection a meter's rims repaint stock's ink today. The restated
-        groups repeat the landed trough rim #000000 and the landed thumb
+        groups repeat the existing trough rim #000000 and the existing thumb
         rims — #000000 enabled, flat #999999 disabled — as byte-equal
         stock spellings that sit later, so under lower-sheet riding they
         win the per-property tie at stock's own specificity; under the
         replacement reading these rules are the only holders of the
-        spellings. Stock's one thumb comma group is split by landed state
+        spellings. Stock's one thumb comma group is split by existing state
         into two single-spelling rules, since a comma group shares its
         declarations across every member and one group cannot carry the
         disabled thumb's flat grey rim and the enabled thumb's black rim;
         the disabled spelling out-specifies the bare thumb spelling, so
-        each state keeps its landed rim. The sweep and order pins kill a
+        each state keeps its existing rim. The sweep and order pins kill a
         merged comma group, a renamed spelling and a stray selected-row
         meter rule.
         """
@@ -3267,9 +3267,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 "row:selected scale > trough > slider",
             },
         )
-        # The restated rims sit inside the landed disabled-meter
-        # neighbourhood on the raw sheet: after the landed disabled
-        # trough group and before the landed opaque disabled policy.
+        # The restated rims sit inside the existing disabled-meter
+        # neighbourhood on the raw sheet: after the existing disabled
+        # trough group and before the existing opaque disabled policy.
         self.assert_rule_after(
             "row:selected progressbar > trough,",
             "scale > trough:disabled",
@@ -3428,7 +3428,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             "tabthumbnail button",
             "tabthumbnail button > image",
             "tabthumbnail .needs-attention > widget",
-            # The extended base group also keeps its landed no-transition.
+            # The extended base group also keeps its existing no-transition.
             "tabbar tabbox > tabboxchild",
         )
         for selector in selectors:
@@ -3473,7 +3473,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
              if "revealer > indicator" in selector},
             {"tabbar tabbox > revealer > indicator"},
         )
-        # Source order: the tab seam restatements sit after the landed tabgrid
+        # Source order: the tab seam restatements sit after the existing tabgrid
         # focus arm and before the stack switcher face.
         self.assertGreater(
             self.selectors.index("dnd tab"),
@@ -3582,7 +3582,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # while the covered child buttons declare transparent
         # backgrounds), so the six face groups join them in one comma
         # group. The two .pill container spellings stay excluded: the
-        # landed pill record already squares them byte-for-byte.
+        # existing pill record already squares them byte-for-byte.
         selectors = {
             "button.color > colorswatch:only-child",
             "button.color > colorswatch:only-child > overlay",
@@ -3603,7 +3603,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         # The distinctive button colour token is new to the sheet, so the
         # scan is its whole contract; a stray state twin would carry it
         # into the set. (The menu-button tokens cannot be swept by
-        # substring: landed band focus and covered-button spellings name
+        # substring: existing band focus and covered-button spellings name
         # them too, so those faces guard by count-1 and whole-rule above.)
         self.assertEqual(
             {selector for selector in self.rules if "button.color" in selector},
@@ -3615,7 +3615,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_residual_radius_corners(self):
         # The 2026-11-04 residual-corner row squares the last seven
-        # radius-bearing stock widget faces no landed restatement reaches:
+        # radius-bearing stock widget faces no existing restatement reaches:
         # the eight byte-equal spellings in one tail comma group (the
         # about-dialog version pill carries two node arms stock splits in
         # its own comma group, so eight selectors serve seven faces).
@@ -3637,9 +3637,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                     self.selectors.index(selector),
                     self.selectors.index("indicatorbin > mask"),
                 )
-        # Family sweeps on the distinctive tokens no landed selector
+        # Family sweeps on the distinctive tokens no existing selector
         # carries; the shortcut shell settles for the whole-dict and
-        # count-1 guard above because the token already names the landed
+        # count-1 guard above because the token already names the existing
         # keycap and focus spellings.
         self.assertEqual(
             {selector for selector in self.rules if "avatar" in selector},
@@ -3675,9 +3675,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_alert_dialog_corners(self):
         # The 2026-11-04 alert-dialog comment block appends six
-        # stock-comma groups after the landed cursor-handle tail group;
+        # stock-comma groups after the existing cursor-handle tail group;
         # the sheet parser splits each comma group into per-selector keys,
-        # nine in all (the legacy .dialog-action-area keys from the landed
+        # nine in all (the legacy .dialog-action-area keys from the existing
         # message-dialog records join the action-area prefix scan below).
         members = {
             "window.dialog.message.csd:not(.solid-csd)": {"border-radius": "0"},
@@ -3771,14 +3771,14 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_selection_surface_corners(self):
         # The 2026-11-04 selection-surface comment block appends one
-        # three-selector comma group after the landed spin-button axis
+        # three-selector comma group after the existing spin-button axis
         # chains at the sheet tail; the sheet parser splits it into
         # per-selector keys. These three compound spellings are the
-        # members of stock's selected-view comma arm that the landed
+        # members of stock's selected-view comma arm that the existing
         # class-only .view:selected restatement, the icon-view group and
         # the row groups lose the specificity tie against, so stock's
         # 9px-rounded selected face paints them until this group restates
-        # the zero the landed square-corner policy carries everywhere but
+        # the zero the existing square-corner policy carries everywhere but
         # the radio circle. The 2026-11-04 palette half extends the same
         # group in place: each member's block carries the flat opaque
         # #CCCCFF selection fill above the zero radius, so stock's
@@ -3800,7 +3800,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
                 "border-radius": "0",
             },
         }
-        # The token sweeps key on substrings no landed selector carries:
+        # The token sweeps key on substrings no existing selector carries:
         # both sheet spellings alone carry "sheet:selected", and the print
         # action-box spelling alone carries "dialog-action-box:selected".
         self.assertEqual(
@@ -3819,9 +3819,9 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_exact_rule_once(selector, rule)
                 self.assert_matches_frame(selector, "border-radius")
-                # The landed frame pair declares no background-color, so
+                # The existing frame pair declares no background-color, so
                 # the fill anchors to the pinned SELECTION constant the
-                # landed .view, row and icon-view selection tests use.
+                # existing .view, row and icon-view selection tests use.
                 self.assertEqual(rule["background-color"], SELECTION)
         for selector in members:
             self.assertGreater(
@@ -3835,7 +3835,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_expander_widget_title_corners(self):
         # The 2026-11-04 expander-title comment block appends one group
-        # after the landed alert-dialog groups at the sheet tail; stock's
+        # after the existing alert-dialog groups at the sheet tail; stock's
         # two radius arms (integration 6px, toolkit 5px) share one selector
         # string, so one byte-equal restatement squares both.
         self.assertEqual(
@@ -3858,7 +3858,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
 
     def test_sheet_widget_corners(self):
         # The 2026-11-04 sheet-widget comment block appends three groups
-        # after the landed expander-title tail group; stock's three radius
+        # after the existing expander-title tail group; stock's three radius
         # arms share these six selector strings across the two sheet
         # widget families, so byte-equal restatements square them all while
         # stock's transitions, shadows, outline, fill, min sizes and
@@ -3938,7 +3938,7 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_menu_selection_corners(self):
-        # The 2026-11-04 menu-selection corner row squares the landed
+        # The 2026-11-04 menu-selection corner row squares the existing
         # menubar item beside its padding pin and adds the two stock
         # twins at the modelbutton-to-tooltip seam.
         self.assert_rule("menubar > item", {"border-radius": "0"})

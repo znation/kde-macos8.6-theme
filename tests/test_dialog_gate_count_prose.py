@@ -14,7 +14,7 @@ classes in ``tests/test_render_surface.py``, never from the prose, so the
 two cannot drift in opposite directions.
 The kdialog-mode count derives from the live ``DIALOG_MODES`` table in
 ``tools/render_dialogs.py``, not from the gate classes: a mode can land before
-its gate (the file-dialog series' part 1/2 landed the mode, part 2/2 its gate),
+its gate (the file-dialog series' part 1/2 added the mode, part 2/2 its gate),
 and the words that say how many kdialog clients the render CLI demands must
 track the CLI's table from the moment the mode exists, not wait for the gate.
 ``tests/test_render_dialogs.py``'s table docstring counts the dialog modes

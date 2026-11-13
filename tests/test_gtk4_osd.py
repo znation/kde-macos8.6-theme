@@ -21,16 +21,16 @@ from support.platinum_palette import BLACK, FACE, GREY, WHITE
 
 class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
     def test_osd_entry_fields(self):
-        # The landed entry recipe governs the stock OSD overlay field family
+        # The existing entry recipe governs the stock OSD overlay field family
         # too: the sheet restates the toolkit resource's three grouped
         # translucent dark field arms with byte-equal twins carrying the
-        # landed ENTRY_FIELD recipe plus the stock-cleared shadings, so a
+        # existing ENTRY_FIELD recipe plus the stock-cleared shadings, so a
         # resting, focused or disabled entry or spin-button field inside the
-        # landed overlay band paints the raised field instead of dropping
+        # existing overlay band paints the raised field instead of dropping
         # back to stock's translucent bubble or the toolkit accent focus
         # border. No collected reference screenshot shows a field inside a
         # GTK OSD overlay, so this is the standing GTK-scope adaptation,
-        # mirroring the landed GTK 3 OSD record and the landed GTK 4 OSD
+        # mirroring the existing GTK 3 OSD record and the existing GTK 4 OSD
         # check/radio restate; the arms come from
         # /org/gtk/libgtk/theme/Default/Default-light.css and Default-dark.css
         # in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6).
@@ -61,7 +61,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         for selector in selectors:
             self.assert_exact_rule_once(selector, field)
         # No other `.osd`-prefixed entry or spinbutton spelling exists
-        # beyond the restated field arms and the landed RTL spin-field
+        # beyond the restated field arms and the existing RTL spin-field
         # mirrors the OSD record carries (three `:dir(rtl)` twins, one
         # beside each state group): the scan excludes the stock
         # stepper families (`> button`) and the stock inner-text arms
@@ -134,7 +134,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
             for node in ("check", "radio")
             for state in ("", ":hover", ":active", ":disabled")
         }
-        landed = {
+        existing = {
             # The 2026-11-04 residual-corner row squares the color chooser's
             # class-qualified OSD popover cap; its rule carries only the
             # radius, and the sweep's tokens name no `button` in that
@@ -183,7 +183,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
                 if "button" not in selector
                 and any(token in selector for token in tokens)
             },
-            set(selectors) | landed,
+            set(selectors) | existing,
         )
 
     def test_osd_check_radio(self):
@@ -191,7 +191,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows a check or radio inside a
         GTK OSD overlay, so the sheet restates the toolkit resource's four
-        `.osd check`/`.osd radio` arms with the landed plain check and radio
+        `.osd check`/`.osd radio` arms with the existing plain check and radio
         recipes (CHECK and RADIO in ``support.gtk_theme_spec.py``) plus one
         clearance the stock arms claim: a black focus-outline colour in
         place of the toolkit's accent-tinted ring. The arm selectors and
@@ -233,15 +233,15 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         No collected reference screenshot shows a spinbutton stepper
         inside a GTK OSD overlay, so the sheet restates the toolkit
         resource's ten ``.osd spinbutton ... button`` stepper arms with
-        the landed raised push-button face (the dictionary the landed
+        the existing raised push-button face (the dictionary the existing
         GTK 3 sibling record
         ``tests/test_gtk_theme_osd.py``
         ::test_osd_spinbutton_buttons pins from the same specs), like the
-        landed .osd check/radio and scale-thumb restatements: the raised
+        existing .osd check/radio and scale-thumb restatements: the raised
         #DDDDDD face with a 1px black border, zero radius, the
         BUTTON_BEVEL etch and black labels; the disabled arms take the
-        landed grey Etch colour (ETCH_DARK) and keep no outline colour,
-        as the landed disabled arms also claim none; the vertical pressed
+        existing grey Etch colour (ETCH_DARK) and keep no outline colour,
+        as the existing disabled arms also claim none; the vertical pressed
         arm swaps to the INVERTED_BUTTON_BEVEL; and the vertical arms
         carry the background-clip: border-box clearance stock's
         padding-box claim needs behind the opaque black border. Stock
@@ -307,7 +307,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertEqual(len(expected), 16)
         self.assert_rule_group(expected)
         # No other `spinbutton … button` spelling exists inside the overlay
-        # scope: the scan kills renamed and stray variants alike (the landed
+        # scope: the scan kills renamed and stray variants alike (the existing
         # entry-field spellings carry no ` button` token).
         self.assertEqual(
             {
@@ -319,8 +319,8 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
             },
             set(expected),
         )
-        # The ten groups sit between the landed OSD scale-thumb tail and the
-        # landed scale-popup block.
+        # The ten groups sit between the existing OSD scale-thumb tail and the
+        # existing scale-popup block.
         first = self.selectors.index(up)
         last = self.selectors.index(
             ".osd spinbutton.vertical > button:first-child:disabled"

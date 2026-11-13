@@ -29,7 +29,7 @@ class TestGtk4Emoji(Gtk4SheetRuleCases, unittest.TestCase):
         # picker's band of sections: the search strip paints a bottom rim
         # and the section toolbar paints a top rim. No collected reference
         # screenshot shows a GTK emoji picker, so the bottom rim joins the
-        # landed etched band and the top rim takes the landed dark
+        # existing etched band and the top rim takes the existing dark
         # separator ink as a flat rim.
         searchbar = ".emoji-searchbar"
         toolbar = ".emoji-toolbar"
@@ -60,8 +60,8 @@ class TestGtk4Emoji(Gtk4SheetRuleCases, unittest.TestCase):
             {s for s in self.rules if "emoji-toolbar" in s},
             {toolbar},
         )
-        # Both strips sit beside the landed statusbar band group, ahead of
-        # the landed path-bar group.
+        # Both strips sit beside the existing statusbar band group, ahead of
+        # the existing path-bar group.
         for selector in (searchbar, toolbar):
             with self.subTest(selector=selector):
                 self.assertGreater(
@@ -109,7 +109,7 @@ class TestGtk4Emoji(Gtk4SheetRuleCases, unittest.TestCase):
 
         No collected reference screenshot shows an emoji picker's section
         row, so the sheet restates stock's 34px-minimum section-button arm
-        byte-equal with exactly the zero radius: the landed emoji-section
+        byte-equal with exactly the zero radius: the existing emoji-section
         record squares the picker's emoji-completion-row corners and owns
         only this button's focus outline, so stock keeps this button's own
         face round today.

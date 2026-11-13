@@ -63,7 +63,7 @@ class TestReadmeDialogGateProse(unittest.TestCase):
         )
 
     def test_readme_does_not_call_the_menu_gate_unpinned(self):
-        # The menu item-view's gate landed; the prose that once said the pin
+        # The menu item-view's gate is on main; the prose that once said the pin
         # was missing must not return, and the dialog-render summary paragraph
         # must keep naming the menu gate beside the two older ones.
         text = corpus()

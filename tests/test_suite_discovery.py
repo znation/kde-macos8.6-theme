@@ -499,7 +499,7 @@ class TestSuiteDiscovery(unittest.TestCase):
         # A later def of the same name in the same scope replaces the earlier
         # one at import time, so a copy-pasted test method silently shadows
         # the test it was filed under while the suite stays green. Two such
-        # shadowings landed on main and were found only by hand (the
+        # shadowings merged to main and were found only by hand (the
         # missing-kdialog slider test and the escaped-whitespace GTK test,
         # both fixed 2026-11-10); this guard parses every tests/*.py file so
         # the next one cannot land unreported.
