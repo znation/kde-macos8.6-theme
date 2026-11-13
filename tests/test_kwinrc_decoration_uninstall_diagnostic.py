@@ -38,7 +38,10 @@ from support.kwinrc_uninstall_wording import (
     LIBRARY_KEY,
     REMOVAL_GROUP,
     THEME_KEY,
+    aurorae_pair_body,
     aurorae_pair_rule as AURORAE_PAIR_RULE,
+    aurorae_theme_body,
+    aurorae_theme_lines,
     button_rule as BUTTON_RULE,
 )
 
@@ -67,7 +70,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
     def test_warns_and_names_the_reset_for_the_theme_key(self):
         tmp, config = make_config_home(self)
         path = write_kwinrc(
-            config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
+            config, aurorae_theme_body()
         )
         # A diagnostic must not edit the user's kwinrc.
         assert_uninstall_diagnostics(
@@ -83,15 +86,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         tmp, config = make_config_home(self)
         path = write_kwinrc(
             config,
-            "[" + REMOVAL_GROUP + "]\n"
-            + LIBRARY_KEY
-            + "="
-            + AURORAE_LIBRARY
-            + "\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\nButtonsOnLeft=X\nButtonsOnRight=AL\n",
+            aurorae_pair_body() + "ButtonsOnLeft=X\nButtonsOnRight=AL\n",
         )
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
@@ -133,10 +128,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + "="
             + AURORAE_LIBRARY
             + "\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+            + aurorae_theme_lines(),
         )
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path), unchanged=path)
 
@@ -145,16 +137,9 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         path = write_kwinrc(
             config,
             "[" + REMOVAL_GROUP + "]\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n"
-            + THEME_KEY
-            + "=KvArc\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+            + aurorae_theme_lines()
+            + aurorae_theme_lines(theme="KvArc")
+            + aurorae_theme_lines(),
         )
 
         assert_uninstall_diagnostics(self, tmp, config, rule_for(path))
@@ -163,25 +148,19 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         # The existing pair diagnostic names both keys, so these shapes belong
         # to this read: the decoration id survives through `theme` alone.
         for body in (
-            "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n",
+            aurorae_theme_body(),
             "["
             + REMOVAL_GROUP
             + "]\n"
             + LIBRARY_KEY
             + "=org.kde.kwin.oxygen\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+            + aurorae_theme_lines(),
             "["
             + REMOVAL_GROUP
             + "]\n"
             + LIBRARY_KEY
             + "=foo\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+            + aurorae_theme_lines(),
         ):
             with self.subTest(body=body):
                 tmp, config = make_config_home(self)
@@ -208,9 +187,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
 
     def test_silent_without_a_decoration_group(self):
         tmp, config = make_config_home(self)
-        path = write_kwinrc(
-            config, "[Other]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
-        )
+        path = write_kwinrc(config, "[Other]\n" + aurorae_theme_lines())
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration", unchanged=path)
 
     def test_silent_when_the_group_holds_no_theme_key(self):
@@ -256,10 +233,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
                     + "="
                     + AURORAE_LIBRARY
                     + "\n"
-                    + THEME_KEY
-                    + "="
-                    + value
-                    + "\n",
+                    + aurorae_theme_lines(theme=value),
                 )
                 original = read_bytes(path)
 
@@ -282,8 +256,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + "="
             + AURORAE_LIBRARY
             + "\n"
-            + THEME_KEY
-            + "=\n",
+            + aurorae_theme_lines(theme=""),
         )
         assert_uninstall_diagnostics(self, tmp, config, absent=rule_for(path), unchanged=path)
 
@@ -300,10 +273,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + "="
             + AURORAE_LIBRARY
             + "\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n"
+            + aurorae_theme_lines()
             + THEME_KEY
             + "=KvArc\n",
         )
@@ -320,10 +290,7 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             + "="
             + AURORAE_LIBRARY
             + "\n[Other]\n"
-            + THEME_KEY
-            + "="
-            + AURORAE_THEME
-            + "\n",
+            + aurorae_theme_lines(),
         )
         assert_uninstall_diagnostics(self, tmp, config, absent="window-decoration", unchanged=path)
 
@@ -332,18 +299,14 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
         # relative XDG_CONFIG_HOME and reads `$HOME/.config`.
         assert_home_fallback(
             self,
-            lambda config: write_kwinrc(
-                config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
-            ),
+            lambda config: write_kwinrc(config, aurorae_theme_body()),
             rule_for,
         )
 
     def test_reads_the_home_fallback_for_a_relative_xdg_config_home(self):
         assert_home_fallback(
             self,
-            lambda config: write_kwinrc(
-                config, "[" + REMOVAL_GROUP + "]\n" + THEME_KEY + "=" + AURORAE_THEME + "\n"
-            ),
+            lambda config: write_kwinrc(config, aurorae_theme_body()),
             rule_for,
             relative=True,
         )
