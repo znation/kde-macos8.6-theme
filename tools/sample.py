@@ -61,20 +61,28 @@ def _sample_jpeg(args, fd: int) -> int:
     """
     try:
         with decoded_png(_read_entire(fd), "sample-jpeg-") as temp_png:
-            try:
-                width, height = read_png_size(str(temp_png))
-                message = region_error(args, width, height)
-                if message is not None:
-                    return report_error("sample", message)
-                image = read_png(str(temp_png), max_rows=args.y + args.height)
-            except PngError as exc:
-                return report_error(
-                    "sample", str(exc).replace(str(temp_png), args.image)
-                )
+            return _sample_temp_png(args, temp_png)
     except JpegDecodeError as problem:
         return report_error(
             "sample", f"cannot decode {args.image}: {problem}"
         )
+    except PngError as exc:
+        # The ``with`` target stays bound after the block, so the scrub
+        # still names the operator's path, never the removed temporary's.
+        return report_error("sample", str(exc).replace(str(temp_png), args.image))
+
+
+def _sample_temp_png(args, temp_png) -> int:
+    """Report the sample from the converted PNG at *temp_png*.
+
+    Raises :class:`PngError` when the converted PNG cannot be read; the
+    caller reports it under the operator's path.
+    """
+    width, height = read_png_size(str(temp_png))
+    message = region_error(args, width, height)
+    if message is not None:
+        return report_error("sample", message)
+    image = read_png(str(temp_png), max_rows=args.y + args.height)
     header = format_image_header(args.image, width, height)
     report(args, image, width, height, header)
     return 0

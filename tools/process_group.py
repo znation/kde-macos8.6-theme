@@ -250,14 +250,26 @@ def run_logged_split(
         finally:
             kill_group(process)
             reap(process)
-            if writer is not None:
-                if not writer_started:
-                    try:
-                        process.stdin.close()
-                    except OSError:
-                        pass
-                else:
-                    writer.join(_REAP_TIMEOUT)
+            _finish_writer(process, writer, writer_started)
+
+
+def _finish_writer(process, writer, writer_started) -> None:
+    """Shut the stdin writer down after the supervised wait.
+
+    A writer that never started cannot be joined -- its thread never ran --
+    so its pipe is closed here to unblock a child still reading. A started
+    writer closes its own pipe once written and is joined with a bounded
+    timeout, so cleanup cannot stall past it.
+    """
+    if writer is None:
+        return
+    if not writer_started:
+        try:
+            process.stdin.close()
+        except OSError:
+            pass
+        return
+    writer.join(_REAP_TIMEOUT)
 
 
 def _feed_stdin(sink, data: bytes) -> None:

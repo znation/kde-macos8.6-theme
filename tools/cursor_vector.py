@@ -149,6 +149,27 @@ def _distance_to_edges(x, y, edges):
     )
 
 
+def _pixel_counts(edges, width, scale, samples, px, py):
+    """Count the black and white sub-samples of pixel (*px*, *py*).
+
+    Each pixel takes ``samples * samples`` sub-samples at the centres
+    ``(px + (i + 0.5) / samples, py + (j + 0.5) / samples)``, scaled into
+    design units by *scale*. A centre inside the face polygon counts black;
+    one within *width* of the outline counts white.
+    """
+    black = 0
+    white = 0
+    for j in range(samples):
+        sy = (py + (j + 0.5) / samples) * scale
+        for i in range(samples):
+            sx = (px + (i + 0.5) / samples) * scale
+            if _inside(sx, sy, edges):
+                black += 1
+            elif _distance_to_edges(sx, sy, edges) <= width:
+                white += 1
+    return black, white
+
+
 def render_vector_rgba(art, size, samples=DEFAULT_SAMPLES):
     """Return ``size * size * 4`` straight (non-premultiplied) RGBA bytes.
 
@@ -172,16 +193,8 @@ def render_vector_rgba(art, size, samples=DEFAULT_SAMPLES):
     out = bytearray(size * size * 4)
     for py in range(size):
         for px in range(size):
-            black = 0
-            white = 0
-            for j in range(samples):
-                sy = (py + (j + 0.5) / samples) * scale
-                for i in range(samples):
-                    sx = (px + (i + 0.5) / samples) * scale
-                    if _inside(sx, sy, edges):
-                        black += 1
-                    elif _distance_to_edges(sx, sy, edges) <= width:
-                        white += 1
+            black, white = _pixel_counts(
+                edges, width, scale, samples, px, py)
             covered = black + white
             if covered == 0:
                 continue
