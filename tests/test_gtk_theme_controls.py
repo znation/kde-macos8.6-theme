@@ -68,6 +68,18 @@ ICON_GO_NEXT = (
     / "go-next-symbolic.svg"
 )
 
+# The child program's sheet prologue, shared by all nine GTK 3 probes in
+# this module: an `import re` line first, then the gi imports with their
+# exit-77 skip guards, then the sheet read from sys.argv[1] with every
+# url() reference stripped into `css`. The programs still differ in which
+# widget they draw, which stays in each test.
+_GTK3_SHEET_PROLOGUE = (
+    "\nimport re\n"
+    + _GTK3_CHILD_HEAD
+    + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+'''
+)
+
 class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
 
@@ -502,10 +514,7 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         # The GTK work runs in a child interpreter; see _run_gtk_child for
         # why it never runs in this one.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
-'''
+            _GTK3_SHEET_PROLOGUE
             + _GTK3_SHEET_AND_WINDOW
             + '''entry = Gtk.Entry()
 entry.set_progress_fraction(0.5)
@@ -530,9 +539,8 @@ print("entry progress: the 0.5 fraction leaves the #CCCCFF strip one and two pix
         # fill span the trough interior. Each bar renders in its own
         # offscreen window; see _run_gtk_child for why this runs in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -592,10 +600,7 @@ print("progress bar: the 0.5 fill spans trough rows 1-10 and columns 1-10 on the
         # a child interpreter; see _run_gtk_child for why it never runs in
         # this one.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
-'''
+            _GTK3_SHEET_PROLOGUE
             + _GTK3_SHEET_AND_WINDOW
             + '''box = Gtk.Box()
 box.set_border_width(5)
@@ -656,9 +661,8 @@ print("disabled text view: the allocation corners read the white field, no pixel
         # gets a fresh offscreen window; see _run_gtk_child for why this runs
         # in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -735,9 +739,8 @@ print("scrolled viewport: the IN frame is 1px black with a grey inset and no sec
         # middle column and row. Each render gets a fresh offscreen window;
         # see _run_gtk_child for why this runs in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -844,10 +847,7 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         # runs in a child interpreter; see _run_gtk_child for why it never
         # runs in this one.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
-'''
+            _GTK3_SHEET_PROLOGUE
             + _GTK3_SHEET_AND_WINDOW
             + '''window.set_default_size(160, 60)
 notebook = Gtk.Notebook()
@@ -1902,9 +1902,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         # seams and the right edge. Each render gets a fresh offscreen window;
         # see _run_gtk_child for why this runs in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -1987,9 +1986,8 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
         # from its own allocation in both directions; see _run_gtk_child
         # for why this runs in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -2052,9 +2050,8 @@ print("OSD spin field: the etch's vertical arm reads at the exposed edge column 
         # render gets a fresh offscreen window; see _run_gtk_child for
         # why this runs in a child.
         program = (
-            "\nimport re\n"
-            + _GTK3_CHILD_HEAD
-            + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+            _GTK3_SHEET_PROLOGUE
+            + r'''
 provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
