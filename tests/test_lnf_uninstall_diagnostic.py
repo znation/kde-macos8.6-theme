@@ -24,7 +24,6 @@ from support.config_home_cases import (
 from support.theme_install import (
     assert_make_n_uninstall_parses,
     assert_uninstall_diagnostics,
-    read_bytes,
     write_config_file,
 )
 from support.process_assertions import assert_succeeded
@@ -214,22 +213,13 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[KDE]\nwidgetStyle=kvantum\nLookAndFeelPackage=" + LNF_VALUE + "\n"
             "[Icons]\nTheme=" + ICON_THEME_ID + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
         order = [
             "uninstall: color scheme " + COLOR_SCHEME_ID + " is still selected in " + path,
             "uninstall: the widget-style selection the look-and-feel apply wrote",
             "uninstall: the icon-theme selection the look-and-feel apply wrote",
             rule_for(path),
         ]
-        for fragment in order:
-            self.assertIn(fragment, result.stderr)
-        for earlier, later in zip(order, order[1:]):
-            self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, *order, unchanged=path)
 
     def test_the_font_diagnostics_keep_their_own_lines_beside_ours(self):
         # The existing five Lato font lines share the same kdeglobals reads
@@ -242,21 +232,13 @@ class TestLnfUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[General]\nfont=Lato,10\n"
             "[KDE]\nLookAndFeelPackage=" + LNF_VALUE + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
         font_rule = (
             "uninstall: the font selection [General] font=Lato,10 "
             "the look-and-feel apply wrote is still in " + path
         )
-        self.assertIn(font_rule, result.stderr)
-        self.assertIn(rule_for(path), result.stderr)
-        self.assertLess(
-            result.stderr.index(font_rule), result.stderr.index(rule_for(path))
+        assert_uninstall_diagnostics(
+            self, tmp, config, font_rule, rule_for(path), unchanged=path
         )
-        self.assertEqual(original, read_bytes(path))
 
     def test_make_n_uninstall_still_parses(self):
         assert_make_n_uninstall_parses(self, '--lnf-id "org.macos8.desktop"')

@@ -263,8 +263,8 @@ def assert_uninstall_diagnostics(case, tmp, config, *printed, absent=(), unchang
     Every one-line stderr rule assertion around a recipe run in the
     `_uninstall` diagnostic suites routes through here; the read-cap suite's
     cap-contract sites keep their own with-open read idiom, and the suites'
-    multi-line rule arguments, loop bodies, output order pins, and the
-    mirror suite's direct config reads keep their explicit form.
+    multi-line rule arguments, loop bodies, and the mirror suite's direct
+    config reads keep their explicit form.
     """
     original = read_bytes(unchanged) if unchanged is not None else None
     result = case.uninstall_with_config(tmp, config)
@@ -278,6 +278,24 @@ def assert_uninstall_diagnostics(case, tmp, config, *printed, absent=(), unchang
     if unchanged is not None:
         case.assertEqual(original, read_bytes(unchanged))
     return result
+
+
+def assert_diagnostics_in_order(case, result, lines):
+    """Assert each of *lines* is in result.stderr, strictly in print order.
+
+    The `_uninstall` suites' recipe-order pins stage several diagnostics in
+    one run and pin that stderr lists them in the recipe's published order:
+    each fragment must be present, and each fragment's first occurrence must
+    sit strictly before the next one's. A diagnostic prints once per run, so
+    the first occurrence is the occurrence; as with assert_uninstall_diagnostics,
+    a fragment may be a full rule or the distinctive head of one.
+    """
+    positions = []
+    for line in lines:
+        case.assertIn(line, result.stderr)
+        positions.append(result.stderr.index(line))
+    for earlier, later in zip(positions, positions[1:]):
+        case.assertLess(earlier, later)
 
 
 def installed_template(case, packages):

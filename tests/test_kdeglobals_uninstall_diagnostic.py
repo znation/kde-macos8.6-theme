@@ -25,10 +25,8 @@ from support.config_home_cases import (
 from support.theme_install import (
     assert_make_n_uninstall_parses,
     assert_uninstall_diagnostics,
-    read_bytes,
     write_config_file,
 )
-from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home
 
 ICON_THEME_ID = "org.macos8.desktop"
@@ -98,19 +96,16 @@ class TestKdeglobalsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             config,
             "[KDE]\nwidgetStyle=kvantum\n[Icons]\nTheme=" + ICON_THEME_ID + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        style_line = style_rule_for(path)
-        icons_line = icons_rule_for(path)
-        self.assertIn(style_line, result.stderr)
-        self.assertIn(icons_line, result.stderr)
         # One key's match never gates the other's line; the widget-style
         # warning precedes the icon-theme warning as printed.
-        self.assertLess(result.stderr.index(style_line), result.stderr.index(icons_line))
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(
+            self,
+            tmp,
+            config,
+            style_rule_for(path),
+            icons_rule_for(path),
+            unchanged=path,
+        )
 
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp, config = make_config_home(self)
@@ -250,27 +245,19 @@ class TestKdeglobalsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
             "[KDE]\nwidgetStyle=kvantum\n"
             "[Icons]\nTheme=" + ICON_THEME_ID + "\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
         scheme_line = (
             "uninstall: color scheme MacOS8 is still selected in "
             + path + " after removal"
         )
-        style_line = style_rule_for(path)
-        icons_line = icons_rule_for(path)
-        self.assertIn(scheme_line, result.stderr)
-        self.assertIn(style_line, result.stderr)
-        self.assertIn(icons_line, result.stderr)
-        self.assertLess(
-            result.stderr.index(scheme_line), result.stderr.index(style_line)
+        assert_uninstall_diagnostics(
+            self,
+            tmp,
+            config,
+            scheme_line,
+            style_rule_for(path),
+            icons_rule_for(path),
+            unchanged=path,
         )
-        self.assertLess(
-            result.stderr.index(style_line), result.stderr.index(icons_line)
-        )
-        self.assertEqual(original, read_bytes(path))
 
     def test_make_n_uninstall_still_parses(self):
         # The internal recipe is pinned by drying it directly, as the other

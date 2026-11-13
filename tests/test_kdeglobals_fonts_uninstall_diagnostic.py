@@ -120,17 +120,13 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             "[General]\nfont=Lato,10\nfixed=" + FIXED_VALUE + "\nmenuFont=ChicagoFLF,10\ntoolBarFont=Lato,10\n"
             "smallestReadableFont=Lato,8\n[WM]\nactiveFont=ChicagoFLF,10\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        rules = [rule_for(path, *triple) for triple in KEYS]
-        for rule in rules:
-            self.assertIn(rule, result.stderr)
-        for earlier, later in zip(rules, rules[1:]):
-            self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(
+            self,
+            tmp,
+            config,
+            *[rule_for(path, *triple) for triple in KEYS],
+            unchanged=path,
+        )
 
     def test_warns_when_the_value_only_trims_to_ours(self):
         tmp, config = make_config_home(self)
@@ -325,21 +321,12 @@ class TestKdeglobalsFontsUninstallDiagnostic(theme_install.UninstallRecipeTestCa
             "[Icons]\nTheme=" + ICON_THEME_ID + "\n"
             "[WM]\nactiveFont=ChicagoFLF,10\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
         order = [
             "uninstall: color scheme MacOS8 is still selected in " + path,
             "uninstall: the widget-style selection the look-and-feel apply wrote",
             "uninstall: the icon-theme selection the look-and-feel apply wrote",
         ] + [rule_for(path, *triple) for triple in KEYS]
-        for fragment in order:
-            self.assertIn(fragment, result.stderr)
-        for earlier, later in zip(order, order[1:]):
-            self.assertLess(result.stderr.index(earlier), result.stderr.index(later))
-        self.assertEqual(original, read_bytes(path))
+        assert_uninstall_diagnostics(self, tmp, config, *order, unchanged=path)
 
     def test_the_fixed_selection_warns_with_its_own_value(self):
         # The fixed-width selection's published value is the Qt 6 serialized

@@ -26,6 +26,7 @@ from support.config_home_cases import (
     assert_no_config_home,
 )
 from support.theme_install import (
+    assert_diagnostics_in_order,
     assert_make_n_uninstall_parses,
     assert_uninstall_diagnostics,
     read_bytes,
@@ -111,9 +112,9 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         result = self.uninstall_with_config(tmp, config)
 
         assert_succeeded(self, result)
-        splash_at = result.stderr.index(splash_rule(ksplash))
-        package_at = result.stderr.index(package_rule(package))
-        self.assertLess(splash_at, package_at)
+        assert_diagnostics_in_order(
+            self, result, [splash_rule(ksplash), package_rule(package)]
+        )
         self.assertEqual(splash_bytes, read_bytes(ksplash))
         self.assertEqual(package_bytes, read_bytes(package))
 
@@ -329,12 +330,15 @@ class TestKdedefaultsUninstallDiagnostic(theme_install.UninstallRecipeTestCase):
         result = self.uninstall_with_config(tmp, config)
 
         assert_succeeded(self, result)
-        aurorae_at = result.stderr.index(
-            "uninstall: the window-decoration selection [library="
-            "org.kde.kwin.aurorae, theme=" + LNF_ID + "]"
+        assert_diagnostics_in_order(
+            self,
+            result,
+            [
+                "uninstall: the window-decoration selection [library="
+                "org.kde.kwin.aurorae, theme=" + LNF_ID + "]",
+                splash_rule(ksplash),
+            ],
         )
-        splash_at = result.stderr.index(splash_rule(ksplash))
-        self.assertLess(aurorae_at, splash_at)
         self.assertEqual(ksplash_bytes, read_bytes(ksplash))
         self.assertEqual(kwinrc_bytes, read_bytes(kwinrc))
 

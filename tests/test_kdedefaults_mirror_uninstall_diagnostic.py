@@ -27,6 +27,7 @@ from support.config_home_cases import (
     assert_no_config_home,
 )
 from support.theme_install import (
+    assert_diagnostics_in_order,
     assert_make_n_uninstall_parses,
     read_bytes,
     write_file,
@@ -258,13 +259,16 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
         result = run_uninstall(tmp, config)
 
         assert_succeeded(self, result)
-        order = (
-            result.stderr.index(widget_rule(kglobal_path)),
-            result.stderr.index(icons_rule(kglobal_path)),
-            result.stderr.index(mirror_kwinrc_rule(kwin_path)),
-            result.stderr.index(mirror_plasmarc_rule(plasma_path)),
+        assert_diagnostics_in_order(
+            self,
+            result,
+            [
+                widget_rule(kglobal_path),
+                icons_rule(kglobal_path),
+                mirror_kwinrc_rule(kwin_path),
+                mirror_plasmarc_rule(plasma_path),
+            ],
         )
-        self.assertEqual(list(order), sorted(order))
         self.assertEqual(originals[0], read_bytes(kglobal_path))
         self.assertEqual(originals[1], read_bytes(kwin_path))
         self.assertEqual(originals[2], read_bytes(plasma_path))
@@ -623,19 +627,20 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
         result = run_uninstall(tmp, config)
 
         assert_succeeded(self, result)
-        order = (
-            result.stderr.index(
+        assert_diagnostics_in_order(
+            self,
+            result,
+            [
                 "uninstall: the window-decoration selection [library="
-                "org.kde.kwin.aurorae, theme=" + LNF_ID + "]"
-            ),
-            result.stderr.index("uninstall: the splash selection"),
-            result.stderr.index("uninstall: the look-and-feel package default"),
-            result.stderr.index(widget_rule(kglobal_path)),
-            result.stderr.index(icons_rule(kglobal_path)),
-            result.stderr.index(mirror_kwinrc_rule(kwin_path)),
-            result.stderr.index(mirror_plasmarc_rule(plasma_path)),
+                "org.kde.kwin.aurorae, theme=" + LNF_ID + "]",
+                "uninstall: the splash selection",
+                "uninstall: the look-and-feel package default",
+                widget_rule(kglobal_path),
+                icons_rule(kglobal_path),
+                mirror_kwinrc_rule(kwin_path),
+                mirror_plasmarc_rule(plasma_path),
+            ],
         )
-        self.assertEqual(list(order), sorted(order))
         for path in (ksplash, package) + mirror_paths(config) + (live_kwinrc,):
             with self.subTest(path=path):
                 self.assertTrue(os.path.isfile(path))
