@@ -148,6 +148,5 @@ class TestGtk4Entry(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_rule("entry > progress", {"margin-bottom": "1px"})
 
 
-
 if __name__ == "__main__":
     unittest.main()
