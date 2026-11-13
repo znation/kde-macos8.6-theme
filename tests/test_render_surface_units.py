@@ -76,56 +76,73 @@ class TestCapturePaintCheck(unittest.TestCase):
         self.assertFalse(render_workflow._client_exited_during_capture(fifo))
 
 
-def assert_dialog_capture_size(case, flag):
-    """Assert a plain *flag* run delegates a 480x360 capture to the workflow.
+def delegated_render_args(case, argv, status=0):
+    """Patch the render collaborators away, run *argv*, return the mode args.
 
-    Eleven per-mode tests call this: a plain --*-dialog run must capture at
-    the 480x360 the widget gate byte-compares with the applet id at its
-    default, not the applet render's 320x240 default.
+    Seven call sites share this: with the missing-tool preflight, the
+    output check, the workflow and the termination guard patched away,
+    ``main`` parses its argv and hands the parsed namespace to the workflow
+    mock, so a test can pin what the parser delegates without starting a
+    session; *status* pins the exit status the run returns (default 0).
     """
     with (
         mock.patch.object(render_surface, "report_missing_tool", return_value=None),
         mock.patch.object(render_surface, "output_problem", return_value=None),
-        mock.patch.object(render_surface, "render", return_value=0) as workflow,
+        mock.patch.object(render_surface, "render", return_value=status) as workflow,
         mock.patch.object(render_surface, "exit_on_termination"),
     ):
-        render_surface.main(("out.png", flag))
+        run_status = render_surface.main(argv)
 
-    args = workflow.call_args.args[0]
-    case.assertEqual((480, 360), (args.width, args.height))
+    case.assertEqual(status, run_status)
+    return workflow.call_args.args[0]
+
+
+def assert_delegated_capture_size(case, flag, size):
+    """Assert a plain *flag* run delegates a *size* capture to the workflow.
+
+    Thirteen tests call this: a plain --*-dialog run must capture at the
+    480x360 the widget gate byte-compares, and --desktop and --splash at
+    the 640x400 their gates crop, each with the applet id at its default
+    (which those modes never open), not the applet render's 320x240 default.
+    """
+    args = delegated_render_args(case, ("out.png", flag))
+    case.assertEqual(size, (args.width, args.height))
     case.assertEqual("org.kde.plasma.calculator", args.applet)
 
 
-def assert_rejects_applet_with_dialog(case, flag):
-    """Assert *flag* combined with --applet is a usage error naming the flag.
+def assert_rejects_applet_with_fixed_client(case, flag):
+    """Assert *flag* combined with --applet is a usage error naming both.
 
-    Thirteen per-mode tests call this: the dialog render opens its own
-    client, so a plasmoid id combined with it has no window to open it in.
+    Fifteen tests call this: the dialog, desktop and splash modes each open
+    their own client, so a plasmoid id combined with any of them has no
+    window to open it in, and every refusal names the fixed flag and
+    --applet.
     """
     status, stderr = call_main(render_surface.main, "out.png", flag, "--applet", "x")
     case.assertEqual(2, status)
     case.assertIn(flag, stderr)
+    case.assertIn("--applet", stderr)
 
 
-def assert_rejects_capture_size_with_dialog(case, flag):
-    """Assert *flag* with a custom size is a usage error naming 480x360.
+def assert_rejects_capture_size_with_fixed_client(
+    case, flag, size_label, size_argv=("--height", "240")
+):
+    """Assert *flag* with a custom size is a usage error naming *size_label*.
 
-    Thirteen per-mode tests call this: the gate byte-compares the dialog
-    capture at 480x360, so any other size moves the window the pinned
-    comparison crops assume.
+    Fifteen tests call this: the gates byte-compare or crop the dialog
+    capture at 480x360 and the desktop and splash captures at 640x400, so
+    any other size moves the window the pinned comparisons assume.
     """
-    status, stderr = call_main(
-        render_surface.main, "out.png", flag, "--height", "240"
-    )
+    status, stderr = call_main(render_surface.main, "out.png", flag, *size_argv)
     case.assertEqual(2, status)
     case.assertIn(flag, stderr)
-    case.assertIn("480x360", stderr)
+    case.assertIn(size_label, stderr)
 
 
 def assert_two_mode_refusal_names_both(case, flag, partners):
     """Assert the two-mode refusal names *flag* and each *partner* flag.
 
-    Twelve per-mode tests call this: the refusal lists the flags involved,
+    Fourteen tests call this: the refusal lists the flags involved,
     so a flag missing from that list would print a refusal without its name.
     """
     for right in partners:
@@ -146,12 +163,12 @@ def assert_dialog_requires_kdialog(case, flag):
     assert_missing_tool_named(case, render_surface.main, tools, ("out.png", flag))
 
 
-def assert_help_lists_dialog(case, flag):
+def assert_help_lists_flag(case, flag):
     """Assert --help's stdout lists *flag*.
 
-    Seven per-mode tests call this: --help lists every dialog mode, so a
-    flag missing from that help leaves the mode unusable by anyone reading
-    the CLI.
+    Nine tests call this: --help lists every dialog mode beside the desktop
+    and splash flags, so a flag missing from that help leaves the mode
+    unusable by anyone reading the CLI.
     """
     _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
     case.assertIn(flag, stdout)
@@ -170,16 +187,9 @@ class TestArguments(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
     def test_cli_delegates_validated_options_to_render_workflow(self):
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=7) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            status = render_surface.main(("out.png", "--applet", "test.applet"))
-
-        self.assertEqual(7, status)
-        args = workflow.call_args.args[0]
+        args = delegated_render_args(
+            self, ("out.png", "--applet", "test.applet"), 7
+        )
         self.assertEqual("test.applet", args.applet)
         self.assertEqual((320, 240), (args.width, args.height))
         self.assertIs(render_workflow.render, render_surface.render)
@@ -188,15 +198,9 @@ class TestArguments(unittest.TestCase):
         # render() reads args.settle and args.timeout to build the session
         # command and its supervision timeout, so a non-default value must
         # reach it parsed, not fall back to the parser defaults.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--settle", "1.25", "--timeout", "33"))
-
-        args = workflow.call_args.args[0]
+        args = delegated_render_args(
+            self, ("out.png", "--settle", "1.25", "--timeout", "33")
+        )
         self.assertEqual(1.25, args.settle)
         self.assertEqual(33.0, args.timeout)
 
@@ -204,29 +208,20 @@ class TestArguments(unittest.TestCase):
         # The bounds are inclusive: --settle 0 (no wait before the capture)
         # and --timeout 1 are the smallest values the parser accepts. Both
         # satisfy the timeout-longer-than-settle rule (1 > 0).
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            status = render_surface.main(
-                ("out.png", "--settle", "0", "--timeout", "1")
-            )
-
-        self.assertEqual(0, status)
-        args = workflow.call_args.args[0]
+        args = delegated_render_args(
+            self, ("out.png", "--settle", "0", "--timeout", "1")
+        )
         self.assertEqual(0.0, args.settle)
         self.assertEqual(1.0, args.timeout)
 
     def test_cli_delegates_the_lineedit_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--lineedit-dialog")
+        assert_delegated_capture_size(self, "--lineedit-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_lineedit_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--lineedit-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--lineedit-dialog")
 
     def test_rejects_a_capture_size_with_the_lineedit_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--lineedit-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--lineedit-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_lineedit_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -236,7 +231,7 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--lineedit-dialog")
 
     def test_cli_delegates_the_menu_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--menu-dialog")
+        assert_delegated_capture_size(self, "--menu-dialog", (480, 360))
 
     def test_a_single_custom_dimension_keeps_the_other_default(self):
         for option, value, expected in (
@@ -244,15 +239,7 @@ class TestArguments(unittest.TestCase):
             ("--height", "480", (320, 480)),
         ):
             with self.subTest(option=option):
-                with (
-                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-                    mock.patch.object(render_surface, "output_problem", return_value=None),
-                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
-                    mock.patch.object(render_surface, "exit_on_termination"),
-                ):
-                    render_surface.main(("out.png", option, value))
-
-                args = workflow.call_args.args[0]
+                args = delegated_render_args(self, ("out.png", option, value))
                 self.assertEqual(expected, (args.width, args.height))
 
     def assert_usage_error(self, *argv):
@@ -340,13 +327,13 @@ class TestArguments(unittest.TestCase):
         self.assert_usage_error()
 
     def test_cli_delegates_the_slider_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--slider-dialog")
+        assert_delegated_capture_size(self, "--slider-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_slider_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--slider-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--slider-dialog")
 
     def test_rejects_a_capture_size_with_the_slider_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--slider-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--slider-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_slider_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -368,13 +355,13 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--slider-dialog")
 
     def test_cli_delegates_the_progressbar_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--progressbar-dialog")
+        assert_delegated_capture_size(self, "--progressbar-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_progressbar_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--progressbar-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--progressbar-dialog")
 
     def test_rejects_a_capture_size_with_the_progressbar_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--progressbar-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--progressbar-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_progressbar_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -386,13 +373,13 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--progressbar-dialog")
 
     def test_cli_delegates_the_textbox_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--textbox-dialog")
+        assert_delegated_capture_size(self, "--textbox-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_textbox_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--textbox-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--textbox-dialog")
 
     def test_rejects_a_capture_size_with_the_textbox_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--textbox-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--textbox-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_textbox_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -402,32 +389,32 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--textbox-dialog")
 
     def test_the_help_text_names_the_textbox_dialog(self):
-        assert_help_lists_dialog(self, "--textbox-dialog")
+        assert_help_lists_flag(self, "--textbox-dialog")
 
     def test_rejects_an_applet_with_the_checkbox_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--checkbox-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--checkbox-dialog")
 
     def test_rejects_a_capture_size_with_the_checkbox_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--checkbox-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--checkbox-dialog", "480x360")
 
     def test_rejects_two_dialog_modes(self):
         assert_two_mode_refusal_names_both(
             self, "--checkbox-dialog", ("--combobox-dialog",))
 
     def test_rejects_an_applet_with_the_combobox_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--combobox-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--combobox-dialog")
 
     def test_rejects_a_capture_size_with_the_combobox_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--combobox-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--combobox-dialog", "480x360")
 
     def test_the_combobox_dialog_requires_kdialog(self):
         assert_dialog_requires_kdialog(self, "--combobox-dialog")
 
     def test_rejects_an_applet_with_the_menu_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--menu-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--menu-dialog")
 
     def test_rejects_a_capture_size_with_the_menu_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--menu-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--menu-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_menu_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -437,13 +424,13 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--menu-dialog")
 
     def test_cli_delegates_the_radiolist_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--radiolist-dialog")
+        assert_delegated_capture_size(self, "--radiolist-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_radiolist_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--radiolist-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--radiolist-dialog")
 
     def test_rejects_a_capture_size_with_the_radiolist_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--radiolist-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--radiolist-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_radiolist_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -453,16 +440,16 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--radiolist-dialog")
 
     def test_the_help_text_names_the_radiolist_dialog(self):
-        assert_help_lists_dialog(self, "--radiolist-dialog")
+        assert_help_lists_flag(self, "--radiolist-dialog")
 
     def test_cli_delegates_the_calendar_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--calendar-dialog")
+        assert_delegated_capture_size(self, "--calendar-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_calendar_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--calendar-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--calendar-dialog")
 
     def test_rejects_a_capture_size_with_the_calendar_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--calendar-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--calendar-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_calendar_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -472,7 +459,7 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--calendar-dialog")
 
     def test_the_help_text_names_the_calendar_dialog(self):
-        assert_help_lists_dialog(self, "--calendar-dialog")
+        assert_help_lists_flag(self, "--calendar-dialog")
 
     def test_usage_docstring_names_every_dialog_mode_the_parser_defines(self):
         # The module docstring's Usage block is the CLI contract a reader
@@ -494,13 +481,13 @@ class TestArguments(unittest.TestCase):
         )
 
     def test_cli_delegates_the_color_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--color-dialog")
+        assert_delegated_capture_size(self, "--color-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_color_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--color-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--color-dialog")
 
     def test_rejects_a_capture_size_with_the_color_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--color-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--color-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_color_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -510,16 +497,16 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--color-dialog")
 
     def test_the_help_text_names_the_color_dialog(self):
-        assert_help_lists_dialog(self, "--color-dialog")
+        assert_help_lists_flag(self, "--color-dialog")
 
     def test_cli_delegates_the_icon_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--icon-dialog")
+        assert_delegated_capture_size(self, "--icon-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_icon_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--icon-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--icon-dialog")
 
     def test_rejects_a_capture_size_with_the_icon_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--icon-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--icon-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_icon_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -529,19 +516,19 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--icon-dialog")
 
     def test_the_help_text_names_the_icon_dialog(self):
-        assert_help_lists_dialog(self, "--icon-dialog")
+        assert_help_lists_flag(self, "--icon-dialog")
 
     def test_the_checkbox_dialog_requires_kdialog(self):
         assert_dialog_requires_kdialog(self, "--checkbox-dialog")
 
     def test_cli_delegates_the_inactive_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--inactive-dialog")
+        assert_delegated_capture_size(self, "--inactive-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_inactive_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--inactive-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--inactive-dialog")
 
     def test_rejects_a_capture_size_with_the_inactive_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--inactive-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--inactive-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_inactive_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -553,16 +540,16 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--inactive-dialog")
 
     def test_the_help_text_names_the_inactive_dialog(self):
-        assert_help_lists_dialog(self, "--inactive-dialog")
+        assert_help_lists_flag(self, "--inactive-dialog")
 
     def test_cli_delegates_the_file_dialog_capture_size(self):
-        assert_dialog_capture_size(self, "--file-dialog")
+        assert_delegated_capture_size(self, "--file-dialog", (480, 360))
 
     def test_rejects_an_applet_with_the_file_dialog(self):
-        assert_rejects_applet_with_dialog(self, "--file-dialog")
+        assert_rejects_applet_with_fixed_client(self, "--file-dialog")
 
     def test_rejects_a_capture_size_with_the_file_dialog(self):
-        assert_rejects_capture_size_with_dialog(self, "--file-dialog")
+        assert_rejects_capture_size_with_fixed_client(self, "--file-dialog", "480x360")
 
     def test_rejects_two_dialog_modes_names_the_file_dialog_too(self):
         assert_two_mode_refusal_names_both(
@@ -572,56 +559,31 @@ class TestArguments(unittest.TestCase):
         assert_dialog_requires_kdialog(self, "--file-dialog")
 
     def test_the_help_text_names_the_file_dialog(self):
-        assert_help_lists_dialog(self, "--file-dialog")
+        assert_help_lists_flag(self, "--file-dialog")
 
     def test_cli_delegates_the_desktop_capture_size(self):
         # The desktop capture is fixed at 640x400, the probe's
         # virtual-framebuffer size and the queued desktop gate's crop basis;
         # the applet id stays at its default, which the desktop render
         # never opens.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--desktop"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((640, 400), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_delegated_capture_size(self, "--desktop", (640, 400))
 
     def test_rejects_an_applet_with_the_desktop(self):
         # The desktop client is plasmashell, not an applet window, so an
         # applet override has no window to open in.
-        status, stderr = call_main(
-            render_surface.main, "out.png", "--desktop", "--applet", "x"
-        )
-        self.assertEqual(2, status)
-        self.assertIn("--desktop", stderr)
-        self.assertIn("--applet", stderr)
+        assert_rejects_applet_with_fixed_client(self, "--desktop")
 
     def test_rejects_a_capture_size_with_the_desktop(self):
         # 640x400 is the crop basis the queued desktop gate will compare, so
         # a size override moves the menu bar the pinned crops assume.
-        status, stderr = call_main(
-            render_surface.main, "out.png", "--desktop", "--height", "240"
-        )
-        self.assertEqual(2, status)
-        self.assertIn("--desktop", stderr)
-        self.assertIn("640x400", stderr)
+        assert_rejects_capture_size_with_fixed_client(self, "--desktop", "640x400")
 
     def test_rejects_a_dialog_mode_with_the_desktop(self):
         # The desktop client opens the shell itself, so a dialog client
         # cannot ride the same session.
-        for partner in ("--checkbox-dialog", "--file-dialog"):
-            with self.subTest(partner=partner):
-                status, stderr = call_main(
-                    render_surface.main, "out.png", "--desktop", partner
-                )
-                self.assertEqual(2, status)
-                self.assertIn("--desktop", stderr)
-                self.assertIn(partner, stderr)
+        assert_two_mode_refusal_names_both(
+            self, "--desktop", ("--checkbox-dialog", "--file-dialog")
+        )
 
     def test_the_desktop_requires_plasmashell(self):
         # The desktop client is a plain command, so the missing-tool
@@ -644,72 +606,39 @@ class TestArguments(unittest.TestCase):
         )
         for argv, expected in cases:
             with self.subTest(argv=argv):
-                with (
-                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-                    mock.patch.object(render_surface, "output_problem", return_value=None),
-                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
-                    mock.patch.object(render_surface, "exit_on_termination"),
-                ):
-                    status = render_surface.main(argv)
-
-                self.assertEqual(0, status)
-                args = workflow.call_args.args[0]
+                args = delegated_render_args(self, argv)
                 self.assertEqual(expected, (args.settle, args.timeout))
 
     def test_the_help_text_names_the_desktop(self):
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--desktop", stdout)
+        assert_help_lists_flag(self, "--desktop")
 
     def test_cli_delegates_the_splash_capture_size(self):
         # The splash capture is fixed at 640x400, the same probe
         # virtual-framebuffer size the desktop capture fixes; the applet id
         # stays at its default, which the splash render never opens.
-        with (
-            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-            mock.patch.object(render_surface, "output_problem", return_value=None),
-            mock.patch.object(render_surface, "render", return_value=0) as workflow,
-            mock.patch.object(render_surface, "exit_on_termination"),
-        ):
-            render_surface.main(("out.png", "--splash"))
-
-        args = workflow.call_args.args[0]
-        self.assertEqual((640, 400), (args.width, args.height))
-        self.assertEqual("org.kde.plasma.calculator", args.applet)
+        assert_delegated_capture_size(self, "--splash", (640, 400))
 
     def test_rejects_an_applet_with_the_splash(self):
         # The splash client is ksplashqml, not an applet window, so an
         # applet override has no window to open in.
-        status, stderr = call_main(
-            render_surface.main, "out.png", "--splash", "--applet", "x"
-        )
-        self.assertEqual(2, status)
-        self.assertIn("--splash", stderr)
-        self.assertIn("--applet", stderr)
+        assert_rejects_applet_with_fixed_client(self, "--splash")
 
     def test_rejects_a_capture_size_with_the_splash(self):
         # 640x400 is the crop basis the queued splash gate will compare, so
-        # a size override moves the splash the pinned crops assume.
-        status, stderr = call_main(
-            render_surface.main, "out.png", "--splash", "--width", "320"
+        # a size override moves the splash the pinned crops assume. The
+        # --width flag exercises the same refusal through its other half.
+        assert_rejects_capture_size_with_fixed_client(
+            self, "--splash", "640x400", ("--width", "320")
         )
-        self.assertEqual(2, status)
-        self.assertIn("--splash", stderr)
-        self.assertIn("640x400", stderr)
 
     def test_rejects_a_dialog_mode_and_the_desktop_with_the_splash(self):
         # The splash client opens the look-and-feel's own splash, so neither
         # a dialog client nor the desktop shell can ride the same session.
-        for partner in (
-            "--desktop", "--checkbox-dialog", "--file-dialog",
-            "--gtk-dialog",
-        ):
-            with self.subTest(partner=partner):
-                status, stderr = call_main(
-                    render_surface.main, "out.png", "--splash", partner
-                )
-                self.assertEqual(2, status)
-                self.assertIn("--splash", stderr)
-                self.assertIn(partner, stderr)
+        assert_two_mode_refusal_names_both(
+            self,
+            "--splash",
+            ("--desktop", "--checkbox-dialog", "--file-dialog", "--gtk-dialog"),
+        )
 
     def test_the_splash_requires_ksplashqml(self):
         # The splash client is a plain command, so the missing-tool
@@ -733,21 +662,11 @@ class TestArguments(unittest.TestCase):
         )
         for argv, expected in cases:
             with self.subTest(argv=argv):
-                with (
-                    mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-                    mock.patch.object(render_surface, "output_problem", return_value=None),
-                    mock.patch.object(render_surface, "render", return_value=0) as workflow,
-                    mock.patch.object(render_surface, "exit_on_termination"),
-                ):
-                    status = render_surface.main(argv)
-
-                self.assertEqual(0, status)
-                args = workflow.call_args.args[0]
+                args = delegated_render_args(self, argv)
                 self.assertEqual(expected, (args.settle, args.timeout))
 
     def test_the_help_text_names_the_splash(self):
-        _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-        self.assertIn("--splash", stdout)
+        assert_help_lists_flag(self, "--splash")
 
 
 class TestAppletPreflight(unittest.TestCase):
