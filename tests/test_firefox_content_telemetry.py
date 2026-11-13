@@ -239,16 +239,7 @@ class TestFirefoxTelemetryTheme(FirefoxContentTestCase):
             BUTTON_SHADOW,
             ETCH_DARK,
         }
-        seen = set()
-        for selector, expected in REQUIRED_TELEMETRY_RULES.items():
-            declarations = self.rules[selector]
-            with self.subTest(selector=selector):
-                self.assertEqual(declarations, expected)
-                self.assertTrue(declarations)
-            seen.update(
-                self.pin_declaration_tokens(selector, declarations, allowed)
-            )
-        self.assertTrue(seen)
+        self.assert_pinned_palette_rules(REQUIRED_TELEMETRY_RULES, allowed)
         body = self.bodies["about:telemetry"]
         self.assertLessEqual(set(HEX.findall(body)), allowed)
 

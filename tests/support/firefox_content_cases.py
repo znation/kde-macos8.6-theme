@@ -684,6 +684,32 @@ class FirefoxContentTestCase(CommentHeaderAssertions, unittest.TestCase):
                     tokens.add(token)
         return tokens
 
+    def assert_pinned_palette_rules(self, rules, allowed):
+        """Pin a whole required-rules recipe against the shipped sheet.
+
+        For every ``selector -> expected`` pair in *rules*, the sheet's
+        parsed declaration block must equal *expected*, be non-empty, and
+        use only *allowed* hex tokens, each ``!important``; at least one
+        token must be seen. The suite keeps its own body-hex check.
+
+        Exactly three call sites today: ``test_firefox_content_support.py``,
+        ``test_firefox_content_networking.py`` and
+        ``test_firefox_content_telemetry.py``. The about:preferences suites
+        pin selector lists with ``assert_palette_declarations`` in
+        ``test_firefox_content_preferences.py`` instead -- a different
+        shape, without the recipe comparison.
+        """
+        seen = set()
+        for selector, expected in rules.items():
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertEqual(declarations, expected)
+                self.assertTrue(declarations)
+            seen.update(
+                self.pin_declaration_tokens(selector, declarations, allowed)
+            )
+        self.assertTrue(seen)
+
 
 if __name__ == "__main__":
     unittest.main()
