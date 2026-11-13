@@ -202,6 +202,99 @@ they are. No stylesheet or production behavior changes.
   `tests/test_gtk4_menu.py` and `docs/invariants.md`. `make
   check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate checkbutton declarations (planned 2026-11-13 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (124 `test_` methods at this plan's base
+commit). Move the three `test_checkbutton`-prefixed declaration
+checks (about 52 lines at this plan's base commit) into their own
+module, the same way the landed OSD (`tests/test_gtk4_osd.py`),
+scale, spinbutton, disabled, emoji, entry, notebook, scrollbar,
+switch, progressbar, levelbar, view, selected, button, row,
+treeview, tabbar and sidebar parts moved theirs, and the waiting
+"GTK 4 suite extraction: isolate menu declarations" entry moves its
+own. This is independent of that waiting entry: neither moves a
+`test_checkbutton` method, and this entry prunes no import at all
+(the moved bodies call no `support` module name — see below), while
+that one prunes `MENUBUTTON_ARROWS` and `MENU_CHECK` from the
+`support.gtk_theme_spec` block; both edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever
+merges later re-reads those two files before writing. Methods that
+only contain `check` or `checkbutton` mid-name
+(`test_tile_check_faces`, `test_osd_check_radio` in
+`tests/test_gtk4_osd.py`, `test_menu_check_and_radio_are_boxless`)
+stay where they are. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_checkbutton.py` with
+  `class TestGtk4Checkbutton(Gtk4SheetRuleCases, unittest.TestCase)`
+  and a one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_view.py`). Move every `TestGtk4Theme`
+  method whose name starts with `test_checkbutton_`, keeping each
+  method's body and docstring unchanged:
+  `test_checkbutton_focus_outline_color`,
+  `test_checkbutton_focus_transition` and
+  `test_checkbutton_corners`. At this plan's base commit they sit
+  at two spots in `tests/test_gtk4_theme.py` — the first alone
+  between the staying `test_sidebar_button_focus_outline_color`
+  and `test_suggested_action_plain_arms`, the other two contiguous
+  between the staying `test_flat_button_arms` and
+  `test_expander_row_arrow_transition_motion` — so the move touches
+  two separate deletions in the source module. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet` and nothing else beyond `unittest`. Every
+  helper the bodies call comes with the base class:
+  `assert_scale_focus_outline`, `assert_scale_slider_transition`,
+  `assert_rule`, `assert_matches_frame` and `assert_square_corner`
+  are methods of `Gtk4SheetRuleCases` and its bases
+  (`tests/support/gtk4_sheet.py`), and `self.css`, `self.rules` and
+  `self.selectors` come from the shared `setUpClass`; no body
+  spells a `support.gtk_theme_spec`, `support.platinum_palette` or
+  `support.gtk_css` name, and none uses `re`, `tempfile` or
+  `mock`, so no import moves and no import is pruned in either
+  module.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_checkbutton…`
+  anchor to
+  `tests/test_gtk4_checkbutton.py::TestGtk4Checkbutton::test_checkbutton…`,
+  wherever it appears — in the anchor column and in provenance
+  prose. `grep -o 'TestGtk4Theme::test_checkbutton[a-z_]*'
+  docs/invariants.md` finds exactly five member mentions at this
+  plan's base commit across four rows:
+  `test_checkbutton_focus_transition` as the motion row's anchor
+  and again in the prose of the server-list-button row and the
+  expander-row-arrow row,
+  `test_checkbutton_focus_outline_color` alone in the focus-outline
+  row, and `test_checkbutton_corners` alone in the wrapper-corners
+  row. Rewrite only the moved anchors in place and leave every
+  staying anchor as it reads — the bare prose mention of
+  `test_checkbutton_focus_outline_color` inside the row-focus
+  record keeps its wording, since the name persists in the new
+  module and that prose names no module path. Do not rewrite
+  history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_checkbutton.TestGtk4Checkbutton`, and none
+  of them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_tile_check_faces`.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_checkbutton' docs/invariants.md`
+  prints nothing, each of the four touched rows still names its
+  staying anchors under their original modules, and the invariants
+  checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 50 lines, and
+  `tests/test_gtk4_checkbutton.py` stays under about 60 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_checkbutton.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
