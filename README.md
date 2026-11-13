@@ -762,7 +762,7 @@ package. `PLACEHOLDERS.md` tracks this temporary artwork.
 
 ## Reference screenshots
 
-`macos8.6-screenshots/` is the visual reference set for this theme: 28 images for **Mac OS 8.6**
+`macos8.6-screenshots/` is the visual reference set for this theme: 30 images for **Mac OS 8.6**
 (released 1999-05-10) — retail screenshots and beta builds, one 8.5 supplement and two
 photographs — collected from the internet and used as the source of truth when matching menu bar,
 window chrome, widget metrics, icons and colour palette in the Plasma 6 port. They are reference
@@ -775,6 +775,7 @@ material only — the theme does not ship them.
 | Welcome / first boot / installer | 5 | `welcome_betawiki.png`, `welcome_tomo197707.png`, `firstboot_betawiki.png`, `setup_betawiki.png`, `setup_emaculation.png` |
 | About / System Profiler | 7 | `about_betawiki*.png` (3), `aboutsystem_betawiki*.png` (2), `systeminfo_betawiki.png`, `systemprofiler_betawiki.png` |
 | Finder / dialogs / apps | 3 | `finder_archiveorg.jpg`, `opendialog_macrumors86.jpg`, `apps_macrumors8.6.jpg` |
+| Zoomed window chrome supplement | 2 | `browsers_zoomed_toastytech81.png`, `infocenter_zoomed_toastytech81.png` (Mac OS 8.1) |
 | Photos of real hardware | 2 | `boot_powerbookphoto_macrumors.jpg`, `welcome_crtphoto_macrumors.jpg` |
 | Non-8.6 supplement | 1 | `sherlock_fandom.jpg` (Mac OS 8.5) |
 
