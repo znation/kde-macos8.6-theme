@@ -195,6 +195,107 @@ stylesheet or production behavior changes.
   `tests/test_gtk4_expander.py` and `docs/invariants.md`. `make
   check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate dropdown declarations (planned 2026-11-13 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (113 `test_` methods at this plan's base
+commit). Move the three dropdown/combobox declaration checks (about
+85 lines at this plan's base commit) into their own module, the same
+way the landed OSD (`tests/test_gtk4_osd.py`), scale, spinbutton,
+disabled, emoji, entry, notebook, scrollbar, switch, progressbar,
+levelbar, view, selected, button, row, treeview, tabbar, sidebar,
+checkbutton and menu parts moved theirs, and the way the waiting
+"GTK 4 suite extraction: isolate expander declarations" entry moves
+its four (the held merge-pin change for the landed linked part is
+removing that entry from `## Planned`, so this entry is written
+against main without it). This is independent of the waiting
+expander entry: neither moves a method the other names. Unlike the
+expander and linked entries, this one does prune an import: after
+the move, `test_gtk4_theme.py`'s `test_dropdown_arrow` is gone, and
+at this plan's base commit `COMBO_ARROW` has no other direct use in
+that module (`grep -n 'COMBO_ARROW' tests/test_gtk4_theme.py`
+finds only its import line and the moved method's one call, while
+`ETCH_DARK`, `WHITE` and `ROW_SELECTED` keep many staying users —
+lines 853/887, 854/888 and 1060 among others), so the unused-import
+scanner (`tests/test_no_unused_imports.py`, which scans `tests/`)
+requires pruning `COMBO_ARROW` from the `support.gtk_theme_spec`
+import block. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_dropdown.py` with
+  `class TestGtk4Dropdown(Gtk4SheetRuleCases, unittest.TestCase)` and
+  a one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_checkbutton.py`), ending with the
+  `if __name__ == "__main__":` guard like the landed modules. Move
+  the three `TestGtk4Theme` methods `test_dropdown_searchbar_rim`,
+  `test_dropdown_list_rows` and `test_dropdown_arrow`, keeping each
+  method's body and docstring unchanged. At this plan's base commit
+  they sit between the staying neighbors `test_status_bar` (above
+  `test_dropdown_searchbar_rim`), `test_list_row_press_and_popup_faces`
+  (between searchbar and list rows), `test_list_row_focus_outlines`
+  (below `test_dropdown_list_rows`) and `test_toast`-style
+  `assert_toast_matches_popover` users plus `test_separator` (below
+  `test_dropdown_arrow`) — the move touches three separate deletions
+  in the source module. Never import `tests/test_gtk4_theme.py` or
+  inherit `TestGtk4Theme`. At implementation re-grep every anchor
+  this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`; `COMBO_ARROW`, `ETCH_DARK`, `ROW_SELECTED`
+  and `WHITE` from `support.gtk_theme_spec`; and nothing else beyond
+  `unittest`. Every assertion helper the bodies call comes with the
+  base classes: `assert_rule` and `assert_exact_rule_once` are
+  methods of `Gtk4SheetRuleCases`' bases
+  (`tests/support/gtk_rule_cases.py:155` and
+  `tests/support/gtk4_sheet.py:92`), and `self.css`, `self.rules`
+  and `self.selectors` come from the shared `setUpClass`. No moved
+  body spells a palette name, a `support.gtk_css` name, or uses
+  `re`, `tempfile` or `mock`, so nothing else moves — `ETCH_DARK`,
+  `WHITE` and `ROW_SELECTED` keep their places in
+  `tests/test_gtk4_theme.py`'s import blocks. In the same change,
+  prune `COMBO_ARROW` from `tests/test_gtk4_theme.py`'s
+  `support.gtk_theme_spec` import block: no staying method reads it.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_dropdown…`
+  anchor to `tests/test_gtk4_dropdown.py::TestGtk4Dropdown::…`.
+  `grep -o 'TestGtk4Theme::test_dropdown[a-z_]*' docs/invariants.md`
+  finds exactly two member mentions at this plan's base commit —
+  `test_dropdown_list_rows` and `test_dropdown_searchbar_rim`, one
+  each in the anchor column of their GTK 4 dropdown rows — and
+  `test_dropdown_arrow` has no per-method invariants anchor (its
+  work is named only inside the class-level `TestGtk4Theme` row and
+  other entries' prose, which stay as they read). Rewrite only the
+  two moved anchors in place; the GTK 3 rows and every other anchor
+  stay as they read. Do not rewrite history in PLANS-DONE.md or
+  BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_dropdown.TestGtk4Dropdown`, and none of
+  them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_list_row_focus_outlines`, `test_list_row_press_and_popup_faces`
+  and `test_path_bar_tabs`.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_dropdown' docs/invariants.md`
+  prints nothing, both dropdown rows name their moved methods under
+  `tests/test_gtk4_dropdown.py::TestGtk4Dropdown`, the class-level
+  `tests/test_gtk4_theme.py::TestGtk4Theme` anchor row stays, and
+  the invariants checker inside `make check` resolves every new
+  anchor.
+- `grep -n 'COMBO_ARROW' tests/test_gtk4_theme.py` prints nothing,
+  `grep -n 'COMBO_ARROW' tests/test_gtk4_dropdown.py` finds exactly
+  the import and the moved `test_dropdown_arrow` body, and the
+  unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 80 lines, and
+  `tests/test_gtk4_dropdown.py` stays under about 110 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_dropdown.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
