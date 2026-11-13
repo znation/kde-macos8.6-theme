@@ -132,10 +132,7 @@ def apply(
             scratch, env, data_home, config_home, font, error, timeout
         )
     profile = _checked_name(name, error)
-    found = _resolve(profile, env, data_home, error)
-    if found is None:
-        return None
-    path, in_data_home = found
+    path, in_data_home = _resolve(profile, env, data_home, error)
     if not in_data_home:
         path = _copy_to_data_home(path, name, data_home, error)
     return _write_font(scratch, env, path, font, timeout)
@@ -159,7 +156,7 @@ def _checked_name(name: str, error: type[Exception]) -> str:
 
 def _resolve(
     name: str, env: dict[str, str], data_home: Path, error: type[Exception]
-) -> tuple[Path, bool] | None:
+) -> tuple[Path, bool]:
     """Find *name* in the konsole data directories; refuse when unresolvable.
 
     Returns the profile path and whether it lives in the user's data home.

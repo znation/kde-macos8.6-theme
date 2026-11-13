@@ -319,6 +319,18 @@ class TestFallback(StubKonsoleTools):
             self.read(self.konsolerc),
         )
 
+    def test_a_missing_config_home_is_created_before_the_selection(self):
+        # A first-time user has no config home yet: the fallback branch
+        # creates it, so the konsolerc selection write cannot fail on a
+        # missing parent directory.
+        status, stderr = self.apply_font()
+        self.assertEqual(None, status, stderr)
+        self.assertTrue(self.konsolerc.is_file(), self.konsolerc)
+        self.assertIn(
+            "[Desktop Entry]\nDefaultProfile=Platinum.profile\n",
+            self.read(self.konsolerc),
+        )
+
     def test_a_repeat_apply_rewrites_the_same_keys(self):
         status, stderr = self.apply_font()
         self.assertEqual(None, status, stderr)
