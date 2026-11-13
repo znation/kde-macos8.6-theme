@@ -96,6 +96,17 @@ recorded here to keep the scope deliberate.
 
 ### Split the 2584-line tests/test_gtk_theme_controls.py into per-surface suites (planned 2026-11-13 by the organize role; ordering clause — this entry queues behind the waiting "GTK 4 suite extraction: isolate paned, frame and corner-family declarations" entry, since both edit `docs/invariants.md`, and it is the GTK 3 analogue of the extraction series that entry continues: it may itself be decomposed into per-family entries the way that series was, each merging one family; at implementation re-grep every anchor this entry names)
 
+**Needs review 2026-11-13 by feature: too large for one run.** Measured at
+worktree base 149973fa4: tests/test_gtk_theme_controls.py is 2567 lines,
+docs/invariants.md carries 53 `TestGtkThemeControls` mentions, and eleven
+by-name sibling reference sites remain (test_gtk_theme.py,
+test_gtk_theme_views.py, test_gtk_theme_osd.py,
+test_no_gtk_introspection.py, test_gtk_child_probe_support.py,
+support/validation_gaps/unclear_invariant.py) — roughly ten new modules plus
+the invariants repointing and sibling doc updates, beyond a single run. As
+the entry's own ordering clause suggests, the plan role should decompose it
+into per-family entries as the GTK 4 extraction series was.
+
 **Goal and cost.** `tests/test_gtk_theme_controls.py` is the repository's
 largest file — 2584 lines at this plan's base commit, 67 test methods of
 which 54 sit in the single `TestGtkThemeControls` class spanning every GTK 3
