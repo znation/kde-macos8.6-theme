@@ -5,6 +5,102 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate linked declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (121 `test_` methods at this plan's base
+commit). Move the three `test_linked`-prefixed declaration checks
+(about 62 lines at this plan's base commit) into their own module,
+the same way the landed OSD (`tests/test_gtk4_osd.py`), scale,
+spinbutton, disabled, emoji, entry, notebook, scrollbar, switch,
+progressbar, levelbar, view, selected, button, row, treeview,
+tabbar and sidebar parts moved theirs, and the waiting "GTK 4
+suite extraction: isolate menu declarations" (a held feature branch
+moves it) and "… isolate checkbutton declarations" entries move
+their own. This is independent of both: neither moves a
+`test_linked` method, and this entry prunes no import at all (the
+moved bodies call no `support.gtk_theme_spec` name — see below),
+while the menu entry prunes `MENUBUTTON_ARROWS` and `MENU_CHECK`
+from the `support.gtk_theme_spec` block and the checkbutton entry
+prunes nothing; all three edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads those two
+files before writing. The source module has no other test method
+whose name contains `linked` (the staying `symlinked_repo` helper
+call inside `TestScrollbarBreadthRules` only carries the substring
+mid-name, and stays). No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_linked.py` with
+  `class TestGtk4Linked(Gtk4SheetRuleCases, unittest.TestCase)` and
+  a one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_selected.py`). Move every `TestGtk4Theme`
+  method whose name starts with `test_linked` (the three are
+  `test_linked_members_strip_their_trailing_border`,
+  `test_linked_last_member_restores_the_border` and
+  `test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines`),
+  keeping each method's body and docstring unchanged. At this
+  plan's base commit they sit as one contiguous block between the
+  staying `test_menu_selection_corners` above and the staying
+  module-level `_scrollbar_rules` helper below — but the held menu
+  entry moves `test_menu_selection_corners`, so at implementation
+  the staying neighbor above is whatever then precedes the block
+  (today `test_toolbar_and_menubar`, which stays) — the move touches
+  one deletion in the source module either way. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet` and `BLACK` from `support.platinum_palette`
+  (the moved bodies use it in
+  `test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines`'
+  `border` f-string) and nothing else beyond `unittest`. Every
+  assertion helper the bodies call comes with the base classes:
+  `assert_rule` is a method of `Gtk4SheetRuleCases`' base
+  (`tests/support/gtk_rule_cases.py`), and `self.css`, `self.rules`
+  and `self.selectors` come from the shared `setUpClass`. No moved
+  body spells a `support.gtk_theme_spec` name, a palette constant
+  other than `BLACK`, or a `support.gtk_css` name, and none uses
+  `re`, `tempfile` or `mock`, so no import moves and no import is
+  pruned in either module — `BLACK` keeps its existing place in
+  `tests/test_gtk4_theme.py`'s `support.platinum_palette` import
+  block (many staying methods still use it).
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_linked…` anchor to
+  `tests/test_gtk4_linked.py::TestGtk4Linked::test_linked…`,
+  wherever it appears. `grep -o
+  'TestGtk4Theme::test_linked[a-z_]*' docs/invariants.md` finds
+  exactly three member mentions at this plan's base commit, all in
+  the anchor column of the single GTK 4 linked-group row; no
+  provenance prose names them. The GTK 3 linked rows keep their
+  `tests/test_gtk_theme_controls.py::TestGtkThemeControls::test_linked…`
+  anchors unchanged. Rewrite only the moved anchors in place and
+  leave every staying anchor as it reads. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_linked.TestGtk4Linked`, and none of them
+  under `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme`
+  method is still listed there.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_linked' docs/invariants.md` prints
+  nothing, the GTK 4 linked-group row still names all three moved
+  methods under their new module path, the GTK 3 linked rows still
+  name `TestGtkThemeControls::test_linked…` under their original
+  module, and the invariants checker inside `make check` resolves
+  every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by 51 lines (corrected 2026-11-13 by the
+  feature role: the plan's ≥60-line figure was measured at the plan's base
+  commit; the merged menu entry had already moved the neighboring
+  `test_menu_selection_corners` block out of the file, so only the three
+  linked methods and their separators remained to move), and
+  `tests/test_gtk4_linked.py` stays under about 80 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_linked.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate checkbutton declarations (planned 2026-11-13 by the plan role) — done 2026-11-13 by the feature role
 
 <!-- moved from ## Planned: the goal, approach, files and criteria below are as
