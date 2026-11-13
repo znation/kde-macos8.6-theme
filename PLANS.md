@@ -94,62 +94,6 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-
-### GTK 4 suite extraction: isolate disabled declarations (planned 2026-11-12 by the plan role)
-
-**Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
-class. That breaks the principle that a file is small enough to read in one sitting.
-Move the eight `test_disabled_*` declaration checks (about 285 lines) into their own
-module, the same way the landed OSD (`tests/test_gtk4_osd.py`) and scale
-(`tests/test_gtk4_scale.py`) parts moved theirs. This is independent of "README split,
-part 5/5": that entry moves user-facing prose, not these tests. No stylesheet or
-production behavior changes.
-
-**Approach and files.**
-- Create `tests/test_gtk4_disabled.py` with `class TestGtk4Disabled(Gtk4SheetRuleCases,
-  unittest.TestCase)` and a one-line module docstring. Move every `TestGtk4Theme` method
-  whose name starts with `test_disabled_` into it, keeping each method's body and
-  docstring unchanged: `test_disabled_text`, `test_disabled_view_face`,
-  `test_disabled_view_family_ink`, `test_disabled_link_button_labels`,
-  `test_disabled_selected_inline_link_foregrounds`,
-  `test_disabled_selected_ancestor_inline_link_foregrounds`,
-  `test_disabled_selected_row_and_child_arms` and `test_disabled_meter_trough_faces`.
-  Methods that only contain `disabled` mid-name (`test_button_disabled_and_backdrop`,
-  `test_scrollbar_disabled_thumb_opacity`, `test_progressbar_disabled_filter`,
-  `test_levelbar_disabled_filter`, `test_switch_disabled_filter`) stay where they are.
-- Import exactly the names the moved bodies use, from the modules
-  `tests/test_gtk4_theme.py` imports them from: `gtk_css` from `support` and
-  `strip_comments` from `support.gtk_css` (the bodies call both the qualified
-  `gtk_css.inline_link_state_selectors` and the bare `strip_comments`);
-  `DISABLED_TEXT` from `support/gtk_theme_spec.py`; and `BLACK`, `TROUGH` and `WHITE`
-  from `support/platinum_palette.py`. `assert_disabled_text`, `assert_rule`,
-  `assert_rule_group`, `assert_rule_after`, `assert_exact_rule_once` and the
-  `self.rules`/`self.selectors`/`self.css` attributes come with `Gtk4SheetRuleCases`
-  and its base classes. Never import `tests/test_gtk4_theme.py` or inherit
-  `TestGtk4Theme`.
-- Prune any import in `tests/test_gtk4_theme.py` that the remaining code no longer
-  uses, and only those.
-- In `docs/invariants.md`, rewrite each
-  `tests/test_gtk4_theme.py::TestGtk4Theme::test_disabled_…` anchor to
-  `tests/test_gtk4_disabled.py::TestGtk4Disabled::test_disabled_…`. Leave the rows'
-  prose alone, including back-ticked `TestGtk4Theme.test_disabled_…` mentions that are
-  not dotted anchors. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
-
-**Acceptance criteria.**
-- Unittest discovery lists each of the eight moved methods exactly once, under
-  `test_gtk4_disabled.TestGtk4Disabled`, and none of them under
-  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is still listed
-  there.
-- For each moved method, the AST of its function definition is identical to the
-  original's at this plan's base commit, checked once during the run (for example by
-  comparing `ast.dump` output). This is a run-time check, not a new committed test.
-- `grep -n 'TestGtk4Theme::test_disabled' docs/invariants.md` prints nothing, and the
-  invariants checker inside `make check` resolves every new anchor.
-- `tests/test_gtk4_theme.py` shrinks by at least the moved methods' line count, and
-  `tests/test_gtk4_disabled.py` stays under about 400 lines.
-- `git diff --stat` touches only `tests/test_gtk4_theme.py`, `tests/test_gtk4_disabled.py`
-  and `docs/invariants.md`. `make check` passes after the final edit.
-
 ### GTK 4 suite extraction: isolate spinbutton declarations (planned 2026-11-12 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
