@@ -840,19 +840,28 @@ uninstall:
 # rm -rf and do not redirect traversal.
 require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
 
+# The package removals repeat one shape -- the directory this theme owns
+# beside its `install_package` state: the package itself and the hidden
+# `.staging`/`.old` siblings a killed install left behind. All seven
+# directory-package removals (`_uninstall`) share this one word, so a
+# future package family cannot drop a sibling by hand. The two file
+# removals (`rm -f`) and the GTK per-file loops are different shapes and
+# stay as they are. $(1) is the install dir, $(2) the package id.
+remove_installed_package = rm -rf "$(1)/$(2)" "$(1)/.$(2).staging" "$(1)/.$(2).old";
+
 # The removals share one shell (and one `set -e`) so a run spawns one child
 # process instead of ten; each command keeps its own quoting and a failure
 # still stops the recipe, as it did when make ran each line itself.
 _uninstall:
 	set -e; \
 	rm -f "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)" "$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"; \
-	rm -rf "$(LNF_INSTALL_DIR)/$(LNF_ID)" "$(LNF_INSTALL_DIR)/.$(LNF_ID).staging" "$(LNF_INSTALL_DIR)/.$(LNF_ID).old"; \
-	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"; \
-	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"; \
-	rm -rf "$(KWINDEC_INSTALL_DIR)/$(KWINDEC_ID)" "$(KWINDEC_INSTALL_DIR)/.$(KWINDEC_ID).staging" "$(KWINDEC_INSTALL_DIR)/.$(KWINDEC_ID).old"; \
-	rm -rf "$(WALLPAPER_INSTALL_DIR)/$(WALLPAPER_ID)" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).staging" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).old"; \
-	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"; \
-	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"; \
+	$(call remove_installed_package,$(LNF_INSTALL_DIR),$(LNF_ID)) \
+	$(call remove_installed_package,$(DTHEME_INSTALL_DIR),$(DTHEME_ID)) \
+	$(call remove_installed_package,$(AURORAE_INSTALL_DIR),$(AURORAE_ID)) \
+	$(call remove_installed_package,$(KWINDEC_INSTALL_DIR),$(KWINDEC_ID)) \
+	$(call remove_installed_package,$(WALLPAPER_INSTALL_DIR),$(WALLPAPER_ID)) \
+	$(call remove_installed_package,$(ICON_THEME_INSTALL_DIR),$(ICON_THEME_ID)) \
+	$(call remove_installed_package,$(FONT_INSTALL_DIR),$(FONT_ID)) \
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"; \
 	# `rmdir` hungrily removes only the emptied sub-directories and then the
 	# shared `Kvantum/` parent and the shared theme directory itself; a
