@@ -16,6 +16,7 @@ from support.gtk_child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,
+    _GTK3_SHEET_PROVIDER,
     run_gtk_child,
 )
 from support.gtk_css import assert_svg_root_first, strip_comments
@@ -540,11 +541,8 @@ print("entry progress: the 0.5 fraction leaves the #CCCCFF strip one and two pix
         # offscreen window; see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(bar, width, height, sensitive=True):
     window = Gtk.OffscreenWindow()
@@ -661,11 +659,8 @@ print("disabled text view: the allocation corners read the white field, no pixel
         # in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(shadow, rtl):
     window = Gtk.OffscreenWindow()
@@ -738,11 +733,8 @@ print("scrolled viewport: the IN frame is 1px black with a grey inset and no sec
         # see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(shadow, rtl):
     window = Gtk.OffscreenWindow()
@@ -1900,11 +1892,8 @@ print("notebook tab faces: the band interior and the flat checked tab read #DDDD
         # see _run_gtk_child for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(rtl):
     window = Gtk.OffscreenWindow()
@@ -1983,11 +1972,8 @@ print("horizontal spin button: one 1px black seam per stepper edge in LTR and RT
         # for why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(rtl):
     window = Gtk.OffscreenWindow()
@@ -2046,11 +2032,8 @@ print("OSD spin field: the etch's vertical arm reads at the exposed edge column 
         # why this runs in a child.
         program = (
             _GTK3_SHEET_PROLOGUE
-            + r'''provider = Gtk.CssProvider()
-provider.load_from_data(css)
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(), provider, 800
-)
+            + _GTK3_SHEET_PROVIDER
+            + r'''
 
 def render(rtl):
     window = Gtk.OffscreenWindow()

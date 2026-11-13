@@ -13,6 +13,7 @@ from support.gtk_child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,
+    _GTK3_SHEET_PROVIDER,
     run_gtk_child,
 )
 
@@ -58,6 +59,17 @@ class TestGtkChildProbeSupport(unittest.TestCase):
         self.assertIn('print("GTK 3 introspection is not installed")', _GTK3_CHILD_HEAD)
         self.assertIn('print("no display for GTK 3")', _GTK3_CHILD_HEAD)
         self.assertEqual(2, _GTK3_CHILD_HEAD.count("sys.exit(77)"))
+
+    def test_sheet_provider_registers_the_sheet_on_the_screen(self):
+        self.assertIn("provider = Gtk.CssProvider()", _GTK3_SHEET_PROVIDER)
+        self.assertIn("provider.load_from_data(css)", _GTK3_SHEET_PROVIDER)
+        self.assertIn("Gtk.StyleContext.add_provider_for_screen(", _GTK3_SHEET_PROVIDER)
+        # The and-window constant is exactly the provider block plus the
+        # one window line, so single-window probes reuse the same bytes.
+        self.assertEqual(
+            _GTK3_SHEET_PROVIDER + "window = Gtk.OffscreenWindow()\n",
+            _GTK3_SHEET_AND_WINDOW,
+        )
 
     def test_sheet_and_window_paints_the_offscreen_window(self):
         self.assertIn("provider.load_from_data(css)", _GTK3_SHEET_AND_WINDOW)
