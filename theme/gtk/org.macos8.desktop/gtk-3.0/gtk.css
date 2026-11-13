@@ -1201,7 +1201,7 @@ progressbar progress:disabled {
    (the existing state records keep those faces already), a meter fill's
    leading end, the trough's square corners or the scale's focus ring
    (the GTK scope's standing adaptation premise), so every answer below
-   reuses a existing value: the existing trough recipe's 10px minimums and
+   reuses an existing value: the existing trough recipe's 10px minimums and
    the existing fill recipe's zero margin, the existing square-corner policy,
    and the existing 2026-11-04 `scale:focus` record as the focus-shape
    source. The installed GTK 3 theme resource gtk-contained.css in
@@ -1743,7 +1743,7 @@ switch image {
    `-gtk-icon-shadow` restate — the `switch image` glyphs are transparent
    and the existing recipe owns no ink member for the switch family, so
    stock's own greys and resets keep those properties; no `headerbar
-   switch` margin arm — stock geometry of a existing surface; and stock's
+   switch` margin arm — stock geometry of an existing surface; and stock's
    own `row:selected switch` box-shadow: none member already matches the
    existing base track, so it is not redeclared. Declaration checks do not
    establish rendered pixels. */
@@ -5462,7 +5462,7 @@ radio:indeterminate:backdrop {
    plain record's face inside an unfocused window. No collected reference
    screenshot in macos8.6-screenshots/ shows a GTK check or radio in a
    disabled, selected-row or unfocused state — the standing GTK-scope
-   adaptation premise — so every restatement below reuses a existing value:
+   adaptation premise — so every restatement below reuses an existing value:
    the base `check` recipe's etch (`inset 1px 1px #FFFFFF, inset -1px
    -1px #888888`) and black border, the existing selected-row policy of
    the `row:selected button` and tree-view records, and the existing
