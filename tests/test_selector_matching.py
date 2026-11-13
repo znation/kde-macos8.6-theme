@@ -454,6 +454,40 @@ class TestSelectorMatching(unittest.TestCase):
                 self.assertTrue(matches(selector, replacement))
                 self.assertFalse(matches(selector, ordinary))
 
+    def test_a_seventh_hex_digit_stays_in_the_value_after_the_six_digit_escape(self):
+        # CSS consumes at most six hex digits after a backslash, and the
+        # matcher's ``\\[0-9A-Fa-f]{1,6}`` escape promises the same cap: a
+        # seventh digit is a literal character of the value, not part of the
+        # escape. ``\1234567`` therefore denotes U+123456 -- above the
+        # Unicode range, so it decodes to U+FFFD -- followed by a literal
+        # ``7``. A regex that swallowed the whole digit run (or an escape
+        # decoder that did) would fold the ``7`` into one out-of-range code
+        # point and decode a different value, silently re-scoping whatever
+        # sheet rule carried a long hex escape.
+        seven_digits = r"[title=\1234567]"
+        expected = "\ufffd7"
+        self.assertTrue(_selector_is_supported(seven_digits))
+        self.assertTrue(
+            matches(seven_digits, element("button", attrs={"title": expected}))
+        )
+        # Neither the digit run as typed nor the bare replacement character
+        # matches: the escape stops at six digits and the ``7`` stays text.
+        self.assertFalse(
+            matches(seven_digits, element("button", attrs={"title": "1234567"}))
+        )
+        self.assertFalse(
+            matches(seven_digits, element("button", attrs={"title": "\ufffd"}))
+        )
+        # The quoted form reaches the same decoder through the string's own
+        # escape grammar: the value ``a\1234567b`` decodes to ``a``, the
+        # U+FFFD the first six digits denote, the literal ``7``, then ``b``.
+        quoted = r'[title="a\1234567b"]'
+        quoted_expected = "a\ufffd7b"
+        self.assertTrue(_selector_is_supported(quoted))
+        self.assertTrue(
+            matches(quoted, element("button", attrs={"title": quoted_expected}))
+        )
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not
