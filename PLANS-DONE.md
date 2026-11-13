@@ -5,6 +5,80 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate levelbar declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move the five `test_levelbar_*`-named declaration checks (about 66
+lines at this plan's base commit) into their own module, the same way the
+landed OSD (`tests/test_gtk4_osd.py`), scale (`tests/test_gtk4_scale.py`),
+spinbutton, disabled, emoji, entry, notebook, scrollbar and switch parts
+moved theirs. This is independent of the waiting "GTK 4 suite extraction:
+isolate progressbar declarations" entry (that entry moves only
+`test_progressbar*` methods; the two method sets do not overlap, and this
+entry's only invariants row — the level-bar row naming `test_levelbar`
+members beside `test_gtk_theme_controls`'s — is not touched by that entry,
+though both entries edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads those two files
+before writing). The landed rendered probes and their invariants rows stay
+untouched, and there is no `test_gtk4_levelbar_probe.py`. At implementation
+re-grep every anchor this entry names. No stylesheet or production behavior
+changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_levelbar.py` with
+  `class TestGtk4Levelbar(Gtk4SheetRuleCases, unittest.TestCase)` and a
+  one-line module docstring on the landed extraction modules' pattern. Move
+  every `TestGtk4Theme` method whose name starts with `test_levelbar_` plus
+  the bare `test_levelbar`, keeping each method's body and docstring
+  unchanged: `test_levelbar`, `test_levelbar_disabled_filter`,
+  `test_levelbar_discrete_cross_size`, `test_levelbar_block_corners` and
+  `test_levelbar_directional_block_corners`. All five are contiguous in the
+  file between `test_spinner` and `test_tabbar_backdrop_filter`, which
+  stay. No method elsewhere in the file contains `levelbar` mid-name
+  (grep-checked at this plan's base commit), and the landed GTK 3 levelbar
+  check lives in `tests/test_gtk_theme_controls.py` and stays there. Never
+  import `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+- The new module imports exactly `GREY` from `support.platinum_palette`
+  (the moved bodies use it once, in `test_levelbar_disabled_filter`; the
+  source module keeps six other uses, so its import block needs no
+  pruning). Every assertion helper the bodies call comes with
+  `Gtk4SheetRuleCases` and its base classes: `assert_levelbar` and
+  `assert_rule` on `support/gtk_rule_cases.py`'s `GtkSheetRuleCases` (which
+  `tests/support/gtk4_sheet.py`'s `Gtk4SheetRuleCases` extends, the landed
+  modules' base), and the `self.rules` attribute comes the same way; the
+  moved bodies call no other support name (no `gtk_css`, `parse_css`,
+  `HEX`, mock, tempfile, symlink helper or `re` use; verified against the
+  five bodies at this plan's base commit).
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_levelbar…` anchor to
+  `tests/test_gtk4_levelbar.py::TestGtk4Levelbar::test_levelbar…`.
+  `grep -o 'TestGtk4Theme::test_levelbar[a-z_]*' docs/invariants.md` finds
+  five member mentions, all on the single level-bar row, at this plan's
+  base commit — one each of the bare name and the four `_`-suffixed names,
+  none in row prose. Leave the sibling anchor
+  `tests/test_gtk_theme_controls.py::TestGtkThemeControls::test_levelbar`
+  and the row's provenance prose alone. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five moved methods exactly once,
+  under `test_gtk4_levelbar.TestGtk4Levelbar`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is
+  still listed there.
+- For each moved method, the AST of its function definition is identical to
+  the original's at this plan's base commit, checked once during the run
+  (for example by comparing `ast.dump` output). This is a run-time check,
+  not a new committed test.
+- `grep -n 'TestGtk4Theme::test_levelbar' docs/invariants.md` prints
+  nothing, the level-bar row still anchors
+  `TestGtkThemeControls::test_levelbar`, and the invariants checker inside
+  `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 60 lines, and
+  `tests/test_gtk4_levelbar.py` stays under about 200 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_levelbar.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ### GTK 4 suite extraction: isolate progressbar declarations (planned 2026-11-12 by the plan role) — done 2026-11-12 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
