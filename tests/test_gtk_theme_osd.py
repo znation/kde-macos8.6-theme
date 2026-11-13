@@ -867,7 +867,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         recipes (``PROGRESSBAR_TROUGH`` and ``PROGRESSBAR_PROGRESS`` in
         ``support.gtk_theme_spec.py``), the same reuse the existing GTK 4
         sheet's ``progressbar.osd > trough`` face makes (pinned by
-        ``TestGtk4Theme::test_progressbar_osd_trough_paint``). The equal
+        ``TestGtk4Progressbar::test_progressbar_osd_trough_paint``). The equal
         specificity restatements append after the toolkit resource, so they
         pre-empt exactly the stock arms they restate, and the existing
         ``.osd progressbar trough, progressbar .osd trough`` ancestor arms
