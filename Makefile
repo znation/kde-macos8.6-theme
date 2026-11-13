@@ -563,10 +563,13 @@ RENDER_OUTPUT ?= render.png
 # two refusal echoes in the `render` recipe and the help line build their mode
 # list from RENDER_MODE_LIST, so the list is spelled once here, and
 # tests/test_render_make.py pins RENDER_MODE_VALUES against the DIALOG_MODES
-# table plus calculator, desktop and splash so the two cannot drift apart. The recipe's case branches stay
-# literal -- make cannot generate recipe text from a variable at recipe time
-# without an extra interpreter run -- and that test also pins every branch's
-# literal argv, so a mode missing its branch fails there.
+# table plus calculator, desktop and splash so the two cannot drift apart.
+# The recipe maps every mode from that one list: it word-splits RENDER_MODE,
+# rejects anything but a single value, then walks RENDER_MODE_VALUES and maps
+# each mode except calculator to its own --<mode> flag (calculator passes no
+# flag), refusing anything the list does not name. Adding a dialog mode
+# therefore touches only RENDER_MODE_VALUES, and the same test pins every
+# mode's literal argv, so a value missing from the list fails there.
 RENDER_MODE_VALUES := calculator checkbox-dialog combobox-dialog lineedit-dialog menu-dialog radiolist-dialog calendar-dialog color-dialog icon-dialog progressbar-dialog slider-dialog textbox-dialog gtk-dialog inactive-dialog file-dialog desktop splash
 comma := ,
 empty :=
@@ -579,26 +582,12 @@ render:
 	@$(call require_python_ready,render)
 	@set -f; set -- $${RENDER_MODE-calculator}; \
 	case "$$#" in 1) ;; *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; esac; \
-	case "$$1" in \
-	  calculator) set -- ;; \
-	  checkbox-dialog) set -- --checkbox-dialog ;; \
-	  combobox-dialog) set -- --combobox-dialog ;; \
-	  lineedit-dialog) set -- --lineedit-dialog ;; \
-	  menu-dialog) set -- --menu-dialog ;; \
-  radiolist-dialog) set -- --radiolist-dialog ;; \
-	  calendar-dialog) set -- --calendar-dialog ;; \
-  color-dialog) set -- --color-dialog ;; \
-	  icon-dialog) set -- --icon-dialog ;; \
-	  progressbar-dialog) set -- --progressbar-dialog ;; \
-	  slider-dialog) set -- --slider-dialog ;; \
-	  textbox-dialog) set -- --textbox-dialog ;; \
-	  gtk-dialog) set -- --gtk-dialog ;; \
-	  inactive-dialog) set -- --inactive-dialog ;; \
-	  file-dialog) set -- --file-dialog ;; \
-  desktop) set -- --desktop ;; \
-  splash) set -- --splash ;; \
-	  *) echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2 ;; \
-	esac; \
+	mode=$$1; flag=; \
+	for mode_name in $(RENDER_MODE_VALUES); do \
+	  if [ "$$mode_name" = "$$mode" ] && [ "$$mode_name" != calculator ]; then flag=--$$mode_name; fi; \
+	done; \
+	if [ "$$flag" ] || [ "$$mode" = calculator ]; then set -- $$flag; \
+	else echo "RENDER_MODE must be one of $(RENDER_MODE_LIST)" >&2; exit 2; fi; \
 	$(PYTHON) tools/render_surface.py "$$@" -- "$(RENDER_OUTPUT)"
 
 # Apply the just-built theme everywhere it reaches. `install` runs as a
