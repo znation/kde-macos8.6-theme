@@ -132,12 +132,23 @@ def supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                                                                     int | None]:
     """Run each module with a bounded number of workers.
 
+    A worker count below one is refused before the loop runs: the fill loop
+    starts a worker only while fewer than *workers* are running, so with zero
+    workers the queue can never drain and the poll loop would spin at full
+    CPU with no output instead of returning an error.
+
     When *durations* is a mapping, each finished worker's elapsed wall time is
     recorded into it: completion is polled within ``_POLL_SECONDS`` and a
     timed-out worker records its timeout-span, so the values carry spawn and
     teardown, which is the time the module held a worker -- exactly what the
     next run's ordering needs.
     """
+    if (not isinstance(workers, int) or isinstance(workers, bool)
+            or workers < 1):
+        raise ValueError(
+            f"supervise() requires a positive integer worker count: "
+            f"workers={workers!r}"
+        )
     results: dict[str, int | None] = {}
     queue = deque(modules)
     running: list[_Worker] = []

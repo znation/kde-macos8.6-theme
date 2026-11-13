@@ -99,5 +99,45 @@ class TestSuperviseDurations(unittest.TestCase):
             self.assertLess(elapsed, 1.02, module)
 
 
+class TestSuperviseWorkerCountRefusal(unittest.TestCase):
+    """supervise refuses a worker count below one instead of idling forever.
+
+    The fill loop starts a worker only while fewer than *workers* are
+    running, so with zero workers the queue can never drain: the old code
+    span at full CPU with no output until the run was killed from outside.
+    The refusal is a ValueError naming the count, so the caller's bug is
+    reported where it is visible.
+    """
+
+    def _refused(self, workers) -> str:
+        with self.assertRaises(ValueError) as caught:
+            check_parallel_workers.supervise(
+                ["a"], [], ".", {"a": "a.log"}, 60, workers
+            )
+        return str(caught.exception)
+
+    def test_zero_workers_is_refused_naming_the_count(self):
+        message = self._refused(0)
+        self.assertIn("supervise() requires a positive integer", message)
+        self.assertIn("workers=0", message)
+
+    def test_a_negative_count_is_refused_naming_the_count(self):
+        self.assertIn("workers=-2", self._refused(-2))
+
+    def test_a_non_integer_count_is_refused_naming_the_count(self):
+        self.assertIn("workers='2'", self._refused("2"))
+
+    def test_true_is_refused_as_the_count_one_it_wraps(self):
+        # bool is an int subclass, so True would pass a bare integer check as
+        # the worker count 1; the refusal names the bool instead.
+        self.assertIn("workers=True", self._refused(True))
+
+    def test_one_worker_still_runs(self):
+        # One is the documented minimum (the check CLI's own floor); a
+        # refusal message phrased as "more than one" would fail this.
+        run = _VirtualRun(duration=1.0)
+        self.assertEqual({"a": 0}, run.supervise(["a"], workers=1))
+
+
 if __name__ == "__main__":
     unittest.main()
