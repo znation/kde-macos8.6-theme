@@ -182,6 +182,105 @@ stay where they are. No stylesheet or production behavior changes.
   `tests/test_gtk4_tabbar.py` and `docs/invariants.md`. `make
   check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate sidebar declarations (planned 2026-11-12 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class (127 `test_` methods at this plan's base
+commit). Move the three `test_sidebar`-prefixed declaration checks
+(about 50 lines at this plan's base commit) into their own module,
+the same way the landed OSD (`tests/test_gtk4_osd.py`), scale,
+spinbutton, disabled, emoji, entry, notebook, scrollbar, switch,
+progressbar, levelbar, view, selected, button and row parts moved
+theirs, and the waiting "GTK 4 suite extraction: isolate tabbar
+declarations" entry moves its own. This is independent of that
+waiting entry (neither moves a `test_sidebar` method and neither
+touches the other's pruned import — that one prunes `SCALE_SLIDER`
+from the `support.gtk4_sheet` block, this one prunes two names from
+the `support.gtk_rule_cases` block; both edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever
+merges later re-reads those two files before writing). Methods that
+only contain `sidebar` mid-name (`test_navigation_sidebar_item_corners`,
+`test_places_sidebar`, `test_dropdown_searchbar_rim`) stay where
+they are. No stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_sidebar.py` with
+  `class TestGtk4Sidebar(Gtk4SheetRuleCases, unittest.TestCase)` and
+  a one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_view.py`). Move every `TestGtk4Theme`
+  method whose name starts with `test_sidebar_`, keeping each
+  method's body and docstring unchanged:
+  `test_sidebar_button_focus_outline_color`,
+  `test_sidebar_button_corners` and `test_sidebar_row_icon_opacity`.
+  At this plan's base commit they sit at three scattered spots in
+  `tests/test_gtk4_theme.py`, each between staying neighbors —
+  `test_checkbutton_focus_outline_color` after the first,
+  `test_video_osd_image_corners` after the second,
+  `test_boxed_list_corners` after the third — so the move touches
+  three separate deletions in the source module. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet` and `ROW_SELECTED_BUTTON_ARM_SIDEBAR` and
+  `ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP` from
+  `support.gtk_rule_cases` (the moved bodies use each: the two
+  constants in `test_sidebar_button_corners`'s family inventory;
+  only base helpers and `self.rules`/`self.selectors` elsewhere).
+  Every assertion helper the bodies call comes with the base
+  classes: `assert_rule`, `assert_matches_frame` and
+  `assert_black_focus_outline` are methods of `Gtk4SheetRuleCases`
+  and its bases (`tests/support/gtk4_sheet.py`,
+  `tests/support/gtk_rule_cases.py`), and `self.css`, `self.rules`
+  and `self.selectors` come from the shared `setUpClass`; none of
+  them is imported as a name anywhere, so no other import moves.
+- Grep-checked at this plan's base commit, the source module's only
+  other `ROW_SELECTED_BUTTON_ARM_SIDEBAR` and
+  `ROW_SELECTED_BUTTON_ARM_SIDEBAR_BACKDROP` references are their
+  two import lines, so after the move `tests/test_gtk4_theme.py`
+  no longer uses either name: prune both from the
+  `from support.gtk_rule_cases import (...)` block. No other import
+  in that block changes. The moved bodies call no other support
+  name (no `HEX`, `parse_css`, `strip_comments`, `gtk_css`,
+  palette, spec, mock, tempfile or `re` use).
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_sidebar…` anchor to
+  `tests/test_gtk4_sidebar.py::TestGtk4Sidebar::test_sidebar…`,
+  wherever it appears — in the anchor column and in provenance
+  prose. `grep -o 'TestGtk4Theme::test_sidebar[a-z_]*'
+  docs/invariants.md` finds exactly three member mentions at this
+  plan's base commit, one per touched invariant row:
+  `test_sidebar_button_focus_outline_color` alone in the sidebar
+  focus-outline row, `test_sidebar_button_corners` beside the
+  staying `tests/test_gtk4_row.py::TestGtk4Row::
+test_row_spin_stepper_corners` and `tests/test_gtk4_emoji.py::
+TestGtk4Emoji::test_emoji_section_button_corners` in the stock-rounds
+  square-corners row, and `test_sidebar_row_icon_opacity` alone in
+  the sidebar-icon-opacity row. Rewrite only the moved anchors in
+  place and leave every staying anchor as it reads — the
+  `test_navigation_sidebar_item_corners`, `test_places_sidebar` and
+  GTK 3 sidebar anchors keep their original modules. Do not rewrite
+  history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_sidebar.TestGtk4Sidebar`, and none of them
+  under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_navigation_sidebar_item_corners` and `test_places_sidebar`.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_sidebar' docs/invariants.md` prints
+  nothing, each of the three touched rows still names its staying
+  anchors under their original modules, and the invariants checker
+  inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 45 lines, and
+  `tests/test_gtk4_sidebar.py` stays under about 120 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_sidebar.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
