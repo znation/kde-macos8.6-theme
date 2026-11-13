@@ -30,7 +30,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.recorded_lines import recorded_lines
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_session_home, make_tmp_dir
 from support.unlink_failure import unlink_failing_for
 from tools import apply_cursor, cursor_config, cursor_link, cursor_selection, diagnostics, required_command
 
@@ -39,24 +39,14 @@ class CursorCase(unittest.TestCase):
     """Base with a temp home, data/config homes and a recording selector stub."""
 
     def setUp(self):
-        self.root = make_tmp_dir(self)
-        self.home = self.root / "home"
-        self.home.mkdir()
-        self.data = self.root / "data"
-        self.config = self.root / "config"
-        self.bin = self.root / "bin"
-        self.bin.mkdir()
+        self.root, self.home, self.data, self.config, self.bin, self.env = (
+            make_session_home(self)
+        )
         self.calls = self.root / "calls"
         self.installed = (
             self.data / "icons" / cursor_link.CURSOR_THEME
         )
         self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
-        self.env = {
-            "HOME": str(self.home),
-            "XDG_DATA_HOME": str(self.data),
-            "XDG_CONFIG_HOME": str(self.config),
-            "PATH": str(self.bin),
-        }
 
     def install_theme(self):
         """Write the installed theme's ``index.theme`` and ``cursors/left_ptr``."""

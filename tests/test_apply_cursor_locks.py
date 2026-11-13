@@ -23,7 +23,7 @@ from support.process_assertions import (
     assert_lock_time_out,
     assert_succeeded,
 )
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_session_home
 from tools import apply_cursor, cursor_link, cursor_workflow
 
 
@@ -31,21 +31,11 @@ class CursorLockCase(unittest.TestCase):
     """Base with a temp home, data/config homes and an installed theme."""
 
     def setUp(self):
-        self.root = make_tmp_dir(self)
-        self.home = self.root / "home"
-        self.home.mkdir()
-        self.data = self.root / "data"
-        self.config = self.root / "config"
-        self.bin = self.root / "bin"
-        self.bin.mkdir()
+        self.root, self.home, self.data, self.config, self.bin, self.env = (
+            make_session_home(self)
+        )
         self.installed = self.data / "icons" / cursor_link.CURSOR_THEME
         self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
-        self.env = {
-            "HOME": str(self.home),
-            "XDG_DATA_HOME": str(self.data),
-            "XDG_CONFIG_HOME": str(self.config),
-            "PATH": str(self.bin),
-        }
         (self.installed / "cursors").mkdir(parents=True)
         (self.installed / "index.theme").write_text(
             "[Icon Theme]\nName=Mac OS 8.6\n", encoding="utf-8"

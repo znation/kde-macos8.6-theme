@@ -25,7 +25,7 @@ from support.process_assertions import (
     assert_lock_time_out,
     assert_succeeded,
 )
-from support.tmp_dir import make_tmp_dir
+from support.tmp_dir import make_session_home
 from tools import apply_theme
 
 
@@ -33,27 +33,17 @@ class ThemeLockCase(unittest.TestCase):
     """Base with a temp home, data home and stubbed selection tools."""
 
     def setUp(self):
-        self.root = make_tmp_dir(self)
-        self.home = self.root / "home"
-        self.home.mkdir()
-        self.data = self.root / "data"
+        self.root, self.home, self.data, self.config, self.bin, self.env = (
+            make_session_home(self)
+        )
         # The lock is taken on the data home, so it must exist when the apply
         # runs; ``make install`` creates it before this script runs.
-        self.data.mkdir(parents=True)
-        self.config = self.root / "config"
-        self.bin = self.root / "bin"
-        self.bin.mkdir()
+        self.data.mkdir()
         self.calls = self.root / "calls"
         for name in apply_theme.REQUIRED_TOOLS:
             self.stub(name)
         self.stub("qdbus6")
         self.stub("kvantummanager")
-        self.env = {
-            "HOME": str(self.home),
-            "XDG_DATA_HOME": str(self.data),
-            "XDG_CONFIG_HOME": str(self.config),
-            "PATH": str(self.bin),
-        }
 
     def stub(self, name, body="exit 0"):
         """Write an executable *name* that records its argv, then runs *body*."""
