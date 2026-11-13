@@ -25,6 +25,7 @@ from support.config_home_cases import (
     assert_no_config_home,
 )
 from support.theme_install import (
+    assert_diagnostics_in_order,
     assert_make_n_uninstall_parses,
     assert_uninstall_diagnostics,
     read_bytes,
@@ -326,20 +327,10 @@ class TestKwinrcDecorationUninstallDiagnostic(theme_install.UninstallRecipeTestC
             "ButtonsOnLeft=X\n"
             "ButtonsOnRight=AL\n",
         )
-        original = read_bytes(path)
-
-        result = self.uninstall_with_config(tmp, config)
-
-        assert_succeeded(self, result)
-        button_at = result.stderr.find(BUTTON_RULE(path))
-        pair_at = result.stderr.find(AURORAE_PAIR_RULE(path))
-        theme_at = result.stderr.find(rule_for(path))
-        self.assertGreaterEqual(button_at, 0)
-        self.assertGreaterEqual(pair_at, 0)
-        self.assertGreaterEqual(theme_at, 0)
-        self.assertLess(button_at, pair_at)
-        self.assertLess(pair_at, theme_at)
-        self.assertEqual(original, read_bytes(path))
+        result = assert_uninstall_diagnostics(self, tmp, config, unchanged=path)
+        assert_diagnostics_in_order(
+            self, result, [BUTTON_RULE(path), AURORAE_PAIR_RULE(path), rule_for(path)]
+        )
 
     def test_make_n_uninstall_still_parses(self):
         # The scanner's recipe is pinned by drying the internal recipe
