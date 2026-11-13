@@ -97,5 +97,4 @@ would require a durable transaction record or another crash-consistent publicati
 in-process exception rollback cannot run after `SIGKILL`, and automatic recovery could overwrite
 user edits made after the interrupted commit.
 
-
 ## Fixed
