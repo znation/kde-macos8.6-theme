@@ -51,12 +51,9 @@ def validate_options(parser: EscapingArgumentParser, args) -> None:
         parser.error("--min-difference-run-length requires --difference-runs")
     if args.max_difference_run_length is not None and not args.difference_runs:
         parser.error("--max-difference-run-length requires --difference-runs")
-    if (args.min_difference_run_length is not None
-            and args.max_difference_run_length is not None
-            and args.min_difference_run_length > args.max_difference_run_length):
-        parser.error(
-            f"--min-difference-run-length must not exceed --max-difference-run-length "
-            f"({args.min_difference_run_length} > {args.max_difference_run_length})")
+    _validate_run_length_window(
+        parser, args.min_difference_run_length, args.max_difference_run_length,
+        "--min-difference-run-length", "--max-difference-run-length")
     if args.max_difference_runs is not None and not args.difference_runs:
         parser.error("--max-difference-runs requires --difference-runs")
     if args.difference_run_offset is not None and args.max_difference_runs is None:
@@ -65,20 +62,26 @@ def validate_options(parser: EscapingArgumentParser, args) -> None:
         parser.error("--min-difference-column-run-length requires --difference-column-runs")
     if args.max_difference_column_run_length is not None and not args.difference_column_runs:
         parser.error("--max-difference-column-run-length requires --difference-column-runs")
-    if (args.min_difference_column_run_length is not None
-            and args.max_difference_column_run_length is not None
-            and args.min_difference_column_run_length > args.max_difference_column_run_length):
-        parser.error(
-            f"--min-difference-column-run-length must not exceed "
-            f"--max-difference-column-run-length "
-            f"({args.min_difference_column_run_length} > "
-            f"{args.max_difference_column_run_length})")
+    _validate_run_length_window(
+        parser, args.min_difference_column_run_length,
+        args.max_difference_column_run_length,
+        "--min-difference-column-run-length",
+        "--max-difference-column-run-length")
     if args.max_difference_column_runs is not None and not args.difference_column_runs:
         parser.error("--max-difference-column-runs requires --difference-column-runs")
     if args.difference_column_run_offset is not None and args.max_difference_column_runs is None:
         parser.error("--difference-column-run-offset requires --max-difference-column-runs")
     if args.worst_pixel_offset is not None and args.worst_pixels is None:
         parser.error("--worst-pixel-offset requires --worst-pixels")
+
+
+def _validate_run_length_window(parser, minimum, maximum,
+                                minimum_flag: str, maximum_flag: str) -> None:
+    """Reject a contradictory run-length window with its CLI flag names."""
+    if minimum is not None and maximum is not None and minimum > maximum:
+        parser.error(
+            f"{minimum_flag} must not exceed {maximum_flag} "
+            f"({minimum} > {maximum})")
 
 
 def build_parser() -> EscapingArgumentParser:
