@@ -10,7 +10,7 @@ from unittest import mock
 from support import containment
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from support.user_docs import linked_guides
+from support.user_docs import linked_guides, prose_lines
 
 _HEADING = re.compile(r"^ {0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$")
 _LINK = re.compile(r"\[[^\]]*\]\(#([^\s)]+)\)")
@@ -18,7 +18,6 @@ _CROSS_LINK = re.compile(r"\]\(([^)\s#]+\.md)(?:#([^\s)]+))?\)")
 _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 _ANCHOR = re.compile(r"^\s{0,3}<a\s+id\s*=\s*(['\"])([^'\"]+)\1\s*>\s*</a>\s*$")
 _PUNCTUATION = re.compile(r"[^\w\s-]", re.UNICODE)
-_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
 def read_readme() -> str:
@@ -32,29 +31,11 @@ def _slug(text: str) -> str:
     return re.sub(r"\s+", "-", text.strip())
 
 
-def _prose_lines(text: str):
-    """Yield the lines of *text* outside fenced code blocks, fences excluded."""
-    fence_char = None
-    fence_size = 0
-    for line in text.splitlines():
-        fence = _FENCE.match(line)
-        if fence:
-            marker = fence.group(1)
-            if fence_char is None:
-                fence_char, fence_size = marker[0], len(marker)
-            elif marker[0] == fence_char and len(marker) >= fence_size:
-                fence_char, fence_size = None, 0
-            continue
-        if fence_char is not None:
-            continue
-        yield line
-
-
 def _destinations(text: str) -> set[str]:
     """Return the fragment destinations *text* defines: heading slugs and explicit anchors."""
     destinations: set[str] = set()
     used: set[str] = set()
-    for line in _prose_lines(text):
+    for line in prose_lines(text):
         heading = _HEADING.match(line)
         if heading:
             base = _slug(heading.group(1))
@@ -75,7 +56,7 @@ def local_link_errors(text: str) -> list[str]:
     """Return unresolved local fragments outside fenced code blocks."""
     destinations = _destinations(text)
     links: list[str] = []
-    for line in _prose_lines(text):
+    for line in prose_lines(text):
         links.extend(_LINK.findall(line))
     return [target for target in links if target not in destinations]
 
@@ -90,7 +71,7 @@ def cross_file_link_errors(source_path, text: str, root=ROOT) -> list[str]:
     """
     source_dir = Path(source_path).parent
     errors: list[str] = []
-    for line in _prose_lines(text):
+    for line in prose_lines(text):
         for target, fragment in _CROSS_LINK.findall(line):
             if _SCHEME.match(target):
                 continue

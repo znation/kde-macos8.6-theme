@@ -7,7 +7,7 @@ import unittest
 from support import containment
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from support.user_docs import linked_guides, read_user_docs
+from support.user_docs import linked_guides, prose_lines, read_user_docs
 
 
 def _readme_linking(guide_link: str) -> str:
@@ -30,6 +30,32 @@ class TestLinkedGuides(unittest.TestCase):
     def test_non_relative_targets_are_ignored(self):
         text = "[web](https://example.com/elsewhere/b.md) [local](#frag) [other](../docs/elsewhere.md)"
         self.assertEqual([], linked_guides(text))
+
+
+class TestProseLines(unittest.TestCase):
+    def test_fences_exclude_their_lines_for_both_markers(self):
+        # An opener and its closer must share a character, and the closer
+        # must be at least as long as the opener: a shorter `` inside an
+        # open ``` fence stays hidden, while a longer ~~~~ closes a ~~~.
+        text = (
+            "before\n"
+            "```py\n"
+            "hidden\n"
+            "``\n"
+            "```\n"
+            "shown\n"
+            "~~~\n"
+            "hidden too\n"
+            "~~~~\n"
+            "after\n"
+        )
+        self.assertEqual(["before", "shown", "after"], list(prose_lines(text)))
+
+    def test_a_fence_of_the_other_character_inside_an_open_fence_is_hidden(self):
+        # While a ``` fence is open, a ~~~ line neither closes nor switches
+        # the fence, and prose resumes only after the matching ``` closer.
+        text = "before\n```\n~~~\nstill hidden\n```\nshown\n"
+        self.assertEqual(["before", "shown"], list(prose_lines(text)))
 
 
 class TestReadUserDocs(unittest.TestCase):

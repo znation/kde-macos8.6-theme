@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 from support import containment
@@ -12,16 +13,18 @@ _GUIDE_LINK = re.compile(r"\]\((docs/[^\s)#]+\.md)(?:#[^\s)]*)?\)")
 _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
-def linked_guides(readme_text: str) -> list[str]:
-    """Return the repo-relative ``docs/*.md`` paths README's inline links name.
+def prose_lines(text: str) -> Iterator[str]:
+    """Yield the lines of *text* outside fenced code blocks, fences excluded.
 
-    Links inside fenced code blocks are ignored. Each path appears once, in
-    the order it is first linked.
+    Two call sites share this state machine: :func:`linked_guides` skips
+    links inside fences, and ``tests/test_readme_links.py`` scans prose
+    for headings and anchors. A fence opens with three or more matching
+    backticks or tildes after at most three spaces of indentation and
+    closes with a same-character fence at least as long as the opener.
     """
-    guides: list[str] = []
     fence_char = None
     fence_size = 0
-    for line in readme_text.splitlines():
+    for line in text.splitlines():
         fence = _FENCE.match(line)
         if fence:
             marker = fence.group(1)
@@ -32,6 +35,17 @@ def linked_guides(readme_text: str) -> list[str]:
             continue
         if fence_char is not None:
             continue
+        yield line
+
+
+def linked_guides(readme_text: str) -> list[str]:
+    """Return the repo-relative ``docs/*.md`` paths README's inline links name.
+
+    Links inside fenced code blocks are ignored. Each path appears once, in
+    the order it is first linked.
+    """
+    guides: list[str] = []
+    for line in prose_lines(readme_text):
         for guide in _GUIDE_LINK.findall(line):
             if guide not in guides:
                 guides.append(guide)
