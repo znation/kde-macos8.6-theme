@@ -26,10 +26,12 @@ from support.aurorae_fixtures import REFERENCE_BOUNDS
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from support.render_gates import (
+    DESKTOP_REAL_TOOLS,
     REAL_TOOLS,
     PixelPins,
     Renders,
     desktop_gate_guard,
+    probe_gate_skip,
     software_renderer_skip_reason,
 )
 from tools.fidelity_metrics import compare, crop  # noqa: E402
@@ -1192,6 +1194,31 @@ class TestSplashRender(PixelPins, unittest.TestCase):
             for x in range(fx, fx + fw):
                 self.assertEqual(
                     self.FILL_COLOUR, hex_colour(pixel_at(image, x, y))
+                )
+
+
+class TestDesktopGateSkipGuard(unittest.TestCase):
+    """The desktop gate skips exactly where its guard's tool set is absent.
+
+    The dialog and file-dialog gates probe their shared guard the same way
+    in ``tests/test_render_dialog_gates.py`` and
+    ``tests/test_render_file_dialog.py``; the desktop gate's guard writes
+    its skip flag whatever the host has, and the probe below re-applies it
+    to disposable classes with ``shutil.which`` stubbed and the
+    software-renderer condition cleared -- never altering the real gate or
+    starting a session while simulating missing tools.
+    """
+
+    def test_the_desktop_gate_skips_only_when_a_tool_is_absent(self):
+        expected = software_renderer_skip_reason() is not None or not all(
+            shutil.which(tool) for tool in DESKTOP_REAL_TOOLS
+        )
+        self.assertEqual(expected, TestDesktopRender.__unittest_skip__)
+        for missing in (None, *DESKTOP_REAL_TOOLS):
+            with self.subTest(missing=missing):
+                self.assertEqual(
+                    missing is not None,
+                    probe_gate_skip(desktop_gate_guard, missing),
                 )
 
 
