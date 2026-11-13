@@ -1,7 +1,9 @@
 """Tests for the render CLI and throwaway render workflow units.
 
-The render's end-to-end capture and its failure orchestration live in
-``tests/test_render_surface.py``, and the output publication in
+The render's end-to-end capture gates live in
+``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
+``tests/test_render_file_dialog.py``, their failure orchestration in
+``tests/test_render_failure_paths.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: ``render_surface.main``'s argument validation and workflow delegation,
 scratch environment and KWin session command construction in ``tools/render_session.py`` and

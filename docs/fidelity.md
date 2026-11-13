@@ -370,7 +370,7 @@ those strips: the display field's black outline and flat interior and the keypad
 eighteen raised cells with their blended corner arcs, plus the flat gap rows and
 columns between the cells, while the font-dependent label and digit ink is pinned
 only by live-ink checks. The dialog renders the same
-suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`,
+suite runs (`tests/test_render_dialog_gates.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
 `::TestCalendarDialogRender`, `::TestColorDialogRender`, `::TestSliderDialogRender`,
 `::TestTextboxDialogRender`, `::TestProgressbarDialogRender`, `::TestGtkDialogRender` and

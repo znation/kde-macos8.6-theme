@@ -5,7 +5,9 @@ behavior -- a missing or unrunnable tool, an unusable scratch directory, an
 unpainted or failed capture, publication that must keep the previous output
 whole -- run here against stub executables, without any Plasma session; the
 pixel gates that drive the same CLI against a real headless session live in
-``tests/test_render_surface.py`` beside the ``Test...DialogRender`` gates.
+``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
+``tests/test_render_file_dialog.py`` beside the ``Test...DialogRender``
+gates.
 """
 
 from __future__ import annotations

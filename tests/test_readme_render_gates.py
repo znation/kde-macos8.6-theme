@@ -1,10 +1,10 @@
 """The user docs' dialog-gate prose must name the gates that ship.
 
-Two staleness shapes: a `Test...DialogRender` gate class present in
-``tests/test_render_surface.py`` that the user-docs corpus' render prose
-omits, and a ``tests/test_render_surface.py::Test...`` token whose class no
+Two staleness shapes: a `Test...DialogRender` gate class present in the
+render capture suites that the user-docs corpus' render prose
+omits, and a ``tests/test_render_*.py::Test...`` token whose class no
 longer exists (a renaming or removal that leaves the prose pointing at
-nothing). The expectations are derived from the live test module and the
+nothing). The expectations are derived from the live test modules and the
 corpus (README plus the guides it links, docs/rendering.md among them), not
 copied from either, so prose and code cannot drift in opposite directions.
 """
@@ -20,14 +20,19 @@ from support.repo_root import ROOT
 from support.user_docs import read_user_docs
 
 # Gate classes ship as top-level definitions, so a class name present
-# anywhere in ``tests/test_render_surface.py`` as a definition is the live
+# anywhere in a render capture suite as a definition is the live
 # set; a comment or docstring mention alone never defines one.
 _GATE_CLASS = re.compile(r"^class (Test\w*DialogRender)\b", re.MULTILINE)
+_GATE_FILES = (
+    "tests/test_render_surface.py",
+    "tests/test_render_dialog_gates.py",
+    "tests/test_render_file_dialog.py",
+)
 
-# README names each gate as a fully qualified ``tests/test_render_surface.py
+# README names each gate as a fully qualified ``tests/test_render_<surface>.py
 # ::Test<Name>`` token, possibly split across a wrapped line as a bare
 # ``::Test<Name>`` continuation of the sentence chain.
-_README_TOKEN = re.compile(r"(?:tests/test_render_surface\.py)?::(Test\w+)")
+_README_TOKEN = re.compile(r"(?:tests/test_render_\w+\.py)?::(Test\w+)")
 
 
 def read(name):
@@ -47,14 +52,15 @@ def corpus():
 
 class TestReadmeDialogGateProse(unittest.TestCase):
     def test_readme_names_every_dialog_render_gate(self):
-        module = read(os.path.join("tests", "test_render_surface.py"))
-        gates = set(_GATE_CLASS.findall(module))
+        gates = set()
+        for name in _GATE_FILES:
+            gates.update(_GATE_CLASS.findall(read(name)))
         named = {
             name
             for name in _README_TOKEN.findall(corpus())
             if name.endswith(("DialogRender",))
         }
-        self.assertTrue(gates, "test_render_surface defines no dialog gates")
+        self.assertTrue(gates, "the render capture suites define no dialog gates")
         self.assertEqual(
             gates,
             named,

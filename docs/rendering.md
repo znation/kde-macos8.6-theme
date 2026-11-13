@@ -61,32 +61,32 @@ For help diagnosing a failed capture, see [Troubleshooting a render](fidelity.md
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
 (`kdialog` must be on `PATH` in the kdialog dialog modes) and captures it as a 480x360 PNG
-whose crop the checkbox gate (`tests/test_render_surface.py::TestCheckboxDialogRender`)
+whose crop the checkbox gate (`tests/test_render_dialog_gates.py::TestCheckboxDialogRender`)
 byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` chooser
 whose combo box the engine draws with the theme's `comboarrow` art; the render captures
 it the same way, for the combo arrow gate
-(`tests/test_render_surface.py::TestComboboxDialogRender`). `--menu-dialog` opens a
+(`tests/test_render_dialog_gates.py::TestComboboxDialogRender`). `--menu-dialog` opens a
 `kdialog` menu list whose item view the engine frames with the theme's `GenericFrame` art,
 captured at the same 480x360 size; the item-view gate
-(`tests/test_render_surface.py::TestMenuDialogRender`) byte-compares the item view's
+(`tests/test_render_dialog_gates.py::TestMenuDialogRender`) byte-compares the item view's
 rendered border runs, its white interior and the current-item focus ring there.
 `--radiolist-dialog` opens a `kdialog` radio list whose sunken list field, the selected
 row's selection band and the checked and unchecked radio indicators the engine draws
 with the theme's palette and the shipped `radio` art, captured at the same 480x360 size;
 the checked item is a fixed default (`on` in the client's arguments), so the selection
 never depends on clock, network or input. The radio-list gate
-(`tests/test_render_surface.py::TestRadioDialogRender`) pins the clear selection-face band,
+(`tests/test_render_dialog_gates.py::TestRadioDialogRender`) pins the clear selection-face band,
 the checked dot and unchecked ring cores, and the top edge of the sunken list field.
 `--calendar-dialog` opens a `kdialog` calendar pinned to January 1970 (`--default
 1970-01-07` with the load-bearing `--dateformat`: without it kdialog ignores `--default`
 and opens today's month), captured at the same 480x360 size; the calendar gate
-(`tests/test_render_surface.py::TestCalendarDialogRender`) pins the flat window face,
+(`tests/test_render_dialog_gates.py::TestCalendarDialogRender`) pins the flat window face,
 the white day-table face with the weekday-letter inks, the selected day's `#CCCCFF`
 fill and digit ink, and the leftmost day column's red day digits there.
 `--color-dialog` opens a `kdialog` color picker whose basic-color swatch grid, sunken value
 fields and push buttons the engine draws with the theme's palette and the shipped push-button
 art, captured at the same 480x360 size; the color gate
-(`tests/test_render_surface.py::TestColorDialogRender`) pins the flat window face, the
+(`tests/test_render_dialog_gates.py::TestColorDialogRender`) pins the flat window face, the
 swatch grid's first row's `#000000` lead cell and its `#AA0000` neighbour with the
 window-face gap between them, the value field's `#999999` shadow over the sunk `#000000`
 outline and `#FFFFFF` face, and a push button's raised frame with its `#DDDDDD` face cell
@@ -94,7 +94,7 @@ there.
 `--icon-dialog` opens a `kdialog` icon chooser whose top-row search field's sunken
 line edit and whose sunken icon-grid field the engine draws with the theme's palette
 and the shipped field art, captured at the same 480x360 size; the icon gate
-(`tests/test_render_surface.py::TestIconDialogRender`) pins the flat window face,
+(`tests/test_render_dialog_gates.py::TestIconDialogRender`) pins the flat window face,
 the icon-grid field's top edge's #999999 shadow row over the sunk `#000000`
 outline and `#FFFFFF` face, the search field's `#999999` shadow arm over its sunk
 outline and `#FFFFFF` face, and a push button's raised frame with its `#DDDDDD`
@@ -103,31 +103,31 @@ theme's and stays deliberately unpinned, and the search field's blinking caret
 column sits outside every band.
 `--lineedit-dialog` opens a `kdialog` input box whose empty line edit the engine sinks
 with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
-(`tests/test_render_surface.py::TestLineInputDialogRender`) pins the field's sunken bevel
+(`tests/test_render_dialog_gates.py::TestLineInputDialogRender`) pins the field's sunken bevel
 right of the caret and the OK button's push-button frame there.
 `--progressbar-dialog` opens a `kdialog` progress meter whose at-rest trough the engine
 draws as the theme's `progress` element art, captured at the same 480x360 size; the helper
 daemon `kdialog_progress_helper` shows it (kdialog execs the helper for a progress dialog
 and its launcher exits, where the helper stays for the session script to capture), and the
-progressbar gate (`tests/test_render_surface.py::TestProgressbarDialogRender`) pins the
+progressbar gate (`tests/test_render_dialog_gates.py::TestProgressbarDialogRender`) pins the
 trough's flat face between its outline rows, its #FFFFFF top/left bevel arms and its
 #999999 bottom/right arms there.
 `--slider-dialog` opens a `kdialog` slider whose at-rest thumb the engine draws with the
 theme's `slidercursor` art at the trough's left end and whose trough the engine paints flat
 through the theme's `slider` interior art, captured at the same 480x360 size; the slider gate
-(`tests/test_render_surface.py::TestSliderDialogRender`) byte-compares the thumb cell 1:1 with
+(`tests/test_render_dialog_gates.py::TestSliderDialogRender`) byte-compares the thumb cell 1:1 with
 the shipped art and pins the trough's flat face between its 1px black boundary rows there.
 `--textbox-dialog` opens a `kdialog` text box whose vertical scrollbar the engine draws with
 the theme's scrollbar art (the raised `scrollbarslider` handle with its `grip` indicator, the
 `slider`-element trough and the `arrow`-element buttons), captured at the same 480x360 size;
-the scrollbar gate (`tests/test_render_surface.py::TestTextboxDialogRender`) pins the handle's
+the scrollbar gate (`tests/test_render_dialog_gates.py::TestTextboxDialogRender`) pins the handle's
 outline-and-bevel bands and grip bars, the disabled #999999 up triangle and the enabled
 #000000 down triangle, and the trough's flat #EEEEEE interior below the resting handle there.
 `--gtk-dialog` opens a zenity text-entry dialog: zenity is a GTK 4 client, so with no
 theme-name CSS switch it wears the theme through the selection the render publishes into the
 scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
-GTK 4 dialog gate (`tests/test_render_surface.py::TestGtkDialogRender`) pins the rendered entry-field
+GTK 4 dialog gate (`tests/test_render_dialog_gates.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
 edge; it also checks capture-level invariants. The fourteen dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
@@ -137,14 +137,14 @@ captures the pair at the same 480x360 size: the session reads forced-geometry wi
 rules that place the two windows side by side, and KWin activates the newest one, so the
 captured surface shows the unfocused window — the earlier-spawned one, on the left — drawn
 with the inactive decoration art; the inactive gate
-(`tests/test_render_surface.py::TestInactiveDialogRender`) pins that window's outline
+(`tests/test_render_dialog_gates.py::TestInactiveDialogRender`) pins that window's outline
 ring, recoloured client edge, flat bar and title ink there.
 `--file-dialog` opens a `kdialog` file chooser (KDE's KIO file dialog) whose places
 sidebar, file list view, toolbar and name-filter surfaces the engine draws with the theme's
 palette and the shipped field and button art, captured at the same 480x360 size; the chooser
 opens on the scratch session's fixed `Documents` directory holding exactly `alpha.txt`,
 `bravo.txt` and `delta.rtf`, so the listing it shows is deterministic. The file-dialog gate
-(`tests/test_render_surface.py::TestFileDialogRender`) pins the chooser's frame and title-bar
+(`tests/test_render_file_dialog.py::TestFileDialogRender`) pins the chooser's frame and title-bar
 bands, the title-bar boxes and pinstripes, the panels' sunken borders, the selected places row,
 the Name and Filter fields, the toolbar and bottom buttons, the list panel's column-header band
 with its dividers and style-drawn sort arrow, the file rows' `#FFFFFF` and `#EEEEEE` band faces

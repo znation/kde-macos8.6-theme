@@ -96,13 +96,13 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "live-render-gate-aurorae-only",
         ("live render gate byte-compares only Aurorae window chrome",),
-        "tests/test_render_surface.py::TestCheckboxDialogRender"
+        "tests/test_render_dialog_gates.py::TestCheckboxDialogRender"
         "::test_draws_the_check_box_cell_1_to_1",
     ),
     Reproduction(
         "combo-arrow-indicator-resample",
         ("combo box indicator is a squashed",),
-        "tests/test_render_surface.py::TestComboboxDialogRender"
+        "tests/test_render_dialog_gates.py::TestComboboxDialogRender"
         "::test_draws_the_combo_arrow_cell_1_to_1",
     ),
     Reproduction(

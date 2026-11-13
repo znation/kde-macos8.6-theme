@@ -1,16 +1,16 @@
 """The prose that counts the dialog gates must track the shipped gates.
 
-Three prose files count the dialog render gates in words: ``docs/invariants.md``'s
+Prose counts the dialog render gates in words: ``docs/invariants.md``'s
 skip-guard and software-renderer rows, ``tests/test_ci_workflow.py``'s
-workflow-install comment, and ``tests/test_render_surface.py``'s skip-guard
-comments and gate-scaffold docstrings. Those files count the kdialog modes too.
+workflow-install comment, and the skip-guard comments and gate-scaffold
+docstrings the capture suites carry. Those files count the kdialog modes too.
 When a dialog gate lands (as the color gate did), those words must move with it:
 a count that lags the code quietly under-reports the gates the shared skip guard
-covers. The shift to the color gate left ``tests/test_render_surface.py``'s own
-comment and docstring stale, so the defining file is scanned beside the surfaces
-that describe it.
+covers. The shift to the color gate left the defining suite's own
+comment and docstring stale, so the defining files are scanned beside the surfaces
+that describe them.
 The expected gate count derives from the live ``Test...DialogRender`` gate
-classes in ``tests/test_render_surface.py``, never from the prose, so the
+classes in the render capture suites, never from the prose, so the
 two cannot drift in opposite directions.
 The kdialog-mode count derives from the live ``DIALOG_MODES`` table in
 ``tools/render_dialogs.py``, not from the gate classes: a mode can land before
@@ -32,9 +32,14 @@ from support.repo_root import ROOT
 from tools import render_dialogs
 
 # Gate classes ship as top-level definitions, so a class name defined
-# anywhere in ``tests/test_render_surface.py`` is the live set; a mention
+# anywhere in the render capture suites is the live set; a mention
 # in a comment or docstring alone never defines one.
 _GATES = re.compile(r"^class (Test\w*DialogRender)\b", re.MULTILINE)
+_GATE_FILES = (
+    "tests/test_render_surface.py",
+    "tests/test_render_dialog_gates.py",
+    "tests/test_render_file_dialog.py",
+)
 _DIALOG_GATE_COUNT = re.compile(r"[Tt]he (\w+) dialog(?: render)? gates")
 _KDIALOG_MODE_COUNT = re.compile(r"[Tt]he (\w+) kdialog modes")
 _MODE_COUNT = re.compile(r"render CLI's (\w+) dialog\s+modes")
@@ -62,10 +67,10 @@ class TestDialogGateCountProse(unittest.TestCase):
     def test_the_count_words_match_the_counts_derived_from_the_gate_classes(
         self,
     ):
-        gates = set(
-            _GATES.findall(read(os.path.join("tests", "test_render_surface.py")))
-        )
-        self.assertTrue(gates, "test_render_surface defines no dialog gates")
+        gates = set()
+        for name in _GATE_FILES:
+            gates.update(_GATES.findall(read(name)))
+        self.assertTrue(gates, "the render capture suites define no dialog gates")
         # The kdialog-mode count comes from the live CLI table, not from
         # the gate classes: a mode without its gate yet (file-dialog, whose
         # part 2/2 gate is still planned) would make the gate-derived
@@ -78,12 +83,13 @@ class TestDialogGateCountProse(unittest.TestCase):
             (_DIALOG_GATE_COUNT, len(gates), (
                 "docs/invariants.md",
                 "tests/test_ci_workflow.py",
-                "tests/test_render_surface.py",
+                "tests/test_render_dialog_gates.py",
+                "tests/support/render_gates.py",
             )),
             (_KDIALOG_MODE_COUNT, kdialog_modes, (
                 "docs/invariants.md",
                 "tests/test_ci_workflow.py",
-                "tests/test_render_surface.py",
+                "tests/test_render_dialog_gates.py",
             )),
             (_MODE_COUNT, len(render_dialogs.DIALOG_MODES), (
                 "tests/test_render_dialogs.py",
