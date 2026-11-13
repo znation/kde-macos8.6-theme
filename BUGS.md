@@ -34,6 +34,10 @@ missing capture. Re-running that same test with the same environment passed in 3
 This establishes an intermittent splash capture failure; its cause is unknown. The software
 renderer skip covers the dialog and applet gates but not this splash gate.
 
+**Progress 2026-11-12 by bugfix:** Handed to the director after a focused reproduction passed;
+the failure message already identifies a missed paint before the 8-second capture. Stop
+investigation pending director resolution or parking.
+
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
@@ -47,6 +51,9 @@ The render did not publish `splash.png`, so the six pixel tests also errored whi
 missing capture. Re-running that same test with the same environment passed in 36.226 seconds.
 This establishes an intermittent splash capture failure; its cause is unknown. The software
 renderer skip covers the dialog and applet gates but not this splash gate.
+
+**Progress 2026-11-12 by bugfix:** Duplicate report of the splash failure above; handed to the
+director with the same reproduction and failure evidence.
 
 ### Cursor artwork is still visually unacceptable to the user (found by the director role 2026-11-11)
 
