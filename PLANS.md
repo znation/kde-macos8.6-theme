@@ -186,6 +186,107 @@ mid-name, and stays). No stylesheet or production behavior changes.
   `tests/test_gtk4_linked.py` and `docs/invariants.md`. `make
   check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate expander declarations (planned 2026-11-13 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class. Move the four expander declaration checks
+(about 68 lines at this plan's base commit) into their own module,
+the same way the landed OSD (`tests/test_gtk4_osd.py`), scale,
+spinbutton, disabled, emoji, entry, notebook, scrollbar, switch,
+progressbar, levelbar, view, selected, button, row, treeview,
+tabbar and sidebar parts moved theirs, and the way the waiting
+"GTK 4 suite extraction: isolate linked declarations" entry moves
+its three (a held merge-pin change moves the landed menu entry out
+of `## Planned` and the landed checkbutton entry under `## Done`,
+so this entry is written against main without them). This is
+independent of the waiting linked entry: neither moves a method the
+other names, and this entry prunes no import at all — the moved
+bodies call no `support.gtk_theme_spec` or palette name, and
+`grep -n EXPANDER tests/test_gtk4_theme.py` prints nothing at this
+plan's base commit (`EXPANDER_COLLAPSED`/`EXPANDER_EXPANDED` live
+only in `support.gtk_theme_spec` and the base method
+`assert_expander_arrows` at `tests/support/gtk_rule_cases.py:593`,
+which the base class carries) — while the linked entry also prunes
+nothing. Both entries edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads those two
+files before writing. The GTK 3 twins
+(`tests/test_gtk_theme.py::TestGtkTheme::test_expander_arrows` and
+`…::test_rtl_collapsed_expander_arrows`) stay where they are. No
+stylesheet or production behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_expander.py` with
+  `class TestGtk4Expander(Gtk4SheetRuleCases, unittest.TestCase)`
+  and a one-line module docstring on the landed extraction modules'
+  pattern (`tests/test_gtk4_view.py`). Move exactly four
+  `TestGtk4Theme` methods, keeping each method's body and docstring
+  unchanged: `test_expander_arrows`,
+  `test_rtl_collapsed_expander_arrows` (the RTL twin the
+  disclosure-arrow row anchors, though its name starts
+  `test_rtl_collapsed_`), `test_expander_row_arrow_transition_motion`
+  and `test_expander_widget_title_corners`. At this plan's base
+  commit they sit in three spots: the first two contiguous between
+  the staying `test_csd_window_shell_state_cascade` above and
+  `test_submenu_arrow` below, the third alone between the staying
+  `test_checkbutton_corners` above (which the merge-pin change
+  moves out of this module, so at implementation the staying
+  neighbor above is whatever then precedes the block) and
+  `test_server_list_button_rotation_motion` below, and the fourth
+  alone between the staying `test_selection_surface_corners` above
+  and `test_sheet_widget_corners` below — so the move touches three
+  separate deletions in the source module. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet` and nothing else beyond `unittest`. Every
+  helper the bodies call comes with the base class:
+  `assert_expander_arrows`, `assert_rule` and `assert_square_corner`
+  are methods of `Gtk4SheetRuleCases` and its bases
+  (`tests/support/gtk4_sheet.py`, `tests/support/gtk_rule_cases.py`),
+  and `self.css`, `self.rules` and `self.selectors` come from the
+  shared `setUpClass`. No moved body spells a
+  `support.gtk_theme_spec`, `support.platinum_palette` or
+  `support.gtk_css` name, and none uses `re`, `tempfile` or `mock`,
+  so no import moves and no import is pruned in either module.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_expander…` and
+  `…::TestGtk4Theme::test_rtl_collapsed_expander_arrows` anchor to
+  `tests/test_gtk4_expander.py::TestGtk4Expander::…`, wherever it
+  appears. `grep -o 'TestGtk4Theme::test_expander[a-z_]*\|TestGtk4Theme::test_rtl_collapsed_expander_arrows'
+  docs/invariants.md` finds exactly four member mentions at this
+  plan's base commit across three rows: the two disclosure-arrow
+  methods in the both-sheets arrows row (where they stand beside
+  their staying GTK 3 twins and the staying
+  `tests/test_gtk_theme_controls.py::TestArrowGlyphs` anchor),
+  `test_expander_widget_title_corners` alone in the title-corners
+  row, and `test_expander_row_arrow_transition_motion` alone in the
+  expander-row-arrow motion row; no provenance prose in
+  `docs/invariants.md` names any of the four. Rewrite only the moved
+  anchors in place and leave every staying anchor as it reads. Do
+  not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four moved methods exactly
+  once, under `test_gtk4_expander.TestGtk4Expander`, and none of
+  them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_submenu_arrow`, `test_server_list_button_rotation_motion`
+  and `test_sheet_widget_corners`.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit, checked
+  once during the run (for example by comparing `ast.dump` output).
+  This is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_expander\|TestGtk4Theme::test_rtl_collapsed'
+  docs/invariants.md` prints nothing, each of the three touched
+  rows still names its staying anchors under their original modules
+  (the GTK 3 twins and `TestArrowGlyphs` unchanged), and the
+  invariants checker inside `make check` resolves every new anchor.
+- `tests/test_gtk4_theme.py` shrinks by at least 60 lines, and
+  `tests/test_gtk4_expander.py` stays under about 90 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_expander.py` and `docs/invariants.md`. `make
+  check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
