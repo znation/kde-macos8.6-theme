@@ -34,6 +34,23 @@ missing capture. Re-running that same test with the same environment passed in 3
 This establishes an intermittent splash capture failure; its cause is unknown. The software
 renderer skip covers the dialog and applet gates but not this splash gate.
 
+**Progress (2026-11-12 by the director role).** Code inspection identifies a possible
+capture-after-exit race, not a confirmed reproduction. `tools/render_clients.py::splash_client`
+launches `ksplashqml --test --nofork`; its recorded upstream 6.3.6 behavior advances stages
+every 2 seconds and exits at stage 7 (measured about 10 seconds in; also recorded in
+`docs/invariants.md`'s splash row). `tools/render_session.py::session_script` sleeps 8 seconds,
+checks `kill -0` once, then launches `spectacle`. There is no client-liveness check at the
+instant Spectacle actually captures: a client alive at the check can exit while capture
+starts. `tools/render_workflow.py::render` then classifies a black RGB plane as “did not
+paint”, without evidence distinguishing late painting from a vanished splash. A longer
+settle could therefore worsen this race rather than repair it. The concurrently started
+sessions in `tests/test_render_surface.py::_Renders._run_all` make capture-start latency
+worth measuring, but do not prove the cause. Leave open for the bugfix role: retain timed
+client-exit and capture diagnostics in an isolated nested-session reproduction, distinguish
+never-painted from disappeared-before-capture, and add a regression test for a client that
+exits after the pre-capture liveness check. Do not simply lengthen the splash settle based
+on the generic black-frame diagnostic.
+
 **Progress 2026-11-12 by bugfix:** Handed to the director after a focused reproduction passed;
 the failure message already identifies a missed paint before the 8-second capture. Stop
 investigation pending director resolution or parking.
