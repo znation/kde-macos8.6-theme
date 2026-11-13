@@ -16,16 +16,14 @@ from pathlib import Path
 from typing import Callable
 
 try:
-    from tools.image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_JPEG, TERMINAL_PNG
+    from tools.image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_PNG
 except ImportError:  # imported from a directly run tool
-    from image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_JPEG, TERMINAL_PNG
+    from image_format import JPEG_MAGIC, PNG_MAGIC, TERMINAL_PNG
 
 # Complete minimal stream bodies: a leading signature plus its format's
 # terminator, so a fixture that must misbehave has to fail on some other
 # check instead of tripping the ending rules every real image satisfies.
 PNG_IMAGE = PNG_MAGIC + TERMINAL_PNG
-JPEG_IMAGE = JPEG_MAGIC + TERMINAL_JPEG
-GIF_IMAGE = b"GIF89a" + b";"
 WEBP_IMAGE = b"RIFF" + (4).to_bytes(4, "little") + b"WEBP"
 
 

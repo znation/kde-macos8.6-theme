@@ -68,7 +68,6 @@ INSTALLED_FILES = (
 )
 
 PROPERTY_RE = re.compile(r"^\s*property (\w+) (\w+): (.*)$")
-REFERENCE_RE = re.compile(r"\bauroraeTheme\.(\w+)")
 
 # The part 3/3 hit-area gating (2026-11-04): the package copy equals its engine
 # file with only the additions below, so an un-gated copy or an engine byte
