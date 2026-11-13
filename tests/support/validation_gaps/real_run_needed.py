@@ -41,7 +41,13 @@ from .records import Reproduction
 # coredump journal, and the bound (the activated portal must never try to
 # open the nested Wayland socket) is pinned offline by the session-
 # environment test that pins the bus subtree to a display-free Qt platform.
-# A new record must name an
+# Plus the splash black-capture report fixed 2026-11-12 (two BUGS.md records,
+# the original and its duplicate, sharing one subject): the intermittency
+# could only be confirmed against a real splash capture under the gate's
+# concurrent-render load, and the repair's bound — the splash client is
+# frozen with SIGSTOP between the settle's liveness check and the capture and
+# resumed with SIGCONT before the termination — is pinned offline by the
+# session-script hold test. A new record must name an
 # offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
@@ -129,8 +135,16 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_ci_workflow.py::TestCiWorkflow"
         "::test_workflow_provisions_and_verifies_imagemagick_convert",
     ),
+    Reproduction(
+        "splash-capture-client-hold",
+        (
+            "The splash render intermittently captures a black frame at the 8-second settle",
+        ),
+        "tests/test_render_surface_units.py::TestSessionScript"
+        "::test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination",
+    ),
 )
 
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 14
+REAL_RUN_NEEDED_BASELINE = 16
