@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### The splash render intermittently captures a black frame at the 8-second settle (found by the ci role 2026-11-12)
 
+**Progress 2026-11-12 by bugfix:** Focused reproduction `CHECK_TESTS='test_render_surface.TestSplashRender.test_exits_zero' make check` passed; the earlier failure message already identifies that the splash window did not paint before the 8s settle. Handed to the director to resolve or park this intermittent render report; see the queued request.
+
 **Flake evidence.** During `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`,
 `test_render_surface.TestSplashRender.test_exits_zero` failed with:
 
