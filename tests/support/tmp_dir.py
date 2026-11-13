@@ -27,8 +27,9 @@ def make_session_home(
     only inside the root. ``data`` and ``config`` are only paths: suites
     stage exactly what a case needs, and a suite may need the data home
     absent (a removal that must run without it) or populated (a lock that
-    must be takeable there). The apply-cursor and apply-theme workflow and
-    lock suites stage their homes through this helper.
+    must be takeable there). The apply-cursor workflow suite and the
+    apply-cursor and apply-theme lock suites stage their homes through
+    this helper.
     """
     root = make_tmp_dir(case)
     home = root / "home"
