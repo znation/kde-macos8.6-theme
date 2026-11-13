@@ -5,6 +5,95 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+**Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
+updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
+font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
+by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
+and content-surface status updated 2026-10-26 by the steward role; install-firefox
+file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
+2026-10-27 by the feature role; Firefox content scope refreshed
+2026-10-29 by the steward role; landed-series narration trimmed 2026-11-11 by the
+steward role):** The
+initial prompt asks for
+"the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
+(directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
+(startup splash, desktop layout, defaults); the desktop theme (thirty-one widget SVGs under
+`widgets/`, including the `widgets/margins-highlight.svg` panel edit-mode margin highlight and the
+`widgets/containment-controls.svg` panel resize and slider handles, plus
+`dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
+collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
+32x32 Platinum-style art for the desktop's hard-disk, folder, document,
+Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
+`go-next-symbolic` submenu arrow, our own marks rather than Apple's;
+the 2026-10-29 user decision supersedes its final-art status and queues placeholder tracking
+below); the `org.macos8.desktop` Kvantum widget
+style (Platinum palette and core-control art); the
+`org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
+carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`,
+and the global theme selects its `Lato` family for general, toolbar and smallest-readable fonts,
+`ChicagoFLF` for menus and window titles, and the user-approved `JetBrains Mono Medium` for
+KDE's fixed-width font (`[kdeglobals][General] fixed`, part 2/3 of the fixed-width series);
+the GTK 3 and GTK 4
+Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
+selected by `apply-gtk`; `make install` copies no GTK files); the standalone Firefox Platinum
+sheets under `theme/firefox/` (its `userChrome.css` and `userContent.css` copied, and its
+profile preference written, only by the opt-in `install-firefox` target); and the render and
+fidelity tooling.
+The live reference-comparison gate in `tests/test_render_surface.py` checks Aurorae window-chrome
+regions when its render prerequisites are available (README.md, "Fidelity checking").
+Firefox's `tests/test_firefox_theme_*.py` and `tests/test_firefox_content_*.py` modules
+check stylesheet declarations and selector behavior;
+those checks do not establish rendered Firefox pixels. Keep this distinction when assessing
+progress toward pixel-perfect application chrome. README.md describes the reference set as the
+source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
+prompt's surfaces and their status are each tracked here (updated 2026-10-21 by the
+steward role): a **Qt widget style** for KDE applications (the desktop theme styles only
+Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
+by the global theme's selection of our Kvantum theme: the user answered
+2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
+dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" series (each part
+waited on the one before); a **cursor theme** was out of scope on 2026-10-17 because no reference
+screenshot shows a cursor, so no pixel ground truth exists to match; on 2026-10-23 the plan role
+queued it anyway as the theme's own Platinum-style pointer set (black-face, white-outline arrow,
+text I-beam, pointing hand, busy hourglass, move cross, horizontal and vertical resize arrows,
+NW-SE and NE-SW diagonal resize arrows, crosshair, circle-slash, drag-and-drop copy plus,
+open and closed hands, the help question-mark arrow, the progress arrow with a small hourglass,
+a pencil, the `zoom-in`/`zoom-out` magnifiers, and the drag-and-drop/forbidden aliases, not
+traced from Apple's artwork), it
+has landed inside the icon theme package with its provenance exception recorded in
+`docs/invariants.md`, and `make apply-cursor`/`make remove-cursor` link it into the Xcursor path
+and select it; Xcursor roles the theme does not name still come from the fallback cursor
+theme; **system sounds** are out
+of scope (not a visual surface, so the reference set cannot ground them); and a **lock screen** is
+out of scope unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered
+2026-10-21). The
+shipped work should not be treated as the whole of the prompt.
+
+Two answers on 2026-10-19 widened the scope, and both are recorded below in their landed
+state (their landed-series entry narration trimmed 2026-11-11 by the steward role;
+the entries themselves are archived in PLANS-DONE.md).
+**GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19): the GTK 3
+and GTK 4/libadwaita Platinum stylesheets under `theme/gtk/` are installed — and selected —
+only by the opt-in `install-gtk` and `apply-gtk` targets (`make install` copies no GTK
+files), and the opt-in `install-firefox` target copies the Firefox `userChrome.css` and
+`userContent.css` sheets into a profile and writes the preference that selects them.
+**The UI font** is vendored (QUESTIONS.md, answered 2026-10-19): Lato is installed as the
+Charcoal-style body face and selected by the global theme for general, toolbar and
+smallest-readable fonts, and ChicagoFLF, a
+public-domain Chicago-style face, is selected for menus and window titles (its licence was checked 2026-11-12 by the director role);
+JetBrains Mono (the user-approved fixed-width face, QUESTIONS.md answered 2026-11-12)
+is selected for KDE's fixed-width font.
+GTK and Firefox applications keep their own chrome unless the opt-in GTK targets or the
+Firefox install are used. Firefox chrome work since that series landed as single-surface
+chrome plans (the downloads-panel and all-tabs rows, the sidebar frame, the menu-bar title
+box, the tab faces and the app-menu rows). The `userContent.css` sheet styles surfaces
+within six internal pages — about:downloads, about:config, about:preferences,
+about:support, about:networking and about:telemetry — including preferences navigation and
+controls, support tables and buttons, and telemetry navigation, tables and histograms; this
+is surface coverage, not a claim of complete page theming. This content work extends the
+2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
+recorded here to keep the scope deliberate.
+
 ### GTK 4 suite extraction: isolate emoji declarations (planned 2026-11-12 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still about 4,900 lines in one `TestGtk4Theme`
