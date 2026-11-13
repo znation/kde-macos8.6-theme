@@ -17,9 +17,9 @@ class TestGtk4Entry(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_scale_slider_transition("entry")
 
     def test_entry_colour_classes(self):
-        # The landed entry policy takes no colour class: the sheet restates
+        # The existing entry policy takes no colour class: the sheet restates
         # the four stock error/warning colour-class arms with byte-equal
-        # twins declaring the landed black text, the immediate motion
+        # twins declaring the existing black text, the immediate motion
         # policy and the black focus outline, so an entry carrying the
         # `error` or `warning` class paints the raised field recipe instead
         # of stock's red or orange.
@@ -46,7 +46,7 @@ class TestGtk4Entry(Gtk4SheetRuleCases, unittest.TestCase):
         # No other error or warning selector exists in the sheet: the
         # family scan kills renamed, dropped and stray class spellings
         # alike (including the stock '> selection' arms, out of scope).
-        # The landed `label.error` label colour-class twins share the
+        # The existing `label.error` label colour-class twins share the
         # `.error` spelling, so the scan covers them too.
         self.assertEqual(
             {s for s in self.rules if ".error" in s or ".warning" in s},
@@ -54,12 +54,12 @@ class TestGtk4Entry(Gtk4SheetRuleCases, unittest.TestCase):
         )
 
     def test_entry_image_inks(self):
-        # The landed entry recipe never names the icon child GTK embeds
+        # The existing entry recipe never names the icon child GTK embeds
         # inside entries and spin buttons (the magnifier, clear-button and
         # stepper glyphs), so two toolkit resources paint their own look on
         # them. The sheet tail restates the ten stock arms: the embedded
-        # icons take the landed field's black ink at full opacity in every
-        # state (the landed button:hover erase precedent), and the two
+        # icons take the existing field's black ink at full opacity in every
+        # state (the existing button:hover erase precedent), and the two
         # margin twins keep stock's own 6px values byte-equal, so later
         # user-sheet source order wins every equal-specificity tie under
         # either cascade reading.

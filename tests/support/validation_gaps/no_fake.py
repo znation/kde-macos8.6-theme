@@ -13,7 +13,7 @@ from .records import Reproduction
 
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
-# in the same change instead of landing uncovered.
+# in the same change instead of merging uncovered.
 NO_FAKE_BASELINE = 36
 
 NO_FAKE_REPRODUCTIONS = (

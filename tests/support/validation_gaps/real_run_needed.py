@@ -146,5 +146,5 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
 )
 
 # coverage. A new record must name its offline test, and raise this by one in
-# the same change instead of landing uncovered.
+# the same change instead of merging uncovered.
 REAL_RUN_NEEDED_BASELINE = 16

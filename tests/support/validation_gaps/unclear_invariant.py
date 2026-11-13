@@ -14,7 +14,7 @@ from collections import namedtuple
 
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
-# raise this by one in the same change instead of landing uncovered.
+# raise this by one in the same change instead of merging uncovered.
 UNCLEAR_INVARIANT_BASELINE = 37
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
