@@ -10,8 +10,8 @@ from argparse import Namespace
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.sample_report_common import (  # noqa: E402
     compact_json, format_image_header, positioned_region_column_alpha,
-    positioned_region_column_pixels, print_report_header, region_alpha,
-    report_context,
+    positioned_region_column_pixels, positioned_region_pixels,
+    print_report_header, region_alpha, region_pixels, report_context,
 )
 
 
@@ -63,6 +63,28 @@ class TestRegionColumnPixels(unittest.TestCase):
                 (1, 0, (1, 101, 201)),
                 (1, 1, (4, 104, 204)),
                 (2, 0, (2, 102, 202)),
+                (2, 1, (5, 105, 205)),
+            ])
+
+
+class TestRegionPixels(unittest.TestCase):
+    """Row-major pixel iteration, the order the runs and histogram reports scan."""
+
+    def test_yields_row_major_rgb_for_the_region(self):
+        # Row 0: pixels 1, 2; row 1: pixels 4, 5 (image is 3 wide).
+        self.assertEqual(list(region_pixels(_ThreeByTwoImage(), *REGION)), [
+            (1, 101, 201),
+            (2, 102, 202),
+            (4, 104, 204),
+            (5, 105, 205),
+        ])
+
+    def test_positioned_pixels_carry_absolute_row_major_positions(self):
+        self.assertEqual(list(positioned_region_pixels(
+            _ThreeByTwoImage(), *REGION)), [
+                (1, 0, (1, 101, 201)),
+                (2, 0, (2, 102, 202)),
+                (1, 1, (4, 104, 204)),
                 (2, 1, (5, 105, 205)),
             ])
 
