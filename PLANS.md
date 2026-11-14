@@ -94,6 +94,27 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+**Size drift (2026-11-14, steward):** PRINCIPLES.md asks each file to stay small enough to read
+in one sitting, and this plan set's working budget is roughly 800 lines (the suite-split entries
+below). Measured with `wc -l` over `tests/`, `tools/` and `theme/` at this worktree's base, 24
+files exceed 800 lines: `theme/gtk/.../gtk-3.0/gtk.css` (7111) and `gtk-4.0/gtk.css` (6523),
+`theme/firefox/.../chrome/userChrome.css` (1581) and `userContent.css` (941), and these tests:
+`test_gtk_theme_controls.py` (2567), `test_gtk4_theme.py` (2052), `test_render_surface_units.py`
+(1825), `test_render_dialog_gates.py` (1721), `test_render_file_dialog.py` (1462),
+`test_gtk_theme.py` (1274), `test_render_surface.py` (1234), `test_gtk_theme_views.py` (1179),
+`test_install_firefox.py` (1174), `test_gtk_css.py` (1170), `test_make_refusals.py` (1063),
+`test_gtk_theme_osd.py` (1008), `test_render_failure_paths.py` (993), `test_cursors_theme.py`
+(964), `test_apply_theme.py` (952), `test_theme_install.py` (940), `test_check_parallel.py` (937),
+`tests/support/gtk_rule_cases.py` (881), `test_firefox_theme_library.py` (864) and
+`test_local_hook.py` (836). Only `test_gtk_theme_controls.py` and `test_gtk4_theme.py` have queued splits. The first is
+blocked for review; the second moves four methods (at least 100 lines) and leaves its file above
+800 lines. The render-test files (`test_render_surface_units.py`,
+`test_render_dialog_gates.py`, `test_render_file_dialog.py`) have no plan. The plan role should
+decompose those per family, as the GTK 4 extraction series did, before adding features to them.
+The two GTK sheets and the Firefox `userChrome.css` are a different problem: the sheets are
+single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
+`@import`) that is not settled here. This note queues nothing and changes no behavior.
+
 ### GTK 3 controls suite split, part 1/11: move the check and arrow glyph classes into tests/test_gtk_theme_glyphs.py (planned 2026-11-14 by the plan role)
 
 **Series.** `tests/test_gtk_theme_controls.py` (2567 lines) holds the
