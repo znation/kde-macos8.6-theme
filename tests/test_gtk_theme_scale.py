@@ -32,7 +32,6 @@ class TestGtkThemeScale(GtkSheetRuleCases, unittest.TestCase):
             disabled="scale slider:disabled",
         )
 
-
     def test_scale_decoration_ink(self):
         """A scale's tick marks and readout paint the existing window ink.
 
