@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 controls suite split, part 7/11: move the entry methods into tests/test_gtk_theme_entry.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
+
+**Goal.** Move `test_entry_progress`,
+`test_entry_progress_draws_a_two_pixel_strip` (probe),
+`test_entry_focus_outline`, `test_entry_error_warning_colour_classes`,
+`test_entry_state_faces`, `test_entry_image_inks` and
+`test_entry_tag_faces` into new `tests/test_gtk_theme_entry.py`, as
+`class TestGtkThemeEntry(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the seven
+methods. Before editing, grep for any other by-name site naming one of them
+and repoint it too.
+
+**Acceptance criteria.**
+- Discovery lists the seven methods exactly once each, under
+  `test_gtk_theme_entry`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`. Every
+  invariants mention of a moved method names the new module, and the checker
+  resolves it.
+- The new module stays under ~800 lines, the unused-import scanner reports
+  nothing, and `make check` passes. The deletion rule from part 1/11
+  applies.
+
 ### GTK 3 controls suite split, part 6/11: move the spin-button methods into tests/test_gtk_theme_spinbutton.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
 
 **Goal.** Move `test_horizontal_spinbutton_focus_outline`,
