@@ -25,6 +25,11 @@ import time
 from collections.abc import Iterator
 from pathlib import Path
 
+if __package__:
+    from tools.os_error_refusal import refusing_os_errors
+else:  # imported from a directly run tool
+    from os_error_refusal import refusing_os_errors
+
 POLL_SECONDS = 0.05
 
 
@@ -128,10 +133,8 @@ def parent_dir_lock(
     ``apply-gtk``'s and ``remove-kvantum``'s ``_config_lock`` wrappers.
     """
     lock_dir = child.parent
-    try:
+    with refusing_os_errors(error, "create", lock_dir):
         lock_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise error(f"cannot create {lock_dir}: {exc}") from exc
     with exclusive_flock(
         lock_dir, artifact, holder, timeout=timeout, error=error
     ):

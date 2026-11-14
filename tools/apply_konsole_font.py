@@ -41,12 +41,14 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_bytes_atomically
+    from tools.os_error_refusal import refusing_os_errors
     from tools.repo_root import ROOT
     from tools.required_command import run_required, run_required_output
     from tools.symlink_refusal import refuse_symlink
     from tools import xdg_homes
 else:  # run directly: python3 tools/apply_konsole_font.py
     from atomic_write import write_bytes_atomically
+    from os_error_refusal import refusing_os_errors
     from repo_root import ROOT
     from required_command import run_required, run_required_output
     from symlink_refusal import refuse_symlink
@@ -299,7 +301,5 @@ def _make_dir(directory: Path, error: type[Exception]) -> None:
     """
     if directory.exists() and not directory.is_dir():
         raise error(f"cannot create {directory}: it is not a directory")
-    try:
+    with refusing_os_errors(error, "create", directory):
         directory.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise error(f"cannot create {directory}: {exc}") from exc
