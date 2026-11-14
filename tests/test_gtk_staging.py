@@ -85,6 +85,22 @@ class TestStage(StagingCase):
         self.assertTrue(target.is_dir())
         self.assertFalse(self.staging_of(target).exists())
 
+    def test_an_os_error_while_creating_the_parent_is_refused_with_its_cause(self):
+        # A regular file where the parent directory should be makes mkdir fail
+        # with an OSError, which must surface as a ConfigError naming the
+        # target, with the OSError kept as the cause and no staging left.
+        blocker = self.root / "gtk-3.0"
+        blocker.write_text("not a directory\n", encoding="utf-8")
+        target = blocker / "settings.ini"
+
+        with self.assertRaises(ConfigError) as caught:
+            _stage(target, "text")
+
+        self.assertTrue(str(caught.exception).startswith(f"cannot write {target}: "))
+        self.assertIsInstance(caught.exception.__cause__, OSError)
+        self.assertEqual("not a directory\n", blocker.read_text(encoding="utf-8"))
+        self.assertFalse(self.staging_of(target).exists())
+
 
 class TestStageAll(StagingCase):
     def test_stages_every_pair_in_order_without_touching_the_targets(self):
