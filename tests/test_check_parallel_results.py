@@ -17,6 +17,7 @@ from tools.check_parallel_results import (
     _bounded_log_text,
     print_results,
     _test_marker_step,
+    count_noun,
 )
 
 
@@ -219,6 +220,29 @@ class TestTestMarkerStep(unittest.TestCase):
         self.assertFalse(completed)
         state, _, completed = _test_marker_step(ord(" "), _MARKER_COUNTS_DOTS, 3)
         self.assertTrue(completed)
+
+
+class TestCountNoun(unittest.TestCase):
+    """``count_noun`` renders the ``<count> <noun>`` summary phrase.
+
+    The summary line in tools/check_parallel.py reads ``check: ..., 1 module,
+    4 workers``: a single item takes the bare noun, every other count (zero
+    included) takes the ``s`` form, and the count and noun are joined by one
+    space.
+    """
+
+    def test_one_item_takes_the_singular_noun(self):
+        self.assertEqual(count_noun(1, "module"), "1 module")
+
+    def test_zero_takes_the_plural_noun(self):
+        self.assertEqual(count_noun(0, "module"), "0 modules")
+
+    def test_many_items_take_the_plural_noun(self):
+        self.assertEqual(count_noun(2, "module"), "2 modules")
+        self.assertEqual(count_noun(4, "worker"), "4 workers")
+
+    def test_count_and_noun_are_joined_by_one_space(self):
+        self.assertEqual(count_noun(1, "worker"), "1 worker")
 
 
 if __name__ == "__main__":
