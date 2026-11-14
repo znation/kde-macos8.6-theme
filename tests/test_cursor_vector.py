@@ -51,6 +51,28 @@ class TestRenderFace(unittest.TestCase):
         buf = cursor_vector.render_vector_rgba(art, 32)
         self.assertEqual(_pixel(buf, 32, 24, 16), (0, 0, 0, 128))
 
+    def test_repeated_vertex_at_a_corner_leaves_the_render_unchanged(self):
+        # A repeated vertex makes a zero-length edge. It adds no crossing for
+        # the even-odd test and no new nearest point for the outline distance,
+        # so the render must match the square without the repeat, including
+        # the outline band that measures distance to every edge.
+        plain = VectorCursor(face=SQUARE, outline_width=2, design_size=32)
+        repeated = VectorCursor(
+            face=((8, 8), (8, 8), (24, 8), (24, 24), (8, 24)),
+            outline_width=2, design_size=32)
+        self.assertEqual(
+            cursor_vector.render_vector_rgba(repeated, 32),
+            cursor_vector.render_vector_rgba(plain, 32))
+
+    def test_repeated_vertex_mid_edge_leaves_the_render_unchanged(self):
+        plain = VectorCursor(face=SQUARE, outline_width=2, design_size=32)
+        repeated = VectorCursor(
+            face=((8, 8), (24, 8), (24, 24), (24, 24), (8, 24)),
+            outline_width=2, design_size=32)
+        self.assertEqual(
+            cursor_vector.render_vector_rgba(repeated, 32),
+            cursor_vector.render_vector_rgba(plain, 32))
+
 
 class TestRenderOutline(unittest.TestCase):
     def setUp(self):

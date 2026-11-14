@@ -87,6 +87,12 @@ Fix scope after the question is answered: an `enabled`/click change in
 structure test beside the existing decoration-package tests. No new
 dependency.
 
+### The client-exit stub test `test_waits_for_client_termination_and_preserves_capture_status` fails under a parallel `make check` (found by the coverage role 2026-11-14)
+
+In one full `make check` run the test failed with `AssertionError: 0 != None` at `tests/test_render_surface_units.py:1084` (`self.assertEqual(capture_status, status)`), with `capture_status=0`. The same module run alone passed (155 tests OK). BUGS-FIXED has a closed entry for a different load-sensitive test in the same client-exit stub family ("The client-exit stub regression is load-sensitive", closed 2026-11-12, naming `test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`); this test is not named there. The coverage change that ran in the same `make check` touched only `tests/test_cursor_vector.py`, so it is not the cause as far as the diff shows.
+
+Next step: check whether the stub's exit status is read before the stubbed client has finished writing it under load, and make the test wait for the status, not sample it.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
