@@ -25,7 +25,6 @@ if __package__:
 else:  # imported from a directly run tool
     from containment import read_bytes
     from diagnostics import report_failure, report_note
-    from os_error_refusal import refusing_os_errors
     from firefox_user_files import (
         MAX_PROFILE_FILE_BYTES,
         ConfigError,
