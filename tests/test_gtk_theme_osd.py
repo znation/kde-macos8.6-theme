@@ -412,7 +412,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # end-corner record restates the three
             # ``toolbar.inline-toolbar toolbutton…`` end-member arms (linked
             # rows, not overlay bands, pinned by
-            # test_gtk_theme_controls.TestGtkThemeControls::
+            # test_gtk_theme_linked.TestGtkThemeLinked::
             # test_linked_end_field_corners), excluded like the notebook
             # arms.
             {selector

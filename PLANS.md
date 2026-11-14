@@ -115,33 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 3/11: move the linked-border methods into tests/test_gtk_theme_linked.py (planned 2026-11-14 by the plan role)
-
-**Goal.** Move `test_linked_members_strip_their_trailing_border`,
-`test_linked_last_member_restores_the_border`,
-`test_linked_end_field_corners` and
-`test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines`
-into new `tests/test_gtk_theme_linked.py`, as
-`class TestGtkThemeLinked(GtkSheetRuleCases, unittest.TestCase)` with
-`CSS_PATH = CSS`. None of them renders.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the four
-methods, the `tests/test_gtk_theme_views.py` comment naming
-`TestGtkThemeControls::test_linked_end_field_corners`, and the
-`tests/test_gtk_theme_osd.py` comment naming the same method.
-
-**Acceptance criteria.**
-- Discovery lists the four methods exactly once each, under
-  `test_gtk_theme_linked`, and none under `test_gtk_theme_controls`. Each
-  moved method's `ast.dump` equals the original's. This is a run-time
-  check, not a committed test.
-- Every invariants row and comment site naming a moved method names
-  `test_gtk_theme_linked`/`TestGtkThemeLinked`. The invariants checker inside
-  `make check` resolves them.
-- The unused-import scanner reports nothing for either module, and
-  `make check` passes. If this leaves `TestGtkThemeControls` with no test
-  method, the file deletion and grep from part 1/11's series rules apply.
-
 ### GTK 3 controls suite split, part 4/11: move the scale methods into tests/test_gtk_theme_scale.py (planned 2026-11-14 by the plan role)
 
 **Goal.** Move `test_scale`, `test_scale_decoration_ink`,

@@ -826,7 +826,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # `.inline-toolbar button…` end members and the three
         # `toolbar.inline-toolbar toolbutton…` end members — all pinned
         # with the other linked-field spellings by
-        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_gtk_theme_linked.TestGtkThemeLinked::
         # test_linked_end_field_corners.
         self.assertEqual(
             {s for s in self.rules if "inline-toolbar" in s},
