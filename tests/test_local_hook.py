@@ -300,6 +300,27 @@ class TestGitFailures(unittest.TestCase):
             ):
                 local_hook_git.hooks_dir()
 
+    def test_top_level_reports_path_resolution_errors_with_its_own_command(self):
+        # top_level() names its own git command in the diagnostic, not the
+        # hooks-directory command, so a copied-over command string would show.
+        cases = (
+            (RuntimeError("symlink loop"), "symlink loop"),
+            (OSError(13, "Permission denied"), "[Errno 13] Permission denied"),
+        )
+        for failure, detail in cases:
+            with self.subTest(failure=type(failure).__name__):
+                with mock.patch.object(
+                    local_hook_git, "_git", return_value="/repo"
+                ), mock.patch.object(
+                    Path, "resolve", side_effect=failure
+                ):
+                    with self.assertRaisesRegex(
+                        local_hook_git.LocalHookError,
+                        "^cannot resolve path from git rev-parse --show-toplevel: "
+                        + re.escape(detail) + "$",
+                    ):
+                        local_hook_git.top_level()
+
 
 class TestGitEnvironment(unittest.TestCase):
     """Pin the environment ``_git`` hands to git.
