@@ -379,6 +379,55 @@ class TestRenderText(unittest.TestCase):
         self.assertEqual(render_text(data, candidate, reference)[-1],
                          "PASS: max-mae=unset max-frac=unset max-delta=9 tolerance=0")
 
+    def test_run_paging_lines_print_count_offset_runs_and_omitted_in_order(self):
+        candidate, _ = solid_rgb(1, 1)
+        reference, _ = solid_rgb(1, 1)
+        run = {"x": 1, "y": 2, "width": 3, "height": 1}
+        data = report_data("c", "r", None, None, 0, None, None, _metrics(),
+                           runs=[run], run_count=4, difference_run_offset=2,
+                           omitted_difference_runs=3, passed=False)
+        lines = render_text(data, candidate, reference)
+        start = lines.index("difference run count: 4")
+        self.assertEqual(
+            lines[start:start + 4],
+            [
+                "difference run count: 4",
+                "difference run offset: 2",
+                'difference runs: [{"x": 1, "y": 2, "width": 3, "height": 1}]',
+                "omitted difference runs: 3",
+            ],
+        )
+
+    def test_column_run_paging_lines_print_count_offset_runs_and_omitted(self):
+        candidate, _ = solid_rgb(1, 1)
+        reference, _ = solid_rgb(1, 1)
+        column_run = {"x": 4, "y": 0, "width": 1, "height": 5}
+        data = report_data("c", "r", None, None, 0, None, None, _metrics(),
+                           column_runs=[column_run], column_run_count=5,
+                           difference_column_run_offset=1,
+                           omitted_difference_column_runs=2, passed=True)
+        lines = render_text(data, candidate, reference)
+        start = lines.index("difference column run count: 5")
+        self.assertEqual(
+            lines[start:start + 4],
+            [
+                "difference column run count: 5",
+                "difference column run offset: 1",
+                'difference column runs: [{"x": 4, "y": 0, "width": 1, "height": 5}]',
+                "omitted difference column runs: 2",
+            ],
+        )
+
+    def test_omitted_run_count_prints_without_its_records(self):
+        candidate, _ = solid_rgb(1, 1)
+        reference, _ = solid_rgb(1, 1)
+        data = report_data("c", "r", None, None, 0, None, None, _metrics(),
+                           omitted_difference_runs=7, passed=True)
+        lines = render_text(data, candidate, reference)
+        self.assertIn("omitted difference runs: 7", lines)
+        self.assertFalse(any(line.startswith("difference runs:") for line in lines))
+        self.assertFalse(any(line.startswith("difference run offset:") for line in lines))
+
 
 if __name__ == "__main__":
     unittest.main()
