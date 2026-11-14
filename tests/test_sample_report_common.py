@@ -9,9 +9,10 @@ from argparse import Namespace
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.sample_report_common import (  # noqa: E402
-    compact_json, format_image_header, positioned_region_column_alpha,
+    compact_json, format_image_header, hex, positioned_region_column_alpha,
     positioned_region_column_pixels, positioned_region_pixels,
-    print_report_header, region_alpha, region_pixels, report_context,
+    print_report_header, region_alpha, region_from_args, region_pixels,
+    report_context,
 )
 
 
@@ -87,6 +88,27 @@ class TestRegionPixels(unittest.TestCase):
                 (1, 1, (4, 104, 204)),
                 (2, 1, (5, 105, 205)),
             ])
+
+
+class TestHexFormat(unittest.TestCase):
+    """The reports' ``#RRGGBB`` color text: uppercase, two digits per channel."""
+
+    def test_formats_each_channel_as_two_uppercase_hex_digits(self):
+        # 1 -> 01, 171 -> AB, 10 -> 0A: leading zero kept, letters uppercase.
+        self.assertEqual(hex((1, 171, 10)), "#01AB0A")
+
+    def test_black_and_white_are_zero_and_full_width(self):
+        self.assertEqual(hex((0, 0, 0)), "#000000")
+        self.assertEqual(hex((255, 255, 255)), "#FFFFFF")
+
+
+class TestRegionFromArgs(unittest.TestCase):
+    """The region dict every report result and JSON document carries."""
+
+    def test_maps_the_four_region_arguments_to_named_fields(self):
+        args = Namespace(x=3, y=5, width=7, height=2)
+        self.assertEqual(region_from_args(args),
+                         {"x": 3, "y": 5, "width": 7, "height": 2})
 
 
 class TestCompactJson(unittest.TestCase):
