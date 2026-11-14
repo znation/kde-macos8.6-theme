@@ -621,7 +621,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # spellings are these nine restated arms. As of 2026-10-31
             # the generic opaque suggested-action family is restated at
             # the sheet-wide tail (pinned by
-            # test_gtk_theme_controls.TestGtkThemeControls
+            # test_gtk_theme_buttons.TestGtkThemeButtons
             # .test_suggested_action_plain_arms), so the whole-sheet
             # suggested-action scan this assertion once made is gone;
             # the .flat colour-class members outside .osd still stay
@@ -708,7 +708,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # spellings are these nine restated arms. As of 2026-10-31
             # the generic opaque destructive-action family is restated
             # at the sheet-wide tail (pinned by
-            # test_gtk_theme_controls.TestGtkThemeControls
+            # test_gtk_theme_buttons.TestGtkThemeButtons
             # .test_destructive_action_plain_arms), so the whole-sheet
             # destructive-action scan this assertion once made is gone;
             # the .flat colour-class members outside .osd still stay

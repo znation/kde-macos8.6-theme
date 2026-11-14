@@ -115,35 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 5/11: move the button methods into tests/test_gtk_theme_buttons.py (planned 2026-11-14 by the plan role)
-
-**Goal.** Move the `assert_plain_action_arms` helper and
-`test_suggested_action_plain_arms`, `test_flat_button_plain_arms`,
-`test_selected_row_button_arms`, `test_destructive_action_plain_arms`,
-`test_action_class_flat_arms`, `test_button_focus_outline` and
-`test_button_disabled_and_backdrop` into new
-`tests/test_gtk_theme_buttons.py`, as
-`class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase)`. None of
-them renders. Grep first to confirm that no remaining controls method calls
-`assert_plain_action_arms`. If one does, the helper stays in both classes.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the seven
-methods and the two `tests/test_gtk_theme_osd.py` comments naming
-`test_suggested_action_plain_arms` and `test_destructive_action_plain_arms`.
-They also include the two `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`
-`transition: none` records that cite "the `button.flat:hover:active` and
-backdrop assertions in tests/test_gtk_theme_controls.py". Those are
-comment-only edits naming `tests/test_gtk_theme_buttons.py`.
-
-**Acceptance criteria.**
-- Discovery lists the seven methods exactly once each, under
-  `test_gtk_theme_buttons`, and none under `test_gtk_theme_controls`. The
-  `ast.dump` of each moved function matches the original's.
-- Every listed site names the new module, the invariants checker resolves
-  it, and `git diff` of the GTK 3 sheet touches only comment lines.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 3 controls suite split, part 6/11: move the spin-button methods into tests/test_gtk_theme_spinbutton.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
 
 **Goal.** Move `test_horizontal_spinbutton_focus_outline`,

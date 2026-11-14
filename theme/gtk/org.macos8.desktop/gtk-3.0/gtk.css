@@ -6706,7 +6706,7 @@ infobar > revealer > box button:link {
    `button:backdrop` groups restate stock's 200ms backdrop ease as
    `transition: none`, pinned by the
    `button.flat:hover:active` and backdrop assertions in
-   tests/test_gtk_theme_controls.py, erasing only the animation while
+   tests/test_gtk_theme_buttons.py, erasing only the animation while
    state values stay inherited per-property). Recorded 2026-11-09.
    Fresh probe the same day: the toolkit resource gtk-contained.css in
    `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
@@ -6741,7 +6741,7 @@ placesview .server-list-button:checked > image {
    `button:backdrop` groups restate stock's 200ms backdrop ease as
    `transition: none`, pinned by the
    `button.flat:hover:active` and backdrop assertions in
-   tests/test_gtk_theme_controls.py, erasing only the animation while
+   tests/test_gtk_theme_buttons.py, erasing only the animation while
    state values stay inherited per-property). Recorded 2026-11-09.
    Fresh probe the same day: the toolkit resource gtk-contained.css in
    `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
