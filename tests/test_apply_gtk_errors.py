@@ -65,8 +65,7 @@ class TestSettingsErrors(ApplyGtkTestCase):
             "[Settings]\ngtk-theme-name=Adwaita\n",
         )
         bad = self.settings("gtk-4.0")
-        bad.parent.mkdir(parents=True, exist_ok=True)
-        bad.write_bytes(b"\xff\xfe[Settings]\n")
+        write_file(bad, b"\xff\xfe[Settings]\n")
 
         result = self.run_tool()
         assert_exit_2_without_traceback(self, result)
@@ -259,8 +258,7 @@ class TestSettingsErrors(ApplyGtkTestCase):
 
     def test_remove_reports_an_unreadable_settings_file(self):
         path = self.settings("gtk-3.0")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(b"\xff[Settings]\n")
+        write_file(path, b"\xff[Settings]\n")
 
         result = self.run_tool("--remove")
         assert_exit_2_without_traceback(self, result)
@@ -273,8 +271,7 @@ class TestSettingsErrors(ApplyGtkTestCase):
             "[Settings]\ngtk-theme-name=Adwaita\n",
         )
         css = self.config / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True, exist_ok=True)
-        css.write_bytes(b"\xff\xfe")
+        write_file(css, b"\xff\xfe")
 
         result = self.run_tool()
         assert_exit_2_without_traceback(self, result)
@@ -314,8 +311,7 @@ class TestSettingsErrors(ApplyGtkTestCase):
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
         )
         css = self.config / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True, exist_ok=True)
-        css.write_bytes(b"\xff\xfe")
+        write_file(css, b"\xff\xfe")
 
         result = self.run_tool("--remove")
         assert_exit_2_without_traceback(self, result)
@@ -333,10 +329,9 @@ class TestSettingsErrors(ApplyGtkTestCase):
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
         )
         css = self.config / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True, exist_ok=True)
-        css.write_text(
+        write_file(
+            css,
             f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
-            encoding="utf-8",
         )
 
         # The backup link and the settings replacement succeed, so this
@@ -379,8 +374,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
         before = gtk3.read_bytes()
         gtk4 = self.settings("gtk-4.0")
-        gtk4.parent.mkdir(parents=True, exist_ok=True)
-        gtk4.write_bytes(b"[Settings]\ngtk-theme-name=\xff\n")
+        write_file(gtk4, b"[Settings]\ngtk-theme-name=\xff\n")
 
         result = self.run_tool()
 
@@ -539,8 +533,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         data = head + b"#" + b"x" * (pad - 2) + b"\n"
         self.assertEqual(cap, len(data))
         gtk4 = self.settings("gtk-4.0")
-        gtk4.parent.mkdir(parents=True, exist_ok=True)
-        gtk4.write_bytes(data)
+        write_file(gtk4, data)
 
         result = self.run_tool()
 
@@ -568,8 +561,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         data = head + b"#" + b"x" * (pad - 2) + b"\n"
         self.assertEqual(cap, len(data))
         gtk4 = self.settings("gtk-4.0")
-        gtk4.parent.mkdir(parents=True, exist_ok=True)
-        gtk4.write_bytes(data)
+        write_file(gtk4, data)
 
         result = self.run_tool()
 
