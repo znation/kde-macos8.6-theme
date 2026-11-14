@@ -6,9 +6,10 @@ the ``Gtk.OffscreenWindow`` paints with, and the pixel reader the assertions
 sample through. ``_GTK3_SHEET_PROLOGUE`` is the sheet prologue that loads
 the sheet, and ``Gtk3ChildProbeCases`` is the mixin whose ``_run_gtk_child``
 delegate runs a probe through ``run_gtk_child``. The provider block
-ships twice over: ``_GTK3_SHEET_PROVIDER`` is the screen registration alone, and ``_GTK3_SHEET_AND_WINDOW`` appends the
-one ``Gtk.OffscreenWindow`` line for probes that draw a single window. The middle of each program -- which bytes the
-sheet is loaded from and which widget is drawn -- stays in the test that
+ships twice over: ``_GTK3_SHEET_PROVIDER`` is the screen registration
+alone, and ``_GTK3_SHEET_AND_WINDOW`` appends the one
+``Gtk.OffscreenWindow`` line for probes that draw a single window. The
+middle of each program -- which bytes the sheet is loaded from and which widget is drawn -- stays in the test that
 owns it; ``tests/test_gtk_view_census.py``'s ``_CHILD_HEAD`` is the GTK 4
 counterpart of the same isolation pattern.
 

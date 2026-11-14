@@ -1,11 +1,10 @@
 """Pin the shared GTK 3 child-probe harness in ``support.gtk_child_probe``.
 
-The harness's program-string constants, the sheet prologue, and the
-runner moved here from ``tests/test_gtk_theme_controls.py``, which also
-gained the ``Gtk3ChildProbeCases`` mixin from here; these checks are its
-contract: the child head's gi requirement and exit-77 skip guards, the
-pixel head's reader, the prologue's shape, the mixin's delegate, and
-``run_gtk_child``'s three exit-status behaviors.
+The harness holds the program-string constants, the sheet prologue, the
+runner, and the ``Gtk3ChildProbeCases`` mixin the GTK 3 probe suites
+share; these checks are its contract: the child head's gi requirement and
+exit-77 skip guards, the pixel head's reader, the prologue's shape, the
+mixin's delegate, and ``run_gtk_child``'s three exit-status behaviors.
 The children below import no GTK, so the suite process stays GTK-free.
 """
 
