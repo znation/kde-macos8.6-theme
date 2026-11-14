@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import shutil
 import subprocess
 import sys
 import unittest
@@ -405,6 +406,30 @@ class TestRequirePath(unittest.TestCase):
                     rf"not {type_name}$",
                 ):
                     diagnostics.require_path("publish", "output", value)
+
+
+class TestCreateScratchDirectory(unittest.TestCase):
+    def test_returns_a_new_directory_that_outlives_the_call(self):
+        scratch = diagnostics.create_scratch_directory("check", "create-scratch-test-")
+        self.addCleanup(shutil.rmtree, scratch, True)
+        self.assertIsInstance(scratch, Path)
+        self.assertTrue(scratch.name.startswith("create-scratch-test-"))
+        self.assertTrue(scratch.is_dir())
+
+    def test_failure_names_the_label_and_returns_none(self):
+        stderr = io.StringIO()
+        with mock.patch(
+            "tools.diagnostics.tempfile.mkdtemp", side_effect=OSError("denied")
+        ):
+            with contextlib.redirect_stderr(stderr):
+                scratch = diagnostics.create_scratch_directory(
+                    "render", "create-scratch-test-", label="render log directory"
+                )
+        self.assertIsNone(scratch)
+        self.assertEqual(
+            stderr.getvalue(),
+            "render: error: cannot create a render log directory: denied\n",
+        )
 
 
 class TestScratchDirectory(unittest.TestCase):
