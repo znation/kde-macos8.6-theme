@@ -2401,7 +2401,7 @@ scale.marks-after:not(.marks-before):disabled > trough > slider {
    label (the GTK scope's standing adaptation premise), so the restated
    value is the existing black window ink this sheet already pins (the value
    the existing GTK 3 decoration-ink record restated on its toolkit's arms,
-   tests/test_gtk_theme_controls.py::TestGtkThemeControls,
+   tests/test_gtk_theme_scale.py::TestGtkThemeScale::test_scale_decoration_ink,
    re-extracted 2026-11-09). The toolkit resource
    /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
    `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,

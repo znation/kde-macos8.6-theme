@@ -115,37 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 4/11: move the scale methods into tests/test_gtk_theme_scale.py (planned 2026-11-14 by the plan role)
-
-**Goal.** Move `test_scale`, `test_scale_decoration_ink`,
-`test_scale_focus_outline`, `test_scale_plain_container_geometry`,
-`test_scale_fine_tune_container_geometry` and
-`test_scale_marks_indicator_geometry` into new
-`tests/test_gtk_theme_scale.py`, as
-`class TestGtkThemeScale(GtkSheetRuleCases, unittest.TestCase)`. None of
-them renders. `test_meter_state_and_backdrop_faces`, which sits between
-`test_scale` and `test_scale_decoration_ink`, stays for part 8/11.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the six
-methods and the two `tests/test_gtk_theme_views.py` comments naming
-`test_scale_fine_tune_container_geometry` and
-`test_scale_marks_indicator_geometry`. The other is the
-`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` scale tick-mark/value-label
-ink record (dated 2026-11-09), whose
-`tests/test_gtk_theme_controls.py::TestGtkThemeControls` names the GTK 3
-decoration-ink record. It becomes
-`tests/test_gtk_theme_scale.py::TestGtkThemeScale::test_scale_decoration_ink`,
-a comment-only edit.
-
-**Acceptance criteria.**
-- Discovery lists the six methods exactly once each, under
-  `test_gtk_theme_scale`, and none under `test_gtk_theme_controls`. The
-  `ast.dump` of each matches the original's.
-- Every listed site names the new module, the invariants checker resolves
-  it, and `git diff` of the GTK 4 sheet touches only that comment.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 3 controls suite split, part 5/11: move the button methods into tests/test_gtk_theme_buttons.py (planned 2026-11-14 by the plan role)
 
 **Goal.** Move the `assert_plain_action_arms` helper and

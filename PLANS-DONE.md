@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 controls suite split, part 4/11: move the scale methods into tests/test_gtk_theme_scale.py (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
+
+**Goal.** Move `test_scale`, `test_scale_decoration_ink`,
+`test_scale_focus_outline`, `test_scale_plain_container_geometry`,
+`test_scale_fine_tune_container_geometry` and
+`test_scale_marks_indicator_geometry` into new
+`tests/test_gtk_theme_scale.py`, as
+`class TestGtkThemeScale(GtkSheetRuleCases, unittest.TestCase)`. None of
+them renders. `test_meter_state_and_backdrop_faces`, which sits between
+`test_scale` and `test_scale_decoration_ink`, stays for part 8/11.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the two `tests/test_gtk_theme_views.py` comments naming
+`test_scale_fine_tune_container_geometry` and
+`test_scale_marks_indicator_geometry`. The other is the
+`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` scale tick-mark/value-label
+ink record (dated 2026-11-09), whose
+`tests/test_gtk_theme_controls.py::TestGtkThemeControls` names the GTK 3
+decoration-ink record. It becomes
+`tests/test_gtk_theme_scale.py::TestGtkThemeScale::test_scale_decoration_ink`,
+a comment-only edit.
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_scale`, and none under `test_gtk_theme_controls`. The
+  `ast.dump` of each matches the original's.
+- Every listed site names the new module, the invariants checker resolves
+  it, and `git diff` of the GTK 4 sheet touches only that comment.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
 ### GTK 3 controls suite split, part 3/11: move the linked-border methods into tests/test_gtk_theme_linked.py (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
 
 **Goal.** Move `test_linked_members_strip_their_trailing_border`,

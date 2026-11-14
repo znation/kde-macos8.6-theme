@@ -844,11 +844,11 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
         # fine-tuned container geometry restatement adds the
         # two orientation container spellings, pinned by
-        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_gtk_theme_scale.TestGtkThemeScale::
         # test_scale_fine_tune_container_geometry; and the
         # marked-node geometry restatement adds the six fine-tuned tick
         # margin and minimum spellings, pinned by
-        # test_gtk_theme_controls.TestGtkThemeControls::
+        # test_gtk_theme_scale.TestGtkThemeScale::
         # test_scale_marks_indicator_geometry.
         self.assertEqual(
             {s for s in self.rules if "fine-tune" in s},
