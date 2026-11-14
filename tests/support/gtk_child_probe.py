@@ -3,8 +3,10 @@
 Everything the GTK 3 offscreen pixel probes share: the child
 interpreter's gi imports with their exit-77 skip guards, the sheet provider
 the ``Gtk.OffscreenWindow`` paints with, and the pixel reader the assertions
-sample through. The provider block ships twice over: ``_GTK3_SHEET_PROVIDER``
-is the screen registration alone, and ``_GTK3_SHEET_AND_WINDOW`` appends the
+sample through. ``_GTK3_SHEET_PROLOGUE`` is the sheet prologue that loads
+the sheet, and ``Gtk3ChildProbeCases`` is the mixin whose ``_run_gtk_child``
+delegate runs a probe through ``run_gtk_child``. The provider block
+ships twice over: ``_GTK3_SHEET_PROVIDER`` is the screen registration alone, and ``_GTK3_SHEET_AND_WINDOW`` appends the
 one ``Gtk.OffscreenWindow`` line for probes that draw a single window. The middle of each program -- which bytes the
 sheet is loaded from and which widget is drawn -- stays in the test that
 owns it; ``tests/test_gtk_view_census.py``'s ``_CHILD_HEAD`` is the GTK 4
@@ -45,6 +47,17 @@ if Gdk.Screen.get_default() is None:
     print("no display for GTK 3")
     sys.exit(77)
 '''
+# The child program's sheet prologue, shared by the GTK 3 probes that load
+# the sheet: an `import re` line first, then the gi imports with their
+# exit-77 skip guards, then the sheet read from sys.argv[1] with every
+# url() reference stripped into `css`. The programs still differ in which
+# widget they draw, which stays in each test.
+_GTK3_SHEET_PROLOGUE = (
+    "\nimport re\n"
+    + _GTK3_CHILD_HEAD
+    + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+'''
+)
 _GTK3_SHEET_PROVIDER = '''provider = Gtk.CssProvider()
 provider.load_from_data(css)
 Gtk.StyleContext.add_provider_for_screen(
@@ -79,3 +92,15 @@ def run_gtk_child(test, program, *paths):
     if result.returncode == 77:
         test.skipTest(result.stdout.strip() or "GTK 3 is not available")
     test.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class Gtk3ChildProbeCases:
+    """Mixin giving a GTK 3 probe suite its ``_run_gtk_child`` delegate."""
+
+    def _run_gtk_child(self, program, *paths):
+        """Run the GTK 3 pixel *program* in a child interpreter.
+
+        A delegate to ``run_gtk_child``, which holds the harness the GTK 3
+        offscreen pixel probes share.
+        """
+        return run_gtk_child(self, program, *paths)

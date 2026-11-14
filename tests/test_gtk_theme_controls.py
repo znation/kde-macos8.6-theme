@@ -16,8 +16,9 @@ from support.gtk_child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,
+    _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
-    run_gtk_child,
+    Gtk3ChildProbeCases,
 )
 from support.gtk_css import strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
@@ -43,19 +44,7 @@ from support.repo_root import ROOT
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
-# The child program's sheet prologue, shared by the nine GTK 3 probes in
-# this module that load the sheet: an `import re` line first, then the gi imports with their
-# exit-77 skip guards, then the sheet read from sys.argv[1] with every
-# url() reference stripped into `css`. The programs still differ in which
-# widget they draw, which stays in each test.
-_GTK3_SHEET_PROLOGUE = (
-    "\nimport re\n"
-    + _GTK3_CHILD_HEAD
-    + r'''css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
-'''
-)
-
-class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
+class TestGtkThemeControls(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
 
     def test_progressbar(self):
@@ -475,14 +464,6 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
                     },
                     expected,
                 )
-
-    def _run_gtk_child(self, program, *paths):
-        """Run the GTK 3 pixel *program* in a child interpreter.
-
-        A delegate to ``support.gtk_child_probe.run_gtk_child``, which
-        holds the harness this module's offscreen pixel probes share.
-        """
-        return run_gtk_child(self, program, *paths)
 
     def test_entry_progress_draws_a_two_pixel_strip(self):
         # GTK 3 ignores min-height on this node, so pin the drawn pixels.

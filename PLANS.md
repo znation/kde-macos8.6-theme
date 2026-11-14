@@ -115,51 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 2/11: move the shared probe prologue and `_run_gtk_child` delegate into tests/support/gtk_child_probe.py (planned 2026-11-14 by the plan role)
-
-**Goal.** Ten probes in `tests/test_gtk_theme_controls.py` call the
-`TestGtkThemeControls._run_gtk_child` delegate. Nine of them build their
-program from the module-level `_GTK3_SHEET_PROLOGUE`. Once the probe
-families move (parts 6–11), several suites need both. Move
-`_GTK3_SHEET_PROLOGUE` (byte-identical value, with its comment)
-into `tests/support/gtk_child_probe.py` beside the `_GTK3_CHILD_HEAD` it
-builds on. Add a mixin class `Gtk3ChildProbeCases` there whose only member
-is the `_run_gtk_child(self, program, *paths)` delegate, moved verbatim
-(it returns `run_gtk_child(self, program, *paths)`). Then
-`TestGtkThemeControls` becomes
-`class TestGtkThemeControls(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`,
-imports `_GTK3_SHEET_PROLOGUE` from support, and drops its own copies.
-Later probe parts reuse the mixin, so the moved probe methods keep calling
-`self._run_gtk_child` unchanged. The mixed-check probe's own prelude stays
-in its test.
-
-**Reference sites.** The `tests/test_no_gtk_introspection.py` module
-docstring and its assertion message both name
-`tests/test_gtk_theme_controls.py` as the module that runs GTK in child
-interpreters. Both are reworded to name `tests/support/gtk_child_probe.py`
-and the GTK 3 suites that use it. So is the `tests/test_gtk_child_probe_support.py`
-docstring's "moved here from `tests/test_gtk_theme_controls.py`", which also
-gains a mention of the prologue and mixin. The support module docstring
-gains one sentence on the two new names.
-
-**Acceptance criteria.**
-- `tests/test_gtk_child_probe_support.py` gains tests showing three things.
-  `_GTK3_SHEET_PROLOGUE` starts with `"\nimport re\n"` followed by
-  `_GTK3_CHILD_HEAD`, and ends with the `css = re.sub(...)` url()-stripping
-  line. A `unittest.TestCase` subclass mixing in `Gtk3ChildProbeCases` passes
-  a child program that exits 0 and is skipped on one that exits 77. Both
-  child programs import no GTK.
-- `_GTK3_SHEET_PROLOGUE` and `_run_gtk_child` are each defined exactly once
-  in the repository, in `tests/support/gtk_child_probe.py`, and the
-  prologue's value equals the original. Check this at run time by comparing
-  against the base commit's evaluated constant.
-- Discovery lists the same `TestGtkThemeControls` methods as before. The ten
-  probes skip identically without `PLATINUM_RUN_GUI_TESTS=1`.
-- `tests/test_no_gtk_introspection.py` still passes. Neither its docstring
-  nor its message, nor the probe-support docstring, names
-  `test_gtk_theme_controls` any more. `make check` passes, and its
-  unused-import scanner reports nothing.
-
 ### GTK 3 controls suite split, part 3/11: move the linked-border methods into tests/test_gtk_theme_linked.py (planned 2026-11-14 by the plan role)
 
 **Goal.** Move `test_linked_members_strip_their_trailing_border`,

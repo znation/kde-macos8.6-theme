@@ -1,9 +1,11 @@
 """Pin the shared GTK 3 child-probe harness in ``support.gtk_child_probe``.
 
-The harness's program-string constants and runner moved here from
-``tests/test_gtk_theme_controls.py``; these checks are its contract:
-the child head's gi requirement and exit-77 skip guards, the pixel
-head's reader, and ``run_gtk_child``'s three exit-status behaviors.
+The harness's program-string constants, the sheet prologue, and the
+runner moved here from ``tests/test_gtk_theme_controls.py``, which also
+gained the ``Gtk3ChildProbeCases`` mixin from here; these checks are its
+contract: the child head's gi requirement and exit-77 skip guards, the
+pixel head's reader, the prologue's shape, the mixin's delegate, and
+``run_gtk_child``'s three exit-status behaviors.
 The children below import no GTK, so the suite process stays GTK-free.
 """
 
@@ -13,7 +15,9 @@ from support.gtk_child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,
+    _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
+    Gtk3ChildProbeCases,
     run_gtk_child,
 )
 
@@ -115,6 +119,39 @@ class TestGtkChildProbeSupport(unittest.TestCase):
         run_gtk_child(recorder, 'print("ok")\n')
         self.assertEqual([], recorder.skips)
         self.assertEqual([], recorder.assertions)
+
+
+class TestGtk3SheetPrologue(unittest.TestCase):
+    def test_prologue_opens_with_the_import_re_line_then_the_child_head(self):
+        self.assertTrue(_GTK3_SHEET_PROLOGUE.startswith("\nimport re\n"))
+        self.assertEqual(
+            "\nimport re\n" + _GTK3_CHILD_HEAD,
+            _GTK3_SHEET_PROLOGUE[: len("\nimport re\n") + len(_GTK3_CHILD_HEAD)],
+        )
+
+    def test_prologue_ends_by_stripping_url_references_from_the_sheet(self):
+        last_line = _GTK3_SHEET_PROLOGUE.rstrip("\n").splitlines()[-1]
+        self.assertEqual(
+            'css = re.sub(rb"url\\([^)]*\\)", b"none", '
+            "Path(sys.argv[1]).read_bytes())",
+            last_line,
+        )
+
+
+class _MixinProbe(Gtk3ChildProbeCases, unittest.TestCase):
+    def runTest(self):
+        pass
+
+
+class TestGtk3ChildProbeCases(unittest.TestCase):
+    def test_the_mixin_passes_a_child_that_exits_zero(self):
+        _MixinProbe()._run_gtk_child('print("ok")\n')
+
+    def test_the_mixin_skips_a_child_that_exits_77(self):
+        program = 'print("no display for GTK 3")\nraise SystemExit(77)\n'
+        with self.assertRaises(unittest.SkipTest) as raised:
+            _MixinProbe()._run_gtk_child(program)
+        self.assertEqual("no display for GTK 3", str(raised.exception))
 
 
 if __name__ == "__main__":
