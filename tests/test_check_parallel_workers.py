@@ -22,7 +22,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from support.check_parallel_fixtures import OK_MODULE, _write_module
+from support.check_parallel_fixtures import OK_MODULE, _write_module, make_suite_dir
 from support.popen_signal import gone
 from support.popen_signal import kill_tracked
 from support.popen_signal import signal_into_popen
@@ -98,8 +98,7 @@ class TestSpawnDefenses(unittest.TestCase):
         # killing the run.
         if not os.path.exists("/dev/zero"):
             self.skipTest("/dev/zero is Linux-specific")
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         _write_module(tests_dir, "test_two.py", OK_MODULE)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):

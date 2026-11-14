@@ -14,8 +14,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (sys.path bootstrap)
-from support.check_parallel_fixtures import OK_MODULE, OTHER_MODULE, _write_module
-from support.tmp_dir import make_tmp_dir
+from support.check_parallel_fixtures import OK_MODULE, OTHER_MODULE, _write_module, make_suite_dir
 from tools import check_parallel_discovery
 
 
@@ -31,8 +30,7 @@ class TestDiscovery(unittest.TestCase):
         # raises DiscoveryError naming the directory and the underlying
         # error instead of the bare OSError one would get unwound through
         # visit.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         gone = os.path.join(tests_dir, "gone")
         os.mkdir(gone)
         _write_module(gone, "__init__.py", "")
@@ -58,8 +56,7 @@ class TestDiscovery(unittest.TestCase):
         # saw pass: a directory swapped out or locked after that check
         # raises DiscoveryError naming it, not an OSError traceback from
         # the sorted() walk.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         with mock.patch(
             "tools.check_parallel_discovery.os.listdir",
             side_effect=PermissionError(13, "Permission denied"),
@@ -69,8 +66,7 @@ class TestDiscovery(unittest.TestCase):
         self.assertIn("cannot list ", str(raised.exception))
 
     def test_names_top_level_modules_in_sorted_order(self):
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         for name in ("test_b.py", "test_a.py", "helper.py"):
             _write_module(tests_dir, name, OK_MODULE)
         self.assertEqual(
@@ -82,8 +78,7 @@ class TestDiscovery(unittest.TestCase):
         # discover recurses into a subdirectory only when it is a package;
         # a test*.py file under a plain directory stays invisible, as
         # test_suite_discovery's guard documents for the real suite.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         plain = os.path.join(tests_dir, "plain")
         os.mkdir(plain)
         _write_module(plain, "test_hidden.py", OK_MODULE)
@@ -97,8 +92,7 @@ class TestDiscovery(unittest.TestCase):
         )
 
     def test_symlinked_package_directories_are_not_recursed(self):
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         outside = os.path.join(os.path.dirname(tests_dir), "outside_pkg")
         os.mkdir(outside)
         _write_module(outside, "__init__.py", "")
@@ -114,8 +108,7 @@ class TestDiscovery(unittest.TestCase):
         # module and would import it where the serial run does, so a link
         # under the tests directory pointing outside the selected tree must
         # stay invisible here too.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         outside = os.path.join(os.path.dirname(tests_dir), "outside_pkg")
         os.mkdir(outside)
         _write_module(outside, "test_outside.py", OK_MODULE)
@@ -136,8 +129,7 @@ class TestDiscovery(unittest.TestCase):
         # "testaux.", and a hyphenated test-x.py under the default pattern is
         # not the module "test-x": discovery skips both, and a worker fed
         # either name would import nothing or fail the run.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         _write_module(tests_dir, "test_ok.py", OK_MODULE)
         _write_module(tests_dir, "testaux.pyz", "not python\n")
         _write_module(tests_dir, "test-x.py", OK_MODULE)
@@ -155,8 +147,7 @@ class TestDiscovery(unittest.TestCase):
         # and the top-level `test_a_test_b.py` both give `test_a_test_b`,
         # so the coordinator must not derive the log path from the stem
         # alone.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         package = os.path.join(tests_dir, "test_a")
         os.mkdir(package)
         _write_module(package, "__init__.py", "")

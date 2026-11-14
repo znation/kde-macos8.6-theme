@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import os
 
+from support.tmp_dir import make_tmp_dir
+
 
 # A passing one-test module and variants the coordinator's outcomes need.
 OK_MODULE = (
@@ -54,3 +56,10 @@ def _write_module(tests_dir, name, source):
     """Write one fixture module into the scratch suite."""
     with open(os.path.join(tests_dir, name), "w", encoding="utf-8") as handle:
         handle.write(source)
+
+
+def make_suite_dir(case):
+    """Create an empty ``tests`` directory for a scratch suite; return its path."""
+    tests_dir = str(make_tmp_dir(case) / "tests")
+    os.mkdir(tests_dir)
+    return tests_dir

@@ -21,6 +21,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
+from support.check_parallel_fixtures import _write_module, make_suite_dir
 from support.cli_fixtures import run_main
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -272,8 +273,7 @@ class TestDurationsRecorded(unittest.TestCase):
         # The recorded value covers the module's own run (the fixture sleeps
         # 0.3s) plus its spawn, which is the worker time the next run's
         # ordering should steer around.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         for name, source in (("test_ok.py", OK_MODULE),
                              ("test_slow.py", SLEEPER_MODULE)):
             with open(os.path.join(tests_dir, name), "w", encoding="utf-8") as sink:
@@ -300,8 +300,7 @@ class TestDurationsRecorded(unittest.TestCase):
         the deadline, so the recorded span covers the whole budget and is
         far below the sleeping worker's own run time.
         """
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         long_sleeper = (
             "import time, unittest\n"
             "\n"
@@ -338,8 +337,7 @@ class TestDurationsRecorded(unittest.TestCase):
         # The unopenable-log case records the module as never started; with
         # no worker time to report, it contributes no duration and the next
         # run keeps it (and everything else) in discovery order.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         with open(os.path.join(tests_dir, "test_ok.py"), "w",
                   encoding="utf-8") as sink:
             sink.write(OK_MODULE)
@@ -357,12 +355,9 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
     """End to end: the cache steers the queue and the run stays healthy."""
 
     def _project(self, files: dict[str, str]) -> str:
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         for name, source in files.items():
-            with open(os.path.join(tests_dir, name), "w",
-                      encoding="utf-8") as sink:
-                sink.write(source)
+            _write_module(tests_dir, name, source)
         return tests_dir
 
     def _run(self, *args):

@@ -40,6 +40,7 @@ from support.check_parallel_fixtures import (
     FAILING_MODULE,
     OTHER_MODULE,
     _write_module,
+    make_suite_dir,
 )
 from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
@@ -82,8 +83,7 @@ class TestCoordinator(unittest.TestCase):
 
     def _project(self, files: dict[str, str]) -> str:
         """Write a scratch suite and return its tests directory."""
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         for name, source in files.items():
             _write_module(tests_dir, name, source)
         return tests_dir
@@ -464,8 +464,7 @@ class TestCoordinator(unittest.TestCase):
         # output while the result sections print that one file twice, so
         # each module gets a uniquely named log and its own section prints
         # only its own output.
-        tests_dir = str(make_tmp_dir(self) / "tests")
-        os.mkdir(tests_dir)
+        tests_dir = make_suite_dir(self)
         package = os.path.join(tests_dir, "test_a")
         os.mkdir(package)
         _write_module(package, "__init__.py", "")
