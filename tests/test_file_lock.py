@@ -140,6 +140,36 @@ class TestExclusiveFlock(unittest.TestCase):
             close.assert_called_once_with(flock.call_args.args[0])
         self.assertTrue(self.acquire())
 
+    def test_an_unexpected_flock_errno_is_refused_at_once_without_retry(self):
+        """A flock errno that is not contention is refused, not waited out.
+
+        Only EINTR, EACCES and EAGAIN mean "try again"; any other errno (here
+        ENOLCK, no locks available) must raise the caller's error on the first
+        attempt, naming the directory, with the OSError as its cause. Retrying
+        it would stall every installer for the full timeout on a failure that
+        never clears.
+        """
+        failure = OSError(errno.ENOLCK, "no locks available")
+        with (
+            mock.patch.object(
+                fcntl,
+                "flock",
+                side_effect=[failure, AssertionError("retried an unexpected errno")],
+            ) as flock,
+            mock.patch("tools.file_lock.time.sleep") as sleep,
+        ):
+            with self.assertRaises(LockRefused) as caught:
+                self.acquire(timeout=10.0)
+
+        self.assertEqual(flock.call_count, 1)
+        sleep.assert_not_called()
+        self.assertIs(caught.exception.__cause__, failure)
+        self.assertEqual(
+            str(caught.exception),
+            f"cannot lock {self.directory} for the test selection: {failure}",
+        )
+        self.assertTrue(self.acquire())
+
     def test_the_lock_is_released_when_the_body_raises(self):
         """A raising body still releases the lock for the next run."""
         with self.assertRaises(RuntimeError):
