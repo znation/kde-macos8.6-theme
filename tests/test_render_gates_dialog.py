@@ -1,0 +1,102 @@
+"""Pin ``DialogGate``'s class-definition registration and its decode cache.
+
+``support.render_gates.DialogGate`` has two pieces of bookkeeping that no
+rendered gate observes directly. ``__init_subclass__`` must register each
+concrete gate's ``KIND`` with ``Renders`` at import time, or the first gate to
+set up starts a batch that omits the render its sibling waits on. And
+``candidate_image`` must decode the dialog PNG once, because every pixel pin
+of a gate reads through it; a re-decode per read is slow but silent. A
+mis-registered kind or a dropped cache would pass every unit in the tree
+until a real Plasma host runs the gates, so these tests pin both on a
+stubbed ``Renders`` and ``process_runner``: no render is ever started.
+"""
+
+from __future__ import annotations
+
+import os
+import unittest
+from unittest import mock
+
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import process_runner
+from support import render_gates
+from support.render_gates import DialogGate, Renders
+
+
+class TestDialogGateRegistration(unittest.TestCase):
+    def test_defining_a_concrete_gate_requests_its_kind(self):
+        with mock.patch.object(Renders, "requested", set()), \
+                mock.patch.object(process_runner, "start") as start:
+            class ProbeGate(DialogGate):
+                KIND = "probe-kind"
+
+            self.assertIn("probe-kind", Renders.requested)
+            # Registration only records the kind; it starts no render.
+            start.assert_not_called()
+
+    def test_each_concrete_gate_registers_its_own_kind(self):
+        with mock.patch.object(Renders, "requested", set()):
+            class FirstGate(DialogGate):
+                KIND = "first-kind"
+
+            class SecondGate(DialogGate):
+                KIND = "second-kind"
+
+            self.assertEqual({"first-kind", "second-kind"}, Renders.requested)
+
+    def test_registration_does_not_complete_the_batch(self):
+        with mock.patch.object(Renders, "requested", set()), \
+                mock.patch.object(Renders, "completed", False):
+            class ProbeGate(DialogGate):
+                KIND = "probe-kind"
+
+            self.assertFalse(Renders.completed)
+
+
+class TestCandidateImageCache(unittest.TestCase):
+    def _make_gate(self):
+        # Mirror what setUpClass leaves on a concrete gate, without starting
+        # a render: the output path and an empty decode cache.
+        class ProbeGate(DialogGate):
+            KIND = "probe-cache-kind"
+
+        ProbeGate.output = os.path.join("scratch-dir", "dialog.png")
+        ProbeGate._candidate = None
+        return ProbeGate
+
+    def test_the_dialog_png_is_decoded_once_across_reads(self):
+        sentinel = object()
+        with mock.patch.object(Renders, "requested", set()), \
+                mock.patch.object(render_gates, "read_png", return_value=sentinel) as read:
+            gate = self._make_gate()
+            first = gate.candidate_image()
+            second = gate.candidate_image()
+
+        read.assert_called_once_with(os.path.join("scratch-dir", "dialog.png"))
+        self.assertIs(sentinel, first)
+        self.assertIs(first, second)
+
+    def test_each_gate_class_decodes_its_own_output(self):
+        with mock.patch.object(Renders, "requested", set()), \
+                mock.patch.object(render_gates, "read_png", side_effect=lambda path: path) as read:
+            first_gate = self._make_gate()
+
+            class OtherGate(DialogGate):
+                KIND = "other-cache-kind"
+
+            OtherGate.output = os.path.join("other-dir", "dialog.png")
+            OtherGate._candidate = None
+
+            first = first_gate.candidate_image()
+            other = OtherGate.candidate_image()
+
+        self.assertEqual(
+            [os.path.join("scratch-dir", "dialog.png"), os.path.join("other-dir", "dialog.png")],
+            [c.args[0] for c in read.call_args_list],
+        )
+        self.assertEqual(os.path.join("scratch-dir", "dialog.png"), first)
+        self.assertEqual(os.path.join("other-dir", "dialog.png"), other)
+
+
+if __name__ == "__main__":
+    unittest.main()
