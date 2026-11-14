@@ -93,6 +93,10 @@ In one full `make check` run the test failed with `AssertionError: 0 != None` at
 
 Next step: check whether the stub's exit status is read before the stubbed client has finished writing it under load, and make the test wait for the status, not sample it.
 
+### post-merge review of 678f72a1 never reached a verdict (found by the review role 2026-11-14)
+
+The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
