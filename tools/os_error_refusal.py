@@ -17,8 +17,9 @@ def refusing_os_errors(error: type[Exception], action: str, path: Path) -> Itera
     exception type its documentation names. :mod:`tools.gtk_staging`,
     :mod:`tools.firefox_user_files`, :mod:`tools.firefox_profile_actions`,
     :mod:`tools.firefox_transaction`, :mod:`tools.file_lock` (the
-    parent-directory create) and :mod:`tools.apply_konsole_font` (the
-    directory create and the font reads and writes) use this helper.
+    parent-directory create), :mod:`tools.apply_konsole_font` (the
+    directory create and the font reads and writes) and :mod:`tools.cursor_link`
+    (the symlink read and the link removal) use this helper.
     """
     try:
         yield

@@ -5,6 +5,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+if __package__:
+    from tools.os_error_refusal import refusing_os_errors
+else:  # imported from a directly run tool
+    from os_error_refusal import refusing_os_errors
+
 CURSOR_THEME = "org.macos8.desktop"
 
 
@@ -49,10 +54,8 @@ def symlink_target(path: Path) -> str | None:
     """Return *path*'s literal symlink target, or ``None`` when it is not a link."""
     if not path.is_symlink():
         return None
-    try:
+    with refusing_os_errors(CursorError, "read symlink", path):
         return os.readlink(path)
-    except OSError as exc:
-        raise CursorError(f"cannot read symlink {path}: {exc}") from exc
 
 
 def install_link(home: Path, theme: Path) -> None:
@@ -97,10 +100,8 @@ def remove_link(home: Path, data_home: Path) -> tuple[Path, bool]:
     target = link_target(home)
     link = symlink_target(target)
     if link == str(installed_theme(data_home)):
-        try:
+        with refusing_os_errors(CursorError, "remove", target):
             target.unlink()
-        except OSError as exc:
-            raise CursorError(f"cannot remove {target}: {exc}") from exc
         return target, False
     if link is not None:
         return target, True
