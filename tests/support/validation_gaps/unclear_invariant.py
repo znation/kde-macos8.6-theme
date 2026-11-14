@@ -382,7 +382,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-glyph-svg-root-first",
         ("A checked GTK check box draws no check",),
-        "tests/test_gtk_theme_controls.py::TestCheckGlyphs"
+        "tests/test_gtk_theme_glyphs.py::TestCheckGlyphs"
         "::test_assets_put_the_root_first",
         GTK_GLYPH_ROOT_GUARANTEE,
     ),

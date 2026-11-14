@@ -115,59 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 1/11: move the check and arrow glyph classes into tests/test_gtk_theme_glyphs.py (planned 2026-11-14 by the plan role)
-
-**Series.** `tests/test_gtk_theme_controls.py` (2567 lines) holds the
-54-method `TestGtkThemeControls` grab-bag plus the `TestCheckGlyphs` and
-`TestArrowGlyphs` SVG asset classes; every new GTK 3 control check edits
-it. This 11-part series takes it apart one surface family per part. The
-feature role parked the single-entry version on 2026-11-13 as too large
-for one run, and this split answers that note. Rules every part follows:
-methods move unchanged (same name, same body; their `ast.dump` matches the
-original), and no assertion, expected value, probe pixel or child-program
-byte changes. Each new suite binds its own `THEME_DIR`/`CSS` constants the way
-`tests/test_gtk_theme_views.py` does. Each part prunes the imports and
-module constants `tests/test_gtk_theme_controls.py` no longer uses, repoints
-every `docs/invariants.md` mention of a moved method or class at its new
-`module::Class`, and repoints the by-name comment sites it lists.
-**Whichever part leaves `TestGtkThemeControls` with no test method deletes
-`tests/test_gtk_theme_controls.py` in the same change.** That part also
-confirms that a repository grep (excluding PLANS.md, PLANS-DONE.md and
-BUGS-FIXED.md) finds no `test_gtk_theme_controls` or `TestGtkThemeControls`
-left. Parts 1, 2, 3, 4 and 5 are independent. Parts 6–11 carry rendered
-probes and need part 2's shared probe mixin.
-
-**Goal.** Move `TestCheckGlyphs` and `TestArrowGlyphs` (whole classes,
-including their `setUpClass`) into new `tests/test_gtk_theme_glyphs.py`. They
-check shipped SVG assets, not the sheet. Move the asset path constants
-they use with them (`CHECKMARK`, `BULLET`, `CHECK_MIXED`, `ARROW_*`,
-`SUBMENU_ARROW_SVG`, `ICON_GO_NEXT`), along with the `support.svg_case`,
-`svg_assertions` and `assert_svg_root_first` imports. A constant that the
-remaining controls methods still use, such as the assets the mixed-check
-probe reads, stays in the controls module as well.
-
-**Reference sites.** These are `docs/invariants.md`'s `TestCheckGlyphs` and
-`TestArrowGlyphs` mentions, plus the anchor string in
-`tests/support/validation_gaps/unclear_invariant.py` (the
-`gtk-glyph-svg-root-first` entry). The XML comments in
-`theme/gtk/org.macos8.desktop/assets/{checkmark,check-mixed,bullet,arrow-down,arrow-right,submenu-arrow}.svg`
-already name a stale `tests/test_gtk_theme.py::TestCheckGlyphs` or
-`::TestArrowGlyphs`. Only the module path inside each comment changes, and
-no SVG element or attribute changes.
-
-**Acceptance criteria.**
-- Unittest discovery lists the 13 glyph methods exactly once each, under
-  `test_gtk_theme_glyphs`, and none under `test_gtk_theme_controls`. The 54
-  `TestGtkThemeControls` methods are still listed.
-- `grep -rn 'TestCheckGlyphs\|TestArrowGlyphs'` outside the PLANS/archive
-  files shows only `tests/test_gtk_theme_glyphs.py` paths. The invariants
-  checker and the validation-gap checks inside `make check` resolve the
-  repointed anchors.
-- After the change, each of the six SVGs differs from the original only on
-  its comment line, as `git diff` shows.
-- The unused-import scanner inside `make check` reports nothing for either
-  module, and `make check` passes.
-
 ### GTK 3 controls suite split, part 2/11: move the shared probe prologue and `_run_gtk_child` delegate into tests/support/gtk_child_probe.py (planned 2026-11-14 by the plan role)
 
 **Goal.** Ten probes in `tests/test_gtk_theme_controls.py` call the
