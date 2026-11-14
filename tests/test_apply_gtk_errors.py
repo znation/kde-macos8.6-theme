@@ -21,6 +21,7 @@ from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_succeeded,
 )
+from support.theme_install import write_file
 from support.unlink_failure import unlink_failing_for
 from tools import gtk_user_files
 
@@ -110,9 +111,8 @@ class TestSettingsErrors(ApplyGtkTestCase):
     def test_apply_refuses_a_symlinked_settings_file_before_writing_anything(self):
         self.install_sheet()
         target = self.root / "dotfiles" / "gtk-3.0-settings.ini"
-        target.parent.mkdir(parents=True)
         original = "[Settings]\ngtk-theme-name=Adwaita\n"
-        target.write_text(original, encoding="utf-8")
+        write_file(target, original)
         link = self.settings("gtk-3.0")
         link.parent.mkdir(parents=True)
         link.symlink_to(target)
@@ -212,9 +212,8 @@ class TestSettingsErrors(ApplyGtkTestCase):
 
     def test_remove_refuses_a_symlinked_settings_file_before_clearing_anything(self):
         target = self.root / "dotfiles" / "gtk-3.0-settings.ini"
-        target.parent.mkdir(parents=True)
         original = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
-        target.write_text(original, encoding="utf-8")
+        write_file(target, original)
         link = self.settings("gtk-3.0")
         link.parent.mkdir(parents=True)
         link.symlink_to(target)
@@ -239,12 +238,11 @@ class TestSettingsErrors(ApplyGtkTestCase):
         original = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
         self.write(settings, original)
         target = self.root / "dotfiles" / "gtk.css"
-        target.parent.mkdir(parents=True)
         css_text = (
             f'{gtk_user_files.GTK4_CSS_MARKER}\n'
             '@import url("file:///sheet.css");\n'
         )
-        target.write_text(css_text, encoding="utf-8")
+        write_file(target, css_text)
         link = self.config / "gtk-4.0" / "gtk.css"
         link.parent.mkdir(parents=True)
         link.symlink_to(target)
