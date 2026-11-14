@@ -12,8 +12,8 @@ checked in ``tests/test_gtk_theme_linked.py``, the scale geometry and ink in
 ``tests/test_gtk_theme_progress.py``, the view field, viewport and frame
 borders in ``tests/test_gtk_theme_frames.py``, the check and radio indicators in
 ``tests/test_gtk_theme_check.py``. The shipped glyph assets are checked in
-``tests/test_gtk_theme_glyphs.py``. The three
-introspection tests render with a real GTK 3 in a child interpreter (see
+``tests/test_gtk_theme_glyphs.py``. The notebook tab-face
+probe renders with a real GTK 3 in a child interpreter (see
 ``_run_gtk_child``); the suite process itself imports no GTK.
 """
 
