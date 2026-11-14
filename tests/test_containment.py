@@ -331,6 +331,38 @@ class TestResolutionFailureFailsClosed(unittest.TestCase):
                 containment.require_within_repo(path, root)
             self.assertIn("symlink escape", str(caught.exception))
 
+    def test_a_symlink_loop_inside_the_root_is_refused_not_resolved(self):
+        # ``os.path.realpath`` returns a loop's path unresolved instead of
+        # raising, so without the ELOOP stat the loop would look like a plain
+        # in-root path and be accepted. The guard must refuse it, and the
+        # caller must see the same "symlink escape" refusal as any escape.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            os.symlink(root / "loop_b", root / "loop_a")
+            os.symlink(root / "loop_a", root / "loop_b")
+            path = str(root / "loop_a")
+            self.assertFalse(containment.resolves_within(root, path))
+            with self.assertRaises(ValueError) as caught:
+                containment.require_within_repo(path, root)
+            self.assertIn("symlink escape", str(caught.exception))
+
+    def test_a_loop_in_the_root_itself_fails_closed_for_every_path(self):
+        # The root is the trusted side of the comparison. When it is a loop,
+        # no path can be proven inside it, so even an ordinary child is refused.
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            os.symlink(base / "loop_b", base / "loop_a")
+            os.symlink(base / "loop_a", base / "loop_b")
+            loop_root = base / "loop_a"
+            self.assertFalse(containment.resolves_within(loop_root, loop_root / "child"))
+
+    def test_a_missing_path_inside_the_root_is_still_contained(self):
+        # Control for the loop cases: ELOOP alone is the failure, so a path
+        # that does not exist yet (ENOENT) still resolves as inside the root.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.assertTrue(containment.resolves_within(root, root / "not_yet.txt"))
+
 
 class TestRefusalNamesTheOperation(unittest.TestCase):
     """The guard's diagnostic names the operation the escape would have reached.
