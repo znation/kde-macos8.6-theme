@@ -385,6 +385,14 @@ class TestRefusals(StubKonsoleTools):
     def test_a_separated_profile_name_is_refused(self):
         self.assert_refused("must be a plain file name", profile="sub/Own.profile")
 
+    def test_a_backslash_separated_profile_name_is_refused(self):
+        # A backslash is a separator on Windows and is legal inside a POSIX
+        # file name, so the name is refused by spelling rather than left to
+        # the filesystem: a "sub\Own.profile" must not be resolved at all.
+        for name in ("sub\\Own.profile", "..\\Own.profile"):
+            with self.subTest(name=name):
+                self.assert_refused("must be a plain file name", profile=name)
+
     def test_the_dot_names_are_refused(self):
         for name in (".", ".."):
             with self.subTest(name=name):
