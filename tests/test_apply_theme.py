@@ -64,11 +64,15 @@ class StubTools(unittest.TestCase):
             self.stub(name)
         self.stub("qdbus6")
         self.stub("kvantummanager")
+        # The config home is pinned too: an inherited XDG_CONFIG_HOME (a CI
+        # runner exports one) would otherwise send the konsolerc commands to
+        # the host's real config directory instead of ``$HOME/.config``.
         patch = mock.patch.dict(
             os.environ,
             {
                 "PATH": str(self.bin),
                 "HOME": str(self.home),
+                "XDG_CONFIG_HOME": str(self.home / ".config"),
                 "XDG_DATA_HOME": str(self.data),
             },
         )
