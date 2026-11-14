@@ -220,6 +220,98 @@ behavior changes.
   `tests/test_gtk4_scrolledwindow.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### GTK 4 suite extraction: move the scroll-bar breadth rule and reference classes into their own module (planned 2026-11-14 by the plan role)
+
+**Goal.** The tail of `tests/test_gtk4_theme.py` holds a group of
+scroll-bar breadth checks that is separate from `TestGtk4Theme`: the
+module-level helper `_scrollbar_rules`, the class
+`TestScrollbarBreadthRules` (`test_thumb_minimum_fills_reference_band`,
+`test_scrollbar_rules_refuse_a_symlink_escape`) and the class
+`TestScrollbarBreadthReference` (`test_thumb_band_matches_reference`).
+They are the only code in the module that needs `tempfile`, `mock`,
+`symlinked_repo`, the setup-screenshot reference mixin and
+`hex_colour`. This entry moves the helper and both classes, unchanged,
+into `tests/test_gtk4_scrollbar_breadth.py` and prunes the imports they
+leave unused. No stylesheet or production behavior changes. It is
+independent of the waiting scrolled-window extraction entry. That entry
+moves three `TestGtk4Theme` methods from the middle of the module and
+leaves the import block alone, so either can merge first. The only
+overlap is that both edit `docs/invariants.md`, in different rows.
+
+**Approach and files.**
+- Create `tests/test_gtk4_scrollbar_breadth.py`. Give it a short module
+  docstring in the style of `tests/test_gtk4_scrollbar.py` (for example
+  "GTK 4 scroll-bar breadth checks moved out of ``test_gtk4_theme``.")
+  and the `if __name__ == "__main__":` guard. Move `_scrollbar_rules`,
+  `TestScrollbarBreadthRules` and `TestScrollbarBreadthReference` in
+  their current order, and keep every body, docstring, comment, class
+  attribute (`CSS_PATH`, `REFERENCE`, `MAX_ROWS`) and the default
+  argument `css=CSS` unchanged. That includes the reference test's
+  closing `calendar` colour assertion. Never import
+  `tests/test_gtk4_theme.py`. Re-grep every anchor named here at
+  implementation time.
+- The new module imports only what the moved code uses:
+  `from __future__ import annotations`, `tempfile`, `unittest`,
+  `from unittest import mock`, `from support import gtk_css`,
+  `parse_css` from `support.gtk_css`, `CSS` from `support.gtk4_sheet`,
+  `SETUP_MAX_ROWS` and `SETUP_REFERENCE` from
+  `support.desktoptheme_paths`, `BLACK`, `TROUGH` and `hex_colour` from
+  `support.platinum_palette`, `ReferenceScreenshotMixin` from
+  `support.reference_image`, and `symlinked_repo` from
+  `support.symlink_fixtures`.
+- In `tests/test_gtk4_theme.py`, delete the moved code and prune the
+  imports that no remaining code uses. At this plan's base commit those
+  are `import tempfile`, `from unittest import mock`,
+  `from support import gtk_css`, `parse_css` (keep `HEX` and
+  `strip_comments` on that line), the `support.desktoptheme_paths`
+  line, `hex_colour`, the `support.reference_image` line and the
+  `support.symlink_fixtures` line. Keep `BLACK` and `TROUGH`, because
+  `TestGtk4Theme` still uses both, and keep `CSS`, `re` and `unittest`.
+  Let the unused-import scanner (`tests/test_no_unused_imports.py`)
+  confirm the result rather than trusting this list.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestScrollbarBreadth…` anchor to
+  `tests/test_gtk4_scrollbar_breadth.py::…`, keeping the class and method
+  part as it reads. At this plan's base commit, `grep -o` finds four
+  such mentions. Two name
+  `TestScrollbarBreadthReference::test_thumb_band_matches_reference`
+  (the overlay-thumb minimum row and the calendar row). One names
+  `TestScrollbarBreadthRules::test_scrollbar_rules_refuse_a_symlink_escape`
+  (the containment-reader row). One names the class
+  `TestScrollbarBreadthReference` alone (the "12px minimum in both
+  axes" row). Leave every other anchor and all prose in those rows as
+  they read. Do not rewrite PLANS-DONE.md or BUGS-FIXED.md history.
+  At this base, `git grep` finds no other tracked reference to these
+  names outside the source module and PLANS.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists `test_thumb_minimum_fills_reference_band`
+  and `test_scrollbar_rules_refuse_a_symlink_escape` under
+  `test_gtk4_scrollbar_breadth.TestScrollbarBreadthRules`, and
+  `test_thumb_band_matches_reference` under
+  `test_gtk4_scrollbar_breadth.TestScrollbarBreadthReference`, each
+  exactly once. No class of either name remains in `test_gtk4_theme`,
+  and every `TestGtk4Theme` method is still listed there. Where the
+  LFS reference image is absent, the reference test skips exactly as
+  it did before the move. It does not newly fail.
+- The AST of `_scrollbar_rules` and of each moved class definition is
+  identical to the original at this plan's base commit. Check this
+  once during the run (for example by comparing `ast.dump` output). It
+  is a run-time check, not a new committed test.
+- `grep -n 'test_gtk4_theme.py::TestScrollbarBreadth' docs/invariants.md`
+  prints nothing, and the four rewritten mentions read
+  `tests/test_gtk4_scrollbar_breadth.py::`. The invariants checker
+  inside `make check` resolves every new anchor.
+- The unused-import scanner inside `make check` reports no finding for
+  either module, and `tests/test_gtk4_theme.py` no longer imports
+  `tempfile`, `mock`, `symlinked_repo`, `ReferenceScreenshotMixin` or
+  `hex_colour`.
+- `tests/test_gtk4_theme.py` shrinks by at least 80 lines, and
+  `tests/test_gtk4_scrollbar_breadth.py` stays under about 120 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_scrollbar_breadth.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
