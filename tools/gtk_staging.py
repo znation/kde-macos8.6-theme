@@ -11,16 +11,17 @@ from __future__ import annotations
 
 import os
 import secrets
-from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
+from collections.abc import Iterable
 from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
     from tools.gtk_user_files import ConfigError
+    from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
     from gtk_user_files import ConfigError
+    from os_error_refusal import refusing_os_errors
 
 
 def discard(path: Path) -> None:
@@ -174,27 +175,14 @@ def commit(
             discard(staging)
 
 
-@contextmanager
-def _refusing_os_errors(action: str, path: Path) -> Iterator[None]:
-    """Re-raise an OSError from the block as ConfigError "cannot *action* *path*".
-
-    Used by the backup and replace/unlink steps of ``_stage_with_backup`` and
-    ``_remove_with_backup``; the exception stays chained as the cause.
-    """
-    try:
-        yield
-    except OSError as exc:
-        raise ConfigError(f"cannot {action} {path}: {exc}") from exc
-
-
 def _stage_with_backup(
     path: Path, staging: Path, applied: list[tuple[Path, Path | None]]
 ) -> None:
     """Back *path* up, then replace it with its staging file."""
-    with _refusing_os_errors("write", path):
+    with refusing_os_errors(ConfigError, "write", path):
         backup = _backup(path)
     applied.append((path, backup))
-    with _refusing_os_errors("write", path):
+    with refusing_os_errors(ConfigError, "write", path):
         os.replace(staging, path)
 
 
@@ -202,12 +190,12 @@ def _remove_with_backup(
     path: Path, applied: list[tuple[Path, Path | None]]
 ) -> None:
     """Back *path* up, then delete it; an absent path deletes nothing."""
-    with _refusing_os_errors("remove", path):
+    with refusing_os_errors(ConfigError, "remove", path):
         backup = _backup(path)
     if backup is None:
         return
     applied.append((path, backup))
-    with _refusing_os_errors("remove", path):
+    with refusing_os_errors(ConfigError, "remove", path):
         path.unlink()
 
 

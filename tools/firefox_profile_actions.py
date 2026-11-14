@@ -18,6 +18,7 @@ if __package__:
     )
     from tools.firefox_user_js import remove_user_js, set_user_js
     from tools.firefox_transaction import publish_install
+    from tools.os_error_refusal import refusing_os_errors
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
     from tools.text_lines import has_first_line_marker
@@ -35,6 +36,7 @@ else:  # imported from a directly run tool
     )
     from firefox_user_js import remove_user_js, set_user_js
     from firefox_transaction import publish_install
+    from os_error_refusal import refusing_os_errors
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
     from text_lines import has_first_line_marker
@@ -91,10 +93,8 @@ def apply_profile(profile: Path) -> int:
         refuse_symlink(sheet_path, "write", ConfigError)
     refuse_symlink(js_path, "write", ConfigError)
     chrome_dir = destinations[0][0].parent
-    try:
+    with refusing_os_errors(ConfigError, "create", chrome_dir):
         chrome_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise ConfigError(f"cannot create {chrome_dir}: {exc}") from exc
     publish_install(destinations, js_path, existing_js, updated_js)
     report_note(TOOL, f"installed the Firefox Platinum chrome into {profile}")
     return 0
@@ -144,10 +144,8 @@ def remove_profile(profile: Path) -> int:
         if rewrite_js:
             write_profile_text(js_path, updated)
         for sheet_path, _previous in owned:
-            try:
+            with refusing_os_errors(ConfigError, "remove", sheet_path):
                 sheet_path.unlink()
-            except OSError as exc:
-                raise ConfigError(f"cannot remove {sheet_path}: {exc}") from exc
     except BaseException as exc:
         rollback_errors = _restore_still_missing(
             owned, js_path, existing_js, rewrite_js

@@ -23,9 +23,11 @@ from pathlib import Path
 if __package__:
     from tools.atomic_write import write_atomically
     from tools.containment import read_capped_bytes
+    from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
     from containment import read_capped_bytes
+    from os_error_refusal import refusing_os_errors
 
 
 class ConfigError(Exception):
@@ -103,10 +105,8 @@ def read_profile_text(path: Path) -> str | None:
 
 def write_profile_bytes(path: Path, data: bytes) -> None:
     """Publish *data* at *path*, reporting a write failure by path."""
-    try:
+    with refusing_os_errors(ConfigError, "write", path):
         write_atomically(path, lambda handle: handle.write(data))
-    except OSError as exc:
-        raise ConfigError(f"cannot write {path}: {exc}") from exc
 
 
 def write_profile_text(path: Path, text: str) -> None:
