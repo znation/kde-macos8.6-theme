@@ -18,7 +18,7 @@ def refusing_os_errors(error: type[Exception], action: str, path: Path) -> Itera
     :mod:`tools.firefox_user_files`, :mod:`tools.firefox_profile_actions`,
     :mod:`tools.firefox_transaction`, :mod:`tools.file_lock` (the
     parent-directory create) and :mod:`tools.apply_konsole_font` (the
-    directory create) use this helper.
+    directory create and the font reads and writes) use this helper.
     """
     try:
         yield

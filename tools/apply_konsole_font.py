@@ -208,15 +208,11 @@ def _copy_to_data_home(
     refuse_symlink(destination, "write", error)
     if destination.exists():
         return destination
-    try:
+    with refusing_os_errors(error, "read", source):
         data = source.read_bytes()
-    except OSError as exc:
-        raise error(f"cannot read {source}: {exc}") from exc
     _make_dir(destination_dir, error)
-    try:
+    with refusing_os_errors(error, "write", destination):
         write_bytes_atomically(destination, data)
-    except OSError as exc:
-        raise error(f"cannot write {destination}: {exc}") from exc
     return destination
 
 
