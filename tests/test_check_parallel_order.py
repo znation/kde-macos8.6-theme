@@ -346,6 +346,19 @@ class TestDurationsRecorded(unittest.TestCase):
         self.assertEqual({}, durations)
 
 
+def _seed_durations_cache(case, durations):
+    """Write a durations cache holding *durations* under a fresh XDG cache home.
+
+    Returns ``(cache_home, cache_file)``; point XDG_CACHE_HOME at cache_home.
+    """
+    cache_home = make_tmp_dir(case) / "cache"
+    cache = cache_home / "kde-macos8.6-theme" / "check-durations.json"
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    with open(cache, "w", encoding="utf-8") as sink:
+        json.dump({"version": 1, "durations": durations}, sink)
+    return cache_home, cache
+
+
 class TestCoordinatorUsesTheCache(unittest.TestCase):
     """End to end: the cache steers the queue and the run stays healthy."""
 
@@ -362,13 +375,7 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
         tests_dir = self._project(
             {"test_aaa_ok.py": OK_MODULE, "test_zzz_ok.py": OK_MODULE}
         )
-        cache_dir = make_tmp_dir(self) / "cache"
-        cache = cache_dir / "kde-macos8.6-theme" / "check-durations.json"
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        with open(cache, "w", encoding="utf-8") as sink:
-            json.dump(
-                {"version": 1, "durations": {"test_zzz_ok": 9.9}}, sink,
-            )
+        cache_dir, _ = _seed_durations_cache(self, {"test_zzz_ok": 9.9})
         seen: dict[str, list[str]] = {}
         real = check_parallel.supervise
 
@@ -399,15 +406,9 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
         tests_dir = self._project(
             {"test_aaa_ok.py": OK_MODULE, "test_zzz_ok.py": OK_MODULE}
         )
-        cache_dir = make_tmp_dir(self) / "cache"
-        cache = cache_dir / "kde-macos8.6-theme" / "check-durations.json"
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        with open(cache, "w", encoding="utf-8") as sink:
-            json.dump(
-                {"version": 1,
-                 "durations": {"test_zzz_ok": 9.9, "test_gone": 4.0}},
-                sink,
-            )
+        cache_dir, cache = _seed_durations_cache(
+            self, {"test_zzz_ok": 9.9, "test_gone": 4.0},
+        )
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(cache_dir)}):
             result = self._run(
                 "--tests-dir", tests_dir, "-p", "test_aaa*.py",
@@ -437,15 +438,9 @@ class TestCoordinatorUsesTheCache(unittest.TestCase):
         # or removed test module -- and records every module that ran, so
         # the file cannot grow beyond the tree.
         tests_dir = self._project({"test_ok.py": OK_MODULE})
-        cache_dir = make_tmp_dir(self) / "cache"
-        cache = cache_dir / "kde-macos8.6-theme" / "check-durations.json"
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        with open(cache, "w", encoding="utf-8") as sink:
-            json.dump(
-                {"version": 1,
-                 "durations": {"test_gone": 4.0, "test_ok": 0.1}},
-                sink,
-            )
+        cache_dir, cache = _seed_durations_cache(
+            self, {"test_gone": 4.0, "test_ok": 0.1},
+        )
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(cache_dir)}):
             result = self._run("--tests-dir", tests_dir)
         assert_succeeded(self, result)
