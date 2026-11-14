@@ -2,8 +2,9 @@
 
 Every expected pixel below is worked out from the face geometry by hand (the
 sample centres, the even-odd rule and the edge distances), never by running the
-renderer. The committed cursor files do not use this module yet, so these tests
-are the only pin on its output.
+renderer; the repeated-vertex cases instead pin an invariant, that the render
+matches the same square without the repeat. The committed cursor files do not
+use this module yet, so these tests are the only pin on its output.
 """
 
 from __future__ import annotations
@@ -65,9 +66,12 @@ class TestRenderFace(unittest.TestCase):
             cursor_vector.render_vector_rgba(plain, 32))
 
     def test_repeated_vertex_mid_edge_leaves_the_render_unchanged(self):
+        # (16, 24) splits the bottom edge into two collinear halves and the
+        # repeat adds a zero-length edge between them; neither changes the
+        # crossings or the nearest outline point.
         plain = VectorCursor(face=SQUARE, outline_width=2, design_size=32)
         repeated = VectorCursor(
-            face=((8, 8), (24, 8), (24, 24), (24, 24), (8, 24)),
+            face=((8, 8), (24, 8), (24, 24), (16, 24), (16, 24), (8, 24)),
             outline_width=2, design_size=32)
         self.assertEqual(
             cursor_vector.render_vector_rgba(repeated, 32),
