@@ -94,125 +94,341 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Split the 2584-line tests/test_gtk_theme_controls.py into per-surface suites (planned 2026-11-13 by the organize role; ordering clause — this entry queues behind the waiting "GTK 4 suite extraction: isolate paned, frame and corner-family declarations" entry, since both edit `docs/invariants.md`, and it is the GTK 3 analogue of the extraction series that entry continues: it may itself be decomposed into per-family entries the way that series was, each merging one family; at implementation re-grep every anchor this entry names)
+### GTK 3 controls suite split, part 1/11: move the check and arrow glyph classes into tests/test_gtk_theme_glyphs.py (planned 2026-11-14 by the plan role)
 
-**Needs review 2026-11-13 by feature: too large for one run.** Measured at
-worktree base 149973fa4: tests/test_gtk_theme_controls.py is 2567 lines,
-docs/invariants.md carries 53 `TestGtkThemeControls` mentions, and eleven
-by-name sibling reference sites remain (test_gtk_theme.py,
-test_gtk_theme_views.py, test_gtk_theme_osd.py,
-test_no_gtk_introspection.py, test_gtk_child_probe_support.py,
-support/validation_gaps/unclear_invariant.py) — roughly ten new modules plus
-the invariants repointing and sibling doc updates, beyond a single run. As
-the entry's own ordering clause suggests, the plan role should decompose it
-into per-family entries as the GTK 4 extraction series was.
+**Series.** `tests/test_gtk_theme_controls.py` (2567 lines) holds the
+54-method `TestGtkThemeControls` grab-bag plus the `TestCheckGlyphs` and
+`TestArrowGlyphs` SVG asset classes; every new GTK 3 control check edits
+it. This 11-part series takes it apart one surface family per part. The
+feature role parked the single-entry version on 2026-11-13 as too large
+for one run, and this split answers that note. Rules every part follows:
+methods move unchanged (same name, same body; their `ast.dump` matches the
+original), and no assertion, expected value, probe pixel or child-program
+byte changes. Each new suite binds its own `THEME_DIR`/`CSS` constants the way
+`tests/test_gtk_theme_views.py` does. Each part prunes the imports and
+module constants `tests/test_gtk_theme_controls.py` no longer uses, repoints
+every `docs/invariants.md` mention of a moved method or class at its new
+`module::Class`, and repoints the by-name comment sites it lists.
+**Whichever part leaves `TestGtkThemeControls` with no test method deletes
+`tests/test_gtk_theme_controls.py` in the same change.** That part also
+confirms that a repository grep (excluding PLANS.md, PLANS-DONE.md and
+BUGS-FIXED.md) finds no `test_gtk_theme_controls` or `TestGtkThemeControls`
+left. Parts 1, 2, 3, 4 and 5 are independent. Parts 6–11 carry rendered
+probes and need part 2's shared probe mixin.
 
-**Goal and cost.** `tests/test_gtk_theme_controls.py` is the repository's
-largest file — 2584 lines at this plan's base commit, 67 test methods of
-which 54 sit in the single `TestGtkThemeControls` class spanning every GTK 3
-control surface (progress bar and meter, entry progress and state faces,
-scale, switch, level bar, spinner, notebook tab faces, button arms,
-spin-button steppers, linked border pairs, frame and scrolled viewport,
-check/radio motion, menu-bar and toolbar titles), plus the trailing
-`TestCheckGlyphs` (7 methods) and `TestArrowGlyphs` (6 methods) SVG asset
-classes. Ten methods are rendered probes that run a GTK 3 child interpreter
-through `_run_gtk_child` (the helper at line 504 at this plan's base
-commit); nine share the module-level `_GTK3_SHEET_PROLOGUE` constant and one
-(the mixed-check probe) carries a different prelude. `docs/invariants.md`
-pins 67 `TestGtkThemeControls` mentions plus 4 `TestCheckGlyphs` and 4
-`TestArrowGlyphs` mentions, and five sibling files reference the module by
-name in doc comments — evidence that one file is a shared edit point for
-every new GTK 3 control check, the same cost the merged GTK 4 extraction
-series removes for `tests/test_gtk4_theme.py`. A 54-method grab-bag class
-also hides which surface a method covers. The split is not a one-run move
-(the invariants repointing alone spans ~75 mentions across ~30 rows), so it
-is planned rather than started.
+**Goal.** Move `TestCheckGlyphs` and `TestArrowGlyphs` (whole classes,
+including their `setUpClass`) into new `tests/test_gtk_theme_glyphs.py`. They
+check shipped SVG assets, not the sheet. Move the asset path constants
+they use with them (`CHECKMARK`, `BULLET`, `CHECK_MIXED`, `ARROW_*`,
+`SUBMENU_ARROW_SVG`, `ICON_GO_NEXT`), along with the `support.svg_case`,
+`svg_assertions` and `assert_svg_root_first` imports. A constant that the
+remaining controls methods still use, such as the assets the mixed-check
+probe reads, stays in the controls module as well.
 
-**Target structure.** Designed up front; no assertion, expected value, probe
-pixel or child-program byte changes — only module placement, class
-composition and imports move.
-
-1. Per-surface suites `tests/test_gtk_theme_<surface>.py`, each
-   `class TestGtkTheme<Surface>(GtkSheetRuleCases, unittest.TestCase)`
-   binding `CSS_PATH` to the shipped `gtk-3.0/gtk.css` exactly as
-   `GtkSheetRuleCases` documents (`tests/support/gtk_rule_cases.py:166`),
-   partitioning `TestGtkThemeControls`'s 54 methods by the surface each
-   asserts (the leading widget token of the test name: progress, meter,
-   button, scale, entry, spinbutton, linked, switch, check, radio,
-   notebook, levelbar, spinner, frame, viewport, menubar), grouped so no
-   module exceeds roughly one sitting (~800 lines); a cross-surface method
-   such as the shared focus-outline checks joins the suite of the surface
-   it names. A method names exactly one module, moves unchanged, and keeps
-   its method name.
-2. Each of the ten rendered probes moves with its surface's declaration
-   methods — each probe pins that surface's pixels, so co-locating avoids
-   the second module per surface the GTK 4 series needed because its probe
-   entries were independent plans appending to one file. Each child program
-   moves byte-identical.
-3. The shared `_GTK3_SHEET_PROLOGUE` moves once into
-   `tests/support/gtk_child_probe.py` beside the `_GTK3_CHILD_HEAD` it
-   assembles (the GTK 3 counterpart of the GTK 4 split's probe-prelude
-   extraction); the mixed-check probe's differing prelude stays with its
-   test. The module's `THEME_DIR`/`CSS`/asset-path constants move into the
-   suites that use them, each suite binding its own `CSS_PATH` per the base
-   class's contract — no new support fixture is needed, unlike the GTK 4
-   split's `tests/support/gtk4_sheet.py`, because
-   `GtkSheetRuleCases.setUpClass` already parses the sheet.
-4. `TestCheckGlyphs` and `TestArrowGlyphs` move into
-   `tests/test_gtk_theme_glyphs.py` with their `svg_assertions` and
-   `support.svg_case` imports: they check shipped SVG assets, not the
-   sheet.
-5. `TestGtkThemeControls` and `tests/test_gtk_theme_controls.py` disappear
-   — no half-moved state: every method is moved into a suite and the file is
-   deleted at the end of the series.
-6. Reference updates in the same change as each family's move: every
-   `tests/test_gtk_theme_controls.py` anchor in `docs/invariants.md` is
-   repointed at the module and class the named test merged into (67
-   `TestGtkThemeControls` mentions, 4 `TestCheckGlyphs`, 4
-   `TestArrowGlyphs` at this plan's base commit), and the by-name doc
-   references in `tests/test_gtk_theme.py` (line 328 comment),
-   `tests/test_gtk_theme_views.py` (three comment sites around lines
-   830–852), `tests/test_gtk_theme_osd.py` (three comment sites around
-   lines 415–711), `tests/test_no_gtk_introspection.py` (docstring line 4
-   and line 96), `tests/test_gtk_child_probe_support.py` (docstring line 4)
-   and `tests/support/validation_gaps/unclear_invariant.py` (line 385,
-   naming `TestCheckGlyphs`) are repointed likewise. PLANS-DONE.md and
-   BUGS-FIXED.md history is never rewritten.
-
-**Files.** New: the per-surface `tests/test_gtk_theme_<surface>.py` suites
-and `tests/test_gtk_theme_glyphs.py`. Deleted: `tests/test_gtk_theme_controls.py`.
-Updated: `docs/invariants.md`, `tests/support/gtk_child_probe.py`,
-`tests/test_gtk_theme.py`, `tests/test_gtk_theme_views.py`,
-`tests/test_gtk_theme_osd.py`, `tests/test_no_gtk_introspection.py`,
-`tests/test_gtk_child_probe_support.py`,
-`tests/support/validation_gaps/unclear_invariant.py`. No production tool,
-sheet or GTK 4 change; the GTK 3 sibling suites (`test_gtk_theme.py`,
-`test_gtk_theme_views.py`, `test_gtk_theme_osd.py`) are outside this
-entry's scope.
+**Reference sites.** These are `docs/invariants.md`'s `TestCheckGlyphs` and
+`TestArrowGlyphs` mentions, plus the anchor string in
+`tests/support/validation_gaps/unclear_invariant.py` (the
+`gtk-glyph-svg-root-first` entry). The XML comments in
+`theme/gtk/org.macos8.desktop/assets/{checkmark,check-mixed,bullet,arrow-down,arrow-right,submenu-arrow}.svg`
+already name a stale `tests/test_gtk_theme.py::TestCheckGlyphs` or
+`::TestArrowGlyphs`. Only the module path inside each comment changes, and
+no SVG element or attribute changes.
 
 **Acceptance criteria.**
+- Unittest discovery lists the 13 glyph methods exactly once each, under
+  `test_gtk_theme_glyphs`, and none under `test_gtk_theme_controls`. The 54
+  `TestGtkThemeControls` methods are still listed.
+- `grep -rn 'TestCheckGlyphs\|TestArrowGlyphs'` outside the PLANS/archive
+  files shows only `tests/test_gtk_theme_glyphs.py` paths. The invariants
+  checker and the validation-gap checks inside `make check` resolve the
+  repointed anchors.
+- After the change, each of the six SVGs differs from the original only on
+  its comment line, as `git diff` shows.
+- The unused-import scanner inside `make check` reports nothing for either
+  module, and `make check` passes.
 
-- The split changes no behavior: the full test-set union before and after
-  is identical (same method names, same assertions, same skips; the GUI
-  probes skip identically without `PLATINUM_RUN_GUI_TESTS=1` through the
-  `run_gtk_child` exit-77 guard), and `make check` passes after the final
-  edit.
-- For each moved method, the AST of its function definition is identical to
-  the original's at this plan's base commit (for example by comparing
-  `ast.dump` output); this is a run-time check, not a new committed test.
-- Unittest discovery lists each of the 67 methods exactly once, none of
-  them under `test_gtk_theme_controls`, and every by-name reference site
-  listed above reads the merged module and class.
-- A grep over the repository (source, tests, docs) finds no remaining
-  `test_gtk_theme_controls` reference outside PLANS-DONE.md and
-  BUGS-FIXED.md: the file is gone and every invariants row names the module
-  the test merged into, with the invariants checker inside `make check`
-  resolving every new anchor.
-- Each new suite stays under roughly one sitting (~800 lines), imports only
-  names it uses (the unused-import scanner inside `make check` reports no
-  finding), and the moved `_GTK3_SHEET_PROLOGUE` is defined exactly once
-  with no duplicated prelude line remaining in any suite (a diff of the
-  moved constant against the original shows only the moved lines).
+### GTK 3 controls suite split, part 2/11: move the shared probe prologue and `_run_gtk_child` delegate into tests/support/gtk_child_probe.py (planned 2026-11-14 by the plan role)
+
+**Goal.** Ten probes in `tests/test_gtk_theme_controls.py` call the
+`TestGtkThemeControls._run_gtk_child` delegate. Nine of them build their
+program from the module-level `_GTK3_SHEET_PROLOGUE`. Once the probe
+families move (parts 6–11), several suites need both. Move
+`_GTK3_SHEET_PROLOGUE` (byte-identical value, with its comment)
+into `tests/support/gtk_child_probe.py` beside the `_GTK3_CHILD_HEAD` it
+builds on. Add a mixin class `Gtk3ChildProbeCases` there whose only member
+is the `_run_gtk_child(self, program, *paths)` delegate, moved verbatim
+(it returns `run_gtk_child(self, program, *paths)`). Then
+`TestGtkThemeControls` becomes
+`class TestGtkThemeControls(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`,
+imports `_GTK3_SHEET_PROLOGUE` from support, and drops its own copies.
+Later probe parts reuse the mixin, so the moved probe methods keep calling
+`self._run_gtk_child` unchanged. The mixed-check probe's own prelude stays
+in its test.
+
+**Reference sites.** The `tests/test_no_gtk_introspection.py` module
+docstring and its assertion message both name
+`tests/test_gtk_theme_controls.py` as the module that runs GTK in child
+interpreters. Both are reworded to name `tests/support/gtk_child_probe.py`
+and the GTK 3 suites that use it. So is the `tests/test_gtk_child_probe_support.py`
+docstring's "moved here from `tests/test_gtk_theme_controls.py`", which also
+gains a mention of the prologue and mixin. The support module docstring
+gains one sentence on the two new names.
+
+**Acceptance criteria.**
+- `tests/test_gtk_child_probe_support.py` gains tests showing three things.
+  `_GTK3_SHEET_PROLOGUE` starts with `"\nimport re\n"` followed by
+  `_GTK3_CHILD_HEAD`, and ends with the `css = re.sub(...)` url()-stripping
+  line. A `unittest.TestCase` subclass mixing in `Gtk3ChildProbeCases` passes
+  a child program that exits 0 and is skipped on one that exits 77. Both
+  child programs import no GTK.
+- `_GTK3_SHEET_PROLOGUE` and `_run_gtk_child` are each defined exactly once
+  in the repository, in `tests/support/gtk_child_probe.py`, and the
+  prologue's value equals the original. Check this at run time by comparing
+  against the base commit's evaluated constant.
+- Discovery lists the same `TestGtkThemeControls` methods as before. The ten
+  probes skip identically without `PLATINUM_RUN_GUI_TESTS=1`.
+- `tests/test_no_gtk_introspection.py` still passes. Neither its docstring
+  nor its message, nor the probe-support docstring, names
+  `test_gtk_theme_controls` any more. `make check` passes, and its
+  unused-import scanner reports nothing.
+
+### GTK 3 controls suite split, part 3/11: move the linked-border methods into tests/test_gtk_theme_linked.py (planned 2026-11-14 by the plan role)
+
+**Goal.** Move `test_linked_members_strip_their_trailing_border`,
+`test_linked_last_member_restores_the_border`,
+`test_linked_end_field_corners` and
+`test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines`
+into new `tests/test_gtk_theme_linked.py`, as
+`class TestGtkThemeLinked(GtkSheetRuleCases, unittest.TestCase)` with
+`CSS_PATH = CSS`. None of them renders.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the four
+methods, the `tests/test_gtk_theme_views.py` comment naming
+`TestGtkThemeControls::test_linked_end_field_corners`, and the
+`tests/test_gtk_theme_osd.py` comment naming the same method.
+
+**Acceptance criteria.**
+- Discovery lists the four methods exactly once each, under
+  `test_gtk_theme_linked`, and none under `test_gtk_theme_controls`. Each
+  moved method's `ast.dump` equals the original's. This is a run-time
+  check, not a committed test.
+- Every invariants row and comment site naming a moved method names
+  `test_gtk_theme_linked`/`TestGtkThemeLinked`. The invariants checker inside
+  `make check` resolves them.
+- The unused-import scanner reports nothing for either module, and
+  `make check` passes. If this leaves `TestGtkThemeControls` with no test
+  method, the file deletion and grep from part 1/11's series rules apply.
+
+### GTK 3 controls suite split, part 4/11: move the scale methods into tests/test_gtk_theme_scale.py (planned 2026-11-14 by the plan role)
+
+**Goal.** Move `test_scale`, `test_scale_decoration_ink`,
+`test_scale_focus_outline`, `test_scale_plain_container_geometry`,
+`test_scale_fine_tune_container_geometry` and
+`test_scale_marks_indicator_geometry` into new
+`tests/test_gtk_theme_scale.py`, as
+`class TestGtkThemeScale(GtkSheetRuleCases, unittest.TestCase)`. None of
+them renders. `test_meter_state_and_backdrop_faces`, which sits between
+`test_scale` and `test_scale_decoration_ink`, stays for part 8/11.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the two `tests/test_gtk_theme_views.py` comments naming
+`test_scale_fine_tune_container_geometry` and
+`test_scale_marks_indicator_geometry`. The other is the
+`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` scale tick-mark/value-label
+ink record (dated 2026-11-09), whose
+`tests/test_gtk_theme_controls.py::TestGtkThemeControls` names the GTK 3
+decoration-ink record. It becomes
+`tests/test_gtk_theme_scale.py::TestGtkThemeScale::test_scale_decoration_ink`,
+a comment-only edit.
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_scale`, and none under `test_gtk_theme_controls`. The
+  `ast.dump` of each matches the original's.
+- Every listed site names the new module, the invariants checker resolves
+  it, and `git diff` of the GTK 4 sheet touches only that comment.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 5/11: move the button methods into tests/test_gtk_theme_buttons.py (planned 2026-11-14 by the plan role)
+
+**Goal.** Move the `assert_plain_action_arms` helper and
+`test_suggested_action_plain_arms`, `test_flat_button_plain_arms`,
+`test_selected_row_button_arms`, `test_destructive_action_plain_arms`,
+`test_action_class_flat_arms`, `test_button_focus_outline` and
+`test_button_disabled_and_backdrop` into new
+`tests/test_gtk_theme_buttons.py`, as
+`class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase)`. None of
+them renders. Grep first to confirm that no remaining controls method calls
+`assert_plain_action_arms`. If one does, the helper stays in both classes.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the seven
+methods and the two `tests/test_gtk_theme_osd.py` comments naming
+`test_suggested_action_plain_arms` and `test_destructive_action_plain_arms`.
+They also include the two `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`
+`transition: none` records that cite "the `button.flat:hover:active` and
+backdrop assertions in tests/test_gtk_theme_controls.py". Those are
+comment-only edits naming `tests/test_gtk_theme_buttons.py`.
+
+**Acceptance criteria.**
+- Discovery lists the seven methods exactly once each, under
+  `test_gtk_theme_buttons`, and none under `test_gtk_theme_controls`. The
+  `ast.dump` of each moved function matches the original's.
+- Every listed site names the new module, the invariants checker resolves
+  it, and `git diff` of the GTK 3 sheet touches only comment lines.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 6/11: move the spin-button methods into tests/test_gtk_theme_spinbutton.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_horizontal_spinbutton_focus_outline`,
+`test_vertical_spinbutton_focus_outline`,
+`test_horizontal_spinbutton_steppers_share_one_seam` and the three probes
+into new `tests/test_gtk_theme_spinbutton.py`, as
+`class TestGtkThemeSpinbutton(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+The probes are `test_horizontal_spinbutton_steppers_render_one_pixel_seams`,
+`test_osd_spin_field_renders_the_mirrored_etch_in_rtl` and
+`test_vertical_spinbutton_renders_one_pixel_joins`. The probes import
+`_GTK3_SHEET_PROLOGUE` and the `_GTK3_*` heads they use from
+`support.gtk_child_probe`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` OSD
+spin-field record naming
+`TestGtkThemeControls::test_osd_spin_field_renders_the_mirrored_etch_in_rtl`
+(comment-only edit). They also include the `tests/test_gtk_theme.py`
+comment saying the horizontal-seam probe lives in
+`tests/test_gtk_theme_controls.py`.
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_spinbutton`, and none under `test_gtk_theme_controls`.
+  Each `ast.dump` matches the original's, so every child program string is
+  byte-identical.
+- Without `PLATINUM_RUN_GUI_TESTS=1` the three probes skip exactly as
+  before. Every listed site names the new module, and the invariants checker
+  resolves it.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 7/11: move the entry methods into tests/test_gtk_theme_entry.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_entry_progress`,
+`test_entry_progress_draws_a_two_pixel_strip` (probe),
+`test_entry_focus_outline`, `test_entry_error_warning_colour_classes`,
+`test_entry_state_faces`, `test_entry_image_inks` and
+`test_entry_tag_faces` into new `tests/test_gtk_theme_entry.py`, as
+`class TestGtkThemeEntry(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the seven
+methods. Before editing, grep for any other by-name site naming one of them
+and repoint it too.
+
+**Acceptance criteria.**
+- Discovery lists the seven methods exactly once each, under
+  `test_gtk_theme_entry`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`. Every
+  invariants mention of a moved method names the new module, and the checker
+  resolves it.
+- The new module stays under ~800 lines, the unused-import scanner reports
+  nothing, and `make check` passes. The deletion rule from part 1/11
+  applies.
+
+### GTK 3 controls suite split, part 8/11: move the progress-bar and meter methods into tests/test_gtk_theme_progress.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_progressbar`, `test_meter_geometry`,
+`test_treeview_progress_bar`, `test_meter_label_ink`,
+`test_progressbar_fill_spans_the_trough` (probe) and
+`test_meter_state_and_backdrop_faces` into new
+`tests/test_gtk_theme_progress.py`, as
+`class TestGtkThemeProgress(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`
+disabled-trough record naming
+`TestGtkThemeControls::test_meter_state_and_backdrop_faces` (comment-only
+edit).
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_progress`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`. Every
+  listed site names the new module, the checker resolves it, and `git diff`
+  of the GTK 4 sheet touches only that comment.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 9/11: move the view-field, viewport and frame probes into tests/test_gtk_theme_frames.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_disabled_view_renders_the_white_field_and_grey_ink`
+(probe), `test_scrolled_viewport_draws_no_frame`,
+`test_scrolled_viewport_renders_one_frame` (probe),
+`test_flat_frame_draws_no_border` and `test_flat_frame_renders_no_frame`
+(probe) into new `tests/test_gtk_theme_frames.py`, as
+`class TestGtkThemeFrames(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+The module docstring says it covers the view field as well as the viewport
+and frame borders.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the five
+methods. Grep for any other by-name site and repoint it.
+
+**Acceptance criteria.**
+- Discovery lists the five methods exactly once each, under
+  `test_gtk_theme_frames`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The three probes skip as before without `PLATINUM_RUN_GUI_TESTS=1`, and
+  the invariants checker resolves every repointed mention.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 10/11: move the check and radio methods into tests/test_gtk_theme_check.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_mixed_check_draws_a_black_dash` (the probe with its own
+prelude, which moves with it), `test_checkbutton_focus_outline`,
+`test_radiobutton_focus_outline`, `test_check_radio_tick_motion` and
+`test_check_radio_backdrop_motion_disabled_and_selected_row` into new
+`tests/test_gtk_theme_check.py`, as
+`class TestGtkThemeCheck(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+The mixed-check probe passes the assets directory, so the module binds its
+own `THEME_DIR`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the five
+methods. Grep for any other by-name site and repoint it.
+
+**Acceptance criteria.**
+- Discovery lists the five methods exactly once each, under
+  `test_gtk_theme_check`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`, and the
+  invariants checker resolves every repointed mention.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
+### GTK 3 controls suite split, part 11/11: move the switch, spinner, level-bar, notebook and bar-title methods into two suites (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
+
+**Goal.** Move `test_spinner`, `test_levelbar`, `test_switch`,
+`test_switch_focus_outline` and `test_switch_state_and_backdrop_faces` into
+new `tests/test_gtk_theme_switch.py`, as
+`class TestGtkThemeSwitch(GtkSheetRuleCases, unittest.TestCase)`. Its
+docstring covers the switch and the spinner and level-bar status
+indicators. Move `test_notebook_tab_faces_render` (probe),
+`test_menubar_titles` and `test_toolbar_and_menubar` into new
+`tests/test_gtk_theme_bars.py`, as
+`class TestGtkThemeBars(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the eight
+methods. Grep for any other by-name site and repoint it.
+
+**Acceptance criteria.**
+- Discovery lists the eight methods exactly once each, under their new
+  module, and none under `test_gtk_theme_controls`. Each `ast.dump` matches
+  the original's.
+- The notebook probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`, and
+  the invariants checker resolves every repointed mention.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
 
 ## Done
 
