@@ -19,6 +19,7 @@ from unittest import mock
 from pathlib import Path
 
 from support.shipped_files import shipped_files
+from support.theme_install import write_file
 
 
 class TestShippedFilesSymlinks(unittest.TestCase):
@@ -47,8 +48,7 @@ class TestShippedFilesSymlinks(unittest.TestCase):
     def test_refuses_a_symlinked_ancestor_of_the_root(self):
         with tempfile.TemporaryDirectory() as tmp:
             private = Path(tmp) / "private"
-            (private / "org.macos8.desktop").mkdir(parents=True)
-            (private / "org.macos8.desktop" / "secret.png").write_bytes(b"")
+            write_file(private / "org.macos8.desktop" / "secret.png", b"")
             theme = Path(tmp) / "theme"
             theme.mkdir()
             icons = theme / "icons"
@@ -65,8 +65,7 @@ class TestShippedFilesSymlinks(unittest.TestCase):
         # path as given, so this spelling is refused too.
         with tempfile.TemporaryDirectory() as tmp:
             private = Path(tmp) / "private"
-            (private / "org.macos8.desktop").mkdir(parents=True)
-            (private / "org.macos8.desktop" / "secret.png").write_bytes(b"")
+            write_file(private / "org.macos8.desktop" / "secret.png", b"")
             theme = Path(tmp) / "theme"
             theme.mkdir()
             icons = theme / "icons"
@@ -85,10 +84,7 @@ class TestShippedFilesSymlinks(unittest.TestCase):
         # not fail a clean tree.
         with tempfile.TemporaryDirectory() as tmp:
             outside = Path(tmp) / "outside"
-            (outside / "package").mkdir(parents=True)
-            (outside / "package" / "real.txt").write_text(
-                "shipped", encoding="utf-8"
-            )
+            write_file(outside / "package" / "real.txt", "shipped")
             link = Path(tmp) / "link"
             link.symlink_to(outside, target_is_directory=True)
             self.assertEqual(
@@ -103,8 +99,7 @@ class TestShippedFilesSymlinks(unittest.TestCase):
             alias = Path(tmp) / "alias"
             alias.symlink_to(checkout, target_is_directory=True)
             private = Path(tmp) / "private"
-            (private / "package").mkdir(parents=True)
-            (private / "package" / "secret.png").write_bytes(b"")
+            write_file(private / "package" / "secret.png", b"")
             icons = checkout / "icons"
             icons.symlink_to(private, target_is_directory=True)
             for default_anchor in (False, True):
