@@ -120,6 +120,19 @@ class TestSessionEnv(unittest.TestCase):
             session_bus.session_env({"XDG_RUNTIME_DIR": ""}),
         )
 
+    def test_the_caller_environment_is_not_mutated_when_the_address_is_defaulted(self):
+        # session_env returns a new mapping; the caller's environ (the apply
+        # tool's own environment) must keep its unset address after the call.
+        (self.directory / "bus").write_text("", encoding="utf-8")
+        environ = {"XDG_RUNTIME_DIR": str(self.directory)}
+        result = session_bus.session_env(environ)
+        self.assertEqual(
+            f"unix:path={self.directory}/bus",
+            result["DBUS_SESSION_BUS_ADDRESS"],
+        )
+        self.assertEqual({"XDG_RUNTIME_DIR": str(self.directory)}, environ)
+        self.assertIsNot(result, environ)
+
     def test_an_absent_runtime_dir_is_left_unchanged(self):
         # Neither variable may be carried, so the lookup must treat the
         # absent XDG_RUNTIME_DIR as "no runtime directory", not as a KeyError.
