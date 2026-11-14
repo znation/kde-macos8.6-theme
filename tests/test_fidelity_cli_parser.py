@@ -128,6 +128,20 @@ class TestFidelityCliParser(unittest.TestCase):
                     flag + r" must be a nonnegative ASCII integer",
                 )
 
+    def test_crop_parser_refuses_wrong_field_count_and_non_integer_fields(self):
+        # A field can pass is_plain_ascii_number and still not be an integer
+        # ("1.5", "1e2"); int() must not be the thing that reports it, and an
+        # extra field must not be silently dropped or mis-unpacked.
+        for value, pattern in (
+            ("1,2,3,4,5", r"crop must be X,Y,W,H: '1,2,3,4,5'"),
+            ("1.5,2,3,4", r"crop values must be integers: '1\.5'"),
+            ("1,2,3e1,4", r"crop values must be integers: '3e1'"),
+        ):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError, pattern
+            ):
+                fidelity_arguments.parse_crop(value)
+
     def test_crop_parser_accepts_field_whitespace_and_names_empty_fields(self):
         self.assertEqual(fidelity_arguments.parse_crop(" 1, 2 , 3,4 "), (1, 2, 3, 4))
         for value, diagnostic in (
