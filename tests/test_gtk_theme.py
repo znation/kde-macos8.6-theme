@@ -325,7 +325,7 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         # in a horizontal RTL spin button the steppers cover that arm at the
         # left edge, so this mirror pins the arm to the field's exposed right
         # edge. The rendered pixels are the horizontal-seam
-        # probe's subject in tests/test_gtk_theme_controls.py.
+        # probe's subject in tests/test_gtk_theme_spinbutton.py.
         self.assert_rule(
             "spinbutton:dir(rtl):not(.vertical)",
             {"box-shadow": "inset -1px 1px #999999"},

@@ -5,6 +5,38 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 controls suite split, part 6/11: move the spin-button methods into tests/test_gtk_theme_spinbutton.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
+
+**Goal.** Move `test_horizontal_spinbutton_focus_outline`,
+`test_vertical_spinbutton_focus_outline`,
+`test_horizontal_spinbutton_steppers_share_one_seam` and the three probes
+into new `tests/test_gtk_theme_spinbutton.py`, as
+`class TestGtkThemeSpinbutton(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+The probes are `test_horizontal_spinbutton_steppers_render_one_pixel_seams`,
+`test_osd_spin_field_renders_the_mirrored_etch_in_rtl` and
+`test_vertical_spinbutton_renders_one_pixel_joins`. The probes import
+`_GTK3_SHEET_PROLOGUE` and the `_GTK3_*` heads they use from
+`support.gtk_child_probe`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` OSD
+spin-field record naming
+`TestGtkThemeControls::test_osd_spin_field_renders_the_mirrored_etch_in_rtl`
+(comment-only edit). They also include the `tests/test_gtk_theme.py`
+comment saying the horizontal-seam probe lives in
+`tests/test_gtk_theme_controls.py`.
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_spinbutton`, and none under `test_gtk_theme_controls`.
+  Each `ast.dump` matches the original's, so every child program string is
+  byte-identical.
+- Without `PLATINUM_RUN_GUI_TESTS=1` the three probes skip exactly as
+  before. Every listed site names the new module, and the invariants checker
+  resolves it.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
 ### GTK 3 controls suite split, part 5/11: move the button methods into tests/test_gtk_theme_buttons.py (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
 
 **Goal.** Move the `assert_plain_action_arms` helper and

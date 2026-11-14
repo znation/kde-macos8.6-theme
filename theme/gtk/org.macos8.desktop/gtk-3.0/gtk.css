@@ -308,7 +308,7 @@ entry, spinbutton:not(.vertical) {
    now carry their RTL twins beside them in the OSD entry-field record
    below (pinned by tests/test_gtk_theme_osd.py::TestGtkThemeOsd::
    test_osd_spin_field_mirrors_the_etch_in_rtl and rendered by
-   tests/test_gtk_theme_controls.py::TestGtkThemeControls::
+   tests/test_gtk_theme_spinbutton.py::TestGtkThemeSpinbutton::
    test_osd_spin_field_renders_the_mirrored_etch_in_rtl). The
    :not(.vertical) arm keeps vertical spin fields out. */
 spinbutton:dir(rtl):not(.vertical) {
