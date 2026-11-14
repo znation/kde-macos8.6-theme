@@ -66,6 +66,16 @@ class TestFidelityOptionValidation(FidelityCliTestCase):
             self._assert_diagnostic(
                 result, f"{minimum_flag} requires {mode_flag}")
 
+    def test_worst_pixel_offset_without_worst_pixels_is_refused_before_reads(self):
+        # The offset pages the ranked list that --worst-pixels builds; alone it
+        # would exit 0 with no list, so it is refused before any image read.
+        with mock.patch.object(fidelity, "_read_source",
+                               side_effect=AssertionError("read")):
+            result = self._run("missing.png", "missing.png",
+                               "--worst-pixel-offset", "1")
+        self._assert_diagnostic(
+            result, "--worst-pixel-offset requires --worst-pixels")
+
     def test_equal_bounds_still_run_the_comparison(self):
         same = make_png(2, 1, [bytes(6)])
         horizontal = self._run_png_pair(
