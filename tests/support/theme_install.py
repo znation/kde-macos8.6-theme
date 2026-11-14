@@ -93,6 +93,7 @@ def write_file(path, body):
     and test_apply_gtk_errors.py's symlink-target fixtures also stage through
     write_file. Still unconverted next-run material includes the further
     mkdir-then-write_text staging family in tests/test_apply_cursor.py,
+    tests/test_apply_gtk_errors.py (the unlink-failure ``gtk.css`` fixture),
     tests/test_install_firefox.py (the ``user.js`` fixture),
     tests/test_firefox_profile.py, tests/test_local_hook.py
     (``write_fake_make``), tests/test_make_cursors.py, tests/test_svg_case.py,
