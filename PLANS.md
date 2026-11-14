@@ -115,29 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 10/11: move the check and radio methods into tests/test_gtk_theme_check.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
-
-**Goal.** Move `test_mixed_check_draws_a_black_dash` (the probe with its own
-prelude, which moves with it), `test_checkbutton_focus_outline`,
-`test_radiobutton_focus_outline`, `test_check_radio_tick_motion` and
-`test_check_radio_backdrop_motion_disabled_and_selected_row` into new
-`tests/test_gtk_theme_check.py`, as
-`class TestGtkThemeCheck(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
-The mixed-check probe passes the assets directory, so the module binds its
-own `THEME_DIR`.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the five
-methods. Grep for any other by-name site and repoint it.
-
-**Acceptance criteria.**
-- Discovery lists the five methods exactly once each, under
-  `test_gtk_theme_check`, and none under `test_gtk_theme_controls`. Each
-  `ast.dump` matches the original's.
-- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`, and the
-  invariants checker resolves every repointed mention.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 3 controls suite split, part 11/11: move the switch, spinner, level-bar, notebook and bar-title methods into two suites (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
 
 **Goal.** Move `test_spinner`, `test_levelbar`, `test_switch`,

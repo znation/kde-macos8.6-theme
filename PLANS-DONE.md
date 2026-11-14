@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 controls suite split, part 10/11: move the check and radio methods into tests/test_gtk_theme_check.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
+
+**Goal.** Move `test_mixed_check_draws_a_black_dash` (the probe with its own
+prelude, which moves with it), `test_checkbutton_focus_outline`,
+`test_radiobutton_focus_outline`, `test_check_radio_tick_motion` and
+`test_check_radio_backdrop_motion_disabled_and_selected_row` into new
+`tests/test_gtk_theme_check.py`, as
+`class TestGtkThemeCheck(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+The mixed-check probe passes the assets directory, so the module binds its
+own `THEME_DIR`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the five
+methods. Grep for any other by-name site and repoint it.
+
+**Acceptance criteria.**
+- Discovery lists the five methods exactly once each, under
+  `test_gtk_theme_check`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`, and the
+  invariants checker resolves every repointed mention.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
 ### GTK 3 controls suite split, part 9/11: move the view-field, viewport and frame probes into tests/test_gtk_theme_frames.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
 
 **Goal.** Move `test_disabled_view_renders_the_white_field_and_grey_ink`
