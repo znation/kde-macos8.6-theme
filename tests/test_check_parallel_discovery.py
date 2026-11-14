@@ -14,7 +14,13 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (sys.path bootstrap)
-from support.check_parallel_fixtures import OK_MODULE, OTHER_MODULE, _write_module, make_suite_dir
+from support.check_parallel_fixtures import (
+    OK_MODULE,
+    OTHER_MODULE,
+    _write_module,
+    make_package,
+    make_suite_dir,
+)
 from tools import check_parallel_discovery
 
 
@@ -31,9 +37,7 @@ class TestDiscovery(unittest.TestCase):
         # error instead of the bare OSError one would get unwound through
         # visit.
         tests_dir = make_suite_dir(self)
-        gone = os.path.join(tests_dir, "gone")
-        os.mkdir(gone)
-        _write_module(gone, "__init__.py", "")
+        gone = make_package(tests_dir, "gone")
         _write_module(gone, "test_hidden.py", OK_MODULE)
         real_listdir = os.listdir
 
@@ -82,9 +86,7 @@ class TestDiscovery(unittest.TestCase):
         plain = os.path.join(tests_dir, "plain")
         os.mkdir(plain)
         _write_module(plain, "test_hidden.py", OK_MODULE)
-        package = os.path.join(tests_dir, "shown_pkg")
-        os.mkdir(package)
-        _write_module(package, "__init__.py", "")
+        package = make_package(tests_dir, "shown_pkg")
         _write_module(package, "test_shown.py", OK_MODULE)
         self.assertEqual(
             ["shown_pkg.test_shown"],
@@ -93,9 +95,7 @@ class TestDiscovery(unittest.TestCase):
 
     def test_symlinked_package_directories_are_not_recursed(self):
         tests_dir = make_suite_dir(self)
-        outside = os.path.join(os.path.dirname(tests_dir), "outside_pkg")
-        os.mkdir(outside)
-        _write_module(outside, "__init__.py", "")
+        outside = make_package(os.path.dirname(tests_dir), "outside_pkg")
         _write_module(outside, "test_outside.py", OK_MODULE)
         os.symlink(outside, os.path.join(tests_dir, "linked_pkg"))
         self.assertEqual(
@@ -148,9 +148,7 @@ class TestDiscovery(unittest.TestCase):
         # so the coordinator must not derive the log path from the stem
         # alone.
         tests_dir = make_suite_dir(self)
-        package = os.path.join(tests_dir, "test_a")
-        os.mkdir(package)
-        _write_module(package, "__init__.py", "")
+        package = make_package(tests_dir, "test_a")
         _write_module(package, "test_b.py", OK_MODULE)
         _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
         modules = check_parallel_discovery.discover_modules(tests_dir, "test*.py")

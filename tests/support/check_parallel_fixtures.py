@@ -63,3 +63,11 @@ def make_suite_dir(case):
     tests_dir = str(make_tmp_dir(case) / "tests")
     os.mkdir(tests_dir)
     return tests_dir
+
+
+def make_package(parent, name):
+    """Create package ``name`` under ``parent`` with an empty __init__.py; return its path."""
+    package = os.path.join(parent, name)
+    os.mkdir(package)
+    _write_module(package, "__init__.py", "")
+    return package

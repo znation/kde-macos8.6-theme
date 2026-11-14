@@ -40,6 +40,7 @@ from support.check_parallel_fixtures import (
     FAILING_MODULE,
     OTHER_MODULE,
     _write_module,
+    make_package,
     make_suite_dir,
 )
 from support.cli_fixtures import run_main
@@ -190,9 +191,7 @@ class TestCoordinator(unittest.TestCase):
         # shared exit-2 diagnostic names both, and nothing has run, so
         # neither the module list nor the tree has been touched.
         tests_dir = self._project({"test_ok.py": OK_MODULE})
-        unreadable = os.path.join(tests_dir, "gone")
-        os.mkdir(unreadable)
-        _write_module(unreadable, "__init__.py", "")
+        unreadable = make_package(tests_dir, "gone")
         real_listdir = os.listdir
 
         def guarded_listdir(directory):
@@ -465,9 +464,7 @@ class TestCoordinator(unittest.TestCase):
         # each module gets a uniquely named log and its own section prints
         # only its own output.
         tests_dir = make_suite_dir(self)
-        package = os.path.join(tests_dir, "test_a")
-        os.mkdir(package)
-        _write_module(package, "__init__.py", "")
+        package = make_package(tests_dir, "test_a")
         _write_module(package, "test_b.py", OK_MODULE)
         _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
         result = self._run("--tests-dir", tests_dir, "--workers", "2")
@@ -847,9 +844,7 @@ class TestCoordinator(unittest.TestCase):
         # dotted name, exactly as `unittest discover` does; the worker must
         # receive that same dotted name and the section must use it.
         tests_dir = self._project({"test_top.py": OK_MODULE})
-        package = os.path.join(tests_dir, "probe_pkg")
-        os.mkdir(package)
-        _write_module(package, "__init__.py", "")
+        package = make_package(tests_dir, "probe_pkg")
         _write_module(package, "test_probe.py", OK_MODULE)
         result = self._run("--tests-dir", tests_dir, "--workers", "2")
         assert_succeeded(self, result)
