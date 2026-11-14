@@ -1864,7 +1864,7 @@ progressbar > trough > progress:disabled {
    adaptation premise), so the kept values are the existing faces this sheet
    already pins: the #EEEEEE trough face and its #000000 rim, the values the
    existing GTK 3 meter-state record restated on its toolkit's disabled trough
-   arm (tests/test_gtk_theme_controls.py::TestGtkThemeControls::
+   arm (tests/test_gtk_theme_progress.py::TestGtkThemeProgress::
    test_meter_state_and_backdrop_faces). The toolkit resource
    /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
    `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,

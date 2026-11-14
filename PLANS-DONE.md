@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 controls suite split, part 8/11: move the progress-bar and meter methods into tests/test_gtk_theme_progress.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
+
+**Goal.** Move `test_progressbar`, `test_meter_geometry`,
+`test_treeview_progress_bar`, `test_meter_label_ink`,
+`test_progressbar_fill_spans_the_trough` (probe) and
+`test_meter_state_and_backdrop_faces` into new
+`tests/test_gtk_theme_progress.py`, as
+`class TestGtkThemeProgress(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
+
+**Reference sites.** These are `docs/invariants.md` mentions of the six
+methods and the `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`
+disabled-trough record naming
+`TestGtkThemeControls::test_meter_state_and_backdrop_faces` (comment-only
+edit).
+
+**Acceptance criteria.**
+- Discovery lists the six methods exactly once each, under
+  `test_gtk_theme_progress`, and none under `test_gtk_theme_controls`. Each
+  `ast.dump` matches the original's.
+- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`. Every
+  listed site names the new module, the checker resolves it, and `git diff`
+  of the GTK 4 sheet touches only that comment.
+- The unused-import scanner reports nothing, and `make check` passes. The
+  deletion rule from part 1/11 applies.
+
 ### GTK 3 controls suite split, part 7/11: move the entry methods into tests/test_gtk_theme_entry.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
 
 **Goal.** Move `test_entry_progress`,

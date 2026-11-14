@@ -115,31 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 8/11: move the progress-bar and meter methods into tests/test_gtk_theme_progress.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
-
-**Goal.** Move `test_progressbar`, `test_meter_geometry`,
-`test_treeview_progress_bar`, `test_meter_label_ink`,
-`test_progressbar_fill_spans_the_trough` (probe) and
-`test_meter_state_and_backdrop_faces` into new
-`tests/test_gtk_theme_progress.py`, as
-`class TestGtkThemeProgress(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the six
-methods and the `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`
-disabled-trough record naming
-`TestGtkThemeControls::test_meter_state_and_backdrop_faces` (comment-only
-edit).
-
-**Acceptance criteria.**
-- Discovery lists the six methods exactly once each, under
-  `test_gtk_theme_progress`, and none under `test_gtk_theme_controls`. Each
-  `ast.dump` matches the original's.
-- The probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`. Every
-  listed site names the new module, the checker resolves it, and `git diff`
-  of the GTK 4 sheet touches only that comment.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 3 controls suite split, part 9/11: move the view-field, viewport and frame probes into tests/test_gtk_theme_frames.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
 
 **Goal.** Move `test_disabled_view_renders_the_white_field_and_grey_ink`
