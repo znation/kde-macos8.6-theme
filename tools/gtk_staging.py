@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import os
 import secrets
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 if __package__:
@@ -173,36 +174,37 @@ def commit(
             discard(staging)
 
 
+@contextmanager
+def _refusing_os_errors(action: str, path: Path) -> Iterator[None]:
+    """Turn an ``OSError`` in the block into a ``ConfigError`` naming *path*."""
+    try:
+        yield
+    except OSError as exc:
+        raise ConfigError(f"cannot {action} {path}: {exc}") from exc
+
+
 def _stage_with_backup(
     path: Path, staging: Path, applied: list[tuple[Path, Path | None]]
 ) -> None:
     """Back *path* up, then replace it with its staging file."""
-    try:
+    with _refusing_os_errors("write", path):
         backup = _backup(path)
-    except OSError as exc:
-        raise ConfigError(f"cannot write {path}: {exc}") from exc
     applied.append((path, backup))
-    try:
+    with _refusing_os_errors("write", path):
         os.replace(staging, path)
-    except OSError as exc:
-        raise ConfigError(f"cannot write {path}: {exc}") from exc
 
 
 def _remove_with_backup(
     path: Path, applied: list[tuple[Path, Path | None]]
 ) -> None:
     """Back *path* up, then delete it; an absent path deletes nothing."""
-    try:
+    with _refusing_os_errors("remove", path):
         backup = _backup(path)
-    except OSError as exc:
-        raise ConfigError(f"cannot remove {path}: {exc}") from exc
     if backup is None:
         return
     applied.append((path, backup))
-    try:
+    with _refusing_os_errors("remove", path):
         path.unlink()
-    except OSError as exc:
-        raise ConfigError(f"cannot remove {path}: {exc}") from exc
 
 
 def _discard_backups(applied: list[tuple[Path, Path | None]]) -> None:
