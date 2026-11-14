@@ -33,6 +33,19 @@ confirmed, a theme cannot make KWin shade those windows.
 **Recommendation.** Option 1. It keeps the reference look and gives the
 nearest working behavior.
 
+### How should the oversized GTK and Firefox stylesheets be split?
+
+(asked 2026-11-14 by the steward role)
+
+Context: `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` is 7111 lines, `gtk-4.0/gtk.css` is 6523 lines, and Firefox `chrome/userChrome.css` is 1581 lines. PRINCIPLES.md asks each file to stay small enough to read in one sitting. PLANS.md's size-drift note records these files, but the sheets are single shipped artifacts, and no plan can split them until the packaging is chosen. The install step copies each sheet as one file, and no sheet uses `@import` today.
+
+Options:
+1. Keep one shipped sheet per surface, and split only the source. A build step concatenates per-family partials into the shipped file. Nothing changes at install time, but `make` gains a generation step that must stay in sync.
+2. Ship the partials as separate files and have the main sheet `@import` them with relative paths. GTK is expected to resolve relative imports against the sheet's own directory (unverified here), and the install step must then copy the partials too.
+3. Leave the sheets whole and accept the size as a documented exception to the principle.
+
+Recommendation: option 2. It keeps the shipped sheets readable and needs no build step. Before any plan is written, someone must confirm the import path on GTK 3 and GTK 4 with a real run, which the steward role could not do here. Firefox `userChrome.css` needs its own answer: whether a relative `@import` resolves from the profile's `chrome/` directory is unverified here.
+
 ## Answered
 
 ### Should the sampler refuse a contradictory min/max filter window?
