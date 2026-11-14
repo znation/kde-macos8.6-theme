@@ -115,29 +115,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 9/11: move the view-field, viewport and frame probes into tests/test_gtk_theme_frames.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
-
-**Goal.** Move `test_disabled_view_renders_the_white_field_and_grey_ink`
-(probe), `test_scrolled_viewport_draws_no_frame`,
-`test_scrolled_viewport_renders_one_frame` (probe),
-`test_flat_frame_draws_no_border` and `test_flat_frame_renders_no_frame`
-(probe) into new `tests/test_gtk_theme_frames.py`, as
-`class TestGtkThemeFrames(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
-The module docstring says it covers the view field as well as the viewport
-and frame borders.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the five
-methods. Grep for any other by-name site and repoint it.
-
-**Acceptance criteria.**
-- Discovery lists the five methods exactly once each, under
-  `test_gtk_theme_frames`, and none under `test_gtk_theme_controls`. Each
-  `ast.dump` matches the original's.
-- The three probes skip as before without `PLATINUM_RUN_GUI_TESTS=1`, and
-  the invariants checker resolves every repointed mention.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 3 controls suite split, part 10/11: move the check and radio methods into tests/test_gtk_theme_check.py (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
 
 **Goal.** Move `test_mixed_check_draws_a_black_dash` (the probe with its own
