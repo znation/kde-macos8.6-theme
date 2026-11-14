@@ -1051,7 +1051,7 @@ class TestSessionScript(unittest.TestCase):
             "    Path(sys.argv[2]).write_text('terminated')\n"
             "    sys.exit(23)\n"
             "signal.signal(signal.SIGTERM, stop)\n"
-            "signal.alarm(5)\n"
+            "signal.alarm(30)\n"
             "Path(sys.argv[1]).touch()\n"
             "signal.pause()\n",
             encoding="utf-8",
@@ -1067,19 +1067,22 @@ class TestSessionScript(unittest.TestCase):
             "    if time.monotonic() > deadline: sys.exit(1)\n"
             "    time.sleep(0.01)\n"
         )
-        for capture_status in (0, 7):
-            with self.subTest(capture_status=capture_status):
+        # The capture stub may take longer than the old five-second budget,
+        # as a capture does under load. The session must still finish and
+        # return its status, so the outer budget must cover the whole run.
+        for capture_status, capture_seconds in ((0, 0), (7, 0), (0, 5.5)):
+            with self.subTest(capture_status=capture_status, capture_seconds=capture_seconds):
                 ready.unlink(missing_ok=True)
                 stopped.unlink(missing_ok=True)
                 prefix = (
                     f'sleep() {{ if [ "$1" = 0 ]; then {shlex.join([sys.executable, "-c", poll, str(ready)])}; else command sleep "$@"; fi; }}; '
-                    f"spectacle() {{ return {capture_status}; }}; "
+                    f"spectacle() {{ command sleep {capture_seconds}; return {capture_status}; }}; "
                 )
                 status = render_workflow.run_logged(
                     ["sh", "-c", prefix + render_session.session_script(),
                      "sh", "0", str(root / "capture.png"), sys.executable,
                      str(client), str(ready), str(stopped)],
-                    environment, root / "session.log", 5, root,
+                    environment, root / "session.log", 30, root,
                 )
                 self.assertEqual(capture_status, status)
                 self.assertTrue(stopped.exists(), "session exited before client termination")

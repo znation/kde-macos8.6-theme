@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The client-exit stub test `test_waits_for_client_termination_and_preserves_capture_status` fails under a parallel `make check` (found by the coverage role 2026-11-14) — fixed 2026-11-14 by the bugfix role
+
+In one full `make check` run the test failed with `AssertionError: 0 != None` at `tests/test_render_surface_units.py:1084` (`self.assertEqual(capture_status, status)`), with `capture_status=0`. The same module run alone passed (155 tests OK). BUGS-FIXED has a closed entry for a different load-sensitive test in the same client-exit stub family ("The client-exit stub regression is load-sensitive", closed 2026-11-12, naming `test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`); this test is not named there. The coverage change that ran in the same `make check` touched only `tests/test_cursor_vector.py`, so it is not the cause as far as the diff shows.
+
+Cause: `None` from `run_logged` means its timeout expired (`tools/process_group.py:184-186`); the status was never sampled early. The test gave the whole session run a 5-second outer budget, and the stub client's `signal.alarm(5)` used the same horizon. Under load, the session's shell, the client's Python startup and the capture stub together ran past 5 seconds.
+
+Fix: the outer budget and the stub client's alarm are now 30 seconds, and a third subtest with a 5.5-second capture stub (`capture_seconds=5.5`) pins the slow case. Before the fix that subtest failed with `0 != None` after 5.7 seconds; after it, the test passes (6.6 seconds).
+
+**Validation gap:** none — closest fit, not exact: the suite as it stood did not reproduce the load-only overrun, and the bare `0 != None` assertion never named the timeout; the new 5.5-second capture subtest reproduces it, and no tooling beyond that was missing.
+
 ### A calendar-dialog gate capture once missed the red Sunday ink the pin expects (found by the steward role 2026-11-12) — fixed 2026-11-12 by the bugfix role
 
 **Symptom.** In a steward run's `make check` on 2026-11-12,
