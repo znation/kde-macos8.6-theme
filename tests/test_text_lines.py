@@ -3,7 +3,7 @@
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.text_lines import first_line, has_first_line_marker, split_lines
+from tools.text_lines import BOM, first_line, has_first_line_marker, split_lines, strip_bom
 
 
 class SplitLinesTests(unittest.TestCase):
@@ -49,6 +49,26 @@ class FirstLineMarkerTests(unittest.TestCase):
         for text in ("marker extra", "\ufeff\ufeffmarker", "other\nmarker"):
             with self.subTest(text=text):
                 self.assertFalse(has_first_line_marker(text, "marker"))
+
+
+class StripBomTests(unittest.TestCase):
+    """Tests for ``strip_bom``'s single leading-BOM removal."""
+
+    def test_removes_one_leading_utf8_bom(self):
+        self.assertEqual("[General]\nName=x", strip_bom(BOM + "[General]\nName=x"))
+
+    def test_leaves_text_without_a_leading_bom_unchanged(self):
+        self.assertEqual("[General]\n", strip_bom("[General]\n"))
+        self.assertEqual("", strip_bom(""))
+
+    def test_removes_only_the_first_bom(self):
+        self.assertEqual(BOM + "marker", strip_bom(BOM + BOM + "marker"))
+
+    def test_keeps_a_bom_that_is_not_at_the_start(self):
+        self.assertEqual("a" + BOM + "b", strip_bom("a" + BOM + "b"))
+
+    def test_a_bom_only_text_becomes_empty(self):
+        self.assertEqual("", strip_bom(BOM))
 
 
 if __name__ == "__main__":
