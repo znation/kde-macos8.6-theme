@@ -30,6 +30,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.recorded_lines import recorded_lines
+from support.theme_install import write_file
 from support.tmp_dir import make_session_home, make_tmp_dir
 from support.unlink_failure import unlink_failing_for
 from tools import apply_cursor, cursor_config, cursor_link, cursor_selection, diagnostics, required_command
@@ -562,10 +563,7 @@ class TestRemove(CursorCase):
     def test_kcminputrc_note_names_the_reset_only_when_our_theme_is_selected(self):
         self.make_our_link()
         kcminputrc = self.config / "kcminputrc"
-        kcminputrc.parent.mkdir(parents=True)
-        kcminputrc.write_text(
-            "[Mouse]\ncursorTheme=org.macos8.desktop\n", encoding="utf-8"
-        )
+        write_file(kcminputrc, "[Mouse]\ncursorTheme=org.macos8.desktop\n")
         result = self.run_tool("--remove")
         assert_succeeded(self, result)
         self.assertIn("plasma-apply-cursortheme breeze_cursors", result.stdout)
@@ -577,8 +575,7 @@ class TestRemove(CursorCase):
     def test_kcminputrc_note_is_absent_for_a_foreign_selection(self):
         self.make_our_link()
         kcminputrc = self.config / "kcminputrc"
-        kcminputrc.parent.mkdir(parents=True)
-        kcminputrc.write_text("[Mouse]\ncursorTheme=Adwaita\n", encoding="utf-8")
+        write_file(kcminputrc, "[Mouse]\ncursorTheme=Adwaita\n")
         result = self.run_tool("--remove")
         assert_succeeded(self, result)
         self.assertNotIn("breeze_cursors", result.stdout)
