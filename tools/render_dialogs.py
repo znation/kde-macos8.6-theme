@@ -60,7 +60,11 @@ class DialogMode(NamedTuple):
     on PATH, and the workflow installs the GTK selection for it).
     ``extra_config_files`` names further config files the workflow writes
     into the scratch config home beside the dialog defaults (empty for
-    every one-window mode).
+    every one-window mode). ``focus_settle`` marks the two-window mode
+    whose session re-runs the focus-settle KWin script until the capture
+    has returned, so the pair's focus state is settled before the frame is
+    read (off for every one-window mode, whose single window owns the
+    session's only focus state).
     """
 
     attr: str
@@ -69,6 +73,7 @@ class DialogMode(NamedTuple):
     client: Callable[[Session], tuple[str, ...]]
     client_tool: str
     extra_config_files: tuple[str, ...] = ()
+    focus_settle: bool = False
 
 
 # The help-text tail every one-window dialog mode shares: the mode opens one
@@ -221,6 +226,7 @@ DIALOG_MODES = (
         inactive_dialog_client,
         "kdialog",
         ("kwinrulesrc",),
+        True,
     ),
     DialogMode(
         "file_dialog",

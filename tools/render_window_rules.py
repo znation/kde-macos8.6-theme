@@ -32,6 +32,7 @@ re-derived from that render, never assumed.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -43,6 +44,7 @@ except ImportError:  # imported from a directly run tool
     from atomic_write import write_bytes_atomically
 
 RULES_FILE = "kwinrulesrc"
+FOCUS_SETTLE_SCRIPT = "inactive-dialog-focus-settle.js"
 INACTIVE_TITLE = "Inactive window"
 FOCUSED_TITLE = "Focused window"
 # The two forced geometries, re-derived from this host's first measured
@@ -67,6 +69,48 @@ def _rule(number: int, title: str, position: tuple[int, int], size: tuple[int, i
         f"size={width},{height}\n"
         "sizerule=3\n"
     )
+
+
+def focus_settle_text() -> str:
+    """Return the one-shot KWin script the inactive-dialog session re-runs.
+
+    Newest-window activation is a race, not a guarantee: under the parallel
+    check's load the focused ``kdialog`` can map after the settle ends and
+    after the capture started, so the capture catches the earlier window
+    while KWin still treats it as active and every inactive pin meets the
+    active decoration. The session therefore runs this script in a loop
+    from the client's start until the capture has returned: each run finds
+    the focused-title window and, when KWin does not already treat it as
+    active, activates it directly through ``workspace.activeWindow``, so
+    the pair's focus state is settled before the frame is read whenever
+    the focused window has mapped at all. If it never maps, the capture
+    still fails the inactive pins -- a genuine failure, not a flake.
+
+    Probed on this host's KWin 6.3.6 (2026-11-13): ``loadScript`` on
+    ``org.kde.KWin /Scripting`` registers the script at
+    ``/Scripting/Script<id>`` and each ``org.kde.kwin.Script.run``
+    re-executes the file, so repeated runs repeat the settle; the
+    ``workspace.activeWindow`` assignment and the ``window.active`` read
+    both landed in the probe (a focused-title window reported
+    ``focusedActive=false`` and read ``active=Other window``, then read
+    ``after=Focused window``).
+    """
+    return (
+        "for (const window of workspace.windowList()) {\n"
+        f'    if (window.caption === "{FOCUSED_TITLE}" && !window.active) {{\n'
+        "        workspace.activeWindow = window;\n"
+        "        print(\"render-session: settled the focused window's "
+        "activation\");\n"
+        "    }\n"
+        "}\n"
+    )
+
+
+def write_focus_settle_script(session: Session) -> Path:
+    """Write the focus-settle KWin script into *session*'s scratch root."""
+    path = session.root / FOCUS_SETTLE_SCRIPT
+    write_bytes_atomically(path, focus_settle_text().encode("utf-8"))
+    return path
 
 
 def rules_text() -> str:

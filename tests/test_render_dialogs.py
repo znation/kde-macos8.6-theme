@@ -118,6 +118,22 @@ class TestDialogModes(unittest.TestCase):
             },
         )
 
+    def test_only_the_inactive_mode_sets_the_focus_settle(self):
+        # The two-window mode is the only one whose capture depends on a
+        # focus state KWin decides only after both windows have mapped, so
+        # it is the only session that re-runs the focus-settle KWin script
+        # until the capture has returned; a one-window session has a single
+        # window and no race to settle, and the settle machinery must stay
+        # out of its session script.
+        self.assertEqual(
+            ["inactive_dialog"],
+            [
+                mode.attr
+                for mode in render_dialogs.DIALOG_MODES
+                if mode.focus_settle
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

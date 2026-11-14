@@ -202,6 +202,11 @@ class TestFailurePaths(StubTools):
         self.assertIn("kdialog", argv[-1])
         self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
         self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])
+        # The mode's session also carries its focus-settle KWin script (the
+        # newest-window activation is a race under the parallel check's
+        # load), loaded by the scratch path the workflow wrote it to.
+        self.assertIn("org.kde.kwin.Scripting.loadScript", argv[-1])
+        self.assertIn(render_window_rules.FOCUS_SETTLE_SCRIPT, argv[-1])
         self.assertNotIn("org.kde.plasma.calculator", argv[-1])
         self.assert_failed_run(
             status, stderr, output, 1, "render session exited 1",

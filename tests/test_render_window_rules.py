@@ -18,19 +18,23 @@ from tools import render_dialogs
 from tools.render_window_rules import (
     FOCUSED_GEOMETRY,
     FOCUSED_TITLE,
+    FOCUS_SETTLE_SCRIPT,
     INACTIVE_GEOMETRY,
     INACTIVE_TITLE,
     RULES_FILE,
+    focus_settle_text,
     rules_text,
+    write_focus_settle_script,
     write_window_rules,
 )
 
 
 class _FakeSession:
-    """The one attribute the writer reads: the scratch config home."""
+    """The attributes the writers read: the config and scratch homes."""
 
-    def __init__(self, config: Path):
+    def __init__(self, config: Path, root: Path | None = None):
         self.config = config
+        self.root = root if root is not None else config
 
 
 class TestWindowRules(unittest.TestCase):
@@ -117,6 +121,50 @@ class TestWindowRules(unittest.TestCase):
             self.assertEqual(
                 rules_text().encode("utf-8"),
                 (config / RULES_FILE).read_bytes(),
+            )
+
+    def test_the_focus_settle_script_activates_the_focused_window_only(self):
+        # Byte-for-byte: the one-shot script the session re-runs must
+        # activate exactly the focused title and only when KWin does not
+        # already treat it as active -- a script that touched the inactive
+        # window's state, matched a prefix instead of the exact title or
+        # logged on every no-op run would either flip the gate's own
+        # subject or spam the render log. workspace.activeWindow and
+        # window.active were probed on the installed KWin 6.3.6
+        # (2026-11-13, a throwaway --virtual session): the probe read
+        # focusedActive=false and active=Other window, assigned the
+        # focused window and then read after=Focused window, so the
+        # assignment is what settles the pair's focus state.
+        self.assertEqual(
+            "for (const window of workspace.windowList()) {\n"
+            f'    if (window.caption === "{FOCUSED_TITLE}" && !window.active) {{\n'
+            "        workspace.activeWindow = window;\n"
+            '        print("render-session: settled the focused window\'s '
+            'activation\");\n'
+            "    }\n"
+            "}\n",
+            focus_settle_text(),
+        )
+
+    def test_the_focus_settle_script_never_names_the_inactive_title(self):
+        # The settle must not touch the inactive window: activating it
+        # would draw the gate's own subject in the active decoration and
+        # fail every left-window pin.
+        self.assertNotIn(INACTIVE_TITLE, focus_settle_text())
+
+    def test_write_focus_settle_script_writes_the_script_into_the_scratch_root(
+        self,
+    ):
+        # The session script loads the file by its scratch path, so the
+        # writer must put exactly the probed script bytes there.
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            session = _FakeSession(Path(root) / "cfg", Path(root))
+            path = write_focus_settle_script(session)
+            self.assertEqual(Path(root) / FOCUS_SETTLE_SCRIPT, path)
+            self.assertEqual(
+                focus_settle_text().encode("utf-8"), path.read_bytes()
             )
 
     def test_only_the_inactive_mode_names_the_rules_file(self):

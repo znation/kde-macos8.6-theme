@@ -139,8 +139,11 @@ edge; it also checks capture-level invariants. The fourteen dialog modes cannot 
 literal `$HOME/.local/share/themes/` path.
 `--inactive-dialog` opens two `kdialog` message boxes with two distinct fixed titles and
 captures the pair at the same 480x360 size: the session reads forced-geometry window
-rules that place the two windows side by side, and KWin activates the newest one, so the
-captured surface shows the unfocused window — the earlier-spawned one, on the left — drawn
+rules that place the two windows side by side, and the session settles the pair's focus
+state — from the client's start until the capture has returned it re-runs a KWin script
+that activates the focused-title window whenever KWin does not already treat it as active
+(newest-window activation is a race under the parallel check's load) — so the captured
+surface shows the unfocused window — the earlier-spawned one, on the left — drawn
 with the inactive decoration art; the inactive gate
 (`tests/test_render_dialog_gates.py::TestInactiveDialogRender`) pins that window's outline
 ring, recoloured client edge, flat bar and title ink there.

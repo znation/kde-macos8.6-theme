@@ -177,7 +177,7 @@ class SessionCommand:
     timeout: float
 
 
-def session_script() -> str:
+def session_script(focus_script: str | None = None) -> str:
     """Return the ``sh -c`` script that opens the client, settles and captures.
 
     The positional parameters are the settle seconds, the capture path and
@@ -187,6 +187,19 @@ def session_script() -> str:
     of this script. The script fails the session if the backgrounded
     client is no longer running after the settle; without that check
     ``spectacle`` would still publish a capture of an empty session.
+
+    *focus_script* is the scratch path of a KWin settle script (the
+    inactive-dialog render passes one, the other modes ``None``): when it
+    is set, the shell loads it into KWin right after the client starts and
+    re-runs it in a bounded background loop until the capture has
+    returned, so the two-window pair's focus state is settled by
+    re-activation before the frame is read, not left to the window
+    manager's newest-window race (see
+    ``tools/render_window_rules.py::focus_settle_text``). The loop's
+    ``qdbus6``/``qdbus`` fallback is resolved inside the session: a host
+    without either only logs the omission and keeps the older race.
+    With no script given the whole block is inert (an empty ``$focus``
+    fails its guard), so the other modes' session stages are unchanged.
 
     Every stage logs a millisecond timestamp, so a failed capture's log
     shows the client's start, the settle's end and the capture's span on
@@ -217,6 +230,7 @@ def session_script() -> str:
     # publishing a render of no window. The liveness check therefore runs
     # before the capture and fails the session with a log line naming the
     # client's first word instead.
+    focus = shlex.quote(focus_script) if focus_script is not None else '""'
     return (
         # Qt selects its platform plugin from the ambient session type, which
         # a headless caller does not set even though this session exports its
@@ -226,9 +240,29 @@ def session_script() -> str:
         "export QT_QPA_PLATFORM=wayland; "
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
+        f'focus={focus}; '
         'started=$(date +%s%3N); "$@" & client=$!; '
         'export RENDER_SESSION_CLIENT_PID="$client"; '
         'echo "render-session: client started at $started" >&2; '
+        # The focus settle must start before the settle sleep so the
+        # re-activation loop already runs while the windows map, and it
+        # must stop only after the capture has returned, because
+        # Spectacle's startup latency is unbounded under concurrent renders
+        # and the last re-run has to sit between the focused window's map
+        # and the frame being read.
+        'if [ -n "$focus" ]; then '
+        'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
+        'if [ -n "$qdbus" ]; then '
+        'id=$("$qdbus" org.kde.KWin /Scripting '
+        'org.kde.kwin.Scripting.loadScript "$focus" 2>/dev/null); '
+        'case "$id" in ""|*[!0-9]*) '
+        'echo "render-session: the focus settle script did not load" >&2;; '
+        '*) (while [ ! -e "$focus.done" ]; do '
+        '"$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1; '
+        'command sleep 0.25; done) & settle_loop=$!; '
+        'echo "render-session: focus settle loop running (script $id)" >&2;; '
+        'esac; '
+        'else echo "render-session: no qdbus for the focus settle" >&2; fi; fi; '
         'sleep "$settle"; '
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
@@ -239,6 +273,12 @@ def session_script() -> str:
         'spectacle -b -n -f -o "$capture"; status=$?; '
         'capture_done=$(date +%s%3N); '
         'echo "render-session: capture status $status at $capture_done" >&2; '
+        # Stop the focus settle only here: the sentinel ends the loop and
+        # the kill reaps it, so no re-run can land after the frame was read
+        # and none is left running into the client's termination.
+        'if [ -n "${settle_loop:-}" ]; then '
+        'touch "$focus.done"; '
+        'kill "$settle_loop" 2>/dev/null; wait "$settle_loop" 2>/dev/null; fi; '
         'if kill -0 "$client" 2>/dev/null; then '
         'echo "render-session: client alive after the capture at $capture_done" >&2; '
         'else '
@@ -262,13 +302,18 @@ def session_command(
     width: int,
     height: int,
     timeout: float,
+    focus_script: str | None = None,
 ) -> SessionCommand:
-    """Build the KWin session command for *session* and its supervision timeout."""
+    """Build the KWin session command for *session* and its supervision timeout.
+
+    *focus_script* rides to :func:`session_script`; only the inactive-dialog
+    render passes one.
+    """
     script = shlex.join(
         [
             "sh",
             "-c",
-            session_script(),
+            session_script(focus_script),
             "sh",
             str(settle),
             str(session.surface),

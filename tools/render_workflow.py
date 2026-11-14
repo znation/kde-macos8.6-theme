@@ -16,7 +16,11 @@ if __package__:
     from tools.render_clients import splash_client
     from tools.render_dialogs import DIALOG_MODES, DialogMode
     from tools.render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
-    from tools.render_window_rules import RULES_FILE, write_window_rules
+    from tools.render_window_rules import (
+        RULES_FILE,
+        write_focus_settle_script,
+        write_window_rules,
+    )
     from tools.render_setup import (
         CONFIG_FILES,
         install_gtk_selection,
@@ -37,7 +41,11 @@ else:  # run directly from render_surface.py
     from render_clients import splash_client
     from render_dialogs import DIALOG_MODES, DialogMode
     from render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
-    from render_window_rules import RULES_FILE, write_window_rules
+    from render_window_rules import (
+        RULES_FILE,
+        write_focus_settle_script,
+        write_window_rules,
+    )
     from render_setup import (
         CONFIG_FILES,
         install_gtk_selection,
@@ -194,7 +202,18 @@ def render(args: argparse.Namespace) -> int:
             if failure is not None:
                 return failure
 
-        command = session_command(session, client, args.settle, args.width, args.height, args.timeout)
+        # The two-window mode settles the pair's focus state in-session: the
+        # newest-window activation is a race under the parallel check's
+        # load, so the session re-runs the focus-settle KWin script until
+        # the capture has returned instead of trusting the newest window.
+        focus_script = (
+            str(write_focus_settle_script(session))
+            if mode is not None and mode.focus_settle else None
+        )
+        command = session_command(
+            session, client, args.settle, args.width, args.height, args.timeout,
+            focus_script,
+        )
         try:
             status = run_logged(command.argv, session.environment, command.log, command.timeout, ROOT)
         except OSError as exc:
