@@ -21,6 +21,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.theme_install import write_file
 from tools import apply_konsole_font
 from tools.apply_theme import FIXED_VALUE as FONT
 
@@ -165,13 +166,11 @@ print(value)
         return {"PATH": str(self.bin), "XDG_DATA_HOME": str(self.data)}
 
     def write_konsolerc(self, text):
-        self.konsolerc.parent.mkdir(parents=True, exist_ok=True)
-        self.konsolerc.write_text(text, encoding="utf-8")
+        write_file(self.konsolerc, text)
 
     def write_profile(self, directory, name, text):
         target = directory / "konsole" / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(text, encoding="utf-8")
+        write_file(target, text)
         return target
 
     def read(self, path):

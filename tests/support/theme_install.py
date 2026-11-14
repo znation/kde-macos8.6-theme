@@ -81,7 +81,7 @@ def write_file(path, body):
     calls. Deliberately left: ApplyGtkTestCase.write_bytes and the
     containment-refusal fixtures write raw bytes, not UTF-8 text,
     support/checker_scratch.py's ``_write`` adds containment and recording
-    around its write, the kdedefaults suites' one-line direct ``write_file``
+    around its ``write_file`` call, the kdedefaults suites' one-line direct ``write_file``
     call sites are already shared, not duplicated, test_invariants.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and

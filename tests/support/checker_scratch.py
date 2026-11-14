@@ -18,6 +18,7 @@ from pathlib import Path
 
 from support import containment
 from support.repo_root import ROOT
+from support.theme_install import write_file
 
 INVARIANTS_REGISTER = os.path.join("docs", "invariants.md")
 PLACEHOLDERS_REGISTER = "PLACEHOLDERS.md"
@@ -194,8 +195,7 @@ class Scratch:
     def _write(self, rel, text):
         path = self.root / rel
         self._require_contained(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        write_file(path, text)
         self._written.append(path)
 
     def _require_contained(self, path):
