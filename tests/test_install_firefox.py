@@ -157,8 +157,7 @@ class TestInstall(FirefoxProfileTestCase):
                 profile = self.root / ("empty-" + empty.name)
                 profile.mkdir()
                 path = profile / "chrome" / empty.name
-                path.parent.mkdir(parents=True)
-                path.write_bytes(b"")
+                _write(path, b"")
                 result = self.run_tool("--profile", str(profile))
                 self.assertEqual(0, result.returncode, result.stderr)
                 shipped = (

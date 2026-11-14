@@ -181,8 +181,7 @@ class TestHelpers(unittest.TestCase):
         # as a codec UnicodeDecodeError that names neither the checker nor it.
         tmp = make_tmp_dir(self)
         path = tmp / "theme" / "a.svg"
-        path.parent.mkdir(parents=True)
-        path.write_bytes(b"\xff\xfe<svg/>\n")
+        write_file(path, b"\xff\xfe<svg/>\n")
         with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
             markers(tmp)
 
@@ -248,8 +247,7 @@ class TestHelpers(unittest.TestCase):
         # until it exhausts memory. The shared guard refuses it by name.
         tmp = make_tmp_dir(self)
         path = tmp / "theme" / "a.svg"
-        path.parent.mkdir(parents=True)
-        path.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+        write_file(path, b"x" * (tools_containment._MAX_READ_BYTES + 1))
         with self.assertRaisesRegex(
             AssertionError, "larger than .*refusing to load it whole"
         ):
