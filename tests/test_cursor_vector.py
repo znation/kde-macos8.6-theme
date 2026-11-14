@@ -161,6 +161,22 @@ class TestVectorCursorFields(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "outline_width"):
             VectorCursor(face=SQUARE, outline_width=float("inf"))
 
+    def test_rejects_a_nan_outline_width(self):
+        # NaN fails every comparison, so the range test must refuse it rather
+        # than letting it through as a width that never matches.
+        with self.assertRaisesRegex(ValueError, "outline_width"):
+            VectorCursor(face=SQUARE, outline_width=float("nan"))
+
+    def test_rejects_a_nan_vertex_coordinate_naming_the_field(self):
+        # NaN and infinity are not numbers in the design grid: a range test
+        # written as "value < 0 or value > limit" would admit NaN silently.
+        with self.assertRaisesRegex(ValueError, "face vertex 1 x"):
+            VectorCursor(face=((8, 8), (float("nan"), 8), (24, 24)))
+
+    def test_rejects_an_infinite_vertex_coordinate_naming_the_field(self):
+        with self.assertRaisesRegex(ValueError, "face vertex 2 y"):
+            VectorCursor(face=((8, 8), (24, 8), (24, float("inf"))))
+
     def test_rejects_a_design_size_that_is_not_a_positive_int(self):
         for bad in (0, -4, 32.0, True):
             with self.subTest(design_size=bad):
