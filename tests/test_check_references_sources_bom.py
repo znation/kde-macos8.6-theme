@@ -38,11 +38,15 @@ class TestBomPrefixedSources(CheckerTestCase):
         ).encode("utf-8")
         with reference_set(module, record) as root:
             problems = module.check_references(root)
+        # The checker names a filename as its escaped repr, so a glued BOM
+        # would show as the text "\\ufeff" before the name, not a raw BOM;
+        # check for the exact quoted name.
         self.assertTrue(
-            any("missing.png" in line for line in problems), problems
+            any("'missing.png' does not exist" in line for line in problems),
+            problems,
         )
         self.assertFalse(
-            any(BOM in line for line in problems), problems
+            any("ufeff" in line or BOM in line for line in problems), problems
         )
 
 
