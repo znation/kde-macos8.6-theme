@@ -32,15 +32,12 @@ class TestSettingsErrors(ApplyGtkTestCase):
     def test_apply_and_remove_refuse_symlinked_config_directories(self):
         self.install_sheet()
         outside = self.root / "dotfiles" / "gtk-4.0"
-        outside.mkdir(parents=True)
         settings = outside / "settings.ini"
         css = outside / "gtk.css"
-        settings.write_text(
-            "[Settings]\ngtk-theme-name=org.macos8.desktop\n", encoding="utf-8"
-        )
-        css.write_text(
+        write_file(settings, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
+        write_file(
+            css,
             f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///old\");\n",
-            encoding="utf-8",
         )
         link = self.config / "gtk-4.0"
         link.parent.mkdir(parents=True, exist_ok=True)
