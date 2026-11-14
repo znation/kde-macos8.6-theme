@@ -78,11 +78,12 @@ def write_file(path, body):
     support/kde_config.py's ``write`` (the ``kdeglobals`` seeder) fixes only
     its file name over it, and test_gtk_selection.py and
     test_placeholders.py stage their fixtures with direct ``write_file``
-    calls. Deliberately left: ApplyGtkTestCase.write_bytes and the
-    containment-refusal fixtures write raw bytes, not UTF-8 text,
-    support/checker_scratch.py's ``_write`` adds containment and recording
-    around its ``write_file`` call, the kdedefaults suites' one-line direct ``write_file``
-    call sites are already shared, not duplicated, test_invariants.py's
+    calls, support/checker_scratch.py's ``_write`` adds containment and
+    recording around its ``write_file`` call, and test_apply_konsole_font.py's
+    ``write_konsolerc``/``write_profile`` delegate to it. Deliberately left:
+    ApplyGtkTestCase.write_bytes and the containment-refusal fixtures write
+    raw bytes, not UTF-8 text, the kdedefaults suites' one-line direct
+    ``write_file`` call sites are already shared, not duplicated, test_invariants.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and
     tools/check_references_selftest.py stages inline in ``tools`` rather
