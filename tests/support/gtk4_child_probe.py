@@ -80,6 +80,15 @@ def painted(widget, w, h):
 '''
 
 
+def gtk4_child_env():
+    """Return the environment for a GTK 4 child: X11 backend, cairo renderer.
+
+    Used by ``run_gtk4_probe`` and by ``test_gtk_view_census``'s child runner,
+    so both pin the same rendering stack.
+    """
+    return {**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"}
+
+
 def run_gtk4_probe(test, program):
     """Run the GTK 4 pixel *program* in a fresh child interpreter.
 
@@ -89,7 +98,7 @@ def run_gtk4_probe(test, program):
     """
     result = subprocess.run(
         [sys.executable, "-c", program, str(THEME_DIR)],
-        env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
+        env=gtk4_child_env(),
         capture_output=True,
         text=True,
         timeout=120,

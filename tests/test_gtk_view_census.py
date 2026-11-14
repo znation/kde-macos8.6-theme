@@ -72,7 +72,8 @@ import unittest
 from pathlib import Path
 
 from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
-                                      GTK4_PROBE_PROLOGUE)
+                                      GTK4_PROBE_PROLOGUE,
+                                      gtk4_child_env)
 from support.platinum_palette import SELECTION
 from support.repo_root import ROOT
 from support.gui_tests import require_gui_opt_in
@@ -115,7 +116,7 @@ def _run_child(source, *args):
     require_gui_opt_in()
     return subprocess.run(
         [sys.executable, "-c", source, *[str(a) for a in args]],
-        env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
+        env=gtk4_child_env(),
         capture_output=True, text=True, timeout=120,
     )
 
