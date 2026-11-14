@@ -490,9 +490,8 @@ class TestCommit(StagingCase):
         replaced = self.root / "gtk-3.0" / "settings.ini"
         removable = self.root / "gtk-4.0" / "gtk.css"
         blocked = self.root / "gtk-4.0" / "launchers"
-        removable.parent.mkdir(parents=True)
+        write_file(removable, b"keep me\n")
         replaced.parent.mkdir(parents=True)
-        removable.write_bytes(b"keep me\n")
         blocked.mkdir(parents=True)
         staged = stage_all([(replaced, "new\n")])
 
