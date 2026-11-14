@@ -176,7 +176,11 @@ def commit(
 
 @contextmanager
 def _refusing_os_errors(action: str, path: Path) -> Iterator[None]:
-    """Turn an ``OSError`` in the block into a ``ConfigError`` naming *path*."""
+    """Re-raise an OSError from the block as ConfigError "cannot *action* *path*".
+
+    Used by the backup and replace/unlink steps of ``_stage_with_backup`` and
+    ``_remove_with_backup``; the exception stays chained as the cause.
+    """
     try:
         yield
     except OSError as exc:
