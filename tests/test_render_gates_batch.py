@@ -14,6 +14,7 @@ pinned deterministically.
 
 from __future__ import annotations
 
+import atexit
 import os
 import unittest
 from unittest import mock
@@ -172,6 +173,53 @@ class TestRenderBatch(unittest.TestCase):
                 os.path.exists(directory),
                 f"{directory} was not removed by the sweep",
             )
+
+    def test_the_desktop_render_writes_desktop_png(self):
+        started, _ = self._run_with_stubbed_runner("desktop")
+        argv, _ = started[0]
+        self.assertEqual(
+            os.path.join(Renders.directories["desktop"], "desktop.png"), argv[2]
+        )
+        self.assertEqual(("--desktop",), tuple(argv[3:]))
+
+    def test_first_ensure_runs_the_batch_once_and_later_calls_reuse_it(self):
+        Renders.request("applet", "checkbox")
+        fakes = iter([mock.Mock(returncode=0), mock.Mock(returncode=3)])
+        with (
+            mock.patch.object(
+                render_gates.process_runner,
+                "start",
+                side_effect=lambda argv, **kwargs: next(fakes),
+            ) as started,
+            mock.patch.object(
+                render_gates.process_runner,
+                "finish",
+                side_effect=lambda process, timeout=None: ("", ""),
+            ),
+            mock.patch.object(atexit, "register"),
+        ):
+            first = Renders.ensure("checkbox")
+            second = Renders.ensure("applet")
+        self.assertEqual(2, started.call_count)
+        self.assertEqual(3, first[2])
+        self.assertEqual(0, second[2])
+
+    def test_a_failed_batch_reraises_the_same_error_to_every_later_gate(self):
+        Renders.request("applet", "checkbox")
+        error = RuntimeError("render batch broke")
+        with (
+            mock.patch.object(
+                render_gates.process_runner, "start", side_effect=error
+            ),
+            mock.patch.object(render_gates.process_runner, "finish"),
+            mock.patch.object(atexit, "register"),
+        ):
+            with self.assertRaises(RuntimeError) as first:
+                Renders.ensure("applet")
+            with self.assertRaises(RuntimeError) as second:
+                Renders.ensure("checkbox")
+        self.assertIs(error, first.exception)
+        self.assertIs(error, second.exception)
 
 
 if __name__ == "__main__":
