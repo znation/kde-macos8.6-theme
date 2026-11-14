@@ -20,6 +20,14 @@ from tools import firefox_profile, firefox_user_files
 
 
 class TestProfileResolution(FirefoxProfileTestCase):
+    def write_install_default(self, profile, section="Install4F96"):
+        """Create *profile* and name it as the Default of one installs.ini section."""
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            f"[{section}]\nDefault={profile.relative_to(self.firefox_root)}\n",
+        )
+
     def test_explicit_absolute_profile_is_used(self):
         self.assertEqual(self.profile, self.resolve(str(self.profile)))
 
@@ -34,11 +42,7 @@ class TestProfileResolution(FirefoxProfileTestCase):
         # recipe, which must mean "no profile named", as the Makefile's own
         # $(if ...) already treats it, not Path("") == ".".
         profile = self.firefox_root / "Profiles" / "active.default"
-        profile.mkdir(parents=True)
-        _write(
-            self.firefox_root / "installs.ini",
-            f"[Install1234]\nDefault={profile.relative_to(self.firefox_root)}\n",
-        )
+        self.write_install_default(profile, "Install1234")
         self.assertEqual(
             profile,
             self.resolve(None, {"HOME": str(self.home), "FIREFOX_PROFILE": ""}),
@@ -117,20 +121,12 @@ class TestProfileResolution(FirefoxProfileTestCase):
 
     def test_installs_ini_default_is_the_first_candidate(self):
         profile = self.firefox_root / "Profiles" / "installed.default"
-        profile.mkdir(parents=True)
-        _write(
-            self.firefox_root / "installs.ini",
-            "[Install4F96]\nDefault=Profiles/installed.default\n",
-        )
+        self.write_install_default(profile)
         self.assertEqual(profile, self.resolve())
 
     def test_installs_ini_hash_named_section_is_used(self):
         profile = self.firefox_root / "Profiles" / "hash.default"
-        profile.mkdir(parents=True)
-        _write(
-            self.firefox_root / "installs.ini",
-            "[3B6073811A6ABF12]\nDefault=Profiles/hash.default\n",
-        )
+        self.write_install_default(profile, "3B6073811A6ABF12")
         self.assertEqual(profile, self.resolve())
 
     def test_installs_ini_default_with_a_percent_sign_is_read_literally(self):
@@ -139,11 +135,7 @@ class TestProfileResolution(FirefoxProfileTestCase):
         # reader's ConfigError wrap. A profile directory named "100% work"
         # must resolve, not escape discovery as a traceback.
         profile = self.firefox_root / "Profiles" / "100% work"
-        profile.mkdir(parents=True)
-        _write(
-            self.firefox_root / "installs.ini",
-            "[Install4F96]\nDefault=Profiles/100% work\n",
-        )
+        self.write_install_default(profile)
         self.assertEqual(profile, self.resolve())
 
     def test_a_stale_first_installs_section_falls_through_a_later_install(self):
