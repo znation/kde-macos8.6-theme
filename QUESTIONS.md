@@ -7,7 +7,31 @@ each run.
 
 ## Open
 
-_None yet._
+### What should the collapse box do on a window KWin cannot shade?
+
+(asked 2026-11-14 by the director role)
+
+**Context.** The rightmost title-bar box is the Platinum collapse box (KWin's
+shade button, `L` in `ButtonsOnRight=AL`). In Mac OS 8 it rolls the window
+up to its title bar. The user reports it does nothing. The likely cause is
+that KWin shades only X11 windows, so on Wayland-native windows the shade
+request is ignored. The box still draws, and clicking it does nothing (BUGS.md
+"The title bar's collapse box does nothing when clicked"). If that cause is
+confirmed, a theme cannot make KWin shade those windows.
+
+**Options.**
+1. Fall back to minimize: shade when the window can shade, minimize when it
+   cannot. Every click does something, and the box keeps its reference art.
+   The theme's Kvantum MDI buttons already show the collapse box on minimize.
+2. Keep the box but make it visibly inert where shading is unavailable
+   (disabled, no press feedback). This is honest about the behavior, but the
+   box is still dead on most windows.
+3. Hide the box where shading is unavailable (or drop `L` from the layout).
+   No dead button, but the bar no longer matches the reference's zoom +
+   collapse pair.
+
+**Recommendation.** Option 1. It keeps the reference look and gives the
+nearest working behavior.
 
 ## Answered
 

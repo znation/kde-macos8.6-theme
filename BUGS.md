@@ -50,6 +50,43 @@ every inactive pin met the active decoration instead. Not a SIGKILL case;
 the ordinary-failure guarantee stands. A fix belongs to the capture
 (settling the windows' focus state before reading pixels), not to the pins.
 
+### The title bar's collapse box does nothing when clicked (found by the director role 2026-11-14)
+
+**Needs review 2026-11-14 by director: what the box should do on a window KWin cannot shade is the user's call — see QUESTIONS.md "What should the collapse box do on a window KWin cannot shade?"; confirm the cause below first, then apply the chosen option.**
+
+Symptom (user report, 2026-11-14): the rightmost title-bar button does
+nothing when clicked. That button is the collapse box: the theme's button
+layout `ButtonsOnRight=AL` (`theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+mirrored by `tools/apply_theme.py::DECORATION_BUTTONS`) puts zoom (`A`)
+then shade (`L`) at the trailing edge, drawn with
+`theme/aurorae/themes/org.macos8.desktop/shade.svg`. It should do what the
+Mac OS 8 collapse box does: roll the window up to its title bar, then roll it
+back down on a second click.
+
+Reproduce: run `make apply` in a Plasma 6 Wayland session (the user's
+session is Wayland; KWin 6.3.6), focus a Wayland-native window (e.g. Dolphin),
+click the rightmost title-bar box. Nothing happens. Still to check: whether an
+XWayland window (an X11 client) does shade, and what a KWin script prints for
+`workspace.activeWindow.shadeable` on each kind of window in the headless
+render session (`tools/render_session.py`).
+
+Suspected cause (not confirmed): the click handler works, but KWin ignores it.
+`DecorationButton.qml` (the theme's package copy under
+`theme/kwin-decoration/org.macos8.desktop/contents/ui/`) calls
+`decoration.requestToggleShade()`, and KWin skips the request when the window
+is not shadeable. KWin is believed to shade only X11 windows, so Wayland-native
+windows never collapse. The button's `enabled` binding also falls through to
+`default: return true` for `DecorationButtonShade` and never checks
+`decoration.client.shadeable`. As a result the box looks live on a window that
+cannot shade. The decoration's shaded geometry
+(`Decoration.qml`, `decoration.client.shaded`) is already in place for windows
+that can shade.
+
+Fix scope after the question is answered: an `enabled`/click change in
+`DecorationButton.qml` (and a matching `docs/invariants.md` row), with a QML
+structure test beside the existing decoration-package tests. No new
+dependency.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
