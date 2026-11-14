@@ -15,8 +15,8 @@ def refusing_os_errors(error: type[Exception], action: str, path: Path) -> Itera
     ``OSError`` is kept as the cause. Other exceptions pass through unchanged.
     Callers pass their own refusal class so each tool still reports the
     exception type its documentation names. :mod:`tools.gtk_staging`,
-    :mod:`tools.firefox_user_files` and :mod:`tools.firefox_profile_actions`
-    use this helper.
+    :mod:`tools.firefox_user_files`, :mod:`tools.firefox_profile_actions` and
+    :mod:`tools.firefox_transaction` use this helper.
     """
     try:
         yield

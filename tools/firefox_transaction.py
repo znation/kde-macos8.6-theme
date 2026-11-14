@@ -12,6 +12,7 @@ if __package__:
         write_profile_bytes,
         write_profile_text,
     )
+    from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from firefox_user_files import (
         ConfigError,
@@ -19,15 +20,14 @@ else:  # imported from a directly run tool
         write_profile_bytes,
         write_profile_text,
     )
+    from os_error_refusal import refusing_os_errors
 
 
 def _restore_file(path: Path, previous: str | None) -> None:
     """Restore prior text, or remove a file created by the transaction."""
     if previous is None:
-        try:
+        with refusing_os_errors(ConfigError, "restore", path):
             path.unlink(missing_ok=True)
-        except OSError as exc:
-            raise ConfigError(f"cannot restore {path}: {exc}") from exc
     else:
         write_profile_text(path, previous)
 
