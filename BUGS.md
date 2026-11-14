@@ -112,6 +112,10 @@ the module is green in isolation.
 
 The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### post-merge review of 97c2d854 never reached a verdict (found by the review role 2026-11-14)
+
+The post-merge review of commit `97c2d85400ffd155250e63bdd3000a89984bd69d` (recovered leftover work from bugfix: Widen client-exit stub test budget and pin slow-capture case) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
