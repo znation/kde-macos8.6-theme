@@ -140,12 +140,12 @@ def worst_pixel_limit(value: str) -> int:
     """Return a ``--worst-pixels`` limit in the inclusive range 1..1000."""
     if not value or not value.isascii() or not value.isdecimal():
         raise argparse.ArgumentTypeError(
-            "--worst-pixels must be an ASCII integer from 1 to 1000"
+            f"--worst-pixels must be an ASCII integer from 1 to 1000: {value!r}"
         )
     number = int(value)
     if not 1 <= number <= 1000:
         raise argparse.ArgumentTypeError(
-            "--worst-pixels must be an ASCII integer from 1 to 1000"
+            f"--worst-pixels must be an ASCII integer from 1 to 1000: {value!r}"
         )
     return number
 
@@ -159,7 +159,7 @@ def _nonnegative_ascii_int(value: str, option: str) -> int:
     """
     if not value or not value.isascii() or not value.isdecimal():
         raise argparse.ArgumentTypeError(
-            f"{option} must be a nonnegative ASCII integer"
+            f"{option} must be a nonnegative ASCII integer: {value!r}"
         )
     return int(value)
 

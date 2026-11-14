@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import re
 import unittest
 from unittest import mock
 
@@ -80,6 +81,14 @@ class TestFidelityCliParser(unittest.TestCase):
             ):
                 fidelity_arguments.worst_pixel_limit(value)
 
+    def test_worst_pixel_limit_refusal_names_the_rejected_value(self):
+        for value in ("0", "1001", "+1", "1.0"):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError,
+                re.escape("from 1 to 1000: " + repr(value)) + "$",
+            ):
+                fidelity_arguments.worst_pixel_limit(value)
+
     def test_worst_pixel_offset_accepts_nonnegative_ascii_decimal(self):
         self.assertEqual(fidelity_arguments.worst_pixel_offset("0"), 0)
         self.assertEqual(fidelity_arguments.worst_pixel_offset("123"), 123)
@@ -88,6 +97,13 @@ class TestFidelityCliParser(unittest.TestCase):
                 fidelity_arguments.argparse.ArgumentTypeError, "nonnegative ASCII integer"
             ):
                 fidelity_arguments.worst_pixel_offset(value)
+
+    def test_offset_refusal_names_the_rejected_value(self):
+        with self.assertRaisesRegex(
+            fidelity_arguments.argparse.ArgumentTypeError,
+            r"--worst-pixel-offset must be a nonnegative ASCII integer: '-1'$",
+        ):
+            fidelity_arguments.worst_pixel_offset("-1")
 
     def test_run_offset_converters_accept_nonnegative_ascii_decimal_and_reject_otherwise(self):
         for converter, flag in (
