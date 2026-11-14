@@ -276,8 +276,7 @@ class TestDurationsRecorded(unittest.TestCase):
         tests_dir = make_suite_dir(self)
         for name, source in (("test_ok.py", OK_MODULE),
                              ("test_slow.py", SLEEPER_MODULE)):
-            with open(os.path.join(tests_dir, name), "w", encoding="utf-8") as sink:
-                sink.write(source)
+            _write_module(tests_dir, name, source)
         log_paths = {
             module: os.path.join(tests_dir, f"{module}.log")
             for module in ("test_ok", "test_slow")
@@ -309,9 +308,7 @@ class TestDurationsRecorded(unittest.TestCase):
             "    def test_runs(self):\n"
             "        time.sleep(5)\n"
         )
-        with open(os.path.join(tests_dir, "test_slow.py"), "w",
-                  encoding="utf-8") as sink:
-            sink.write(long_sleeper)
+        _write_module(tests_dir, "test_slow.py", long_sleeper)
         log_paths = {"test_slow": os.path.join(tests_dir, "test_slow.log")}
 
         statuses, durations = self.supervise(
@@ -338,9 +335,7 @@ class TestDurationsRecorded(unittest.TestCase):
         # no worker time to report, it contributes no duration and the next
         # run keeps it (and everything else) in discovery order.
         tests_dir = make_suite_dir(self)
-        with open(os.path.join(tests_dir, "test_ok.py"), "w",
-                  encoding="utf-8") as sink:
-            sink.write(OK_MODULE)
+        _write_module(tests_dir, "test_ok.py", OK_MODULE)
         missing = make_tmp_dir(self) / "missing-dir" / "worker.log"
         with mock.patch("sys.stderr"):
             statuses, durations = self.supervise(
