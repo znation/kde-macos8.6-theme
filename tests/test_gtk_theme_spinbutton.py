@@ -258,6 +258,5 @@ print("vertical spin button: one 1px black line per field/stepper join in LTR an
         self._run_gtk_child(program, str(CSS))
 
 
-
 if __name__ == "__main__":
     unittest.main()
