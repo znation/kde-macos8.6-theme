@@ -24,6 +24,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
 from tools.gtk_staging import _stage, commit, discard, stage_all
@@ -169,8 +170,7 @@ class TestCommit(StagingCase):
     def test_renames_each_staged_file_over_its_target(self):
         first = self.root / "gtk-3.0" / "settings.ini"
         second = self.root / "gtk-4.0" / "settings.ini"
-        first.parent.mkdir(parents=True)
-        first.write_text("old\n", encoding="utf-8")
+        write_file(first, "old\n")
         staged = stage_all([(first, "new first\n"), (second, "new second\n")])
 
         commit(staged)
@@ -185,8 +185,7 @@ class TestCommit(StagingCase):
     ):
         good = self.root / "gtk-3.0" / "settings.ini"
         blocked = self.root / "gtk-4.0" / "settings.ini"
-        good.parent.mkdir(parents=True)
-        good.write_text("old good\n", encoding="utf-8")
+        write_file(good, "old good\n")
         staged = stage_all([(good, "new good\n"), (blocked, "new blocked\n")])
         # The second target's rename raises after the first target has already
         # been replaced, so the commit must restore the first rather than
@@ -222,8 +221,7 @@ class TestCommit(StagingCase):
 
     def test_a_failed_first_rename_leaves_no_backup_sibling(self):
         target = self.root / "gtk-3.0" / "settings.ini"
-        target.parent.mkdir(parents=True)
-        target.write_text("old settings\n", encoding="utf-8")
+        write_file(target, "old settings\n")
         staged = stage_all([(target, "new settings\n")])
 
         with mock.patch.object(os, "replace", self.fail_the_staged_rename(target)):
@@ -243,8 +241,7 @@ class TestCommit(StagingCase):
         # selection half-applied with a hidden backup beside it.
         good = self.root / "gtk-3.0" / "settings.ini"
         interrupted = self.root / "gtk-4.0" / "settings.ini"
-        good.parent.mkdir(parents=True)
-        good.write_text("old good\n", encoding="utf-8")
+        write_file(good, "old good\n")
         staged = stage_all([(good, "new good\n"), (interrupted, "new blocked\n")])
         real_replace = os.replace
 
@@ -270,8 +267,7 @@ class TestCommit(StagingCase):
 
     def test_a_failed_removal_unlink_leaves_no_backup_sibling(self):
         css = self.root / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True)
-        css.write_text("marker\n", encoding="utf-8")
+        write_file(css, "marker\n")
 
         with unlink_failing_for(css):
             with self.assertRaises(ConfigError):
@@ -284,8 +280,7 @@ class TestCommit(StagingCase):
 
     def test_run_a_second_commit_after_a_failure_leaves_no_backups(self):
         target = self.root / "gtk-3.0" / "settings.ini"
-        target.parent.mkdir(parents=True)
-        target.write_text("old settings\n", encoding="utf-8")
+        write_file(target, "old settings\n")
         staged = stage_all([(target, "new settings\n")])
 
         with mock.patch.object(os, "replace", self.fail_the_staged_rename(target)):
@@ -299,8 +294,7 @@ class TestCommit(StagingCase):
 
     def test_a_failed_restore_is_reported_with_the_original_failure(self):
         target = self.root / "gtk-3.0" / "settings.ini"
-        target.parent.mkdir(parents=True)
-        target.write_text("old settings\n", encoding="utf-8")
+        write_file(target, "old settings\n")
         blocked = self.root / "gtk-4.0" / "settings.ini"
         staged = stage_all(
             [(target, "new settings\n"), (blocked, "new blocked\n")]
@@ -327,8 +321,7 @@ class TestCommit(StagingCase):
 
     def test_removals_delete_the_named_files_and_leave_no_backup(self):
         css = self.root / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True)
-        css.write_text("marker\n", encoding="utf-8")
+        write_file(css, "marker\n")
 
         commit([], removals=[css])
 
@@ -383,8 +376,7 @@ class TestCommit(StagingCase):
 
     def test_a_foreign_backup_sibling_is_left_untouched(self):
         target = self.root / "gtk-3.0" / "settings.ini"
-        target.parent.mkdir(parents=True)
-        target.write_text("old settings\n", encoding="utf-8")
+        write_file(target, "old settings\n")
         foreign = target.with_name(f".{target.name}.backup")
         foreign.write_text("user data\n", encoding="utf-8")
 
@@ -396,11 +388,9 @@ class TestCommit(StagingCase):
 
     def test_a_failed_removal_restores_earlier_replacements_and_removals(self):
         target = self.root / "gtk-3.0" / "settings.ini"
-        target.parent.mkdir(parents=True)
-        target.write_text("old settings\n", encoding="utf-8")
+        write_file(target, "old settings\n")
         css = self.root / "gtk-4.0" / "gtk.css"
-        css.parent.mkdir(parents=True)
-        css.write_text("marker\n", encoding="utf-8")
+        write_file(css, "marker\n")
         blocked = self.root / "blocked"
         blocked.mkdir()
         staged = stage_all([(target, "new settings\n")])
@@ -468,8 +458,7 @@ class TestCommit(StagingCase):
         # back the target the commit already replaced.
         good = self.root / "gtk-3.0" / "settings.ini"
         blocked = self.root / "gtk-4.0" / "settings.ini"
-        good.parent.mkdir(parents=True)
-        good.write_bytes(b"old good\n")
+        write_file(good, b"old good\n")
         blocked.mkdir(parents=True)
         # A directory target cannot be staged (stage_all refuses it before
         # the commit ever runs), so a commit reaches this branch through a

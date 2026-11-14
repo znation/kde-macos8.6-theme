@@ -89,9 +89,9 @@ def write_file(path, body):
     tools/check_references_selftest.py stages inline in ``tools`` rather
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
+    tests/test_gtk_staging.py's mkdir-then-write pairs now call write_file.
     Still unconverted next-run material includes the further
-    mkdir-then-write_text staging family in tests/test_gtk_staging.py,
-    tests/test_apply_cursor.py, tests/test_apply_gtk_errors.py,
+    mkdir-then-write_text staging family in tests/test_apply_cursor.py,tests/test_apply_gtk_errors.py,
     tests/test_install_firefox.py (the ``user.js`` fixture),
     tests/test_firefox_profile.py, tests/test_local_hook.py
     (``write_fake_make``), tests/test_make_cursors.py, tests/test_svg_case.py,
