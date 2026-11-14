@@ -1,6 +1,6 @@
 """Pin the render batch's bookkeeping in ``support.render_gates.Renders``.
 
-The real capture gates run ``Rends``' batch only on a host with the Plasma
+The real capture gates run ``Renders``' batch only on a host with the Plasma
 tools present, and there the observable failure is a wrong capture, not a
 failing unit test: a swapped kind order, a hostile environment dropped from
 the calendar-locale render, a shared default timeout that SIGKILLs the
@@ -42,6 +42,9 @@ class TestRenderBatch(unittest.TestCase):
         Renders.failure = None
 
     def tearDown(self):
+        # The batch made real scratch directories; sweep them before the
+        # saved table comes back, or every run leaks them into the temp dir.
+        Renders._remove_directories()
         (
             Renders.requested,
             Renders.directories,
@@ -60,14 +63,16 @@ class TestRenderBatch(unittest.TestCase):
 
         def fake_start(argv, **kwargs):
             started.append((argv, kwargs))
-            return mock.Mock(returncode=None)
+            return mock.Mock(returncode=None, argv=argv)
 
         finished = []
 
         def fake_finish(process, timeout=None):
             finished.append((process, timeout))
-            process.returncode = 0
-            return ("out", "err")
+            # Each session answers with its own capture path and a distinct
+            # exit status, so a result filed under the wrong kind shows.
+            process.returncode = len(finished)
+            return (f"out {process.argv[2]}", f"err {process.argv[2]}")
 
         Renders.request(*kinds)
         with (
@@ -116,7 +121,9 @@ class TestRenderBatch(unittest.TestCase):
         self.assertEqual(
             dict(
                 os.environ,
-                **Renders.HOSTILE_ENVIRONMENTS["calendar_locale"],
+                LANG="de_DE.UTF-8",
+                LC_ALL="de_DE.UTF-8",
+                LANGUAGE="de",
             ),
             by_capture["dialog.png"]["env"],
         )
@@ -135,11 +142,16 @@ class TestRenderBatch(unittest.TestCase):
     def test_each_requested_kind_receives_its_recorded_result(self):
         started, _ = self._run_with_stubbed_runner("checkbox", "splash")
         self.assertEqual({"checkbox", "splash"}, set(Renders.results))
-        for kind in ("checkbox", "splash"):
+        # KINDS order finishes checkbox first (exit 1), then splash (exit 2).
+        for kind, capture, status in (
+            ("checkbox", "dialog.png", 1),
+            ("splash", "splash.png", 2),
+        ):
             stdout, stderr, returncode, directory = Renders.results[kind]
-            self.assertEqual("out", stdout)
-            self.assertEqual("err", stderr)
-            self.assertEqual(0, returncode)
+            path = os.path.join(directory, capture)
+            self.assertEqual(f"out {path}", stdout)
+            self.assertEqual(f"err {path}", stderr)
+            self.assertEqual(status, returncode)
             # The directory recorded is the scratch tree the render's
             # capture path was placed in, so a gate reading its output
             # finds it under the same tree the batch cleaned up.
