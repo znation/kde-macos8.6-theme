@@ -87,10 +87,6 @@ Fix scope after the question is answered: an `enabled`/click change in
 structure test beside the existing decoration-package tests. No new
 dependency.
 
-### post-merge review of 678f72a1 never reached a verdict (found by the review role 2026-11-14)
-
-The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
 
 **Symptom:** the same failure shape recurs across the render suite. A render test waits a fixed

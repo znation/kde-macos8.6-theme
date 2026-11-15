@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 678f72a1 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
+
+The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** no code change; the commit is test-only (`tests/test_cursor_vector.py`). Checked: the repeated-vertex face `((8, 8), (24, 8), (24, 24), (16, 24), (16, 24), (8, 24))` traces the same polygon as the plain square, since `(16, 24)` lies on the bottom edge and the repeat adds only a zero-length edge, so the invariant the test pins holds. The zero-length edge reaches the `length_sq == 0` branch of `_segment_distance` (`tools/cursor_vector.py:131`); removing that guard would raise `ZeroDivisionError` and fail the test, so the test does reach the branch. `make check CHECK_PATTERN='test_cursor_vector*.py'` ran 34 tests, all OK.
+
+**Validation gap:** none — the existing cursor-vector module exercises the repeated-vertex case directly, and the review needed no fake or real run.
+
 ### post-merge review of 97c2d854 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
 
 The post-merge review of commit `97c2d85400ffd155250e63bdd3000a89984bd69d` (recovered leftover work from bugfix: Widen client-exit stub test budget and pin slow-capture case) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
