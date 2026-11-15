@@ -189,9 +189,11 @@ def run_logged(
             return wait_bounded(process, timeout, f"run_logged {argv[0]}")
         except WaitExpired as expired:
             # Still None for the caller; the log records which wait expired.
-            # A failed note write must not replace the timeout result.
+            # A failed note write must not replace the timeout result, so it
+            # goes straight to the descriptor: a buffered write would defer a
+            # disk-full error to the sink's close, outside this suppress.
             with contextlib.suppress(OSError):
-                sink.write(f"{expired}\n".encode())
+                os.write(sink.fileno(), f"{expired}\n".encode())
             return None
         finally:
             kill_group(process)

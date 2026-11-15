@@ -125,6 +125,16 @@ class TestRunLogged(unittest.TestCase):
         text = self.log.read_text(encoding="utf-8")
         self.assertIn("run_logged sh did not finish within 0.5s", text)
 
+    @unittest.skipUnless(os.path.exists("/dev/full"), "needs /dev/full")
+    def test_timeout_stays_none_when_the_log_cannot_take_the_note(self):
+        # /dev/full fails every write with ENOSPC. A buffered note would
+        # defer that error to the sink's close and raise it in place of the
+        # timeout result; the caller must still get None.
+        status = process_group.run_logged(
+            ["sleep", "60"], dict(os.environ), Path("/dev/full"), 0.5, self.root
+        )
+        self.assertIsNone(status)
+
     def test_timeout_returns_none_and_kills_the_group(self):
         # The shell must fork its background sleep and write its pid before
         # the timeout fires, or the group has no member to check. A loaded
