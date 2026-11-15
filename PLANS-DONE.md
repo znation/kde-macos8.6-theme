@@ -5,6 +5,81 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the column-view header and list-view row checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
+
+**Goal.** Move two `TestGtk4Theme` checks for the column-view and
+list-view surfaces out of `tests/test_gtk4_theme.py` into their own module:
+`test_tree_and_column_headers` (the `columnview.view` and `treeview.view`
+header buttons and their sort-indicator arrows) and
+`test_columnview_and_listview_rows` (the list-view row hover and the
+column-view/list-view selected-row fills). At this plan's base commit
+`test_tree_and_column_headers` sits between `test_submenu_arrow` and
+`test_text_selection`, and `test_columnview_and_listview_rows` sits between
+`test_header_drop_indicator` and `test_spinner`. No stylesheet or
+production behavior changes.
+
+This entry is independent of the extractions queued or pending above
+(rubberband and drag-and-drop indicators; content-view field and
+places-view server button). Neither moves these methods. All of them edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever merges
+later re-reads the file and the rows before writing and rewrites only its
+own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_list_views.py` with `class
+  TestGtk4ListViews(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_treeview.py`: "GTK 4 treeview declaration
+  checks moved out of ``test_gtk4_theme``."), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move
+  `test_tree_and_column_headers` first, then
+  `test_columnview_and_listview_rows`, with bodies and comments unchanged.
+  Never import `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+  Leave `tests/test_gtk4_treeview.py` and every other existing module
+  unchanged. At implementation, re-grep every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_tree_header` and `assert_rule`. The bodies name two module-level
+  constants, `ROW_HOVER` and `ROW_SELECTED` (import both from
+  `support.gtk_theme_spec`). Re-grep the moved bodies for upper-case names
+  before writing the import block.
+- In the source module's import block, drop `ROW_HOVER` and
+  `ROW_SELECTED`: at this plan's base commit
+  `test_columnview_and_listview_rows` is the only user of each in
+  `tests/test_gtk4_theme.py`. Keep every other import unless the
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  reports it; that scanner is the judge.
+- In `docs/invariants.md`, rewrite each anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the two methods to
+  `tests/test_gtk4_list_views.py::TestGtk4ListViews::<method>`. At this
+  plan's base commit only `test_tree_and_column_headers` is anchored, once,
+  in the "Both GTK sheets paint the tree-view and column-view header
+  buttons as the raised Platinum push button" row;
+  `test_columnview_and_listview_rows` has no anchor, so add none. Leave the
+  rest of that row's text, including its GTK 3 anchors, untouched. Do not
+  rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the two methods exactly once under
+  `test_gtk4_list_views.TestGtk4ListViews`, and neither under
+  `test_gtk4_theme.TestGtk4Theme`. `test_submenu_arrow`,
+  `test_text_selection` and `test_spinner` are still listed under
+  `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(tree_and_column_headers|columnview_and_listview_rows)\b' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchor.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 25 lines, and
+  `tests/test_gtk4_list_views.py` stays under about 45 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_list_views.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the content-view field and places-view server-button checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
 
 **Goal.** Move two `TestGtk4Theme` checks for the file-browser view surfaces

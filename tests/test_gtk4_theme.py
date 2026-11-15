@@ -19,8 +19,6 @@ from support.gtk_theme_spec import (
     DISABLED_TEXT,
     ETCH_DARK,
     SHEET_PALETTE,
-    ROW_HOVER,
-    ROW_SELECTED,
 )
 from support.platinum_palette import (
     BLACK,
@@ -260,22 +258,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
             ("popover.menu modelbutton > arrow.right",), sized=False
         )
 
-    def test_tree_and_column_headers(self):
-        selectors = (
-            "columnview.view > header > button",
-            "treeview.view > header > button",
-        )
-        self.assert_tree_header(selectors)
-        for selector in selectors:
-            self.assert_rule(
-                f"{selector} sort-indicator.ascending",
-                {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'},
-            )
-            self.assert_rule(
-                f"{selector} sort-indicator.descending",
-                {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'},
-            )
-
     def test_text_selection(self):
         self.assert_text_selection(
             (
@@ -307,16 +289,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assert_disabled_text((selector,))
         self.assert_rule(selector, {**DISABLED_TEXT, "opacity": "1"})
         self.assertEqual(strip_comments(self.css).count(selector), 1)
-
-    def test_columnview_and_listview_rows(self):
-        self.assert_rule("listview > row.activatable:hover", ROW_HOVER)
-        for selector in (
-            "columnview.view:selected",
-            "columnview.view:selected:hover",
-            "listview > row.activatable:selected",
-            "listview > row.activatable:selected:hover",
-        ):
-            self.assert_rule(selector, ROW_SELECTED)
 
     def test_spinner(self):
         self.assert_spinner("transform")
