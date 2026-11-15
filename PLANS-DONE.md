@@ -5,6 +5,87 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the scrolled-window undershoot, overshoot and junction declarations (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large
+`TestGtk4Theme` class. This entry moves its contiguous run of three
+scrolled-window edge methods into their own module, the same way the
+merged scrollbar, row-corner and widget-corner extractions moved
+theirs. The three methods are `test_undershoot_bands_cleared`,
+`test_overshoot_fades_cleared` and
+`test_scrolled_corner_junction_shares_the_scrollbar_band`. All three
+pin what a `scrolledwindow` paints at its edges and corner. This entry
+is independent of the waiting GTK 3 controls suite split, which never
+touches `tests/test_gtk4_theme.py`. No stylesheet or production
+behavior changes.
+
+**Approach and files.**
+- Create `tests/test_gtk4_scrolledwindow.py` with `class
+  TestGtk4ScrolledWindow(Gtk4SheetRuleCases, unittest.TestCase)`. Give
+  it a one-line module docstring that follows
+  `tests/test_gtk4_scrollbar.py` ("GTK 4 scrolled-window declaration
+  checks moved out of ``test_gtk4_theme``.") and the `if __name__ ==
+  "__main__":` guard. Move exactly the three methods named above and
+  keep each body, comment and docstring unchanged. At this plan's base
+  commit they form one contiguous run between the staying
+  `test_columnview_and_listview_rows` above and the staying
+  `test_headerbar_meter_faces` below. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation time, re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`, `TROUGH` from `support.platinum_palette`, and
+  nothing else beyond `unittest` (plus `from __future__ import
+  annotations`, as the sibling modules have). Every helper the bodies
+  call comes with the base class: `assert_rule`, `assert_exact_rule_once`
+  (`tests/support/gtk4_sheet.py`), and `self.rules` and `self.selectors`
+  from the shared `setUpClass`. `TROUGH` stays imported in
+  `tests/test_gtk4_theme.py`, because `test_headerbar_meter_faces` and
+  `TestScrollbarBreadthReference` still use it, so no import is pruned
+  from the source module.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_undershoot_bands_cleared`,
+  `…::test_overshoot_fades_cleared` and
+  `…::test_scrolled_corner_junction_shares_the_scrollbar_band` anchor
+  to `tests/test_gtk4_scrolledwindow.py::TestGtk4ScrolledWindow::…`.
+  At this plan's base commit, `grep -o` finds exactly three member
+  mentions, one of each. The undershoot and overshoot names sit in the
+  scroll-edge-effects row ("GTK 4 scroll-edge effects declare
+  nothing: …"). The junction name sits in the scrollbar-corner
+  junction row ("A Platinum GTK 4 scrolled window paints its
+  scrollbar-corner junction …"). Rewrite only those three mentions and
+  leave every other anchor in those rows as it reads. Do not rewrite
+  history in PLANS-DONE.md or BUGS-FIXED.md. `git grep` finds no other
+  tracked reference to the three names outside the source module.
+- Out of scope: `_scrollbar_rules`, `TestScrollbarBreadthRules` and
+  `TestScrollbarBreadthReference` at the end of the module stay where
+  they are.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three moved methods exactly
+  once, under `test_gtk4_scrolledwindow.TestGtk4ScrolledWindow`, and
+  none of them under `test_gtk4_theme.TestGtk4Theme`. Every other
+  `TestGtk4Theme` method is still listed there, including
+  `test_columnview_and_listview_rows` and `test_headerbar_meter_faces`.
+- For each moved method, the AST of its function definition is
+  identical to the original's at this plan's base commit. Check this
+  once during the run (for example by comparing `ast.dump` output); it
+  is a run-time check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_undershoot_bands_cleared\|TestGtk4Theme::test_overshoot_fades_cleared\|TestGtk4Theme::test_scrolled_corner_junction_shares_the_scrollbar_band' docs/invariants.md`
+  prints nothing, and each of the three rewritten mentions reads
+  `tests/test_gtk4_scrolledwindow.py::TestGtk4ScrolledWindow`. Every
+  other anchor in the two touched rows stays as it reads, and the
+  invariants checker inside `make check` resolves every new anchor.
+- `git diff` leaves the import block of `tests/test_gtk4_theme.py`
+  unchanged. The new module's import block names only `__future__`,
+  `unittest`, `support.gtk4_sheet` and `support.platinum_palette`. The
+  unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 75 lines, and
+  `tests/test_gtk4_scrolledwindow.py` stays under about 110 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_scrolledwindow.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ### GTK 3 controls suite split, part 11/11: move the switch, spinner, level-bar, notebook and bar-title methods into two suites (planned 2026-11-14 by the plan role; "requires part 2/11 landed") — done 2026-11-14 by the feature role
 
 **Goal.** Move `test_spinner`, `test_levelbar`, `test_switch`,
