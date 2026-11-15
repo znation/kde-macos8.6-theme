@@ -95,10 +95,6 @@ The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin 
 
 The post-merge review of commit `97c2d85400ffd155250e63bdd3000a89984bd69d` (recovered leftover work from bugfix: Widen client-exit stub test budget and pin slow-capture case) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
-### post-merge review of abed33a8 never reached a verdict (found by the review role 2026-11-14)
-
-The post-merge review of commit `abed33a89d4f092539e25603691fd80876c824eb` (Pin XDG_CONFIG_HOME in the apply-theme test's isolated env) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
-
 ### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
 
 **Symptom:** the same failure shape recurs across the render suite. A render test waits a fixed

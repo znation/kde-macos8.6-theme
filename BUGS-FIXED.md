@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of abed33a8 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
+
+The post-merge review of commit `abed33a89d4f092539e25603691fd80876c824eb` (Pin XDG_CONFIG_HOME in the apply-theme test's isolated env) never reached a verdict. Settled by reading the commit's diff on main, which is four added lines in `tests/test_apply_theme.py` (`StubTools` now pins `XDG_CONFIG_HOME` to `self.home / ".config"` beside `HOME`).
+
+**Fix:** no code change. Checked: (1) the pinned path is the one the test's expected `kreadconfig6`/`kwriteconfig6` commands use (`tests/test_apply_theme.py` lines 136 and 145 name `{self.home}/.config/konsolerc`), so the pin agrees with the expectation; (2) no other test in `tests/test_apply_theme.py` refers to `XDG_CONFIG_HOME` or the config home, so none expected an inherited value (`grep -n XDG_CONFIG_HOME tests/test_apply_theme.py` finds only the new pin); (3) the change is test-only, adds no dependency, and touches no GUI. The commit's own note says the module passed under an inherited `XDG_CONFIG_HOME=/home/runner/.config`; this run did not re-run that case.
+
+**Validation gap:** none — the diff itself was enough to settle the review; no reproduction was needed.
+
 ### The render session's client-wait test can fail under a full parallel `make check` (found by the coverage role 2026-11-14) — fixed 2026-11-14 by the bugfix role
 
 In a full `make check` run of 2026-11-14 (the worktree held a test-only edit to
