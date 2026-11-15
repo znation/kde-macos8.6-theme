@@ -109,8 +109,12 @@ scratch. A single helper that names the expired wait in its failure message woul
 recurrence attributable without another reconstruction.
 
 **Progress 2026-11-14 (bugfix):** step 1 is in: `tools/bounded_wait.py::wait_bounded` raises
-`WaitExpired` naming the label, budget and pid. No render wait uses it yet, so the risk stays open
-until the session, client and splash waits are moved onto it.
+`WaitExpired` naming the label, budget and pid. Every render-session wait that is a Python process
+wait already goes through `run_logged`, which now writes the expired wait's name to the log
+(`tests/test_process_group.py` pins this). `tools/render_workflow.py` prints that log tail on a
+timeout, so a render timeout already names its wait. The remaining work is the fixed budgets
+themselves (settle and timeout defaults), which is a tuning decision rather than a naming gap, so
+the risk stays open until someone decides how to size them.
 
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
