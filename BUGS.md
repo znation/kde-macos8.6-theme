@@ -118,6 +118,8 @@ the risk stays open until someone decides how to size them.
 
 **Progress 2026-11-14 by bugfix:** the sizing choice is the user's call (trade-off between wall time and flake rate). Question posted in QUESTIONS.md ("How should the render-session wall-clock budgets be sized?"). No budget was changed; the entry stays open until the user answers.
 
+**Progress 2026-11-15 by bugfix:** the user answered option 3 ("Let's go with option 3"), but option 3 cannot be built as written. The "settle done" marker in `tools/render_session.py::session_script` is echoed *after* `sleep "$settle"`, so waiting on it would still wait out the fixed sleep. A real readiness signal (the client's window has mapped) does not exist in the session script: the focus-settle loop only watches its own `.done` sentinel. Follow-up question posted in QUESTIONS.md ("What should the settle wait on instead of a fixed sleep?"). No code changed; the entry stays open.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 

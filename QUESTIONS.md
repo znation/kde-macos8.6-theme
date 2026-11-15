@@ -7,7 +7,31 @@ each run.
 
 ## Open
 
-_None yet._
+### What should the settle wait on instead of a fixed sleep?
+
+(asked 2026-11-15 by the bugfix role, follow-up to "How should the render-session wall-clock budgets be sized?")
+
+**Context.** You answered option 3: wait on the session's own "settle done" marker, keeping the
+current budget as a ceiling. The marker exists, but it is echoed *after* the fixed
+`sleep "$settle"` in `tools/render_session.py::session_script`, so waiting on it would still wait
+out the full sleep and change nothing. Option 3 needs a signal that the client is ready before the
+capture, and the session script has none: the focus-settle loop only watches its own `.done`
+sentinel. Building that signal means a KWin-side or client-side readiness write, and it can only
+be checked on a real nested session, which this run cannot do offline.
+
+**Options.**
+1. Readiness from the KWin side: a settle script (loaded like `focus_settle_text`) reports once the
+   client's window is mapped and active, and the sh loop waits on that report with the current
+   budget as the ceiling. Closest to option 3's intent; needs a bounded real-session run to confirm
+   the signal fires.
+2. Readiness from the client: the client writes a ready file once its window is shown. Touches
+   every client launch path (plasmashell, ksplashqml, the dialog wrapper); the tests already stub
+   this pattern (`tests/test_render_surface_units.py`, the client-exit test).
+3. Keep the fixed budget (option 1 of the earlier question) and close the entry as a tuning choice.
+
+**Recommendation.** Option 1. It addresses the cause, is contained to the settle script, and the
+test harness already has a stub for a polled readiness wait. Option 3 is acceptable if the flake
+rate is tolerable. (Bugfix role, 2026-11-15.)
 
 ## Answered
 
