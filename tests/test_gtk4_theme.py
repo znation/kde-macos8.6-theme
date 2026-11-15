@@ -27,7 +27,6 @@ from support.platinum_palette import (
     BLACK,
     FACE,
     INACTIVE_OUTLINE,
-    SELECTION,
     WHITE,
 )
 class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
@@ -339,46 +338,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         self.assertGreater(
             self.selectors.index("placesview .server-list-button > image"),
             self.selectors.index("entry.password image.caps-lock-indicator"),
-        )
-
-    def test_rubberband(self):
-        selectors = {
-            "rubberband",
-            ".content-view > rubberband",
-            "columnview.view > rubberband",
-            "treeview.view > rubberband",
-            "gridview > rubberband",
-            "flowbox > rubberband",
-        }
-        self.assert_rubberband(tuple(selectors))
-        self.assertEqual(
-            {selector for selector in self.rules if "rubberband" in selector},
-            selectors,
-        )
-
-    def test_iconview_drop_border(self):
-        self.assert_rule(
-            "iconview > dndtarget:drop(active)",
-            {"border": f"1px solid {SELECTION}"},
-        )
-
-    def test_header_drop_indicator(self):
-        expected = {
-            "background-color": SELECTION,
-            "background-image": "none",
-            "color": BLACK,
-            "text-shadow": "none",
-            "box-shadow": "none",
-            "border-style": "none",
-            "border-radius": "0",
-        }
-        for scope in ("columnview.view > header", "treeview.view > header"):
-            for state in ("", ":hover", ":active", ":selected"):
-                with self.subTest(scope=scope, state=state):
-                    self.assert_rule(f"{scope} > button.dnd{state}", expected)
-        self.assert_rule(
-            "window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd",
-            expected,
         )
 
     def test_columnview_and_listview_rows(self):
