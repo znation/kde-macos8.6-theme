@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### post-merge review of 97c2d854 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
+
+The post-merge review of commit `97c2d85400ffd155250e63bdd3000a89984bd69d` (recovered leftover work from bugfix: Widen client-exit stub test budget and pin slow-capture case) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
+
+**Fix:** no code change. Checked: (1) the commit's test change in `tests/test_render_surface_units.py` (`TestSessionScript`, client-exit test) widens the outer budget from 5 to 30 seconds, the stub client's `alarm(5)` to `alarm(30)`, and adds a 5.5-second capture subtest; (2) the commit records that the subtest fails on the old 5-second budget with `0 != None` and passes on the wider one; (3) on the current tree `make check CHECK_PATTERN='test_render_surface_units*.py'` ran 155 tests, all OK, exit 0; (4) the session finishes well inside 30 seconds (the commit recorded a 6.6-second run for the slow subtest), so the client's `alarm(30)` does not fire before SIGTERM; (5) the change is test-only and adds no dependency or GUI. The budget is widened rather than the wait made named; the structural bounded-wait risk stays open as its own entry.
+
+**Validation gap:** none — the 5.5-second stub-capture subtest now in `tests/test_render_surface_units.py` reproduces the old 5-second expiry in the existing suite, so nothing was missing.
+
 ### post-merge review of abed33a8 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
 
 The post-merge review of commit `abed33a89d4f092539e25603691fd80876c824eb` (Pin XDG_CONFIG_HOME in the apply-theme test's isolated env) never reached a verdict. Settled by reading the commit's diff on main, which is four added lines in `tests/test_apply_theme.py` (`StubTools` now pins `XDG_CONFIG_HOME` to `self.home / ".config"` beside `HOME`).
