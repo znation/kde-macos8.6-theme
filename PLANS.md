@@ -208,6 +208,95 @@ lines.
   `tests/test_gtk4_entry_fields.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate the residual, alert-dialog, selection-surface and sheet-widget corner checks (planned 2026-11-14 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move its four tail square-corner checks into their own module, the
+way the merged widget-corner, frame-corner and row-corner extractions moved
+theirs. These are `test_residual_radius_corners`,
+`test_alert_dialog_corners`, `test_selection_surface_corners` and
+`test_sheet_widget_corners`. At this plan's base commit they sit as one
+contiguous run after `test_color_button_and_menubutton_container_corners`
+and before `test_toolbar_and_menubar`. No stylesheet or production behavior
+changes.
+
+This entry is independent of the entry-field entry above and of the
+bar-family focus-outline change waiting to merge. Those move other methods.
+All three edit `tests/test_gtk4_theme.py` and `docs/invariants.md`, though,
+so whichever merges later re-reads the file and the rows before writing,
+and rewrites only its own anchors. `tests/test_gtk4_widget_corners.py`
+already exists. This entry adds a new module rather than growing that one
+past about 300 lines.
+
+**Approach and files.**
+- Create `tests/test_gtk4_surface_corners.py` with `class
+  TestGtk4SurfaceCorners(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_frame_corners.py`), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move the four
+  methods, keeping every body, comment and docstring unchanged, in their
+  current order. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation, re-grep every anchor this entry
+  names.
+- The moved bodies get every helper they call from the base class in
+  `tests/support/gtk4_sheet.py`: `assert_exact_rule_once`,
+  `assert_matches_frame` and `assert_square_corner`, plus `self.rules` and
+  `self.selectors` from the shared `setUpClass`.
+- The new module imports `Gtk4SheetRuleCases` from `support.gtk4_sheet` and
+  `SELECTION` from `support.platinum_palette`, and nothing else beyond
+  `unittest`. At this plan's base commit, `test_selection_surface_corners`
+  is the only one of the four that names a module-level constant
+  (`SELECTION`); its `#CCCCFF` literals are plain strings. No moved body
+  uses `re`, `HEX`, `strip_comments` or any `support.gtk_theme_spec` name.
+  Check each of these by grep before writing the import block.
+- Leave the source module's imports alone unless a grep shows a name
+  unused. At this plan's base commit, `SELECTION` is still used by several
+  remaining methods (`test_list_row_press_and_popup_faces`,
+  `test_places_sidebar`, `test_iconview_drop_border`,
+  `test_header_drop_indicator`), so it stays. Re-check each imported name
+  by grep after the move: drop a name only if nothing but its import line
+  still names it.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` anchor for the four
+  methods to
+  `tests/test_gtk4_surface_corners.py::TestGtk4SurfaceCorners::<method>`.
+  At this plan's base commit there are five such mentions in four `## gtk`
+  rows:
+  - the alert and message dialog corner row (`test_alert_dialog_corners`);
+  - the sheet-widget corner row (`test_sheet_widget_corners`);
+  - the residual widget-face corner row (`test_residual_radius_corners`);
+  - the print-dialog action box and platform sheet selected-face row, which
+    names both `test_selection_surface_corners` and
+    `test_alert_dialog_corners`.
+
+  Rewrite only those five mentions. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four methods exactly once, under
+  `test_gtk4_surface_corners.TestGtk4SurfaceCorners`, and none of them
+  under `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme`
+  method is still listed there, including
+  `test_color_button_and_menubutton_container_corners` and
+  `test_toolbar_and_menubar`. `test_gtk4_widget_corners.TestGtk4WidgetCorners`
+  lists the same methods as before.
+- For each moved method, the AST of its function definition is identical
+  to the original's at this plan's base commit. Check this once during the
+  run (for example by comparing `ast.dump` output); it is a run-time check,
+  not a new committed test.
+- `grep -n 'TestGtk4Theme::test_\(residual_radius_corners\|alert_dialog_corners\|selection_surface_corners\|sheet_widget_corners\)' docs/invariants.md`
+  prints nothing. Each of the five rewritten mentions reads
+  `tests/test_gtk4_surface_corners.py::TestGtk4SurfaceCorners`, and the
+  invariants checker inside `make check` resolves every new anchor.
+- The new module's import block names only `unittest`,
+  `support.gtk4_sheet` and `support.platinum_palette`. The unused-import
+  scanner inside `make check` reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 250 lines, and
+  `tests/test_gtk4_surface_corners.py` stays under about 300 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_surface_corners.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
