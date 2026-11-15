@@ -63,9 +63,17 @@ def to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
         try:
             return b"".join(map(table.__getitem__, samples))
         except IndexError:
-            index = next(i for i in samples if i >= entries)
+            index = _first_bad_palette_index(samples, entries)
             raise _palette_index_error(index, entries, len(palette)) from None
     raise PngError(f"unsupported PNG color type {color_type}")
+
+
+def _first_bad_palette_index(samples: bytes, entries: int) -> int:
+    """Return the first sample that names a palette entry past *entries*.
+
+    Callers only invoke this after an out-of-range index is known to exist.
+    """
+    return next(i for i in samples if i >= entries)
 
 
 def _palette_index_error(index: int, entries: int, palette_bytes: int) -> PngError:
@@ -229,13 +237,13 @@ def palette_rgba(
         # a separate max(samples) pass would traverse every pixel twice.
         expanded = b"".join(map(table.__getitem__, expanded_samples))
     except IndexError:
-        index = next(i for i in samples if i >= entries)
+        index = _first_bad_palette_index(samples, entries)
         raise _palette_index_error(index, entries, len(palette)) from None
     # A row bound skips expansion below the returned image, but those samples
     # still need validation. Only bounded decodes pay for this tail scan.
     if len(expanded_samples) < len(samples):
         tail = samples[len(expanded_samples) :]
         if tail and max(tail) >= entries:
-            index = next(i for i in samples if i >= entries)
+            index = _first_bad_palette_index(samples, entries)
             raise _palette_index_error(index, entries, len(palette))
     return expanded
