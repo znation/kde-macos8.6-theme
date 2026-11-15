@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the bar-family and breadcrumb focus-outline checks (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move the five header-style bar and file-chooser breadcrumb
+keyboard-focus outline checks into their own module, the way the merged
+selection-focus and widget-corner extractions moved theirs. The five
+methods are `test_headerbar_button_focus_outline_color`,
+`test_toolbar_button_focus_outline_color`,
+`test_actionbar_button_focus_outline_color`,
+`test_searchbar_button_focus_outline_color` and
+`test_filechooser_breadcrumb_focus_outline_color`. They form one family:
+each states the black focus outline through
+`assert_black_focus_outline`, and the first four go through
+`assert_bar_family_focus`. No stylesheet or production behavior changes.
+
+This entry is independent of the waiting GTK 4 extraction entries
+("isolate the infobar and search-bar close-button declarations" and the
+scroll-bar breadth move). Those move other members and touch no method
+named here, and this entry prunes no import. All of them edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, though, so whichever
+merges later re-reads the file and the rows before writing, and rewrites
+only its own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_bar_focus.py` with `class
+  TestGtk4BarFocus(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following `tests/test_gtk4_selection_focus.py`,
+  `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the five methods, keeping
+  every body unchanged. At this plan's base commit they form one
+  contiguous run between the staying
+  `test_link_button_follows_the_button_state_rules` above and
+  `test_suggested_action_plain_arms` below, so the source edit is one
+  contiguous deletion. Never import `tests/test_gtk4_theme.py` or
+  inherit `TestGtk4Theme`. At implementation, re-grep every anchor this
+  entry names.
+- The new module imports only `unittest` and `Gtk4SheetRuleCases` from
+  `support.gtk4_sheet`. The moved bodies use no module-level name:
+  `assert_bar_family_focus` and `assert_black_focus_outline` are
+  methods in `tests/support/gtk4_sheet.py` (the first reads
+  `BAR_FAMILY_FOCUS_SUFFIXES` from that module itself), and
+  `self.selectors` and `self.rules` come from the shared `setUpClass`.
+  No import of `tests/test_gtk4_theme.py` is used only by these bodies,
+  so its import block stays unchanged.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` anchor for the
+  five methods to
+  `tests/test_gtk4_bar_focus.py::TestGtk4BarFocus::<method>`. At this
+  plan's base commit there are six mentions, one per row: the searchbar,
+  headerbar and file-chooser breadcrumb focus rows name their own
+  method once each, `test_toolbar_button_focus_outline_color` appears in
+  two rows (the "opaque black outline colour reused from generic button
+  focus" row and the "retaining stock outline geometry" row), and the
+  actionbar "retaining stock outline geometry" row names
+  `test_actionbar_button_focus_outline_color` once. Rewrite only those
+  six mentions. Do not rewrite history in PLANS-DONE.md or
+  BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five methods exactly once, under
+  `test_gtk4_bar_focus.TestGtk4BarFocus`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is
+  still listed there, including
+  `test_link_button_follows_the_button_state_rules` and
+  `test_suggested_action_plain_arms`.
+- For each moved method, the AST of its function definition is identical
+  to the original's at this plan's base commit. Check this once during
+  the run (for example by comparing `ast.dump` output); it is a run-time
+  check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_\(headerbar\|toolbar\|actionbar\|searchbar\)_button_focus_outline_color\|TestGtk4Theme::test_filechooser_breadcrumb_focus_outline_color' docs/invariants.md`
+  prints nothing, and each of the six rewritten mentions reads
+  `tests/test_gtk4_bar_focus.py::TestGtk4BarFocus`. The invariants
+  checker inside `make check` resolves every new anchor.
+- `git diff` leaves the import block of `tests/test_gtk4_theme.py`
+  unchanged. The new module's import block names only `unittest` and
+  `support.gtk4_sheet`, and the unused-import scanner
+  (`tests/test_no_unused_imports.py`, inside `make check`) reports no
+  finding for either module.
+- `tests/test_gtk4_bar_focus.py` stays under about 50 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_bar_focus.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the infobar and search-bar close-button declarations (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`

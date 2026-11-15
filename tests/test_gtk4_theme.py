@@ -440,34 +440,6 @@ class TestGtk4Theme(Gtk4SheetRuleCases, unittest.TestCase):
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
-    def test_headerbar_button_focus_outline_color(self):
-        self.assert_bar_family_focus("headerbar ", "headerbar ")
-
-    def test_toolbar_button_focus_outline_color(self):
-        self.assert_bar_family_focus(".toolbar ", ".toolbar")
-
-    def test_actionbar_button_focus_outline_color(self):
-        self.assert_bar_family_focus("actionbar > revealer > box ", "actionbar")
-
-    def test_searchbar_button_focus_outline_color(self):
-        self.assert_bar_family_focus(
-            "searchbar > revealer > box ",
-            "searchbar",
-            extra=(".close:focus:focus-visible",),
-        )
-
-    def test_filechooser_breadcrumb_focus_outline_color(self):
-        selectors = {
-            "filechooser #pathbarbox > stack > box > button:focus:focus-visible",
-            "filechooser #pathbarbox > stack > box > box > button:focus:focus-visible",
-            "filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible",
-        }
-        self.assertEqual(
-            {selector for selector in self.selectors if "pathbarbox" in selector},
-            selectors,
-        )
-        self.assert_black_focus_outline(selectors)
-
     def test_suggested_action_plain_arms(self):
         self.assert_plain_action_arms("button.suggested-action")
 
