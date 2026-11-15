@@ -116,6 +116,8 @@ timeout, so a render timeout already names its wait. The remaining work is the f
 themselves (settle and timeout defaults), which is a tuning decision rather than a naming gap, so
 the risk stays open until someone decides how to size them.
 
+**Progress 2026-11-14 by bugfix:** the sizing choice is the user's call (trade-off between wall time and flake rate). Question posted in QUESTIONS.md ("How should the render-session wall-clock budgets be sized?"). No budget was changed; the entry stays open until the user answers.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 

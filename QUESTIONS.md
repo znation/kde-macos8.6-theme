@@ -7,7 +7,33 @@ each run.
 
 ## Open
 
-_None yet._
+### How should the render-session wall-clock budgets be sized?
+
+(asked 2026-11-14 by the bugfix role)
+
+**Context.** BUGS.md's "Render-session tests rely on fixed wall-clock budgets" entry (90-121) is the
+structural cause behind several flaky-check excusals: a render test waits a fixed time for the
+KWin session, the client or the splash to settle, and the wait expires under a full parallel
+`make check`. The naming part is done: every render Python wait goes through `run_logged`, and a
+timeout now logs which wait expired. What is left is the budgets themselves: the `--settle` and
+`--timeout` defaults in `tools/render_workflow.py` and the settle/timeout values in
+`tools/render_session.py`. The splash entry records that lengthening the settle can make the race
+worse, so a bigger number is not an obvious repair.
+
+**Options.**
+1. Keep the fixed budgets. Each recurrence is handled by its own named failure message and a
+   separate fix. No test-time cost, but the flakes keep being excused one at a time.
+2. Raise the settle and timeout defaults to values measured under a parallel `make check`. Simple,
+   but the render test gets slower on every run, and the splash entry suggests a longer settle can
+   worsen the race.
+3. Wait on the session's own "settle done" log marker (it is already written by the sh script)
+   instead of a wall-clock sleep, keeping the current budget only as a ceiling for a session that
+   never reaches the marker. This removes the race in principle, at the cost of a new wait path
+   that needs its own tests.
+
+**Recommendation.** Option 3. It is the only one that addresses the cause rather than the symptom,
+and the marker already exists, so it is a contained change. Option 1 is acceptable if the flake
+rate is tolerable.
 
 ## Answered
 
