@@ -205,6 +205,82 @@ rows before writing and rewrites only its own anchors.
   `tests/test_gtk4_bars.py` and `docs/invariants.md`. `make check` passes
   after the final edit.
 
+### GTK 4 suite extraction: isolate the row-press, places-sidebar and stack-switcher checks (planned 2026-11-15 by the plan role)
+
+**Goal.** Move three `TestGtk4Theme` checks for the navigation surfaces out
+of `tests/test_gtk4_theme.py` into their own module:
+`test_list_row_press_and_popup_faces`, `test_places_sidebar` and
+`test_stack_switcher_tabs`. At this plan's base commit they sit together,
+directly after `test_path_bar_tabs` and directly before `test_rubberband`.
+No stylesheet or production behavior changes.
+
+This entry is independent of the two extractions queued above (toggle-group,
+indicator-bin and container corners; infobar-band and path-bar). Neither
+moves these methods. All three edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads the file and the
+rows before writing and rewrites only its own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_navigation.py` with `class
+  TestGtk4Navigation(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_links.py`: "GTK 4 link checks moved out of
+  ``test_gtk4_theme``."), `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the three methods in their
+  current order with their bodies and comments unchanged. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. Leave
+  `tests/test_gtk4_sidebar.py` and `tests/test_gtk4_row.py` unchanged; they
+  hold other checks. At implementation, re-grep every anchor this entry
+  names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_rule`, `assert_rule_group` and `assert_tab_faces`, plus
+  `self.rules` and `self.selectors` from the shared `setUpClass`. The bodies
+  name four module-level constants: `BLACK`, `FACE` and `SELECTION` (import
+  from `support.platinum_palette`) and `ROW_HOVER` (import from
+  `support.gtk_theme_spec`). Re-grep the moved bodies for upper-case names
+  before writing the import block.
+- Leave the source module's import block alone. At this plan's base commit,
+  each of those four constants is still used by methods that stay
+  (`ROW_HOVER` in `test_columnview_and_listview_rows`; `SELECTION` in
+  `test_iconview_drop_border` and `test_header_drop_indicator`; `FACE` and
+  `BLACK` widely). If a re-grep after the move shows one is no longer used,
+  drop it; the unused-import scanner in `make check`
+  (`tests/test_no_unused_imports.py`) is the judge.
+- In `docs/invariants.md`, rewrite every anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the three methods
+  to `tests/test_gtk4_navigation.py::TestGtk4Navigation::<method>`. At this
+  plan's base commit each is named once:
+  - the "Both GTK sheets paint a stack switcher's page buttons" row
+    (`test_stack_switcher_tabs`);
+  - the "Both GTK sheets paint a file chooser's places sidebar band" row
+    (`test_places_sidebar`);
+  - the "The Platinum GTK sheets keep the existing list-row faces under
+    every pressed and popup-holding state" row
+    (`test_list_row_press_and_popup_faces`).
+  Leave the rest of each row's text, including GTK 3 anchors, untouched.
+  Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three methods exactly once under
+  `test_gtk4_navigation.TestGtk4Navigation`, and none under
+  `test_gtk4_theme.TestGtk4Theme`. `test_rubberband` is still listed under
+  `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(list_row_press_and_popup_faces|places_sidebar|stack_switcher_tabs)\b' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 80 lines, and
+  `tests/test_gtk4_navigation.py` stays under about 110 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_navigation.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
