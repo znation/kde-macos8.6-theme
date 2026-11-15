@@ -5,6 +5,103 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the action and flat button arm checks (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move its four push-button arm checks into their own module, the way
+the merged entry-field and close-button extractions moved theirs. The four
+are `test_suggested_action_plain_arms`, `test_destructive_action_plain_arms`,
+`test_action_class_flat_arms` and `test_flat_button_arms`. At this plan's
+base commit they sit together, directly after
+`test_link_button_follows_the_button_state_rules` and directly before
+`test_server_list_button_rotation_motion`. The move also lets the source
+module drop its `BUTTON_BEVEL` and `INVERTED_BUTTON_BEVEL` imports. No
+stylesheet or production behavior changes.
+
+This entry is independent of the link extraction above and the tile-check
+extraction waiting to merge. Neither moves these methods. All three edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, and the link entry
+also edits the source module's `support.gtk_theme_spec` import block, so
+whichever merges later re-reads the file and the rows before writing and
+rewrites only its own anchors and import names. If the link move has landed
+first, the four methods then sit directly after
+`test_tile_check_faces` (or `test_content_view_field_and_hover`, if the
+tile-check move has landed too).
+
+**Approach and files.**
+- Create `tests/test_gtk4_action_buttons.py` with `class
+  TestGtk4ActionButtons(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_button.py`: "GTK 4 … checks moved out of
+  ``test_gtk4_theme``."), `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the four methods in their current
+  order with their bodies and comments unchanged. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. Do not merge them
+  into `tests/test_gtk4_button.py`; keeping a separate module keeps both
+  files short. At implementation, re-grep every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_plain_action_arms` and `assert_rule`, plus `self.rules` from the
+  shared `setUpClass`.
+- The new module imports `Gtk4SheetRuleCases` from `support.gtk4_sheet`;
+  `BUTTON_BEVEL`, `DISABLED_TEXT` and `INVERTED_BUTTON_BEVEL` from
+  `support.gtk_theme_spec`; and `BLACK` and `FACE` from
+  `support.platinum_palette`. It imports nothing else beyond `unittest`.
+  Check the list by grep over the moved bodies before writing the import
+  block.
+- At this plan's base commit, `BUTTON_BEVEL` and `INVERTED_BUTTON_BEVEL`
+  are named in `tests/test_gtk4_theme.py` only by their import lines and the
+  moved methods. Drop each from the source module's import block once
+  `grep -nw` shows nothing but its import line. `DISABLED_TEXT`, `FACE` and
+  `BLACK` stay, because other `TestGtk4Theme` methods (the placeholder,
+  dimmed-label and dim-label checks; the window, banner and places-sidebar
+  checks) still use them. Leave every other import alone.
+- In `docs/invariants.md`, rewrite the four GTK 4 anchors that name the
+  moved methods, changing
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` to
+  `tests/test_gtk4_action_buttons.py::TestGtk4ActionButtons::<method>`:
+  - the "A Platinum GTK flat button keeps the existing push-button face"
+    row (`test_flat_button_arms`);
+  - the "A Platinum GTK flat action button keeps the existing push-button
+    face" row (`test_action_class_flat_arms`);
+  - the "GTK 4 plain suggested-action push buttons" row
+    (`test_suggested_action_plain_arms`);
+  - the "GTK 4 plain destructive-action push buttons" row
+    (`test_destructive_action_plain_arms`).
+  Leave the rest of each row's text, and the GTK 3 rows naming
+  `tests/test_gtk_theme_buttons.py` methods of the same names, untouched.
+  Then grep `docs/invariants.md` for `TestGtk4Theme::test_` followed by any
+  of the four names to catch another row, and rewrite only those anchors.
+  The bare-name comment mentions in `tests/support/gtk4_sheet.py`
+  (`assert_plain_action_arms` and the plain-family bound) carry no module
+  path and stay as they are. Do not rewrite history in PLANS-DONE.md or
+  BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of `test_suggested_action_plain_arms`,
+  `test_destructive_action_plain_arms`, `test_action_class_flat_arms` and
+  `test_flat_button_arms` exactly once under
+  `test_gtk4_action_buttons.TestGtk4ActionButtons`, and none under
+  `test_gtk4_theme.TestGtk4Theme`. `test_server_list_button_rotation_motion`
+  is still listed under `test_gtk4_theme.TestGtk4Theme`. The GTK 3 methods
+  of the same names in `tests/test_gtk_theme_buttons.py` are still listed
+  there.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(suggested_action_plain|destructive_action_plain|action_class_flat|flat_button)_arms' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- `grep -nw 'BUTTON_BEVEL\|INVERTED_BUTTON_BEVEL' tests/test_gtk4_theme.py`
+  prints nothing. The unused-import scanner inside `make check`
+  (`tests/test_no_unused_imports.py`) reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 120 lines, and
+  `tests/test_gtk4_action_buttons.py` stays under about 150 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_action_buttons.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the link checks (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
