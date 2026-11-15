@@ -89,6 +89,8 @@ dependency.
 
 ### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
 
+**Progress 2026-11-14 by bugfix:** step 1 (`tools/bounded_wait.py`) and step 2 (`run_logged` names its expired wait in the log, still returns `None`) are in place; the render-session callers are not yet routed through the helper, so this entry stays open.
+
 **Symptom:** the same failure shape recurs across the render suite. A render test waits a fixed
 time for the session, the client or the splash to settle, and the wait expires when the full
 parallel `make check` shares the host with other modules. The clearest records are:

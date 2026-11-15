@@ -117,6 +117,14 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual(0, status)
         self.assertTrue(gone(int(pidfile.read_text(encoding="utf-8"))))
 
+    def test_timeout_logs_the_named_wait_that_expired(self):
+        # The caller still gets None, but the log now says which wait expired
+        # and its budget, so a timed-out run is attributable from the log.
+        status = self.run_sh("sleep 60", timeout=0.5)
+        self.assertIsNone(status)
+        text = self.log.read_text(encoding="utf-8")
+        self.assertIn("run_logged sh did not finish within 0.5s", text)
+
     def test_timeout_returns_none_and_kills_the_group(self):
         # The shell must fork its background sleep and write its pid before
         # the timeout fires, or the group has no member to check. A loaded

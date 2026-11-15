@@ -27,6 +27,11 @@ from collections.abc import Iterator
 from pathlib import Path
 from types import FrameType
 
+if __package__:
+    from tools.bounded_wait import WaitExpired, wait_bounded
+else:  # run directly from a script in tools/
+    from bounded_wait import WaitExpired, wait_bounded
+
 # A child that was just SIGKILLed normally dies at once. One stuck in
 # uninterruptible I/O (a hung network or FUSE mount) can keep the kernel from
 # reaping it for as long as that I/O lasts, which may be forever. The reap that
@@ -181,8 +186,12 @@ def run_logged(
             restore_termination(previous)
             restore_termination(previous_interrupts)
             replay_deferred(deferred)
-            return process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
+            return wait_bounded(process, timeout, f"run_logged {argv[0]}")
+        except WaitExpired as expired:
+            # Still None for the caller; the log records which wait expired.
+            # A failed note write must not replace the timeout result.
+            with contextlib.suppress(OSError):
+                sink.write(f"{expired}\n".encode())
             return None
         finally:
             kill_group(process)
