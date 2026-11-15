@@ -2,9 +2,9 @@
 
 The look-and-feel, desktop-theme, Aurorae and wallpaper installers each copy into
 a hidden staging sibling and swap it in with a rename, so the same two failure
-modes apply to every package. Each suite subclasses `FailedInstallPreservesPackage`, sets
-`KIND`/`PACKAGE_ID`, and supplies the copy-failure environment; the flow and
-assertions live here once.
+modes apply to every package. Each suite subclasses
+`FailedInstallPreservesPackage`, sets `KIND`/`PACKAGE_ID`, and supplies the
+copy-failure environment; the flow and assertions live here once.
 """
 
 import os

@@ -16,9 +16,11 @@ def format_image_header(image: str, width: int, height: int) -> str:
 
 
 def region_from_args(args) -> dict:
-    """Return the region the report's args define, as the {"x", "y", "width", "height"}
-    dict every sample report result and JSON document carries. One call site: report_context,
-    which the pixels, runs, histogram and find-color-search report handlers all share."""
+    """Return the region the report's args define.
+
+    The result is the {"x", "y", "width", "height"} dict every sample report
+    result and JSON document carries. One call site: report_context, which the
+    pixels, runs, histogram and find-color-search report handlers all share."""
     return {"x": args.x, "y": args.y, "width": args.width, "height": args.height}
 
 

@@ -28,10 +28,12 @@ is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
 value is literal: ``[title=":hover"]`` is an attribute test, not a hover test.
-A backslash escape in a supported attribute value is decoded as CSS does, so ``[title="a\\"b"]`` tests the value ``a"b``
-instead of being read as a malformed selector; a backslash followed by a CSS
-string newline is removed as a string continuation. A hex escape's digits may end with one whitespace that only terminates the
-escape: ``[title=a\22 b]`` tests ``a"b``, in quoted and unquoted values alike.
+A backslash escape in a supported attribute value is decoded as CSS does, so
+``[title="a\\"b"]`` tests the value ``a"b`` instead of being read as a
+malformed selector; a backslash followed by a CSS string newline is removed as
+a string continuation. A hex escape's digits may end with one whitespace that
+only terminates the escape: ``[title=a\22 b]`` tests ``a"b``, in quoted and
+unquoted values alike.
 """
 
 from __future__ import annotations

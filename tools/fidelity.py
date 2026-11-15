@@ -24,9 +24,10 @@ Usage::
         [--crop X,Y,W,H] [--max-mae F] [--max-frac F] [--max-rmse F]
         [--max-delta N] [--max-differing N] [--tolerance N]
 
-    The verdict passes when every threshold set with ``--max-mae``/``--max-frac``/``--max-rmse``/``--max-delta``/``--max-differing``
-is met; when neither is set it passes only when no pixel differs from the
-reference by more than ``--tolerance``.
+    The verdict passes when every threshold set with ``--max-mae``,
+    ``--max-frac``, ``--max-rmse``, ``--max-delta`` or ``--max-differing`` is
+    met; when neither is set it passes only when no pixel differs from the
+    reference by more than ``--tolerance``.
 
 Exit status: 0 when the comparison passes, 1 when it fails, 2 usage or
 read error.

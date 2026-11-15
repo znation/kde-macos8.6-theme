@@ -16,8 +16,8 @@ cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/cursor_selection.py``, ``tools/cursor_workflow.py``,
 ``tools/apply_cursor.py`` and ``tools/check_references.py``.
 
-Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escaping itself in
-``tools/terminal.py``.
+Argument parsing lives in the sibling ``tools/argument_parsing.py``; the
+escaping itself in ``tools/terminal.py``.
 """
 
 from __future__ import annotations

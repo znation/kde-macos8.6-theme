@@ -6,10 +6,11 @@ The render's end-to-end capture gates live in
 ``tests/test_render_failure_paths.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: ``render_surface.main``'s argument validation and workflow delegation,
-scratch environment and KWin session command construction in ``tools/render_session.py`` and
-theme installation/configuration in ``tools/render_setup.py``, the capture
-paint check in ``tools/render_workflow.py``, plus the
-dialog argv recipes in ``tools/render_clients.py``.
+scratch environment and KWin session command construction in
+``tools/render_session.py`` and theme installation/configuration in
+``tools/render_setup.py``, the capture paint check in
+``tools/render_workflow.py``, plus the dialog argv recipes in
+``tools/render_clients.py``.
 """
 
 from __future__ import annotations

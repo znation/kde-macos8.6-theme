@@ -4,8 +4,9 @@ The grids and hotspots live in ``tools/cursor_art_pointers.py``,
 ``tools/cursor_art_resize.py`` and ``tools/cursor_art_drag.py``; the X-name
 manifest and palette live in ``tools/cursor_art.py``. This module validates a
 grid, scales it nearest-neighbour to the nominal sizes 16, 24 and 32, or
-rasterizes a ``VectorCursor`` natively at each size, encodes each frame as an Xcursor image chunk, and writes every canonical cursor and
-alias into the icon theme package's ``cursors/``.
+rasterizes a ``VectorCursor`` natively at each size, encodes each frame as an
+Xcursor image chunk, and writes every canonical cursor and alias into the
+icon theme package's ``cursors/``.
 
 Run ``python3 tools/make_cursors.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes. A cursors directory that
@@ -220,10 +221,11 @@ def cursor_bytes(
 
     *rows* is either a 16x16 grid, scaled nearest-neighbour, or a
     ``VectorCursor``, rasterized natively at each size with its hotspot in
-    design units. Each size must be an integer in 1..``MAX_IMAGE_SIZE``, the writer's
-    frame-dimension limit. The result is cached by the validated rows, sizes, hotspot and name, so a
-    caller that regenerates an unchanged cursor (the manifest checks do) does
-    not redo its pixel and container work. Sizes and the hotspot are checked
+    design units. Each size must be an integer in 1..``MAX_IMAGE_SIZE``, the
+    writer's frame-dimension limit. The result is cached by the validated rows,
+    sizes, hotspot and name, so a caller that regenerates an unchanged cursor
+    (the manifest checks do) does not redo its pixel and container work. Sizes
+    and the hotspot are checked
     before the lookup, so a malformed request is refused on every call rather
     than being answered by an earlier build whose arguments compare equal
     (``16``, ``16.0`` and ``True`` all compare equal in a cache key).

@@ -244,10 +244,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         backdrop. The border arm ties stock by later source order; the
         label arms add :not(:disabled) and win by specificity, preserving
         deferred disabled states: stock's :not(disabled) excludes a node
-        name, not a state. The block is spelled
-        identically in both shipped sheets. Both suites run this whole assertion; the only
-        suite-owned input is *flat_stock_backdrop*, each toolkit's own
-        spelling of the plain flat-backdrop selector.
+        name, not a state. The block is spelled identically in both shipped
+        sheets. Both suites run this whole assertion; the only suite-owned input
+        is *flat_stock_backdrop*, each toolkit's own spelling of the plain
+        flat-backdrop selector.
         """
         self.assert_rule("row:selected button", {"border-color": BLACK})
         for selector in (
