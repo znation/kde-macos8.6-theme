@@ -99,6 +99,27 @@ class TestSuperviseDurations(unittest.TestCase):
             self.assertLess(elapsed, 1.02, module)
 
 
+class TestSuperviseTimedOutDurations(unittest.TestCase):
+    """A timed-out worker records its timeout span, the time it held a worker."""
+
+    def test_a_timed_out_module_records_at_least_the_timeout_span(self):
+        # The worker never finishes, so it is killed at its 60-second
+        # deadline. Its recorded duration must still be that span: the next
+        # run's ordering reads it, and a missing entry would sort it blind.
+        run = _VirtualRun(duration=float("inf"))
+        durations: dict[str, float] = {}
+        with mock.patch.object(check_parallel_workers, "kill_group") as kill, \
+                mock.patch.object(check_parallel_workers, "reap"):
+            statuses = run.supervise(["a"], workers=1, durations=durations)
+        self.assertEqual({"a": None}, statuses)
+        kill.assert_called_once()
+        self.assertIn("a", durations)
+        # The poll loop checks the deadline every _POLL_SECONDS (0.01), so the
+        # kill lands at 60 seconds or within one poll interval past it.
+        self.assertGreaterEqual(durations["a"], 60.0)
+        self.assertLess(durations["a"], 60.02)
+
+
 class TestSuperviseWorkerCountRefusal(unittest.TestCase):
     """supervise refuses a worker count below one instead of idling forever.
 
