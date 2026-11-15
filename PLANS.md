@@ -193,6 +193,81 @@ rows before writing and rewrites only its own anchors.
   `tests/test_gtk4_navigation.py` and `docs/invariants.md`. `make check`
   passes after the final edit.
 
+### GTK 4 suite extraction: isolate the list-row focus-outline and needs-attention badge checks (planned 2026-11-15 by the plan role)
+
+**Goal.** Move two `TestGtk4Theme` checks for keyboard-focus and attention
+marks on rows out of `tests/test_gtk4_theme.py` into their own module:
+`test_list_row_focus_outlines` and `test_needs_attention_badges`. At this
+plan's base commit they sit together, directly after `test_iconview_drop_border`
+and directly before `test_header_drop_indicator`. No stylesheet or production
+behavior changes.
+
+This entry is independent of the two extractions queued above (infobar-band
+and path-bar; row-press, places-sidebar and stack-switcher). Neither moves
+these methods. All three edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads the file and the
+rows before writing and rewrites only its own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_row_focus.py` with `class
+  TestGtk4RowFocus(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_links.py`: "GTK 4 link checks moved out of
+  ``test_gtk4_theme``."), `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the two methods in their current
+  order with their bodies, docstrings and comments unchanged (the duplicated
+  "restated spellings" comment in `test_needs_attention_badges` included: this
+  is a move, not a cleanup). Never import `tests/test_gtk4_theme.py` or
+  inherit `TestGtk4Theme`. Leave `tests/test_gtk4_row.py`,
+  `tests/test_gtk4_row_corners.py` and `tests/test_gtk_theme_views.py`
+  unchanged; the row-corner comments that mention
+  `test_list_row_focus_outlines` by bare name stay true. At implementation,
+  re-grep every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_exact_rule_once`, `assert_rule` and `assert_matches_frame`, plus
+  `self.rules` and `self.selectors` from the shared `setUpClass`. The bodies
+  name one module-level constant, `BLACK` (import from
+  `support.platinum_palette`). Re-grep the moved bodies for upper-case names
+  before writing the import block.
+- Leave the source module's import block alone: at this plan's base commit
+  `BLACK` is still used by methods that stay (for example
+  `test_header_drop_indicator`). The unused-import scanner in `make check`
+  (`tests/test_no_unused_imports.py`) is the judge.
+- In `docs/invariants.md`, rewrite every anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the two methods to
+  `tests/test_gtk4_row_focus.py::TestGtk4RowFocus::<method>`. At this plan's
+  base commit they appear in:
+  - the "A keyboard-focused Platinum GTK 4 row" row
+    (`test_list_row_focus_outlines`, once);
+  - the "A Platinum GTK 4 stack sidebar row or stack switcher button
+    carrying the `needs-attention` style class" row
+    (`test_needs_attention_badges`, twice).
+  Leave the rest of each row's text, including GTK 3 anchors such as
+  `tests/test_gtk_theme_views.py`, untouched. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the two methods exactly once under
+  `test_gtk4_row_focus.TestGtk4RowFocus`, and neither under
+  `test_gtk4_theme.TestGtk4Theme`. `test_iconview_drop_border` and
+  `test_header_drop_indicator` are still listed under
+  `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(list_row_focus_outlines|needs_attention_badges)\b' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 85 lines, and
+  `tests/test_gtk4_row_focus.py` stays under about 115 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_row_focus.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
