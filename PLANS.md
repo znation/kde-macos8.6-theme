@@ -202,6 +202,97 @@ only its own anchors.
   `tests/test_gtk4_bar_focus.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate the entry-field, spin-field, caps-lock and editable-label checks (planned 2026-11-14 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move its five entry-recipe field checks into their own module, the
+way the merged entry, widget-corner and split-button extractions moved
+theirs. These are `test_spin_button_field`, `test_flat_entry_fields`,
+`test_spin_field_mirrors_the_etch_in_rtl`, `test_caps_lock_indicator` and
+`test_editable_label_cells`. Each pins a stock field arm that the sheet
+restates with the existing entry recipe (`ENTRY_FIELD`, its etch, its
+black ink or `TEXT_SELECTION`), and at this plan's base commit they sit
+as one contiguous run after `test_header_drop_indicator` and before
+`test_title_buttons`. No stylesheet or production behavior changes.
+
+This entry is independent of the close-button entry above and of the
+bar-family focus-outline entry its plan change adds. Those move other
+methods. All three edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, though, so whichever merges later re-reads the file
+and the rows before writing, and rewrites only its own anchors. The
+entry-prefixed methods already live in `tests/test_gtk4_entry.py`. This
+entry adds a new module rather than growing that one past about 300
+lines.
+
+**Approach and files.**
+- Create `tests/test_gtk4_entry_fields.py` with `class
+  TestGtk4EntryFields(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_widget_corners.py`), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move the five
+  methods, keeping every body, comment and docstring unchanged, in their
+  current order. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation, re-grep every anchor this entry
+  names.
+- The moved bodies get every helper they call from the base classes:
+  - `assert_exact_rule_once` comes from `tests/support/gtk4_sheet.py`.
+  - `assert_rule`, `assert_rule_after` and `assert_spin_button_field`
+    come from `tests/support/gtk_rule_cases.py`.
+  - `self.rules` and `self.selectors` come from the shared `setUpClass`.
+- The new module imports `Gtk4SheetRuleCases` from `support.gtk4_sheet`,
+  `ENTRY_FIELD` and `TEXT_SELECTION` from `support.gtk_theme_spec`, and
+  `BLACK` from `support.platinum_palette`, and nothing else beyond
+  `unittest`. No moved body uses `re`, `HEX` or `strip_comments`.
+- Prune the source module's imports by usage. At this plan's base commit,
+  `ENTRY_FIELD` and `TEXT_SELECTION` each appear in
+  `tests/test_gtk4_theme.py` only in its import line once the five
+  methods are gone, so drop both from the `support.gtk_theme_spec` import.
+  `BLACK` is still used by many remaining methods and stays. Re-check
+  each name by grep after the move: drop a name only if nothing but its
+  import line still names it.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` anchor for the five
+  methods to `tests/test_gtk4_entry_fields.py::TestGtk4EntryFields::<method>`.
+  At this plan's base commit, each method's anchor appears exactly once,
+  in five rows:
+  - the both-sheets spin-button field row, which also names the GTK 3
+    `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_spin_button_field`
+    anchor (that anchor stays);
+  - the flat-entry row;
+  - the editable-label row;
+  - the Caps Lock indicator row;
+  - the right-to-left spin-field etch row.
+
+  Rewrite only those five mentions. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the five methods exactly once, under
+  `test_gtk4_entry_fields.TestGtk4EntryFields`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is
+  still listed there, including `test_header_drop_indicator` and
+  `test_title_buttons`. `test_gtk4_entry.TestGtk4Entry` lists the same
+  methods as before.
+- For each moved method, the AST of its function definition is identical
+  to the original's at this plan's base commit. Check this once during
+  the run (for example by comparing `ast.dump` output); it is a run-time
+  check, not a new committed test.
+- `grep -n 'TestGtk4Theme::test_\(spin_button_field\|flat_entry_fields\|spin_field_mirrors_the_etch_in_rtl\|caps_lock_indicator\|editable_label_cells\)' docs/invariants.md`
+  prints nothing. Each of the five rewritten mentions reads
+  `tests/test_gtk4_entry_fields.py::TestGtk4EntryFields`, the GTK 3
+  spin-field anchor is unchanged, and the invariants checker inside
+  `make check` resolves every new anchor.
+- `grep -n 'ENTRY_FIELD\|TEXT_SELECTION' tests/test_gtk4_theme.py` prints
+  nothing. The new module's import block names only `unittest`,
+  `support.gtk4_sheet`, `support.gtk_theme_spec` and
+  `support.platinum_palette`. The unused-import scanner inside
+  `make check` reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 200 lines, and
+  `tests/test_gtk4_entry_fields.py` stays under about 250 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_entry_fields.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
