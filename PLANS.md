@@ -192,6 +192,85 @@ own anchors.
   `tests/test_gtk4_list_views.py` and `docs/invariants.md`. `make check`
   passes after the final edit.
 
+### GTK 4 suite extraction: isolate the label and text-hint foreground checks (planned 2026-11-15 by the plan role)
+
+**Goal.** Move six `TestGtk4Theme` checks for label and text-hint
+foreground inks out of `tests/test_gtk4_theme.py` into their own module:
+`test_header_subtitle_foreground`, `test_separator_label_foreground`,
+`test_placeholder_foreground` and `test_dimmed_label_foreground` (at this
+plan's base commit, the first four methods of the class, ahead of
+`test_theme_colours`), and `test_label_error_colour_class` and
+`test_dim_label_foreground` (at this plan's base commit, between
+`test_text_selection` and `test_content_view_field_and_hover`). No
+stylesheet or production behavior changes.
+
+This entry does not depend on the extractions queued or pending above
+(content-view field and places-view server button; column-view header and
+list-view rows), and neither of them moves these methods. All of them edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever merges
+later re-reads the file and the rows before writing and rewrites only its
+own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_label_inks.py` with `class
+  TestGtk4LabelInks(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_treeview.py`: "GTK 4 treeview declaration
+  checks moved out of ``test_gtk4_theme``."), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move the six
+  methods in the order listed above, with bodies and comments unchanged.
+  Never import `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`.
+  Leave every other existing module unchanged. At implementation, re-grep
+  every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_disabled_text`, `assert_rule_group`, `assert_rule` and
+  `assert_separator_label_foreground`. The bodies use the module-level
+  names `DISABLED_TEXT` and `ETCH_DARK` (import both from
+  `support.gtk_theme_spec`), `BLACK` (from `support.platinum_palette`) and
+  `strip_comments` (from `support.gtk_css`). Re-grep the moved bodies for
+  module-level names before writing the import block.
+- In the source module's import block, drop `DISABLED_TEXT`: at this plan's
+  base commit the moved methods are its only users in
+  `tests/test_gtk4_theme.py`. Keep `ETCH_DARK`, `BLACK` and
+  `strip_comments`. Other methods (`test_toolbar_and_menubar`,
+  `test_window_and_background`, `test_only_palette_hex_literals` and
+  others) still use them. Keep every other import unless the
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  reports it; that scanner is the judge.
+- In `docs/invariants.md`, rewrite each anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the six methods
+  to `tests/test_gtk4_label_inks.py::TestGtk4LabelInks::<method>`. At this
+  plan's base commit each method is anchored once: five in the adjacent
+  GTK 4 header-subtitle, separator-label, placeholder, `.dim-label` and
+  `label.dimmed` rows, and `test_label_error_colour_class` in the "A
+  Platinum GTK 4 error-classed label paints the existing inherited black
+  text" row. Leave the rest of those rows' text untouched, and leave the GTK 3
+  `tests/test_gtk_theme.py` rows that share these method names untouched.
+  Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the six methods exactly once under
+  `test_gtk4_label_inks.TestGtk4LabelInks`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. `test_theme_colours`,
+  `test_text_selection` and `test_toolbar_and_menubar` are still listed
+  under `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(header_subtitle_foreground|separator_label_foreground|placeholder_foreground|dimmed_label_foreground|label_error_colour_class|dim_label_foreground)\b' docs/invariants.md`
+  prints nothing. `grep -c 'TestGtkTheme::test_' docs/invariants.md`
+  prints the same count before and after (the GTK 3 anchors stay). The
+  invariants checker inside `make check` resolves all six new anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 40 lines, and
+  `tests/test_gtk4_label_inks.py` stays under about 75 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_label_inks.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
