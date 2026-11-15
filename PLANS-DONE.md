@@ -5,6 +5,81 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the content-view field and places-view server-button checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
+
+**Goal.** Move two `TestGtk4Theme` checks for the file-browser view surfaces
+out of `tests/test_gtk4_theme.py` into their own module:
+`test_content_view_field_and_hover` (the `.content-view` white field and
+unfiltered hover glyphs) and `test_server_list_button_rotation_motion` (the
+places-view server-button icon's `transition: none` twins). At this plan's
+base commit they sit together, directly after `test_dim_label_foreground`
+and directly before `test_rubberband`. No stylesheet or production behavior
+changes.
+
+This entry is independent of the two extractions queued or pending above
+(list-row focus-outline and needs-attention badges; rubberband and
+drag-and-drop indicators). Neither moves these methods. All three edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever merges
+later re-reads the file and the rows before writing and rewrites only its
+own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_file_views.py` with `class
+  TestGtk4FileViews(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_bars.py`: "GTK 4 bar-family checks … moved out
+  of ``test_gtk4_theme``."), `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the two methods in their current
+  relative order with their bodies and comments unchanged. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. Leave
+  `tests/test_gtk_theme_views.py` (which holds the GTK 3
+  `test_server_list_button_rotation_motion` of the same name) unchanged. At
+  implementation, re-grep every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_rule`, plus `self.rules` and `self.selectors` from the shared
+  `setUpClass`. The bodies name one module-level constant,
+  `VIEW_BACKGROUND` (import it from `support.gtk_theme_spec`). Re-grep the
+  moved bodies for upper-case names before writing the import block.
+- In the source module's import block, drop `VIEW_BACKGROUND`: at this
+  plan's base commit `test_content_view_field_and_hover` is its only user in
+  `tests/test_gtk4_theme.py`. Keep every other import unless the
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  reports it; that scanner is the judge.
+- In `docs/invariants.md`, rewrite each anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the two methods to
+  `tests/test_gtk4_file_views.py::TestGtk4FileViews::<method>`. At this
+  plan's base commit each appears once:
+  - the "A GTK container carrying the `content-view` class keeps the
+    existing white view field and unfiltered glyphs" row
+    (`test_content_view_field_and_hover`);
+  - the "A GTK 4 places-view server-button icon" row
+    (`test_server_list_button_rotation_motion`).
+  Leave the rest of each row's text, including any GTK 3 anchors, untouched.
+  Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the two methods exactly once under
+  `test_gtk4_file_views.TestGtk4FileViews`, and neither under
+  `test_gtk4_theme.TestGtk4Theme`. `test_dim_label_foreground` is still
+  listed under `test_gtk4_theme.TestGtk4Theme`, and
+  `test_gtk_theme_views`'s GTK 3 `test_server_list_button_rotation_motion`
+  is still listed where it was.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(content_view_field_and_hover|server_list_button_rotation_motion)\b' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 30 lines, and
+  `tests/test_gtk4_file_views.py` stays under about 55 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_file_views.py` and `docs/invariants.md`. `make check`
+  passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the rubberband and drag-and-drop indicator checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
 
 **Goal.** Move three `TestGtk4Theme` checks for the selection marquee and the
