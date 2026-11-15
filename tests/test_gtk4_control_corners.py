@@ -96,5 +96,6 @@ class TestGtk4ControlCorners(Gtk4SheetRuleCases, unittest.TestCase):
             },
         )
 
+
 if __name__ == "__main__":
     unittest.main()
