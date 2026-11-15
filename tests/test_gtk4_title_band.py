@@ -64,6 +64,7 @@ class TestGtk4TitleBand(Gtk4SheetRuleCases, unittest.TestCase):
                 f"window.dialog.message.csd .dialog-action-area button:{arm}",
                 {"border-radius": "0"},
             )
+
     def test_headerbar_meter_faces(self):
         """A meter embedded in the title band keeps the existing faces.
 
