@@ -209,6 +209,104 @@ overlap is that both edit `docs/invariants.md`, in different rows.
   `tests/test_gtk4_scrollbar_breadth.py` and `docs/invariants.md`.
   `make check` passes after the final edit.
 
+### GTK 4 suite extraction: isolate the infobar and search-bar close-button declarations (planned 2026-11-14 by the plan role)
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move the infobar and search-bar close-button checks into their own
+module, the way the merged row-corner, widget-corner and split-button
+extractions moved theirs. These are the `CLOSE_CORNER_PAIR_RULE` class
+attribute and its leading comment, `test_close_button_corners` and
+`test_close_button_family`. They form one family: the corner pair's merged
+face dict is the attribute, the corners test asserts it, and the family
+test's selector sweep and source-order check both name the corner pair.
+So one module houses all three, and they are never split across two
+entries. No stylesheet or production behavior changes.
+
+This entry is independent of the two waiting GTK 4 extraction entries
+("isolate the scrolled-window undershoot, overshoot and junction
+declarations" and "move the scroll-bar breadth rule and reference classes
+into their own module"). Those entries move other methods and classes,
+and the scroll-bar entry prunes only imports that no moved body here
+uses. All three edit `tests/test_gtk4_theme.py` and `docs/invariants.md`,
+though, so whichever merges later re-reads the file and the rows before
+writing, and rewrites only its own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_close_button.py` with `class
+  TestGtk4CloseButton(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_widget_corners.py`), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move these
+  three `TestGtk4Theme` members as one contiguous run that sits directly
+  after `test_infobar` and before `test_banner_surface`, keeping every
+  body, comment and docstring unchanged: the comment block above
+  `CLOSE_CORNER_PAIR_RULE`, the attribute itself,
+  `test_close_button_corners` and `test_close_button_family`.
+  `test_infobar` stays in `TestGtk4Theme`. Nothing else in
+  `tests/test_gtk4_theme.py` reads `CLOSE_CORNER_PAIR_RULE`. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. At
+  implementation, re-grep every anchor this entry names.
+- The new module imports `Gtk4SheetRuleCases` from `support.gtk4_sheet`,
+  `BLACK` and `FACE` from `support.platinum_palette`, and
+  `BUTTON_BEVEL`, `DISABLED_TEXT` and `INVERTED_BUTTON_BEVEL` from
+  `support.gtk_theme_spec`, and nothing else beyond `unittest`. The moved
+  bodies get every helper they call from the base classes:
+  - `assert_exact_rule_once` and `assert_matches_frame` come from
+    `tests/support/gtk4_sheet.py`.
+  - `assert_rule_group` and `assert_infobar_message_type_ban` come from
+    `tests/support/gtk_rule_cases.py`.
+  - `self.rules` and `self.selectors` come from the shared `setUpClass`.
+- No moved body uses `re`, `tempfile` or `mock`. Each of the five
+  constants is still used by other `TestGtk4Theme` methods (for example
+  `test_flat_button_arms` and `test_action_class_flat_arms`), so no
+  import is pruned from the source module.
+- In `docs/invariants.md`, rewrite each
+  `tests/test_gtk4_theme.py::TestGtk4Theme::test_close_button_corners`
+  and `…::test_close_button_family` anchor to
+  `tests/test_gtk4_close_button.py::TestGtk4CloseButton::…`. At this
+  plan's base commit, `grep -o
+  'TestGtk4Theme::test_close_button_corners\|TestGtk4Theme::test_close_button_family'
+  docs/invariants.md` finds exactly three member mentions across two
+  rows:
+  - The 2026-11-04 close-button corner row names
+    `test_close_button_corners` once.
+  - The 2026-11-09 close-button face-family row names
+    `test_close_button_family` once and `test_close_button_corners` once
+    (with its "(extended)" suffix, which stays).
+
+  Rewrite only those three mentions. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists `test_close_button_corners` and
+  `test_close_button_family` exactly once each, under
+  `test_gtk4_close_button.TestGtk4CloseButton`, and neither one under
+  `test_gtk4_theme.TestGtk4Theme`. Every other `TestGtk4Theme` method is
+  still listed there, including `test_infobar` and `test_banner_surface`.
+- `grep -n CLOSE_CORNER_PAIR_RULE tests/test_gtk4_theme.py` prints
+  nothing. In the new module the attribute's dict has the same six keys
+  and values as the original.
+- For each moved method, the AST of its function definition is identical
+  to the original's at this plan's base commit, and so is the AST of the
+  attribute assignment. Check this once during the run (for example by
+  comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -n
+  'TestGtk4Theme::test_close_button_corners\|TestGtk4Theme::test_close_button_family'
+  docs/invariants.md` prints nothing. Each of the three rewritten mentions
+  reads `tests/test_gtk4_close_button.py::TestGtk4CloseButton`, and the
+  invariants checker inside `make check` resolves every new anchor.
+- `git diff` leaves the import block of `tests/test_gtk4_theme.py`
+  unchanged. The new module's import block names only `unittest`,
+  `support.gtk4_sheet`, `support.platinum_palette` and
+  `support.gtk_theme_spec`. The unused-import scanner inside `make check`
+  reports no finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 120 lines, and
+  `tests/test_gtk4_close_button.py` stays under about 160 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_close_button.py` and `docs/invariants.md`.
+  `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
