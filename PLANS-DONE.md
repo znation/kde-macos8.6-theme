@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the link checks (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
+
+**Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
+class. Move its three link checks into their own module, the way the merged
+entry-field and close-button extractions moved theirs. The three are
+`test_links`, `test_inline_link_interaction_colours` and
+`test_link_button_follows_the_button_state_rules`. At this plan's base
+commit they sit together, directly after `test_tile_check_faces` and
+directly before `test_suggested_action_plain_arms`. The move also lets the
+source module drop its `LINK` import. No stylesheet or production behavior
+changes.
+
+This entry is independent of the tile-check extraction above and the
+title-band extraction waiting to merge. Neither moves these methods. All
+three edit `tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever
+merges later re-reads the file and the rows before writing and rewrites only
+its own anchors. If the tile-check move has landed first, the three methods
+then sit directly after `test_content_view_field_and_hover`.
+
+**Approach and files.**
+- Create `tests/test_gtk4_links.py` with `class
+  TestGtk4Links(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a one-line
+  module docstring following the existing extraction modules' pattern
+  (`tests/test_gtk4_widget_corners.py`), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move the three
+  methods in their current order with their bodies, comments and docstrings
+  unchanged. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. At implementation, re-grep every anchor this entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_links`, `assert_rule` and `assert_disabled_text`, plus `self.css`
+  from the shared `setUpClass`.
+- The new module imports `Gtk4SheetRuleCases` from `support.gtk4_sheet`,
+  `strip_comments` from `support.gtk_css`, and `LINK` from
+  `support.gtk_theme_spec`. It imports nothing else beyond `unittest`. Check
+  the list by grep over the moved bodies before writing the import block.
+- At this plan's base commit, `LINK` is named in `tests/test_gtk4_theme.py`
+  only by its import line and `test_inline_link_interaction_colours`. Drop it
+  from the source module's import block once `grep -nw LINK` shows nothing
+  but its import line. `strip_comments` stays, because other `TestGtk4Theme`
+  methods (`test_only_palette_hex_literals`,
+  `test_no_status_or_translucent_shade_roles`, the dim-label check) still use
+  it. Leave every other import alone.
+- In `docs/invariants.md`, rewrite the GTK 4 anchors in two rows:
+  - the "Both GTK sheets colour link text" row: change
+    `tests/test_gtk4_theme.py::TestGtk4Theme::test_links` to
+    `tests/test_gtk4_links.py::TestGtk4Links::test_links`, and leave its
+    GTK 3 anchor `tests/test_gtk_theme.py::TestGtkTheme::test_links`
+    untouched;
+  - the "Ordinary GTK 4 inline links" row: change both its
+    `tests/test_gtk4_theme.py::TestGtk4Theme::` anchors
+    (`test_inline_link_interaction_colours` and `test_links`) to the
+    `tests/test_gtk4_links.py::TestGtk4Links::` spelling.
+  Leave the rest of each row's text, and the GTK 3 inline-link row,
+  untouched. Then grep `docs/invariants.md` for
+  `TestGtk4Theme::test_link` to catch any other row naming the moved
+  methods, and rewrite only those anchors. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of `test_links`,
+  `test_inline_link_interaction_colours` and
+  `test_link_button_follows_the_button_state_rules` exactly once, under
+  `test_gtk4_links.TestGtk4Links`, and none under
+  `test_gtk4_theme.TestGtk4Theme`. `test_suggested_action_plain_arms` is
+  still listed under `test_gtk4_theme.TestGtk4Theme`. The GTK 3 methods of
+  the same names in `tests/test_gtk_theme.py` are still listed there.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -n 'TestGtk4Theme::test_link\|TestGtk4Theme::test_inline_link' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- `grep -nw LINK tests/test_gtk4_theme.py` prints nothing. The unused-import
+  scanner inside `make check` (`tests/test_no_unused_imports.py`) reports no
+  finding for either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 25 lines, and
+  `tests/test_gtk4_links.py` stays under about 50 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_links.py` and `docs/invariants.md`. `make check` passes
+  after the final edit.
+
 ### GTK 4 suite extraction: isolate the content-view tile-check face check (planned 2026-11-14 by the plan role) — done 2026-11-14 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
