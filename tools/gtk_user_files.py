@@ -134,6 +134,15 @@ def user_css_path(config_home: Path) -> Path:
     return config_home / "gtk-4.0" / "gtk.css"
 
 
+def _backup_failure(path: Path, backup: Path, exc: OSError) -> ConfigError:
+    """Return the refusal for a failed copy of *path* into *backup*.
+
+    Used for the three write failures in :func:`user_css_backup` (opening
+    the exclusive backup, wrapping its descriptor, and writing the bytes).
+    """
+    return ConfigError(f"cannot back up {path} to {backup}: {exc}")
+
+
 def _discard_backup(path: Path) -> None:
     """Remove a partial backup, ignoring a removal that fails."""
     try:
@@ -177,13 +186,13 @@ def user_css_backup(path: Path) -> Path:
         except FileExistsError:
             continue
         except OSError as exc:
-            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+            raise _backup_failure(path, backup, exc) from exc
         try:
             destination = os.fdopen(descriptor, "wb")
         except OSError as exc:
             _close_quietly(descriptor)
             _discard_backup(backup)
-            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+            raise _backup_failure(path, backup, exc) from exc
         except BaseException:
             _close_quietly(descriptor)
             _discard_backup(backup)
@@ -193,7 +202,7 @@ def user_css_backup(path: Path) -> Path:
                 destination.write(data)
         except OSError as exc:
             _discard_backup(backup)
-            raise ConfigError(f"cannot back up {path} to {backup}: {exc}") from exc
+            raise _backup_failure(path, backup, exc) from exc
         except BaseException:
             _discard_backup(backup)
             raise
