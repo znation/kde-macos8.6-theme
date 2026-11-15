@@ -120,6 +120,28 @@ The post-merge review of commit `97c2d85400ffd155250e63bdd3000a89984bd69d` (reco
 
 The post-merge review of commit `abed33a89d4f092539e25603691fd80876c824eb` (Pin XDG_CONFIG_HOME in the apply-theme test's isolated env) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
 
+### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
+
+**Symptom:** the same failure shape recurs across the render suite. A render test waits a fixed
+time for the session, the client or the splash to settle, and the wait expires when the full
+parallel `make check` shares the host with other modules. The clearest records are:
+`test_waits_for_client_termination_and_preserves_capture_status` returning `0 != None` and
+`7 != None` because `run_logged` timed out (BUGS-FIXED.md 8-17; its cause is the expired timeout
+at `tools/process_group.py:184-186`); the client-exit stub regression that turned a parallel run
+red (BUGS-FIXED.md 85-130); the splash capturing a black frame at the 8-second settle (BUGS-FIXED.md
+131-281 and 282-304); and the two open entries above, the inactive-dialog pixel pins (21-52) and
+the client-wait test (90-110). The 90-110 entry records that its module passes alone.
+
+**Why this is a structural risk:** each recurrence was closed or is being closed one test at a
+time, by widening a budget or adding a settle. The splash entry records that lengthening the settle
+can worsen the race rather than repair it, so the budgets are not a reliable repair. No shared
+bounded-wait helper reports which wait expired, so every new failure must be re-diagnosed from
+scratch. A single helper that names the expired wait in its failure message would make the next
+recurrence attributable without another reconstruction.
+
+**Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
+test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
