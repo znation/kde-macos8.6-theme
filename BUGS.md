@@ -109,6 +109,17 @@ recurrence attributable without another reconstruction.
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 
+### PLANS.md keeps a `_None yet._` placeholder under `## Planned` while that section holds an entry (found by the bugfix role 2026-11-14)
+
+**Symptom:** on the unmodified tree, `make check` fails two tests in `tests/test_backlog_placeholders.py`:
+`test_no_placeholder_claims_a_section_that_holds_an_entry` (file='PLANS.md') reports `[('## Planned',)] != []`,
+and `test_plans_sections_placeholders_match_their_entries` reports the same section mismatch. The
+`## Planned` section holds the `_None yet._` line at PLANS.md:120 and also the entry at 122-204.
+
+**Suspected cause:** the placeholder was not removed when an entry was added under `## Planned`.
+The likely fix is to delete the stale `_None yet._` line from `## Planned` only; no other section changes.
+This is a backlog-file edit, so it is left to the plan role, which owns PLANS.md.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
