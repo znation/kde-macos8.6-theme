@@ -23,11 +23,13 @@ class TestGtk4DragDrop(Gtk4SheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules if "rubberband" in selector},
             selectors,
         )
+
     def test_iconview_drop_border(self):
         self.assert_rule(
             "iconview > dndtarget:drop(active)",
             {"border": f"1px solid {SELECTION}"},
         )
+
     def test_header_drop_indicator(self):
         expected = {
             "background-color": SELECTION,
