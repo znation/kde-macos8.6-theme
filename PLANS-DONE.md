@@ -5,6 +5,94 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the infobar-band and path-bar checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
+
+**Goal.** Move the seven `TestGtk4Theme` checks for the bar family that
+`tests/test_gtk4_theme.py` paints as the menu-bar band, plus the path bar,
+into their own module. The seven are `test_infobar`,
+`test_banner_surface`, `test_search_bar`, `test_action_bar`,
+`test_search_bar_backdrop`, `test_status_bar` and `test_path_bar_tabs`. At
+this plan's base commit they sit together, directly after
+`test_server_list_button_rotation_motion` and directly before
+`test_list_row_press_and_popup_faces`. No stylesheet or production behavior
+changes.
+
+This entry is independent of the two extractions queued above (action and
+flat button arms; toggle-group, indicator-bin and container corners).
+Neither moves these methods. All three edit `tests/test_gtk4_theme.py` and
+`docs/invariants.md`, so whichever merges later re-reads the file and the
+rows before writing and rewrites only its own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_bars.py` with `class
+  TestGtk4Bars(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a one-line
+  module docstring following the existing extraction modules' pattern
+  (`tests/test_gtk4_links.py`: "GTK 4 link checks moved out of
+  ``test_gtk4_theme``."), `from __future__ import annotations`, and the
+  `if __name__ == "__main__":` guard. Move the seven methods in their
+  current order with their bodies and comments unchanged. Never import
+  `tests/test_gtk4_theme.py` or inherit `TestGtk4Theme`. Do not name it
+  `test_gtk4_bar_focus.py`; that module already holds the bar-family focus
+  outlines and stays unchanged. At implementation, re-grep every anchor this
+  entry names.
+- The moved bodies get every helper they call from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`):
+  `assert_infobar`, `assert_infobar_message_type_ban`, `assert_rule`,
+  `assert_rule_group`, `assert_rule_after` and `assert_tab_faces`, plus
+  `self.rules` and `self.selectors` from the shared `setUpClass`. The bodies
+  name four module-level constants: `BLACK`, `FACE` and `WHITE` (import from
+  `support.platinum_palette`) and `ETCH_DARK` (import from
+  `support.gtk_theme_spec`). Re-grep the moved bodies for upper-case names
+  before writing the import block.
+- Leave the source module's import block alone. At this plan's base commit,
+  each of those four constants is still used by methods that stay
+  (`FACE` and `BLACK` widely; `ETCH_DARK` and `WHITE` in
+  `test_label_error_colour_class` / `test_toolbar_and_menubar`). If a
+  re-grep after the move shows one is no longer used, drop it; the
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  is the judge.
+- In `docs/invariants.md`, rewrite every anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the seven methods
+  to `tests/test_gtk4_bars.py::TestGtk4Bars::<method>`. At this plan's base
+  commit those anchors sit in these rows:
+  - the "GTK 4 `banner > revealer > widget` and its `:backdrop` arm" row
+    (`test_banner_surface`);
+  - the "Both GTK sheets draw an infobar" row (`test_infobar`);
+  - the "Both GTK sheets paint a search bar … and an action bar" row
+    (`test_search_bar`, `test_action_bar`);
+  - the "Both GTK sheets paint a status bar" row (`test_status_bar`);
+  - the "Both GTK sheets paint a file chooser's path bar" row
+    (`test_path_bar_tabs`);
+  - the "The GTK 4 sheet repoints every stock OSD overlay container" row,
+    which names `test_infobar` twice;
+  - the "A GTK search bar, location strip and action bar keep the existing
+    … face in an unfocused window" row, which names
+    `test_search_bar_backdrop` twice.
+  Leave the rest of each row's text, including GTK 3 anchors, untouched.
+  Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the seven methods exactly once under
+  `test_gtk4_bars.TestGtk4Bars`, and none under
+  `test_gtk4_theme.TestGtk4Theme`.
+  `test_server_list_button_rotation_motion` and
+  `test_list_row_press_and_popup_faces` are still listed under
+  `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(infobar|banner_surface|search_bar|action_bar|search_bar_backdrop|status_bar|path_bar_tabs)\b' docs/invariants.md`
+  prints nothing, and the invariants checker inside `make check` resolves
+  the new anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 70 lines, and
+  `tests/test_gtk4_bars.py` stays under about 100 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_bars.py` and `docs/invariants.md`. `make check` passes
+  after the final edit.
+
 ### GTK 4 suite extraction: isolate the toggle-group, indicator-bin and container corner checks (planned 2026-11-14 by the plan role) — done 2026-11-15 by the feature role
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large `TestGtk4Theme`
