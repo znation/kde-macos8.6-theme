@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's entry fields and their embedded parts.
 
-This module owns the entry slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the entry slice split out of the former GTK 3 controls suite:
 the entry's progress strip (the declaration and the drawn two-pixel strip), the
 focus outline, the error and warning colour classes, the plain state faces, the
 embedded icon inks and the tag chip faces. The declaration tests read the

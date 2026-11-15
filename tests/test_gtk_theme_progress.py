@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's progress bar and meter faces.
 
-This module owns the progress slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the progress slice split out of the former GTK 3 controls suite:
 the progress bar and its trough, the meter geometry (horizontal and vertical arms
 and the corner-armed fill), the treeview row's progress cell, the meter label ink,
 the drawn fill span over the trough, and the meter state and backdrop faces. The

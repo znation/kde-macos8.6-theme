@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's scale geometry and ink.
 
-This module owns the scale slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the scale slice split out of the former GTK 3 controls suite:
 the shared scale spec, the scale focus outline, the plain and fine-tuned
 container geometry, the marks indicator geometry, and the tick-mark and
 value-label ink. None of these tests renders; the sheet rules are read from

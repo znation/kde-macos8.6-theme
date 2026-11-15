@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's linked-group border pairs and corners.
 
-This module owns the linked slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the linked slice split out of the former GTK 3 controls suite:
 the trailing border each linked member strips and the last member restores,
 the end-field corners of a linked group, and the path-bar and stack-switcher
 outlines that linked protection keeps. None of these tests renders; the sheet

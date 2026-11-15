@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's view field, viewport and frame borders.
 
-This module owns the frame slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the frame slice split out of the former GTK 3 controls suite:
 the disabled view's white field and grey ink, the scrolled viewport's frame
 (the declaration and the drawn frame), and the flat frame's border and drawn
 frame. The declaration tests read the stripped CSS through ``GtkSheetRuleCases``;

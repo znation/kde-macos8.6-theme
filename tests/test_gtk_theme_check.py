@@ -1,7 +1,7 @@
 """Validate the GTK 3 Platinum sheet's check and radio indicators.
 
 This module owns the check and radio slice split out of
-``tests/test_gtk_theme_controls.py``: the mixed check's black dash probe, the
+the former GTK 3 controls suite: the mixed check's black dash probe, the
 check and radio focus outlines, and the check and radio tick motion and the
 backdrop, disabled and selected-row faces. The mixed-check probe renders the
 shipped assets with a real GTK 3 in a child interpreter (see

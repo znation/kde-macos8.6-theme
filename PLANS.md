@@ -117,30 +117,6 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### GTK 3 controls suite split, part 11/11: move the switch, spinner, level-bar, notebook and bar-title methods into two suites (planned 2026-11-14 by the plan role; "requires part 2/11 landed")
-
-**Goal.** Move `test_spinner`, `test_levelbar`, `test_switch`,
-`test_switch_focus_outline` and `test_switch_state_and_backdrop_faces` into
-new `tests/test_gtk_theme_switch.py`, as
-`class TestGtkThemeSwitch(GtkSheetRuleCases, unittest.TestCase)`. Its
-docstring covers the switch and the spinner and level-bar status
-indicators. Move `test_notebook_tab_faces_render` (probe),
-`test_menubar_titles` and `test_toolbar_and_menubar` into new
-`tests/test_gtk_theme_bars.py`, as
-`class TestGtkThemeBars(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase)`.
-
-**Reference sites.** These are `docs/invariants.md` mentions of the eight
-methods. Grep for any other by-name site and repoint it.
-
-**Acceptance criteria.**
-- Discovery lists the eight methods exactly once each, under their new
-  module, and none under `test_gtk_theme_controls`. Each `ast.dump` matches
-  the original's.
-- The notebook probe skips as before without `PLATINUM_RUN_GUI_TESTS=1`, and
-  the invariants checker resolves every repointed mention.
-- The unused-import scanner reports nothing, and `make check` passes. The
-  deletion rule from part 1/11 applies.
-
 ### GTK 4 suite extraction: isolate the scrolled-window undershoot, overshoot and junction declarations (planned 2026-11-14 by the plan role)
 
 **Goal.** `tests/test_gtk4_theme.py` is still one large

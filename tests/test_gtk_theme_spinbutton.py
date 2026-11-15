@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's spin-button focus outlines, stepper seams and RTL etch.
 
-This module owns the spin-button slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the spin-button slice split out of the former GTK 3 controls suite:
 the horizontal and vertical focus outlines, the horizontal stepper seam rules,
 the OSD spin field's RTL mirror, and the rendered stepper seams and vertical
 joins. The rule checks read the stripped CSS through ``GtkSheetRuleCases``;

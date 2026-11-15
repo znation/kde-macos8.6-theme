@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's button arms and button focus outline.
 
-This module owns the button slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the button slice split out of the former GTK 3 controls suite:
 the plain colour-class action arms, the flat, selected-row and destructive
 arms, the button focus outline, and the disabled and backdrop faces. None of
 these tests renders; the sheet rules are read from the stripped CSS through

@@ -1,6 +1,6 @@
 """Validate the GTK 3 Platinum sheet's shipped check, radio, arrow and submenu glyph assets.
 
-This module owns the glyph slice split out of ``tests/test_gtk_theme_controls.py``:
+This module owns the glyph slice split out of the former GTK 3 controls suite:
 the checked check, indeterminate dash, bullet and radio assets, and the combo
 box, menu scroll, disclosure and submenu arrow assets. It checks the SVG files
 themselves (standalone, root-first, canvas size, fills and geometry); the sheet
