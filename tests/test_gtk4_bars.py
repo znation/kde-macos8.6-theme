@@ -85,5 +85,6 @@ class TestGtk4Bars(Gtk4SheetRuleCases, unittest.TestCase):
         }
         self.assert_tab_faces(forms)
 
+
 if __name__ == "__main__":
     unittest.main()
