@@ -225,10 +225,10 @@ def cursor_bytes(
     writer's frame-dimension limit. The result is cached by the validated rows,
     sizes, hotspot and name, so a caller that regenerates an unchanged cursor
     (the manifest checks do) does not redo its pixel and container work. Sizes
-    and the hotspot are checked
-    before the lookup, so a malformed request is refused on every call rather
-    than being answered by an earlier build whose arguments compare equal
-    (``16``, ``16.0`` and ``True`` all compare equal in a cache key).
+    and the hotspot are checked before the lookup, so a malformed request is
+    refused on every call rather than being answered by an earlier build whose
+    arguments compare equal (``16``, ``16.0`` and ``True`` all compare equal in
+    a cache key).
     """
     checked_rows = _checked_art(rows, name)
     sizes_key = _checked_sizes(sizes)
