@@ -140,7 +140,7 @@ LINEEDIT_DIALOG_OK_BUTTON = (167, 199, 82, 24)
 # bit under cmp, and reproduced bit for bit by a third consecutive run.
 # The session background is black, so the existing active window.csd outline
 # (box-shadow: 0 0 0 1px #000000, pinned in the sheet by
-# TestGtk4Theme::test_csd_window_shell) is continuous with it: the pinned
+# TestGtk4WindowShell::test_csd_window_shell) is continuous with it: the pinned
 # top row is the shell-edge row the ring paints where the surface margin
 # admits it, and the rows beneath are the flat #DDDDDD surface from the
 # window, .background rule. The span x=91..93 is past the square

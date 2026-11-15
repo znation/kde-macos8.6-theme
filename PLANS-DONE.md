@@ -5,6 +5,86 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 4 suite extraction: isolate the window background and CSD window-shell checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
+
+**Goal.** Move three `TestGtk4Theme` checks for the GTK 4 top-level window
+out of `tests/test_gtk4_theme.py` into their own module:
+`test_window_and_background`, `test_csd_window_shell` and
+`test_csd_window_shell_state_cascade` (at this plan's base commit,
+adjacent, between `test_no_universal_selector` and `test_submenu_arrow`).
+Together they are the largest block left in the class. No stylesheet or
+production behavior changes.
+
+This entry does not depend on the extractions queued or pending above
+(column-view header and list-view rows; label and text-hint foregrounds),
+and neither of them moves these methods. All of them edit
+`tests/test_gtk4_theme.py` and `docs/invariants.md`, so whichever merges
+later re-reads the file and the rows before writing and rewrites only its
+own anchors.
+
+**Approach and files.**
+- Create `tests/test_gtk4_window_shell.py` with `class
+  TestGtk4WindowShell(Gtk4SheetRuleCases, unittest.TestCase)`. Give it a
+  one-line module docstring following the existing extraction modules'
+  pattern (`tests/test_gtk4_treeview.py`: "GTK 4 treeview declaration
+  checks moved out of ``test_gtk4_theme``."), `from __future__ import
+  annotations`, and the `if __name__ == "__main__":` guard. Move the three
+  methods in the order listed above, with bodies, docstrings and comments
+  unchanged. Never import `tests/test_gtk4_theme.py` or inherit
+  `TestGtk4Theme`. Leave every other existing test module unchanged except
+  the one comment named below. At implementation, re-grep every anchor this
+  entry names.
+- The moved bodies get `assert_rule`, `assert_rule_group`, `self.rules`
+  and `self.selectors` from the base-class chain
+  (`tests/support/gtk4_sheet.py` → `tests/support/gtk_rule_cases.py`).
+  They use the module-level names `re` (stdlib), and `BLACK`, `FACE` and
+  `INACTIVE_OUTLINE` (from `support.platinum_palette`). Re-grep the moved
+  bodies for module-level names before writing the import block.
+- In the source module's import block, drop `INACTIVE_OUTLINE`: at this
+  plan's base commit the moved methods are its only users in
+  `tests/test_gtk4_theme.py`. Keep `re` (`test_no_status_or_translucent_shade_roles`
+  uses it) and `FACE`
+  (`test_toolbar_and_menubar`). `BLACK` stays only while another method
+  still uses it — if the label-ink extraction above has merged first, the
+  moved methods are its last users and it goes too. The unused-import
+  scanner in `make check` (`tests/test_no_unused_imports.py`) is the judge
+  for every import.
+- In `docs/invariants.md`, rewrite each anchor of the form
+  `tests/test_gtk4_theme.py::TestGtk4Theme::<method>` for the moved methods
+  to `tests/test_gtk4_window_shell.py::TestGtk4WindowShell::<method>`. At
+  this plan's base commit `test_csd_window_shell` and
+  `test_csd_window_shell_state_cascade` are each anchored twice — in the
+  "GTK 4 CSD window shell" row and the compositor-less `window.solid-csd`
+  row — and `test_window_and_background` is not anchored. Leave the rest of
+  those rows' text untouched, and leave the GTK 3 `tests/test_gtk_theme.py`
+  `test_window_and_background` untouched. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+- In `tests/test_render_dialog_gates.py`, the comment naming
+  `TestGtk4Theme::test_csd_window_shell` as where the sheet pins the
+  `window.csd` outline is rewritten to `TestGtk4WindowShell::test_csd_window_shell`;
+  no code in that file changes.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the three methods exactly once under
+  `test_gtk4_window_shell.TestGtk4WindowShell`, and none of them under
+  `test_gtk4_theme.TestGtk4Theme`. `test_no_universal_selector`,
+  `test_submenu_arrow` and `test_toolbar_and_menubar` are still listed
+  under `test_gtk4_theme.TestGtk4Theme`.
+- Each moved method's function-definition AST is identical to the
+  original's at this plan's base commit. Check this once during the run (for
+  example by comparing `ast.dump` output); it is a run-time check, not a new
+  committed test.
+- `grep -nE 'TestGtk4Theme::test_(window_and_background|csd_window_shell|csd_window_shell_state_cascade)\b' docs/invariants.md tests/`
+  prints nothing. The invariants checker inside `make check` resolves all
+  four rewritten anchors.
+- The unused-import scanner inside `make check` reports no finding for
+  either module.
+- `tests/test_gtk4_theme.py` shrinks by at least 150 lines, and
+  `tests/test_gtk4_window_shell.py` stays under about 185 lines.
+- `git diff --stat` touches only `tests/test_gtk4_theme.py`,
+  `tests/test_gtk4_window_shell.py`, `tests/test_render_dialog_gates.py`
+  and `docs/invariants.md`. `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the label and text-hint foreground checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
 
 **Goal.** Move six `TestGtk4Theme` checks for label and text-hint
