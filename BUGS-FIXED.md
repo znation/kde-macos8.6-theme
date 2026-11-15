@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The render session's client-wait test can fail under a full parallel `make check` (found by the coverage role 2026-11-14) — fixed 2026-11-14 by the bugfix role
+
+In a full `make check` run of 2026-11-14 (the worktree held a test-only edit to
+`tests/test_containment.py`), `tests/test_render_surface_units.py::TestSessionScript::test_waits_for_client_termination_and_preserves_capture_status`
+failed in its `capture_status=7` subtest: `AssertionError: 7 != None` at line 1084,
+where the test expects the session's exit status 7 and `render_workflow.run_logged`
+returned `None`. An earlier run that day failed the same test with `0 != None` in
+the `capture_status=0` subtest. The module passes alone
+(`make check CHECK_PATTERN='test_render_surface_units*.py'`: 155 tests, OK), so
+no session-script or capture logic is wrong on its own.
+
+Suspected cause: the test's `run_logged` call allows 5 seconds, while its stub
+client gives up waiting for the ready file after 3 seconds. Under the parallel
+suite's load the wait can overrun, so no status is recorded. Not verified: the
+exact timeout behaviour of `run_logged` was not read. A fix belongs in the test's
+timing budget or in how the session waits for its client, decided after reading
+`run_logged`. Not a SIGKILL case; the ordinary-failure guarantee stands.
+
+Reproduce: run the full `make check` on the shared host while other modules run;
+the module is green in isolation.
+
+**Fix:** no new code this run. The fix is already on main in `97c2d854`, which widened the
+client-exit stub test's outer `run_logged` budget and its stub alarm from 5 s to 30 s and added a
+5.5-second capture subtest. This entry's `7 != None` subtest has the same mechanism: `None` means
+the timeout expired (`tools/process_group.py`, `run_logged`). Checked on 2026-11-14: with the outer
+budget set back to 5 s the test fails with `AssertionError: 0 != None` (`python3 -m unittest`, one
+test); with the current 30 s budget it passes. The `capture_status=7` subtest was not run in
+isolation under load.
+
+**Validation gap:** none — closest fit, not exact: the parallel-load overrun never fired on demand here, so the 5-second budget was shown to fail by lowering it to 5 s rather than by reproducing the load.
+
 ### The client-exit stub test `test_waits_for_client_termination_and_preserves_capture_status` fails under a parallel `make check` (found by the coverage role 2026-11-14) — fixed 2026-11-14 by the bugfix role
 
 In one full `make check` run the test failed with `AssertionError: 0 != None` at `tests/test_render_surface_units.py:1084` (`self.assertEqual(capture_status, status)`), with `capture_status=0`. The same module run alone passed (155 tests OK). BUGS-FIXED has a closed entry for a different load-sensitive test in the same client-exit stub family ("The client-exit stub regression is load-sensitive", closed 2026-11-12, naming `test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`); this test is not named there. The coverage change that ran in the same `make check` touched only `tests/test_cursor_vector.py`, so it is not the cause as far as the diff shows.

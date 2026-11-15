@@ -87,27 +87,6 @@ Fix scope after the question is answered: an `enabled`/click change in
 structure test beside the existing decoration-package tests. No new
 dependency.
 
-### The render session's client-wait test can fail under a full parallel `make check` (found by the coverage role 2026-11-14)
-
-In a full `make check` run of 2026-11-14 (the worktree held a test-only edit to
-`tests/test_containment.py`), `tests/test_render_surface_units.py::TestSessionScript::test_waits_for_client_termination_and_preserves_capture_status`
-failed in its `capture_status=7` subtest: `AssertionError: 7 != None` at line 1084,
-where the test expects the session's exit status 7 and `render_workflow.run_logged`
-returned `None`. An earlier run that day failed the same test with `0 != None` in
-the `capture_status=0` subtest. The module passes alone
-(`make check CHECK_PATTERN='test_render_surface_units*.py'`: 155 tests, OK), so
-no session-script or capture logic is wrong on its own.
-
-Suspected cause: the test's `run_logged` call allows 5 seconds, while its stub
-client gives up waiting for the ready file after 3 seconds. Under the parallel
-suite's load the wait can overrun, so no status is recorded. Not verified: the
-exact timeout behaviour of `run_logged` was not read. A fix belongs in the test's
-timing budget or in how the session waits for its client, decided after reading
-`run_logged`. Not a SIGKILL case; the ordinary-failure guarantee stands.
-
-Reproduce: run the full `make check` on the shared host while other modules run;
-the module is green in isolation.
-
 ### post-merge review of 678f72a1 never reached a verdict (found by the review role 2026-11-14)
 
 The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
