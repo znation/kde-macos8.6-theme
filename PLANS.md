@@ -212,6 +212,21 @@ stays where it is.
   `make check` passes after the final edit, and the unused-import scanner
   reports nothing for either module.
 
+### Render-session readiness: the client writes RENDER_SESSION_READY_FILE once its window is shown (planned 2026-11-16 by the bugfix role)
+
+**Goal.** Make the render settle end on a real client readiness signal, as the user chose
+(option 2, QUESTIONS.md 2026-11-16). The session side is in place: `tools/render_session.py::session_script`
+exports `RENDER_SESSION_READY_FILE` (`<capture>.ready`) before the client starts and ends the settle
+early once the file exists, with the settle budget as the ceiling. Nothing writes the file yet, so
+every session still waits its full settle.
+
+**Remaining work (client side, one launch path per change).** Each client that a render starts must
+touch `$RENDER_SESSION_READY_FILE` once its window is shown: the ksplashqml `--test` client (splash
+mode), the plasmashell applet/desktop path, and the inactive-dialog wrapper. Each path needs a test
+that stubs the readiness write, and a bounded real-session run to confirm the signal fires. Sibling of
+the BUGS.md entry "Render-session tests rely on fixed wall-clock budgets" (which stays open until
+these land).
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role

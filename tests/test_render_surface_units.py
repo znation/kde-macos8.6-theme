@@ -1028,7 +1028,7 @@ class TestSessionScript(unittest.TestCase):
         stopped = root / "stopped"
         client = root / "client.py"
         client.write_text(
-            "import signal, sys, time\n"
+            "import os, signal, sys, time\n"
             "from pathlib import Path\n"
             "def stop(*args):\n"
             "    time.sleep(0.2)\n"
@@ -1036,6 +1036,9 @@ class TestSessionScript(unittest.TestCase):
             "    sys.exit(23)\n"
             "signal.signal(signal.SIGTERM, stop)\n"
             "signal.alarm(30)\n"
+            # The session waits on this ready file (settle is the ceiling),
+            # so the freeze lands only after the client's handler is installed.
+            "Path(os.environ['RENDER_SESSION_READY_FILE']).touch()\n"
             "Path(sys.argv[1]).touch()\n"
             "signal.pause()\n",
             encoding="utf-8",
@@ -1055,6 +1058,8 @@ class TestSessionScript(unittest.TestCase):
         # as a capture does under load. The session must still finish and
         # return its status, so the outer budget must cover the whole run.
         for capture_status, capture_seconds in ((0, 0), (7, 0), (0, 5.5)):
+            # Each subtest's client touches the ready file, so the settle ends
+            # on it; the settle of 1 is only the ceiling.
             with self.subTest(capture_status=capture_status, capture_seconds=capture_seconds):
                 ready.unlink(missing_ok=True)
                 stopped.unlink(missing_ok=True)
@@ -1064,12 +1069,76 @@ class TestSessionScript(unittest.TestCase):
                 )
                 status = render_workflow.run_logged(
                     ["sh", "-c", prefix + render_session.session_script(),
-                     "sh", "0", str(root / "capture.png"), sys.executable,
+                     "sh", "1", str(root / "capture.png"), sys.executable,
                      str(client), str(ready), str(stopped)],
                     environment, root / "session.log", 30, root,
                 )
                 self.assertEqual(capture_status, status)
                 self.assertTrue(stopped.exists(), "session exited before client termination")
+
+    def test_the_settle_ends_early_once_the_client_writes_its_ready_file(self):
+        # The settle budget is a ceiling, not a fixed sleep: a client that
+        # writes RENDER_SESSION_READY_FILE as soon as its window is up lets
+        # the capture start at once. The 15 s settle here would take far
+        # longer than the 10 s bound if the script still slept it out.
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        client = root / "client.py"
+        client.write_text(
+            "import os, signal\n"
+            "from pathlib import Path\n"
+            "signal.alarm(30)\n"
+            "Path(os.environ['RENDER_SESSION_READY_FILE']).touch()\n"
+            "signal.pause()\n",
+            encoding="utf-8",
+        )
+        prefix = "spectacle() { return 0; }; "
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["sh", "-c", prefix + render_session.session_script(),
+             "sh", "15", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 60, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status)
+        self.assertLess(elapsed, 10, "the settle slept out its full ceiling")
+        self.assertIn("render-session: client ready at", log)
+
+    def test_the_settle_waits_its_ceiling_when_the_client_never_signals(self):
+        # A client that never writes the ready file keeps the old behaviour:
+        # the session waits the whole settle ceiling before the capture.
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        client = root / "client.py"
+        client.write_text(
+            "import signal\n"
+            "signal.alarm(30)\n"
+            "signal.pause()\n",
+            encoding="utf-8",
+        )
+        prefix = "spectacle() { return 0; }; "
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["sh", "-c", prefix + render_session.session_script(),
+             "sh", "2", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 60, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status)
+        self.assertGreaterEqual(elapsed, 2)
+        self.assertIn("settle ceiling reached before a client ready file", log)
 
     def test_logs_the_capture_timeline_and_a_client_exit_during_the_capture(self):
         # The black-frame diagnosis needs to tell a vanished client from an
@@ -1115,7 +1184,9 @@ class TestSessionScript(unittest.TestCase):
             f'sleep() {{ if [ "$1" = 0 ]; then '
             f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
             'else command sleep "$@"; fi; }; '
-            f'spectacle() {{ pid=$(cat "{pidfile}"); '
+            # Settle 0 no longer waits for the client's pidfile write, so the
+            # stub reads the pid the session exports before the capture.
+            'spectacle() { pid="$RENDER_SESSION_CLIENT_PID"; '
             'kill -9 "$pid" 2>/dev/null; n=0; '
             'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
             'command sleep 0.01; n=$((n + 1)); done; return 0; }; '
@@ -1188,7 +1259,10 @@ class TestSessionScript(unittest.TestCase):
             f'sleep() {{ if [ "$1" = 0 ]; then '
             f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
             'else command sleep "$@"; fi; }; '
-            f'spectacle() {{ pid=$(cat "{pidfile}"); n=0; '
+            # The session exports the client's pid before the capture, so the
+            # stub need not wait for the client's own pidfile write (settle 0
+            # no longer waits for the client to start).
+            'spectacle() { pid="$RENDER_SESSION_CLIENT_PID"; n=0; '
             f'{state_of} printf %s "$state" > "{captured_state}"; '
             'while [ "$state" != T ] && [ $n -lt 200 ]; do '
             f'command sleep 0.01; n=$((n + 1)); {state_of} done; '

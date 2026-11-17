@@ -120,6 +120,14 @@ the risk stays open until someone decides how to size them.
 
 **Progress 2026-11-15 by bugfix:** the user answered option 3 ("Let's go with option 3"), but option 3 cannot be built as written. The "settle done" marker in `tools/render_session.py::session_script` is echoed *after* `sleep "$settle"`, so waiting on it would still wait out the fixed sleep. A real readiness signal (the client's window has mapped) does not exist in the session script: the focus-settle loop only watches its own `.done` sentinel. Follow-up question posted in QUESTIONS.md ("What should the settle wait on instead of a fixed sleep?"). No code changed; the entry stays open.
 
+**Progress 2026-11-16 by bugfix:** the user answered option 2 (client writes a ready file; QUESTIONS.md,
+2026-11-16). The session side is in: `tools/render_session.py::session_script` exports
+`RENDER_SESSION_READY_FILE` and ends the settle early when the file appears, keeping the settle as the
+ceiling. Two tests in `tests/test_render_surface_units.py::TestSessionScript` pin it (early exit with a
+ready file; full ceiling without one); the first fails on the pre-change script. No client writes the
+file yet, so the budgets still expire as before. The client-side writers are planned in PLANS.md
+("Render-session readiness: the client writes RENDER_SESSION_READY_FILE"). This entry stays open until they land.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 

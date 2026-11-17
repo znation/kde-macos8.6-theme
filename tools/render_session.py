@@ -241,6 +241,11 @@ def session_script(focus_script: str | None = None) -> str:
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
         f'focus={focus}; '
+        # The client writes RENDER_SESSION_READY_FILE once its window is shown;
+        # the settle then ends early. The settle budget stays the ceiling: a
+        # client that never writes the file waits out the full settle.
+        'ceiling="$capture.ceiling"; ready="$capture.ready"; '
+        'rm -f "$ceiling" "$ready"; export RENDER_SESSION_READY_FILE="$ready"; '
         'started=$(date +%s%3N); "$@" & client=$!; '
         'export RENDER_SESSION_CLIENT_PID="$client"; '
         'echo "render-session: client started at $started" >&2; '
@@ -263,7 +268,12 @@ def session_script(focus_script: str | None = None) -> str:
         'echo "render-session: focus settle loop running (script $id)" >&2;; '
         'esac; '
         'else echo "render-session: no qdbus for the focus settle" >&2; fi; fi; '
-        'sleep "$settle"; '
+        '( command sleep "$settle"; touch "$ceiling" ) & ceiling_timer=$!; '
+        'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do command sleep 0.1; done; '
+        'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
+        'rm -f "$ceiling"; '
+        'if [ -e "$ready" ]; then echo "render-session: client ready at $(date +%s%3N)" >&2; '
+        'else echo "render-session: settle ceiling reached before a client ready file" >&2; fi; '
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '
         'if ! kill -0 "$client" 2>/dev/null; then '
         'echo "$1 exited before the capture" >&2; exit 1; fi; '
