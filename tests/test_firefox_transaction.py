@@ -317,5 +317,25 @@ class TestPublishInstall(unittest.TestCase):
             self.assertEqual(b"\xff\xfe", user_js.read_bytes())
 
 
+class TestRaiseWithRollbackErrors(unittest.TestCase):
+    def test_no_rollback_errors_reraises_the_failure_itself(self):
+        failure = OSError("publication failed")
+        with self.assertRaises(OSError) as caught:
+            firefox_transaction.raise_with_rollback_errors(failure, [])
+        self.assertIs(failure, caught.exception)
+
+    def test_rollback_errors_are_named_in_a_config_error_caused_by_the_failure(self):
+        failure = OSError("publication failed")
+        with self.assertRaises(firefox_transaction.ConfigError) as caught:
+            firefox_transaction.raise_with_rollback_errors(
+                failure, ["first refusal", "second refusal"]
+            )
+        self.assertEqual(
+            "publication failed; first refusal; second refusal",
+            str(caught.exception),
+        )
+        self.assertIs(failure, caught.exception.__cause__)
+
+
 if __name__ == "__main__":
     unittest.main()

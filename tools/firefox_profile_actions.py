@@ -17,7 +17,7 @@ if __package__:
         write_profile_text,
     )
     from tools.firefox_user_js import remove_user_js, set_user_js
-    from tools.firefox_transaction import publish_install
+    from tools.firefox_transaction import publish_install, raise_with_rollback_errors
     from tools.os_error_refusal import refusing_os_errors
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
@@ -35,7 +35,7 @@ else:  # imported from a directly run tool
         write_profile_text,
     )
     from firefox_user_js import remove_user_js, set_user_js
-    from firefox_transaction import publish_install
+    from firefox_transaction import publish_install, raise_with_rollback_errors
     from os_error_refusal import refusing_os_errors
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
@@ -147,12 +147,10 @@ def remove_profile(profile: Path) -> int:
             with refusing_os_errors(ConfigError, "remove", sheet_path):
                 sheet_path.unlink()
     except BaseException as exc:
-        rollback_errors = _restore_still_missing(
-            owned, js_path, existing_js, rewrite_js
+        raise_with_rollback_errors(
+            exc,
+            _restore_still_missing(owned, js_path, existing_js, rewrite_js),
         )
-        if rollback_errors:
-            raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
-        raise
     return 0
 
 

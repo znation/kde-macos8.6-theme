@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import NoReturn
 
 if __package__:
     from tools.firefox_user_files import (
@@ -21,6 +22,23 @@ else:  # imported from a directly run tool
         write_profile_text,
     )
     from os_error_refusal import refusing_os_errors
+
+
+def raise_with_rollback_errors(
+    failure: BaseException, rollback_errors: list[str]
+) -> NoReturn:
+    """Re-raise *failure* from an ``except`` block, naming any rollback errors.
+
+    With no rollback errors this re-raises *failure* unchanged. Otherwise it
+    raises a ``ConfigError`` whose message is *failure* followed by each
+    rollback error, chained to *failure* as its cause. Its two callers are
+    ``publish_install`` here and the removal path in ``firefox_profile_actions``.
+    """
+    if rollback_errors:
+        raise ConfigError(
+            f"{failure}; {'; '.join(rollback_errors)}"
+        ) from failure
+    raise failure
 
 
 def _restore_file(path: Path, previous: str | None) -> None:
@@ -51,12 +69,12 @@ def publish_install(
             write_operation(path, data)
         write_profile_text(user_js_path, published_user_js)
     except BaseException as exc:
-        rollback_errors = _restore_published(
-            sheets, user_js_path, previous_user_js, published_user_js
+        raise_with_rollback_errors(
+            exc,
+            _restore_published(
+                sheets, user_js_path, previous_user_js, published_user_js
+            ),
         )
-        if rollback_errors:
-            raise ConfigError(f"{exc}; {'; '.join(rollback_errors)}") from exc
-        raise
 
 
 def _restore_published(
