@@ -140,6 +140,61 @@ class TestExclusiveFlock(unittest.TestCase):
             close.assert_called_once_with(flock.call_args.args[0])
         self.assertTrue(self.acquire())
 
+    def test_contention_waits_one_poll_interval_before_each_retry(self):
+        """EAGAIN and EACCES mean another run holds the lock: wait, then retry.
+
+        A contended attempt must sleep one POLL_SECONDS before the next try so
+        the waiting run does not spin on the descriptor; the real-holder test
+        reaches this arm but cannot tell a sleep from a busy loop.
+        """
+        with (
+            mock.patch.object(
+                fcntl,
+                "flock",
+                side_effect=[
+                    OSError(errno.EAGAIN, "held"),
+                    OSError(errno.EACCES, "held"),
+                    None,
+                ],
+            ) as flock,
+            mock.patch("tools.file_lock.time.sleep") as sleep,
+        ):
+            self.assertTrue(self.acquire(timeout=10.0))
+
+        self.assertEqual(flock.call_count, 3)
+        self.assertEqual(sleep.call_args_list, [mock.call(POLL_SECONDS)] * 2)
+
+    def test_contention_past_the_deadline_is_refused_without_a_retry(self):
+        """A held lock that outlasts the timeout is refused with the holder named.
+
+        The deadline is checked on the contention errno itself: one EAGAIN
+        after the deadline must raise the timeout diagnostic at once, with no
+        sleep and no second flock call, so a stuck holder cannot stall a run
+        past its bound.
+        """
+        with (
+            mock.patch("tools.file_lock.time.monotonic", side_effect=[0, 5]),
+            mock.patch.object(
+                fcntl,
+                "flock",
+                side_effect=[
+                    OSError(errno.EAGAIN, "held"),
+                    AssertionError("retried after the deadline"),
+                ],
+            ) as flock,
+            mock.patch("tools.file_lock.time.sleep") as sleep,
+        ):
+            with self.assertRaises(LockRefused) as caught:
+                self.acquire(timeout=2)
+
+        self.assertEqual(flock.call_count, 1)
+        sleep.assert_not_called()
+        self.assertEqual(
+            str(caught.exception),
+            "gave up after 2s waiting for another test run; nothing was changed",
+        )
+        self.assertTrue(self.acquire())
+
     def test_an_unexpected_flock_errno_is_refused_at_once_without_retry(self):
         """A flock errno that is not contention is refused, not waited out.
 
