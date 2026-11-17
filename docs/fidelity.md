@@ -372,9 +372,10 @@ columns between the cells, while the font-dependent label and digit ink is pinne
 only by live-ink checks. The dialog renders the same
 suite runs (`tests/test_render_dialog_gates.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
-`tests/test_render_calendar_dialog.py::TestCalendarDialogRender`, `::TestColorDialogRender`, `::TestSliderDialogRender`,
-`::TestTextboxDialogRender`, `::TestProgressbarDialogRender`, `tests/test_render_gtk_dialog.py::TestGtkDialogRender` and
-`::TestInactiveDialogRender`)
+`::TestColorDialogRender`, `::TestSliderDialogRender`, `::TestTextboxDialogRender`,
+`::TestProgressbarDialogRender`, `::TestInactiveDialogRender`,
+`tests/test_render_calendar_dialog.py::TestCalendarDialogRender` and
+`tests/test_render_gtk_dialog.py::TestGtkDialogRender`)
 open a `kdialog` warning box, chooser, input box, menu list, calendar, color picker, slider,
 progress meter and text box and a `zenity` GTK 4 entry dialog, and byte-compare the
 engine-drawn widgets with the shipped art described under
