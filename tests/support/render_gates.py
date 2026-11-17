@@ -2,6 +2,7 @@
 
 ``tests/test_render_surface.py`` (the applet, desktop and splash gates),
 ``tests/test_render_dialog_gates.py`` (the thirteen kdialog widget gates),
+``tests/test_render_calendar_dialog.py`` (the two calendar gates),
 ``tests/test_render_file_dialog.py`` (the file-dialog gate) and
 ``tests/test_render_gtk_dialog.py`` (the GTK 4 window gate) all pin
 ``tools/render_surface.py``'s captures. The tool lists, the software-renderer

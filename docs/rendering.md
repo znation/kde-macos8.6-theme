@@ -80,10 +80,10 @@ the checked dot and unchecked ring cores, and the top edge of the sunken list fi
 `--calendar-dialog` opens a `kdialog` calendar pinned to January 1970 (`--default
 1970-01-07` with the load-bearing `--dateformat`: without it kdialog ignores `--default`
 and opens today's month), captured at the same 480x360 size; the calendar gate
-(`tests/test_render_dialog_gates.py::TestCalendarDialogRender`) pins the flat window face,
+(`tests/test_render_calendar_dialog.py::TestCalendarDialogRender`) pins the flat window face,
 the white day-table face with the weekday-letter inks, the selected day's `#CCCCFF`
 fill and digit ink, and the leftmost day column's red day digits there. A sibling
-locale gate (`tests/test_render_dialog_gates.py::TestCalendarLocaleDialogRender`)
+locale gate (`tests/test_render_calendar_dialog.py::TestCalendarLocaleDialogRender`)
 renders the same calendar under a hostile Monday-first caller locale, because the
 day grid's first day of week is the invoking shell's locale and the render session
 pins the measurement locale over the caller's `LANG`/`LC_*` so the grid stays

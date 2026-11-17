@@ -124,7 +124,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "calendar-day-grid-locale",
         ("red Sunday ink",),
-        "tests/test_render_dialog_gates.py::TestCalendarLocaleDialogRender",
+        "tests/test_render_calendar_dialog.py::TestCalendarLocaleDialogRender",
         CALENDAR_GRID_LOCALE_GUARANTEE,
     ),
     UnclearInvariant(

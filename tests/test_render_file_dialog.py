@@ -3,7 +3,8 @@
 ``tools/render_surface.py``'s ``--file-dialog`` mode opens a kdialog file
 chooser whose engine-drawn frame, title bar and widgets this gate pins; the
 shared capture plumbing lives in ``tests/support/render_gates.py``, the
-thirteen kdialog widget gates in ``tests/test_render_dialog_gates.py``, and
+thirteen kdialog widget gates in ``tests/test_render_dialog_gates.py``, the
+calendar gates in ``tests/test_render_calendar_dialog.py``, and
 the applet, desktop and splash gates in ``tests/test_render_surface.py``.
 """
 
@@ -1439,8 +1440,8 @@ class TestFileDialogGateSkipGuards(unittest.TestCase):
     """The file-dialog gate skips wherever its render CLI refuses on a tool.
 
     The shared guard condition and the widget gates' flags are pinned in
-    ``tests/test_render_dialog_gates.py`` and ``tests/test_render_gtk_dialog.py``
-    pins the GTK 4 gate's; this module pins its
+    ``tests/test_render_dialog_gates.py``, ``tests/test_render_calendar_dialog.py``
+    and ``tests/test_render_gtk_dialog.py`` pins the GTK 4 gate's; this module pins its
     own gate's flag beside the gate it guards.
     """
 
