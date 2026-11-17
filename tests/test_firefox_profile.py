@@ -93,6 +93,15 @@ class TestProfileResolution(FirefoxProfileTestCase):
         with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve(str(missing))
         self.assertIn(str(missing), str(caught.exception))
+        self.assertIn("does not exist", str(caught.exception))
+
+    def test_named_profile_that_is_a_file_is_refused_as_not_a_directory(self):
+        file_path = self.root / "profile-file"
+        file_path.write_text("not a profile\n", encoding="utf-8")
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve(str(file_path))
+        self.assertIn("is not a directory", str(caught.exception))
+        self.assertIn(str(file_path), str(caught.exception))
 
     def test_profile_inspection_error_names_the_path_and_os_error(self):
         with mock.patch.object(

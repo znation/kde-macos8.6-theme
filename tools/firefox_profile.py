@@ -191,6 +191,10 @@ def resolve_profile(
         if not path.is_absolute():
             raise ConfigError(f"Firefox profile must be an absolute path: {path}")
         if not _is_directory(path):
+            # _is_directory is False for a missing path and for a non-directory;
+            # a typo'd --profile should say it does not exist, not that it is the wrong kind.
+            if not path.exists():
+                raise ConfigError(f"Firefox profile does not exist: {path}")
             raise ConfigError(f"Firefox profile is not a directory: {path}")
         return path
 
