@@ -1053,10 +1053,11 @@ class TestSessionScript(unittest.TestCase):
         # startup latency cannot outlive a client with a finite lifetime
         # (BUGS.md, the splash black-frame report, director decision
         # 2026-11-12). The spectacle stub records the client's scheduler
-        # state at capture start, which must be "T" (stopped) while the
-        # capture runs; a trapped SIGTERM that writes its own file pins the
-        # resume, because a still-stopped client cannot run its termination
-        # handler inside the session's bounded wait.
+        # state once it has seen "T" (stopped) or spent its poll cap, which
+        # must be "T" while the capture runs; a trapped SIGTERM that writes
+        # its own file pins the resume, because a still-stopped client
+        # cannot run its termination handler inside the session's bounded
+        # wait.
         root = tmp_dir.make_tmp_dir(self)
         apply = root / "plasma-apply-colorscheme"
         apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
@@ -1082,9 +1083,10 @@ class TestSessionScript(unittest.TestCase):
             "signal.pause()\n",
             encoding="utf-8",
         )
-        # The spectacle stub reads the client's scheduler state at capture
-        # start and returns only once that state is "T" (stopped), so a
-        # capture that starts without the hold cannot satisfy the test.
+        # The spectacle stub polls the client's scheduler state until it is
+        # "T" (stopped): `kill -STOP` returns before the woken client stops,
+        # so a single read at capture start can still see "R". A capture
+        # that starts without the hold never reaches "T" and fails the test.
         state_of = 'state=$(awk \'{print $3}\' "/proc/$pid/stat" 2>/dev/null); '
         prefix = (
             # The stub reads the pid the session exports before the capture.
@@ -1106,8 +1108,8 @@ class TestSessionScript(unittest.TestCase):
         state, polls = captured_state.read_text(encoding="utf-8").split()
         self.assertEqual(
             "T", state,
-            f"the capture started with the client in state {state!r} after "
-            f"{polls} polls (cap 200): the SIGSTOP had not taken effect "
+            f"the client was still in state {state!r} after {polls} polls "
+            "(cap 200) during the capture: the SIGSTOP had not taken effect "
             "within the stub's poll cap",
         )
         self.assertEqual(0, status)
