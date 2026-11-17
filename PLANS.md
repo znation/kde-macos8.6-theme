@@ -206,6 +206,76 @@ that change, so implement it against main after 2fc36e0 has merged, and keep its
 - `tests/test_render_dialog_gates.py` shrinks by at least 55 lines, and the new module stays under
   about 130 lines. `make check` passes after the final edit.
 
+### Render units suite extraction: isolate the desktop and splash argument checks (planned 2026-11-17 by the plan role)
+
+**Goal.** `tests/test_render_surface_units.py` is still over 1100 lines, and its `TestArguments` class
+is about 500 of them. `TestArguments` has 14 methods covering the two modes whose client is a fixed
+plain command instead of `kdialog`: `--desktop` (`plasmashell`) and `--splash` (`ksplashqml`). They
+run from `test_cli_delegates_the_desktop_capture_size` through `test_the_help_text_names_the_splash`
+and are about 108 lines. Move them into their own module. This follows the earlier units extractions
+(PLANS-DONE.md, "isolate the CLI applet preflight checks"). The module-level helpers they call are
+shared with the dialog-mode methods that stay, so move those helpers into a support module instead of
+importing from one test module into another. This plan does not touch `tests/test_render_dialog_gates.py`
+or any file the waiting slider extraction edits, so the two can merge in either order.
+
+**Approach.**
+- Create `tests/support/render_cli_cases.py`. Give it a docstring saying it holds the shared
+  `render_surface.main` argument assertions for the per-mode CLI tests. Move these module-level
+  functions into it verbatim, docstrings included: `delegated_render_args`,
+  `assert_delegated_capture_size`, `assert_rejects_applet_with_fixed_client`,
+  `assert_rejects_capture_size_with_fixed_client`, `assert_two_mode_refusal_names_both`,
+  `assert_dialog_requires_kdialog` and `assert_help_lists_flag`. Their bodies use `mock`,
+  `render_surface`, `call_main`, `_call_capturing` and `assert_missing_tool_named`. Import those from
+  `unittest`, `tools` and `support.cli_fixtures`, and re-check that list against the moved text. Each
+  docstring's call-site count ("Seven call sites", "Thirteen tests", …) counts callers across both
+  test modules. After the move, recount with `grep -c` over both modules and correct any count that
+  no longer holds.
+- Create `tests/test_render_fixed_client_modes.py` with a docstring. It says the module holds the
+  `--desktop` and `--splash` argument and preflight checks, that it was moved out of
+  `tests/test_render_surface_units.py`, that the dialog-mode argument checks stay there, and that the
+  splash client argv is pinned in `tests/test_render_splash_client.py`. Add the class
+  `TestFixedClientModeArguments(unittest.TestCase)` with a copy of `TestArguments.setUp`, which pins
+  `render_surface.applet_problem` off. Move the 14 desktop and splash methods into it verbatim, with
+  their comments. Import the helpers from `support.render_cli_cases`, along with
+  `assert_missing_tool_named` and `render_surface`, plus whatever else the moved bodies use. Add the
+  `from support import repo_root` path setup and the `unittest.main()` footer. These tests patch
+  `render` and start no session, so the class needs no skip guard.
+- In `tests/test_render_surface_units.py`, delete the moved helpers and methods. Import the helpers
+  the remaining `TestArguments` methods use from `support.render_cli_cases`. Delete any import that
+  no remaining code uses, checking each with `grep -nw`. Extend the module docstring's sibling list
+  to name `tests/test_render_fixed_client_modes.py` for the desktop and splash argument checks.
+- Update the anchors in `docs/invariants.md`. In the `--desktop` row, cite
+  `tests/test_render_fixed_client_modes.py::TestFixedClientModeArguments::test_cli_delegates_the_desktop_capture_size`
+  in place of the `test_render_surface_units.py::TestArguments` one. In the `--splash` row, cite
+  `...::test_cli_delegates_the_splash_capture_size` the same way. Leave the `render_surface keeps
+  parsing and preflight` row alone, because its method stays. Then grep `docs tests tools README.md
+  BUGS.md QUESTIONS.md`, including `tests/support/validation_gaps/*.py` and
+  `tests/test_ci_workflow.py`, for each of the 14 moved method names and the 7 helper names, and
+  rewrite any other anchor that turns up. Do not rewrite PLANS-DONE.md or BUGS-FIXED.md.
+
+**Files touched.** `tests/support/render_cli_cases.py` (new), `tests/test_render_fixed_client_modes.py`
+(new), `tests/test_render_surface_units.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the 14 desktop and splash methods exactly once, under
+  `test_render_fixed_client_modes.TestFixedClientModeArguments`, and none under
+  `test_render_surface_units`. Every other `TestArguments` method, plus `TestCapturePaintCheck` and
+  `TestSessionScript`, is still listed under `test_render_surface_units`.
+- During the run, each moved method's `ast.dump` and each moved helper's `ast.dump` with its
+  docstring removed match the originals at this plan's base commit. This is a one-time check, not a
+  committed test.
+- Running `python3 -m unittest test_render_fixed_client_modes` from `tests/` passes on its own, with
+  no display and with `plasmashell` and `ksplashqml` absent from the host. Breaking the desktop mode's
+  default settle (30 s) or the splash mode's 640x400 capture size in `tools/render_surface.py` makes
+  that module fail.
+- `grep -n "desktop\|splash" tests/test_render_surface_units.py` finds no `def test_` line, and
+  `grep -rn "test_render_surface_units.py::TestArguments::test_cli_delegates_the_\(desktop\|splash\)" docs tests tools`
+  prints nothing. The invariants anchor check passes in `make check`.
+- Each helper docstring's call-site count equals the number of call sites a `grep` over the two
+  modules finds.
+- `tests/test_render_surface_units.py` shrinks by at least 190 lines, and each new file stays under
+  about 160 lines. `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
