@@ -39,6 +39,7 @@ _GATE_FILES = (
     "tests/test_render_surface.py",
     "tests/test_render_dialog_gates.py",
     "tests/test_render_file_dialog.py",
+    "tests/test_render_gtk_dialog.py",
 )
 _DIALOG_GATE_COUNT = re.compile(r"[Tt]he (\w+) dialog(?: render)? gates")
 _KDIALOG_MODE_COUNT = re.compile(r"[Tt]he (\w+) kdialog modes")

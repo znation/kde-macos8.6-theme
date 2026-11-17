@@ -27,6 +27,7 @@ _GATE_FILES = (
     "tests/test_render_surface.py",
     "tests/test_render_dialog_gates.py",
     "tests/test_render_file_dialog.py",
+    "tests/test_render_gtk_dialog.py",
 )
 
 # README names each gate as a fully qualified ``tests/test_render_<surface>.py

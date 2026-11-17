@@ -132,7 +132,7 @@ outline-and-bevel bands and grip bars, the disabled #999999 up triangle and the 
 theme-name CSS switch it wears the theme through the selection the render publishes into the
 scratch config home (`gtk-4.0/settings.ini` theme-name keys and the user-css `@import` of the
 installed sheet), and the render captures it at the same 480x360 size. In this render mode the
-GTK 4 dialog gate (`tests/test_render_dialog_gates.py::TestGtkDialogRender`) pins the rendered entry-field
+GTK 4 dialog gate (`tests/test_render_gtk_dialog.py::TestGtkDialogRender`) pins the rendered entry-field
 cell 1:1 against the shipped art, along with the action-button row, Cancel button and CSD shell
 edge; it also checks capture-level invariants. The fourteen dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the

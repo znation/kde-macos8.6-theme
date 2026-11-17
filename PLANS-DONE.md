@@ -5,6 +5,106 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render dialog gates suite extraction: isolate the GTK 4 dialog gate (planned 2026-11-16 by the plan role) — done 2026-11-16 by the feature role
+
+**Goal.** The PLANS.md size-drift note asks the plan role to break up the
+render-test files by family. `tests/test_render_dialog_gates.py` (1721
+lines at this plan's base) has no plan yet. This entry moves its one
+non-kdialog family into its own module: `TestGtkDialogRender`, the zenity
+GTK 4 window gate, together with the four crop constants that only it reads.
+`tests/test_render_file_dialog.py` already pins its gate's skip flag beside
+the gate, and this module does the same. No production code or behavior
+changes.
+
+This entry depends on no other entry. The waiting render-units entry touches
+only `tests/test_render_surface_units.py` and a new
+`tests/test_render_session_command.py`. This entry touches neither.
+`TestInactiveDialogRender`, which the open BUGS.md pixel-pin entry is about,
+stays where it is.
+
+**Approach and files.**
+- Create `tests/test_render_gtk_dialog.py`. Model its layout on
+  `tests/test_render_file_dialog.py`: a module docstring that names
+  ``tools/render_surface.py``'s ``--gtk-dialog`` mode, says the shared
+  capture plumbing lives in ``tests/support/render_gates.py`` and the
+  kdialog widget gates live in ``tests/test_render_dialog_gates.py``, then
+  `from __future__ import annotations`, the `from support import repo_root  #
+  noqa: F401` path line, the imports the moved code needs, and the
+  `if __name__ == "__main__":` guard.
+- Move these items whole, with their preceding comment blocks, values,
+  bodies, docstrings and comments unchanged and in source order:
+  `ENTRY_FIELD_CROP`, `OK_BUTTON_CROP`, `CANCEL_BUTTON_CROP`,
+  `WINDOW_SHELL_EDGE_CROP`, and `class TestGtkDialogRender` with its
+  `@dialog_gate_guard()` decorator. The class has two `KIND = "gtk"`
+  assignments, so keep both as they are. At this plan's base, a grep shows
+  that no other class in the source module reads the four constants. Grep
+  again before you delete them.
+- At this plan's base, the moved code uses these module-level names:
+  `unittest`, `DialogGate`, `dialog_gate_guard`, `hex_colour`, `pixel_at`,
+  `BLACK`, `WHITE`, `FACE` and `BUTTON_SHADOW`. Only `WHITE` is unused by
+  what stays. Drop it from the source's `support.platinum_palette` import
+  and keep every other source import. Grep the moved range again before
+  you write the new import blocks. The unused-import scanner in
+  `make check` (`tests/test_no_unused_imports.py`) has the final say.
+- In the source's
+  `TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`,
+  remove `TestGtkDialogRender` from the gate tuple. Add a comment beside it,
+  like the existing `TestFileDialogRender` one, that names
+  `tests/test_render_gtk_dialog.py` as the place its flag is pinned. In the
+  new module, add `class TestGtkDialogGateSkipGuards` modelled on
+  `tests/test_render_file_dialog.py::TestFileDialogGateSkipGuards`. It
+  asserts that `TestGtkDialogRender.__unittest_skip__` equals "software
+  renderer forced, or some `DIALOG_REAL_TOOLS` tool missing". It also
+  reapplies `dialog_gate_guard` through `probe_gate_skip` for `None` and for
+  each tool. This keeps the GTK gate's skip flag pinned exactly as before.
+  In `TestFileDialogGateSkipGuards`'s docstring, change "the fourteen widget
+  gates' flags are pinned in ``tests/test_render_dialog_gates.py``" so that
+  it also names ``tests/test_render_gtk_dialog.py``.
+- Rewrite these anchors from `tests/test_render_dialog_gates.py::TestGtkDialogRender`
+  (or the bare `test_render_dialog_gates.py` path next to a GTK crop) to the
+  new module path: `docs/invariants.md` (the GTK 4 entry row and the
+  `--gtk-dialog` mode row), `docs/rendering.md` (the GTK 4 dialog gate
+  sentence) and `docs/fidelity.md` (the `::TestGtkDialogRender` item in the
+  dialog-render list; give it its own full path). Find each one by grepping
+  for `TestGtkDialogRender`. In the `docs/invariants.md` rows that anchor
+  `TestFileDialogGateSkipGuards` (the "fifteen dialog render gates" row, and
+  the software-renderer skip row if it names that class), add the new
+  `tests/test_render_gtk_dialog.py::TestGtkDialogGateSkipGuards` test
+  beside it. Update the class list in the `tests/test_ci_workflow.py`
+  comment only if it names a file, not just classes. Update
+  `tests/support/render_gates.py`'s module docstring so that it lists the
+  new suite among the ones that share it. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists every `TestGtkDialogRender` method exactly once,
+  under `test_render_gtk_dialog.TestGtkDialogRender`, and none under
+  `test_render_dialog_gates`. Every other class in
+  `test_render_dialog_gates` lists the same methods as before.
+- The moved `ClassDef` (decorator included) and the four constants'
+  `Assign` nodes are AST-identical to the originals at this plan's base
+  commit. Check this once during the run, for example with `ast.dump`. It is
+  a run-time check, not a new committed test.
+- With zenity or kdialog missing from `PATH`, or with
+  `LIBGL_ALWAYS_SOFTWARE=1`, `TestGtkDialogRender` skips and
+  `TestGtkDialogGateSkipGuards` passes. With every `DIALOG_REAL_TOOLS` tool
+  present on a hardware renderer, the gate is not skipped. The new
+  skip-guard test would fail if `@dialog_gate_guard()` were dropped from the
+  moved class.
+- `grep -rn "test_render_dialog_gates.py::TestGtkDialogRender" docs tests tools`
+  prints nothing. The invariants anchor check in `make check` passes.
+- `tests/test_render_dialog_gates.py` shrinks by at least 220 lines, and
+  `tests/test_render_gtk_dialog.py` stays under about 340 lines.
+  `make check` passes after the final edit, and the unused-import scanner
+  reports nothing for either module.
+
+Implementation note (feature role, 2026-11-16): two scanners keep their own
+`_GATE_FILES` lists, `tests/test_dialog_gate_count_prose.py` and
+`tests/test_readme_render_gates.py`; both now name the new module, or the
+gate count and README checks fail. The unused-import scanner also flagged
+`BUTTON_SHADOW` in the source after the move, so it was dropped from that
+import alongside `WHITE`.
+
 ### Render units suite extraction: isolate the session-command and dialog-client argv checks (planned 2026-11-15 by the plan role) — done 2026-11-16 by the feature role
 
 **Goal.** `tests/test_render_surface_units.py` is the largest test module

@@ -1438,8 +1438,9 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
 class TestFileDialogGateSkipGuards(unittest.TestCase):
     """The file-dialog gate skips wherever its render CLI refuses on a tool.
 
-    The shared guard condition and the fourteen widget gates' flags are
-    pinned in ``tests/test_render_dialog_gates.py``; this module pins its
+    The shared guard condition and the widget gates' flags are pinned in
+    ``tests/test_render_dialog_gates.py`` and ``tests/test_render_gtk_dialog.py``
+    pins the GTK 4 gate's; this module pins its
     own gate's flag beside the gate it guards.
     """
 

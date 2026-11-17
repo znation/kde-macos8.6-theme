@@ -1,8 +1,9 @@
 """Session plumbing the render capture gates share.
 
 ``tests/test_render_surface.py`` (the applet, desktop and splash gates),
-``tests/test_render_dialog_gates.py`` (the thirteen kdialog widget gates)
-and ``tests/test_render_file_dialog.py`` (the file-dialog gate) all pin
+``tests/test_render_dialog_gates.py`` (the thirteen kdialog widget gates),
+``tests/test_render_file_dialog.py`` (the file-dialog gate) and
+``tests/test_render_gtk_dialog.py`` (the GTK 4 window gate) all pin
 ``tools/render_surface.py``'s captures. The tool lists, the software-renderer
 skip condition, the pixel-reading mixin, the render session batch and the
 dialog-gate scaffolding and skip guards live here so the three suites share
