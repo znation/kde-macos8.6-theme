@@ -13,7 +13,8 @@ from tools import sample
 
 
 class TestSampleFindColor(CliTestCase):
-    """The find-color search's ``--find-color`` matches: absolute counts, page bounds and JSON/text parity."""
+    """The find-color search's ``--find-color`` matches: absolute counts, page bounds and
+    JSON/text parity."""
 
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
@@ -27,7 +28,8 @@ class TestSampleFindColor(CliTestCase):
 
     def test_json_disconnected_matches_are_counted_and_bounded_absolutely(self):
         path = self._image()
-        result = self._run(path, "1", "0", "--width", "4", "--height", "4", "--find-color", "#010203", "--json")
+        result = self._run(path, "1", "0", "--width", "4", "--height", "4",
+                           "--find-color", "#010203", "--json")
         self._assert_success(result)
         self.assertEqual(json.loads(result.stdout), {
             "image": path, "image_width": 6, "image_height": 4,
@@ -44,19 +46,24 @@ class TestSampleFindColor(CliTestCase):
             f"image: {path}  2x2", "region (1, 1) 1x1:", "color: #FFFFFF",
             "count: 1", "bounds: 1,1,1,1",
         ])
-        full = self._run(path, "0", "0", "--width", "2", "--height", "2", "--find-color", "#FFFFFF", "--json")
+        full = self._run(path, "0", "0", "--width", "2", "--height", "2",
+                         "--find-color", "#FFFFFF", "--json")
         self._assert_success(full)
-        self.assertEqual(json.loads(full.stdout)["match"]["bounds"], {"x": 0, "y": 0, "width": 2, "height": 2})
+        self.assertEqual(json.loads(full.stdout)["match"]["bounds"],
+                         {"x": 0, "y": 0, "width": 2, "height": 2})
         absent = self._run(path, "0", "0", "--find-color", "000000", "--json")
         self._assert_success(absent)
-        self.assertEqual(json.loads(absent.stdout)["match"], {"rgb": [0, 0, 0], "hex": "#000000", "count": 0, "bounds": None})
+        self.assertEqual(json.loads(absent.stdout)["match"],
+                         {"rgb": [0, 0, 0], "hex": "#000000", "count": 0, "bounds": None})
         absent_text = self._run(path, "0", "0", "--find-color", "#000000")
         self._assert_success(absent_text)
-        self.assertEqual(absent_text.stdout.splitlines()[2:], ["color: #000000", "count: 0", "bounds: none"])
+        self.assertEqual(absent_text.stdout.splitlines()[2:],
+                         ["color: #000000", "count: 0", "bounds: none"])
         black = self._write(self._tmp_dir(), "black.png", solid_rgb(1, 1)[1])
         found = self._run(black, "0", "0", "--find-color", "000000")
         self._assert_success(found)
-        self.assertEqual(found.stdout.splitlines()[2:], ["color: #000000", "count: 1", "bounds: 0,0,1,1"])
+        self.assertEqual(found.stdout.splitlines()[2:],
+                         ["color: #000000", "count: 1", "bounds: 0,0,1,1"])
 
     def test_alpha_does_not_change_rgb_matching(self):
         data = make_png(2, 1, [bytes((9, 8, 7, 0, 9, 8, 7, 255))], color_type=6)
@@ -80,14 +87,16 @@ class TestSampleFindColor(CliTestCase):
                          "--color-tolerance", "2", "--json")
         self._assert_success(full)
         self.assertEqual(json.loads(full.stdout)["match"]["count"], 2)
-        maximum = self._run(path, "5", "0", "--find-color", "0a141e", "--color-tolerance", "255", "--json")
+        maximum = self._run(path, "5", "0", "--find-color", "0a141e",
+                            "--color-tolerance", "255", "--json")
         self._assert_success(maximum)
         self.assertEqual(json.loads(maximum.stdout)["match"]["count"], 1)
 
     def test_explicit_zero_schema_text_and_invalid_tolerance(self):
         path = self._image()
         omitted = self._run(path, "0", "0", "--find-color", "010203", "--json")
-        zero = self._run(path, "0", "0", "--find-color", "010203", "--color-tolerance", "0", "--json")
+        zero = self._run(path, "0", "0", "--find-color", "010203",
+                         "--color-tolerance", "0", "--json")
         self._assert_success(omitted)
         self._assert_success(zero)
         self.assertNotIn("tolerance", json.loads(omitted.stdout)["match"])
@@ -95,8 +104,9 @@ class TestSampleFindColor(CliTestCase):
         text = self._run(path, "0", "0", "--find-color", "010203", "--color-tolerance", "0")
         self._assert_success(text)
         self.assertIn("tolerance: 0", text.stdout)
-        self.assertEqual(next(line for line in text.stdout.splitlines() if line.startswith("count:")),
-                         f"count: {json.loads(zero.stdout)['match']['count']}")
+        self.assertEqual(
+            next(line for line in text.stdout.splitlines() if line.startswith("count:")),
+            f"count: {json.loads(zero.stdout)['match']['count']}")
         with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")):
             unused = self._run(path, "0", "0", "--color-tolerance", "0")
         self._assert_usage_error(unused, "requires --find-color")
@@ -107,14 +117,16 @@ class TestSampleFindColor(CliTestCase):
 
     def test_direct_script_tolerance(self):
         path = self._image()
-        result = self._run_script(path, "0", "0", "--find-color", "010203", "--color-tolerance", "255", "--json")
+        result = self._run_script(path, "0", "0", "--find-color", "010203",
+                                  "--color-tolerance", "255", "--json")
         self._assert_success(result)
         self.assertEqual(json.loads(result.stdout)["match"]["tolerance"], 255)
 
     def test_invalid_modes_bounds_decoder_and_path_safety(self):
         path = self._image()
         with mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
-            result = self._run(path, "1", "1", "--width", "3", "--height", "2", "--find-color", "010203", "--json")
+            result = self._run(path, "1", "1", "--width", "3", "--height", "2",
+                               "--find-color", "010203", "--json")
         self._assert_success(result)
         self.assertEqual(read.call_args.kwargs["max_rows"], 3)
         with mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded")):
