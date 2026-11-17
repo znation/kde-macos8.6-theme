@@ -167,6 +167,56 @@ class TestDropAlpha(unittest.TestCase):
             drop_alpha(raw, 2, 2, max_cols=1), bytes([3, 1, 2, 3, 1, 9, 10, 11])
         )
 
+    def test_a_row_bound_zero_fills_later_rows_and_keeps_their_filter_bytes(self):
+        # Three rows of two RGBA pixels; each row starts with its filter byte.
+        # Only row 0 is inside the bound, so only its alpha bytes are removed.
+        # Rows 1 and 2 keep filter bytes 1 and 2 and carry zeroed samples, so
+        # a bug that copied their colour bytes or dropped their filter byte
+        # would change the result.
+        raw = bytes([
+            0, 1, 2, 3, 4, 5, 6, 7, 8,
+            1, 9, 10, 11, 12, 13, 14, 15, 16,
+            2, 17, 18, 19, 20, 21, 22, 23, 24,
+        ])
+        self.assertEqual(
+            drop_alpha(raw, 2, 3, max_rows=1),
+            bytes([
+                0, 1, 2, 3, 5, 6, 7,
+                1, 0, 0, 0, 0, 0, 0,
+                2, 0, 0, 0, 0, 0, 0,
+            ]),
+        )
+
+    def test_a_row_bound_and_a_column_bound_compose(self):
+        raw = bytes([
+            0, 1, 2, 3, 4, 5, 6, 7, 8,
+            1, 9, 10, 11, 12, 13, 14, 15, 16,
+            2, 17, 18, 19, 20, 21, 22, 23, 24,
+        ])
+        self.assertEqual(
+            drop_alpha(raw, 2, 3, max_cols=1, max_rows=1),
+            bytes([
+                0, 1, 2, 3,
+                1, 0, 0, 0,
+                2, 0, 0, 0,
+            ]),
+        )
+
+    def test_a_row_bound_above_the_height_keeps_every_row(self):
+        raw = bytes([
+            0, 1, 2, 3, 4, 5, 6, 7, 8,
+            1, 9, 10, 11, 12, 13, 14, 15, 16,
+            2, 17, 18, 19, 20, 21, 22, 23, 24,
+        ])
+        self.assertEqual(
+            drop_alpha(raw, 2, 3, max_rows=9),
+            bytes([
+                0, 1, 2, 3, 5, 6, 7,
+                1, 9, 10, 11, 13, 14, 15,
+                2, 17, 18, 19, 21, 22, 23,
+            ]),
+        )
+
 
 class TestPaethEqualNeighbours(unittest.TestCase):
     def test_equal_above_and_above_left_predict_the_left_byte(self):
