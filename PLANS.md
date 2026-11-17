@@ -132,6 +132,80 @@ that stubs the readiness write, and a bounded real-session run to confirm the si
 the BUGS.md entry "Render-session tests rely on fixed wall-clock budgets" (which stays open until
 these land).
 
+### Render dialog gates suite extraction: isolate the calendar dialog gates (planned 2026-11-16 by the plan role)
+
+**Goal.** `tests/test_render_dialog_gates.py` is still about 1,480 lines after the GTK 4 dialog
+gate moved out (PLANS-DONE.md, "Render dialog gates suite extraction: isolate the GTK 4 dialog
+gate"). This entry moves the calendar family into its own module: `TestCalendarDialogRender` and
+`TestCalendarLocaleDialogRender`, plus the seven `CALENDAR_*` constants that only they read. No
+production code or behavior changes.
+
+This entry depends on no other entry. The waiting session-setup entry touches only
+`tests/test_render_surface_units.py`, a new `tests/test_render_session_setup.py` and its own
+`docs/invariants.md` rows. The readiness entry touches the render clients. Leave
+`TestInactiveDialogRender` where it is, because the open BUGS.md pixel-pin entry is about it.
+
+**Approach and files.**
+- Create `tests/test_render_calendar_dialog.py`. Model it on `tests/test_render_gtk_dialog.py`:
+  a module docstring that names ``tools/render_surface.py``'s ``--calendar-dialog`` mode (both
+  gates render it; the locale gate under a hostile caller locale), says the shared capture plumbing
+  lives in ``tests/support/render_gates.py`` and the other kdialog widget gates live in
+  ``tests/test_render_dialog_gates.py``, then `from __future__ import annotations`, the
+  `from support import repo_root  # noqa: F401` path line, the imports the moved code needs, and
+  the `if __name__ == "__main__":` guard.
+- Move these items whole, in source order, keeping their comment blocks, values, bodies,
+  docstrings and comments unchanged: the calendar comment block and `CALENDAR_WINDOW_FACE`,
+  `CALENDAR_SELECTED_CELL`, `CALENDAR_WEEKDAY_FACE_ROWS`, `CALENDAR_CELL_DIGIT_INK`,
+  `CALENDAR_WEEKDAY_GRAY_INK`, `CALENDAR_WEEKDAY_BLACK_INK` and `CALENDAR_RED_INK`; then both
+  classes with their `@dialog_gate_guard()` decorators. At this plan's base, grep shows that only
+  the two calendar classes read the seven constants. Grep again before you delete them.
+- At this plan's base, the moved code uses these module-level names: `unittest`, `DialogGate`,
+  `dialog_gate_guard`, `hex_colour` and `pixel_at`. Code that stays in the source also uses each of
+  them, so the source's imports should not change. The new module also needs `shutil`,
+  `DIALOG_REAL_TOOLS`, `probe_gate_skip` and `software_renderer_skip_reason` for its skip guard.
+  The unused-import scanner in `make check` (`tests/test_no_unused_imports.py`) has the final say.
+- In the source's
+  `TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`, remove
+  both calendar classes from the gate tuple and extend the existing comment so it names
+  `tests/test_render_calendar_dialog.py` as the place their flags are pinned. In the new module, add
+  `class TestCalendarDialogGateSkipGuards`, modelled on
+  `tests/test_render_gtk_dialog.py::TestGtkDialogGateSkipGuards`. It asserts that each calendar
+  gate's `__unittest_skip__` (one subTest per gate) equals "software renderer forced, or some
+  `DIALOG_REAL_TOOLS` tool missing". It also reapplies `dialog_gate_guard` through
+  `probe_gate_skip` for `None` and for each tool.
+- Add `"tests/test_render_calendar_dialog.py"` to `_GATE_FILES` in both
+  `tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`. Without it, the
+  gate-count and README checks lose the two gates and fail.
+- Rewrite these anchors to the new module path: `docs/invariants.md` (the calendar dialog row that
+  anchors both classes), `docs/rendering.md` (the calendar gate sentence and the locale gate
+  sentence), `docs/fidelity.md` (the `::TestCalendarDialogRender` item in the dialog-render list;
+  give it its own full path, as the GTK item has), and
+  `tests/support/validation_gaps/unclear_invariant.py` (the `calendar-day-grid-locale`
+  reproduction's anchor). Find each one by grepping for `TestCalendar`. In the `docs/invariants.md`
+  "fifteen dialog render gates" row (at this plan's base, the only row naming
+  `TestGtkDialogGateSkipGuards`), add
+  `tests/test_render_calendar_dialog.py::TestCalendarDialogGateSkipGuards` beside it. The `tests/test_ci_workflow.py` comment names only classes, so
+  leave it. These docstrings list where the dialog gates or their flags live, so add the new module
+  to each: the source module's docstring, `tests/support/render_gates.py`'s module docstring,
+  `TestFileDialogGateSkipGuards` in `tests/test_render_file_dialog.py`, and
+  `TestGtkDialogGateSkipGuards` in `tests/test_render_gtk_dialog.py`. Do not rewrite history in
+  PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists each method of the two calendar gates exactly once, under
+  `test_render_calendar_dialog`, and none under `test_render_dialog_gates`. Every other class in
+  `test_render_dialog_gates` lists the same methods as before.
+- The two moved `ClassDef`s (decorators included) and the seven constants' `Assign` nodes are
+  AST-identical to the originals at this plan's base commit. Check this once during the run, for
+  example with `ast.dump`; it is not a new committed test.
+- With kdialog missing from `PATH`, or with `LIBGL_ALWAYS_SOFTWARE=1`, both calendar gates skip
+  and `TestCalendarDialogGateSkipGuards` passes. Dropping `@dialog_gate_guard()` from either moved
+  class would make the new skip-guard test fail.
+- `grep -rn "test_render_dialog_gates.py::TestCalendar" docs tests tools` prints nothing. The
+  invariants anchor check and the validation-gap anchor checks in `make check` pass.
+- `tests/test_render_dialog_gates.py` shrinks by at least 190 lines, and the new module stays under
+  about 300 lines. `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
