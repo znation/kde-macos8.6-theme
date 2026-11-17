@@ -7,18 +7,7 @@ each run.
 
 ## Open
 
-### Option 2 needs a file writer KWin scripts do not have: how should the ready file be written?
-
-(asked 2026-11-17 by the bugfix role, follow-up to "How should the ksplashqml client signal that its window is shown?")
-
-**Context.** You chose option 2: the KWin side writes `$RENDER_SESSION_READY_FILE` when the client's window maps. A KWin script runs inside KWin's JavaScript engine, and that engine has no file-write API: a grep of the installed KWin scripts and QML modules found no `writeFile` or `FileIO` use. A script's `print()` goes to KWin's log, not to a file the session can read, and `qdbus … run` returns no value. So option 2, as worded, cannot touch the ready file from inside KWin. The BUGS.md entry on render-session wall-clock budgets stays open until this is decided.
-
-**Options.**
-1. KWin script reports the mapped window over D-Bus with `callDBus` to a small listener that the session shell starts, and the listener touches the ready file. The listener needs a stdlib-only or already-installed tool (for example `dbus-monitor` or `gdbus monitor`). Needs a probe on this host to confirm the signal reaches the listener before we build on it.
-2. Drop the early-settle ready file for the splash only: keep its fixed settle as the ceiling, and let the desktop and dialog renders use the ready file where a writer exists.
-3. Keep the splash on its fixed settle and leave the entry open until a writer exists.
-
-**Recommendation.** Option 1, after a short probe on this host. It keeps one readiness path for every render, and the probe decides whether the D-Bus route holds before any code is written. If the probe fails, option 2. (Bugfix role, 2026-11-17.)
+_None yet._
 
 ## Answered
 
@@ -471,3 +460,18 @@ the focus-settle loop already runs, and it does not add a helper binary. Option 
 you want the client itself to report. (Bugfix role, 2026-11-16.)
 
 **Answered 2026-11-17 by the user:** Let's go with option 2, the KWin side writes the ready file
+
+### Option 2 needs a file writer KWin scripts do not have: how should the ready file be written?
+
+(asked 2026-11-17 by the bugfix role, follow-up to "How should the ksplashqml client signal that its window is shown?")
+
+**Context.** You chose option 2: the KWin side writes `$RENDER_SESSION_READY_FILE` when the client's window maps. A KWin script runs inside KWin's JavaScript engine, and that engine has no file-write API: a grep of the installed KWin scripts and QML modules found no `writeFile` or `FileIO` use. A script's `print()` goes to KWin's log, not to a file the session can read, and `qdbus … run` returns no value. So option 2, as worded, cannot touch the ready file from inside KWin. The BUGS.md entry on render-session wall-clock budgets stays open until this is decided.
+
+**Options.**
+1. KWin script reports the mapped window over D-Bus with `callDBus` to a small listener that the session shell starts, and the listener touches the ready file. The listener needs a stdlib-only or already-installed tool (for example `dbus-monitor` or `gdbus monitor`). Needs a probe on this host to confirm the signal reaches the listener before we build on it.
+2. Drop the early-settle ready file for the splash only: keep its fixed settle as the ceiling, and let the desktop and dialog renders use the ready file where a writer exists.
+3. Keep the splash on its fixed settle and leave the entry open until a writer exists.
+
+**Recommendation.** Option 1, after a short probe on this host. It keeps one readiness path for every render, and the probe decides whether the D-Bus route holds before any code is written. If the probe fails, option 2. (Bugfix role, 2026-11-17.)
+
+**Answered 2026-11-17 by the user:** Let's go with your recommendation.
