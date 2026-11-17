@@ -153,6 +153,33 @@ class TestFidelityCliParser(unittest.TestCase):
             ):
                 fidelity_arguments.parse_crop(value)
 
+    def test_crop_parser_accepts_zero_origin_and_refuses_empty_size(self):
+        # The origin may be zero (the top-left pixel), but the size must be
+        # positive in both directions; a zero width or height is refused by
+        # the shared crop-rectangle contract, and the CLI must surface it.
+        self.assertEqual(fidelity_arguments.parse_crop("0,0,1,1"), (0, 0, 1, 1))
+        for value in ("0,0,0,5", "0,0,10,0", "3,4,0,0"):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError,
+                r"crop rectangle must have positive size",
+            ):
+                fidelity_arguments.parse_crop(value)
+
+    def test_crop_parser_refuses_negative_origin_and_size_by_contract(self):
+        # A signed integer passes the plain-number check, so the rectangle
+        # contract refuses it: a negative origin is named as such, and a
+        # negative size falls under the positive-size rule.
+        for value, diagnostic in (
+            ("-1,0,1,1", r"origin must not be negative: x=-1 y=0"),
+            ("0,-1,1,1", r"origin must not be negative: x=0 y=-1"),
+            ("0,0,-1,1", r"must have positive size: x=0 y=0 w=-1 h=1"),
+            ("0,0,1,-1", r"must have positive size: x=0 y=0 w=1 h=-1"),
+        ):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                fidelity_arguments.argparse.ArgumentTypeError, diagnostic
+            ):
+                fidelity_arguments.parse_crop(value)
+
     def test_help_text_is_stable(self):
         help_text = build_parser().format_help()
         self.assertIn("--json | --quiet", help_text)
