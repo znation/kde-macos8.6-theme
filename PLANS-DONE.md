@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render units suite extraction: isolate the scratch session setup checks (planned 2026-11-16 by the plan role) — done 2026-11-16 by the feature role
+
+**Goal.** `tests/test_render_surface_units.py` is still well above 800 lines
+(1533 at this plan's base), and the size-drift note above asks the plan role
+to break up the render-test files by family. This entry moves one whole
+family, the `TestSessionSetup` class, into its own module. The class has 12
+test methods. They check what `render_session.Session.create` makes: the
+scratch directory layout and its cleanup on setup failure, the session
+environment, and the Kvantum themes link `render_setup.link_kvantum_themes`
+makes. No production code or behavior changes.
+
+This entry depends on no other entry. The waiting "Render dialog gates suite
+extraction: isolate the GTK 4 dialog gate" entry touches
+`tests/test_render_dialog_gates.py`, a new `tests/test_render_gtk_dialog.py`
+and the docs anchors for `TestGtkDialogRender`. This entry touches none of
+those files or anchors, though both entries edit `docs/invariants.md` (on
+different rows). `TestSessionScript` stays where it is on purpose: the open
+BUGS.md entry about render-session wall-clock budgets may change its tests.
+
+**Approach and files.**
+- Create `tests/test_render_session_setup.py`. Give it a module docstring
+  saying it holds the scratch-session setup checks moved out of
+  ``tests/test_render_surface_units.py``: the layout, environment and
+  cleanup of ``tools/render_session.py``'s ``Session.create``, and the
+  Kvantum themes link in ``tools/render_setup.py``. Add `from __future__
+  import annotations`, the `from support import repo_root  # noqa: F401`
+  path line the source module uses, the imports the moved body needs, and
+  the `if __name__ == "__main__":` guard (copy the source module's guard).
+  Move `class TestSessionSetup` whole, every method in source order, with
+  bodies and comments unchanged. Keep the class name. Do not import
+  `tests/test_render_surface_units.py`.
+- At this plan's base the moved class uses these module-level names: `os`,
+  `stat`, `unittest`, `mock`, `tmp_dir`, `render_session` and
+  `render_setup`. Of these, only `stat` is used nowhere else in the source
+  module, so drop `import stat` from the source and keep the rest. Grep the
+  moved range again for module-level names before writing the imports. The
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  decides every import.
+- In the source module's docstring, delete ``scratch environment and``
+  from the clause ``scratch environment and KWin session command
+  construction in ``tools/render_session.py`` `` (the moved family). Add
+  one sentence naming ``tests/test_render_session_setup.py`` as the home of
+  the scratch-session setup checks, next to the existing sentence that
+  names ``tests/test_render_session_command.py``. Leave the rest of the
+  docstring alone.
+- `docs/invariants.md` names two moved methods, in the `## tooling` table:
+  `tests/test_render_surface_units.py::TestSessionSetup::test_environment_forces_spectacles_null_video_platform`
+  and
+  `tests/test_render_surface_units.py::TestSessionSetup::test_environment_disables_kwin_screenshot_authorization`.
+  Rewrite both to the `tests/test_render_session_setup.py::TestSessionSetup::…`
+  path and leave the rest of each row alone. At this plan's base,
+  `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`,
+  README.md, BUGS.md and QUESTIONS.md name neither `TestSessionSetup` nor a
+  moved method. When implementing, grep `docs/ tests/ tools/ README.md
+  BUGS.md QUESTIONS.md` for `TestSessionSetup` again and rewrite any new
+  anchor that turns up. Do not rewrite history in PLANS-DONE.md or
+  BUGS-FIXED.md. The class needs no skip guard: it starts no session or
+  display.
+
+**Acceptance criteria.**
+- Unittest discovery lists all 12 `TestSessionSetup` methods exactly once,
+  under `test_render_session_setup.TestSessionSetup`, and none under
+  `test_render_surface_units`. `TestArguments`, `TestAppletPreflight`,
+  `TestSessionScript`, `TestSessionThemeSources` and
+  `TestCapturePaintCheck` are still listed under
+  `test_render_surface_units` with the same methods as before.
+- The moved class's AST matches the original's at this plan's base commit.
+  Check this once during the run, for example by comparing `ast.dump` of
+  the two `ClassDef` nodes. It is a run-time check, not a new committed
+  test.
+- `grep -rn "test_render_surface_units.py::TestSessionSetup" docs tests tools README.md`
+  prints nothing, and the invariants anchor check in `make check` passes.
+- `grep -n "^import stat" tests/test_render_surface_units.py` prints
+  nothing, and the unused-import scanner reports nothing for either module.
+- `tests/test_render_surface_units.py` shrinks by at least 150 lines, and
+  `tests/test_render_session_setup.py` stays under about 200 lines.
+- `git diff --stat` touches only `tests/test_render_surface_units.py`,
+  `tests/test_render_session_setup.py` and `docs/invariants.md`, plus any
+  file the anchor grep above turned up. `make check` passes after the final
+  edit.
+
+Implementation: `TestSessionSetup` moved by line range into `tests/test_render_session_setup.py`; its ClassDef `ast.dump` matches the original; the source module drops `import stat` and the moved class, and `docs/invariants.md` rows 739 and 742 point at the new path. `make check` did not exit 0 after the final edit: four runs each failed only in `test_render_surface_units` `TestSessionScript` timing tests (`test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination` in runs 2 and 4, `test_waits_for_client_termination_and_preserves_capture_status` in run 3), on a host at load average 25. That class is unchanged by this move. Running `test_render_surface_units` alone passed twice. This is the open wall-clock-budget BUGS.md entry.
+
 ### Render dialog gates suite extraction: isolate the GTK 4 dialog gate (planned 2026-11-16 by the plan role) — done 2026-11-16 by the feature role
 
 **Goal.** The PLANS.md size-drift note asks the plan role to break up the
