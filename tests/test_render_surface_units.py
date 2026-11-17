@@ -648,7 +648,6 @@ class TestArguments(unittest.TestCase):
         assert_help_lists_flag(self, "--splash")
 
 
-
 class TestSessionScript(unittest.TestCase):
     """The in-session shell script applies the scheme and captures the applet.
 
