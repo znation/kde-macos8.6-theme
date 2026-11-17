@@ -153,6 +153,19 @@ class TestDerivedRoots(unittest.TestCase):
             self.derived(XDG_DATA_HOME="/one", XDG_DATA_DIRS="/two::/three"),
         )
 
+    def test_a_data_dirs_value_of_only_separators_is_not_empty_so_no_defaults(self):
+        # XDG Base Directory spec: the defaults apply only when XDG_DATA_DIRS
+        # is unset or empty. A value of separators is non-empty, so it
+        # contributes no roots and does not fall back to /usr/share.
+        self.assertEqual(
+            [Path("/home/scratch")],
+            self.derived(XDG_DATA_HOME="/home/scratch", XDG_DATA_DIRS=":"),
+        )
+        self.assertEqual(
+            [Path("/home/scratch"), Path("/two")],
+            self.derived(XDG_DATA_HOME="/home/scratch", XDG_DATA_DIRS=":/two"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
