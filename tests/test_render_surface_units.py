@@ -14,6 +14,8 @@ setup checks live in ``tests/test_render_session_setup.py``, and the
 session theme-source checks live in ``tests/test_render_session_theme_sources.py``,
 and the CLI calculator applet preflight checks live in
 ``tests/test_render_applet_preflight.py``.
+The ``--desktop`` and ``--splash`` argument checks live in
+``tests/test_render_fixed_client_modes.py``.
 """
 
 from __future__ import annotations
@@ -28,7 +30,16 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.cli_fixtures import _call_capturing, assert_missing_tool_named, call_main  # noqa: E402
+from support.cli_fixtures import call_main  # noqa: E402
+from support.render_cli_cases import (  # noqa: E402
+    assert_delegated_capture_size,
+    assert_dialog_requires_kdialog,
+    assert_help_lists_flag,
+    assert_rejects_applet_with_fixed_client,
+    assert_rejects_capture_size_with_fixed_client,
+    assert_two_mode_refusal_names_both,
+    delegated_render_args,
+)
 from tools import (
     render_session,
     render_surface,
@@ -53,104 +64,6 @@ class TestCapturePaintCheck(unittest.TestCase):
         fifo = root / "session.log"
         os.mkfifo(fifo)
         self.assertFalse(render_workflow._client_exited_during_capture(fifo))
-
-
-def delegated_render_args(case, argv, status=0):
-    """Patch the render collaborators away, run *argv*, return the mode args.
-
-    Seven call sites share this: with the missing-tool preflight, the
-    output check, the workflow and the termination guard patched away,
-    ``main`` parses its argv and hands the parsed namespace to the workflow
-    mock, so a test can pin what the parser delegates without starting a
-    session; *status* pins the exit status the run returns (default 0).
-    """
-    with (
-        mock.patch.object(render_surface, "report_missing_tool", return_value=None),
-        mock.patch.object(render_surface, "output_problem", return_value=None),
-        mock.patch.object(render_surface, "render", return_value=status) as workflow,
-        mock.patch.object(render_surface, "exit_on_termination"),
-    ):
-        run_status = render_surface.main(argv)
-
-    case.assertEqual(status, run_status)
-    return workflow.call_args.args[0]
-
-
-def assert_delegated_capture_size(case, flag, size):
-    """Assert a plain *flag* run delegates a *size* capture to the workflow.
-
-    Thirteen tests call this: a plain --*-dialog run must capture at the
-    480x360 the widget gate byte-compares, and --desktop and --splash at
-    the 640x400 their gates crop, each with the applet id at its default
-    (which those modes never open), not the applet render's 320x240 default.
-    """
-    args = delegated_render_args(case, ("out.png", flag))
-    case.assertEqual(size, (args.width, args.height))
-    case.assertEqual("org.kde.plasma.calculator", args.applet)
-
-
-def assert_rejects_applet_with_fixed_client(case, flag):
-    """Assert *flag* combined with --applet is a usage error naming both.
-
-    Fifteen tests call this: the dialog, desktop and splash modes each open
-    their own client, so a plasmoid id combined with any of them has no
-    window to open it in, and every refusal names the fixed flag and
-    --applet.
-    """
-    status, stderr = call_main(render_surface.main, "out.png", flag, "--applet", "x")
-    case.assertEqual(2, status)
-    case.assertIn(flag, stderr)
-    case.assertIn("--applet", stderr)
-
-
-def assert_rejects_capture_size_with_fixed_client(
-    case, flag, size_label, size_argv=("--height", "240")
-):
-    """Assert *flag* with a custom size is a usage error naming *size_label*.
-
-    Fifteen tests call this: the gates byte-compare or crop the dialog
-    capture at 480x360 and the desktop and splash captures at 640x400, so
-    any other size moves the window the pinned comparisons assume.
-    """
-    status, stderr = call_main(render_surface.main, "out.png", flag, *size_argv)
-    case.assertEqual(2, status)
-    case.assertIn(flag, stderr)
-    case.assertIn(size_label, stderr)
-
-
-def assert_two_mode_refusal_names_both(case, flag, partners):
-    """Assert the two-mode refusal names *flag* and each *partner* flag.
-
-    Fourteen tests call this: the refusal lists the flags involved,
-    so a flag missing from that list would print a refusal without its name.
-    """
-    for right in partners:
-        with case.subTest(left=flag, right=right):
-            status, stderr = call_main(render_surface.main, "out.png", flag, right)
-            case.assertEqual(2, status)
-            case.assertIn(flag, stderr)
-            case.assertIn(right, stderr)
-
-
-def assert_dialog_requires_kdialog(case, flag):
-    """Assert a *flag* run with kdialog absent names the tool and exits 2.
-
-    Thirteen per-mode tests call this: with kdialog absent the CLI names it
-    instead of starting a session.
-    """
-    tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
-    assert_missing_tool_named(case, render_surface.main, tools, ("out.png", flag))
-
-
-def assert_help_lists_flag(case, flag):
-    """Assert --help's stdout lists *flag*.
-
-    Nine tests call this: --help lists every dialog mode beside the desktop
-    and splash flags, so a flag missing from that help leaves the mode
-    unusable by anyone reading the CLI.
-    """
-    _, stdout, _ = _call_capturing(lambda: render_surface.main(["--help"]))
-    case.assertIn(flag, stdout)
 
 
 class TestArguments(unittest.TestCase):
@@ -539,113 +452,6 @@ class TestArguments(unittest.TestCase):
 
     def test_the_help_text_names_the_file_dialog(self):
         assert_help_lists_flag(self, "--file-dialog")
-
-    def test_cli_delegates_the_desktop_capture_size(self):
-        # The desktop capture is fixed at 640x400, the probe's
-        # virtual-framebuffer size and the queued desktop gate's crop basis;
-        # the applet id stays at its default, which the desktop render
-        # never opens.
-        assert_delegated_capture_size(self, "--desktop", (640, 400))
-
-    def test_rejects_an_applet_with_the_desktop(self):
-        # The desktop client is plasmashell, not an applet window, so an
-        # applet override has no window to open in.
-        assert_rejects_applet_with_fixed_client(self, "--desktop")
-
-    def test_rejects_a_capture_size_with_the_desktop(self):
-        # 640x400 is the crop basis the queued desktop gate will compare, so
-        # a size override moves the menu bar the pinned crops assume.
-        assert_rejects_capture_size_with_fixed_client(self, "--desktop", "640x400")
-
-    def test_rejects_a_dialog_mode_with_the_desktop(self):
-        # The desktop client opens the shell itself, so a dialog client
-        # cannot ride the same session.
-        assert_two_mode_refusal_names_both(
-            self, "--desktop", ("--checkbox-dialog", "--file-dialog")
-        )
-
-    def test_the_desktop_requires_plasmashell(self):
-        # The desktop client is a plain command, so the missing-tool
-        # preflight names it instead of starting a shell-less session.
-        tools = render_surface.REQUIRED_TOOLS + ("plasmashell",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--desktop")
-        )
-
-    def test_the_desktop_defaults_the_slower_settle_and_timeout(self):
-        # plasmashell's first start imports the look-and-feel layout, so the
-        # desktop mode defaults to a 30 s settle and a 180 s timeout; an
-        # explicit flag still wins over the mode default.
-        cases = (
-            (("out.png", "--desktop"), (30.0, 180.0)),
-            (
-                ("out.png", "--desktop", "--settle", "5", "--timeout", "60"),
-                (5.0, 60.0),
-            ),
-        )
-        for argv, expected in cases:
-            with self.subTest(argv=argv):
-                args = delegated_render_args(self, argv)
-                self.assertEqual(expected, (args.settle, args.timeout))
-
-    def test_the_help_text_names_the_desktop(self):
-        assert_help_lists_flag(self, "--desktop")
-
-    def test_cli_delegates_the_splash_capture_size(self):
-        # The splash capture is fixed at 640x400, the same probe
-        # virtual-framebuffer size the desktop capture fixes; the applet id
-        # stays at its default, which the splash render never opens.
-        assert_delegated_capture_size(self, "--splash", (640, 400))
-
-    def test_rejects_an_applet_with_the_splash(self):
-        # The splash client is ksplashqml, not an applet window, so an
-        # applet override has no window to open in.
-        assert_rejects_applet_with_fixed_client(self, "--splash")
-
-    def test_rejects_a_capture_size_with_the_splash(self):
-        # 640x400 is the crop basis the queued splash gate will compare, so
-        # a size override moves the splash the pinned crops assume. The
-        # --width flag exercises the same refusal through its other half.
-        assert_rejects_capture_size_with_fixed_client(
-            self, "--splash", "640x400", ("--width", "320")
-        )
-
-    def test_rejects_a_dialog_mode_and_the_desktop_with_the_splash(self):
-        # The splash client opens the look-and-feel's own splash, so neither
-        # a dialog client nor the desktop shell can ride the same session.
-        assert_two_mode_refusal_names_both(
-            self,
-            "--splash",
-            ("--desktop", "--checkbox-dialog", "--file-dialog", "--gtk-dialog"),
-        )
-
-    def test_the_splash_requires_ksplashqml(self):
-        # The splash client is a plain command, so the missing-tool
-        # preflight names it instead of starting a splash-less session.
-        tools = render_surface.REQUIRED_TOOLS + ("ksplashqml",)
-        assert_missing_tool_named(
-            self, render_surface.main, tools, ("out.png", "--splash")
-        )
-
-    def test_the_splash_defaults_the_slower_settle_and_timeout(self):
-        # The --test --nofork client paints within an 8 s settle (three probe
-        # runs) but deterministically exits about 10 s in, so splash mode
-        # keeps the applet's 8 s settle and 90 s timeout; an explicit flag
-        # still wins over the mode default.
-        cases = (
-            (("out.png", "--splash"), (8.0, 90.0)),
-            (
-                ("out.png", "--splash", "--settle", "5", "--timeout", "60"),
-                (5.0, 60.0),
-            ),
-        )
-        for argv, expected in cases:
-            with self.subTest(argv=argv):
-                args = delegated_render_args(self, argv)
-                self.assertEqual(expected, (args.settle, args.timeout))
-
-    def test_the_help_text_names_the_splash(self):
-        assert_help_lists_flag(self, "--splash")
 
 
 class TestSessionScript(unittest.TestCase):
