@@ -348,6 +348,20 @@ class TestKvantumDataHomeNote(StubTools):
                     [self.note(self.home, self.data)], stderr.splitlines()
                 )
 
+    def test_a_plain_file_at_the_theme_directory_path_still_warns(self):
+        # The silencing check is for the theme *directory* the engine reads.
+        # A regular file at that same path is not one, so the note still
+        # names the gap; an existence test in place of the directory test
+        # would wrongly silence it.
+        kvantum = (
+            self.home / ".local" / "share" / "themes" / "org.macos8.desktop" / "Kvantum"
+        )
+        kvantum.parent.mkdir(parents=True)
+        kvantum.write_text("", encoding="utf-8")
+        status, stderr = self.select()
+        self.assertEqual(0, status, stderr)
+        self.assertEqual([self.note(self.home, self.data)], stderr.splitlines())
+
     def test_the_default_data_home_below_home_stays_silent(self):
         with mock.patch.dict(
             os.environ, {"XDG_DATA_HOME": str(self.home / ".local" / "share")}
