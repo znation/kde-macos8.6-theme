@@ -363,6 +363,26 @@ class TestSelection(CursorCase):
         self.assertEqual(1, result.returncode)
         self.assertIn(f"{cursor_selection.SELECT_TOOL} exited 3", result.stderr)
 
+    def test_successful_install_recommends_restarting_applications(self):
+        # cursor_workflow.apply prints the restart advice only once the
+        # selection has succeeded, as an apply_cursor note on stdout.
+        self.install_theme()
+        self.stub_selector()
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        self.assertIn(
+            "apply_cursor: note: restart running applications", result.stdout
+        )
+
+    def test_failed_selection_does_not_recommend_restarting_applications(self):
+        # A selector that fails means nothing was applied, so the restart
+        # advice must not be printed as though the pointer had changed.
+        self.install_theme()
+        self.stub_selector("exit 3")
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertNotIn("restart running applications", result.stdout)
+
     def test_failed_selector_exits_1_with_the_log_tail(self):
         self.install_theme()
         self.stub_selector("echo selector exploded >&2\nexit 3")
