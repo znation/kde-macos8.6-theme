@@ -132,59 +132,6 @@ that stubs the readiness write, and a bounded real-session run to confirm the si
 the BUGS.md entry "Render-session tests rely on fixed wall-clock budgets" (which stays open until
 these land).
 
-### Render units suite extraction: isolate the session theme-source checks (planned 2026-11-17 by the plan role)
-
-**Goal.** `tests/test_render_surface_units.py` is still over 1400 lines. Its last class,
-`TestSessionThemeSources`, about 205 lines, covers one unit, `tools/render_setup.py`: the
-`install_theme`, `write_session_configs`, `write_kvantum_selection`, `write_desktop_selection` and
-`install_gtk_selection` calls against a real scratch session. Move it into its own module,
-following the session-setup extraction (PLANS-DONE.md, "isolate the scratch session setup checks").
-This plan does not touch the files the waiting calendar extraction edits, so the two can merge in
-either order.
-
-**Approach.**
-- Create `tests/test_render_session_theme_sources.py`. Give it a short docstring saying it was moved
-  out of `tests/test_render_surface_units.py` and covers `tools/render_setup.py`'s theme install and
-  selection writes. Move `TestSessionThemeSources` into it verbatim, including its
-  `stage_installed_sheets` helper. Import only what the class uses: `contextlib`, `io`, `os`, `re`,
-  `unittest`, `mock`, the `from support import repo_root` path setup, `apply_theme`,
-  `apply_optional`, `render_session`, `render_setup`, `_ConfigError`, `installed_sheet` and
-  `GTK4_CSS_MARKER`. Check each one against the moved body; for example, `Path` and `tmp_dir` are
-  not used there. The class starts no session or display, so it needs no skip guard.
-- In `tests/test_render_surface_units.py`, delete the class. Also delete the imports that no
-  remaining class uses. At this plan's base commit those are `contextlib`, `io`, `apply_theme`,
-  `apply_optional`, `render_setup`, `_ConfigError`, `installed_sheet` and `GTK4_CSS_MARKER`.
-  Re-check each with `grep -w` before deleting it. In the module docstring, remove the clause about
-  "theme installation/configuration in ``tools/render_setup.py``". Add a sentence naming the new
-  module, like the existing session-setup sentence.
-- Update the three `docs/invariants.md` rows that cite
-  `tests/test_render_surface_units.py::TestSessionThemeSources` so they cite
-  `tests/test_render_session_theme_sources.py::TestSessionThemeSources`. These are the atomic Kvantum
-  publication row, the render-setup install/configs row and the `--desktop` row. Keep the method
-  names and leave the rest of each row's text alone. When implementing, grep `docs/ tests/ tools/
-  README.md BUGS.md QUESTIONS.md` again, including `tests/support/validation_gaps/*.py`, for
-  `test_render_surface_units.py::TestSessionThemeSources` and rewrite any other anchor that turns
-  up. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
-
-**Files touched.** `tests/test_render_session_theme_sources.py` (new),
-`tests/test_render_surface_units.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- Unittest discovery lists every `TestSessionThemeSources` method exactly once, under
-  `test_render_session_theme_sources.TestSessionThemeSources`, and none under
-  `test_render_surface_units`. `TestCapturePaintCheck`, `TestArguments`, `TestAppletPreflight` and
-  `TestSessionScript` are still listed under `test_render_surface_units` with the same methods as
-  before.
-- The moved class's AST matches the original's at this plan's base commit. Check this once during
-  the run, for example by comparing `ast.dump` of the two `ClassDef` nodes. It is not a new
-  committed test.
-- `grep -rn "test_render_surface_units.py::TestSessionThemeSources" docs tests tools README.md`
-  prints nothing, and the invariants anchor check in `make check` passes.
-- `grep -nw "render_setup\|apply_optional\|installed_sheet\|GTK4_CSS_MARKER" tests/test_render_surface_units.py`
-  prints only docstring lines, or nothing.
-- `tests/test_render_surface_units.py` shrinks by at least 200 lines, and the new module stays under
-  about 250 lines. `make check` passes after the final edit.
-
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
