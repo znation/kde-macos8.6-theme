@@ -5,6 +5,78 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render units suite extraction: isolate the session-command and dialog-client argv checks (planned 2026-11-15 by the plan role) — done 2026-11-16 by the feature role
+
+**Goal.** `tests/test_render_surface_units.py` is the largest test module
+the PLANS.md size-drift note lists (1961 lines at this plan's base), and
+that note asks the plan role to break up the render-test files by family
+before features are added to them. This entry moves one whole family, the
+`TestSessionCommand` class, into its own module. The class checks the KWin
+session command `render_session.session_command` builds and the argv that
+each dialog client builder in `tools/render_clients.py` hands it. It is the
+second-to-last class in the module, between `TestSessionScript` and
+`TestSessionThemeSources`. No production code or behavior changes.
+
+This entry depends on no other entry. The two waiting GTK 4 extraction
+entries touch only `tests/test_gtk4_*.py`, `tests/test_render_dialog_gates.py`
+(one comment) and `docs/invariants.md`; this entry touches none of their
+files. `TestSessionScript` stays where it is on purpose: the open BUGS.md
+entry about render-session wall-clock budgets may change its tests, and
+moving them now would collide with that fix.
+
+**Approach and files.**
+- Create `tests/test_render_session_command.py`. Give it a module docstring
+  that says it holds the session-command and dialog-client argv checks
+  moved out of ``test_render_surface_units``. Add `from __future__ import
+  annotations`, the `from support import repo_root  # noqa: F401` path line
+  the source module uses, the imports the moved body needs, and the
+  `if __name__ == "__main__":` guard. Move `class TestSessionCommand` whole:
+  its class docstring if any, the `_dialog_command` context manager and
+  every test method, in source order, with bodies, docstrings and comments
+  unchanged. Keep the class name `TestSessionCommand`. Do not import
+  `tests/test_render_surface_units.py`.
+- At this plan's base, the moved class uses these module-level names:
+  `contextlib`, `re`, `shlex`, `stat`, `unittest`, `render_session`,
+  `render_window_rules`, and all fourteen `*_dialog_client` names from
+  `tools.render_clients`. Those fourteen names and `render_window_rules`
+  are used nowhere else in the source module. So drop the whole `from
+  tools.render_clients import (...)` block from the source, and drop
+  `render_window_rules` from its `from tools import (...)` block. Keep the
+  other names, which the remaining classes still use. Before you write the
+  import blocks, grep the moved range again for module-level names. The
+  unused-import scanner in `make check` (`tests/test_no_unused_imports.py`)
+  decides every import.
+- In the source module's docstring, delete the clause ``plus the dialog argv
+  recipes in ``tools/render_clients.py`` `` (the moved family). Add one
+  sentence that names ``tests/test_render_session_command.py`` as the home
+  of the session command and dialog argv checks. Leave the rest of the
+  docstring alone.
+- At this plan's base, `docs/invariants.md`,
+  `tests/support/validation_gaps/real_run_needed.py`, BUGS.md and
+  QUESTIONS.md do not name `TestSessionCommand` or any of its methods. When
+  implementing, grep `docs/ tests/ tools/ README.md` for `TestSessionCommand`
+  and for each moved method name. Rewrite any anchor that turns up to the new
+  module path. Do not rewrite history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Acceptance criteria.**
+- Unittest discovery lists every method of `TestSessionCommand` exactly
+  once under `test_render_session_command.TestSessionCommand`, and none
+  under `test_render_surface_units`. `TestSessionScript` and
+  `TestSessionThemeSources` are still listed under
+  `test_render_surface_units` with the same methods as before.
+- The moved class's AST is identical to the original's at this plan's base
+  commit. Check this once during the run, for example by comparing
+  `ast.dump` of the `ClassDef`. It is a run-time check, not a new committed
+  test.
+- `grep -n "render_clients\|render_window_rules" tests/test_render_surface_units.py`
+  prints only docstring text (no import line). The unused-import scanner in
+  `make check` reports no finding for either module.
+- `tests/test_render_surface_units.py` shrinks by at least 400 lines, and
+  `tests/test_render_session_command.py` stays under about 460 lines.
+- `git diff --stat` touches only `tests/test_render_surface_units.py` and
+  `tests/test_render_session_command.py`, plus any file the anchor grep
+  above turned up. `make check` passes after the final edit.
+
 ### GTK 4 suite extraction: isolate the window background and CSD window-shell checks (planned 2026-11-15 by the plan role) — done 2026-11-15 by the feature role
 
 **Goal.** Move three `TestGtk4Theme` checks for the GTK 4 top-level window
