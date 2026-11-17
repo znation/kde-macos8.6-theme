@@ -1088,10 +1088,13 @@ class TestSessionScript(unittest.TestCase):
         state_of = 'state=$(awk \'{print $3}\' "/proc/$pid/stat" 2>/dev/null); '
         prefix = (
             # The stub reads the pid the session exports before the capture.
+            # It records the final state and the number of polls it made, so
+            # a capture that started before the stop landed names that case.
             'spectacle() { pid="$RENDER_SESSION_CLIENT_PID"; n=0; '
-            f'{state_of} printf %s "$state" > "{captured_state}"; '
+            f'{state_of} '
             'while [ "$state" != T ] && [ $n -lt 200 ]; do '
             f'command sleep 0.01; n=$((n + 1)); {state_of} done; '
+            f'printf "%s %s" "$state" "$n" > "{captured_state}"; '
             'return 0; }; '
         )
         status = render_workflow.run_logged(
@@ -1100,8 +1103,14 @@ class TestSessionScript(unittest.TestCase):
              str(client), str(pidfile), str(ready), str(terminated)],
             environment, root / "session.log", 30, root,
         )
+        state, polls = captured_state.read_text(encoding="utf-8").split()
+        self.assertEqual(
+            "T", state,
+            f"the capture started with the client in state {state!r} after "
+            f"{polls} polls (cap 200): the SIGSTOP had not taken effect "
+            "within the stub's poll cap",
+        )
         self.assertEqual(0, status)
-        self.assertEqual("T", captured_state.read_text(encoding="utf-8"))
         self.assertTrue(
             terminated.exists(),
             "the held client was never resumed for its termination",

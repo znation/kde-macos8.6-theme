@@ -137,6 +137,10 @@ test module is reported green in isolation (`make check CHECK_PATTERN='test_rend
 
 ### `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination (test_render_surface_units.TestSessionScript.test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination)` failed, then passed on the same tree (quarantined by tumwater 2026-11-17)
 
+**Director handoff 2026-11-17**
+
+**Progress 2026-11-17 by bugfix:** not reproduced: 15 unloaded runs of this test (`python3 -m unittest discover -s tests -p 'test_render_surface_units*.py' -k test_holds_the_client`) all passed. The failure `'T' != 'R'` is the stub's capture-start state: the spectacle stub polls `/proc/$pid/stat` up to 200 times (10 ms sleep each) waiting for the SIGSTOP to show as `T`, then returns, and the test read `R`. The failure message now prints the final state and poll count, so the next failure shows whether the stop landed late (the cap expired) or never. The stub's silent return after the cap is a fixed budget; whether to make it wait uncapped (bounded by the run timeout) is the director's call.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
