@@ -66,7 +66,7 @@ the ordinary-failure guarantee stands. A fix belongs to the capture
 
 ### The title bar's collapse box does nothing when clicked (found by the director role 2026-11-14)
 
-**Needs review 2026-11-14 by director: what the box should do on a window KWin cannot shade is the user's call — see QUESTIONS.md "What should the collapse box do on a window KWin cannot shade?"; confirm the cause below first, then apply the chosen option.**
+**Decision 2026-11-16 (user, recorded by the director role): hide the collapse box on a window that cannot shade — QUESTIONS.md "What should the collapse box do on a window KWin cannot shade?", answered option 3. Windows that can shade keep the box and its toggle.**
 
 Symptom (user report, 2026-11-14): the rightmost title-bar button does
 nothing when clicked. That button is the collapse box: the theme's button
@@ -96,10 +96,32 @@ cannot shade. The decoration's shaded geometry
 (`Decoration.qml`, `decoration.client.shaded`) is already in place for windows
 that can shade.
 
-Fix scope after the question is answered: an `enabled`/click change in
-`DecorationButton.qml` (and a matching `docs/invariants.md` row), with a QML
-structure test beside the existing decoration-package tests. No new
-dependency.
+Fix scope (decided 2026-11-16): in the package copy
+`theme/kwin-decoration/org.macos8.desktop/contents/ui/AuroraeButton.qml`
+(the effective hit surface: per `docs/invariants.md`, the imported
+`org.kde.kwin.decoration` module's `DecorationButton` shadows the local
+`DecorationButton.qml`, so editing that file alone changes nothing), make
+the shade button's `visible` a live binding instead of the one-shot
+`Component.onCompleted` assignment for `DecorationButtonShade`, e.g.
+`visible = Qt.binding(function() { return buttonSvg.imagePath != "" && decoration.client.shadeable; })`.
+The `groupRow` `Row` in `AuroraeButtonGroup.qml` then lays out without
+the hidden cell, so the zoom box takes the trailing edge. Leave the other
+button types' visibility and the `enabled` gate unchanged. Do not drop `L`
+from `ButtonsOnRight=AL`: shadeable (X11) windows keep the box.
+
+Acceptance: a QML structure test in `tests/test_aurorae_ui_qml.py`
+(beside `TestHitSurfaces`) pins that the shade button's visibility depends
+on `decoration.client.shadeable`, and that non-shade buttons keep the
+`imagePath` rule; the `tests/test_kwin_decoration_package.py::TestCopies`
+diff allowance for `AuroraeButton.qml` admits exactly this addition; the
+matching `docs/invariants.md` rows (the `TestCopies` copy-drift row and the
+hit-surface row) name the shadeable visibility rule. Any render gate that
+byte-compares the `shade.svg` cell (e.g. the `--file-dialog` render's
+x=463..475 collapse widget) either still holds or is re-derived and
+recorded, depending on whether the headless session's windows report
+`shadeable`. Optional: record in this entry what
+`workspace.activeWindow.shadeable` reports for a Wayland and an XWayland
+window. No new dependency.
 
 ### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
 
