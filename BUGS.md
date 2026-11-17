@@ -128,6 +128,8 @@ ready file; full ceiling without one); the first fails on the pre-change script.
 file yet, so the budgets still expire as before. The client-side writers are planned in PLANS.md
 ("Render-session readiness: the client writes RENDER_SESSION_READY_FILE"). This entry stays open until they land.
 
+**Progress 2026-11-16 by bugfix:** no client-side writer built this run. The splash client is the upstream `/usr/bin/ksplashqml` binary, which the theme cannot edit, and a wrapper has no offline-checkable "window shown" signal; touching the file after launch would be another fixed budget. The choice of signal is posted as a question in QUESTIONS.md ("How should the ksplashqml client signal that its window is shown?"). No code changed in the client path; the entry stays open.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 

@@ -7,7 +7,29 @@ each run.
 
 ## Open
 
-_None yet._
+### How should the ksplashqml client signal that its window is shown?
+
+(asked 2026-11-16 by the bugfix role, follow-up to "What should the settle wait on instead of a fixed sleep?")
+
+**Context.** You chose option 2: each client writes `$RENDER_SESSION_READY_FILE` once its window is
+shown. The session side is in place (`tools/render_session.py::session_script`). For the splash,
+the client is `ksplashqml --test --nofork <package>`, an upstream binary (`/usr/bin/ksplashqml`) that
+the theme does not build. A wrapper cannot see when its window maps without a helper, and touching
+the file right after launch would be a fixed budget under another name, which is the flake the
+entry is about. The theme's `Splash.qml` runs inside that binary and has no file-write API.
+
+**Options.**
+1. A small wrapper that polls the KWin window list (over D-Bus, e.g. `org.kde.KWin` window queries)
+   for the `ksplashqml` window, then touches the ready file. Needs a bounded real-session run to
+   confirm the signal fires and a D-Bus query the tests can stub.
+2. The KWin side writes the ready file when the client's window maps, using a settle script loaded
+   the way `focus_settle_text` is. This covers splash, desktop and dialog renders in one place, so
+   it is one writer instead of three. It departs from "the client writes", so it needs your OK.
+3. Keep the splash on its fixed settle and build only the desktop and dialog writers now.
+
+**Recommendation.** Option 2. One readiness writer covers every render path, it reuses the mechanism
+the focus-settle loop already runs, and it does not add a helper binary. Option 1 is the fallback if
+you want the client itself to report. (Bugfix role, 2026-11-16.)
 
 ## Answered
 
