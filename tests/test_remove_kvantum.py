@@ -153,6 +153,25 @@ class TestSelectionRemoval(RemoveKvantumCase):
         self.assertIn(str(self.kvconfig), second.stdout)
         self.assertEqual(before, self.read_bytes())
 
+    def test_a_removal_announces_the_cleared_selection_and_the_restart(self):
+        self.write("[General]\ntheme=org.macos8.desktop\n")
+
+        result = self.run_tool()
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("cleared the org.macos8.desktop selection", result.stdout)
+        self.assertIn(str(self.kvconfig), result.stdout)
+        self.assertIn("restart running Qt applications", result.stdout)
+
+    def test_an_untouched_selection_announces_no_removal_or_restart(self):
+        self.write("[General]\ntheme=KvBreezeDark\n")
+
+        result = self.run_tool()
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertNotIn("cleared", result.stdout)
+        self.assertNotIn("restart running", result.stdout)
+
     def test_an_absent_file_and_directory_are_left_absent(self):
         nested = self.root / "deeper" / "config"
         self.env["XDG_CONFIG_HOME"] = str(nested)
