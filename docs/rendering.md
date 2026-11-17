@@ -114,7 +114,7 @@ right of the caret and the OK button's push-button frame there.
 draws as the theme's `progress` element art, captured at the same 480x360 size; the helper
 daemon `kdialog_progress_helper` shows it (kdialog execs the helper for a progress dialog
 and its launcher exits, where the helper stays for the session script to capture), and the
-progressbar gate (`tests/test_render_dialog_gates.py::TestProgressbarDialogRender`) pins the
+progressbar gate (`tests/test_render_progressbar_dialog.py::TestProgressbarDialogRender`) pins the
 trough's flat face between its outline rows, its #FFFFFF top/left bevel arms and its
 #999999 bottom/right arms there.
 `--slider-dialog` opens a `kdialog` slider whose at-rest thumb the engine draws with the

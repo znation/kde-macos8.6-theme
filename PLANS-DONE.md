@@ -5,6 +5,75 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render dialog gates suite extraction: isolate the progressbar dialog gate (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
+
+**Goal.** `tests/test_render_dialog_gates.py` is still over 1000 lines. Its
+`TestProgressbarDialogRender` gate (about 75 lines) and the four `PROGRESSBAR_DIALOG_*` constants with
+their measurement comment (about 25 lines) pin one surface: the Kvantum progress meter that
+`--progressbar-dialog` renders. Move them into their own module, following the text-box extraction
+(PLANS-DONE.md, "isolate the text-box scrollbar gate"). This plan does not touch
+`tests/test_render_surface_units.py`, so it is independent of the pending applet-preflight extraction.
+
+**Approach.**
+- Create `tests/test_render_progressbar_dialog.py`, shaped like `tests/test_render_textbox_dialog.py`.
+  Its module docstring says it holds the `--progressbar-dialog` meter gate, that the shared capture
+  plumbing lives in `tests/support/render_gates.py`, and that the other kdialog widget gates live in
+  `tests/test_render_dialog_gates.py`. Move these verbatim: the comment block that starts "The rendered
+  Kvantum progress meter in the progressbar dialog", the four `PROGRESSBAR_DIALOG_*` constants with the
+  comments between them, and the `@dialog_gate_guard()` class `TestProgressbarDialogRender`. At the base
+  commit the class body uses only `DialogGate` (its `assert_band`), `dialog_gate_guard` and `unittest`;
+  re-check that list against the moved text before writing the imports.
+- Add `TestProgressbarDialogGateSkipGuards`, modeled on `TestTextboxDialogGateSkipGuards`, with the
+  method `test_the_progressbar_dialog_gate_skips_only_when_a_tool_is_absent`: it asserts that
+  `TestProgressbarDialogRender.__unittest_skip__` equals the expected skip state (a software renderer
+  is detected, or a `DIALOG_REAL_TOOLS` tool is missing from `PATH`), and re-runs
+  `probe_gate_skip(dialog_gate_guard, missing)` for `None` and for each tool. The module therefore
+  also imports `shutil`, `DIALOG_REAL_TOOLS`, `probe_gate_skip` and `software_renderer_skip_reason`.
+  End with the `if __name__ == "__main__": unittest.main()` footer.
+- In `tests/test_render_dialog_gates.py`: delete the moved block and class; drop
+  `TestProgressbarDialogRender` from the gate tuple in
+  `TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent` and extend
+  that tuple's trailing comment to name the new module; add the new module to the module docstring's
+  list of sibling modules; delete any import no remaining code uses (check each with `grep -w`).
+- Add `"tests/test_render_progressbar_dialog.py"` to `_GATE_FILES` in both
+  `tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+- Update the anchors:
+  - `docs/invariants.md`: in the progressbar dialog row, cite
+    `tests/test_render_progressbar_dialog.py::TestProgressbarDialogRender`, keeping the method names.
+    In the "fifteen dialog render gates" skip-guard row and the software-renderer skip row (both
+    already cite `TestTextboxDialogGateSkipGuards`), append
+    `tests/test_render_progressbar_dialog.py::TestProgressbarDialogGateSkipGuards::test_the_progressbar_dialog_gate_skips_only_when_a_tool_is_absent`.
+    Leave the gate counts alone: the gate set does not change.
+  - `docs/rendering.md`: in the progressbar paragraph, change the gate cite to the new path.
+  - `docs/fidelity.md`: in the dialog-gate list, take `::TestProgressbarDialogRender` out of the
+    `tests/test_render_dialog_gates.py` chain and give it as a full
+    `tests/test_render_progressbar_dialog.py::TestProgressbarDialogRender` token, as the text-box entry is.
+  - `tests/test_ci_workflow.py` names the gate only by class in a comment; leave it. Grep
+    `docs tests tools README.md BUGS.md QUESTIONS.md` again (including
+    `tests/support/validation_gaps/*.py`) for `test_render_dialog_gates.py::TestProgressbarDialogRender`
+    and rewrite any other anchor that turns up. Do not rewrite PLANS-DONE.md or BUGS-FIXED.md.
+
+**Files touched.** `tests/test_render_progressbar_dialog.py` (new), `tests/test_render_dialog_gates.py`,
+`tests/test_dialog_gate_count_prose.py`, `tests/test_readme_render_gates.py`, `docs/invariants.md`,
+`docs/rendering.md`, `docs/fidelity.md`.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four `TestProgressbarDialogRender` methods exactly once, under
+  `test_render_progressbar_dialog.TestProgressbarDialogRender`; none appears under
+  `test_render_dialog_gates`. Every other class in `tests/test_render_dialog_gates.py` keeps its methods.
+- During the run, the moved class's `ast.dump` matches the original's at this plan's base commit, and
+  the four constants' values match (a one-time check, not a committed test).
+- On a host without `kdialog` (or under `LIBGL_ALWAYS_SOFTWARE=1`), the new guard test passes and every
+  `TestProgressbarDialogRender` method reports as skipped; with every tool present, the guard test
+  passes with the gate running. The guard test fails if the `@dialog_gate_guard()` decorator is removed
+  from the moved class.
+- `grep -rn "test_render_dialog_gates.py::TestProgressbarDialogRender" docs tests tools README.md`
+  prints nothing, and `grep -n "PROGRESSBAR_DIALOG\|TestProgressbarDialogRender" tests/test_render_dialog_gates.py`
+  prints only the comment pointing to the new module. The invariants anchor check, the dialog-gate
+  count prose test and the README render-gate test pass in `make check`.
+- `tests/test_render_dialog_gates.py` shrinks by at least 95 lines; the new module stays under about
+  170 lines. `make check` passes after the final edit.
+
 ### Render units suite extraction: isolate the CLI applet preflight checks (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
 
 **Goal.** `tests/test_render_surface_units.py` is still over 1200 lines. Its `TestAppletPreflight`

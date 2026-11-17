@@ -7,7 +7,8 @@ Kvantum art: the shared capture plumbing lives in
 ``tests/test_render_file_dialog.py``, the GTK 4 window gate in
 ``tests/test_render_gtk_dialog.py``, the calendar gates in
 ``tests/test_render_calendar_dialog.py``, the text-box gate in
-``tests/test_render_textbox_dialog.py``, and the applet, desktop and splash
+``tests/test_render_textbox_dialog.py``, the progress meter gate in
+``tests/test_render_progressbar_dialog.py``, and the applet, desktop and splash
 gates in ``tests/test_render_surface.py``.
 """
 
@@ -113,31 +114,6 @@ SLIDER_DIALOG_THUMB_CROP = (146, 178, 16, 16)
 # so no thumb, label-glyph or foreign-border byte enters the crop. Measured
 # on the same agreeing pair as the thumb.
 SLIDER_DIALOG_TROUGH = (162, 182, 171, 8)
-# The rendered Kvantum progress meter in the progressbar dialog: the
-# helper-client `kdialog_progress_helper` opens an at-rest QProgressBar at
-# value zero, whose trough the engine stretches over the theme's `progress`
-# element art in the raised arrangement: the 1px #000000 outline with the
-# #FFFFFF top/left bevel arms, the #999999 bottom/right bevel arms and the
-# flat #DDDDDD face, inside the `[Progressbar]` section's 2px frame margins.
-# The trough occupies (146,172)..(333,195), measured on two consecutive
-# 480x360 `--progressbar-dialog` captures on this host (kdialog 25.04.0,
-# 2026-11-10) whose two runs agreed byte for byte under `cmp`. The meter
-# never moves -- only its D-Bus interface drives it, and the render session
-# calls none of it -- so no striped progress-pattern tile and no busy
-# animation enters any crop, and a progress meter has no caret: no
-# phase-dependent column to steer around.
-# The trough's face interior band: rows clear of every frame row (the arms
-# end at the face's row 174 above 193) and of the "Working:" label glyphs
-# (rows 153..163, above the trough), so the whole band must stay the flat
-# #DDDDDD face. An off-by-one row slips a bevel-arm or window-face byte in
-# and fails; a glyph or a filled value band inside the face fails too.
-PROGRESSBAR_DIALOG_FACE_CROP = (200, 174, 120, 20)
-# Narrow bands over the trough's edges: each band spans one #DDDDDD window
-# face row, the outline row/column and the bevel arm inside it, so a lost
-# outline row, a swapped arm colour or an off-by-one edge fails.
-PROGRESSBAR_DIALOG_TOP_BAND = (200, 171, 121, 4)
-PROGRESSBAR_DIALOG_BOTTOM_BAND = (200, 193, 121, 4)
-PROGRESSBAR_DIALOG_LEFT_BAND = (144, 178, 5, 8)
 # The color dialog's pinned bands, measured on two consecutive full
 # `tools/render_surface.py --color-dialog` runs on 2026-11-10 whose two
 # 480x360 captures agreed byte for byte under `cmp` (see
@@ -278,14 +254,15 @@ class TestDialogGateSkipGuards(unittest.TestCase):
             TestRadioDialogRender,
             TestColorDialogRender,
             TestIconDialogRender,
-            TestProgressbarDialogRender,
             TestSliderDialogRender,
             TestInactiveDialogRender,
             # TestFileDialogRender's and TestGtkDialogRender's flags are
             # pinned beside their gates, in tests/test_render_file_dialog.py
             # and tests/test_render_gtk_dialog.py; the two calendar gates'
-            # flags are pinned in tests/test_render_calendar_dialog.py, and
-            # TestTextboxDialogRender's in tests/test_render_textbox_dialog.py.
+            # flags are pinned in tests/test_render_calendar_dialog.py,
+            # TestTextboxDialogRender's in tests/test_render_textbox_dialog.py,
+            # and TestProgressbarDialogRender's in
+            # tests/test_render_progressbar_dialog.py.
         ):
             with self.subTest(gate=gate.__name__):
                 self.assertEqual(expected, gate.__unittest_skip__)
@@ -841,81 +818,6 @@ class TestSliderDialogRender(DialogGate, unittest.TestCase):
                 ["#000000"] * width if row in (0, height - 1) else ["#EEEEEE"] * width
                 for row in range(height)
             ],
-        )
-
-
-@dialog_gate_guard()
-class TestProgressbarDialogRender(DialogGate, unittest.TestCase):
-    """The progress dialog's meter keeps its engine-drawn trough frame.
-
-    The progressbar dialog opens a real at-rest ``QProgressBar`` (the
-    ``kdialog --progressbar`` dialog, rendered through the helper daemon
-    ``kdialog_progress_helper`` that kdialog itself execs for it -- the
-    launcher prints the D-Bus reference and exits, so the shared session
-    script's liveness check would fail it after the settle) whose trough
-    the engine stretches over this theme's ``[Progressbar]`` ``progress``
-    element with the section's 2px frame margins. No collected reference
-    screenshot shows a dialog with a meter, so the comparison surfaces are
-    the shipped art recipe: the raised arrangement the Kvantum reference
-    suite pins by id -- the 1px #000000 outer outline with the #FFFFFF
-    top/left bevel arms, the #999999 bottom/right bevel arms and the flat
-    #DDDDDD face. Value zero keeps the meter in its resting state, so no
-    striped ``progress-pattern`` tile, no value fill and no busy animation
-    enter any crop, and a progress meter has no caret: no phase-dependent
-    column to steer around. Measured on two consecutive full
-    ``--progressbar-dialog`` captures on this host (2026-11-10) that agree
-    byte for byte under ``cmp``.
-    """
-
-    KIND = "progressbar"
-
-    def test_keeps_the_trough_face_interior_flat_at_rest(self):
-        # The rows between the arms run clear of the outline rows and of
-        # the label glyphs (which sit above the trough), so every byte
-        # must be the flat #DDDDDD face: a striped progress-pattern tile,
-        # a value fill or a glyph byte fails row by row.
-        x, y, width, height = PROGRESSBAR_DIALOG_FACE_CROP
-        self.assert_band(
-            PROGRESSBAR_DIALOG_FACE_CROP,
-            [["#DDDDDD"] * width for _ in range(height)],
-        )
-
-    def test_pins_the_top_edge_outline_and_its_white_bevel_arm(self):
-        # One window-face row, the 1px #000000 outline and the #FFFFFF
-        # top bevel arm inside it, then the face -- the raised
-        # arrangement the progress element art draws.
-        self.assert_band(
-            PROGRESSBAR_DIALOG_TOP_BAND,
-            (
-                ["#DDDDDD"] * 121,
-                ["#000000"] * 121,
-                ["#FFFFFF"] * 121,
-                ["#DDDDDD"] * 121,
-            ),
-        )
-
-    def test_pins_the_left_edge_outline_and_its_white_bevel_arm(self):
-        # Two window-face columns, the 1px #000000 outline column and the
-        # #FFFFFF left bevel arm inside it, then the face, over eight
-        # face rows clear of every horizontal band.
-        arm_row = ["#DDDDDD", "#DDDDDD", "#000000", "#FFFFFF", "#DDDDDD"]
-        self.assert_band(
-            PROGRESSBAR_DIALOG_LEFT_BAND,
-            tuple(arm_row for _ in range(8)),
-        )
-
-    def test_pins_the_bottom_edge_outline_and_its_shadow_bevel_arm(self):
-        # The face row, the #999999 bottom bevel arm inside the 1px
-        # #000000 outline, and the window face below it -- swapping the
-        # highlight and shadow arms fails both this pin and the top one.
-        self.assert_band(
-            PROGRESSBAR_DIALOG_BOTTOM_BAND,
-            (
-                ["#DDDDDD"] * 121,
-                ["#999999"] * 121,
-                ["#000000"] * 121,
-                ["#DDDDDD"] * 121,
-            ),
         )
 
 
