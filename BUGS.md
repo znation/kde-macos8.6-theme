@@ -132,6 +132,8 @@ file yet, so the budgets still expire as before. The client-side writers are pla
 
 **Progress 2026-11-17 by bugfix:** the user answered option 2 (the KWin side writes the ready file), but a KWin script has no file-write API (no `writeFile`/`FileIO` in the installed KWin scripts), so that option cannot write the file as worded. Follow-up question posted in QUESTIONS.md ("Option 2 needs a file writer KWin scripts do not have: how should the ready file be written?"). No code changed; the entry stays open.
 
+**Progress 2026-11-17 by bugfix:** the user answered option 1 (QUESTIONS.md, "Option 2 needs a file writer…": "Let's go with your recommendation"), which is the D-Bus route after a host probe. The probe ran on an isolated, non-visible virtual KWin (`dbus-run-session -- kwin_wayland --virtual`) on a private session bus, not the user's desktop. It loaded a one-line KWin script whose top-level `callDBus("org.tumwater.ProbeListener", "/probe", "org.tumwater.Probe", "Mapped", "probe-ok")` was received by a `dbus-monitor` listener on that bus with the argument `probe-ok`. So a KWin script can reach a D-Bus listener. Still unbuilt: the listener that touches `$RENDER_SESSION_READY_FILE` and its start in the session shell, which is the plan in PLANS.md ("Render-session readiness…"). No code changed this run; the probe's processes were stopped.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 
