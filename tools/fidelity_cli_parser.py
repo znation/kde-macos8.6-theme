@@ -91,7 +91,8 @@ def build_parser() -> EscapingArgumentParser:
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(
             "exit status: 0 when the comparison passes, 1 when it fails, "
-            "2 usage or read error; passes when every --max-mae/--max-frac/--max-rmse/--max-delta/--max-differing "
+            "2 usage or read error; passes when every "
+            "--max-mae/--max-frac/--max-rmse/--max-delta/--max-differing "
             "threshold set is met, and otherwise when no pixel differs "
             "beyond --tolerance"
         ),
@@ -105,7 +106,8 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--worst-pixels", type=worst_pixel_limit, metavar="N",
                         help="list up to N worst differing pixels (1-1000)")
     parser.add_argument("--worst-pixel-offset", type=worst_pixel_offset, metavar="K",
-                        default=None, help="skip the first K ranked pixels (requires --worst-pixels)")
+                        default=None,
+                        help="skip the first K ranked pixels (requires --worst-pixels)")
     parser.add_argument("--channel-counts", action="store_true",
                         help=(
                             "count the pixels each channel differs beyond "
@@ -121,41 +123,60 @@ def build_parser() -> EscapingArgumentParser:
     parser.add_argument("--difference-columns", action="store_true",
                         help="count pixels differing beyond --tolerance in each compared column")
     parser.add_argument("--difference-row-bounds", action="store_true",
-                        help="locate each row's horizontal interval of pixels differing beyond --tolerance")
+                        help=("locate each row's horizontal interval of pixels "
+                              "differing beyond --tolerance"))
     parser.add_argument("--difference-column-bounds", action="store_true",
-                        help="locate each column's vertical interval of pixels differing beyond --tolerance")
+                        help=("locate each column's vertical interval of pixels "
+                              "differing beyond --tolerance"))
     parser.add_argument("--difference-runs", action="store_true",
-                        help="locate disjoint horizontal runs of pixels differing beyond --tolerance")
+                        help=("locate disjoint horizontal runs of pixels differing "
+                              "beyond --tolerance"))
     parser.add_argument("--difference-run-count", action="store_true",
                         help="count horizontal mismatch runs without listing them")
     parser.add_argument("--difference-column-run-count", action="store_true",
                         help="count vertical mismatch runs without listing them")
-    parser.add_argument("--min-difference-run-length", type=positive_int("--min-difference-run-length"),
+    parser.add_argument("--min-difference-run-length",
+                        type=positive_int("--min-difference-run-length"),
                         default=None, metavar="N",
-                        help="omit horizontal difference runs shorter than N (requires --difference-runs)")
-    parser.add_argument("--max-difference-run-length", type=positive_int("--max-difference-run-length"),
+                        help=("omit horizontal difference runs shorter than N "
+                              "(requires --difference-runs)"))
+    parser.add_argument("--max-difference-run-length",
+                        type=positive_int("--max-difference-run-length"),
                         default=None, metavar="N",
-                        help="omit horizontal difference runs longer than N (requires --difference-runs)")
-    parser.add_argument("--max-difference-runs", type=positive_int("--max-difference-runs"),
+                        help=("omit horizontal difference runs longer than N "
+                              "(requires --difference-runs)"))
+    parser.add_argument("--max-difference-runs",
+                        type=positive_int("--max-difference-runs"),
                         default=None, metavar="N",
-                        help="report at most N horizontal difference runs (requires --difference-runs)")
+                        help=("report at most N horizontal difference runs "
+                              "(requires --difference-runs)"))
     parser.add_argument("--difference-run-offset", type=difference_run_offset,
                         default=None, metavar="K",
-                        help="skip the first K eligible horizontal difference runs (requires --max-difference-runs)")
+                        help=("skip the first K eligible horizontal difference runs "
+                              "(requires --max-difference-runs)"))
     parser.add_argument("--difference-column-runs", action="store_true",
-                        help="locate disjoint vertical runs of pixels differing beyond --tolerance")
-    parser.add_argument("--min-difference-column-run-length", type=positive_int("--min-difference-column-run-length"),
+                        help=("locate disjoint vertical runs of pixels differing "
+                              "beyond --tolerance"))
+    parser.add_argument("--min-difference-column-run-length",
+                        type=positive_int("--min-difference-column-run-length"),
                         default=None, metavar="N",
-                        help="omit vertical difference runs shorter than N (requires --difference-column-runs)")
-    parser.add_argument("--max-difference-column-run-length", type=positive_int("--max-difference-column-run-length"),
+                        help=("omit vertical difference runs shorter than N "
+                              "(requires --difference-column-runs)"))
+    parser.add_argument("--max-difference-column-run-length",
+                        type=positive_int("--max-difference-column-run-length"),
                         default=None, metavar="N",
-                        help="omit vertical difference runs longer than N (requires --difference-column-runs)")
-    parser.add_argument("--max-difference-column-runs", type=positive_int("--max-difference-column-runs"),
+                        help=("omit vertical difference runs longer than N "
+                              "(requires --difference-column-runs)"))
+    parser.add_argument("--max-difference-column-runs",
+                        type=positive_int("--max-difference-column-runs"),
                         default=None, metavar="N",
-                        help="report at most N vertical difference runs (requires --difference-column-runs)")
-    parser.add_argument("--difference-column-run-offset", type=difference_column_run_offset,
+                        help=("report at most N vertical difference runs "
+                              "(requires --difference-column-runs)"))
+    parser.add_argument("--difference-column-run-offset",
+                        type=difference_column_run_offset,
                         default=None, metavar="K",
-                        help="skip the first K eligible vertical difference runs (requires --max-difference-column-runs)")
+                        help=("skip the first K eligible vertical difference runs "
+                              "(requires --max-difference-column-runs)"))
     parser.add_argument("--difference-centroid", action="store_true",
                         help="report the centroid of pixels differing beyond --tolerance")
     parser.add_argument("--longest-difference-run", action="store_true",
