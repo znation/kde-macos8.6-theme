@@ -132,6 +132,82 @@ that stubs the readiness write, and a bounded real-session run to confirm the si
 the BUGS.md entry "Render-session tests rely on fixed wall-clock budgets" (which stays open until
 these land).
 
+### Render dialog gates suite extraction: isolate the text-box scrollbar gate (planned 2026-11-17 by the plan role)
+
+**Goal.** `tests/test_render_dialog_gates.py` is still over 1250 lines. Its `TestTextboxDialogRender`
+gate (about 190 lines) and the `TEXTBOX_DIALOG_*` constants with their measurement comment (about 45
+lines) pin one surface: the Kvantum scrollbar that `--textbox-dialog` renders. Move them into their own
+module, following the calendar extraction (PLANS-DONE.md, "isolate the calendar dialog gates"). This
+plan does not touch `tests/test_render_surface_units.py`, so it can merge before or after the pending
+theme-sources extraction.
+
+**Approach.**
+- Create `tests/test_render_textbox_dialog.py`. Shape it like `tests/test_render_calendar_dialog.py`.
+  Give it a module docstring saying it holds the `--textbox-dialog` scrollbar gate, that the shared
+  capture plumbing lives in `tests/support/render_gates.py`, and that the other kdialog widget gates
+  live in `tests/test_render_dialog_gates.py`. Move these verbatim: the scrollbar comment block that
+  starts "The rendered Kvantum scrollbar in the text-box dialog", the eight `TEXTBOX_DIALOG_*`
+  constants with the comments between them, and the `@dialog_gate_guard()` class
+  `TestTextboxDialogRender`. At the base commit, the class body uses only `DialogGate`,
+  `dialog_gate_guard`, `hex_colour`, `pixel_at` and `unittest`. Check that list again against the
+  moved text before you write the imports.
+- Add `TestTextboxDialogGateSkipGuards` to the new module. Model it on
+  `TestCalendarDialogGateSkipGuards`, and name its method
+  `test_the_textbox_dialog_gate_skips_only_when_a_tool_is_absent`. The method asserts that
+  `TestTextboxDialogRender.__unittest_skip__` equals the expected skip state (a software renderer is
+  detected, or a `DIALOG_REAL_TOOLS` tool is missing from `PATH`). It also re-runs
+  `probe_gate_skip(dialog_gate_guard, missing)` for `None` and for each tool. This module then also
+  imports `shutil`, `DIALOG_REAL_TOOLS`, `probe_gate_skip` and `software_renderer_skip_reason`. End
+  the module with the `if __name__ == "__main__": unittest.main()` footer.
+- In `tests/test_render_dialog_gates.py`:
+  - Delete the moved block and the class.
+  - Drop `TestTextboxDialogRender` from the gate tuple in
+    `TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`, and
+    extend that tuple's trailing comment to name the new module.
+  - Add the new module to the module docstring's list of sibling modules.
+  - Delete any import that no remaining code uses. Check each with `grep -w`; `hex_colour` and
+    `pixel_at` are still used by other gates.
+- Add `"tests/test_render_textbox_dialog.py"` to `_GATE_FILES` in both
+  `tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+- Update the anchors:
+  - `docs/invariants.md`: in the text-box dialog row, cite
+    `tests/test_render_textbox_dialog.py::TestTextboxDialogRender`, keeping the method names. In the
+    "fifteen dialog render gates" skip-guard row, append
+    `tests/test_render_textbox_dialog.py::TestTextboxDialogGateSkipGuards::test_the_textbox_dialog_gate_skips_only_when_a_tool_is_absent`
+    to the test column. Also add that cite to the software-renderer skip row that already cites the
+    calendar guard test. Leave the gate counts alone, because the gate set does not change.
+  - `docs/rendering.md`: in the `--textbox-dialog` paragraph, change the gate cite to the new path.
+  - `docs/fidelity.md`: in the dialog-gate list, move `::TestTextboxDialogRender` out of the
+    `tests/test_render_dialog_gates.py` chain. Give it as a full
+    `tests/test_render_textbox_dialog.py::TestTextboxDialogRender` token, as the calendar entry is
+    given.
+  - Grep `docs tests tools README.md BUGS.md QUESTIONS.md` again for
+    `test_render_dialog_gates.py::TestTextboxDialogRender`, including
+    `tests/support/validation_gaps/*.py` and `tests/test_ci_workflow.py`, and rewrite any other
+    anchor that turns up. Do not rewrite PLANS-DONE.md or BUGS-FIXED.md.
+
+**Files touched.** `tests/test_render_textbox_dialog.py` (new), `tests/test_render_dialog_gates.py`,
+`tests/test_dialog_gate_count_prose.py`, `tests/test_readme_render_gates.py`, `docs/invariants.md`,
+`docs/rendering.md`, `docs/fidelity.md`.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the eight `TestTextboxDialogRender` methods exactly once, under
+  `test_render_textbox_dialog.TestTextboxDialogRender`. None appears under `test_render_dialog_gates`.
+  Every other class in `tests/test_render_dialog_gates.py` keeps its methods.
+- During the run, compare the moved class's `ast.dump` with the original's at this plan's base
+  commit; they must match. Do the same for the eight constants' values. This is a one-time check,
+  not a new committed test.
+- On a host without `kdialog` (or under `LIBGL_ALWAYS_SOFTWARE=1`), the new guard test passes and
+  every `TestTextboxDialogRender` method reports as skipped. On a host with every tool, the guard
+  test passes with the gate running. The guard test fails if the `@dialog_gate_guard()` decorator is
+  removed from the moved class (`AttributeError` on `__unittest_skip__`).
+- `grep -rn "test_render_dialog_gates.py::TestTextboxDialogRender" docs tests tools README.md`
+  prints nothing. `grep -n "TEXTBOX_DIALOG\|TestTextboxDialogRender" tests/test_render_dialog_gates.py`
+  prints only the comment that points to the new module. The invariants anchor check, the
+  dialog-gate count prose test and the README render-gate test pass in `make check`.
+- `tests/test_render_dialog_gates.py` shrinks by at least 220 lines. The new module stays under
+  about 300 lines. `make check` passes after the final edit.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
