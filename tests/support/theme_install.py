@@ -105,7 +105,7 @@ def write_file(path, body):
     also survives in, for example, tests/test_apply_theme.py,
     tests/test_sample_cli.py, tests/test_shipped_files.py,
     tests/test_suite_discovery.py, tests/test_checker_mutations.py,
-    tests/test_render_surface_units.py,
+    tests/test_render_surface_units.py, tests/test_render_applet_preflight.py,
     tests/test_check_references_validation.py, tests/test_apply_cursor_locks.py,
     and this module's own test_theme_install.py.
     """

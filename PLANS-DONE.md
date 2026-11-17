@@ -5,6 +5,57 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render units suite extraction: isolate the CLI applet preflight checks (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
+
+**Goal.** `tests/test_render_surface_units.py` is still over 1200 lines. Its `TestAppletPreflight`
+class, about 108 lines, covers one behavior: `render_surface.main` refuses a calculator render whose
+applet package is missing before any session starts, and the `--menu-dialog` and `--desktop` modes
+never consult the check. Move the class into its own module, following the theme-source extraction
+(PLANS-DONE.md, "isolate the session theme-source checks"). This plan touches neither
+`tests/test_render_dialog_gates.py` nor the files the waiting text-box extraction edits, so the two
+can merge in either order.
+
+**Approach.**
+- Create `tests/test_render_applet_preflight.py`. Give it a short docstring saying it was moved out
+  of `tests/test_render_surface_units.py` and covers the render CLI's calculator applet preflight.
+  The unit-level finder tests stay in `tests/test_render_applet.py`, and the docstring should say
+  that too. Move `TestAppletPreflight` into it verbatim, including its `setUp` and
+  `_run_with_roots` helper. Import only what the class uses: `os`, `tempfile`, `unittest`, `Path`,
+  `mock`, the `from support import repo_root` path setup, `call_main` from
+  `support.cli_fixtures`, and `render_surface`. Check each one against the moved body. The class
+  patches `render` and starts no session or display, so it needs no skip guard.
+- In `tests/test_render_surface_units.py`, delete the class. Delete `import tempfile`, which no
+  remaining class uses at this plan's base commit; re-check with `grep -nw tempfile` before deleting.
+  Keep `os`, `Path`, `mock` and `call_main`, which `TestArguments`, `TestCapturePaintCheck` or
+  `TestSessionScript` still use. Extend the module docstring's closing sentence so it also names
+  `tests/test_render_applet_preflight.py` for the CLI applet preflight checks.
+- In `docs/invariants.md`, the calculator-preflight row cites
+  `tests/test_render_surface_units.py::TestAppletPreflight`. Change that citation to
+  `tests/test_render_applet_preflight.py::TestAppletPreflight` and leave the rest of the row
+  alone, including its `TestArguments::test_rejects_a_path_carrying_applet` citation. When
+  implementing, grep `docs/ tests/ tools/ README.md BUGS.md QUESTIONS.md` again for
+  `test_render_surface_units.py::TestAppletPreflight`, and rewrite any other anchor that turns up.
+  Include `tests/support/validation_gaps/*.py`, `docs/rendering.md`, `docs/fidelity.md` and
+  `tests/test_ci_workflow.py`. At planning time, only the invariants row matched. Do not rewrite
+  history in PLANS-DONE.md or BUGS-FIXED.md.
+
+**Files touched.** `tests/test_render_applet_preflight.py` (new),
+`tests/test_render_surface_units.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Unittest discovery lists each of the four `TestAppletPreflight` methods exactly once, under
+  `test_render_applet_preflight.TestAppletPreflight`, and none under `test_render_surface_units`.
+  `TestCapturePaintCheck`, `TestArguments` and `TestSessionScript` are still listed under
+  `test_render_surface_units` with the same methods as before.
+- The moved class's AST matches the original's at this plan's base commit. Check this once during
+  the run, for example by comparing `ast.dump` of the two `ClassDef` nodes. It is not a new
+  committed test.
+- `grep -rn "test_render_surface_units.py::TestAppletPreflight" docs tests tools README.md` prints
+  nothing, and the invariants anchor check in `make check` passes.
+- `grep -nw tempfile tests/test_render_surface_units.py` prints nothing.
+- `tests/test_render_surface_units.py` shrinks by at least 100 lines, and the new module stays under
+  about 150 lines. `make check` passes after the final edit.
+
 ### Render dialog gates suite extraction: isolate the text-box scrollbar gate (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
 
 **Goal.** `tests/test_render_dialog_gates.py` is still over 1250 lines. Its `TestTextboxDialogRender`
