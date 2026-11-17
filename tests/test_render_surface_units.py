@@ -1166,26 +1166,17 @@ class TestSessionScript(unittest.TestCase):
             "from pathlib import Path\n"
             "Path(sys.argv[1]).write_text(str(os.getpid()))\n"
             "Path(sys.argv[2]).touch()\n"
+            "Path(os.environ['RENDER_SESSION_READY_FILE']).touch()\n"
             "time.sleep(0.5)\n",
             encoding="utf-8",
         )
-        poll = (
-            "import time, sys; from pathlib import Path; "
-            "deadline = time.monotonic() + 3\n"
-            "while not Path(sys.argv[1]).exists():\n"
-            "    if time.monotonic() > deadline: sys.exit(1)\n"
-            "    time.sleep(0.01)\n"
-        )
-        # The settle's `sleep 0` polls until the client has started; the
-        # spectacle stub then SIGKILLs the held client (a frozen client
+        # The client writes the session's ready file, so the settle (1 s,
+        # only the ceiling) ends once the client has started; the spectacle
+        # stub then SIGKILLs the held client (a frozen client
         # cannot exit on its own) and spins until the recorded pid is gone,
         # so the client -- alive at the liveness check -- dies mid-capture.
         prefix = (
-            f'sleep() {{ if [ "$1" = 0 ]; then '
-            f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
-            'else command sleep "$@"; fi; }; '
-            # Settle 0 no longer waits for the client's pidfile write, so the
-            # stub reads the pid the session exports before the capture.
+            # The stub reads the pid the session exports before the capture.
             'spectacle() { pid="$RENDER_SESSION_CLIENT_PID"; '
             'kill -9 "$pid" 2>/dev/null; n=0; '
             'while kill -0 "$pid" 2>/dev/null && [ $n -lt 200 ]; do '
@@ -1193,7 +1184,7 @@ class TestSessionScript(unittest.TestCase):
         )
         status = render_workflow.run_logged(
             ["sh", "-c", prefix + render_session.session_script(),
-             "sh", "0", str(root / "capture.png"), sys.executable,
+             "sh", "1", str(root / "capture.png"), sys.executable,
              str(client), str(pidfile), str(ready)],
             environment, root / "session.log", 10, root,
         )
@@ -1241,27 +1232,18 @@ class TestSessionScript(unittest.TestCase):
             "    Path(sys.argv[3]).write_text('terminated')\n"
             "    sys.exit(0)\n"
             "signal.signal(signal.SIGTERM, terminate)\n"
+            # The ready file ends the settle only once the handler is in, so
+            # the hold cannot freeze the client before it can be resumed.
+            "Path(os.environ['RENDER_SESSION_READY_FILE']).touch()\n"
             "signal.pause()\n",
             encoding="utf-8",
-        )
-        poll = (
-            "import time, sys; from pathlib import Path; "
-            "deadline = time.monotonic() + 3\n"
-            "while not Path(sys.argv[1]).exists():\n"
-            "    if time.monotonic() > deadline: sys.exit(1)\n"
-            "    time.sleep(0.01)\n"
         )
         # The spectacle stub reads the client's scheduler state at capture
         # start and returns only once that state is "T" (stopped), so a
         # capture that starts without the hold cannot satisfy the test.
         state_of = 'state=$(awk \'{print $3}\' "/proc/$pid/stat" 2>/dev/null); '
         prefix = (
-            f'sleep() {{ if [ "$1" = 0 ]; then '
-            f"{shlex.join([sys.executable, '-c', poll, str(ready)])}; "
-            'else command sleep "$@"; fi; }; '
-            # The session exports the client's pid before the capture, so the
-            # stub need not wait for the client's own pidfile write (settle 0
-            # no longer waits for the client to start).
+            # The stub reads the pid the session exports before the capture.
             'spectacle() { pid="$RENDER_SESSION_CLIENT_PID"; n=0; '
             f'{state_of} printf %s "$state" > "{captured_state}"; '
             'while [ "$state" != T ] && [ $n -lt 200 ]; do '
@@ -1270,7 +1252,7 @@ class TestSessionScript(unittest.TestCase):
         )
         status = render_workflow.run_logged(
             ["sh", "-c", prefix + render_session.session_script(),
-             "sh", "0", str(root / "capture.png"), sys.executable,
+             "sh", "1", str(root / "capture.png"), sys.executable,
              str(client), str(pidfile), str(ready), str(terminated)],
             environment, root / "session.log", 10, root,
         )
