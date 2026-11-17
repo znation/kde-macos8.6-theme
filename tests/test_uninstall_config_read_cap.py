@@ -15,9 +15,10 @@ from unittest import mock
 import io
 import os
 import unittest
+from pathlib import Path
 
 from support import theme_install
-from support.fifo_fixtures import fifo_swap_opener
+from support.fifo_fixtures import fifo_swap_opener, make_fifo
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import containment, uninstall_config, uninstall_diagnostics
@@ -98,13 +99,10 @@ class TestReaderFifo(unittest.TestCase):
         # a reader that opens the pipe returns its held bytes instead of
         # refusing the swap, and a reader that refuses when only the path is
         # checked returns its None early and never sees the swap.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         tmp = str(make_tmp_dir(self))
         fifo = os.path.join(tmp, "config", "kdeglobals")
-        os.makedirs(os.path.dirname(fifo), exist_ok=True)
-        os.mkfifo(fifo)
-        body = b"[KDE]\nwidgetStyle=kvantum\n"
+        make_fifo(self, Path(fifo))
+        body =b"[KDE]\nwidgetStyle=kvantum\n"
         open_the_fifo = fifo_swap_opener(fifo)
 
         with mock.patch.object(os.path, "isfile", return_value=True), \
@@ -123,12 +121,9 @@ class TestReaderFifo(unittest.TestCase):
         # Calibration: an unswapped FIFO stays silent either way -- the
         # interrupted swap is the only case a missing descriptor check
         # blocks on.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         tmp = str(make_tmp_dir(self))
         fifo = os.path.join(tmp, "config", "kdeglobals")
-        os.makedirs(os.path.dirname(fifo), exist_ok=True)
-        os.mkfifo(fifo)
+        make_fifo(self, Path(fifo))
         self.assertIsNone(uninstall_config.read_text(fifo))
 
 

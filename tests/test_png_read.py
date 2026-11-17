@@ -18,6 +18,7 @@ from unittest import mock
 from support.allocation_fixtures import peak_allocation
 from support.close_tracking import failing_fdopen, tracking_closes
 from support.error_assertions import error_message
+from support.fifo_fixtures import make_fifo
 from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
 
@@ -292,10 +293,8 @@ class TestReadPng(unittest.TestCase):
         # bounds neither wait. read_png must reject a non-regular file. Run it
         # in a child, since a direct call would hang this test, and require it
         # to exit before the timeout.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         fifo = make_tmp_dir(self) / "pipe.png"
-        os.mkfifo(fifo)
+        make_fifo(self, fifo)
         child = snippet_child.run(
             [
                 "import sys; sys.path.insert(0, sys.argv[1]); import png; "

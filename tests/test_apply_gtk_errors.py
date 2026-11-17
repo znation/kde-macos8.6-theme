@@ -10,7 +10,6 @@ shared temp-root case is ``support.apply_gtk_case``.
 
 from __future__ import annotations
 
-import os
 import unittest
 from unittest import mock
 
@@ -419,12 +418,10 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         # Patching os.open to open the FIFO while the path still names a
         # regular file proves the guard inspects the opened descriptor, so the
         # swap is refused by name instead of blocking on or reading the pipe.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         gtk4 = self.settings("gtk-4.0")
         self.write(gtk4, "[Settings]\ngtk-theme-name=Adwaita\n")
         fifo = self.root / "pipe"
-        os.mkfifo(fifo)
+        make_fifo(self, fifo)
         open_the_fifo = fifo_swap_opener(fifo)
 
         with mock.patch.object(gtk_user_files.os, "open", side_effect=open_the_fifo):
