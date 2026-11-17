@@ -84,4 +84,3 @@ def checked_art(rows, name="arrow"):
     if isinstance(rows, VectorCursor):
         return rows
     return checked_rows(rows, name)
-
