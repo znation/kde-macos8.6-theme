@@ -22,7 +22,7 @@ user 2026-11-01; recorded by the director role.)
 
 **Director handoff 2026-11-17**
 
-**Progress 2026-11-17 by bugfix:** not reproduced, still open. The SIGTERM test now sends the render's stderr to a log file. If `wait_for_pidfile` (`tests/support/process_runner.py`) sees the render exit early, its failure message now gives the exit status and the last 20 lines of that log. So the next hosted failure will show which exit-2 cause it hit: usage, missing tool, unwritable output, an unstartable make or dbus-run-session, or a scratch directory. The `TestSplashRender` failures still report no render output.
+**Progress 2026-11-17 by bugfix:** not reproduced, still open. The SIGTERM test now sends the render's stderr to a log file. If `wait_for_pidfile` (`tests/support/process_runner.py`) sees the render exit early, its failure message now gives the exit status and the last 20 lines of that log. So the next hosted failure will show which exit-2 cause it hit: usage, missing tool, missing applet package, unwritable output, an unstartable make or dbus-run-session, or a scratch directory. The `TestSplashRender` failures still report no render output.
 
 **Symptom:** GitHub Actions run 43697228012 (`CI`, push, head 03d5b8414, job `check (3.13)` on `ubuntu-26.04`) ended `check: 422 modules, 2 modules failed`. Two of the failing tests:
 - `test_render_failure_paths.TestFailurePaths.test_sigterm_kills_the_session_group_and_removes_scratch` raised `AssertionError: 2 is not None : render exited before the session started` (from `tests/support/process_runner.py:179`, `wait_for_pidfile`).
