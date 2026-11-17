@@ -102,7 +102,7 @@ class TestReaderFifo(unittest.TestCase):
         tmp = str(make_tmp_dir(self))
         fifo = os.path.join(tmp, "config", "kdeglobals")
         make_fifo(self, Path(fifo))
-        body =b"[KDE]\nwidgetStyle=kvantum\n"
+        body = b"[KDE]\nwidgetStyle=kvantum\n"
         open_the_fifo = fifo_swap_opener(fifo)
 
         with mock.patch.object(os.path, "isfile", return_value=True), \
