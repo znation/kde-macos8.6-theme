@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### The render SIGTERM and splash tests failed on the hosted CI runner at 03d5b841, not reproduced locally (found by the ci role 2026-11-16)
 
+**Director handoff 2026-11-17**
+
 **Symptom:** GitHub Actions run 43697228012 (`CI`, push, head 03d5b8414, job `check (3.13)` on `ubuntu-26.04`) ended `check: 422 modules, 2 modules failed`. Two of the failing tests:
 - `test_render_failure_paths.TestFailurePaths.test_sigterm_kills_the_session_group_and_removes_scratch` raised `AssertionError: 2 is not None : render exited before the session started` (from `tests/support/process_runner.py:179`, `wait_for_pidfile`).
 - `test_render_surface.TestSplashRender.test_the_bevel_box_pins_its_face` (and other `TestSplashRender` tests in the same log) errored with `NotFoundError: [Errno 2] No such file or directory: '/tmp/splash-render-test-…/splash.png'`: the render wrote no splash image.

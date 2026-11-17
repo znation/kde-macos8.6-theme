@@ -979,11 +979,12 @@ class TestFailurePaths(StubTools):
         self.stub("dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60')
         env = dict(os.environ, TMPDIR=str(self.scratch_parent))
         argv = [sys.executable, render_surface.__file__, str(self.root / "o.png")]
-        with process_runner.running(
-            argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        log = self.root / "render.log"
+        with log.open("w", encoding="utf-8") as err, process_runner.running(
+            argv, env=env, stdout=subprocess.DEVNULL, stderr=err
         ) as process:
             pid = process_runner.wait_for_pidfile(
-                self, process, pidfile, tool="render", child="session"
+                self, process, pidfile, tool="render", child="session", log=log
             )
             process.send_signal(signal.SIGTERM)
             process_runner.finish(process)

@@ -158,6 +158,37 @@ class TestWaitForPidfile(unittest.TestCase):
             )
         self.assertIn("tool exited before the child started", str(caught.exception))
 
+    def test_early_exit_names_the_status_and_the_end_of_the_tool_log(self):
+        root = Path(make_tmp_dir(self))
+        log = root / "tool.log"
+        log.write_text("first\nkwin_wayland: no GPU\n", encoding="utf-8")
+        with self.assertRaises(AssertionError) as caught:
+            process_runner.wait_for_pidfile(
+                self,
+                _AlreadyExited(),
+                root / "pid",
+                tool="tool",
+                child="child",
+                log=log,
+            )
+        message = str(caught.exception)
+        self.assertIn("(exit status 3)", message)
+        self.assertIn("kwin_wayland: no GPU", message)
+
+    def test_early_exit_without_a_log_file_adds_no_output(self):
+        root = Path(make_tmp_dir(self))
+        with self.assertRaises(AssertionError) as caught:
+            process_runner.wait_for_pidfile(
+                self,
+                _AlreadyExited(),
+                root / "pid",
+                tool="tool",
+                child="child",
+                log=root / "missing.log",
+            )
+        self.assertIn("(exit status 3)", str(caught.exception))
+        self.assertNotIn("output ends", str(caught.exception))
+
 
 def _wait_for_grandchild(pidfile, process, deadline):
     """Poll *pidfile* for the grandchild pid until *process* ends."""

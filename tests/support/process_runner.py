@@ -161,7 +161,18 @@ def running(argv, **kwargs):
                 stream.close()
 
 
-def wait_for_pidfile(case, process, path, *, tool, child, timeout=30):
+def _log_tail(log, lines=20):
+    """Return the last *lines* of *log* as a message suffix, or '' if none."""
+    if log is None or not log.is_file():
+        return ""
+    text = log.read_text(encoding="utf-8", errors="replace").rstrip()
+    if not text:
+        return ""
+    tail = "\n".join(text.splitlines()[-lines:])
+    return f"; its output ends:\n{tail}"
+
+
+def wait_for_pidfile(case, process, path, *, tool, child, timeout=30, log=None):
     """Wait until *path* holds a pid for the still-running *process*; return it.
 
     The SIGTERM tests signal a tool only once the child it started has written
@@ -169,16 +180,20 @@ def wait_for_pidfile(case, process, path, *, tool, child, timeout=30):
     child yet. The child creates its pidfile before it writes it, so this
     waits for a non-empty file rather than the file's existence. *case*
     supplies the assertions: a *process* that exits before its child starts
-    fails with ``<tool> exited before the <child> started``, and one that never
-    produces a pid fails at *timeout* with ``<child> never started``. The poll
-    is bounded by that deadline, so a stuck setup fails instead of hanging the
-    suite.
+    fails with ``<tool> exited before the <child> started``, followed by its
+    exit status and, when *log* names a file the tool wrote its output to, the
+    end of that file; one that never produces a pid fails at *timeout* with
+    ``<child> never started``. The poll is bounded by that deadline, so a
+    stuck setup fails instead of hanging the suite.
     """
     deadline = time.monotonic() + timeout
     while not (path.is_file() and path.read_text(encoding="utf-8").strip()):
-        case.assertIsNone(
-            process.poll(), f"{tool} exited before the {child} started"
-        )
+        code = process.poll()
+        if code is not None:
+            case.fail(
+                f"{tool} exited before the {child} started "
+                f"(exit status {code}){_log_tail(log)}"
+            )
         case.assertLess(time.monotonic(), deadline, f"{child} never started")
         time.sleep(0.05)
     return int(path.read_text(encoding="utf-8").strip())
