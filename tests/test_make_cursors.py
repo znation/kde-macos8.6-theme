@@ -1,8 +1,9 @@
 """Tests for ``tools/make_cursors.py``'s generator and command entry point.
 
-These pin the grid and size refusals ``cursor_bytes`` builds on, the cache's
-documented bounds and canonicalization, and ``main``'s failure reporting. The
-committed pointer package those builders produce stays in
+These pin the grid and size refusals ``tools/cursor_checks.py`` supplies to
+``cursor_bytes``, the cache's documented bounds and canonicalization, and
+``main``'s failure reporting. The committed pointer package those builders
+produce stays in
 ``tests/test_cursors_theme.py``, where ``TestCursorArtifact`` and
 ``TestCursorSet`` validate it.
 """
@@ -20,7 +21,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.error_assertions import assert_error_names  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
+from tools import cursor_art, cursor_art_pointers, cursor_checks, make_cursors  # noqa: E402
 from tools.cursor_vector import VectorCursor  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
@@ -46,7 +47,7 @@ class TestGridValidation(unittest.TestCase):
         for name, rows, _, _ in _grid_cursors():
             with self.subTest(name=name):
                 assert_error_names(
-                    self, ValueError, make_cursors._checked_rows, rows[:-1],
+                    self, ValueError, cursor_checks.checked_rows, rows[:-1],
                     name,
                     needles=(f"the {name} grid must have 16 rows, not 15",),
                 )
@@ -64,7 +65,7 @@ class TestGridValidation(unittest.TestCase):
     def _assert_row_refused(self, name, rows, width):
         """Pin a malformed first row's ValueError naming *width*."""
         assert_error_names(
-            self, ValueError, make_cursors._checked_rows, rows, name,
+            self, ValueError, cursor_checks.checked_rows, rows, name,
             needles=(
                 f"{name} grid row 0 must be a 16-character string, "
                 f"not {width}",
@@ -147,7 +148,7 @@ class TestGeneratorValidation(unittest.TestCase):
         # generator must refuse it before render_rgba allocates size * size * 4
         # bytes.
         assert_error_names(
-            self, ValueError, make_cursors._checked_sizes, (0x8000,),
+            self, ValueError, cursor_checks.checked_sizes, (0x8000,),
             needles=(
                 "nominal size must be at most 32767 (the Xcursor frame limit): "
                 "nominal size=32768",
