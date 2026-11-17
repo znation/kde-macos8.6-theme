@@ -526,7 +526,8 @@ class TestInstall(unittest.TestCase):
         # The success line tells the operator which hook was written and the
         # worktree root the hook's `make apply` runs from; both must be named.
         self.assertIn(str(hook_path(repo)), result.stdout)
-        self.assertIn(str(repo), result.stdout)
+        # The root is a prefix of the hook path, so pin it in its own clause.
+        self.assertIn(f"(runs make apply from {repo})", result.stdout)
 
     def test_non_utf8_repo_path_is_handled_and_escaped(self):
         # A non-UTF-8 repository path must not crash the tool: install
