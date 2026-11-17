@@ -137,7 +137,7 @@ def _clear_selection(config_home: Path) -> int:
             raise ConfigError(
                 f"cannot read {path}: it is a directory, not a regular file"
             )
-        if directory.exists():
+        if directory.exists() and not directory.is_dir():
             raise ConfigError(
                 f"cannot read {path}: {directory} is not a directory, so "
                 "nothing occupies the path below it"

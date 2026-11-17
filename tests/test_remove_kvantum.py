@@ -237,6 +237,22 @@ class TestSelectionRemoval(RemoveKvantumCase):
         # The directory occupying the path is left exactly as it was.
         self.assertTrue(self.kvconfig.is_dir())
 
+    def test_an_existing_directory_without_a_kvconfig_is_called_absent(self):
+        # A Kvantum directory is common without a selection: the absent file
+        # is a clean no-op, not a refusal blaming the directory.
+        self.config.mkdir(parents=True, exist_ok=True)
+        directory = self.config / "Kvantum"
+        directory.mkdir()
+
+        result = self.run_tool()
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn(str(self.kvconfig), result.stdout)
+        self.assertIn("absent", result.stdout)
+        self.assertNotIn("not a directory", result.stderr)
+        # Nothing is created in the directory.
+        self.assertEqual([], list(directory.iterdir()))
+
     def test_a_regular_file_at_the_kvantum_directory_path_is_refused(self):
         directory = self.config / "Kvantum"
         write_file(directory, "theme=KvBreezeDark\n")
