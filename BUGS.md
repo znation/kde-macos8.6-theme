@@ -130,6 +130,8 @@ file yet, so the budgets still expire as before. The client-side writers are pla
 
 **Progress 2026-11-16 by bugfix:** no client-side writer built this run. The splash client is the upstream `/usr/bin/ksplashqml` binary, which the theme cannot edit, and a wrapper has no offline-checkable "window shown" signal; touching the file after launch would be another fixed budget. The choice of signal is posted as a question in QUESTIONS.md ("How should the ksplashqml client signal that its window is shown?"). No code changed in the client path; the entry stays open.
 
+**Progress 2026-11-17 by bugfix:** the user answered option 2 (the KWin side writes the ready file), but a KWin script has no file-write API (no `writeFile`/`FileIO` in the installed KWin scripts), so that option cannot write the file as worded. Follow-up question posted in QUESTIONS.md ("Option 2 needs a file writer KWin scripts do not have: how should the ready file be written?"). No code changed; the entry stays open.
+
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 
