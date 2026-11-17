@@ -97,6 +97,35 @@ class TestPrintResults(unittest.TestCase):
         self.assertIn("===== ok: exit 0 =====", output.getvalue())
         self.assertIn("check: 2 modules, 1 module failed", output.getvalue())
 
+    def test_a_log_without_a_final_newline_ends_before_the_next_header(self):
+        # Each section's log is followed by the next "=====" header. A log
+        # whose last line has no newline must get one, or the next header is
+        # glued onto that line; a log that already ends in a newline must not
+        # gain a blank line.
+        cases = (
+            (b"partial output", "partial output\n"),
+            (b"done\n", "done\n"),
+        )
+        for contents, body in cases:
+            with self.subTest(contents=contents), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "first.log"
+                path.write_bytes(contents)
+                output = StringIO()
+                with redirect_stdout(output):
+                    status = print_results(
+                        ["first", "second"],
+                        {"first": 0, "second": 0},
+                        {"first": str(path)},
+                        30,
+                    )
+
+                self.assertEqual(status, 0)
+                self.assertEqual(
+                    output.getvalue(),
+                    "===== first: exit 0 =====\n" + body
+                    + "===== second: exit 0 =====\n",
+                )
+
     def test_module_name_control_characters_are_escaped_in_the_header(self):
         module = "pkg\x1b[31m\nforged"
         output = StringIO()
