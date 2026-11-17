@@ -135,24 +135,6 @@ file yet, so the budgets still expire as before. The client-side writers are pla
 **Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
 test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
 
-### `test_waits_for_client_termination_and_preserves_capture_status (test_render_surface_units.TestSessionScript.test_waits_for_client_termination_and_preserves_capture_status) (capture_status=0, capture_seconds=0)` failed, then passed on the same tree (quarantined by tumwater 2026-11-17)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: False is not true : session exited before client termination
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.008s
-OK
-check: 428 modules, 1 module failed
-make: *** [Makefile:491: check] Error 1
-~~~~
-
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)

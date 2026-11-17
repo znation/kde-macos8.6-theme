@@ -11,12 +11,18 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The five ``no-repro`` records the archive held when the newest entry joined.
+# The six ``no-repro`` records the archive held when the newest entry joined.
 # Each failure was not deterministic when filed; its test now reproduces it every
 # run. A new record must name such a test instead of raising this.
-NO_REPRO_BASELINE = 5
+NO_REPRO_BASELINE = 6
 
 NO_REPRO_REPRODUCTIONS = (
+    Reproduction(
+        "render-session-client-wait",
+        ("test_waits_for_client_termination_and_preserves_capture_status",),
+        "tests/test_render_surface_units.py::TestSessionScript"
+        "::test_waits_for_client_termination_and_preserves_capture_status",
+    ),
     Reproduction(
         "cursor-write-helper-patch",
         ("The cursor generator test patches a removed `_write_atomic` symbol",),

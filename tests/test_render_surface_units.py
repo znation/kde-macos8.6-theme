@@ -864,6 +864,9 @@ class TestSessionScript(unittest.TestCase):
         client = root / "client.py"
         client.write_text(
             "import os, signal, sys, time\n"
+            # A slow start, longer than the one-second settle ceiling: under
+            # load Python's startup can outlast a short ceiling.
+            "time.sleep(2)\n"
             "from pathlib import Path\n"
             "def stop(*args):\n"
             "    time.sleep(0.2)\n"
@@ -894,7 +897,9 @@ class TestSessionScript(unittest.TestCase):
         # return its status, so the outer budget must cover the whole run.
         for capture_status, capture_seconds in ((0, 0), (7, 0), (0, 5.5)):
             # Each subtest's client touches the ready file, so the settle ends
-            # on it; the settle of 1 is only the ceiling.
+            # on it. The 20 s settle is only the ceiling: a short one let a
+            # slow client start outlast it, so the session froze the client
+            # before its SIGTERM handler existed and the client died unhandled.
             with self.subTest(capture_status=capture_status, capture_seconds=capture_seconds):
                 ready.unlink(missing_ok=True)
                 stopped.unlink(missing_ok=True)
@@ -904,12 +909,16 @@ class TestSessionScript(unittest.TestCase):
                 )
                 status = render_workflow.run_logged(
                     ["sh", "-c", prefix + render_session.session_script(),
-                     "sh", "1", str(root / "capture.png"), sys.executable,
+                     "sh", "20", str(root / "capture.png"), sys.executable,
                      str(client), str(ready), str(stopped)],
                     environment, root / "session.log", 30, root,
                 )
                 self.assertEqual(capture_status, status)
-                self.assertTrue(stopped.exists(), "session exited before client termination")
+                log = (root / "session.log").read_text(encoding="utf-8", errors="replace")
+                self.assertTrue(
+                    stopped.exists(),
+                    f"session exited before client termination; session log:\n{log}",
+                )
 
     def test_the_settle_ends_early_once_the_client_writes_its_ready_file(self):
         # The settle budget is a ceiling, not a fixed sleep: a client that
@@ -1087,9 +1096,9 @@ class TestSessionScript(unittest.TestCase):
         )
         status = render_workflow.run_logged(
             ["sh", "-c", prefix + render_session.session_script(),
-             "sh", "1", str(root / "capture.png"), sys.executable,
+             "sh", "20", str(root / "capture.png"), sys.executable,
              str(client), str(pidfile), str(ready), str(terminated)],
-            environment, root / "session.log", 10, root,
+            environment, root / "session.log", 30, root,
         )
         self.assertEqual(0, status)
         self.assertEqual("T", captured_state.read_text(encoding="utf-8"))

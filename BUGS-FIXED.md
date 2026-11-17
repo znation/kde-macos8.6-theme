@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `test_waits_for_client_termination_and_preserves_capture_status (test_render_surface_units.TestSessionScript.test_waits_for_client_termination_and_preserves_capture_status) (capture_status=0, capture_seconds=0)` failed, then passed on the same tree (quarantined by tumwater 2026-11-17) — fixed 2026-11-17 by the bugfix role
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: False is not true : session exited before client termination
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.008s
+OK
+check: 428 modules, 1 module failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+**Validation gap:** no-repro — the parallel-check flake never reproduced on demand; a deterministic slow-start client, longer than the one-second settle ceiling, reproduces the same assertion, and the failure now prints the session log.
+
 ### post-merge review of 678f72a1 never reached a verdict (found by the review role 2026-11-14) — fixed 2026-11-14 by the bugfix role
 
 The post-merge review of commit `678f72a18d47143b8c990564847d2f36d7049ac0` (Pin zero-length edges in the cursor vector renderer) never reached a verdict: You've hit your 5-hour limit · resets 9:10am (America/Los_Angeles). It stays on main as ordinary unreviewed backlog work. To settle it, read the commit's diff on main: fix what is wrong, or move this entry to Fixed with a Fix paragraph naming what you checked. Do not park it with a Needs review note: the review never runs again, so nothing would lift the note.
