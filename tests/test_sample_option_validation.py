@@ -27,7 +27,8 @@ class TestSampleOptionValidation(CliTestCase):
             (("--min-color-count", "1"), "--min-color-count requires --histogram"),
             (("--color-bounds",), "--color-bounds requires --histogram"),
             (("--color-fractions",), "--color-fractions requires --histogram"),
-            (("--color-cumulative-fractions",), "--color-cumulative-fractions requires --histogram"),
+            (("--color-cumulative-fractions",),
+             "--color-cumulative-fractions requires --histogram"),
             (("--min-color-fraction", "0.5"), "--min-color-fraction requires --histogram"),
             (("--max-color-fraction", "0.5"), "--max-color-fraction requires --histogram"),
             (("--max-color-count", "2"), "--max-color-count requires --histogram"),
@@ -81,16 +82,20 @@ class TestSampleOptionValidation(CliTestCase):
             (("--find-color", "010203", "--scanline-run-counts"),
              "--scanline-run-counts requires --runs"),
             (("--histogram", "--run-color", "010203"), "--run-color requires --runs"),
-            (("--histogram", "--exclude-run-color", "010203"), "--exclude-run-color requires --runs"),
+            (("--histogram", "--exclude-run-color", "010203"),
+             "--exclude-run-color requires --runs"),
             (("--find-color", "010203", "--run-color", "010203"), "--run-color requires --runs"),
             (("--find-color", "010203", "--exclude-run-color", "010203"),
              "--exclude-run-color requires --runs"),
-            (("--min-run-length", "2", "--max-run-length", "2"), "--min-run-length requires --runs"),
+            (("--min-run-length", "2", "--max-run-length", "2"),
+             "--min-run-length requires --runs"),
             (("--histogram", "--max-run-length", "2"), "--max-run-length requires --runs"),
-            (("--find-color", "010203", "--max-run-length", "2"), "--max-run-length requires --runs"),
+            (("--find-color", "010203", "--max-run-length", "2"),
+             "--max-run-length requires --runs"),
             (("--min-run-length", "2", "--max-run-length", "1"),
              "--min-run-length requires --runs"),
-            (("--find-color", "010203", "--alpha"), "--alpha cannot be combined with --find-color"),
+            (("--find-color", "010203", "--alpha"),
+             "--alpha cannot be combined with --find-color"),
         )
         for options, diagnostic in cases:
             with self.subTest(options=options), \
@@ -140,10 +145,12 @@ class TestSampleOptionValidation(CliTestCase):
             open_image.assert_not_called()
 
     def test_first_compatibility_error_keeps_existing_order(self):
-        result = self._run("unread.png", "0", "0", "--match-runs", "--find-color", "010203", "--alpha")
+        result = self._run(
+            "unread.png", "0", "0", "--match-runs", "--find-color", "010203", "--alpha")
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
-        self.assertEqual(result.stderr, "sample: error: --alpha cannot be combined with --find-color\n")
+        self.assertEqual(
+            result.stderr, "sample: error: --alpha cannot be combined with --find-color\n")
         result = self._run("unread.png", "0", "0", "--match-runs", "--alpha")
         self.assertIn("sample: error: --match-runs requires --find-color\n", result.stderr)
 
@@ -163,8 +170,10 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--histogram", "--min-color-fraction", "0.5"),
             ("image.png", "0", "0", "--histogram", "--color-cumulative-fractions"),
             ("image.png", "0", "0", "--histogram", "--min-color-count", "2"),
-            ("image.png", "0", "0", "--find-color", "010203", "--color-tolerance", "0", "--match-alpha", "0"),
-            ("image.png", "0", "0", "--width", "2", "--height", "2", "--runs", "--run-axis", "vertical"),
+            ("image.png", "0", "0", "--find-color", "010203",
+             "--color-tolerance", "0", "--match-alpha", "0"),
+            ("image.png", "0", "0", "--width", "2", "--height", "2",
+             "--runs", "--run-axis", "vertical"),
             ("image.png", "0", "0", "--width", "1", "--height", "1", "--runs"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1"),
             ("image.png", "0", "0", "--runs", "--max-run-length", "1"),
@@ -172,7 +181,8 @@ class TestSampleOptionValidation(CliTestCase):
             ("image.png", "0", "0", "--runs", "--run-color", "010203"),
             ("image.png", "0", "0", "--runs", "--exclude-run-color", "010203"),
             ("image.png", "0", "0", "--runs", "--min-run-length", "1", "--max-run-length", "2"),
-            ("image.png", "0", "0", "--histogram", "--min-color-count", "2", "--max-color-count", "2"),
+            ("image.png", "0", "0", "--histogram", "--min-color-count", "2",
+             "--max-color-count", "2"),
             ("image.png", "0", "0", "--histogram", "--min-color-fraction", "0.25",
              "--max-color-fraction", "0.25"),
             ("image.png", "0", "0", "--find-color", "010203", "--match-runs",
@@ -255,7 +265,8 @@ class TestSampleOptionValidation(CliTestCase):
         for argv, diagnostic in cases:
             with self.subTest(argv=argv), \
                     mock.patch.object(sample, "read_png_size", return_value=(4, 3)), \
-                    mock.patch.object(sample, "read_png", side_effect=AssertionError("decoded invalid region")):
+                    mock.patch.object(
+                        sample, "read_png", side_effect=AssertionError("decoded invalid region")):
                 result = self._run(image, *argv)
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")
