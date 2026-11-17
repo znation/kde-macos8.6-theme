@@ -125,7 +125,7 @@ the shipped art and pins the trough's flat face between its 1px black boundary r
 `--textbox-dialog` opens a `kdialog` text box whose vertical scrollbar the engine draws with
 the theme's scrollbar art (the raised `scrollbarslider` handle with its `grip` indicator, the
 `slider`-element trough and the `arrow`-element buttons), captured at the same 480x360 size;
-the scrollbar gate (`tests/test_render_dialog_gates.py::TestTextboxDialogRender`) pins the handle's
+the scrollbar gate (`tests/test_render_textbox_dialog.py::TestTextboxDialogRender`) pins the handle's
 outline-and-bevel bands and grip bars, the disabled #999999 up triangle and the enabled
 #000000 down triangle, and the trough's flat #EEEEEE interior below the resting handle there.
 `--gtk-dialog` opens a zenity text-entry dialog: zenity is a GTK 4 client, so with no
