@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import os
 import secrets
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+from functools import partial
 from pathlib import Path
 
 if __package__:
@@ -129,16 +130,28 @@ def _restore(path: Path, backup: Path | None) -> None:
         os.replace(backup, path)
 
 
-def _rollback(applied: list[tuple[Path, Path | None]]) -> None:
-    """Restore every changed target, newest first, reporting failures."""
+def _attempt_all(attempts: Iterable[tuple[str, Callable[[], object]]]) -> None:
+    """Run every labelled attempt, even after one fails.
+
+    Raises one ConfigError joining ``"label: error"`` for each OSError.
+    Used by :func:`_rollback` and :func:`_discard_backups`.
+    """
     failures = []
-    for path, backup in reversed(applied):
+    for label, attempt in attempts:
         try:
-            _restore(path, backup)
+            attempt()
         except OSError as exc:
-            failures.append(f"cannot restore {path}: {exc}")
+            failures.append(f"{label}: {exc}")
     if failures:
         raise ConfigError("; ".join(failures))
+
+
+def _rollback(applied: list[tuple[Path, Path | None]]) -> None:
+    """Restore every changed target, newest first, reporting failures."""
+    _attempt_all(
+        (f"cannot restore {path}", partial(_restore, path, backup))
+        for path, backup in reversed(applied)
+    )
 
 
 def commit(
@@ -201,13 +214,8 @@ def _remove_with_backup(
 
 def _discard_backups(applied: list[tuple[Path, Path | None]]) -> None:
     """Remove every backup a successful commit left; report any failure."""
-    failures = []
-    for _, backup in applied:
-        if backup is None:
-            continue
-        try:
-            backup.unlink()
-        except OSError as exc:
-            failures.append(f"cannot remove backup {backup}: {exc}")
-    if failures:
-        raise ConfigError("; ".join(failures))
+    _attempt_all(
+        (f"cannot remove backup {backup}", backup.unlink)
+        for _, backup in applied
+        if backup is not None
+    )

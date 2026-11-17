@@ -27,7 +27,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
-from tools.gtk_staging import _stage, commit, discard, stage_all
+from tools.gtk_staging import _attempt_all, _stage, commit, discard, stage_all
 from tools.gtk_user_files import ConfigError
 
 
@@ -101,6 +101,40 @@ class TestStage(StagingCase):
         self.assertIsInstance(caught.exception.__cause__, OSError)
         self.assertEqual("not a directory\n", blocker.read_text(encoding="utf-8"))
         self.assertFalse(self.staging_of(target).exists())
+
+
+class TestAttemptAll(unittest.TestCase):
+    """_attempt_all runs every attempt and reports each OSError together."""
+
+    def test_runs_later_attempts_after_an_earlier_failure(self):
+        ran = []
+
+        def failing():
+            ran.append("first")
+            raise OSError("boom")
+
+        def succeeding():
+            ran.append("second")
+
+        with self.assertRaises(ConfigError) as caught:
+            _attempt_all([("cannot do a", failing), ("cannot do b", succeeding)])
+        self.assertEqual(ran, ["first", "second"])
+        self.assertEqual(str(caught.exception), "cannot do a: boom")
+
+    def test_joins_every_failure_in_order(self):
+        def fail(text):
+            def attempt():
+                raise OSError(text)
+            return attempt
+
+        with self.assertRaises(ConfigError) as caught:
+            _attempt_all([("x", fail("one")), ("y", lambda: None), ("z", fail("two"))])
+        self.assertEqual(str(caught.exception), "x: one; z: two")
+
+    def test_silent_when_every_attempt_succeeds(self):
+        calls = []
+        _attempt_all([("a", lambda: calls.append(1)), ("b", lambda: calls.append(2))])
+        self.assertEqual(calls, [1, 2])
 
 
 class TestStageAll(StagingCase):
