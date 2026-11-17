@@ -117,22 +117,67 @@ The two GTK sheets and the Firefox `userChrome.css` are a different problem: the
 single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
 `@import`) that is not settled here. This note queues nothing and changes no behavior.
 
-### Render-session readiness: the client writes RENDER_SESSION_READY_FILE once its window is shown (planned 2026-11-16 by the bugfix role)
+### Render-session readiness: a KWin settle script reports the mapped client over D-Bus and a session listener writes RENDER_SESSION_READY_FILE (planned 2026-11-16 by the bugfix role, rewritten 2026-11-17 by the plan role)
 
-**Needs review 2026-11-17 by feature: plan defect — the approach is superseded by QUESTIONS.md (answered 2026-11-17, "Let's go with your recommendation"). The answered design is a KWin-side settle script that reports the mapped window over D-Bus to a listener the session shell starts, and the listener touches the ready file; the "Remaining work" below still says each client touches the file, and the answer requires a probe on this host before any code. The entry has no files-touched list or acceptance criteria for the listener design. Plan role: rewrite this entry to the answered design, with the probe as its first step.**
+**Goal.** End the render settle on a real readiness signal instead of the fixed budget, per the
+answered QUESTIONS.md entries "How should the ksplashqml client signal that its window is shown?"
+(option 2, the KWin side) and "Option 2 needs a file writer KWin scripts do not have" (option 1: the
+KWin script reports over D-Bus with `callDBus` to a listener the session shell starts, and the
+listener touches the ready file; probe first, and fall back to that question's option 2 if the probe
+fails). The session side already waits: `tools/render_session.py::session_script` exports
+`RENDER_SESSION_READY_FILE` (`$capture.ready`), polls it, and keeps the settle as the ceiling. Nothing
+writes the file yet, so every session waits its full settle. Sibling of the BUGS.md entry
+"Render-session tests rely on fixed wall-clock budgets", which stays open until this lands.
 
-**Goal.** Make the render settle end on a real client readiness signal, as the user chose
-(option 2, QUESTIONS.md 2026-11-16). The session side is in place: `tools/render_session.py::session_script`
-exports `RENDER_SESSION_READY_FILE` (`<capture>.ready`) before the client starts and ends the settle
-early once the file exists, with the settle budget as the ceiling. Nothing writes the file yet, so
-every session still waits its full settle.
+**Step 1 — probe on this host, before any code.** In a nested `dbus-run-session -- kwin_wayland
+--virtual` session (non-visible, as `session_command` builds it; never the user's desktop), start
+`dbus-monitor --session "type='method_call',interface='<iface>',member='ClientReady'"` in the
+background, load a one-line KWin script through `qdbus6 org.kde.KWin /Scripting
+org.kde.kwin.Scripting.loadScript` + `run` that calls `callDBus("<service>", "/", "<iface>",
+"ClientReady")` from a `workspace.windowAdded` handler, start a `kdialog --msgbox` client, and confirm
+the monitor prints the call within the session's lifetime, bounded by a `timeout`. Pick `<iface>` /
+`<service>` as theme-neutral names (e.g. `org.platinumtheme.RenderSession`); the probe also settles
+whether `callDBus` to an unowned name still reaches a monitor (if not, the listener must own the name
+— then record that and use the fallback). Record the probe's commands and outcome (KWin version,
+date, what printed) in the new script function's docstring, as `focus_settle_text` records its own
+probe. **If the probe fails**, do not build the listener: implement the fallback instead — the splash
+render keeps its fixed settle (no ready-file wait for `--splash`), and record the failed probe in
+QUESTIONS.md as a note on that answered question.
 
-**Remaining work (client side, one launch path per change).** Each client that a render starts must
-touch `$RENDER_SESSION_READY_FILE` once its window is shown: the ksplashqml `--test` client (splash
-mode), the plasmashell applet/desktop path, and the inactive-dialog wrapper. Each path needs a test
-that stubs the readiness write, and a bounded real-session run to confirm the signal fires. Sibling of
-the BUGS.md entry "Render-session tests rely on fixed wall-clock budgets" (which stays open until
-these land).
+**Step 2 — build it (probe passed).**
+- `tools/render_window_rules.py`: add `readiness_settle_text()` returning a KWin script that, for
+  each window already in `workspace.windowList()` and each one `workspace.windowAdded` delivers, calls
+  `callDBus` with the agreed service/path/interface/`ClientReady` once a window with
+  `normalWindow`, `dialog`, `splash` or `desktopWindow` set is present (the dialog, splash and
+  plasmashell-desktop renders respectively; panels and notifications do not count); and `write_readiness_settle_script(session)`
+  mirroring `write_focus_settle_script`. Keep the names as module constants.
+- `tools/render_session.py::session_script`: take a `readiness_script` path (all modes pass one from
+  `tools/render_workflow.py`, next to the existing `focus_script`). Before the client starts, launch
+  the listener — `dbus-monitor` filtered to the interface/member, piped to a `sh` loop that touches
+  `$ready` on the first matching line — load the script with the same `qdbus6`/`qdbus` resolution and
+  load-id check the focus block uses, and kill and reap the listener after the settle loop ends. A
+  host without `dbus-monitor` or `qdbus` logs one `render-session:` line and keeps the ceiling wait.
+- Update the session docstring and the "The client writes RENDER_SESSION_READY_FILE" comment to say
+  the listener writes it.
+
+**Files touched.** `tools/render_window_rules.py`, `tools/render_session.py`,
+`tools/render_workflow.py`, `tests/test_render_surface_units.py` (or a new focused test module if
+that one grows past a sitting), `docs/invariants.md` (a render-session row for the readiness signal).
+
+**Acceptance criteria.**
+- `readiness_settle_text()` contains a `callDBus` call naming the agreed service, interface and
+  `ClientReady` member, and a `workspace.windowAdded` connection; a unit test pins both.
+- A stubbed session (fake `dbus-monitor` that prints one matching line, fake `qdbus6` that returns a
+  numeric id) logs `render-session: client ready at` and ends its settle well before a long settle
+  ceiling; with a fake `dbus-monitor` that prints nothing, the log shows `settle ceiling reached
+  before a client ready file`. Each path has a test, built on the existing stubbed-session harness in
+  `TestSessionScript`.
+- A session whose host has no `dbus-monitor` on `PATH` logs one `render-session:` line naming the
+  missing tool and still captures after the ceiling.
+- No listener process outlives the session script in the stubbed tests (the test checks the stub's
+  pid is gone after the script exits).
+- `make check` passes; the probe's outcome is recorded in the docstring (or, on the fallback path,
+  in QUESTIONS.md, and `--splash` sessions no longer wait on a ready file — with its own test).
 
 ### Render units suite extraction: isolate the desktop and splash argument checks (planned 2026-11-17 by the plan role)
 
