@@ -518,6 +518,16 @@ class TestInstall(unittest.TestCase):
         self.assertIn(local_hook.MARKER, text)
         self.assertIn("make apply", text)
 
+    def test_install_announces_the_hook_path_and_the_root_it_runs_from(self):
+        repo = make_repo(self)
+        result = run_tool(repo, "install")
+        assert_succeeded(self, result)
+        self.assertEqual("", result.stderr)
+        # The success line tells the operator which hook was written and the
+        # worktree root the hook's `make apply` runs from; both must be named.
+        self.assertIn(str(hook_path(repo)), result.stdout)
+        self.assertIn(str(repo), result.stdout)
+
     def test_non_utf8_repo_path_is_handled_and_escaped(self):
         # A non-UTF-8 repository path must not crash the tool: install
         # succeeds, writes the hook at the right byte path, and prints the
@@ -792,6 +802,23 @@ class TestUninstall(unittest.TestCase):
         repo = make_repo(self)
         result = run_tool(repo, "uninstall")
         assert_succeeded(self, result)
+
+    def test_uninstall_announces_the_hook_it_removed(self):
+        repo = make_repo(self)
+        assert_succeeded(self, run_tool(repo, "install"))
+        result = run_tool(repo, "uninstall")
+        assert_succeeded(self, result)
+        self.assertEqual("", result.stderr)
+        self.assertIn("removed", result.stdout)
+        self.assertIn(str(hook_path(repo)), result.stdout)
+
+    def test_uninstall_without_a_hook_names_the_missing_path_and_claims_no_removal(self):
+        repo = make_repo(self)
+        result = run_tool(repo, "uninstall")
+        assert_succeeded(self, result)
+        self.assertEqual("", result.stderr)
+        self.assertIn(str(hook_path(repo)), result.stdout)
+        self.assertNotIn("removed", result.stdout)
 
 
 class TestHookBody(unittest.TestCase):
