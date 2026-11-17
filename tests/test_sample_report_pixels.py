@@ -91,6 +91,25 @@ class TestReportPixels(unittest.TestCase):
             ],
         })
 
+    def test_single_pixel_json_is_a_document_not_the_text_line(self):
+        # The JSON branch is checked before the one-pixel text branch, so a
+        # 1x1 request with --json still yields a document with one record.
+        args = Namespace(image="reference.png", json=True, alpha=False,
+                         x=1, y=0, width=1, height=1)
+        output = StringIO()
+        with redirect_stdout(output):
+            report_pixels(args, _TwoByTwoImage(), 2, 2, "reference.png: 2x2")
+
+        self.assertEqual(json.loads(output.getvalue()), {
+            "image": "reference.png",
+            "image_width": 2,
+            "image_height": 2,
+            "region": {"x": 1, "y": 0, "width": 1, "height": 1},
+            "pixels": [
+                {"x": 1, "y": 0, "rgb": [10, 11, 12], "hex": "#0A0B0C"},
+            ],
+        })
+
 
 class TestPixelRecords(unittest.TestCase):
     """The pixel report's lazy, ordered record generation."""
