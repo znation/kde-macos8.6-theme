@@ -18,6 +18,16 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
+### The render SIGTERM and splash tests failed on the hosted CI runner at 03d5b841, not reproduced locally (found by the ci role 2026-11-16)
+
+**Symptom:** GitHub Actions run 43697228012 (`CI`, push, head 03d5b8414, job `check (3.13)` on `ubuntu-26.04`) ended `check: 422 modules, 2 modules failed`. Two of the failing tests:
+- `test_render_failure_paths.TestFailurePaths.test_sigterm_kills_the_session_group_and_removes_scratch` raised `AssertionError: 2 is not None : render exited before the session started` (from `tests/support/process_runner.py:179`, `wait_for_pidfile`).
+- `test_render_surface.TestSplashRender.test_the_bevel_box_pins_its_face` (and other `TestSplashRender` tests in the same log) errored with `NotFoundError: [Errno 2] No such file or directory: '/tmp/splash-render-test-…/splash.png'`: the render wrote no splash image.
+
+**How to reproduce:** not reproduced. Under the CI env (`QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check`) at 3b276bb1 on the development machine, both tests ran and passed. The hosted log does not carry the render tool's own stderr, so its exit status and what it printed cannot be read from it. Run: https://github.com/znation/kde-macos8.6-theme/actions/runs/43697228012
+
+**Suspected cause:** unknown. The two tests share a render session that starts a KWin client on the runner, which has no GPU and an offscreen Qt platform; a slow or failed session start would produce both symptoms. The render budgets in the entry below are the same family.
+
 ### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13)
 
 **Needs review 2026-11-14 by bugfix: the next failure's pin message shows only the observed colour (`#000000` where `#555555` is expected) and the render log records no focus state, so check the capture's KWin active-window state and the capture timing in that run's log before choosing a fix; no focus-settle fix exists in the tree.**
