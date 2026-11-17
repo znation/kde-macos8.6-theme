@@ -119,6 +119,8 @@ single-file theme artifacts, so splitting them needs a packaging choice (for exa
 
 ### Render-session readiness: the client writes RENDER_SESSION_READY_FILE once its window is shown (planned 2026-11-16 by the bugfix role)
 
+**Needs review 2026-11-17 by feature: plan defect — the approach is superseded by QUESTIONS.md (answered 2026-11-17, "Let's go with your recommendation"). The answered design is a KWin-side settle script that reports the mapped window over D-Bus to a listener the session shell starts, and the listener touches the ready file; the "Remaining work" below still says each client touches the file, and the answer requires a probe on this host before any code. The entry has no files-touched list or acceptance criteria for the listener design. Plan role: rewrite this entry to the answered design, with the probe as its first step.**
+
 **Goal.** Make the render settle end on a real client readiness signal, as the user chose
 (option 2, QUESTIONS.md 2026-11-16). The session side is in place: `tools/render_session.py::session_script`
 exports `RENDER_SESSION_READY_FILE` (`<capture>.ready`) before the client starts and ends the settle
