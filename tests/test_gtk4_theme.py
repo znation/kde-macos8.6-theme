@@ -20,7 +20,6 @@ from support.gtk_theme_spec import (
     SHEET_PALETTE,
 )
 from support.platinum_palette import (
-    BLACK,
     FACE,
     WHITE,
 )
