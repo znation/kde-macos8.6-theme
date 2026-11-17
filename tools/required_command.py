@@ -36,6 +36,35 @@ def _signal_name(status: int) -> str:
         return str(number)
 
 
+def _status_diagnostic(
+    tool: str,
+    command: list[str],
+    timeout: float,
+    status: int | None,
+    log: Path,
+) -> int | None:
+    """Return the exit status of the failure diagnostic for *status*, or None.
+
+    The shared triage for a finished required command: a timeout (``None``)
+    is an exit-1 failure, a signal (negative) and a non-zero exit are exit-1
+    failures naming ``command[0]``, each with the log tail. Zero is success
+    and returns None.
+    """
+    if status is None:
+        return report_failure(
+            tool, f"{command[0]} timed out after {timeout:g}s", log
+        )
+    if status < 0:
+        return report_failure(
+            tool,
+            f"{command[0]} killed by signal {_signal_name(status)}",
+            log,
+        )
+    if status != 0:
+        return report_failure(tool, f"{command[0]} exited {status}", log)
+    return None
+
+
 def run_required(
     tool: str,
     command: list[str],
@@ -61,19 +90,7 @@ def run_required(
         status = run_logged(command, env, log, timeout, cwd)
     except OSError as exc:
         return report_error(tool, f"cannot run {command[0]}: {exc}")
-    if status is None:
-        return report_failure(
-            tool, f"{command[0]} timed out after {timeout:g}s", log
-        )
-    if status < 0:
-        return report_failure(
-            tool,
-            f"{command[0]} killed by signal {_signal_name(status)}",
-            log,
-        )
-    if status != 0:
-        return report_failure(tool, f"{command[0]} exited {status}", log)
-    return None
+    return _status_diagnostic(tool, command, timeout, status, log)
 
 
 def _failure_log(stdout_log: Path, stderr_log: Path) -> Path:
@@ -130,21 +147,11 @@ def run_required_output(
         )
     except OSError as exc:
         return b"", report_error(tool, f"cannot run {command[0]}: {exc}")
-    log = _failure_log(stdout_log, stderr_log)
-    if status is None:
-        return b"", report_failure(
-            tool, f"{command[0]} timed out after {timeout:g}s", log
-        )
-    if status < 0:
-        return b"", report_failure(
-            tool,
-            f"{command[0]} killed by signal {_signal_name(status)}",
-            log,
-        )
-    if status != 0:
-        return b"", report_failure(
-            tool, f"{command[0]} exited {status}", log
-        )
+    failure = _status_diagnostic(
+        tool, command, timeout, status, _failure_log(stdout_log, stderr_log)
+    )
+    if failure is not None:
+        return b"", failure
     try:
         value = stdout_log.read_bytes()
     except OSError as exc:
