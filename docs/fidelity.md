@@ -372,8 +372,9 @@ columns between the cells, while the font-dependent label and digit ink is pinne
 only by live-ink checks. The dialog renders the same
 suite runs (`tests/test_render_dialog_gates.py::TestCheckboxDialogRender`,
 `::TestComboboxDialogRender`, `::TestLineInputDialogRender`, `::TestMenuDialogRender`,
-`::TestColorDialogRender`, `::TestSliderDialogRender`, `::TestInactiveDialogRender`,
+`::TestColorDialogRender`, `::TestInactiveDialogRender`,
 `tests/test_render_calendar_dialog.py::TestCalendarDialogRender`,
+`tests/test_render_slider_dialog.py::TestSliderDialogRender`,
 `tests/test_render_textbox_dialog.py::TestTextboxDialogRender`,
 `tests/test_render_progressbar_dialog.py::TestProgressbarDialogRender` and
 `tests/test_render_gtk_dialog.py::TestGtkDialogRender`)

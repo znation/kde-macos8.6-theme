@@ -120,7 +120,7 @@ trough's flat face between its outline rows, its #FFFFFF top/left bevel arms and
 `--slider-dialog` opens a `kdialog` slider whose at-rest thumb the engine draws with the
 theme's `slidercursor` art at the trough's left end and whose trough the engine paints flat
 through the theme's `slider` interior art, captured at the same 480x360 size; the slider gate
-(`tests/test_render_dialog_gates.py::TestSliderDialogRender`) byte-compares the thumb cell 1:1 with
+(`tests/test_render_slider_dialog.py::TestSliderDialogRender`) byte-compares the thumb cell 1:1 with
 the shipped art and pins the trough's flat face between its 1px black boundary rows there.
 `--textbox-dialog` opens a `kdialog` text box whose vertical scrollbar the engine draws with
 the theme's scrollbar art (the raised `scrollbarslider` handle with its `grip` indicator, the

@@ -28,6 +28,7 @@ _GATE_FILES = (
     "tests/test_render_dialog_gates.py",
     "tests/test_render_calendar_dialog.py",
     "tests/test_render_textbox_dialog.py",
+    "tests/test_render_slider_dialog.py",
     "tests/test_render_progressbar_dialog.py",
     "tests/test_render_file_dialog.py",
     "tests/test_render_gtk_dialog.py",

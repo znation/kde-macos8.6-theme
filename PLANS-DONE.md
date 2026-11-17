@@ -5,6 +5,78 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render dialog gates suite extraction: isolate the slider dialog gate (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
+
+**Goal.** `tests/test_render_dialog_gates.py` is still over 1000 lines. Its `TestSliderDialogRender`
+gate (about 40 lines) and the two `SLIDER_DIALOG_*` constants with their measurement comments (about
+20 lines) pin one surface: the Kvantum slider that `--slider-dialog` renders. Move them into their own
+module, as the text-box and progressbar extractions did (PLANS-DONE.md, "isolate the text-box scrollbar
+gate"; the progressbar extraction is feature commit 2fc36e0, waiting to merge). This plan moves a
+different class but edits the same gate tuple, docstring list, `_GATE_FILES` tuples and doc rows as
+that change, so implement it against main after 2fc36e0 has merged, and keep its edits to those lines.
+
+**Approach.**
+- Create `tests/test_render_slider_dialog.py`, shaped like `tests/test_render_textbox_dialog.py`. Its
+  module docstring says it holds the `--slider-dialog` thumb and trough gate, that the shared capture
+  plumbing lives in `tests/support/render_gates.py`, and that the other kdialog widget gates live in
+  `tests/test_render_dialog_gates.py`. Move these verbatim: the comment block that starts "The rendered
+  Kvantum slider thumb in the slider dialog", `SLIDER_DIALOG_THUMB_CROP`, the trough comment,
+  `SLIDER_DIALOG_TROUGH`, and the `@dialog_gate_guard()` class `TestSliderDialogRender`. At the base
+  commit, the class body uses only `DialogGate` (its `assert_cell_matches` and `assert_band`),
+  `dialog_gate_guard` and `unittest`. Re-check that list against the moved text before you write the
+  imports.
+- Add `TestSliderDialogGateSkipGuards`, modeled on `TestTextboxDialogGateSkipGuards`, with the method
+  `test_the_slider_dialog_gate_skips_only_when_a_tool_is_absent`. It asserts that
+  `TestSliderDialogRender.__unittest_skip__` equals the expected skip state: a software renderer is
+  detected, or a `DIALOG_REAL_TOOLS` tool is missing from `PATH`. It then re-runs
+  `probe_gate_skip(dialog_gate_guard, missing)` for `None` and for each tool. So the module also
+  imports `shutil`, `DIALOG_REAL_TOOLS`, `probe_gate_skip` and `software_renderer_skip_reason`. End
+  the module with the `if __name__ == "__main__": unittest.main()` footer.
+- In `tests/test_render_dialog_gates.py`, delete the moved block and class. Drop
+  `TestSliderDialogRender` from the gate tuple in
+  `TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`, and extend
+  that tuple's trailing comment to name the new module. Add the new module to the module docstring's
+  list of sibling modules. Delete any import that no remaining code uses (check each with `grep -w`).
+- Add `"tests/test_render_slider_dialog.py"` to `_GATE_FILES` in both
+  `tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+- Update the anchors:
+  - `docs/invariants.md`: in the slider dialog row, which today cites
+    `tests/test_render_dialog_gates.py::TestSliderDialogRender`, cite
+    `tests/test_render_slider_dialog.py::TestSliderDialogRender` and keep the method names. The
+    "fifteen dialog render gates" skip-guard row and the software-renderer skip row both cite the
+    per-module skip-guard tests. Append
+    `tests/test_render_slider_dialog.py::TestSliderDialogGateSkipGuards::test_the_slider_dialog_gate_skips_only_when_a_tool_is_absent`
+    to each. Leave the gate counts alone, because the gate set does not change.
+  - `docs/rendering.md`: in the `--slider-dialog` paragraph, point the gate cite at the new path.
+  - `docs/fidelity.md`: in the dialog-gate list, take `::TestSliderDialogRender` out of the
+    `tests/test_render_dialog_gates.py` chain. Give it as a full
+    `tests/test_render_slider_dialog.py::TestSliderDialogRender` token, as the text-box entry is.
+  - `tests/test_ci_workflow.py` names the gate only by class in a comment, so leave it. Grep
+    `docs tests tools README.md BUGS.md QUESTIONS.md` again, including
+    `tests/support/validation_gaps/*.py`, for `test_render_dialog_gates.py::TestSliderDialogRender`,
+    and rewrite any other anchor that turns up. Do not rewrite PLANS-DONE.md or BUGS-FIXED.md.
+
+**Files touched.** `tests/test_render_slider_dialog.py` (new), `tests/test_render_dialog_gates.py`,
+`tests/test_dialog_gate_count_prose.py`, `tests/test_readme_render_gates.py`, `docs/invariants.md`,
+`docs/rendering.md`, `docs/fidelity.md`.
+
+**Acceptance criteria.**
+- Unittest discovery lists both `TestSliderDialogRender` methods exactly once each, under
+  `test_render_slider_dialog.TestSliderDialogRender`. Neither appears under `test_render_dialog_gates`.
+  Every other class in `tests/test_render_dialog_gates.py` keeps its methods.
+- During the run, the moved class's `ast.dump` matches the original's at this plan's base commit, and
+  the two constants' values match. This is a one-time check, not a committed test.
+- On a host without `kdialog`, or under `LIBGL_ALWAYS_SOFTWARE=1`, the new guard test passes and both
+  `TestSliderDialogRender` methods report as skipped. With every tool present, the guard test passes
+  and the gate runs. The guard test fails if the `@dialog_gate_guard()` decorator is removed from the
+  moved class.
+- `grep -rn "test_render_dialog_gates.py::TestSliderDialogRender" docs tests tools README.md` prints
+  nothing. `grep -n "SLIDER_DIALOG\|TestSliderDialogRender" tests/test_render_dialog_gates.py` prints
+  only the comment that points to the new module. The invariants anchor check, the dialog-gate count
+  prose test and the README render-gate test pass in `make check`.
+- `tests/test_render_dialog_gates.py` shrinks by at least 55 lines, and the new module stays under
+  about 130 lines. `make check` passes after the final edit.
+
 ### Render dialog gates suite extraction: isolate the progressbar dialog gate (planned 2026-11-17 by the plan role) — done 2026-11-17 by the feature role
 
 **Goal.** `tests/test_render_dialog_gates.py` is still over 1000 lines. Its
