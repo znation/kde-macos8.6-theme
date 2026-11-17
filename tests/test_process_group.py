@@ -56,6 +56,18 @@ class TestKillGroup(unittest.TestCase):
             process_group.kill_group(process)
         killpg.assert_called_once_with(4242, signal.SIGKILL)
 
+    def test_a_nonpositive_pid_is_never_passed_to_killpg(self):
+        # os.killpg(0, ...) and os.killpg(-n, ...) address the caller's own
+        # process group or a group chosen by a negative pid, not the child.
+        # kill_group's docstring promises to ignore a nonpositive pid, so
+        # killpg must not be called at all for pid 0 or a negative pid.
+        for pid in (0, -1):
+            with self.subTest(pid=pid), mock.patch.object(
+                process_group.os, "killpg"
+            ) as killpg:
+                process_group.kill_group(mock.Mock(pid=pid))
+                killpg.assert_not_called()
+
 
 class TestReplayDeferred(unittest.TestCase):
     def test_replays_only_the_first_signal_recorded_while_the_child_starts(self):
