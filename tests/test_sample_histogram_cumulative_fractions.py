@@ -13,7 +13,10 @@ from tools.sample_arguments import build_parser
 
 
 class TestSampleHistogramCumulativeFractions(CliTestCase):
-    """The histogram's ``--color-cumulative-fractions`` option: cumulative shares across the displayed page."""
+    """The histogram's ``--color-cumulative-fractions`` option.
+
+    It reports cumulative shares across the displayed page.
+    """
 
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
@@ -36,22 +39,28 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
         result = self._run(*args, "--color-cumulative-fractions")
         self._assert_success(result)
         payload = json.loads(result.stdout)
-        self.assertEqual([(color["count"], color["cumulative_fraction"]) for color in payload["colors"]],
+        self.assertEqual([(color["count"], color["cumulative_fraction"])
+                          for color in payload["colors"]],
                          [(3, 0.375), (2, 0.625), (2, 0.875), (1, 1.0)])
         self.assertNotIn("fraction", payload["colors"][0])
 
-        top = json.loads(self._run(*args, "--top-colors", "2", "--color-cumulative-fractions").stdout)
-        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"]) for c in top["colors"]],
+        top = json.loads(self._run(*args, "--top-colors", "2",
+                                   "--color-cumulative-fractions").stdout)
+        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"])
+                          for c in top["colors"]],
                          [([10, 0, 0], 3, 0.375), ([0, 0, 10], 2, 0.625)])
         self.assertEqual((top["total_colors"], top["omitted_pixels"]), (4, 3))
         paged = json.loads(self._run(*args, "--top-colors", "2", "--color-offset", "1",
                                      "--color-cumulative-fractions").stdout)
-        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"]) for c in paged["colors"]],
+        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"])
+                          for c in paged["colors"]],
                          [([0, 0, 10], 2, 0.25), ([0, 10, 0], 2, 0.5)])
-        self.assertEqual((paged["color_offset"], paged["total_colors"], paged["omitted_pixels"]), (1, 4, 4))
+        self.assertEqual((paged["color_offset"], paged["total_colors"], paged["omitted_pixels"]),
+                         (1, 4, 4))
         excluded = json.loads(self._run(*args, "--exclude-color", "0a0000",
                                         "--color-cumulative-fractions").stdout)
-        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"]) for c in excluded["colors"]],
+        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"])
+                          for c in excluded["colors"]],
                          [([0, 0, 10], 2, 0.25), ([0, 10, 0], 2, 0.5), ([10, 10, 0], 1, 0.625)])
         capped = json.loads(self._run(*args, "--max-color-count", "2",
                                       "--color-cumulative-fractions").stdout)
@@ -74,9 +83,12 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
         self.assertEqual(result.stdout.splitlines(), [
             f"image: {path}  3x2",
             "region (1, 0) 2x2:",
-            "1,2,3  #010203  count=2  alpha=255  fraction=0.5  cumulative_fraction=0.5  position=1,0",
-            "1,2,3  #010203  count=1  alpha=0  fraction=0.25  cumulative_fraction=0.75  position=2,0",
-            "9,8,7  #090807  count=1  alpha=255  fraction=0.25  cumulative_fraction=1.0  position=2,1",
+            "1,2,3  #010203  count=2  alpha=255  fraction=0.5  "
+            "cumulative_fraction=0.5  position=1,0",
+            "1,2,3  #010203  count=1  alpha=0  fraction=0.25  "
+            "cumulative_fraction=0.75  position=2,0",
+            "9,8,7  #090807  count=1  alpha=255  fraction=0.25  "
+            "cumulative_fraction=1.0  position=2,1",
         ])
 
     def test_integer_prefix_reaches_exactly_one_and_single_color(self):
@@ -93,7 +105,8 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
                           "--alpha", "--color-cumulative-fractions", "--json")
         self._assert_success(solid)
         self.assertEqual(json.loads(solid.stdout)["colors"], [
-            {"rgb": [4, 5, 6], "hex": "#040506", "count": 2, "alpha": 255, "cumulative_fraction": 1.0}
+            {"rgb": [4, 5, 6], "hex": "#040506", "count": 2, "alpha": 255,
+             "cumulative_fraction": 1.0}
         ])
 
     def test_rgba_grouping_matches_existing_counts_and_order(self):
@@ -108,7 +121,8 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
         merged = self._run(rgba, "0", "0", "--width", "3", "--height", "1", "--histogram",
                            "--color-cumulative-fractions", "--json")
         self._assert_success(merged)
-        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"]) for c in json.loads(merged.stdout)["colors"]],
+        self.assertEqual([(c["rgb"], c["count"], c["cumulative_fraction"])
+                          for c in json.loads(merged.stdout)["colors"]],
                          [([1, 2, 3], 2, 2 / 3), ([9, 9, 9], 1, 1.0)])
 
     def test_flag_off_omits_fields_and_spatial_combinations_stay_independent(self):
@@ -128,10 +142,9 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
         self._assert_success(text)
         self.assertEqual([line for line in text.stdout.splitlines()
                           if line.startswith("cumulative")], [])
-        self.assertEqual(sum(line.count("cumulative_fraction=0.375") for line in text.stdout.splitlines()), 1)
-        self.assertEqual(sum(line.count("cumulative_fraction=0.625") for line in text.stdout.splitlines()), 1)
-        self.assertEqual(sum(line.count("cumulative_fraction=0.875") for line in text.stdout.splitlines()), 1)
-        self.assertEqual(sum(line.count("cumulative_fraction=1.0") for line in text.stdout.splitlines()), 1)
+        lines = text.stdout.splitlines()
+        for share in ("0.375", "0.625", "0.875", "1.0"):
+            self.assertEqual(sum(line.count("cumulative_fraction=" + share) for line in lines), 1)
         spatial = json.loads(self._run(*args, "--color-cumulative-fractions",
                                        "--color-bounds", "--json").stdout)
         self.assertTrue(all(set(color) >= {"cumulative_fraction", "bounds"}
@@ -148,7 +161,8 @@ class TestSampleHistogramCumulativeFractions(CliTestCase):
         with mock.patch.object(sample, "read_png_size") as size, \
                 mock.patch.object(sample, "read_png") as read, \
                 mock.patch.object(sample.os, "open") as open_image:
-            result = self._run(path, "0", "0", "--color-cumulative-fractions", "--find-color", "010203")
+            result = self._run(path, "0", "0", "--color-cumulative-fractions",
+                               "--find-color", "010203")
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
         size.assert_not_called()
