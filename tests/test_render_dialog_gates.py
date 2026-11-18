@@ -3,7 +3,8 @@
 ``tools/render_surface.py``'s thirteen ``--*-dialog`` modes open kdialog
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
-``tests/support/render_gates.py``, the file-dialog gate in
+``tests/support/render_gates.py``, the line-input gate in
+``tests/test_render_lineedit_dialog.py``, the file-dialog gate in
 ``tests/test_render_file_dialog.py``, the GTK 4 window gate in
 ``tests/test_render_gtk_dialog.py``, the calendar gates in
 ``tests/test_render_calendar_dialog.py``, the text-box gate in
@@ -22,7 +23,6 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import AURORAE_DIR, INACTIVE_FRAME_GREY
-from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import (
     BLACK,
@@ -69,32 +69,6 @@ COMBOBOX_CROP = (316, 178, 12, 12)
 # frame slices from the dedicated raised family, so the field bands are the
 # reference's raised arrangement in every state the engine may select.
 COMBOBOX_FIELD = (146, 172, 188, 24)
-# The rendered Kvantum line edit in the input dialog: kdialog's
-# `--inputbox` opens an empty QLineEdit the engine sinks with the theme's
-# `lineedit-normal` art, in the reference Setup Assistant field's sunken
-# arrangement: a #999999 top/left shadow over the window face, the 1px
-# #000000 outline inside it and the #FFFFFF face. The field occupies
-# (146,172)..(333,195), a 188x24 box, measured on two consecutive
-# 480x360 `--lineedit-dialog` captures on this host (2026-11-10) whose two
-# runs agreed byte for byte under `cmp`, and a third run in the same
-# batch reproduced them byte for byte. The combo dialog is the
-# session's only window like the checkbox dialog, so the crop is measured
-# on the same 480x360 capture.
-LINEEDIT_DIALOG_FIELD = (146, 172, 188, 24)
-# The field's full-height face band, right of the caret: the empty input
-# box's caret paints a 1px column at x=154 inside the face, and the
-# caret's blink phase flips only that column's rows 176..191 between runs
-# (every other byte of two consecutive runs agrees), so the band from
-# x=200 stays clear of it; the band's top and bottom rows are the sunken
-# bevel rows, so an off-by-one row slips a #DDDDDD window-face byte in
-# and fails.
-LINEEDIT_DIALOG_FIELD_CROP = (200, 172, 120, 24)
-# The rendered OK push button, left of its label glyphs, measured on the
-# same agreeing pair as the field: the existing push-button arrangement the
-# checkbox and combo gates pin, at the same rect they measure, 1px
-# #000000 border rows and border column, the #FFFFFF bevel top and left
-# arms, the flat #DDDDDD face and the #AAAAAA bottom arm.
-LINEEDIT_DIALOG_OK_BUTTON = (167, 199, 82, 24)
 # The color dialog's pinned bands, measured on two consecutive full
 # `tools/render_surface.py --color-dialog` runs on 2026-11-10 whose two
 # 480x360 captures agreed byte for byte under `cmp` (see
@@ -161,13 +135,14 @@ RADIO_DIALOG_FIELD_FRAME = ((112, 93), (113, 94))
 RADIO_DIALOG_VIEW_FACE = (200, 140)
 
 class TestDialogGateSkipGuards(unittest.TestCase):
-    """The fifteen dialog gates' shared skip guard encodes the render CLI's refusals.
+    """The widget gates here share a guard encoding the render CLI's refusals.
 
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the dialog client its requested mode
     opens is absent (kdialog for the thirteen kdialog modes, zenity for the
-    GTK mode), and the fifteen dialog gates' shared skip guard encodes exactly
-    that condition. These tests fail wherever a guard is removed
+    GTK mode), and these widget gates' shared skip guard encodes that
+    condition. The line-input guard is pinned beside its gate in
+    ``tests/test_render_lineedit_dialog.py``. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
     literal the guards otherwise all repeat. The widget gates' flags are
@@ -230,7 +205,6 @@ class TestDialogGateSkipGuards(unittest.TestCase):
         for gate in (
             TestCheckboxDialogRender,
             TestComboboxDialogRender,
-            TestLineInputDialogRender,
             TestMenuDialogRender,
             TestRadioDialogRender,
             TestColorDialogRender,
@@ -403,120 +377,6 @@ class TestComboboxDialogRender(DialogGate, unittest.TestCase):
     def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
         self.assert_raised_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
         self.assert_raised_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
-
-
-@dialog_gate_guard()
-class TestLineInputDialogRender(DialogGate, unittest.TestCase):
-    """The engine-drawn line edit the dialog render captures is the shipped art.
-
-    The line-edit dialog opens a real ``QLineEdit`` (kdialog's ``--inputbox``
-    with no initial value) which the engine sinks with this theme's
-    ``lineedit-normal`` art; the shipped tiles' pixels are the reference
-    Setup Assistant field's sunken arrangement (the Kvantum reference suite
-    re-derives both from the same image), but no pixel-level gate watched a
-    rendered line edit, so a ``[LineEdit]`` regression would have shipped
-    green. This class pins the rendered field's sunken arrangement against
-    the reference-derived border-role table the two reference suites share.
-    """
-
-    KIND = "lineedit"
-
-    def test_draws_the_field_sunken_bevel(self):
-        """Pin the Kvantum field's sunken rows right of the caret."""
-        width, height = LINEEDIT_DIALOG_FIELD_CROP[2:]
-        # The reference field's border runs (tests/support/firstboot_lineedit.py)
-        # give the arrangement: #999999 shadow row, #000000 outline, #FFFFFF
-        # face, then the bottom outline and outer #FFFFFF highlight. The
-        # crop's rows are exactly the field's, so an off-by-one row fails.
-        self.assert_band(
-            LINEEDIT_DIALOG_FIELD_CROP,
-            (
-                ["#999999"] * width,
-                ["#000000"] * width,
-                *( ["#FFFFFF"] * width for _ in range(height - 4) ),
-                ["#000000"] * width,
-                ["#FFFFFF"] * width,
-            ),
-        )
-
-    def test_field_lands_keep_the_reference_corner_arrangement(self):
-        """Pin the field's border columns and the four 2x2 corner blocks.
-
-        The expected pixels are the reference field's border runs and corner
-        pixels (``tests/support/firstboot_lineedit.py``) transposed onto the
-        rendered 188x24 field: left/top runs replace with shadow #999999 and
-        outline #000000, while the right/bottom runs and the corners keep
-        the reference's face/outline/highlight roles. The two corner slots
-        the reference leaves unpainted (the top-right and bottom-left outer
-        pixels showing that Finder window's own face) stay engine-unpainted
-        here and show this dialog's own window face, the #DDDDDD body face
-        the checkbox gate's window probes.
-        """
-        image = self.candidate_image()
-        window_face = "#DDDDDD"
-        ref_x0 = min(rx for (rx, _), _ in FIELD_BORDER_RUNS)
-        ref_x1 = max(rx for (rx, _), _ in FIELD_BORDER_RUNS)
-        ref_y0 = min(ry for (_, ry), _ in FIELD_BORDER_RUNS)
-        ref_y1 = max(ry for (_, ry), _ in FIELD_BORDER_RUNS)
-        x0, y0, width, height = LINEEDIT_DIALOG_FIELD
-
-        def position(rx, ry):
-            """Transposing a reference field pixel's role onto the render.
-
-            Left/top reference runs land on the shadow and outline columns
-            and rows at the field's origin; the right/bottom runs and both
-            corner blocks land at the field's far edges, where the rendered
-            field's box is one column narrower than the reference's forty-
-            pixel-wide face, so the roles map by their run side, not by a
-            global offset.
-            """
-            dx = rx - ref_x0 if rx <= ref_x0 + 1 else width - 2 + (rx - ref_x1 + 1)
-            dy = ry - ref_y0 if ry <= ref_y0 + 1 else height - 2 + (ry - ref_y1 + 1)
-            return x0 + dx, y0 + dy
-
-        expected = {
-            position(rx, ry): (window_face if colour == "#CCCCCC" else colour)
-            for (rx, ry), colour in FIELD_CORNER_PIXELS
-        }
-        # The border runs themselves, minus the corner blocks the pin above
-        # named: the left shadow and outline columns down the face-band rows
-        # and the right face/outline/highlight trio on the same rows.
-        face_row_lo, face_row_hi = y0 + 2, y0 + height - 3
-        for yy in range(face_row_lo, face_row_hi + 1):
-            expected[x0, yy], expected[x0 + 1, yy] = "#999999", "#000000"
-            expected[x0 + width - 3, yy] = "#FFFFFF"
-            expected[x0 + width - 2, yy] = "#000000"
-            expected[x0 + width - 1, yy] = "#FFFFFF"
-        # Top and bottom border rows off the corner columns: the same runs
-        # the reference pins at a mid-face column.
-        for xx in range(x0 + 2, x0 + width - 1):
-            expected[xx, y0] = "#999999"
-            expected[xx, y0 + 1] = "#000000"
-            expected[xx, y0 + height - 2] = "#000000"
-            expected[xx, y0 + height - 1] = "#FFFFFF"
-        self.assertEqual(
-            expected,
-            {
-                (xx, yy): hex_colour(pixel_at(image, xx, yy))
-                for xx, yy in sorted(expected)
-            },
-        )
-
-    def test_ok_button_keeps_its_engine_drawn_frame(self):
-        self.assert_raised_frame(
-            LINEEDIT_DIALOG_OK_BUTTON, flat_rows=(201, 202, 203, 204)
-        )
-
-    def test_draws_the_ok_button_face_at_the_existing_recipe(self):
-        # The OK button is the dialog's default, so a focus ring painted at
-        # the face rows would cross this pin the way the checkbox gate's
-        # default-button pin does.
-        image = self.candidate_image()
-        x, y, width, height = LINEEDIT_DIALOG_OK_BUTTON
-        self.assertEqual(
-            ["#DDDDDD"] * (width - 4),
-            [hex_colour(pixel_at(image, x + 2 + dx, y + 2)) for dx in range(width - 4)],
-        )
 
 
 @dialog_gate_guard()

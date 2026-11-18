@@ -38,6 +38,7 @@ _GATES = re.compile(r"^class (Test\w*DialogRender)\b", re.MULTILINE)
 _GATE_FILES = (
     "tests/test_render_surface.py",
     "tests/test_render_dialog_gates.py",
+    "tests/test_render_lineedit_dialog.py",
     "tests/test_render_calendar_dialog.py",
     "tests/test_render_textbox_dialog.py",
     "tests/test_render_slider_dialog.py",

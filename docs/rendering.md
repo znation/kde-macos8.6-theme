@@ -108,7 +108,7 @@ theme's and stays deliberately unpinned, and the search field's blinking caret
 column sits outside every band.
 `--lineedit-dialog` opens a `kdialog` input box whose empty line edit the engine sinks
 with the theme's sunken-field art, captured at the same 480x360 size; the line-edit gate
-(`tests/test_render_dialog_gates.py::TestLineInputDialogRender`) pins the field's sunken bevel
+(`tests/test_render_lineedit_dialog.py::TestLineInputDialogRender`) pins the field's sunken bevel
 right of the caret and the OK button's push-button frame there.
 `--progressbar-dialog` opens a `kdialog` progress meter whose at-rest trough the engine
 draws as the theme's `progress` element art, captured at the same 480x360 size; the helper
