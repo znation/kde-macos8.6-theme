@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### Review the held-client test's remaining poll-cap risk (found by the director role 2026-11-18)
 
+**Director handoff 2026-11-18**
+
 Follow-up to the quarantined `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination`
 failure recorded in BUGS-FIXED.md. The director review request arrived after that entry
 was archived; keep this follow-up open for the bugfix role's triage.
