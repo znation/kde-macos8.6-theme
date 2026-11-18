@@ -4,7 +4,8 @@
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
 ``tests/support/render_gates.py``, the menu gate in
-``tests/test_render_menu_dialog.py``, the line-input gate in
+``tests/test_render_menu_dialog.py``, the radio-list gate in
+``tests/test_render_radio_dialog.py``, the line-input gate in
 ``tests/test_render_lineedit_dialog.py``, the combobox gate in
 ``tests/test_render_combobox_dialog.py``, the file-dialog gate in
 ``tests/test_render_file_dialog.py``, the GTK 4 window gate in
@@ -112,18 +113,6 @@ ICON_PUSH_BUTTON = (301, 324, 82, 24)
 ICON_PUSH_BUTTON_CELL = (302, 324, 5, 24)
 # Label-free face rows for the frame pin beside the cell band.
 ICON_PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
-# The clear part of the first selected row, away from its radio indicator and
-# label glyphs; measured on two byte-identical radio-list captures on
-# 2026-11-11.
-RADIO_DIALOG_SELECTION_BAND = (200, 97, 164, 16)
-# Dark core pixels in the selected radio dot and an unchecked radio ring.
-RADIO_DIALOG_CHECKED_DOT = (121, 106)
-RADIO_DIALOG_UNCHECKED_RING = (119, 120)
-# The sunken list field's top-left outer and inner frame pixels; the viewport
-# sample is below the selected row, clear of text and indicator art.
-RADIO_DIALOG_FIELD_FRAME = ((112, 93), (113, 94))
-RADIO_DIALOG_VIEW_FACE = (200, 140)
-
 class TestDialogGateSkipGuards(unittest.TestCase):
     """The widget gates here share a guard encoding the render CLI's refusals.
 
@@ -196,7 +185,6 @@ class TestDialogGateSkipGuards(unittest.TestCase):
         )
         for gate in (
             TestCheckboxDialogRender,
-            TestRadioDialogRender,
             TestColorDialogRender,
             TestIconDialogRender,
             TestInactiveDialogRender,
@@ -302,36 +290,6 @@ class TestCheckboxDialogRender(DialogGate, unittest.TestCase):
     def test_yes_and_no_buttons_keep_their_engine_drawn_frames(self):
         self.assert_raised_frame(CHECKBOX_YES_BUTTON, flat_rows=(209, 210, 211, 212))
         self.assert_raised_frame(CHECKBOX_NO_BUTTON, flat_rows=(209, 210, 211, 212))
-
-
-@dialog_gate_guard()
-class TestRadioDialogRender(DialogGate, unittest.TestCase):
-    """The radio-list selection, indicators and sunken field keep their paint."""
-
-    KIND = "radiolist"
-
-    def test_selected_row_keeps_its_flat_selection_face(self):
-        image = self.candidate_image()
-        x, y, width, height = RADIO_DIALOG_SELECTION_BAND
-        for yy in range(y, y + height):
-            for xx in range(x, x + width):
-                self.assertEqual(
-                    "#CCCCFF", hex_colour(pixel_at(image, xx, yy)),
-                    (xx, yy),
-                )
-
-    def test_checked_radio_keeps_its_dark_dot_core(self):
-        self.assert_pixel(*RADIO_DIALOG_CHECKED_DOT, "#0C0C0F")
-
-    def test_unchecked_radio_keeps_its_dark_ring_on_white(self):
-        self.assert_pixel(*RADIO_DIALOG_UNCHECKED_RING, "#000000")
-        self.assert_pixel(117, 120, "#FFFFFF")
-
-    def test_list_field_keeps_its_sunken_frame_and_white_viewport(self):
-        outer, inner = RADIO_DIALOG_FIELD_FRAME
-        self.assert_pixel(*outer, "#999999")
-        self.assert_pixel(*inner, "#000000")
-        self.assert_pixel(*RADIO_DIALOG_VIEW_FACE, "#FFFFFF")
 
 
 @dialog_gate_guard()

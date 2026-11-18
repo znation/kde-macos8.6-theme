@@ -75,7 +75,7 @@ row's selection band and the checked and unchecked radio indicators the engine d
 with the theme's palette and the shipped `radio` art, captured at the same 480x360 size;
 the checked item is a fixed default (`on` in the client's arguments), so the selection
 never depends on clock, network or input. The radio-list gate
-(`tests/test_render_dialog_gates.py::TestRadioDialogRender`) pins the clear selection-face band,
+(`tests/test_render_radio_dialog.py::TestRadioDialogRender`) pins the clear selection-face band,
 the checked dot and unchecked ring cores, and the top edge of the sunken list field.
 `--calendar-dialog` opens a `kdialog` calendar pinned to January 1970 (`--default
 1970-01-07` with the load-bearing `--dateformat`: without it kdialog ignores `--default`

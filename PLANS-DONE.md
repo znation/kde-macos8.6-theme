@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render dialog gates suite extraction: isolate the radio-list dialog gate (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Reduce the shared dialog suite by giving its radio-list pixel gate
+a focused module. This moves a different class from the menu and combobox
+extractions and can merge independently of them.
+
+**Approach and files touched.** Create `tests/test_render_radio_dialog.py`.
+Move `TestRadioDialogRender`, its `@dialog_gate_guard()` decorator, and
+`RADIO_DIALOG_SELECTION_BAND`, `RADIO_DIALOG_CHECKED_DOT`,
+`RADIO_DIALOG_UNCHECKED_RING`, `RADIO_DIALOG_FIELD_FRAME` and
+`RADIO_DIALOG_VIEW_FACE` from `tests/test_render_dialog_gates.py`, retaining
+their measurement comments, `KIND`, test bodies and expected pixels. Import
+`DialogGate` and guard utilities from `support.render_gates`, `hex_colour`
+from `support.platinum_palette` and `pixel_at` from `tools.png`.
+
+Add `TestRadioDialogGateSkipGuards` in the new module: compare the real gate's
+skip flag with missing-tool/software-renderer conditions, and simulate each
+absent `DIALOG_REAL_TOOLS` member with `probe_gate_skip` on disposable classes.
+Remove the radio gate from the shared skip-guard test and update routing,
+count-prose, invariant and rendering documentation. The render guard is
+tested without opening a session.
+
+**Acceptance criteria.**
+
+- Test discovery finds the radio-list cases in the new module without a
+  second definition in the old one; either module can run independently.
+- On a render-capable host, the selection band at (200,97,164,16) remains
+  `#CCCCFF`, the checked dot at (121,106) remains `#0C0C0F`, and the unchecked
+  ring at (119,120) remains black against white at (117,120). The frame at
+  (112,93)/(113,94) remains `#999999`/black, with white at (200,140).
+- Missing tools and software rendering still skip capture. The new guard
+  tests run without opening a session and fail if the real gate loses its
+  guard or a required missing tool stops causing a skip.
+- Published radio anchors resolve, gate prose includes the radio class, and
+  `make check` passes after the final edit.
+
 ### Render dialog gates suite extraction: isolate the menu dialog gate (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the menu dialog's item-view pixel assertions a focused module,
