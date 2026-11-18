@@ -4,7 +4,8 @@
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
 ``tests/support/render_gates.py``, the line-input gate in
-``tests/test_render_lineedit_dialog.py``, the file-dialog gate in
+``tests/test_render_lineedit_dialog.py``, the combobox gate in
+``tests/test_render_combobox_dialog.py``, the file-dialog gate in
 ``tests/test_render_file_dialog.py``, the GTK 4 window gate in
 ``tests/test_render_gtk_dialog.py``, the calendar gates in
 ``tests/test_render_calendar_dialog.py``, the text-box gate in
@@ -60,15 +61,6 @@ CHECKBOX_CLOSE_BOX_CROP = (148, 121, 13, 13)
 CHECKBOX_FACE_RING_CROP = (155, 186, 16, 16)
 CHECKBOX_YES_BUTTON = (156, 207, 82, 24)
 CHECKBOX_NO_BUTTON = (241, 207, 82, 24)
-# The rendered combo box indicator: the shipped 12x12 canvas at 1:1, measured
-# against `tests/test_kvantum_combobox_reference.py`'s reference cell. The
-# combo dialog is the session's only window like the checkbox dialog, so the
-# crop is measured on the same 480x360 capture.
-COMBOBOX_CROP = (316, 178, 12, 12)
-# The rendered combo field: `[ComboBox] frame.element=combofield` draws its
-# frame slices from the dedicated raised family, so the field bands are the
-# reference's raised arrangement in every state the engine may select.
-COMBOBOX_FIELD = (146, 172, 188, 24)
 # The color dialog's pinned bands, measured on two consecutive full
 # `tools/render_surface.py --color-dialog` runs on 2026-11-10 whose two
 # 480x360 captures agreed byte for byte under `cmp` (see
@@ -119,8 +111,6 @@ ICON_PUSH_BUTTON = (301, 324, 82, 24)
 ICON_PUSH_BUTTON_CELL = (302, 324, 5, 24)
 # Label-free face rows for the frame pin beside the cell band.
 ICON_PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
-COMBOBOX_OK_BUTTON = (167, 199, 82, 24)
-COMBOBOX_CANCEL_BUTTON = (252, 199, 82, 24)
 MENU_ITEM_VIEW = (112, 93, 256, 182)
 # The clear part of the first selected row, away from its radio indicator and
 # label glyphs; measured on two byte-identical radio-list captures on
@@ -141,8 +131,9 @@ class TestDialogGateSkipGuards(unittest.TestCase):
     of the five applet-render tools or the dialog client its requested mode
     opens is absent (kdialog for the thirteen kdialog modes, zenity for the
     GTK mode), and these widget gates' shared skip guard encodes that
-    condition. The line-input guard is pinned beside its gate in
-    ``tests/test_render_lineedit_dialog.py``. These tests fail wherever a guard is removed
+    condition. The line-input and combobox guards are pinned beside their
+    gates in ``tests/test_render_lineedit_dialog.py`` and
+    ``tests/test_render_combobox_dialog.py``. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
     literal the guards otherwise all repeat. The widget gates' flags are
@@ -204,7 +195,6 @@ class TestDialogGateSkipGuards(unittest.TestCase):
         )
         for gate in (
             TestCheckboxDialogRender,
-            TestComboboxDialogRender,
             TestMenuDialogRender,
             TestRadioDialogRender,
             TestColorDialogRender,
@@ -315,70 +305,6 @@ class TestCheckboxDialogRender(DialogGate, unittest.TestCase):
 
 
 @dialog_gate_guard()
-class TestComboboxDialogRender(DialogGate, unittest.TestCase):
-    """The engine-drawn combo box indicator the dialog render captures is 1:1.
-
-    The combo render opens a real ``QComboBox`` (kdialog's ``--combobox``)
-    drawn by the engine with this theme's ``comboarrow-*`` art through
-    ``[ComboBox] indicator.size``, and byte-compares the rendered 12x12 cell
-    with the shipped-art slice. The squashed 4px-wide arrow this gate guards
-    against was the very render bug the check box cell alone could not see;
-    the render pass found the combo arrow while the check box one was fixed,
-    so the two gates must hold together.
-    """
-
-    KIND = "combobox"
-
-    def test_draws_the_combo_arrow_cell_1_to_1(self):
-        # The candidate cell bytes come straight from the render (see
-        # DialogGate.assert_cell_matches): a squashed or blended arrow shows
-        # up here immediately.
-        self.assert_cell_matches("comboarrow-normal", COMBOBOX_CROP)
-
-    def test_combo_field_keeps_its_engine_drawn_raised_frame(self):
-        self.assert_raised_frame(COMBOBOX_FIELD)
-
-    def test_draws_the_combo_field_raised_bevel(self):
-        """Pin the Kvantum field frame around the selected combo contents."""
-        image = self.candidate_image()
-        x, y, width, height = COMBOBOX_FIELD
-        # `[ComboBox] frame.element=combofield` maps every state to the
-        # reference's raised arrangement, whatever state the engine selects.
-        # The upper and lower bands and the two bevel columns are outside
-        # the text and arrow, so these pixels isolate the engine's frame
-        # mapping.
-        expected_top = ["#000000"] * width
-        expected_upper = ["#000000", *(["#FFFFFF"] * (width - 3)), "#AAAAAA", "#000000"]
-        expected_lower = ["#000000", "#FFFFFF", *(["#AAAAAA"] * (width - 3)), "#000000"]
-        expected_bottom = ["#000000"] * width
-        for row, expected in ((0, expected_top), (1, expected_upper),
-                              (height - 2, expected_lower), (height - 1, expected_bottom)):
-            with self.subTest(row=row):
-                self.assertEqual(
-                    expected,
-                    [hex_colour(pixel_at(image, x + dx, y + row)) for dx in range(width)],
-                )
-        for dy in range(2, height - 2):
-            with self.subTest(column="left", row=dy):
-                self.assertEqual("#000000", hex_colour(pixel_at(image, x, y + dy)))
-            with self.subTest(column="left-highlight", row=dy):
-                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x + 1, y + dy)))
-            with self.subTest(column="right-shadow", row=dy):
-                self.assertEqual("#AAAAAA", hex_colour(pixel_at(image, x + width - 2, y + dy)))
-            with self.subTest(column="right-edge", row=dy):
-                self.assertEqual("#000000", hex_colour(pixel_at(image, x + width - 1, y + dy)))
-        # The flat interior fill's edge columns: the field's face runs flat
-        # beside the bevel where neither the selected text nor the pinned
-        # arrow cell reaches.
-        for yy in range(y + 2, y + height - 2):
-            self.assert_pixel(x + 2, yy, "#DDDDDD")
-            self.assert_pixel(x + width - 3, yy, "#DDDDDD")
-
-    def test_ok_and_cancel_buttons_keep_their_engine_drawn_frames(self):
-        self.assert_raised_frame(COMBOBOX_OK_BUTTON, flat_rows=(201, 202, 203, 204))
-        self.assert_raised_frame(COMBOBOX_CANCEL_BUTTON, flat_rows=(201, 202, 203, 204))
-
-
 @dialog_gate_guard()
 class TestMenuDialogRender(DialogGate, unittest.TestCase):
     """The menu dialog's item view keeps its engine-drawn sunken frame."""

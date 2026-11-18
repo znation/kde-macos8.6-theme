@@ -5,6 +5,55 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render dialog gates suite extraction: isolate the combobox dialog gate (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the combobox pixel gate a focused module, reducing
+`tests/test_render_dialog_gates.py` independently of the waiting general CLI
+argument extraction. The pending line-input extraction owns a different gate;
+retain its routing and guard-list changes when both merge.
+
+**Approach and files touched.** Create `tests/test_render_combobox_dialog.py`
+and move `TestComboboxDialogRender`, its `@dialog_gate_guard()` decorator,
+and `COMBOBOX_CROP`, `COMBOBOX_FIELD`, `COMBOBOX_OK_BUTTON` and
+`COMBOBOX_CANCEL_BUTTON` there with their measurement comments. Preserve the
+class's methods, `KIND`, crop coordinates and expected pixels. Import shared
+capture helpers from `support.render_gates`, not another test module; the
+existing `hex_colour` and `pixel_at` imports supply the bevel assertions.
+
+Give the new module `TestComboboxDialogGateSkipGuards`, following
+`TestSliderDialogGateSkipGuards` in `tests/test_render_slider_dialog.py`:
+check the real gate's skip flag against tool availability and the software
+renderer condition, then simulate each missing tool with `probe_gate_skip`
+on disposable classes. Remove the moved gate from
+`TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`
+and add its new guard location to that class's routing comments. Update the
+original module's routing docstring and remove imports only if no remaining
+case uses them. Add the new path to `_GATE_FILES` in both
+`tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+
+Update moved anchors and the skip-guard register in `docs/invariants.md`,
+the combobox gate token in `docs/rendering.md`, and the abbreviated class
+token in `docs/fidelity.md` to name the new module explicitly. Update
+`tests/support/validation_gaps/real_run_needed.py`'s combobox anchor; check
+`tests/test_ci_workflow.py` for routing prose that needs adjustment. This
+plan changes test organization, not render tools or theme art.
+
+**Acceptance criteria.**
+
+- Discovery finds the combobox cases in the new module without a second
+  definition in the original. Selecting either module independently works.
+- On a render-capable host, the gate still compares the 12x12 arrow crop
+  at (316,178) with `comboarrow-normal`, pins the raised field at
+  (146,172,188,24), and checks both button frames with the existing pixels.
+  Existing missing-tool and software-renderer conditions still skip capture.
+- The new guard tests run without launching a session and detect a missing
+  guard or a missing required tool in its refusal condition. Documentation
+  and validation-gap anchors resolve to the moved class; prose checks still
+  account for the combobox gate.
+- Focused checks for both gate modules, both gate-prose modules and the
+  invariant register pass, followed by `make check`. Captures use the existing
+  isolated display; no desktop GUI probe is needed.
+
 ### Render units suite extraction: isolate general CLI argument validation (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the render CLI's general argument contract a focused test module,

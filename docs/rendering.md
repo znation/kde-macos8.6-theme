@@ -65,7 +65,7 @@ whose crop the checkbox gate (`tests/test_render_dialog_gates.py::TestCheckboxDi
 byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` chooser
 whose combo box the engine draws with the theme's `comboarrow` art; the render captures
 it the same way, for the combo arrow gate
-(`tests/test_render_dialog_gates.py::TestComboboxDialogRender`). `--menu-dialog` opens a
+(`tests/test_render_combobox_dialog.py::TestComboboxDialogRender`). `--menu-dialog` opens a
 `kdialog` menu list whose item view the engine frames with the theme's `GenericFrame` art,
 captured at the same 480x360 size; the item-view gate
 (`tests/test_render_dialog_gates.py::TestMenuDialogRender`) byte-compares the item view's

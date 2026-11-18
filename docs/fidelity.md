@@ -371,7 +371,7 @@ eighteen raised cells with their blended corner arcs, plus the flat gap rows and
 columns between the cells, while the font-dependent label and digit ink is pinned
 only by live-ink checks. The dialog renders the same
 suite runs (`tests/test_render_dialog_gates.py::TestCheckboxDialogRender`,
-`::TestComboboxDialogRender`, `tests/test_render_lineedit_dialog.py::TestLineInputDialogRender`,
+`tests/test_render_combobox_dialog.py::TestComboboxDialogRender`, `tests/test_render_lineedit_dialog.py::TestLineInputDialogRender`,
 `tests/test_render_dialog_gates.py::TestMenuDialogRender`,
 `::TestColorDialogRender`, `::TestInactiveDialogRender`,
 `tests/test_render_calendar_dialog.py::TestCalendarDialogRender`,

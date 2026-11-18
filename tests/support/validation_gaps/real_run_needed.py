@@ -102,7 +102,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "combo-arrow-indicator-resample",
         ("combo box indicator is a squashed",),
-        "tests/test_render_dialog_gates.py::TestComboboxDialogRender"
+        "tests/test_render_combobox_dialog.py::TestComboboxDialogRender"
         "::test_draws_the_combo_arrow_cell_1_to_1",
     ),
     Reproduction(
