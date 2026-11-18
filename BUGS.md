@@ -52,6 +52,11 @@ failure, and no implementation change is routed without evidence of recurrence.
 
 **Progress 2026-11-17 by bugfix:** not reproduced, still open. The SIGTERM test now sends the render's stderr to a log file. If `wait_for_pidfile` (`tests/support/process_runner.py`) sees the render exit early, its failure message now gives the exit status and the last 20 lines of that log. So the next hosted failure will show which exit-2 cause it hit: usage, missing tool, missing applet package, unwritable output, an unstartable make or dbus-run-session, or a scratch directory. The `TestSplashRender` failures still report no render output.
 
+**Progress 2026-11-18 by ci:** GitHub Actions run 44057617561 failed the same two modules. The SIGTERM assertion now exposes the cause:
+`AssertionError: render exited before the session started (exit status 2)` followed by
+`render_surface: error: required applet package not found: org.kde.plasma.calculator (no plasma/plasmoids/org.kde.plasma.calculator/metadata.json under /home/runner/.local/share, /usr/local/share, /usr/share)`.
+The splash test also reports `render_surface: error: render timed out after 90s`, leaving no PNG. Both modules passed in the local full `make check` with the workflow environment. The run is https://github.com/znation/kde-macos8.6-theme/actions/runs/44057617561. The workflow's install step names `plasma-widgets-addons` as the applet provider, but the hosted test could not find its metadata; this run did not alter the workflow.
+
 **Symptom:** GitHub Actions run 43697228012 (`CI`, push, head 03d5b8414, job `check (3.13)` on `ubuntu-26.04`) ended `check: 422 modules, 2 modules failed`. Two of the failing tests:
 - `test_render_failure_paths.TestFailurePaths.test_sigterm_kills_the_session_group_and_removes_scratch` raised `AssertionError: 2 is not None : render exited before the session started` (from `tests/support/process_runner.py:179`, `wait_for_pidfile`).
 - `test_render_surface.TestSplashRender.test_the_bevel_box_pins_its_face` (and other `TestSplashRender` tests in the same log) errored with `NotFoundError: [Errno 2] No such file or directory: '/tmp/splash-render-test-…/splash.png'`: the render wrote no splash image.
