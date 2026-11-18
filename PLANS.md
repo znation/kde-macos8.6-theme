@@ -165,6 +165,46 @@ anchors; current searches find no qualified radio gate anchor there.
   register pass, followed by `make check`; captures retain the existing
   isolated display.
 
+### Render units suite extraction: isolate dialog CLI argument validation (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the remaining dialog argument contract a focused module,
+reducing `tests/test_render_surface_units.py` independently of the waiting
+radio-list pixel-gate extraction and the pending menu pixel-gate extraction.
+
+**Approach and files touched.** Create
+`tests/test_render_dialog_arguments.py` with `TestRenderDialogArguments`.
+Move the complete remaining `TestArguments` class from
+`tests/test_render_surface_units.py`, including its applet-preflight patch,
+usage-error wrapper, three-mode refusal case and usage-docstring coverage
+case. Preserve test inputs and assertions. These cases form one dialog-mode
+argument contract; session-script and capture-paint cases stay behind.
+
+Import the existing assertions directly from
+`tests/support/render_cli_cases.py`; no test module imports another test
+module. Move imports required by the class, keeping those still needed by
+the source suite (including `Path` for session tests). Update both module
+routing docstrings and the helper module's routing prose. Recount any helper
+caller-count prose across the destination and remaining CLI modules before
+changing it. Search `docs/invariants.md`, `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/*.py` for moved qualified anchors, updating
+any found; the planning search found no `TestArguments` references there.
+No production code or pixel-gate registration changes are needed.
+
+**Acceptance criteria.**
+
+- Discovery locates the moved dialog argument cases in the new module,
+  without duplicate definitions in the source; either module runs alone.
+- Plain dialog-mode inputs still delegate 480x360 captures. Conflicting
+  applet, custom-size and multiple-mode inputs still return usage status 2
+  with the existing asserted flag and size diagnostics; the three-mode
+  diagnostic includes the involved flags and says `not more than one`.
+- Missing kdialog still yields the existing tool refusal, and help and
+  usage-docstring checks still detect missing dialog flags. These argument
+  cases run without starting a render session.
+- Focused checks for the new module and remaining units pass, followed by
+  `make check`; routing prose names the module that now owns the cases.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
