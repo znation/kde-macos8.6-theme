@@ -115,8 +115,6 @@ per family before adding features. The GTK sheets and Firefox `userChrome.css` a
 theme artifacts, so splitting them needs a packaging choice (for example GTK `@import`) that is
 not settled here. This note queues nothing and changes no behavior.
 
-_None yet._
-
 ### Render dialog gates suite extraction: isolate the radio-list dialog gate (planned 2026-11-18 by the plan role)
 
 **Goal.** Reduce the shared dialog suite by giving its radio-list pixel gate
