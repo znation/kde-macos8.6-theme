@@ -94,28 +94,26 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-**Size drift (2026-11-14, steward; re-measured 2026-11-14 by the steward role):** PRINCIPLES.md
+**Size drift (2026-11-14, steward; re-measured 2026-11-18 by the steward role):** PRINCIPLES.md
 asks each file to stay small enough to read in one sitting, and this plan set's working budget is
-roughly 800 lines (the suite-split entries below). Measured with `wc -l` over `tests/`, `tools/`
-and `theme/` at this worktree's base, 23 files exceed 800 lines: `theme/gtk/.../gtk-3.0/gtk.css`
-(7111) and `gtk-4.0/gtk.css` (6523), `theme/firefox/.../chrome/userChrome.css` (1581) and
-`userContent.css` (941), and these tests: `test_render_surface_units.py` (1960),
-`test_gtk4_theme.py` (1947), `test_render_dialog_gates.py` (1721), `test_render_file_dialog.py`
-(1462), `test_gtk_theme.py` (1274), `test_render_surface.py` (1234), `test_gtk_theme_views.py`
-(1179), `test_install_firefox.py` (1173), `test_gtk_css.py` (1170), `test_make_refusals.py`
-(1063), `test_gtk_theme_osd.py` (1008), `test_render_failure_paths.py` (998),
-`test_cursors_theme.py` (964), `test_apply_theme.py` (956), `test_theme_install.py` (940),
-`test_check_parallel.py` (931), `tests/support/gtk_rule_cases.py` (881),
-`test_firefox_theme_library.py` (864) and `test_local_hook.py` (857).
-`test_gtk_theme_controls.py` has left the list (283 lines after GTK 3 split parts 1/11 to 10/11
-landed). The only queued splits that touch a listed file are the two GTK 4 extraction entries for
-`test_gtk4_theme.py`; together they move the scrolled-window run and the scroll-bar breadth tail,
-which leaves it well above 800 lines. The render-test files (`test_render_surface_units.py`,
-`test_render_dialog_gates.py`, `test_render_file_dialog.py`) have no plan. The plan role should
-decompose those per family, as the GTK 4 extraction series did, before adding features to them.
-The two GTK sheets and the Firefox `userChrome.css` are a different problem: the sheets are
-single-file theme artifacts, so splitting them needs a packaging choice (for example GTK
-`@import`) that is not settled here. This note queues nothing and changes no behavior.
+roughly 800 lines (the suite-split entries below). Measured with `wc -l` over text files in
+`tests/`, `tools/` and `theme/` at this worktree's base, the largest remaining files include
+`theme/gtk/.../gtk-3.0/gtk.css` (7111) and `gtk-4.0/gtk.css` (6523), Firefox
+`userChrome.css` (1581) and `userContent.css` (941), and test modules
+`test_render_file_dialog.py` (1464), `test_gtk_theme.py` (1274),
+`test_render_surface.py` (1234), `test_gtk_theme_views.py` (1179),
+`test_install_firefox.py` (1173), `test_gtk_css.py` (1170), `test_make_refusals.py`
+(1063), `test_gtk_theme_osd.py` (1008), `test_render_failure_paths.py` (999),
+`test_apply_theme.py` (970), `test_cursors_theme.py` (964), `test_theme_install.py` (940),
+`test_render_surface_units.py` (940), `test_check_parallel.py` (931),
+`test_render_dialog_gates.py` (887), `test_local_hook.py` (885),
+`tests/support/gtk_rule_cases.py` (881) and `test_firefox_theme_library.py` (864).
+`test_gtk4_theme.py` is now 108 lines after its extraction series landed. The render-test files
+(`test_render_surface_units.py`, `test_render_dialog_gates.py`, `test_render_file_dialog.py`)
+remain above the working budget and have no decomposition plan; the plan role should split them
+per family before adding features. The GTK sheets and Firefox `userChrome.css` are single-file
+theme artifacts, so splitting them needs a packaging choice (for example GTK `@import`) that is
+not settled here. This note queues nothing and changes no behavior.
 
 ### Render-session readiness: a KWin settle script reports the mapped client over D-Bus and a session listener writes RENDER_SESSION_READY_FILE (planned 2026-11-16 by the bugfix role, rewritten 2026-11-17 by the plan role)
 
