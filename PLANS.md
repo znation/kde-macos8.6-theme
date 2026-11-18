@@ -166,6 +166,55 @@ plan changes test organization, not render tools or theme art.
   invariant register pass, followed by `make check`. Captures use the existing
   isolated display; no desktop GUI probe is needed.
 
+### Render dialog gates suite extraction: isolate the menu dialog gate (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the menu dialog's item-view pixel assertions a focused module,
+continuing the shared dialog suite's reduction. This moves a different class
+from the waiting combobox extraction and can merge independently of it.
+
+**Approach and files touched.** Create `tests/test_render_menu_dialog.py`.
+Move `TestMenuDialogRender`, its `@dialog_gate_guard()` decorator and
+`MENU_ITEM_VIEW` from `tests/test_render_dialog_gates.py`, preserving `KIND`,
+the test bodies and their expected pixels. Import `DialogGate` and the guard
+utilities from `support.render_gates`; import `hex_colour` and `pixel_at`
+from their existing support/tool modules. No test module imports another.
+
+Add `TestMenuDialogGateSkipGuards` beside the moved gate, following
+`TestSliderDialogGateSkipGuards` in `tests/test_render_slider_dialog.py`:
+compare the real gate's skip flag with missing-tool/software-renderer
+conditions and simulate each absent `DIALOG_REAL_TOOLS` member using
+`probe_gate_skip` on disposable classes. Remove the menu class from
+`TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`;
+update its routing comments and the original module's routing docstring.
+Retain imports used by remaining gates and retain the combobox extraction's
+routing changes if it has merged.
+
+Add the new path to `_GATE_FILES` in
+`tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+Update the menu class/method anchors and skip-guard register in
+`docs/invariants.md`, and the menu gate tokens in `docs/rendering.md` and
+`docs/fidelity.md`. Check `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/*.py` for moved anchors and adjust matches.
+Production tools and theme art are outside this extraction.
+
+**Acceptance criteria.**
+
+- Discovery finds the existing menu test methods in the new module without
+  duplicate definitions in the old module; either module can be selected
+  independently.
+- On a render-capable host, the menu gate still checks the field at
+  (112,93,256,182), its sunken border runs, unpainted corners, white
+  interior, and current-item focus ring at x=115..364 and y=96..113 with
+  the existing expected pixels. Missing tools and software rendering still
+  skip capture under the existing conditions.
+- The new guard tests run without opening a session and fail if the real
+  gate loses its skip flag or its guard stops detecting a required missing
+  tool. Published menu anchors resolve, and gate-prose checks still include
+  the menu class.
+- Focused checks for both gate modules, both gate-prose modules and the
+  invariant register pass, followed by `make check`. Captures retain the
+  existing isolated display; no desktop GUI probe is required.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
