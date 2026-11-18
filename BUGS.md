@@ -18,6 +18,32 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
+### Review the held-client test's remaining poll-cap risk (found by the director role 2026-11-18)
+
+Follow-up to the quarantined `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination`
+failure recorded in BUGS-FIXED.md. The director review request arrived after that entry
+was archived; keep this follow-up open for the bugfix role's triage.
+
+**Progress 2026-11-18 by the director role:** Code and the diff of `ed376257a`
+explain the original `AssertionError: 'T' != 'R'`: the old spectacle stub wrote
+`captured_state` immediately after its first `/proc/$pid/stat` read, before polling
+for `T`. Later successful polls could not update that recorded early `R`. The
+change moved the write after the loop as well as adding diagnostics; it was not
+just an assertion change. The corrected diagnosis already appears in the archived
+entry. This review did not reproduce the failure.
+
+In `tests/test_render_surface_units.py::TestSessionScript.test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination`,
+the current stub records the final state and poll count after at most 200 sleeps
+of 10 ms. A final non-`T` state at that cap would be a different, still-unconfirmed
+failure; the original message does not establish that the cap expired.
+`tools/render_session.py::session_script` sends STOP before spectacle and CONT
+after it; the test's `run_logged` call has a 30-second outer timeout.
+Keep the cap for now: it gives a missing STOP a direct assertion failure instead
+of consuming the outer timeout. If the corrected test recurs, use its recorded
+state and poll count to decide whether to replace the inner cap with an
+outer-timeout-bounded wait. No product decision is needed to explain the original
+failure, and no implementation change is routed without evidence of recurrence.
+
 ### The render SIGTERM and splash tests failed on the hosted CI runner at 03d5b841, not reproduced locally (found by the ci role 2026-11-16)
 
 **Director handoff 2026-11-17**
