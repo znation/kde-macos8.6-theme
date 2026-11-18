@@ -222,6 +222,56 @@ this extraction.
   suites and the invariant register pass (capability skips reported as such),
   followed by `make check`. Routine GUI work uses the existing isolated harness.
 
+### Render units suite extraction: isolate general CLI argument validation (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the render CLI's general argument contract a focused test module,
+reducing `tests/test_render_surface_units.py` independently of the waiting
+line-input pixel-gate extraction. The pending readiness implementation owns
+session behavior; this extraction stays within argument tests.
+
+**Approach and files touched.** Create `tests/test_render_cli_arguments.py`
+with `TestRenderCliArguments`. Move these methods from `TestArguments` in
+`tests/test_render_surface_units.py`, preserving their fixtures and assertions:
+`test_cli_delegates_validated_options_to_render_workflow`,
+`test_cli_delegates_the_settle_and_timeout_to_the_workflow`,
+`test_accepts_the_minimum_settle_and_timeout`,
+`test_a_single_custom_dimension_keeps_the_other_default`,
+`test_rejects_non_positive_and_non_plain_sizes`, `test_rejects_bad_durations`,
+`test_rejects_a_timeout_not_longer_than_settle`,
+`test_rejects_option_like_applet`, `test_rejects_empty_applet`,
+`test_rejects_a_path_carrying_applet`, `test_applet_refusals_name_the_actual_defect`,
+and `test_requires_an_output_path`. Give the new class the existing
+`applet_problem` patch in `setUp`; leave the original class's patch for its
+remaining dialog tests.
+
+The local `assert_usage_error` is also used by the three-mode refusal test
+that stays behind. Move its implementation to
+`tests/support/render_cli_cases.py::assert_usage_error(case, *argv)` and keep
+thin class wrappers in both classes, so neither test module imports the other.
+Update that support module's routing prose and recheck its helper caller-count
+docstrings across the new and existing modules. Remove unused imports from
+the original module and update its routing docstring. Update the moved method
+anchors in `docs/invariants.md` (CLI delegation and applet refusal rows).
+Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/*.py` for additional moved anchors and update
+matches. Production tools, dialog-mode cases and session-script cases are
+outside this plan.
+
+**Acceptance criteria.**
+
+- Unittest discovery finds the named general argument cases under the new
+  class, without duplicate definitions in the original class. Their existing
+  inputs and expected outcomes survive the move.
+- Valid default and custom dimensions, settle and timeout values still reach
+  the mocked workflow with the asserted parsed values. Invalid dimensions,
+  durations, applet ids and missing output still return usage status 2 with
+  the existing diagnostic checks. These tests launch no render session.
+- The original dialog argument tests, including the three-mode diagnostic
+  case, still run; the two modules can be selected independently. Published
+  file/class/method anchors resolve to the moved cases.
+- Focused checks for both argument modules and the invariant register pass,
+  followed by `make check`. No GUI probe is needed for this extraction.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
