@@ -164,6 +164,54 @@ Production tools and theme art are outside this extraction.
   invariant register pass, followed by `make check`. Captures retain the
   existing isolated display; no desktop GUI probe is required.
 
+### Render dialog gates suite extraction: isolate the radio-list dialog gate (planned 2026-11-18 by the plan role)
+
+**Goal.** Reduce the shared dialog suite by giving its radio-list pixel gate
+a focused module. This moves a different class from the menu and combobox
+extractions and can merge independently of them.
+
+**Approach and files touched.** Create `tests/test_render_radio_dialog.py`.
+Move `TestRadioDialogRender`, its `@dialog_gate_guard()` decorator, and
+`RADIO_DIALOG_SELECTION_BAND`, `RADIO_DIALOG_CHECKED_DOT`,
+`RADIO_DIALOG_UNCHECKED_RING`, `RADIO_DIALOG_FIELD_FRAME` and
+`RADIO_DIALOG_VIEW_FACE` from `tests/test_render_dialog_gates.py`, retaining
+their measurement comments, `KIND`, test bodies and expected pixels. Import
+`DialogGate` and guard utilities from `support.render_gates`, `hex_colour`
+from `support.platinum_palette` and `pixel_at` from `tools.png`.
+
+Add `TestRadioDialogGateSkipGuards` following
+`TestSliderDialogGateSkipGuards` in `tests/test_render_slider_dialog.py`:
+compare the real gate's skip flag with missing-tool/software-renderer
+conditions, and simulate each absent `DIALOG_REAL_TOOLS` member with
+`probe_gate_skip` on disposable classes. Remove the radio gate from
+`TestDialogGateSkipGuards.test_the_widget_dialog_gates_skip_only_when_a_tool_is_absent`;
+update its routing comments and the source module's routing docstring.
+Preserve imports needed by remaining gates and routing edits from sibling
+extractions.
+
+Add the new module to `_GATE_FILES` in
+`tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+Update the radio gate anchor and skip-guard register in `docs/invariants.md`
+and the radio gate token in `docs/rendering.md`. Check `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/*.py` for moved
+anchors; current searches find no qualified radio gate anchor there.
+
+**Acceptance criteria.**
+
+- Test discovery finds the radio-list cases in the new module without a
+  second definition in the old one; either module can run independently.
+- On a render-capable host, the selection band at (200,97,164,16) remains
+  `#CCCCFF`, the checked dot at (121,106) remains `#0C0C0F`, and the unchecked
+  ring at (119,120) remains black against white at (117,120). The frame at
+  (112,93)/(113,94) remains `#999999`/black, with white at (200,140).
+- Missing tools and software rendering still skip capture. The new guard
+  tests run without opening a session and fail if the real gate loses its
+  guard or a required missing tool stops causing a skip.
+- Published radio anchors resolve, and the gate-prose checks still include
+  the radio class. Focused checks for the affected modules and invariant
+  register pass, followed by `make check`; captures retain the existing
+  isolated display.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
