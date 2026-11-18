@@ -68,7 +68,7 @@ it the same way, for the combo arrow gate
 (`tests/test_render_combobox_dialog.py::TestComboboxDialogRender`). `--menu-dialog` opens a
 `kdialog` menu list whose item view the engine frames with the theme's `GenericFrame` art,
 captured at the same 480x360 size; the item-view gate
-(`tests/test_render_dialog_gates.py::TestMenuDialogRender`) byte-compares the item view's
+(`tests/test_render_menu_dialog.py::TestMenuDialogRender`) byte-compares the item view's
 rendered border runs, its white interior and the current-item focus ring there.
 `--radiolist-dialog` opens a `kdialog` radio list whose sunken list field, the selected
 row's selection band and the checked and unchecked radio indicators the engine draws

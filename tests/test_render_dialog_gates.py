@@ -3,7 +3,8 @@
 ``tools/render_surface.py``'s thirteen ``--*-dialog`` modes open kdialog
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
-``tests/support/render_gates.py``, the line-input gate in
+``tests/support/render_gates.py``, the menu gate in
+``tests/test_render_menu_dialog.py``, the line-input gate in
 ``tests/test_render_lineedit_dialog.py``, the combobox gate in
 ``tests/test_render_combobox_dialog.py``, the file-dialog gate in
 ``tests/test_render_file_dialog.py``, the GTK 4 window gate in
@@ -111,7 +112,6 @@ ICON_PUSH_BUTTON = (301, 324, 82, 24)
 ICON_PUSH_BUTTON_CELL = (302, 324, 5, 24)
 # Label-free face rows for the frame pin beside the cell band.
 ICON_PUSH_BUTTON_FLAT_ROWS = (327, 328, 329, 341, 342, 343, 344, 345)
-MENU_ITEM_VIEW = (112, 93, 256, 182)
 # The clear part of the first selected row, away from its radio indicator and
 # label glyphs; measured on two byte-identical radio-list captures on
 # 2026-11-11.
@@ -131,9 +131,10 @@ class TestDialogGateSkipGuards(unittest.TestCase):
     of the five applet-render tools or the dialog client its requested mode
     opens is absent (kdialog for the thirteen kdialog modes, zenity for the
     GTK mode), and these widget gates' shared skip guard encodes that
-    condition. The line-input and combobox guards are pinned beside their
-    gates in ``tests/test_render_lineedit_dialog.py`` and
-    ``tests/test_render_combobox_dialog.py``. These tests fail wherever a guard is removed
+    condition. The line-input, combobox and menu guards are pinned beside their
+    gates in ``tests/test_render_lineedit_dialog.py``,
+    ``tests/test_render_combobox_dialog.py`` and
+    ``tests/test_render_menu_dialog.py``. These tests fail wherever a guard is removed
     (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
     list drifts from the render CLI's own requirement list, the local
     literal the guards otherwise all repeat. The widget gates' flags are
@@ -195,7 +196,6 @@ class TestDialogGateSkipGuards(unittest.TestCase):
         )
         for gate in (
             TestCheckboxDialogRender,
-            TestMenuDialogRender,
             TestRadioDialogRender,
             TestColorDialogRender,
             TestIconDialogRender,
@@ -302,77 +302,6 @@ class TestCheckboxDialogRender(DialogGate, unittest.TestCase):
     def test_yes_and_no_buttons_keep_their_engine_drawn_frames(self):
         self.assert_raised_frame(CHECKBOX_YES_BUTTON, flat_rows=(209, 210, 211, 212))
         self.assert_raised_frame(CHECKBOX_NO_BUTTON, flat_rows=(209, 210, 211, 212))
-
-
-@dialog_gate_guard()
-class TestMenuDialogRender(DialogGate, unittest.TestCase):
-    """The menu dialog's item view keeps its engine-drawn sunken frame."""
-
-    KIND = "menu"
-
-    def test_item_view_frame_matches_its_measured_border_runs(self):
-        x, y, width, height = MENU_ITEM_VIEW
-        for xx in range(x, x + width - 1):
-            self.assert_pixel(xx, y, "#999999")
-        for xx in range(x + 1, x + width):
-            self.assert_pixel(xx, y + height - 1, "#FFFFFF")
-        for xx in range(x + 1, x + width - 1):
-            self.assert_pixel(xx, y + height - 2, "#000000")
-        for yy in range(y, y + height - 1):
-            self.assert_pixel(x, yy, "#999999")
-        for yy in range(y + 1, y + height - 1):
-            self.assert_pixel(x + 1, yy, "#000000")
-            self.assert_pixel(x + width - 2, yy, "#000000")
-            self.assert_pixel(x + width - 1, yy, "#FFFFFF")
-        # Both unpainted corners are the window face, stated explicitly as
-        # the record requires; the art never paints either of them.
-        self.assert_pixel(x + width - 1, y, "#DDDDDD")
-        self.assert_pixel(x, y + height - 1, "#DDDDDD")
-        # The flat interior fill beside the focus ring: the interior's edge
-        # columns and its first row stay the viewport's flat white where no
-        # item text or focus art reaches them.
-        for yy in range(y + 2, y + height - 2):
-            self.assert_pixel(x + 2, yy, "#FFFFFF")
-            self.assert_pixel(x + width - 3, yy, "#FFFFFF")
-        for xx in range(x + 2, x + width - 2):
-            self.assert_pixel(xx, y + 2, "#FFFFFF")
-
-    def test_current_item_focus_ring_is_pinned_inside_the_field(self):
-        for xx in range(115, 365):
-            self.assert_pixel(xx, 96, "#000000")
-            self.assert_pixel(xx, 113, "#000000")
-        for yy in range(96, 114):
-            self.assert_pixel(115, yy, "#000000")
-            self.assert_pixel(364, yy, "#000000")
-
-    def test_draws_the_item_view_frame_and_white_interior(self):
-        image = self.candidate_image()
-        x0, y0, width, height = MENU_ITEM_VIEW
-        self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y0)))
-        for x in range(x0, x0 + width - 1):
-            with self.subTest(edge="top", x=x):
-                self.assertEqual("#999999", hex_colour(pixel_at(image, x, y0)))
-        for x in range(x0 + 1, x0 + width - 1):
-            with self.subTest(edge="bottom", x=x):
-                self.assertEqual("#000000", hex_colour(pixel_at(image, x, y0 + height - 2)))
-        self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y0 + height - 2)))
-        self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x0 + width - 1, y0 + height - 2)))
-        for y in range(y0 + 1, y0 + height - 1):
-            with self.subTest(edge="left", y=y):
-                self.assertEqual("#999999", hex_colour(pixel_at(image, x0, y)))
-            with self.subTest(edge="right", y=y):
-                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x0 + width - 1, y)))
-        # The two unpainted upper/lower frame corners are the window face.
-        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0 + width - 1, y0)))
-        self.assertEqual("#DDDDDD", hex_colour(pixel_at(image, x0, y0 + height - 1)))
-        for x in range(x0 + 1, x0 + width):
-            with self.subTest(edge="lower-white", x=x):
-                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, x, y0 + height - 1)))
-        # The current item's focus ring is at y=96..113; sample the white
-        # field below it so a frame mapping regression cannot hide in the ring.
-        for point in ((114, 120), (200, 120), (365, 272)):
-            with self.subTest(point=point):
-                self.assertEqual("#FFFFFF", hex_colour(pixel_at(image, *point)))
 
 
 @dialog_gate_guard()
