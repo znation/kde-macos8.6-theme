@@ -55,11 +55,38 @@ class TestRenderReadiness(unittest.TestCase):
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 15)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
-        self.assertLess(time.monotonic() - started, 10)
+        elapsed = time.monotonic() - started
+        self.assertGreaterEqual(elapsed, 1)
+        self.assertLess(elapsed, 10)
         self.assertIn("render-session: client ready at", log)
         self.assertTrue(monitor_pid.exists())
         with self.assertRaises(ProcessLookupError):
             os.kill(int(monitor_pid.read_text()), 0)
+
+    def test_paint_grace_does_not_extend_the_settle_ceiling(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        monitor = bindir / "dbus-monitor"
+        monitor.write_text(
+            "#!/bin/sh\necho 'member=ClientReady'\nexec sleep 30\n",
+            encoding="utf-8",
+        )
+        monitor.chmod(0o755)
+        qdbus = bindir / "qdbus6"
+        qdbus.write_text("#!/bin/sh\necho 7\n", encoding="utf-8")
+        qdbus.chmod(0o755)
+        status = self._session(root, f"{bindir}:/usr/bin:/bin", 0.2)
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: client ready at", log)
+        stamps = {}
+        for line in log.splitlines():
+            for stage in ("client started", "settle done"):
+                if line.startswith(f"render-session: {stage} at "):
+                    stamps[stage] = int(line.rsplit(" ", 1)[1])
+        # Allow scheduling slack, but reject an unconditional one-second grace.
+        self.assertLess(stamps["settle done"] - stamps["client started"], 900, log)
 
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)

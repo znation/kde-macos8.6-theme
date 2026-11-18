@@ -215,7 +215,8 @@ def session_script(
     subscription.
 
     Missing tools or a client that never maps retain the settle ceiling.
-    D-Bus readiness includes a one-second paint grace before capture.
+    D-Bus readiness includes up to one second of paint grace before capture,
+    bounded by the settle ceiling.
 
     Every stage logs a millisecond timestamp, so a failed capture's log
     shows the client's start, the settle's end and the capture's span on
@@ -305,13 +306,15 @@ def session_script(
         '( command sleep "$settle"; touch "$ceiling" ) & ceiling_timer=$!; '
         'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do '
         'command sleep 0.1; done; '
-        'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
         'if [ -n "$monitor_pid" ]; then kill "$monitor_pid" 2>/dev/null; wait "$monitor_pid" 2>/dev/null; fi; '
         'if [ -n "$listener" ]; then kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null; fi; '
         'rm -f "$events"; '
-        'rm -f "$ceiling"; '
         'ready_source=""; if [ -e "$ready" ]; then IFS= read -r ready_source <"$ready" || :; fi; '
-        'if [ "$ready_source" = dbus-window-added ]; then command sleep 1; fi; '
+        'if [ "$ready_source" = dbus-window-added ]; then '
+        'grace=0; while [ "$grace" -lt 10 ] && [ ! -e "$ceiling" ]; do '
+        'command sleep 0.1; grace=$((grace + 1)); done; fi; '
+        'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
+        'rm -f "$ceiling"; '
         'if [ -e "$ready" ]; then echo "render-session: client ready at $(date +%s%3N)" >&2; '
         'else echo "render-session: settle ceiling reached before a client ready file" >&2; fi; '
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '
