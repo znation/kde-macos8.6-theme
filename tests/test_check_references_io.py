@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import snippet_child
+from support.fifo_fixtures import make_fifo
 from support.allocation_fixtures import peak_allocation
 from support.check_references_fixtures import (
     CheckerTestCase,
@@ -260,11 +261,9 @@ class TestUndeclaredNonRegularEntry(CheckerTestCase):
     def test_a_fifo_without_an_image_name_is_skipped_without_being_opened(self):
         # Run the check in a child so a regression that opens the FIFO fails
         # this test at its timeout instead of stalling the whole suite.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         module = self.checker
         with reference_set(module, "") as root:
-            os.mkfifo(root / "notes")
+            make_fifo(self, root / "notes")
             child = snippet_child.run(
                 [
                     "import sys; from pathlib import Path; "
@@ -294,12 +293,10 @@ class TestFifoSwapAfterCheck(CheckerTestCase):
     """
 
     def _run_child(self, root, filename, snippet):
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         # ``sources.txt`` already exists in the fixture root; the race is a
         # replace, so remove the regular file before putting the FIFO there.
         (root / filename).unlink(missing_ok=True)
-        os.mkfifo(root / filename)
+        make_fifo(self, root / filename)
         # Run the check in a child so a regression that opens the FIFO fails
         # this test at its timeout instead of stalling the whole suite.
         return snippet_child.run(
