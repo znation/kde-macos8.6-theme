@@ -177,6 +177,51 @@ that one grows past a sitting), `docs/invariants.md` (a render-session row for t
 - `make check` passes; the probe's outcome is recorded in the docstring (or, on the fallback path,
   in QUESTIONS.md, and `--splash` sessions no longer wait on a ready file — with its own test).
 
+### Render dialog gates suite extraction: isolate the line-input dialog gate (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the line-input pixel gate a focused module and bring the remaining
+`tests/test_render_dialog_gates.py` below the roughly 800-line working budget in
+the size-drift note. This is independent of the queued render-readiness plan:
+it moves gate coverage, without changing the session implementation.
+
+**Approach and files touched.** Move `TestLineInputDialogRender`, its
+`@dialog_gate_guard()` decorator, and `LINEEDIT_DIALOG_FIELD`,
+`LINEEDIT_DIALOG_FIELD_CROP`, `LINEEDIT_DIALOG_OK_BUTTON` with their measurement
+comments to new `tests/test_render_lineedit_dialog.py`. Preserve the class and
+method names, `KIND = "lineedit"`, crops, reference-role expectations and caret
+exclusion. Import `DialogGate` from `support.render_gates` and the existing
+`FIELD_BORDER_RUNS` / `FIELD_CORNER_PIXELS` from `support.firstboot_lineedit`;
+remove imports that become unused in the original module. No test-module imports
+or new support helper are needed for this move.
+
+Remove the moved class from `TestDialogGateSkipGuards`' local tuple, and add
+`TestLineInputDialogGateSkipGuards` beside the new gate, following
+`tests/test_render_slider_dialog.py::TestSliderDialogGateSkipGuards`: verify the
+gate's real skip flag and simulate each missing tool on disposable classes with
+`probe_gate_skip`, without starting a GUI. Update the original module's routing
+docstring and skip-guard comment. Add the new module to `_GATE_FILES` in both
+`tests/test_dialog_gate_count_prose.py` and `tests/test_readme_render_gates.py`.
+Update the line-input gate anchor in `docs/rendering.md` and `docs/invariants.md`,
+and add the new skip-guard anchor to the invariant row that lists dialog guards.
+Check `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/*.py` for moved anchors; change any that name the
+old location. Production tools, theme assets and render geometry stay outside
+this extraction.
+
+**Acceptance criteria.**
+- Discovery finds `TestLineInputDialogRender` in the new module and no definition
+  in the old module; its existing pixel assertions retain their inputs and
+  expected values. The original gate module is below 800 lines.
+- With a required dialog tool absent, or a software renderer forced, the moved
+  gate skips. The new guard tests run without a capture and detect a removed
+  decorator or omitted tool requirement.
+- Gate inventory and documentation checks still recognize the line-input gate;
+  published file/class anchors resolve to its new location, and its measurement
+  provenance remains beside the moved crops.
+- Focused checks for the original and new gate modules, both gate-inventory
+  suites and the invariant register pass (capability skips reported as such),
+  followed by `make check`. Routine GUI work uses the existing isolated harness.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
