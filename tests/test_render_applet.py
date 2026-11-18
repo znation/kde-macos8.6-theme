@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.applet_package import make_applet_package  # noqa: E402
 from tools import render_applet  # noqa: E402
 
 APPLET = "org.example.widget"
@@ -23,10 +24,10 @@ _RELATIVE = Path("plasma") / "plasmoids" / APPLET
 def _make_root(directory: str, *, install: bool) -> Path:
     """Return a data root under *directory*, optionally holding the package."""
     root = Path(directory) / "data"
-    package = root / _RELATIVE
-    package.mkdir(parents=True)
     if install:
-        (package / "metadata.json").write_text("{}", encoding="utf-8")
+        make_applet_package(root, APPLET)
+    else:
+        (root / _RELATIVE).mkdir(parents=True)
     return root
 
 

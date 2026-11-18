@@ -16,6 +16,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.applet_package import make_applet_package  # noqa: E402
 from support.cli_fixtures import call_main  # noqa: E402
 from tools import render_surface  # noqa: E402
 
@@ -72,12 +73,9 @@ class TestAppletPreflight(unittest.TestCase):
         self.assertFalse(render_seam.called)
 
     def test_an_installed_scratch_applet_passes_the_preflight(self):
-        package = (
-            self.scratch / "first" / "plasma" / "plasmoids"
-            / "org.kde.plasma.calculator"
+        make_applet_package(
+            self.scratch / "first", "org.kde.plasma.calculator"
         )
-        package.mkdir(parents=True)
-        (package / "metadata.json").write_text("{}", encoding="utf-8")
         status, stderr, render_seam = self._run_with_roots(
             self.scratch / "second", render_result=0
         )
