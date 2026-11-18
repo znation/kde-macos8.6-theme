@@ -199,6 +199,7 @@ class TestFailurePaths(StubTools):
         selection.assert_called_once_with(configs.call_args.args[0])
         rules.assert_called_once_with(configs.call_args.args[0])
         argv = run.call_args.args[0]
+        self.assertIn('readiness=""', shlex.split(argv[-1])[2])
         self.assertIn("kdialog", argv[-1])
         self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
         self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])
@@ -257,6 +258,7 @@ class TestFailurePaths(StubTools):
         rules.assert_not_called()
         gtk.assert_not_called()
         argv = run.call_args.args[0]
+        self.assertIn('readiness=""', shlex.split(argv[-1])[2])
         self.assertIn("ksplashqml", argv[-1])
         self.assertIn("--nofork", argv[-1])
         self.assertIn(
@@ -508,6 +510,7 @@ class TestFailurePaths(StubTools):
             'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
             f'cp "{fixture}" "$out"',
         )
+        self.stub("dbus-monitor", "exit 0")
         self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
 
     def test_a_running_applet_is_still_captured(self):
@@ -676,6 +679,7 @@ class TestFailurePaths(StubTools):
             '"$pause" 0.01; n=$((n + 1)); done; '
             f'cp "{fixture}" "$out"',
         )
+        self.stub("dbus-monitor", "exit 0")
         self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
         status, stderr, output = self.run_main("--settle", "0")
         self.assert_failed_run(

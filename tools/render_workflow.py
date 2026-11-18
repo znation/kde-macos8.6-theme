@@ -212,7 +212,14 @@ def render(args: argparse.Namespace) -> int:
             str(write_focus_settle_script(session))
             if mode is not None and mode.focus_settle else None
         )
-        readiness_script = str(write_readiness_settle_script(session))
+        # The splash's first mapped frame is an intermediate animation stage,
+        # and the inactive-dialog mode needs both windows before capture. Keep
+        # their measured ceilings instead of ending on the first windowAdded.
+        readiness_script = (
+            None
+            if args.splash or (mode is not None and mode.focus_settle)
+            else str(write_readiness_settle_script(session))
+        )
         command = session_command(
             session, client, args.settle, args.width, args.height, args.timeout,
             focus_script, readiness_script,

@@ -208,10 +208,14 @@ def session_script(
     With no script given the whole block is inert (an empty ``$focus``
     fails its guard), so the other modes' session stages are unchanged.
 
-    *readiness_script* reports mapped application windows over the private
-    session bus. A ``dbus-monitor`` listener turns the first report into the
-    ready file; missing tools or a client that never maps retain the settle
-    ceiling.
+    *readiness_script* is a KWin script path used with the session D-Bus
+    monitor: when an eligible window maps, the listener writes
+    ``RENDER_SESSION_READY_FILE`` and ends the settle early. The listener
+    starts before the render client so a fast window cannot beat the signal
+    subscription.
+
+    Missing tools or a client that never maps retain the settle ceiling.
+    D-Bus readiness includes a one-second paint grace before capture.
 
     Every stage logs a millisecond timestamp, so a failed capture's log
     shows the client's start, the settle's end and the capture's span on
@@ -256,26 +260,29 @@ def session_script(
         f'focus={focus}; readiness={readiness}; '
         # The D-Bus listener writes RENDER_SESSION_READY_FILE once a client
         # window is mapped; the settle budget remains the ceiling: a
-        # client that never writes the file waits out the full settle.
+        # client that never maps a window waits out the full settle.
         'ceiling="$capture.ceiling"; ready="$capture.ready"; '
-        'events="$capture.ready-events"; '
         'rm -f "$ceiling" "$ready"; export RENDER_SESSION_READY_FILE="$ready"; '
-        'started=$(date +%s%3N); "$@" & client=$!; '
-        'export RENDER_SESSION_CLIENT_PID="$client"; '
-        'echo "render-session: client started at $started" >&2; '
+        'listener=""; monitor_pid=""; events="$capture.events"; '
         'if [ -n "$readiness" ]; then '
         'monitor="$(command -v dbus-monitor)"; '
         'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
         'if [ -z "$monitor" ]; then echo "render-session: no dbus-monitor for client readiness" >&2; '
         'elif [ -z "$qdbus" ]; then echo "render-session: no qdbus for client readiness" >&2; '
         'else '
-        f"ready_filter=\"type='method_call',interface='{READINESS_INTERFACE}',member='{READINESS_MEMBER}'\"; "
-        '"$monitor" --session "$ready_filter" >"$events" 2>/dev/null & readiness_listener=$!; '
+        'rm -f "$events"; '
+        'if ! mkfifo "$events"; then echo "render-session: cannot create readiness listener pipe" >&2; '
+        'else '
+        f'"$monitor" --session "type=\'method_call\',interface=\'{READINESS_INTERFACE}\',member=\'{READINESS_MEMBER}\'" >"$events" & monitor_pid=$!; '
+        '(while IFS= read -r line; do case "$line" in *member=ClientReady*) '
+        'printf "%s\\n" dbus-window-added >"$ready"; break;; esac; done <"$events") & listener=$!; '
         'id=$("$qdbus" org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$readiness" 2>/dev/null); '
-        'case "$id" in ""|*[!0-9]*) echo "render-session: the readiness settle script did not load" >&2; '
-        'kill "$readiness_listener" 2>/dev/null; wait "$readiness_listener" 2>/dev/null;; '
-        '*) echo "render-session: readiness listener running (script $id)" >&2;; esac; '
-        'fi; fi; '
+        'case "$id" in ""|*[!0-9]*) echo "render-session: the readiness settle script did not load" >&2;; '
+        '*) "$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1 || '
+        'echo "render-session: the readiness settle script did not run" >&2;; esac; fi; fi; fi; '
+        'started=$(date +%s%3N); "$@" & client=$!; '
+        'export RENDER_SESSION_CLIENT_PID="$client"; '
+        'echo "render-session: client started at $started" >&2; '
         # The focus settle must start before the settle sleep so the
         # re-activation loop already runs while the windows map, and it
         # must stop only after the capture has returned, because
@@ -297,12 +304,14 @@ def session_script(
         'else echo "render-session: no qdbus for the focus settle" >&2; fi; fi; '
         '( command sleep "$settle"; touch "$ceiling" ) & ceiling_timer=$!; '
         'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do '
-        'if [ -n "${readiness_listener:-}" ] && grep -q "member=ClientReady" "$events"; then touch "$ready"; fi; '
         'command sleep 0.1; done; '
-        'if [ -n "${readiness_listener:-}" ]; then kill "$readiness_listener" 2>/dev/null; '
-        'wait "$readiness_listener" 2>/dev/null; fi; rm -f "$events"; '
         'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
+        'if [ -n "$monitor_pid" ]; then kill "$monitor_pid" 2>/dev/null; wait "$monitor_pid" 2>/dev/null; fi; '
+        'if [ -n "$listener" ]; then kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null; fi; '
+        'rm -f "$events"; '
         'rm -f "$ceiling"; '
+        'ready_source=""; if [ -e "$ready" ]; then IFS= read -r ready_source <"$ready" || :; fi; '
+        'if [ "$ready_source" = dbus-window-added ]; then command sleep 1; fi; '
         'if [ -e "$ready" ]; then echo "render-session: client ready at $(date +%s%3N)" >&2; '
         'else echo "render-session: settle ceiling reached before a client ready file" >&2; fi; '
         'echo "render-session: settle done at $(date +%s%3N)" >&2; '

@@ -84,6 +84,7 @@ class TestSessionCommand(unittest.TestCase):
             )
             self.assertIn(str(session.surface), command.argv[-1])
             self.assertIn("readiness.js", command.argv[-1])
+            self.assertIn(shlex.quote(render_session.session_script(readiness_script="/scratch/readiness.js")), command.argv[-1])
             # The client words are positional parameters of the in-session
             # `sh -c`, so their space cannot become shell syntax.
             self.assertIn("'a b'", command.argv[-1])

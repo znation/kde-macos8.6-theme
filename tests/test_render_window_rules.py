@@ -19,12 +19,13 @@ from tools.render_window_rules import (
     FOCUSED_GEOMETRY,
     FOCUSED_TITLE,
     FOCUS_SETTLE_SCRIPT,
+    READINESS_INTERFACE,
+    READINESS_SERVICE,
+    READINESS_SETTLE_SCRIPT,
     INACTIVE_GEOMETRY,
     INACTIVE_TITLE,
     RULES_FILE,
-    READINESS_INTERFACE,
     READINESS_MEMBER,
-    READINESS_SETTLE_SCRIPT,
     focus_settle_text,
     readiness_settle_text,
     rules_text,
@@ -60,6 +61,25 @@ class TestWindowRules(unittest.TestCase):
             path = write_readiness_settle_script(session)
             self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
             self.assertEqual(readiness_settle_text().encode(), path.read_bytes())
+
+    def test_the_readiness_script_reports_eligible_window_additions_over_dbus(self):
+        script = readiness_settle_text()
+        self.assertIn("workspace.windowAdded.connect(report)", script)
+        self.assertIn("workspace.windowList()", script)
+        self.assertIn("window.normalWindow || window.dialog || window.splash || window.desktopWindow", script)
+        self.assertIn(
+            f'callDBus("{READINESS_SERVICE}", "/", "{READINESS_INTERFACE}", "ClientReady")',
+            script,
+        )
+
+    def test_write_readiness_settle_script_writes_the_script_into_the_scratch_root(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            session = _FakeSession(Path(root) / "cfg", Path(root))
+            path = write_readiness_settle_script(session)
+            self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
+            self.assertEqual(readiness_settle_text().encode("utf-8"), path.read_bytes())
 
     def test_the_rules_file_is_the_kwin_rules_store_name(self):
         # The workflow matches the mode's extra_config_files entry against

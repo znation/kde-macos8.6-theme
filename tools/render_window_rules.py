@@ -119,14 +119,19 @@ def write_focus_settle_script(session: Session) -> Path:
 
 
 def readiness_settle_text() -> str:
-    """Return a KWin script that reports when a render client window maps.
+    """Return the KWin script that reports when a render client maps.
 
-    KWin 6.3.6 was probed on 2026-11-17 inside
-    ``dbus-run-session -- kwin_wayland --virtual``: a script's top-level
-    ``callDBus`` reached a ``dbus-monitor`` listener on the private session
-    bus with its argument intact. Window notifications use the same
-    ``workspace.windowAdded`` API; the shell listener owns readiness-file
-    publication.
+    Probed on this host's KWin 6.3.6 (2026-11-18) with a 12-second bound around
+    ``dbus-run-session -- kwin_wayland --virtual``. The session ran
+    ``dbus-monitor --session "type='method_call',interface='org.platinumtheme.RenderSession',member='ClientReady'"``,
+    loaded this script with ``qdbus6 org.kde.KWin /Scripting
+    org.kde.kwin.Scripting.loadScript <path>`` and ran it through
+    ``qdbus6 org.kde.KWin /Scripting/Script<id> run``. With
+    ``QT_QPA_PLATFORM=wayland``, ``kdialog --msgbox`` mapped and the
+    ``workspace.windowAdded`` handler's ``callDBus`` appeared in the monitor as
+    a ``ClientReady`` method call to ``org.platinumtheme.RenderSession`` even
+    though that destination name was unowned; the probe then stopped at its
+    bound.
     """
     return (
         "function report(window) {\n"
