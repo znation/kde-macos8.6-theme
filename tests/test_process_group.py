@@ -600,6 +600,43 @@ class TestFeedStdin(unittest.TestCase):
         self.assertEqual(7, status)
 
 
+class TestFinishWriter(unittest.TestCase):
+    """_finish_writer is the cleanup step that retires the stdin writer.
+
+    A writer that never started cannot be joined, so the child's stdin is
+    closed here to unblock a child still reading. A started writer closes its
+    own pipe, and is joined with the bounded reap timeout so cleanup cannot
+    stall. A failure closing the unstarted pipe is swallowed.
+    """
+
+    def test_no_writer_leaves_the_child_stdin_alone(self):
+        process = mock.Mock()
+        process_group._finish_writer(process, None, False)
+        process.stdin.close.assert_not_called()
+
+    def test_an_unstarted_writer_closes_the_child_stdin_without_a_join(self):
+        process = mock.Mock()
+        writer = mock.Mock()
+        process_group._finish_writer(process, writer, False)
+        process.stdin.close.assert_called_once_with()
+        writer.join.assert_not_called()
+
+    def test_an_error_closing_an_unstarted_writers_stdin_is_swallowed(self):
+        process = mock.Mock()
+        process.stdin.close.side_effect = BrokenPipeError
+        writer = mock.Mock()
+        process_group._finish_writer(process, writer, False)
+        process.stdin.close.assert_called_once_with()
+        writer.join.assert_not_called()
+
+    def test_a_started_writer_is_joined_within_the_reap_timeout(self):
+        process = mock.Mock()
+        writer = mock.Mock()
+        process_group._finish_writer(process, writer, True)
+        writer.join.assert_called_once_with(process_group._REAP_TIMEOUT)
+        process.stdin.close.assert_not_called()
+
+
 class TestExitOnTermination(unittest.TestCase):
     def _kill_self_under_exit_on_termination(self, number):
         """Send *number* to this process and return the shell-convention code."""
