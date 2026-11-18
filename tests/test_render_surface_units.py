@@ -5,7 +5,7 @@ The render's end-to-end capture gates live in
 ``tests/test_render_file_dialog.py``, their failure orchestration in
 ``tests/test_render_failure_paths.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
-from: ``render_surface.main``'s argument validation and workflow delegation,
+from: ``render_surface.main``'s dialog argument validation,
 KWin session command construction in
 ``tools/render_session.py``, the capture paint check in
 ``tools/render_workflow.py``. The session command and dialog argv checks
@@ -15,7 +15,8 @@ session theme-source checks live in ``tests/test_render_session_theme_sources.py
 and the CLI calculator applet preflight checks live in
 ``tests/test_render_applet_preflight.py``.
 The ``--desktop`` and ``--splash`` argument checks live in
-``tests/test_render_fixed_client_modes.py``.
+``tests/test_render_fixed_client_modes.py``. General CLI argument checks live
+in ``tests/test_render_cli_arguments.py``.
 """
 
 from __future__ import annotations
@@ -31,7 +32,6 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.cli_fixtures import call_main  # noqa: E402
 from support.render_cli_cases import (  # noqa: E402
     assert_delegated_capture_size,
     assert_dialog_requires_kdialog,
@@ -40,6 +40,7 @@ from support.render_cli_cases import (  # noqa: E402
     assert_rejects_capture_size_with_fixed_client,
     assert_two_mode_refusal_names_both,
     delegated_render_args,
+    assert_usage_error,
 )
 from tools import (
     render_session,
@@ -79,34 +80,6 @@ class TestArguments(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def test_cli_delegates_validated_options_to_render_workflow(self):
-        args = delegated_render_args(
-            self, ("out.png", "--applet", "test.applet"), 7
-        )
-        self.assertEqual("test.applet", args.applet)
-        self.assertEqual((320, 240), (args.width, args.height))
-        self.assertIs(render_workflow.render, render_surface.render)
-
-    def test_cli_delegates_the_settle_and_timeout_to_the_workflow(self):
-        # render() reads args.settle and args.timeout to build the session
-        # command and its supervision timeout, so a non-default value must
-        # reach it parsed, not fall back to the parser defaults.
-        args = delegated_render_args(
-            self, ("out.png", "--settle", "1.25", "--timeout", "33")
-        )
-        self.assertEqual(1.25, args.settle)
-        self.assertEqual(33.0, args.timeout)
-
-    def test_accepts_the_minimum_settle_and_timeout(self):
-        # The bounds are inclusive: --settle 0 (no wait before the capture)
-        # and --timeout 1 are the smallest values the parser accepts. Both
-        # satisfy the timeout-longer-than-settle rule (1 > 0).
-        args = delegated_render_args(
-            self, ("out.png", "--settle", "0", "--timeout", "1")
-        )
-        self.assertEqual(0.0, args.settle)
-        self.assertEqual(1.0, args.timeout)
-
     def test_cli_delegates_the_lineedit_dialog_capture_size(self):
         assert_delegated_capture_size(self, "--lineedit-dialog", (480, 360))
 
@@ -126,98 +99,8 @@ class TestArguments(unittest.TestCase):
     def test_cli_delegates_the_menu_dialog_capture_size(self):
         assert_delegated_capture_size(self, "--menu-dialog", (480, 360))
 
-    def test_a_single_custom_dimension_keeps_the_other_default(self):
-        for option, value, expected in (
-            ("--width", "640", (640, 240)),
-            ("--height", "480", (320, 480)),
-        ):
-            with self.subTest(option=option):
-                args = delegated_render_args(self, ("out.png", option, value))
-                self.assertEqual(expected, (args.width, args.height))
-
     def assert_usage_error(self, *argv):
-        """Assert a usage error (exit 2) and return its stderr."""
-        status, stderr = call_main(render_surface.main, *argv)
-        self.assertEqual(2, status)
-        return stderr
-
-    def test_rejects_non_positive_and_non_plain_sizes(self):
-        for option in ("--width", "--height"):
-            for value in ("0", "-3", "1_0", "abc", "1.5"):
-                with self.subTest(option=option, value=value):
-                    self.assertIn(
-                        option, self.assert_usage_error("out.png", option, value)
-                    )
-
-    def test_rejects_bad_durations(self):
-        for argv in (
-            ("--settle", "-1"),
-            ("--settle", "nan"),
-            ("--settle", "inf"),
-            ("--timeout", "0"),
-            ("--timeout", "1_0"),
-        ):
-            with self.subTest(argv=argv):
-                self.assertIn(argv[0], self.assert_usage_error("out.png", *argv))
-
-    def test_rejects_a_timeout_not_longer_than_settle(self):
-        # The session sleeps for --settle before it asks for the capture, so a
-        # timeout at or below it can never capture: refuse rather than wait
-        # out the timeout and report "render timed out" without naming the
-        # option that cannot work.
-        for settle, timeout in (("10", "10"), ("10", "9.5"), ("10", "1")):
-            with self.subTest(settle=settle, timeout=timeout):
-                stderr = self.assert_usage_error(
-                    "out.png", "--settle", settle, "--timeout", timeout
-                )
-                self.assertIn("--timeout", stderr)
-                self.assertIn("--settle", stderr)
-                self.assertIn("must be longer than", stderr)
-
-    def test_rejects_option_like_applet(self):
-        self.assertIn(
-            "--applet", self.assert_usage_error("out.png", "--applet=--help-all")
-        )
-
-    def test_rejects_empty_applet(self):
-        # ``--applet=`` passes the empty string to the type; the guard rejects
-        # it with the same diagnostic as the option-like half, so an empty
-        # plasmoid id never reaches the render session.
-        self.assertIn("--applet", self.assert_usage_error("out.png", "--applet="))
-
-    def test_rejects_a_path_carrying_applet(self):
-        # A plasmoid id is a dotted KPlugin id; a path separator would make a
-        # later path-joining existence check read outside the plasmoids
-        # directories, so the parse refuses it.
-        for bad in ("a/b", "a\\b"):
-            with self.subTest(bad=bad):
-                self.assertIn(
-                    "--applet", self.assert_usage_error("out.png", "--applet", bad)
-                )
-
-    def test_applet_refusals_name_the_actual_defect(self):
-        # Each refused --applet value names the defect it carries instead of
-        # one conflated wording: a path separator is answered with the path
-        # refusal (not the NUL one), an option-like value with the option-like
-        # refusal, and so on, so the diagnostic tells the caller what to fix.
-        cases = {
-            "": "not empty",
-            "--help-all": "not option-like",
-            "a/b": "not a path",
-            "a\\b": "not a path",
-            "org.example\0widget": "without NUL",
-        }
-        for value, expected in cases.items():
-            with self.subTest(value=value):
-                # The ``=`` form is the only one that carries an option-like
-                # value at all: ``--applet --help-all`` reads as a missing
-                # value before the type runs.
-                self.assertIn(
-                    expected, self.assert_usage_error("out.png", "--applet=" + value)
-                )
-
-    def test_requires_an_output_path(self):
-        self.assert_usage_error()
+        return assert_usage_error(self, *argv)
 
     def test_cli_delegates_the_slider_dialog_capture_size(self):
         assert_delegated_capture_size(self, "--slider-dialog", (480, 360))

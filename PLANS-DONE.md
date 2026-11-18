@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render units suite extraction: isolate general CLI argument validation (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the render CLI's general argument contract a focused test module,
+reducing `tests/test_render_surface_units.py` independently of the waiting
+line-input pixel-gate extraction. The pending readiness implementation owns
+session behavior; this extraction stays within argument tests.
+
+**Approach and files touched.** Create `tests/test_render_cli_arguments.py`
+with `TestRenderCliArguments`. Move the twelve named general argument cases
+from `TestArguments`, preserving their inputs and expected outcomes. Keep
+dialog cases and the three-mode diagnostic in the original module. Move the
+shared usage error assertion to `tests/support/render_cli_cases.py`; update
+routing prose, the original module's routing docstring, and the moved CLI
+delegation and applet refusal anchors in `docs/invariants.md`.
+
+**Acceptance criteria.** The focused general argument module owns the moved
+cases, retains the applet preflight patch, and exercises argument parsing
+without launching a render session. Dialog argument tests remain independently
+selectable. The project check passed after the final backlog edit.
+
 ### Render dialog gates suite extraction: isolate the line-input dialog gate (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the line-input pixel gate a focused module and bring the remaining

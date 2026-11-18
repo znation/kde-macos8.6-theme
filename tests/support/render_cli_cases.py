@@ -1,7 +1,8 @@
 """Shared ``render_surface.main`` argument assertions for the per-mode CLI tests.
 
-The render CLI's per-mode argument tests in ``tests/test_render_surface_units.py``
-and ``tests/test_render_fixed_client_modes.py`` call these helpers to pin what
+The render CLI's general argument tests in ``tests/test_render_cli_arguments.py``
+and per-mode tests in ``tests/test_render_surface_units.py`` and
+``tests/test_render_fixed_client_modes.py`` call these helpers to pin what
 ``main`` delegates, which flags it refuses together, and which tool it names
 when one is missing. They start no session.
 """
@@ -13,6 +14,13 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import _call_capturing, assert_missing_tool_named, call_main  # noqa: E402
 from tools import render_surface  # noqa: E402
+
+
+def assert_usage_error(case, *argv):
+    """Assert *argv* returns usage status 2 and return its stderr."""
+    status, stderr = call_main(render_surface.main, *argv)
+    case.assertEqual(2, status)
+    return stderr
 
 
 def delegated_render_args(case, argv, status=0):
