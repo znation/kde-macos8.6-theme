@@ -28,6 +28,11 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+try:
+    from tools.render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+except ImportError:  # imported from a directly run tool
+    from render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
 
@@ -177,7 +182,9 @@ class SessionCommand:
     timeout: float
 
 
-def session_script(focus_script: str | None = None) -> str:
+def session_script(
+    focus_script: str | None = None, readiness_script: str | None = None
+) -> str:
     """Return the ``sh -c`` script that opens the client, settles and captures.
 
     The positional parameters are the settle seconds, the capture path and
@@ -200,6 +207,11 @@ def session_script(focus_script: str | None = None) -> str:
     without either only logs the omission and keeps the older race.
     With no script given the whole block is inert (an empty ``$focus``
     fails its guard), so the other modes' session stages are unchanged.
+
+    *readiness_script* reports mapped application windows over the private
+    session bus. A ``dbus-monitor`` listener turns the first report into the
+    ready file; missing tools or a client that never maps retain the settle
+    ceiling.
 
     Every stage logs a millisecond timestamp, so a failed capture's log
     shows the client's start, the settle's end and the capture's span on
@@ -231,6 +243,7 @@ def session_script(focus_script: str | None = None) -> str:
     # before the capture and fails the session with a log line naming the
     # client's first word instead.
     focus = shlex.quote(focus_script) if focus_script is not None else '""'
+    readiness = shlex.quote(readiness_script) if readiness_script is not None else '""'
     return (
         # Qt selects its platform plugin from the ambient session type, which
         # a headless caller does not set even though this session exports its
@@ -240,15 +253,29 @@ def session_script(focus_script: str | None = None) -> str:
         "export QT_QPA_PLATFORM=wayland; "
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
-        f'focus={focus}; '
-        # The client writes RENDER_SESSION_READY_FILE once its window is shown;
-        # the settle then ends early. The settle budget stays the ceiling: a
+        f'focus={focus}; readiness={readiness}; '
+        # The D-Bus listener writes RENDER_SESSION_READY_FILE once a client
+        # window is mapped; the settle budget remains the ceiling: a
         # client that never writes the file waits out the full settle.
         'ceiling="$capture.ceiling"; ready="$capture.ready"; '
+        'events="$capture.ready-events"; '
         'rm -f "$ceiling" "$ready"; export RENDER_SESSION_READY_FILE="$ready"; '
         'started=$(date +%s%3N); "$@" & client=$!; '
         'export RENDER_SESSION_CLIENT_PID="$client"; '
         'echo "render-session: client started at $started" >&2; '
+        'if [ -n "$readiness" ]; then '
+        'monitor="$(command -v dbus-monitor)"; '
+        'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
+        'if [ -z "$monitor" ]; then echo "render-session: no dbus-monitor for client readiness" >&2; '
+        'elif [ -z "$qdbus" ]; then echo "render-session: no qdbus for client readiness" >&2; '
+        'else '
+        f"ready_filter=\"type='method_call',interface='{READINESS_INTERFACE}',member='{READINESS_MEMBER}'\"; "
+        '"$monitor" --session "$ready_filter" >"$events" 2>/dev/null & readiness_listener=$!; '
+        'id=$("$qdbus" org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$readiness" 2>/dev/null); '
+        'case "$id" in ""|*[!0-9]*) echo "render-session: the readiness settle script did not load" >&2; '
+        'kill "$readiness_listener" 2>/dev/null; wait "$readiness_listener" 2>/dev/null;; '
+        '*) echo "render-session: readiness listener running (script $id)" >&2;; esac; '
+        'fi; fi; '
         # The focus settle must start before the settle sleep so the
         # re-activation loop already runs while the windows map, and it
         # must stop only after the capture has returned, because
@@ -269,7 +296,11 @@ def session_script(focus_script: str | None = None) -> str:
         'esac; '
         'else echo "render-session: no qdbus for the focus settle" >&2; fi; fi; '
         '( command sleep "$settle"; touch "$ceiling" ) & ceiling_timer=$!; '
-        'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do command sleep 0.1; done; '
+        'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do '
+        'if [ -n "${readiness_listener:-}" ] && grep -q "member=ClientReady" "$events"; then touch "$ready"; fi; '
+        'command sleep 0.1; done; '
+        'if [ -n "${readiness_listener:-}" ]; then kill "$readiness_listener" 2>/dev/null; '
+        'wait "$readiness_listener" 2>/dev/null; fi; rm -f "$events"; '
         'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
         'rm -f "$ceiling"; '
         'if [ -e "$ready" ]; then echo "render-session: client ready at $(date +%s%3N)" >&2; '
@@ -313,17 +344,17 @@ def session_command(
     height: int,
     timeout: float,
     focus_script: str | None = None,
+    readiness_script: str | None = None,
 ) -> SessionCommand:
     """Build the KWin session command for *session* and its supervision timeout.
 
-    *focus_script* rides to :func:`session_script`; only the inactive-dialog
-    render passes one.
+    The settle script paths ride to :func:`session_script`.
     """
     script = shlex.join(
         [
             "sh",
             "-c",
-            session_script(focus_script),
+            session_script(focus_script, readiness_script),
             "sh",
             str(settle),
             str(session.surface),

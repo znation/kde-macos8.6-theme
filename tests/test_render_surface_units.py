@@ -683,6 +683,49 @@ class TestSessionScript(unittest.TestCase):
         self.assertGreaterEqual(elapsed, 2)
         self.assertIn("settle ceiling reached before a client ready file", log)
 
+    def test_dbus_readiness_ends_the_settle_and_reaps_its_listener(self):
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        qdbus = root / "qdbus6"
+        qdbus.write_text("#!/bin/sh\necho 17\n", encoding="utf-8")
+        qdbus.chmod(0o755)
+        monitor = root / "dbus-monitor"
+        monitor.write_text(
+            "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
+            "echo '    member=ClientReady'\nexec sleep 30\n",
+            encoding="utf-8",
+        )
+        monitor.chmod(0o755)
+        pidfile = root / "monitor.pid"
+        environment = dict(
+            os.environ, PATH=f"{root}:{os.environ['PATH']}",
+            RENDER_MONITOR_PID=str(pidfile),
+        )
+        client = root / "client.py"
+        client.write_text(
+            "import signal\nsignal.alarm(30)\nsignal.pause()\n",
+            encoding="utf-8",
+        )
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["sh", "-c", "spectacle() { return 0; }; " +
+             render_session.session_script(None, str(root / "readiness.js")),
+             "sh", "15", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 30, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertLess(elapsed, 10, log)
+        self.assertIn("render-session: client ready at", log)
+        self.assertTrue(pidfile.exists(), log)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(int(pidfile.read_text()), 0)
+
     def test_logs_the_capture_timeline_and_a_client_exit_during_the_capture(self):
         # The black-frame diagnosis needs to tell a vanished client from an
         # unpainted window, so the script stamps every stage on one wall

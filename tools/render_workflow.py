@@ -19,6 +19,7 @@ if __package__:
     from tools.render_window_rules import (
         RULES_FILE,
         write_focus_settle_script,
+        write_readiness_settle_script,
         write_window_rules,
     )
     from tools.render_setup import (
@@ -44,6 +45,7 @@ else:  # run directly from render_surface.py
     from render_window_rules import (
         RULES_FILE,
         write_focus_settle_script,
+        write_readiness_settle_script,
         write_window_rules,
     )
     from render_setup import (
@@ -210,9 +212,10 @@ def render(args: argparse.Namespace) -> int:
             str(write_focus_settle_script(session))
             if mode is not None and mode.focus_settle else None
         )
+        readiness_script = str(write_readiness_settle_script(session))
         command = session_command(
             session, client, args.settle, args.width, args.height, args.timeout,
-            focus_script,
+            focus_script, readiness_script,
         )
         try:
             status = run_logged(command.argv, session.environment, command.log, command.timeout, ROOT)

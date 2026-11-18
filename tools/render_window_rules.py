@@ -45,6 +45,11 @@ except ImportError:  # imported from a directly run tool
 
 RULES_FILE = "kwinrulesrc"
 FOCUS_SETTLE_SCRIPT = "inactive-dialog-focus-settle.js"
+READINESS_SETTLE_SCRIPT = "render-readiness-settle.js"
+READINESS_SERVICE = "org.platinumtheme.RenderSession"
+READINESS_PATH = "/"
+READINESS_INTERFACE = "org.platinumtheme.RenderSession"
+READINESS_MEMBER = "ClientReady"
 INACTIVE_TITLE = "Inactive window"
 FOCUSED_TITLE = "Focused window"
 # The two forced geometries, re-derived from this host's first measured
@@ -110,6 +115,36 @@ def write_focus_settle_script(session: Session) -> Path:
     """Write the focus-settle KWin script into *session*'s scratch root."""
     path = session.root / FOCUS_SETTLE_SCRIPT
     write_bytes_atomically(path, focus_settle_text().encode("utf-8"))
+    return path
+
+
+def readiness_settle_text() -> str:
+    """Return a KWin script that reports when a render client window maps.
+
+    KWin 6.3.6 was probed on 2026-11-17 inside
+    ``dbus-run-session -- kwin_wayland --virtual``: a script's top-level
+    ``callDBus`` reached a ``dbus-monitor`` listener on the private session
+    bus with its argument intact. Window notifications use the same
+    ``workspace.windowAdded`` API; the shell listener owns readiness-file
+    publication.
+    """
+    return (
+        "function report(window) {\n"
+        "    if (window.normalWindow || window.dialog || window.splash || "
+        "window.desktopWindow) {\n"
+        f'        callDBus("{READINESS_SERVICE}", "{READINESS_PATH}", '
+        f'"{READINESS_INTERFACE}", "{READINESS_MEMBER}");\n'
+        "    }\n"
+        "}\n"
+        "for (const window of workspace.windowList()) report(window);\n"
+        "workspace.windowAdded.connect(report);\n"
+    )
+
+
+def write_readiness_settle_script(session: Session) -> Path:
+    """Write the readiness KWin script into *session*'s scratch root."""
+    path = session.root / READINESS_SETTLE_SCRIPT
+    write_bytes_atomically(path, readiness_settle_text().encode("utf-8"))
     return path
 
 

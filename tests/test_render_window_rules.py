@@ -22,9 +22,14 @@ from tools.render_window_rules import (
     INACTIVE_GEOMETRY,
     INACTIVE_TITLE,
     RULES_FILE,
+    READINESS_INTERFACE,
+    READINESS_MEMBER,
+    READINESS_SETTLE_SCRIPT,
     focus_settle_text,
+    readiness_settle_text,
     rules_text,
     write_focus_settle_script,
+    write_readiness_settle_script,
     write_window_rules,
 )
 
@@ -38,6 +43,24 @@ class _FakeSession:
 
 
 class TestWindowRules(unittest.TestCase):
+    def test_readiness_script_reports_existing_and_new_render_windows(self):
+        script = readiness_settle_text()
+        self.assertIn("workspace.windowList()", script)
+        self.assertIn("workspace.windowAdded.connect(report)", script)
+        self.assertIn(READINESS_INTERFACE, script)
+        self.assertIn(READINESS_MEMBER, script)
+        for kind in ("normalWindow", "dialog", "splash", "desktopWindow"):
+            self.assertIn(f"window.{kind}", script)
+
+    def test_write_readiness_script_writes_into_the_scratch_root(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            session = _FakeSession(Path(root) / "cfg", Path(root))
+            path = write_readiness_settle_script(session)
+            self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
+            self.assertEqual(readiness_settle_text().encode(), path.read_bytes())
+
     def test_the_rules_file_is_the_kwin_rules_store_name(self):
         # The workflow matches the mode's extra_config_files entry against
         # this name, and KWin reads its rule book from kwinrulesrc.

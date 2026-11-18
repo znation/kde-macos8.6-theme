@@ -60,7 +60,8 @@ class TestSessionCommand(unittest.TestCase):
     def test_carries_the_geometry_the_script_and_the_surface_path(self):
         with render_session.Session.create() as session:
             command = render_session.session_command(
-                session, ["plasmawindowed", "a b"], 2.5, 64, 48, 9.5
+                session, ["plasmawindowed", "a b"], 2.5, 64, 48, 9.5,
+                readiness_script="/scratch/readiness.js",
             )
             self.assertEqual(session.render_log, command.log)
             self.assertEqual(9.5, command.timeout)
@@ -82,7 +83,7 @@ class TestSessionCommand(unittest.TestCase):
                 command.argv[:-1],
             )
             self.assertIn(str(session.surface), command.argv[-1])
-            self.assertIn(render_session.session_script(), command.argv[-1])
+            self.assertIn("readiness.js", command.argv[-1])
             # The client words are positional parameters of the in-session
             # `sh -c`, so their space cannot become shell syntax.
             self.assertIn("'a b'", command.argv[-1])
