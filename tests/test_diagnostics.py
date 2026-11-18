@@ -30,6 +30,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.fifo_fixtures import make_fifo
 from support.tmp_dir import make_tmp_dir
 from tools import diagnostics
 
@@ -198,12 +199,9 @@ class TestReportFailure(unittest.TestCase):
             "  two\n",
         )
 
-    @unittest.skipUnless(hasattr(__import__("os"), "mkfifo"), "requires FIFO support")
     def test_fifo_log_reports_read_failure_without_blocking(self):
-        import os
-
         fifo = make_tmp_dir(self) / "cmd.log"
-        os.mkfifo(fifo)
+        make_fifo(self, fifo)
         script = (
             "import sys; from pathlib import Path; "
             "from tools.diagnostics import report_failure; "
