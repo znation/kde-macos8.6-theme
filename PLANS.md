@@ -193,6 +193,36 @@ fixtures stay in the source; this is one independently mergeable data extraction
   and software-renderer guards, then `make check` passes. A skipped capture
   is reported as a skip, without claiming rendered-pixel validation.
 
+### Render units suite extraction: isolate capture-paint diagnosis checks (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the capture-paint diagnosis unit cases their own discoverable
+module, separating them from session-shell tests in the oversized
+`tests/test_render_surface_units.py`.
+
+**Approach and files touched.** Move the complete `TestCapturePaintCheck`
+class into new `tests/test_render_capture_paint.py`, preserving method names,
+inputs, assertions and the FIFO regression comment. Import `repo_root`,
+`tmp_dir`, `os`, `unittest` and `tools.render_workflow` directly there;
+do not import a test module. Retain the source module's imports still used
+by its remaining tests, including `os`, `tmp_dir` and `render_workflow`.
+Update both modules' routing docstrings. Search `docs/invariants.md`,
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/*.py` for moved qualified anchors and update
+any found. Keep production functions `_capture_is_unpainted` and
+`_client_exited_during_capture` unchanged. This extraction requires no
+pixel-gate registration or live capture.
+
+**Acceptance criteria.**
+
+- Discovery finds `TestCapturePaintCheck` in the new module without a
+  duplicate definition in the source; each module runs independently.
+- Empty RGB bytes are still classified as unpainted, while
+  `b"\x00\x00\x01"` is classified as painted.
+- A FIFO at the session-log path still returns false from the client-exit
+  diagnosis without blocking or raising, preserving the generic diagnosis.
+- Focused checks for both modules pass, followed by `make check`.
+  The extracted cases start no GUI session and require no render tools.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
