@@ -6,10 +6,12 @@ import os
 import signal
 import subprocess
 import tempfile
+import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -610,16 +612,20 @@ class TestFinishWriter(unittest.TestCase):
     """
 
     def test_no_writer_leaves_the_child_stdin_alone(self):
-        process = mock.Mock()
-        process_group._finish_writer(process, None, False)
-        process.stdin.close.assert_not_called()
+        with tempfile.TemporaryFile() as sink:
+            process = SimpleNamespace(stdin=sink)
+            process_group._finish_writer(process, None, False)
+            self.assertFalse(sink.closed)
 
     def test_an_unstarted_writer_closes_the_child_stdin_without_a_join(self):
-        process = mock.Mock()
-        writer = mock.Mock()
-        process_group._finish_writer(process, writer, False)
-        process.stdin.close.assert_called_once_with()
-        writer.join.assert_not_called()
+        read_fd, write_fd = os.pipe()
+        with os.fdopen(read_fd, "rb") as source, os.fdopen(write_fd, "wb") as sink:
+            process = SimpleNamespace(stdin=sink)
+            writer = threading.Thread()
+            process_group._finish_writer(process, writer, False)
+            self.assertTrue(sink.closed)
+            os.set_blocking(source.fileno(), False)
+            self.assertEqual(b"", source.read(1))
 
     def test_an_error_closing_an_unstarted_writers_stdin_is_swallowed(self):
         process = mock.Mock()
@@ -635,6 +641,28 @@ class TestFinishWriter(unittest.TestCase):
         process_group._finish_writer(process, writer, True)
         writer.join.assert_called_once_with(process_group._REAP_TIMEOUT)
         process.stdin.close.assert_not_called()
+
+
+    def test_cleanup_returns_while_a_started_writer_is_still_blocked(self):
+        release = threading.Event()
+        writer = threading.Thread(target=release.wait, daemon=True)
+        # Release even if cleanup regresses to an unbounded join, so the test
+        # fails without leaving a stuck test process or worker thread.
+        watchdog = threading.Timer(2, release.set)
+        writer.start()
+        watchdog.start()
+        try:
+            with tempfile.TemporaryFile() as sink:
+                process = SimpleNamespace(stdin=sink)
+                with mock.patch.object(process_group, "_REAP_TIMEOUT", 0.01):
+                    process_group._finish_writer(process, writer, True)
+                self.assertTrue(writer.is_alive())
+                self.assertFalse(sink.closed)
+        finally:
+            release.set()
+            watchdog.cancel()
+            watchdog.join()
+            writer.join(2)
 
 
 class TestExitOnTermination(unittest.TestCase):
