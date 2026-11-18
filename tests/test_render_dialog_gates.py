@@ -305,7 +305,6 @@ class TestCheckboxDialogRender(DialogGate, unittest.TestCase):
 
 
 @dialog_gate_guard()
-@dialog_gate_guard()
 class TestMenuDialogRender(DialogGate, unittest.TestCase):
     """The menu dialog's item view keeps its engine-drawn sunken frame."""
 
