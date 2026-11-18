@@ -10,7 +10,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.close_tracking import tracking_closes
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from tools import theme_config_writer, theme_defaults  # noqa: E402
@@ -318,10 +318,8 @@ class TestDefaultsGroups(unittest.TestCase):
         # FIFO with no writer blocks open() forever; the render has no timeout
         # around this read, so one stray pipe would stall it silently. Refuse
         # the path by name in a child process instead.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         path = make_tmp_dir(self) / "defaults"
-        os.mkfifo(path)
+        make_fifo(self, path)
         child = _run_defaults_groups_in_child(path)
         assert_fifo_read_refused(self, child, path)
 

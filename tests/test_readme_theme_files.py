@@ -20,7 +20,7 @@ from unittest import mock
 
 from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from support.user_docs import read_user_docs
@@ -135,13 +135,11 @@ class TestReadmeTextContainment(unittest.TestCase):
         # no timeout, so one stray pipe at README.md would stall `make check`
         # with no diagnostic. Run it in a child so the pre-fix hang is a
         # bounded timeout rather than a stalled run.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "repo"
             root.mkdir()
             fifo = root / "README.md"
-            os.mkfifo(fifo)
+            make_fifo(self, fifo)
             code = (
                 "import sys\n"
                 "from unittest import mock\n"

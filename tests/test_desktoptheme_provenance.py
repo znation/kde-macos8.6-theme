@@ -13,12 +13,13 @@ import sys
 import tempfile
 import time
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import containment
 from support import snippet_child
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
@@ -126,16 +127,14 @@ class TestHeaderCommentContainment(unittest.TestCase):
         # has no timeout, so one stray pipe at an SVG path would stall
         # `make check` with no diagnostic. Run it in a child so the pre-fix
         # hang is a bounded timeout rather than a stalled run.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         with tempfile.TemporaryDirectory() as tmp:
-            fifo = os.path.join(tmp, "viewitem.svg")
-            os.mkfifo(fifo)
+            fifo = Path(tmp) / "viewitem.svg"
+            make_fifo(self, fifo)
             child = snippet_child.run(
                 [
                     "import sys; from test_desktoptheme_provenance import "
                     "header_comment; header_comment(sys.argv[1])",
-                    fifo,
+                    str(fifo),
                 ],
                 cwd=os.path.dirname(__file__),
                 timeout=10,
