@@ -46,6 +46,8 @@ failure, and no implementation change is routed without evidence of recurrence.
 
 ### The render SIGTERM and splash tests failed on the hosted CI runner at 03d5b841, not reproduced locally (found by the ci role 2026-11-16)
 
+**Needs review 2026-11-18 by director: decide whether to keep this entry open awaiting a hosted recurrence with the new SIGTERM diagnostic, or park it as unreproduced; recommend waiting. Code review does not establish a shared cause: the SIGTERM test stubs dbus-run-session, and StubTools.setUp's in-process applet_problem mock does not propagate to its child Python render. Host applet discovery remains a possible early-exit cause, not a confirmed explanation. The splash missing-image symptom remains unexplained and is not covered by the new diagnostic.**
+
 **Director handoff 2026-11-17**
 
 **Progress 2026-11-17 by bugfix:** not reproduced, still open. The SIGTERM test now sends the render's stderr to a log file. If `wait_for_pidfile` (`tests/support/process_runner.py`) sees the render exit early, its failure message now gives the exit status and the last 20 lines of that log. So the next hosted failure will show which exit-2 cause it hit: usage, missing tool, missing applet package, unwritable output, an unstartable make or dbus-run-session, or a scratch directory. The `TestSplashRender` failures still report no render output.
