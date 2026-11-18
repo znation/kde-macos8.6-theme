@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14) — fixed 2026-11-18 by the bugfix role
+
+The session ends its settle when the KWin readiness script reports a mapped client through the D-Bus listener. The configured settle remains a ceiling when readiness tools are missing or the client does not map; the D-Bus path includes bounded paint grace. Tests cover early readiness, the missing-monitor ceiling, and listener cleanup.
+
+**Validation gap:** none — existing session tests pin the readiness signal, its ceiling fallback and listener cleanup.
+
 ### The title bar's collapse box does nothing when clicked (found by the director role 2026-11-14) — fixed 2026-11-18 by the bugfix role
 
 **Decision 2026-11-16 (user, recorded by the director role): hide the collapse box on a window that cannot shade — QUESTIONS.md "What should the collapse box do on a window KWin cannot shade?", answered option 3. Windows that can shade keep the box and its toggle.**

@@ -101,56 +101,6 @@ every inactive pin met the active decoration instead. Not a SIGKILL case;
 the ordinary-failure guarantee stands. A fix belongs to the capture
 (settling the windows' focus state before reading pixels), not to the pins.
 
-### Render-session tests rely on fixed wall-clock budgets that expire under a parallel `make check` (structural risk, found by the steward role 2026-11-14)
-
-**Progress 2026-11-14 by bugfix:** step 1 (`tools/bounded_wait.py`) and step 2 (`run_logged` names its expired wait in the log, still returns `None`) are in place; the render-session callers are not yet routed through the helper, so this entry stays open.
-
-**Symptom:** the same failure shape recurs across the render suite. A render test waits a fixed
-time for the session, the client or the splash to settle, and the wait expires when the full
-parallel `make check` shares the host with other modules. The clearest records are:
-`test_waits_for_client_termination_and_preserves_capture_status` returning `0 != None` and
-`7 != None` because `run_logged` timed out (BUGS-FIXED.md 8-17; its cause is the expired timeout
-at `tools/process_group.py:184-186`); the client-exit stub regression that turned a parallel run
-red (BUGS-FIXED.md 85-130); the splash capturing a black frame at the 8-second settle (BUGS-FIXED.md
-131-281 and 282-304); and the two open entries above, the inactive-dialog pixel pins (21-52) and
-the client-wait test (90-110). The 90-110 entry records that its module passes alone.
-
-**Why this is a structural risk:** each recurrence was closed or is being closed one test at a
-time, by widening a budget or adding a settle. The splash entry records that lengthening the settle
-can worsen the race rather than repair it, so the budgets are not a reliable repair. No shared
-bounded-wait helper reports which wait expired, so every new failure must be re-diagnosed from
-scratch. A single helper that names the expired wait in its failure message would make the next
-recurrence attributable without another reconstruction.
-
-**Progress 2026-11-14 (bugfix):** step 1 is in: `tools/bounded_wait.py::wait_bounded` raises
-`WaitExpired` naming the label, budget and pid. Every render-session wait that is a Python process
-wait already goes through `run_logged`, which now writes the expired wait's name to the log
-(`tests/test_process_group.py` pins this). `tools/render_workflow.py` prints that log tail on a
-timeout, so a render timeout already names its wait. The remaining work is the fixed budgets
-themselves (settle and timeout defaults), which is a tuning decision rather than a naming gap, so
-the risk stays open until someone decides how to size them.
-
-**Progress 2026-11-14 by bugfix:** the sizing choice is the user's call (trade-off between wall time and flake rate). Question posted in QUESTIONS.md ("How should the render-session wall-clock budgets be sized?"). No budget was changed; the entry stays open until the user answers.
-
-**Progress 2026-11-15 by bugfix:** the user answered option 3 ("Let's go with option 3"), but option 3 cannot be built as written. The "settle done" marker in `tools/render_session.py::session_script` is echoed *after* `sleep "$settle"`, so waiting on it would still wait out the fixed sleep. A real readiness signal (the client's window has mapped) does not exist in the session script: the focus-settle loop only watches its own `.done` sentinel. Follow-up question posted in QUESTIONS.md ("What should the settle wait on instead of a fixed sleep?"). No code changed; the entry stays open.
-
-**Progress 2026-11-16 by bugfix:** the user answered option 2 (client writes a ready file; QUESTIONS.md,
-2026-11-16). The session side is in: `tools/render_session.py::session_script` exports
-`RENDER_SESSION_READY_FILE` and ends the settle early when the file appears, keeping the settle as the
-ceiling. Two tests in `tests/test_render_surface_units.py::TestSessionScript` pin it (early exit with a
-ready file; full ceiling without one); the first fails on the pre-change script. No client writes the
-file yet, so the budgets still expire as before. The client-side writers are planned in PLANS.md
-("Render-session readiness: the client writes RENDER_SESSION_READY_FILE"). This entry stays open until they land.
-
-**Progress 2026-11-16 by bugfix:** no client-side writer built this run. The splash client is the upstream `/usr/bin/ksplashqml` binary, which the theme cannot edit, and a wrapper has no offline-checkable "window shown" signal; touching the file after launch would be another fixed budget. The choice of signal is posted as a question in QUESTIONS.md ("How should the ksplashqml client signal that its window is shown?"). No code changed in the client path; the entry stays open.
-
-**Progress 2026-11-17 by bugfix:** the user answered option 2 (the KWin side writes the ready file), but a KWin script has no file-write API (no `writeFile`/`FileIO` in the installed KWin scripts), so that option cannot write the file as worded. Follow-up question posted in QUESTIONS.md ("Option 2 needs a file writer KWin scripts do not have: how should the ready file be written?"). No code changed; the entry stays open.
-
-**Progress 2026-11-17 by bugfix:** the user answered option 1 (QUESTIONS.md, "Option 2 needs a file writer…": "Let's go with your recommendation"), which is the D-Bus route after a host probe. The probe ran on an isolated, non-visible virtual KWin (`dbus-run-session -- kwin_wayland --virtual`) on a private session bus, not the user's desktop. It loaded a one-line KWin script whose top-level `callDBus("org.tumwater.ProbeListener", "/probe", "org.tumwater.Probe", "Mapped", "probe-ok")` was received by a `dbus-monitor` listener on that bus with the argument `probe-ok`. So a KWin script can reach a D-Bus listener. Still unbuilt: the listener that touches `$RENDER_SESSION_READY_FILE` and its start in the session shell, which is the plan in PLANS.md ("Render-session readiness…"). No code changed this run; the probe's processes were stopped.
-
-**Reproduce:** run the full `make check` while other modules run on the shared host. The 90-110
-test module is reported green in isolation (`make check CHECK_PATTERN='test_render_surface_units*.py'`).
-
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
