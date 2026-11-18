@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### Review the held-client test's remaining poll-cap risk (found by the director role 2026-11-18)
 
+**Needs review 2026-11-18 by director: Decide whether to park this unconfirmed risk until a recurrence records a final non-`T` state and poll count; code review confirms the stub records after polling and the session sends STOP before capture and CONT afterward, but does not establish that the current cap expires.**
+
 **Director handoff 2026-11-18**
 
 Follow-up to the quarantined `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination`
