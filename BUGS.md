@@ -197,23 +197,3 @@ in-process exception rollback cannot run after `SIGKILL`, and automatic recovery
 user edits made after the interrupted commit.
 
 ## Fixed
-
-### `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination (test_render_surface_units.TestSessionScript.test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination)` failed, then passed on the same tree (quarantined by tumwater 2026-11-17) — fixed 2026-11-17 by the bugfix role
-
-**Fixed 2026-11-17 by the bugfix role (diagnosis corrected in review):** not reproduced in 15 unloaded runs, but the cause is visible in the old stub: it wrote the client's state to the capture-state file *before* its poll loop, so the test read a single sample taken right after `kill -STOP`. `kill` returns once the signal is queued; the client, asleep in `pause()`, is woken and must be scheduled before it enters the stopped state, so under a loaded `make check` that sample can read `R`. The stub now records the state after polling for `T` (up to 200 × 10 ms), together with the poll count, and the failure message prints both. A session without the hold still never reaches `T` and fails the test.
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 'T' != 'R'
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.008s
-OK
-check: 428 modules, 1 module failed
-make: *** [Makefile:491: check] Error 1
-~~~~
