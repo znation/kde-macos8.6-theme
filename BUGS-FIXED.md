@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The title bar's collapse box does nothing when clicked (found by the director role 2026-11-14) — fixed 2026-11-18 by the bugfix role
+
+**Decision 2026-11-16 (user, recorded by the director role): hide the collapse box on a window that cannot shade — QUESTIONS.md "What should the collapse box do on a window KWin cannot shade?", answered option 3. Windows that can shade keep the box and its toggle.**
+
+Symptom (user report, 2026-11-14): the rightmost title-bar button does nothing when clicked. That button is the collapse box: the theme's button layout `ButtonsOnRight=AL` puts zoom then shade at the trailing edge. A Wayland-native window in the user's Plasma session ignored the shade request while the box remained visible.
+
+**Validation gap:** none — the new QML regression test failed before the binding change and passes with shadeability controlling visibility.
+
 ### `test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination (test_render_surface_units.TestSessionScript.test_holds_the_client_across_the_capture_and_resumes_it_before_the_termination)` failed, then passed on the same tree (quarantined by tumwater 2026-11-17) — fixed 2026-11-17 by the bugfix role
 
 **Fixed 2026-11-17 by the bugfix role (diagnosis corrected in review):** not reproduced in 15 unloaded runs, but the cause is visible in the old stub: it wrote the client's state to the capture-state file *before* its poll loop, so the test read a single sample taken right after `kill -STOP`. `kill` returns once the signal is queued; the client, asleep in `pause()`, is woken and must be scheduled before it enters the stopped state, so under a loaded `make check` that sample can read `R`. The stub now records the state after polling for `T` (up to 200 × 10 ms), together with the poll count, and the failure message prints both. A session without the hold still never reaches `T` and fails the test.

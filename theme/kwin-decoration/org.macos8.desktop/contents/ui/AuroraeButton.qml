@@ -221,11 +221,9 @@ DecorationButton {
             }
         }
     }
-    Component.onCompleted: {
-        if (buttonType == DecorationOptions.DecorationButtonQuickHelp && !decoration.client.providesContextHelp) {
-            visible = false;
-        } else {
-            visible = buttonSvg.imagePath != "";
-        }
-    }
+    visible: Qt.binding(function() {
+        return buttonSvg.imagePath != "" &&
+               (buttonType != DecorationOptions.DecorationButtonShade || decoration.client.shadeable) &&
+               (buttonType != DecorationOptions.DecorationButtonQuickHelp || decoration.client.providesContextHelp);
+    })
 }

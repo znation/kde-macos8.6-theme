@@ -134,6 +134,22 @@ class TestHitSurfaces(unittest.TestCase):
         for capability in ("closeable", "maximizeable", "minimizeable"):
             self.assertIn(f"decoration.client.{capability}", enabled)
 
+    def test_shade_button_visibility_tracks_shadeability(self):
+        text = read_text(f"{PACKAGE_UI}/AuroraeButton.qml")
+        visible = object_blocks(text, r"^\s*visible: Qt\.binding\(function\(\) \{$")
+        self.assertEqual(len(visible), 1, "one live visibility binding")
+        self.assertIn('buttonSvg.imagePath != ""', visible[0])
+        self.assertIn(
+            "buttonType != DecorationOptions.DecorationButtonShade || "
+            "decoration.client.shadeable",
+            visible[0],
+        )
+        self.assertIn(
+            "buttonType != DecorationOptions.DecorationButtonQuickHelp || "
+            "decoration.client.providesContextHelp",
+            visible[0],
+        )
+
     def test_no_copy_escapes_the_gate_through_inheritance(self):
         # `AuroraeButton` rides its own gated item (its base type is the
         # imported module's, not the package's shadowed copy); the

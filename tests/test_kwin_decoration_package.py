@@ -161,9 +161,26 @@ def expected_gated_aurorae_button(engine):
     """
     renamed = engine.replace("auroraeTheme.", "AuroraeTheme.")
     assert renamed.count("DecorationButton {\n") == 1, ENGINE_DIR
-    return renamed.replace(
+    gated = renamed.replace(
         "DecorationButton {\n",
         "DecorationButton {\n" + AURORAE_BUTTON_GATE,
+        1,
+    )
+    visibility = '''    Component.onCompleted: {
+        if (buttonType == DecorationOptions.DecorationButtonQuickHelp && !decoration.client.providesContextHelp) {
+            visible = false;
+        } else {
+            visible = buttonSvg.imagePath != "";
+        }
+    }'''
+    assert gated.count(visibility) == 1, ENGINE_DIR
+    return gated.replace(
+        visibility,
+        '''    visible: Qt.binding(function() {
+        return buttonSvg.imagePath != "" &&
+               (buttonType != DecorationOptions.DecorationButtonShade || decoration.client.shadeable) &&
+               (buttonType != DecorationOptions.DecorationButtonQuickHelp || decoration.client.providesContextHelp);
+    })''',
         1,
     )
 
