@@ -155,6 +155,44 @@ No production code or pixel-gate registration changes are needed.
 - Focused checks for the new module and remaining units pass, followed by
   `make check`; routing prose names the module that now owns the cases.
 
+### File-dialog suite extraction: isolate measured list-row fixtures (planned 2026-11-18 by the plan role)
+
+**Goal.** Separate the seeded listing's measured data from the file-dialog
+gate's assertions, reducing the oversized `tests/test_render_file_dialog.py`
+without moving gate classes or sharing files with the queued CLI extraction.
+
+**Approach and files touched.** Add
+`tests/support/file_dialog_list_fixtures.py`. Move `TestFileDialogRender`'s
+`DOC_ICON_ON_WHITE`, `DOC_ICON_ON_GREY`, `RTF_ICON`, `ICON_CELLS`,
+`ROW_BANDS`, `ROW_BAND_HEIGHT`, `ROW_TEXT_BANDS` and `EMPTY_ROWS` there
+as module constants, preserving their values and adjacent measurement and
+exclusion comments. Give the module a docstring identifying the KIO chooser,
+the 2026-11-11 session measurements and the owning gate. Import that module
+in `tests/test_render_file_dialog.py` and qualify these constants at their
+uses in `test_the_column_header_band_pins_its_face_and_dividers`,
+`test_the_list_rows_pin_their_band_faces`, `_pin_row_band`,
+`test_the_file_rows_draw_their_type_icons` and
+`test_the_file_rows_ink_their_columns` wherever referenced. Search the source
+for remaining uses before removing the class constants. Keep assertion bodies,
+capture registration, class names and skip guards in place. Header and sidebar
+fixtures stay in the source; this is one independently mergeable data extraction.
+
+**Acceptance criteria.**
+
+- The support module exposes the existing document maps at 10x13 and RTF
+  map at 12x12 with the same pixel tuples and cell positions. Compare the
+  extracted literal values against the pre-change definitions without a
+  render, including the row-band and text-exclusion geometry.
+- Discovery retains the file-dialog test IDs. The listing assertions still
+  reject incorrect icon pixels and alternating row faces, while date glyphs
+  remain live ink and excluded from exact face comparisons.
+- Measurement provenance and the reason white and grey document maps differ
+  remain beside the extracted data. Importing the fixture module launches
+  no GUI or capture.
+- The file-dialog module passes its focused check under the existing tool
+  and software-renderer guards, then `make check` passes. A skipped capture
+  is reported as a skip, without claiming rendered-pixel validation.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
