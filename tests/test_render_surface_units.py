@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import re
 import shlex
+import shutil
 import sys
 import unittest
 from pathlib import Path
@@ -725,6 +726,38 @@ class TestSessionScript(unittest.TestCase):
         self.assertTrue(pidfile.exists(), log)
         with self.assertRaises(ProcessLookupError):
             os.kill(int(pidfile.read_text()), 0)
+
+    def test_missing_dbus_monitor_keeps_the_settle_ceiling(self):
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        # Keep the session PATH deliberately small: the readiness probe must
+        # take its documented missing-monitor path even on hosts with D-Bus
+        # tools installed. These commands are used by the ordinary shell path.
+        for name in ("date", "rm", "sleep", "touch"):
+            (root / name).symlink_to(shutil.which(name))
+        client = root / "client.py"
+        client.write_text(
+            "import signal\nsignal.alarm(30)\nsignal.pause()\n",
+            encoding="utf-8",
+        )
+        environment = dict(os.environ, PATH=str(root))
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["/bin/sh", "-c", "spectacle() { return 0; }; " +
+             render_session.session_script(None, str(root / "readiness.js")),
+             "sh", "1", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 10, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertGreaterEqual(elapsed, 1, log)
+        self.assertIn("render-session: no dbus-monitor for client readiness", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
 
     def test_logs_the_capture_timeline_and_a_client_exit_during_the_capture(self):
         # The black-frame diagnosis needs to tell a vanished client from an
