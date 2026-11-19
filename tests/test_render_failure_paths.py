@@ -486,9 +486,15 @@ class TestFailurePaths(StubTools):
         )
 
     def test_session_without_a_capture_exits_1(self):
+        # The session exits 0 but never writes the PNG. The diagnostic must
+        # say so and report the render log's size, so a zero-status run with
+        # no capture is not indistinguishable from a session that logged.
         status, stderr, output = self.run_main()
         self.assert_failed_run(
-            status, stderr, output, 1, "not a readable PNG",
+            status, stderr, output, 1,
+            "not a readable PNG",
+            "the session exited 0 and wrote no capture",
+            "(render log ",
         )
 
     def stub_live_session(self, plasmawindowed_body):

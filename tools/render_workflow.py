@@ -67,6 +67,14 @@ def _capture_is_unpainted(rgb: bytes) -> bool:
     return not any(rgb)
 
 
+def _log_size(log: Path) -> str:
+    """Return the size of the session log, or ``missing`` when it is absent."""
+    try:
+        return f"{log.stat().st_size} bytes"
+    except OSError:
+        return "missing"
+
+
 # How far into the session log the black-capture diagnosis looks for the
 # client's exit marker: the marker is written after the capture command
 # returns and before the reap line, so it sits at the log's end and a
@@ -236,7 +244,19 @@ def render(args: argparse.Namespace) -> int:
         try:
             image = read_png(str(session.surface))
         except (PngError, OSError) as exc:
-            return report_failure(TOOL, f"capture is not a readable PNG: {exc}", command.log)
+            detail = ""
+            if not session.surface.exists():
+                # The session exited 0 (every other status returned above), so
+                # a missing capture means the session finished without writing
+                # it. Name that state and the log size, so the failure says
+                # whether the session logged anything before it ended.
+                detail = (
+                    f"; the session exited 0 and wrote no capture at "
+                    f"{session.surface} (render log {_log_size(command.log)})"
+                )
+            return report_failure(
+                TOOL, f"capture is not a readable PNG: {exc}{detail}", command.log
+            )
         if (image.width, image.height) != (args.width, args.height):
             return report_failure(
                 TOOL, f"capture is {image.width}x{image.height}, expected {args.width}x{args.height}", command.log

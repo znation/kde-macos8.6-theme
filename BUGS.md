@@ -192,6 +192,10 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_the_right_half_draws_its_live_content (test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Director handoff 2026-11-19**
+
+Bugfix run 2026-11-19: not reproduced. Focused runs of `test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content` were not repeated this run; the earlier entries (106-192) record that the focused gate passes locally. The render tool's missing-capture branch (`tools/render_workflow.py`) now names the state when the session exits 0 without writing `surface.png`, and reports the render log's size. Regression test: `test_render_failure_paths.TestFailurePaths.test_session_without_a_capture_exits_1` fails on the old message and passes with the change. Next failure should show whether the session exited 0 with an empty log. See `.tumwater-director-request.md`.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
