@@ -27,6 +27,7 @@ import unittest
 
 from support import repo_root
 from support import theme_install
+from tools import uninstall_defaults_diagnostics
 from support.theme_install import write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -40,6 +41,41 @@ def widget_style_rule(path):
         "uninstall: the widget-style selection the look-and-feel apply left "
         "in defaults ([KDE] widgetStyle=kvantum) is still in " + path
     )
+
+
+class TestDefaultsPackageDiagnostic(unittest.TestCase):
+    """The package warning follows the flat kdedefaults value."""
+
+    def test_warns_when_the_flat_default_still_names_the_removed_package(self):
+        tmp = make_tmp_dir(self)
+        path = os.path.join(tmp, "kdedefaults", "package")
+        write_file(path, "org.example.removed\n")
+
+        messages = uninstall_defaults_diagnostics.package_messages(
+            tmp, "org.example.removed"
+        )
+
+        self.assertEqual(
+            [
+                "uninstall: the look-and-feel package default the look-and-feel"
+                " apply left in defaults still names org.example.removed after"
+                f' removal in {path}; the defaults file the apply wrote names'
+                ' the removed look-and-feel package. Reset it with: rm "'
+                f'{path}"'
+            ],
+            messages,
+        )
+
+    def test_ignores_a_different_flat_default(self):
+        tmp = make_tmp_dir(self)
+        write_file(os.path.join(tmp, "kdedefaults", "package"), "org.example.other\n")
+
+        self.assertEqual(
+            [],
+            uninstall_defaults_diagnostics.package_messages(
+                tmp, "org.example.removed"
+            ),
+        )
 
 
 
