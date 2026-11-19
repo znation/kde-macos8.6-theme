@@ -4,10 +4,10 @@ The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``.
 The palette is reference-grounded through ``support.platinum_palette``; no
 reference screenshot shows a GTK widget, so most GTK geometry is this
 theme's adaptation. This module holds the sheet-level invariants and the
-windows, bands and text roles; expander arrows, OSD overlays, views and menus,
+windows and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
 ``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar, assistant
-sidebar and application notification declarations live in focused suites.
+sidebar, auxiliary band and application notification declarations live in focused suites.
 """
 
 from __future__ import annotations
@@ -26,7 +26,6 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,
     DISABLED_TEXT,
-    ETCH_DARK,
     SCALE_THUMB,
     SHEET_PALETTE,
 )
@@ -758,70 +757,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         link = self.css.index("button:link, button:visited {")
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
-
-    def test_search_bar(self):
-        self.assert_infobar(("searchbar > revealer > box",))
-
-    def test_location_bar(self):
-        self.assert_infobar((".location-bar",))
-        self.assertEqual(self.selectors.count(".location-bar"), 1)
-        self.assertEqual(
-            {s for s in self.rules if "location-bar" in s},
-            {".location-bar", ".location-bar:backdrop"},
-        )
-        self.assert_rule_after(
-            "statusbar {",
-            ".location-bar",
-        )
-
-    def test_action_bar(self):
-        self.assert_infobar(("actionbar > revealer > box",))
-
-    def test_status_bar(self):
-        self.assert_infobar(("statusbar",))
-
-    def test_status_bar_frame_border_is_flat(self):
-        self.assert_rule(
-            "statusbar > frame > border", {"border-style": "none", "box-shadow": "none"}
-        )
-
-    def test_band_backdrop_faces(self):
-        # An unfocused window keeps the existing band face: the grouped
-        # backdrop record spells each stock backdrop twin byte-equal and
-        # wins every tie by later user-sheet source order.
-        declarations = {
-            "background-color": FACE,
-            "border-bottom-color": ETCH_DARK,
-            "box-shadow": f"inset 0 -1px {WHITE}",
-            "transition": "none",
-        }
-        self.assert_rule_group(
-            {
-                "searchbar > revealer > box:backdrop": declarations,
-                ".location-bar:backdrop": declarations,
-                "actionbar > revealer > box:backdrop": declarations,
-            }
-        )
-        self.assertEqual(
-            {s for s in self.rules if s.startswith("searchbar") and ":backdrop" in s},
-            {"searchbar > revealer > box:backdrop"},
-        )
-        self.assertEqual(
-            {s for s in self.rules if s.startswith("actionbar") and ":backdrop" in s},
-            {"actionbar > revealer > box:backdrop"},
-        )
-        # The existing inline-toolbar record keeps stock's own face in
-        # focused and unfocused windows alike, so stock's grouped
-        # `.inline-toolbar:backdrop` membership stays stock.
-        self.assertNotIn(".inline-toolbar:backdrop", self.rules)
-        self.assert_rule_after(
-            "searchbar > revealer > box:backdrop",
-            "searchbar > revealer > box,",
-        )
-        self.assert_rule_after(
-            "statusbar {",
-            "searchbar > revealer > box:backdrop",
-        )
 
     def test_osd_button_states_follow_backdrop(self):
         # These pairs tie on specificity. When both states match, the
