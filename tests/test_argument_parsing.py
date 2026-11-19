@@ -1,6 +1,7 @@
 """Tests for tools/argument_parsing.py -- the shared argument-parsing helpers.
 
-``tools/fidelity_cli_parser.py``, ``tools/sample_arguments.py``, ``tools/render_surface.py``
+``tools/fidelity_cli_parser.py``, ``tools/sample_parser.py`` (through the
+``sample_arguments`` compatibility entry point), ``tools/render_surface.py``
 and ``tools/apply_theme.py`` parse their command lines through this module, but
 their own tests reach the helpers only through a tool's usage diagnostic.
 These tests pin the helpers' contracts directly, so a change to the
