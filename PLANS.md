@@ -150,6 +150,43 @@ that cover split suites. Leave stylesheets and production tools unchanged.
   source and destination modules and full `make check` pass after the move;
   no rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate expander declarations (planned 2026-11-18 by the plan role)
+
+**Goal.** Give GTK 3 disclosure-arrow and expander-title focus checks a
+focused module outside `tests/test_gtk_theme.py`. This is independent of
+the waiting calendar extraction; the finished GTK 4 extraction tests a
+different sheet.
+
+**Approach and files touched.** Move `TestGtkTheme` methods
+`test_expander_arrows`, `test_rtl_collapsed_expander_arrows` and
+`test_expander_title_focus_outline`, preserving their bodies, to new
+`tests/test_gtk_theme_expander.py::TestGtkThemeExpander`. Inherit the
+non-test-bearing `support.gtk_rule_cases.GtkSheetRuleCases` and
+`unittest.TestCase`, with `CSS_PATH` bound to
+`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`. Import `ROOT`
+directly from `support.repo_root`; do not import another test module or
+inherit `GtkSharedControlCases`. Update the source routing docstring.
+Repoint the expander-focus and disclosure-arrow anchors in
+`docs/invariants.md`, preserving GTK 4 and glyph-test anchors and provenance.
+Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+and `tests/support/` for moved anchors. Leave stylesheets and production
+tools unchanged; shared support docstring cleanup belongs to the waiting
+calendar plan.
+
+**Acceptance criteria.**
+
+- Discovery locates the moved methods under the new class, without duplicate
+  definitions in `TestGtkTheme` or inherited shared-control tests in the new
+  module. Source and destination run independently through check selectors.
+- Collapsed tree-view and expander arrows still require the right triangle,
+  checked arrows the down triangle, and the existing 16px geometry. Each
+  collapsed RTL selector occurs once with exactly `scaleX(-1)` as its icon
+  transform; a different transform fails the extracted checks.
+- Focused expander titles still require a square 1px dotted black outline
+  with zero offset; changing its color or offset fails the extracted checks.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
