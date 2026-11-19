@@ -4,7 +4,8 @@ This module owns the views-and-dialogs slice of
 ``tests/test_gtk_theme.py``'s split: the file chooser's path-bar tabs,
 the stack switcher, the list and icon-view focus outlines, the spin-button
 field and title-button boxes. Header drag-and-drop declarations are in
-``tests/test_gtk_theme_drag_drop.py``.
+``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
+``tests/test_gtk_theme_accelerator_editor.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
@@ -164,38 +165,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 self.selectors.index("radio:checked"),
                 selector,
             )
-
-    def test_view_accelerator_editor(self):
-        # The stock label face tints the view family's on-screen
-        # accelerator editor -- the overlay label a header button shows
-        # while it captures a key -- with its accent. No collected
-        # reference screenshot shows accelerator editing, so the pinned
-        # selection fill answers it, as for the selected rows and the
-        # drop header arm (see the sheet's adaptation
-        # comment); the one stock arm was probed fresh 2026-11-09 with
-        # gresource extract of the toolkit resource in
-        # /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (its resource path is
-        # recorded in docs/invariants.md, line 755), with no ink,
-        # geometry or state member beyond background-color.
-        spelling = "treeview.view acceleditor > label"
-        self.assertEqual(self.selectors.count(spelling), 1, spelling)
-        self.assertEqual(self.rules[spelling], {"background-color": SELECTION})
-        self.assertEqual(
-            {s for s in self.rules if "acceleditor" in s},
-            {spelling},
-        )
-        # Order pin: the rule sits directly after the existing header-drop
-        # group and before the existing list-row focus group (the comma
-        # group's members are split selectors, so the pin read the sheet
-        # text for the earlier operand).
-        self.assertGreater(
-            self.css.index(spelling),
-            self.css.index("treeview.view header button.dnd:selected {"),
-        )
-        self.assertLess(
-            self.css.index(spelling),
-            self.css.index("list row:focus {"),
-        )
 
     def test_list_row_focus_outline(self):
         self.assert_dotted_focus_outline("list row:focus")

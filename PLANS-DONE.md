@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate accelerator-editor declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the on-screen accelerator-editor declaration check a focused
+suite outside the oversized views module. This relocation is independent
+of the queued drag-and-drop extraction and the paned extraction being handled.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_view_accelerator_editor` from
+`tests/test_gtk_theme_views.py` to new
+`tests/test_gtk_theme_accelerator_editor.py::TestGtkThemeAcceleratorEditor`,
+preserving its assertions and stock-provenance comment. Replace the comment's
+stale invariant line number with the accelerator-editor row's descriptive name.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`;
+set `CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`,
+importing `ROOT` from `support.repo_root` and `SELECTION` from
+`support.platinum_palette`. The method uses the base's parsed sheet data
+without a shared local helper. Update the source routing docstring and the
+moved anchor in the accelerator-editor row of `docs/invariants.md`, retaining
+the GTK 4 anchor and existing provenance. Search `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and `tests/support/` for
+other moved anchors. Theme sheets and GTK 4 tests need no changes.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named method in the destination without a duplicate
+  in views or inherited shared-control tests in the destination. Source and
+  destination pass independently through project check selectors.
+- The GTK 3 sheet retains exactly one `treeview.view acceleditor > label`
+  spelling with only the selection-fill declaration, and no other
+  `acceleditor` spelling. Changing that fill or adding an accelerator-editor
+  state selector fails the moved check.
+- Moving that rule before the selected header-drop group or after the
+  list-row focus group fails the moved order check.
+- Invariant anchors resolve and full `make check` passes. This relocation
+  adds no rendered-pixel claim or keyboard-mapping change.
+
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give GTK 3 header drag-feedback declaration checks a focused suite outside the oversized views module. This relocation is independent of the waiting paned-handle and pending message-dialog extractions.
