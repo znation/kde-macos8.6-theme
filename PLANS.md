@@ -116,48 +116,6 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
-
-
-### GTK 3 suite extraction: isolate paned-handle declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the split-handle declaration checks a focused suite outside
-the oversized views module. This relocation is independent of the waiting
-message-dialog extraction and the places-sidebar extraction being handled.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_paned_handle`,
-`test_paned_handle_background_images` and
-`test_paned_handle_direction_margins` from
-`tests/test_gtk_theme_views.py` to new
-`tests/test_gtk_theme_paned.py::TestGtkThemePaned`, preserving their bodies
-and stock-provenance comment. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, with
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"` and
-`ROOT` imported from `support.repo_root`. These methods use inherited
-assertions and local selectors; no shared helper extraction is needed.
-Update the source routing docstring and repoint the moved anchors in the
-paned etch and stock-clearance rows of `docs/invariants.md`, retaining
-their GTK 4 anchors and provenance. Search `docs/rendering.md`,
-`docs/fidelity.md`, `tests/test_ci_workflow.py` and `tests/support/` for
-other moved anchors. Keep sidebar-specific paned border checks in their
-sidebar suite; theme sheets and shared assertion helpers need no changes.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named methods in the destination without duplicate
-  methods in views or inherited shared-control tests in the destination.
-  Source and destination pass independently through the project check
-  selectors.
-- Horizontal and vertical handle checks retain their etched borders,
-  dimensions, cleared builtin icon and zero margins. Changing only the
-  horizontal handle's right border to 2px fails a moved check.
-- Base, selected, backdrop, wide and wide-backdrop handles retain their
-  `background-image: none` checks. Both horizontal direction arms retain
-  zero margin and padding checks; restoring 8px padding on just the RTL
-  arm fails a moved check.
-- Invariant anchors resolve and full `make check` passes. This relocation
-  adds no rendered-pixel claim.
-
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give GTK 3 header drag-feedback declaration checks a focused

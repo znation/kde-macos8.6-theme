@@ -5,7 +5,8 @@ This module owns the views-and-dialogs slice of
 the stack switcher, the list and icon-view focus outlines,
 the header's drop indicators, the spin-button field and title-button boxes.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
-Menu declarations
+Paned declarations
+are in ``tests/test_gtk_theme_paned.py``. Menu declarations
 are in ``tests/test_gtk_theme_menu.py``; shipped icon-source checks stay here. The
 sheet's comment blocks carry each value's provenance.
 """
@@ -687,30 +688,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
 
     def test_separator(self):
         self.assert_separators()
-
-    def test_paned_handle(self):
-        self.assert_paned_handles()
-
-    def test_paned_handle_background_images(self):
-        for selector in (
-            "paned > separator",
-            "paned > separator:selected",
-            "paned > separator:backdrop",
-            "paned > separator.wide",
-            "paned > separator.wide:backdrop",
-        ):
-            self.assert_rule(selector, {"background-image": "none"})
-
-    def test_paned_handle_direction_margins(self):
-        # Exact stock twins from the libgtk-3 theme CSS (libgtk-3 3.24.49,
-        # probed 2026-10-31): each :dir arm carries one class more than the
-        # existing orientation rules, so only a restatement clears their 8px
-        # margins and paddings.
-        for selector in (
-            "paned.horizontal > separator:dir(ltr)",
-            "paned.horizontal > separator:dir(rtl)",
-        ):
-            self.assert_rule(selector, {"margin": "0", "padding": "0"})
 
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
