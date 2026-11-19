@@ -20,6 +20,16 @@ from tools import firefox_profile, firefox_user_files
 
 
 class TestProfileResolution(FirefoxProfileTestCase):
+    def test_profile_text_read_reports_a_non_directory_parent(self):
+        blocker = self.root / "not-a-directory"
+        blocker.write_text("blocker", encoding="utf-8")
+        path = blocker / "user.js"
+
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            firefox_user_files.read_profile_text(path)
+
+        self.assertIn(str(path), str(caught.exception))
+
     def write_install_default(self, profile, section="Install4F96"):
         """Create *profile* and name it as the Default of one installs.ini section."""
         profile.mkdir(parents=True)
