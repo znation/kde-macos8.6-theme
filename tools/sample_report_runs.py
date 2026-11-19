@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import json
 
 if __package__:
     from tools.sample_report_common import (
-        hex, print_report_header, region_alpha, region_pixels, report_context,
+        hex, print_json_report, print_report_header, region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        hex, print_report_header, region_alpha, region_pixels, report_context,
+        hex, print_json_report, print_report_header, region_alpha, region_pixels, report_context,
     )
 
 
@@ -119,7 +118,7 @@ def report_runs(args, image, width: int, height: int, header: str) -> None:
     """Print the runs report: the region's same-color runs, as JSON or plain text."""
     result = _runs_result(args, image, width, height)
     if args.json:
-        print(json.dumps(result, ensure_ascii=True))
+        print_json_report(result)
         return
     print_report_header(header, args)
     print(f"axis: {result['axis']}")

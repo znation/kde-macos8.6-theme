@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import json
-
 if __package__:
     from tools.sample_report_common import (
-        hex, positioned_region_pixels, print_report_header, region_alpha,
-        report_context,
+        hex, positioned_region_pixels, print_json_report, print_report_header,
+        region_alpha, report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        hex, positioned_region_pixels, print_report_header, region_alpha,
-        report_context,
+        hex, positioned_region_pixels, print_json_report, print_report_header,
+        region_alpha, report_context,
     )
 
 
@@ -32,7 +30,7 @@ def report_pixels(args, image, width: int, height: int, header: str) -> None:
     """Print the ordinary single-pixel or rectangle report."""
     if args.json:
         pixels = list(_pixel_records(args, image))
-        print(json.dumps({**report_context(args, width, height), "pixels": pixels}, ensure_ascii=True))
+        print_json_report({**report_context(args, width, height), "pixels": pixels})
         return
     if args.width == 1 and args.height == 1:
         pixel = next(_pixel_records(args, image))

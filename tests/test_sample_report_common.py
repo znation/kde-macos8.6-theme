@@ -11,8 +11,8 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from tools.sample_report_common import (  # noqa: E402
     compact_json, format_image_header, hex, positioned_region_column_alpha,
     positioned_region_column_pixels, positioned_region_pixels,
-    print_report_header, region_alpha, region_from_args, region_pixels,
-    report_context,
+    print_json_report, print_report_header, region_alpha, region_from_args,
+    region_pixels, report_context,
 )
 
 
@@ -117,6 +117,16 @@ class TestCompactJson(unittest.TestCase):
     def test_uses_no_spaces_after_separators(self):
         self.assertEqual(compact_json({"a": [1, 2], "b": {"c": 3}}),
                          '{"a":[1,2],"b":{"c":3}}')
+
+
+class TestPrintJsonReport(unittest.TestCase):
+    """The --json line every sample report mode prints."""
+
+    def test_prints_one_ascii_escaped_json_line(self):
+        out = StringIO()
+        with redirect_stdout(out):
+            print_json_report({"image": "\u00e9", "n": 1})
+        self.assertEqual(out.getvalue(), '{"image": "\\u00e9", "n": 1}\n')
 
 
 class TestReportContext(unittest.TestCase):

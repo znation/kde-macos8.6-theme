@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from heapq import nsmallest
 
 if __package__:
     from tools.sample_report_common import (
-        compact_json, hex, positioned_region_pixels, print_report_header,
+        compact_json, hex, positioned_region_pixels, print_json_report, print_report_header,
         region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
-        compact_json, hex, positioned_region_pixels, print_report_header,
+        compact_json, hex, positioned_region_pixels, print_json_report, print_report_header,
         region_alpha, region_pixels, report_context,
     )
 
@@ -181,7 +180,7 @@ def report_histogram(args, image, width: int, height: int, header: str) -> None:
     """Print the histogram report: the region's counted colors, as JSON or plain text."""
     result = _histogram_result(args, image, width, height)
     if args.json:
-        print(json.dumps(result, ensure_ascii=True))
+        print_json_report(result)
         return
     print_report_header(header, args)
     if "color_offset" in result:

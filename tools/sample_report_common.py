@@ -51,6 +51,13 @@ def print_report_header(header: str, args) -> None:
     print_region_line(args)
 
 
+def print_json_report(document) -> None:
+    """Print one JSON document on one line, ASCII-escaped: the --json output
+    every sample report mode (pixels, runs, histogram, find-color) prints.
+    Four call sites, one per report module."""
+    print(json.dumps(document, ensure_ascii=True))
+
+
 def compact_json(obj) -> str:
     """Serialize obj as compact JSON, the format the sample reports embed list and
     mapping fields inside their plain-text lines. Eight call sites: six in the

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
 
 if __package__:
     from tools.sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
-        print_report_header, region_alpha,
+        print_json_report, print_report_header, region_alpha,
         report_context,
     )
     from tools.sample_match_runs import ColumnRuns, MatchRuns
@@ -16,7 +15,7 @@ else:  # run directly: python3 tools/sample.py
     from sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
-        print_report_header, region_alpha,
+        print_json_report, print_report_header, region_alpha,
         report_context,
     )
     from sample_match_runs import ColumnRuns, MatchRuns
@@ -169,7 +168,7 @@ def report_search(args, image, width: int, height: int, header: str) -> None:
     bounds = match["bounds"]
     color_hex = match["hex"]
     if args.json:
-        print(json.dumps({**report_context(args, width, height), "match": match}, ensure_ascii=True))
+        print_json_report({**report_context(args, width, height), "match": match})
         return
     print_report_header(header, args)
     print(f"color: {color_hex}")
