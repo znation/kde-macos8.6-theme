@@ -6,9 +6,9 @@ The render's end-to-end capture gates live in
 ``tests/test_render_failure_paths.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: KWin session command construction in
-``tools/render_session.py``, the capture paint check in
-``tools/render_workflow.py``. The session command and dialog argv checks
-live in ``tests/test_render_session_command.py``, the scratch-session
+``tools/render_session.py``. Capture-paint checks live in
+``tests/test_render_capture_paint.py``. The session command and dialog argv
+checks live in ``tests/test_render_session_command.py``, the scratch-session
 setup checks live in ``tests/test_render_session_setup.py``, and the
 session theme-source checks live in ``tests/test_render_session_theme_sources.py``,
 and the CLI calculator applet preflight checks live in
@@ -37,25 +37,6 @@ from tools import (
     render_session,
     render_workflow,
 )  # noqa: E402
-
-
-class TestCapturePaintCheck(unittest.TestCase):
-
-    def test_empty_rgb_plane_is_unpainted(self):
-        self.assertTrue(render_workflow._capture_is_unpainted(b""))
-
-    def test_any_nonblack_rgb_byte_marks_capture_as_painted(self):
-        self.assertFalse(render_workflow._capture_is_unpainted(b"\x00\x00\x01"))
-
-    def test_a_non_regular_log_keeps_the_generic_diagnosis(self):
-        # The bounded tail read goes through the open guard, which raises
-        # ValueError -- not OSError -- for a non-regular log, so a session
-        # log swapped for a FIFO must leave the black-capture diagnosis
-        # with its generic verdict instead of tracebacking out of the run.
-        root = tmp_dir.make_tmp_dir(self)
-        fifo = root / "session.log"
-        os.mkfifo(fifo)
-        self.assertFalse(render_workflow._client_exited_during_capture(fifo))
 
 
 class TestSessionScript(unittest.TestCase):
