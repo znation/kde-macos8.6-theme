@@ -153,6 +153,41 @@ Leave theme sheets and shared helpers unchanged.
 - Invariant anchors resolve, focused source and destination checks pass,
   and full `make check` passes. No rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate content-view declarations (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the content-view field and hover declaration checks a focused
+home outside `tests/test_gtk_theme.py`. The archived content-view plans
+supplied styling; this extraction is independent of the queued link-button
+and pending disabled-view extractions.
+
+**Approach and files touched.** Move
+`TestGtkTheme.test_content_view_background` and `test_content_view_hover`,
+preserving their bodies, into new
+`tests/test_gtk_theme_content_views.py::TestGtkThemeContentViews`.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
+binding `CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`
+with `ROOT` imported from `support.repo_root`. The base supplies sheet
+setup, `assert_view_background` and `assert_rule`; no shared helper move
+or test-module import is needed. Update the source routing docstring and
+repoint the moved anchors in `docs/invariants.md`, preserving provenance
+and the GTK 4 anchor in the shared content-view row. Recheck
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` for moved anchors. Leave the ordinary view-background
+check, theme sheets and shared helpers unchanged.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the destination class without
+  duplicates in `TestGtkTheme` or inherited shared-control tests in the
+  destination. Source and destination run independently through check selectors.
+- Base and backdrop content-view selectors retain exact white-field and
+  black-ink dictionaries and count-one assertions. Changing the backdrop
+  field to grey or duplicating its selector fails a moved check.
+- The hover selector retains the exact icon-effect reset dictionary;
+  replacing `none` with `highlight` fails the moved hover check.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
