@@ -118,44 +118,6 @@ behavior.
 
 
 
-### GTK 3 suite extraction: isolate message-dialog declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the message-dialog header and action-area declaration checks
-a focused suite outside the oversized views module. This relocation is
-independent of the waiting places-sidebar and menu extractions.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_message_dialog_header_band` and
-`test_message_dialog_action_area` from `tests/test_gtk_theme_views.py` to
-new `tests/test_gtk_theme_message_dialog.py::TestGtkThemeMessageDialog`,
-preserving their bodies and rationale comments. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, with
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"` and
-`ROOT` imported from `support.repo_root`. These methods use inherited
-assertions and the parsed sheet; no new shared helper is needed. Update
-the source module's routing docstring. Keep title-button and CSD-container
-corner tests in views. Repoint the moved method anchors in the GTK
-message-dialog row of `docs/invariants.md`, retaining its GTK 4 anchors,
-guarantee and provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
-Theme sheets and shared assertion helpers need no changes.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named methods in the destination without duplicate
-  methods in views or inherited shared-control tests in the new suite.
-  Source and destination pass independently through the project's check
-  selectors.
-- The header test retains the full active-header dictionary plus its 1px
-  bottom border, the full backdrop-header dictionary and square body
-  corners. Changing only `messagedialog .titlebar`'s bottom border width
-  to 2px fails a moved check.
-- The action-area test retains `4px 9px` button padding and both end arms'
-  zero `border-radius` and `-gtk-outline-radius` checks. Rounding either
-  end arm fails a moved check.
-- Invariant anchors resolve and full `make check` passes. This relocation
-  adds no rendered-pixel claim.
-
 ### GTK 3 suite extraction: isolate paned-handle declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the split-handle declaration checks a focused suite outside
