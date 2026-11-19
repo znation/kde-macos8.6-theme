@@ -118,31 +118,42 @@ behavior.
 
 ### Stylesheet sources, part 3/3: split the Firefox chrome and content sheets into partials (planned 2026-11-19 by the plan role; "requires part 1/3 landed")
 
-**Needs review 2026-11-19 by feature: plan defect — `chrome/userChrome.css` opens with one top-level comment spanning lines 1–802 (its only `/*` at column 0 is line 1, closed at line 802), so no cut at a top-level comment, rule or at-rule yields a partial of at most 500 lines starting at one. Cutting inside that comment would start a partial mid-comment, breaking the 'starts at a top-level comment' criterion. Options for the plan role: allow the header partial to exceed 500 lines when it is a single comment, or split the comment by inserting `*/` and `/*`, which changes shipped bytes and breaks the byte-identity criterion.**
-
 **Goal.** Give `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (1581 lines) and
 `userContent.css` (941 lines) per-family source partials, under the user's 2026-11-14 option 1
 answer. Concatenation needs no `@import`, so the Firefox relative-import question does not
 arise. Both shipped sheets stay byte-identical.
+
+**Header exception (revised 2026-11-19 by the plan role).** `userChrome.css` opens with one
+top-level comment spanning 802 lines (its first `*/` at column 0 closes it), so no legal cut
+inside it exists. Byte identity outranks the size cap: each Firefox sheet's `000-header.css`
+holds exactly that sheet's opening comment (through its closing `*/` line and the blank line
+after it) and is exempt from the 500-line cap. No `*/`/`/*` pair is inserted and no shipped
+byte changes. Every other Firefox partial keeps the cap.
 
 **Approach and files touched.** Add two pairs to `tools/make_sheets.py::SHEETS`:
 
 - `theme/firefox/src/userChrome` → the shipped `chrome/userChrome.css`
 - `theme/firefox/src/userContent` → the shipped `chrome/userContent.css`
 
-Split each sheet by part 1/3's cut, numbering and naming rules, at most 500 lines per partial.
-For a selector led by an `@-moz-document` or `@media` block, the slug is the block's first
-inner selector's leading name. The partials stay outside `theme/firefox/org.macos8.desktop/`,
-so `tools/install_firefox.py` and its file lists see no new file. Add a `## firefox` row to
-`docs/invariants.md` for the two concatenations. Extend part 1/3's README section to name the
-Firefox sheets.
+Split each sheet by part 1/3's cut, numbering and naming rules, with the header exception
+above. For a partial led by an `@-moz-document` or `@media` block, the slug is the block's
+first inner selector's leading name. The partials stay outside
+`theme/firefox/org.macos8.desktop/`, so `tools/install_firefox.py` and its file lists see no
+new file. In `tests/test_make_sheets.py`, add a Firefox counterpart to
+`TestShippedSheetIsFresh.test_every_gtk_partial_is_at_most_500_lines_and_starts_at_top_level`
+that applies the same start-of-partial check to every Firefox partial and the cap to every one
+but `000-header.css`, asserting instead that `000-header.css` starts with `/*`, holds exactly
+one comment, and its last non-blank line is `*/`. Add two `## firefox` rows to
+`docs/invariants.md` (one per sheet) in the shape of the GTK concatenation rows, stating the
+header exception. Extend part 1/3's README section to name the Firefox sheets.
 
 **Acceptance criteria.**
 
-- `python3 tools/make_sheets.py` exits 0 and leaves both Firefox sheets byte-identical, along
-  with every sheet already in the table.
-- Every Firefox partial is at most 500 lines and starts at a top-level comment, rule or
-  at-rule.
+- `python3 tools/make_sheets.py` exits 0 and leaves both Firefox sheets byte-identical
+  (`git diff` empty for them), along with every sheet already in the table.
+- Each Firefox `000-header.css` is exactly its sheet's opening comment; every other Firefox
+  partial is at most 500 lines and starts at a top-level comment, rule or at-rule.
+- A Firefox `000-header.css` that also carried a rule after its comment fails the new test.
 - If a contributor edits only a shipped Firefox sheet, the freshness test fails and names that
   sheet's source directory.
 - `make install-firefox` against a staged profile installs the same file set as before (the
