@@ -667,7 +667,5 @@ class TestProfileLock(FirefoxProfileTestCase):
         self.assert_profile_absent(self.sheet_path())
 
 
-
-
 if __name__ == "__main__":
     unittest.main()
