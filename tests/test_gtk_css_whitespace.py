@@ -40,36 +40,44 @@ class TestWhitespaceNormalization(unittest.TestCase):
     def test_non_css_whitespace_at_declaration_boundaries_is_preserved(self):
         for character in ("\u00a0", "\u2003", "\u000b"):
             with self.subTest(codepoint=f"U+{ord(character):04X}"):
-                for value, expected in ((f"{character}token", f"{character}token"),
-                                        (f"token{character}", f"token{character}"),
-                                        (f" \t{character}token{character}\r\n",
-                                         f"{character}token{character}"),
-                                        (character, character)):
-                    self.assertEqual(parse_css(f"a {{ content: {value}; }}")[1],
-                                     {"a": {"content": expected}})
-                with self.assertRaisesRegex(ValueError,
-                        r"^source\.css: malformed declaration in selector 'a':"):
-                    parse_css("a { \u00a0; }" if character == "\u00a0" else
-                              f"a {{ {character}; }}", source="source.css")
+                self._boundaries_preserve_or_refuse(character)
+
+    def _boundaries_preserve_or_refuse(self, character):
+        """Preserve non-CSS boundary whitespace or refuse a bare chunk."""
+        for value, expected in ((f"{character}token", f"{character}token"),
+                                (f"token{character}", f"token{character}"),
+                                (f" \t{character}token{character}\r\n",
+                                 f"{character}token{character}"),
+                                (character, character)):
+            with self.subTest(value=repr(value)):
+                self.assertEqual(parse_css(f"a {{ content: {value}; }}")[1],
+                                 {"a": {"content": expected}})
+        with self.assertRaisesRegex(ValueError,
+                r"^source\.css: malformed declaration in selector 'a':"):
+            parse_css("a { \u00a0; }" if character == "\u00a0" else
+                      f"a {{ {character}; }}", source="source.css")
         self.assertEqual(parse_css("a { ; \t\n\r\f; content: token \t; }")[1],
                          {"a": {"content": "token"}})
 
     def test_escaped_trailing_value_whitespace_is_preserved(self):
         for suffix in ("; color: red;", ""):
-            declarations = parse_css(f"a {{ --sample: token   {suffix}}}")[1]["a"]
-            expected = {"--sample": "token"}
-            if suffix:
-                expected["color"] = "red"
-            self.assertEqual(declarations, expected)
+            with self.subTest(suffix=suffix):
+                declarations = parse_css(f"a {{ --sample: token   {suffix}}}")[1]["a"]
+                expected = {"--sample": "token"}
+                if suffix:
+                    expected["color"] = "red"
+                self.assertEqual(declarations, expected)
         for whitespace, slash_count, suffix in itertools.product(
                 (" ", "\t"), (1, 2, 3), ("; color: red;", "")):
-            value = "token" + "\\" * slash_count + whitespace
-            declarations = parse_css(f"a {{ --value: {value}   {suffix}}}")[1]["a"]
-            expected = "token" + "\\" * slash_count + (
-                whitespace if slash_count % 2 else "")
-            self.assertEqual(declarations["--value"], expected)
-            if suffix:
-                self.assertEqual(declarations["color"], "red")
+            with self.subTest(whitespace=repr(whitespace), slashes=slash_count,
+                              suffix=suffix):
+                value = "token" + "\\" * slash_count + whitespace
+                declarations = parse_css(f"a {{ --value: {value}   {suffix}}}")[1]["a"]
+                expected = "token" + "\\" * slash_count + (
+                    whitespace if slash_count % 2 else "")
+                self.assertEqual(declarations["--value"], expected)
+                if suffix:
+                    self.assertEqual(declarations["color"], "red")
         self.assertEqual(parse_css("a { --value: token\\\\ ; }")[1],
                          {"a": {"--value": "token\\\\"}})
         self.assertEqual(parse_css('a { --value: "token "; }')[1],
