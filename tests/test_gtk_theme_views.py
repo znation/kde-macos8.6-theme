@@ -256,7 +256,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 f"{scope} button.titlebutton image", TITLE_BUTTON_IMAGE
             )
 
-
     def test_vertical_stepper_and_content_view_check_corners(self):
         """Pin the vertical steppers and content-view check faces square.
 
