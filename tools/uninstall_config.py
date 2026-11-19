@@ -35,11 +35,11 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 if __package__:
-    from tools.containment import open_regular_binary
+    from tools.containment import read_capped_bytes
     from tools.text_lines import strip_bom
     from tools.xdg_homes import config_home as resolve_config_home
 else:  # imported from a directly run tool
-    from containment import open_regular_binary
+    from containment import read_capped_bytes
     from text_lines import strip_bom
     from xdg_homes import config_home as resolve_config_home
 
@@ -83,19 +83,17 @@ def read_text(path: str) -> str | None:
     selection against a value the cap cut short and misreport one that the
     whole file would have named differently.
 
-    The path is opened through :func:`containment.open_regular_binary`, as
-    every other bounded reader here opens its files: the check runs on the
-    opened descriptor, so a regular file swapped for a FIFO between a path
-    check and the open of a blocking ``open()`` cannot hang the run waiting
-    for a writer that never comes, and a FIFO or device is left unread and
-    silent like any other unreadable file.
+    The bytes come through :func:`containment.read_capped_bytes`, which opens
+    the path via ``open_regular_binary``: the check runs on the opened
+    descriptor, so a regular file swapped for a FIFO between a path check and
+    the open of a blocking ``open()`` cannot hang the run waiting for a writer
+    that never comes, and a FIFO or device is left unread and silent like any
+    other unreadable file. Its refusals (unreadable, non-regular, over the cap)
+    all map to ``None`` here.
     """
     try:
-        with open_regular_binary(path) as handle:
-            data = handle.read(_MAX_CONFIG_BYTES + 1)
+        data = read_capped_bytes(path, _MAX_CONFIG_BYTES, "", error=ValueError)
     except (OSError, ValueError):
-        return None
-    if len(data) > _MAX_CONFIG_BYTES:
         return None
     return data.decode("utf-8", errors="surrogateescape")
 
