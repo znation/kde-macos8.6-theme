@@ -2,8 +2,9 @@
 
 This module owns the views-and-dialogs slice of
 ``tests/test_gtk_theme.py``'s split: the file chooser's path-bar tabs,
-the stack switcher, the list and icon-view focus outlines,
-the header's drop indicators, the spin-button field and title-button boxes.
+the stack switcher, the list and icon-view focus outlines, the spin-button
+field and title-button boxes. Header drag-and-drop declarations are in
+``tests/test_gtk_theme_drag_drop.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
@@ -163,43 +164,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 self.selectors.index("radio:checked"),
                 selector,
             )
-
-    def test_header_drop_indicator(self):
-        targets = ("", "header.", "header ")
-        states = (
-            "button.dnd",
-            "button.dnd:hover",
-            "button.dnd:active",
-            "button.dnd:selected",
-        )
-        selectors = [
-            f"treeview.view {target}{state}"
-            for target in targets
-            for state in states
-        ]
-        self.assertEqual(len(selectors), 12, selectors)
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assert_rule(
-                    selector,
-                    {
-                        "background-color": SELECTION,
-                        "background-image": "none",
-                        "color": BLACK,
-                        "text-shadow": "none",
-                        "box-shadow": "none",
-                        "border-style": "none",
-                        "border-radius": "0",
-                    },
-                )
-
-    def test_header_drop_arm_carries_no_padding(self):
-        self.assertNotIn(
-            "padding", self.rules["treeview.view button.dnd"]
-        )
-
-    def test_no_dndtarget_node_declared(self):
-        self.assertNotIn("dndtarget", self.css)
 
     def test_view_accelerator_editor(self):
         # The stock label face tints the view family's on-screen

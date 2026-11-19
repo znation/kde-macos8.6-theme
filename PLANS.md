@@ -116,44 +116,6 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give GTK 3 header drag-feedback declaration checks a focused
-suite outside the oversized views module. This relocation is independent
-of the waiting paned-handle and pending message-dialog extractions.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_header_drop_indicator`,
-`test_header_drop_arm_carries_no_padding` and
-`test_no_dndtarget_node_declared` from `tests/test_gtk_theme_views.py` to
-new `tests/test_gtk_theme_drag_drop.py::TestGtkThemeDragDrop`, preserving
-their bodies. Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and
-`unittest.TestCase`; set
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`, importing
-`ROOT` from `support.repo_root` and `BLACK` and `SELECTION` from
-`support.platinum_palette`. The base supplies sheet parsing and assertions;
-no shared helper change is needed. Update the source routing docstring and
-repoint the moved anchors in the GTK 3 drag-and-drop row of
-`docs/invariants.md`, retaining its guarantee and stock-resource provenance.
-Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
-and `tests/support/` for other moved anchors. Keep GTK 4 coverage and GTK 3
-rubberband checks in their existing suites; theme sheets need no changes.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named methods in the destination without duplicate
-  methods in views or inherited shared-control tests in the destination.
-  Source and destination pass independently through project check selectors.
-- The plain, legacy dotted-header and spaced-header selector spellings,
-  each with plain, hover, active and selected states, retain selection fill,
-  black ink, cleared background image and shadows, no border and zero
-  radius checks. Changing just the legacy hovered header arm's fill fails
-  a moved check.
-- Adding padding to `treeview.view button.dnd` or declaring a `dndtarget`
-  node in the GTK 3 sheet fails a moved check.
-- Invariant anchors resolve and full `make check` passes. This relocation
-  adds no rendered-pixel claim.
-
 ### GTK 3 suite extraction: isolate accelerator-editor declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the on-screen accelerator-editor declaration check a focused

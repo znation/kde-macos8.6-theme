@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give GTK 3 header drag-feedback declaration checks a focused suite outside the oversized views module. This relocation is independent of the waiting paned-handle and pending message-dialog extractions.
+
+**Approach and files touched.** Move the three header drag-and-drop checks from `tests/test_gtk_theme_views.py` to `tests/test_gtk_theme_drag_drop.py::TestGtkThemeDragDrop`, preserving their bodies and shared base. Update the source routing docstring and moved anchors in `docs/invariants.md`. Keep GTK 4 coverage, GTK 3 rubberband checks and theme sheets unchanged.
+
+**Acceptance criteria.** Discovery exposes the checks in the destination without duplicates in views or inherited shared-control tests in the destination. The selector state, padding and `dndtarget` checks remain intact. Invariant anchors resolve and full `make check` passes; this relocation adds no rendered-pixel claim.
+
 ### GTK 3 suite extraction: isolate paned-handle declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the split-handle declaration checks a focused suite outside
