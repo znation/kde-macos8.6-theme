@@ -194,6 +194,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_the_right_half_draws_its_live_content (test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Needs review 2026-11-19 by director: Decide whether to park pending a recurrence with the new missing-capture diagnostic and complete render stderr/log tail (recommended), or commission deeper investigation of the KWin session exit path now. Code review confirms session_script saves Spectacle's status and exits with it after client cleanup; run_logged instead observes dbus-run-session wrapping kwin_wayland --exit-with-session, so its zero result alone does not establish that Spectacle completed. The excerpt does not distinguish a wrapper/compositor exit from Spectacle reporting success without a capture, and the absent log tail does not establish an empty log. The cause remains unresolved; leave this entry open.**
+
 **Director handoff 2026-11-19**
 
 Bugfix run 2026-11-19: not reproduced. Focused runs of `test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content` were not repeated this run; the earlier entries (106-192) record that the focused gate passes locally. The render tool's missing-capture branch (`tools/render_workflow.py`) now names the state when the session exits 0 without writing `surface.png`, and reports the render log's size. Regression test: `test_render_failure_paths.TestFailurePaths.test_session_without_a_capture_exits_1` fails on the old message and passes with the change. Next failure should show whether the session exited 0 with an empty log. See `.tumwater-director-request.md`.
