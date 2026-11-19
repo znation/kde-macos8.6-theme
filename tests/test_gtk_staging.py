@@ -235,6 +235,30 @@ class TestCommit(StagingCase):
         self.assertEqual("old good\n", good.read_text(encoding="utf-8"))
         self.assertEqual([], self.backups_of(good))
         self.assertEqual([], self.backups_of(blocked))
+
+    def test_rollback_restores_a_symlink_target_it_replaced(self):
+        referent = self.root / "real-settings.ini"
+        referent.write_bytes(b"referent settings\n")
+        link = self.root / "settings.ini"
+        link.symlink_to(referent)
+        blocked = self.root / "blocked.ini"
+        blocked.write_bytes(b"old blocked\n")
+        staged = stage_all(
+            [(link, "new settings\n"), (blocked, "new blocked\n")]
+        )
+
+        with mock.patch.object(
+            os, "replace", self.fail_the_staged_rename(blocked)
+        ):
+            with self.assertRaises(ConfigError):
+                commit(staged)
+
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(referent, link.resolve())
+        self.assertEqual(b"referent settings\n", referent.read_bytes())
+        self.assertEqual(b"old blocked\n", blocked.read_bytes())
+        self.assertEqual([], self.backups_of(link))
+        self.assertEqual([], self.backups_of(blocked))
         # commit()'s finally clause discards every staged file, including the
         # ones it has not renamed yet, so no `.staging` sibling is left over.
         for _, staging in staged:
