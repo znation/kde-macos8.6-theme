@@ -118,6 +118,8 @@ behavior.
 
 ### Stylesheet sources, part 3/3: split the Firefox chrome and content sheets into partials (planned 2026-11-19 by the plan role; "requires part 1/3 landed")
 
+**Needs review 2026-11-19 by feature: plan defect — `chrome/userChrome.css` opens with one top-level comment spanning lines 1–802 (its only `/*` at column 0 is line 1, closed at line 802), so no cut at a top-level comment, rule or at-rule yields a partial of at most 500 lines starting at one. Cutting inside that comment would start a partial mid-comment, breaking the 'starts at a top-level comment' criterion. Options for the plan role: allow the header partial to exceed 500 lines when it is a single comment, or split the comment by inserting `*/` and `/*`, which changes shipped bytes and breaks the byte-identity criterion.**
+
 **Goal.** Give `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (1581 lines) and
 `userContent.css` (941 lines) per-family source partials, under the user's 2026-11-14 option 1
 answer. Concatenation needs no `@import`, so the Firefox relative-import question does not
@@ -145,60 +147,6 @@ Firefox sheets.
   sheet's source directory.
 - `make install-firefox` against a staged profile installs the same file set as before (the
   existing install tests pass unchanged), and `make check` passes after the final edit.
-
-### GTK stylesheet parser tests: move the declaration-cascade cases into their own module (planned 2026-11-19 by the plan role)
-
-**Goal.** `tests/test_gtk_css.py` is 1170 lines. Its `TestRuleBlockSemantics` class alone is
-about 950 lines and mixes rule pairing, grouping, whitespace, `@define-color` and
-declaration-cascade cases. PRINCIPLES.md asks each file to stay small enough to read in one
-sitting. This plan moves the cases that pin how declarations merge into a new module: name
-canonicalization, the escaped-colon separator, later-wins replacement and `!important`
-priority. It changes no parser behavior. It is independent of the "Stylesheet sources" series,
-which touches no parser test.
-
-**Approach and files touched.**
-
-- New `tests/test_gtk_css_cascade.py` with one class, `TestDeclarationCascade(unittest.TestCase)`,
-  and a module docstring saying it pins `support.gtk_css.parse_css`'s declaration merging:
-  name decoding and case folding, the first-unescaped-colon split, later-wins replacement and
-  `!important` priority. Import only what the moved tests use: `itertools` and `parse_css`.
-  Move these `TestRuleBlockSemantics` methods verbatim, keeping their names and bodies:
-  - `test_escaped_colons_in_declaration_names`, `test_escaped_colon_without_separator_is_malformed`
-  - `test_a_later_block_replaces_an_earlier_declaration`
-  - every method from `test_ordinary_declaration_names_fold_ascii_case` through
-    `test_custom_property_names_and_non_ascii_name_characters_are_preserved`, in file order
-  - every method from `test_important_declarations_win_with_later_ties` through
-    `test_important_scanner_ignores_strings_urls_and_escaped_bangs`, including the private
-    helpers `_important_keyword_with_trailing` and `_important_keyword_form`, which only those
-    tests call
-- `tests/test_gtk_css.py`: delete the moved methods. Keep `itertools`; a remaining
-  whitespace test still uses `itertools.product`. Keep the other imports and every remaining
-  class. The empty-custom-property, grouping, whitespace, brace, `@define-color` and hostile-sheet
-  cases stay.
-- `docs/invariants.md`, section "GTK shared stylesheet parser": rewrite each
-  `tests/test_gtk_css.py::TestRuleBlockSemantics::<name>` anchor whose test moved to
-  `tests/test_gtk_css_cascade.py::TestDeclarationCascade::<name>`. These anchors are in the
-  declaration-name, escaped-colon and priority rows. Leave anchors for tests that stay.
-- Grep `tests/support/validation_gaps/*.py`, `docs/rendering.md`,
-  `docs/fidelity.md` and `tests/test_ci_workflow.py` for the moved test names. Today only
-  `unclear_invariant.py` names a `TestRuleBlockSemantics` test, and it names
-  `test_a_define_color_inside_a_quoted_value_is_text`, which stays. Update any other hit you
-  find.
-- Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors and are not edited.
-
-**Acceptance criteria.**
-
-- `tests/test_gtk_css_cascade.py` defines `TestDeclarationCascade` holding each test listed
-  above, with the same name and body. None of those names remains in `tests/test_gtk_css.py`
-  (check with `grep -n 'def test_important_\|def test_escaped_colon\|declaration_names\|def test_custom_property_names\|test_a_later_block' tests/test_gtk_css.py`).
-- Both files are under 900 lines (`wc -l`). Running the suite with `make check` executes every
-  moved test from its new module; none is lost or duplicated. To verify, compare the method
-  names collected from both files, before and after, to the original class's set.
-- In `docs/invariants.md`, every anchor naming a moved test points at
-  `tests/test_gtk_css_cascade.py::TestDeclarationCascade`. No anchor still pairs a moved test
-  with `TestRuleBlockSemantics`. The existing invariants-anchor test passes.
-- No file under `tests/support/` or `theme/` changes.
-- `make check` passes after the final edit.
 
 ## Done
 
