@@ -152,6 +152,46 @@ records stay historical. Do not import one test module from another.
 - The invariant register resolves the new anchor and `make check` passes after the final
   edit.
 
+### Cursor artifact tests: isolate vector text and hand pins (planned 2026-11-19 by the plan role)
+
+**Goal.** Make the vector I-beam and pointing-hand artifact contract readable in a
+focused module instead of inside `tests/test_cursors_theme.py`. This is independent
+of the waiting GTK extractions and changes test organization only.
+
+**Approach and files.** Move `TestVectorPointerArtifacts`, including its design-point
+docstring, `EXPECTATIONS`, helper methods and test bodies, to
+`tests/test_cursors_vector_artifacts.py`. Keep its class and method names. Extract
+the shared `PACKAGE`, `CURSORS`, `SIZES`, `HOTSPOTS`, `BLACK`, `WHITE`, `TRANSPARENT`,
+`_pixel` and `_read_cursor` definitions into a new
+`tests/support/cursor_artifact_cases.py`; both test modules import what they use.
+Keep the full literal hotspot table together, preserving its independent expected
+values rather than deriving them from production art. Move the `xcursor_reader`
+import with `_read_cursor`; the independent reader remains `support.xcursor`.
+Keep `_scaled`, `_repo_bytes` and the remaining cursor-set fixtures in the original
+module. The new test module also imports `unittest` and `tools.png.decode_rgba`.
+Update the original module's opening docstring to locate the vector-pointer pins.
+Update the cursor-set row in `docs/invariants.md` to point its
+`TestVectorPointerArtifacts` anchor at the new module. Search `tests/`, `docs/`
+and `README.md` for other live references to the moved class and methods, including
+comments in `TestCursorSet`; historical plan records stay historical. No test module
+imports another test module. Leave `support/cursor_theme_fixtures.py` focused on
+staging installed themes.
+
+**Acceptance criteria.**
+
+- Normal discovery and a focused run of `test_cursors_vector_artifacts` execute the
+  moved class; `test_cursors_theme` no longer defines it.
+- The retained fixtures check xterm hotspots `(7,7)`, `(11,11)`, `(15,15)` and hand2
+  hotspots `(7,2)`, `(10,3)`, `(14,4)` at sizes 16/24/32. They still pin the existing
+  black and white design points, opaque hotspots, transparent corners and partly
+  covered edge pixels. Opaque intermediate grey remains required for xterm at 24
+  and hand2 at each nominal size.
+- The moved assertion bodies and fixture values survive relocation without semantic
+  edits; the remaining arrow and cursor-set tests still discover and pass. Production
+  tools and shipped cursor files have no diff.
+- The invariant register resolves the moved anchor, and `make check` passes after
+  the final edit.
+
 ## Done
 
 ### GTK stylesheet parser tests: move the rule-block brace-pairing cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the review role
