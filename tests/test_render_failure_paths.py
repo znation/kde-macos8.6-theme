@@ -489,12 +489,14 @@ class TestFailurePaths(StubTools):
         # The session exits 0 but never writes the PNG. The diagnostic must
         # say so and report the render log's size, so a zero-status run with
         # no capture is not indistinguishable from a session that logged.
+        # The stub logs exactly six bytes ("hello\n") before exiting 0.
+        self.stub("dbus-run-session", "printf 'hello\\n'; exit 0")
         status, stderr, output = self.run_main()
         self.assert_failed_run(
             status, stderr, output, 1,
             "not a readable PNG",
             "the session exited 0 and wrote no capture",
-            "(render log ",
+            "(render log 6 bytes)",
         )
 
     def stub_live_session(self, plasmawindowed_body):
