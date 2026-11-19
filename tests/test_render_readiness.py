@@ -58,6 +58,34 @@ class TestRenderReadiness(unittest.TestCase):
         with self.assertRaises(ProcessLookupError):
             os.kill(int(monitor_pid.read_text()), 0)
 
+    def test_qdbus_is_used_when_qdbus6_is_unavailable(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        calls = root / "qdbus.calls"
+        write_executable(
+            bindir / "dbus-monitor",
+            "#!/bin/sh\necho 'member=ClientReady'\nexec sleep 30\n",
+        )
+        write_executable(
+            bindir / "qdbus",
+            "#!/bin/sh\n"
+            f"echo \"$*\" >> {calls}\n"
+            "case \"$*\" in *loadScript*) echo 7;; esac\n",
+        )
+        for tool in ("sleep", "mkfifo", "date", "rm", "touch", "sed"):
+            (bindir / tool).symlink_to(f"/usr/bin/{tool}")
+
+        status = self._session(root, str(bindir), 15)
+        log = (root / "session.log").read_text(encoding="utf-8")
+
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: client ready at", log)
+        recorded_calls = calls.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(2, len(recorded_calls))
+        self.assertTrue(recorded_calls[0].endswith("loadScript /scratch/readiness.js"))
+        self.assertTrue(recorded_calls[1].endswith("/Scripting/Script7 run"))
+
     def test_the_listener_ignores_unrelated_dbus_members_until_client_ready(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
