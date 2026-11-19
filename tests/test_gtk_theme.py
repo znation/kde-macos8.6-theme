@@ -7,7 +7,9 @@ theme's adaptation. This module holds the sheet-level invariants and the
 windows and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
 ``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar, assistant
- sidebar, auxiliary band, application notification, round-button corner and disabled-view declarations live in focused suites.
+sidebar, auxiliary band, application notification and round-button corner
+declarations live in focused suites. Disabled-view declarations live in
+``test_gtk_theme_disabled_views.py``.
 Secondary-label ink and opacity declarations live in
 ``test_gtk_theme_label_inks.py``.
 """
