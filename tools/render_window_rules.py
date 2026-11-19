@@ -113,9 +113,7 @@ def focus_settle_text() -> str:
 
 def write_focus_settle_script(session: Session) -> Path:
     """Write the focus-settle KWin script into *session*'s scratch root."""
-    path = session.root / FOCUS_SETTLE_SCRIPT
-    write_bytes_atomically(path, focus_settle_text().encode("utf-8"))
-    return path
+    return _write_session_script(session, FOCUS_SETTLE_SCRIPT, focus_settle_text())
 
 
 def readiness_settle_text() -> str:
@@ -148,8 +146,15 @@ def readiness_settle_text() -> str:
 
 def write_readiness_settle_script(session: Session) -> Path:
     """Write the readiness KWin script into *session*'s scratch root."""
-    path = session.root / READINESS_SETTLE_SCRIPT
-    write_bytes_atomically(path, readiness_settle_text().encode("utf-8"))
+    return _write_session_script(
+        session, READINESS_SETTLE_SCRIPT, readiness_settle_text()
+    )
+
+
+def _write_session_script(session: Session, name: str, text: str) -> Path:
+    """Atomically write UTF-8 script *text* to a named session-root file."""
+    path = session.root / name
+    write_bytes_atomically(path, text.encode("utf-8"))
     return path
 
 
