@@ -116,6 +116,18 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
+### Reference-pixel sampler: split command-line declaration groups (planned 2026-11-18 by the organize role)
+
+**Goal.** Make the sampler's command-line interface easier to inspect by separating its large parser declaration from its validation logic. `tools/sample_arguments.py` is 317 lines, versus a production Python median near 165; `build_parser` begins at line 166 and contains the long sequence of option declarations, while `option_error` and `region_error` are separate validation responsibilities.
+
+**Approach and files touched.** Keep `tools/sample_arguments.py` as the compatibility entry point exporting `build_parser`, `option_error`, `region_error`, and the scalar validators it currently re-exports. Move parser construction into a focused `tools/sample_parser.py`; leave `build_parser` in `sample_arguments.py` as a delegating wrapper. Divide declarations in `sample_parser.py` into small private helpers by responsibility: positional and region arguments, histogram options, run options, and find-color options. Keep the mutually exclusive mode group assembled in `sample_parser.build_parser` in the existing order, passing that group to the mode-specific helpers as needed. Update the documented source-routing comment and import sites only where necessary; search source, tests, and Markdown for moved names and stale references. Do not change flags, defaults, help text, validation order, or parse behavior. Files expected: `tools/sample_arguments.py`, new `tools/sample_parser.py`, relevant argument-parser tests and source-routing documentation only if their references need updating.
+
+**Acceptance criteria.**
+
+- Existing parser and CLI tests pass with the same parsed namespace, option conflicts, help text, and direct-script/package behavior.
+- Each declaration helper owns one option family, and `sample_arguments.build_parser` remains the supported import path.
+- No stale module or moved-helper references remain in source, tests, or Markdown; `make check` passes after the final edit.
+
 ### GTK 3 suite extraction: isolate path-bar declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the file chooser breadcrumb declaration check a focused
