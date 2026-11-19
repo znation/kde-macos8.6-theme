@@ -142,6 +142,41 @@ unchanged.
 - Focused checks for both modules and full `make check` pass after the
   move. No live-session validation claim is added.
 
+### Apply suite extraction: isolate aggregate Make target checks (planned 2026-11-18 by the plan role)
+
+**Goal.** Give aggregate `make apply` recipe checks a focused module outside
+the oversized `tests/test_apply_theme.py`. This is independent of the queued
+optional-helper extraction and the pending KWin reconfigure extraction.
+
+**Approach and files touched.** Move `TestMakeApply` with its fixtures and
+assertions to new `tests/test_make_apply.py`. Import `shutil`, `tempfile`,
+`unittest`, `Path`, `support.theme_install` and the existing
+`support.process_assertions` assertions directly; no test-module import or
+shared fixture extraction is needed. Update the source routing docstring
+and remove `theme_install`, `assert_failed` and `assert_succeeded` imports
+there once unused. Repoint the aggregate apply and keyboard-preservation
+rows in `docs/invariants.md` to the moved methods. Search documentation,
+`tests/test_ci_workflow.py` and `tests/support/` for additional moved
+anchors. Keep the Makefile and production helpers unchanged. The archive
+mentions this class as a model for GTK tests, rather than a finished
+extraction; leave historical plan text intact.
+
+**Acceptance criteria.**
+
+- Discovery finds `TestMakeApply` in the new module without a duplicate
+  definition in the source; both modules run independently through the
+  existing check selector.
+- A hostile DESTDIR fails with the shell-metacharacter diagnostic and
+  creates no canary file. A nonempty scratch DESTDIR fails before the
+  apply helper appears in either output stream.
+- Dry-run output orders installation, Plasma, GTK, optional cursor and
+  optional Firefox application in that sequence, without a keymap helper.
+- Help lists `apply`, omits both retired keymap targets, and attempting
+  either keymap target fails with the missing-rule diagnostic.
+- Focused checks for both modules and full `make check` pass. These tests
+  exercise refusals, help and dry-run recipes without selecting a theme
+  in the user's session.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
