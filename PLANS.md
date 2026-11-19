@@ -147,6 +147,44 @@ stylesheets and production tools unchanged.
 - Invariant anchors resolve, focused source and destination checks pass,
   and full `make check` passes. No rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the application notification band and frame checks a focused
+suite outside `tests/test_gtk_theme.py`. This extraction is independent of
+the notebook and infobar entries; notification button-state checks stay
+with the existing OSD coverage.
+
+**Approach and files touched.** Move `TestGtkTheme.test_app_notification_band`
+and `test_app_notification_frame_border`, preserving bodies and comments,
+to new `tests/test_gtk_theme_notification.py::TestGtkThemeNotification`.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
+setting `CSS_PATH` to
+`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+Import `ROOT` from `support.repo_root`, `gtk_css` from `support`,
+`BLACK`, `FACE` and `WHITE` from `support.platinum_palette`, and
+`ETCH_DARK` from `support.gtk_theme_spec`, plus `re` and `unittest`.
+Do not inherit `GtkSharedControlCases` or import another test module.
+Update the source routing docstring and prune imports only when unused.
+Repoint the moved anchors in `docs/invariants.md`, preserving their
+provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
+Leave shared helpers, stylesheets and production tools unchanged.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the new class without duplicates
+  in `TestGtkTheme` or inherited shared-control tests in the new module.
+  Source and destination run independently through check selectors.
+- Notification base, frame and backdrop declarations still require the
+  existing face, ink, square corners and etched edge. Reversing the border
+  reset and bottom-border declarations fails the extracted checks.
+- The exact notification selector census remains checked; an added
+  notification selector fails. Direct border children still require
+  precisely the border-style and box-shadow resets, so a restored frame
+  shadow fails.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
