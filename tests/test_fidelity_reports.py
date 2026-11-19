@@ -186,8 +186,8 @@ class TestReportData(unittest.TestCase):
         ])
         self.assertEqual(data["thresholds"],
                          {"tolerance": 0, "max_mae": None, "max_frac": None})
-        self.assertEqual(data["candidate_crop"], None)
-        self.assertEqual(data["candidate_difference_bounds"], None)
+        self.assertIsNone(data["candidate_crop"])
+        self.assertIsNone(data["candidate_difference_bounds"])
         self.assertIs(data["passed"], False)
 
     def test_the_requested_records_appear_only_when_requested(self):

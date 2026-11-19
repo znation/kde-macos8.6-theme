@@ -214,7 +214,7 @@ class TestUserDefault(StubKonsoleTools):
 
     def test_a_user_default_profile_gets_the_font(self):
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         text = self.read(self.profile)
         self.assertIn(f"Font={FONT}\n", text)
         self.assertNotIn("Liberation Mono", text)
@@ -225,7 +225,7 @@ class TestUserDefault(StubKonsoleTools):
         # must survive a font apply untouched, in place.
         before = self.without_font_lines(self.read(self.profile))
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(
             before, self.without_font_lines(self.read(self.profile))
         )
@@ -233,15 +233,15 @@ class TestUserDefault(StubKonsoleTools):
     def test_konsolerc_is_untouched(self):
         before = self.read(self.konsolerc)
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(before, self.read(self.konsolerc))
 
     def test_a_repeat_apply_leaves_the_profile_the_same(self):
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         once = self.read(self.profile)
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(once, self.read(self.profile))
 
 
@@ -257,7 +257,7 @@ class TestSystemDefault(StubKonsoleTools):
     def test_a_system_default_profile_is_copied_then_edited(self):
         before = self.system_profile.read_bytes()
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(before, self.system_profile.read_bytes())
         self.assertEqual(
             self.without_font_lines(FOREIGN_PROFILE),
@@ -275,7 +275,7 @@ class TestSystemDefault(StubKonsoleTools):
         self.write_profile(self.data, "Mine.profile", marker)
         before = self.system_profile.read_bytes()
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(before, self.system_profile.read_bytes())
         text = self.read(self.local_profile)
         self.assertIn("Extra=user edit\n", text)
@@ -283,10 +283,10 @@ class TestSystemDefault(StubKonsoleTools):
 
     def test_a_repeat_apply_keeps_the_earlier_copy(self):
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         copied = self.local_profile.read_bytes()
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(copied, self.local_profile.read_bytes())
         self.assertNotEqual(
             self.system_profile.read_bytes(), self.local_profile.read_bytes()
@@ -298,7 +298,7 @@ class TestSystemDefault(StubKonsoleTools):
         )
         before = other.read_bytes()
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(before, other.read_bytes())
 
 
@@ -306,7 +306,7 @@ class TestFallback(StubKonsoleTools):
     def test_an_unset_default_creates_and_selects_the_platinum_profile(self):
         self.write_konsolerc("[General]\nColorScheme=BreezeLight\n")
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         profile = self.profile_dir / "Platinum.profile"
         text = self.read(profile)
         self.assertIn("Name=Platinum\n", text)
@@ -323,7 +323,7 @@ class TestFallback(StubKonsoleTools):
         # creates it, so the konsolerc selection write cannot fail on a
         # missing parent directory.
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertTrue(self.konsolerc.is_file(), self.konsolerc)
         self.assertIn(
             "[Desktop Entry]\nDefaultProfile=Platinum.profile\n",
@@ -332,11 +332,11 @@ class TestFallback(StubKonsoleTools):
 
     def test_a_repeat_apply_rewrites_the_same_keys(self):
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         konsolerc = self.read(self.konsolerc)
         profile = self.read(self.profile_dir / "Platinum.profile")
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(konsolerc, self.read(self.konsolerc))
         self.assertEqual(profile, self.read(self.profile_dir / "Platinum.profile"))
         for key in ("Name", "Parent", "Font"):
@@ -359,7 +359,7 @@ class TestFallback(StubKonsoleTools):
         profile = self.profile_dir / "Platinum.profile"
         konsolerc = self.read(self.konsolerc)
         status, stderr = self.apply_font()
-        self.assertEqual(None, status, stderr)
+        self.assertIsNone(status, stderr)
         self.assertEqual(konsolerc, self.read(self.konsolerc))
         self.assertIn(f"Font={FONT}\n", self.read(profile))
 
