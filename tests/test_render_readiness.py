@@ -58,6 +58,32 @@ class TestRenderReadiness(unittest.TestCase):
         with self.assertRaises(ProcessLookupError):
             os.kill(int(monitor_pid.read_text()), 0)
 
+    def test_the_listener_ignores_unrelated_dbus_members_until_client_ready(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        write_executable(
+            bindir / "dbus-monitor",
+            "#!/bin/sh\n"
+            "echo 'member=PropertiesChanged'\n"
+            "sleep 0.3\n"
+            "echo 'member=ClientReady'\n"
+            "exec sleep 30\n",
+        )
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        for tool in ("sleep", "mkfifo"):
+            (bindir / tool).symlink_to(f"/usr/bin/{tool}")
+
+        started = time.monotonic()
+        status = self._session(root, f"{bindir}:/usr/bin:/bin", 15)
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+
+        self.assertEqual(0, status, log)
+        self.assertGreaterEqual(elapsed, 0.25, log)
+        self.assertLess(elapsed, 10, log)
+        self.assertIn("render-session: client ready at", log)
+
     def test_paint_grace_does_not_extend_the_settle_ceiling(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
