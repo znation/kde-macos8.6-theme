@@ -35,7 +35,7 @@ from support.render_gates import (
     software_renderer_skip_reason,
 )
 from tools.fidelity_metrics import compare, crop  # noqa: E402
-from tools.png import pixel_at, read_png  # noqa: E402
+from tools.png import Image, pixel_at, read_png  # noqa: E402
 
 
 REFERENCE = str(
@@ -1197,6 +1197,21 @@ class TestSplashRender(PixelPins, unittest.TestCase):
                 self.assertEqual(
                     self.FILL_COLOUR, hex_colour(pixel_at(image, x, y))
                 )
+
+
+class TestDesktopPixelDiagnostic(unittest.TestCase):
+    def test_mismatch_reports_coordinate_and_both_colours(self):
+        # Call the real assertion without the desktop gate's render setup.
+        probe = unittest.TestCase()
+        probe.candidate_image = lambda: Image(
+            3, 2, bytes([0, 0, 0] * 5 + [18, 52, 86])
+        )
+        with self.assertRaises(AssertionError) as failure:
+            TestDesktopRender.assert_pixel(probe, 2, 1, "#ABCDEF")
+        message = str(failure.exception)
+        self.assertIn("desktop pixel (2, 1)", message)
+        self.assertIn("#ABCDEF", message)
+        self.assertIn("#123456", message)
 
 
 class TestDesktopGateSkipGuard(unittest.TestCase):
