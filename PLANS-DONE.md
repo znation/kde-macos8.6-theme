@@ -5,6 +5,43 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate needs-attention badge declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the GTK 3 attention-badge declaration check a focused module
+outside the views suite. This relocation is independent of the queued
+rubberband extraction; either can merge first.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_needs_attention_badges` from
+`tests/test_gtk_theme_views.py` into new
+`tests/test_gtk_theme_attention.py::TestGtkThemeAttention`, preserving its
+body, comments and docstring. Inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, import
+`ROOT` from `support.repo_root`, and set
+`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+The existing base supplies parsed rules, selector order and
+`assert_rule_group`; no shared-helper extraction is needed. Update the
+views module's routing docstring and the GTK 3 needs-attention row in
+`docs/invariants.md` to the new anchor, retaining its guarantee and
+provenance. Recheck `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for moved anchors.
+Keep this limited to the declaration-test relocation, with no stylesheet
+or GTK 4 coverage changes.
+
+**Acceptance criteria.**
+
+- Discovery exposes `test_needs_attention_badges` in the new class, without
+  a duplicate in views or inherited control tests in the destination.
+  Source and destination pass independently through project check selectors.
+- The moved check still rejects a changed `animation` or `background-image`
+  declaration, a renamed `.stack-switcher` selector, a duplicate selector,
+  or an additional needs-attention selector.
+- Moving the attention group before `stackswitcher > button:checked:hover`
+  fails the moved source-order assertion.
+- The invariant anchor resolves and full `make check` passes. The register
+  retains its qualification that declarations do not establish rendered
+  pulse absence or animation runs.
+
 ### GTK 3 suite extraction: isolate path-bar declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the file chooser breadcrumb declaration check a focused

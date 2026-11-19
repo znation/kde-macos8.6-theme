@@ -10,6 +10,7 @@ field and title-button boxes. Rubberband declarations are in
 Places-view server-button motion declarations are in
 ``tests/test_gtk_theme_server_button.py``.
 Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
+Needs-attention declarations are in ``tests/test_gtk_theme_attention.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
@@ -238,34 +239,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "checked+hover": ("stackswitcher > button:checked:hover",),
         }
         self.assert_tab_faces(forms)
-
-    def test_needs_attention_badges(self):
-        """Needs-attention labels and images keep no stock accent pulse."""
-        spellings = (
-            "stacksidebar row.needs-attention > label",
-            ".stack-switcher > button.needs-attention > label",
-            ".stack-switcher > button.needs-attention > image",
-        )
-        self.assert_rule_group(
-            {selector: {"animation": "none", "background-image": "none"}
-             for selector in spellings}
-        )
-        # Source order: the restated group sits after the existing
-        # stack-switcher checked face group. Stock spells the switcher as
-        # the .stack-switcher class, so the restatement must be the same
-        # byte-equal spelling to win the cascade.
-        self.assertGreater(
-            self.selectors.index(".stack-switcher > button.needs-attention"
-                                 " > label"),
-            self.selectors.index("stackswitcher > button:checked:hover"),
-        )
-        # The restated spellings are the only needs-attention arms the sheet
-        # declares: the scan kills renamed and stray variants.
-        self.assertEqual(
-            {selector for selector in self.rules
-             if "needs-attention" in selector},
-            set(spellings),
-        )
 
     def test_spin_button_field(self):
         self.assert_spin_button_field(("spinbutton:not(.vertical)",))
