@@ -117,41 +117,6 @@ artifacts, now built from source partials concatenated into one shipped sheet as
 (QUESTIONS.md, answered 2026-11-14; GTK 3, GTK 4 and Firefox source splits are archived in
 PLANS-DONE.md). This note queues no stylesheet work and changes no behavior.
 
-
-### GTK 3 OSD suite extraction: isolate check and radio declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Give the OSD indicator contract a focused test module, reducing the scope of
-`tests/test_gtk_theme_osd.py` without changing theme behavior. This is independent of the
-waiting parser-whitespace extraction.
-
-**Approach and files.** Move `TestGtkThemeOsd.test_osd_check_radio` into
-`tests/test_gtk_theme_osd_indicators.py::TestGtkThemeOsdIndicators`, retaining its method
-name, provenance docstring, fixture dictionaries, subtests and assertions. The new class
-inherits `GtkSheetRuleCases` and `unittest.TestCase`, with `CSS_PATH` pointing to
-`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`, following
-`tests/test_gtk_theme_rubberband.py`. Import `CHECK` and `RADIO` from
-`support.gtk_theme_spec` and `BLACK` from `support.platinum_palette`; remove the now-unused
-`CHECK` and `RADIO` imports from the source module. Update the source module's opening
-docstring to direct indicator coverage to the new module. No shared helper extraction is
-needed: this method uses the inherited `rules` fixture and unittest assertions directly.
-Update the OSD indicator row's test anchor in `docs/invariants.md`; search `tests/`,
-`docs/` and `README.md` for additional live anchors to the moved method. Historical plan
-records stay historical. Do not import one test module from another.
-
-**Acceptance criteria.**
-
-- Normal discovery and a focused run of `test_gtk_theme_osd_indicators` execute
-  `TestGtkThemeOsdIndicators.test_osd_check_radio`; the source class no longer defines it.
-- For the existing plain, hover, active, backdrop and disabled OSD check/radio selectors,
-  the moved test still compares the complete declarations against the existing `CHECK`
-  and `RADIO` recipes plus black outline and cleared text/icon shadows. Its selector
-  inventory assertion still rejects an unexpected OSD check/radio selector, and its
-  state-equality assertions remain intact.
-- The method's fixture and assertion bodies have no edits beyond relocation, and the
-  production tools, stylesheet partials, generated sheets and artwork have no diff.
-- The invariant register resolves the new anchor and `make check` passes after the final
-  edit.
-
 ### Render CLI: separate option construction and mode resolution (planned 2026-11-19 by the organize role)
 
 **Goal.** Reduce the mode-policy responsibilities concentrated in

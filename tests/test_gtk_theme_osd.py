@@ -4,8 +4,9 @@ The sheet draws every overlay the reference set does not show with the flat
 black OSD band and white-faced controls; this module owns the OSD scope of
 ``tests/test_gtk_theme.py``'s split: the overlay bands and the colorchooser
 OSD popover, the OSD entry fields and spin-button arms, the OSD flat and
-suggested/destructive buttons, the OSD check and radio glyphs, the OSD
-progress scale and thin bar, and the scale-popup and scale-slider arms. The
+suggested/destructive buttons, the OSD progress scale and thin bar, and the
+scale-popup and scale-slider arms. OSD check and radio indicators live in
+``tests/test_gtk_theme_osd_indicators.py``. The
 sheet's comment blocks carry each value's provenance.
 """
 
@@ -16,14 +17,12 @@ from support.gtk_css import strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
-    CHECK,
     DISABLED_TEXT,
     ENTRY_FIELD,
     ETCH_DARK,
     INVERTED_BUTTON_BEVEL,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
-    RADIO,
     SCALE_EMPTY_FILL,
     SCALE_THUMB,
     SCALE_TROUGH,
@@ -719,52 +718,6 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
              and ".osd" in selector
              and "destructive-action" in selector},
             enumerated,
-        )
-
-    def test_osd_check_radio(self):
-        """Pin the ten restated stock OSD indicator arms.
-
-        No collected reference screenshot shows a check or radio inside a GTK
-        OSD overlay, so the sheet restates the toolkit resource's five `.osd`
-        indicator arms with the existing plain check and radio recipes (CHECK
-        and RADIO in ``support.gtk_theme_spec.py``) plus two clearances the
-        stock arms claim: the white-on-dark text and icon shadows, cleared,
-        and a black focus-outline colour in place of the stock
-        rgba(238,238,236,0.3). The arm selectors and states come from
-        gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
-        (libgtk-3 3.24.49); each arm is byte-for-byte the recipe in every
-        state, because the armed spellings set no geometry, glyph source or
-        checked spelling stock could override.
-        """
-        clearance = {
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        check = {**CHECK, **clearance}
-        radio = {**RADIO, **clearance}
-        states = ("", ":hover", ":active", ":backdrop", ":disabled")
-        expected = {}
-        for state in states:
-            expected[f".osd check{state}"] = check
-            expected[f".osd radio{state}"] = radio
-        parsed = {}
-        for selector in expected:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected[selector])
-            parsed[selector] = self.rules[selector]
-        self.assertEqual(
-            [dict(parsed[f".osd check{state}"]) for state in states],
-            [check] * 5,
-        )
-        self.assertEqual(
-            [dict(parsed[f".osd radio{state}"]) for state in states],
-            [radio] * 5,
-        )
-        self.assertEqual(
-            {selector for selector in self.rules
-             if ".osd check" in selector or ".osd radio" in selector},
-            set(expected),
         )
 
     def test_osd_progress_scale(self):
