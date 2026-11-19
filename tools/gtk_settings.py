@@ -10,9 +10,9 @@ reads the files, ``tools/apply_gtk.py`` drives the selection and
 from __future__ import annotations
 
 if __package__:
-    from tools.text_lines import BOM
+    from tools.text_lines import BOM, join_line_pairs
 else:  # imported from a directly run tool
-    from text_lines import BOM
+    from text_lines import BOM, join_line_pairs
 
 GTK_ID = "org.macos8.desktop"
 # Every boundary ``str.splitlines`` recognises, longest first so a CRLF is not
@@ -80,11 +80,6 @@ def _split_lines(body: str) -> list[tuple[str, str]]:
     return lines
 
 
-def _join_lines(lines: list[tuple[str, str]]) -> str:
-    """Return the text of ``(content, ending)`` pairs."""
-    return "".join(content + ending for content, ending in lines)
-
-
 def _default_ending(lines: list[tuple[str, str]]) -> str:
     """Return the first line ending in *lines*, or ``"\n"`` when none is."""
     for _, ending in lines:
@@ -134,7 +129,7 @@ def remove_key_from_section(
         # The file had no final line ending; removing its unterminated last
         # line must not give the new last line one.
         kept[-1] = (kept[-1][0], "")
-    return _with_bom(had_bom, _join_lines(kept)), True
+    return _with_bom(had_bom, join_line_pairs(kept)), True
 
 
 def set_theme_name(text: str, value: str) -> str:
@@ -183,7 +178,7 @@ def set_theme_name(text: str, value: str) -> str:
             lines[-1] = (lines[-1][0], ending)
         lines.append(("[Settings]", ending))
         lines.append((assignment, ending if ended else ""))
-    return _with_bom(had_bom, _join_lines(lines))
+    return _with_bom(had_bom, join_line_pairs(lines))
 
 
 def remove_theme_name(text: str) -> tuple[str, bool]:

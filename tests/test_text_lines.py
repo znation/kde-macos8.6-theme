@@ -3,7 +3,14 @@
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.text_lines import BOM, first_line, has_first_line_marker, split_lines, strip_bom
+from tools.text_lines import (
+    BOM,
+    first_line,
+    has_first_line_marker,
+    join_line_pairs,
+    split_lines,
+    strip_bom,
+)
 
 
 class SplitLinesTests(unittest.TestCase):
@@ -49,6 +56,16 @@ class FirstLineMarkerTests(unittest.TestCase):
         for text in ("marker extra", "\ufeff\ufeffmarker", "other\nmarker"):
             with self.subTest(text=text):
                 self.assertFalse(has_first_line_marker(text, "marker"))
+
+
+class JoinLinePairsTests(unittest.TestCase):
+    """Tests for ``join_line_pairs``' per-line ending handling."""
+
+    def test_keeps_each_content_followed_by_its_own_ending(self):
+        self.assertEqual("a\nbc\r\n", join_line_pairs([("a", "\n"), ("b", ""), ("c", "\r\n")]))
+
+    def test_empty_pairs_join_to_empty_text(self):
+        self.assertEqual("", join_line_pairs([]))
 
 
 class StripBomTests(unittest.TestCase):

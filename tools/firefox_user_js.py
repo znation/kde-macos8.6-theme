@@ -10,9 +10,9 @@ import re
 from collections import Counter
 
 if __package__:
-    from tools.text_lines import BOM
+    from tools.text_lines import BOM, join_line_pairs
 else:  # imported from a directly run tool
-    from text_lines import BOM
+    from text_lines import BOM, join_line_pairs
 
 USER_JS_MARKER = "// org.macos8.desktop Firefox Platinum userChrome"
 # The sheets load only when the legacy-stylesheet switch is on, and the window
@@ -45,11 +45,6 @@ def _lines(text: str) -> list[tuple[str, str]]:
     if parts[-1]:
         lines.append((parts[-1], ""))
     return lines
-
-
-def _join(lines: list[tuple[str, str]]) -> str:
-    """Join ``(content, ending)`` pairs back into text."""
-    return "".join(content + ending for content, ending in lines)
 
 
 def _dominant_ending(lines: list[tuple[str, str]]) -> str:
@@ -113,9 +108,9 @@ def set_user_js(text: str) -> str:
     lines.append((USER_JS_MARKER, ending))
     for pref in PREF_LINES:
         lines.append((pref, ending))
-    return _join(lines)
+    return join_line_pairs(lines)
 
 
 def remove_user_js(text: str) -> str:
     """Return *text* without our marker-plus-prefs block, foreign lines intact."""
-    return _join(_without_block(_lines(text)))
+    return join_line_pairs(_without_block(_lines(text)))

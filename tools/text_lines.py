@@ -23,6 +23,15 @@ def first_line(text: str) -> str:
     return split_lines(text)[0]
 
 
+def join_line_pairs(lines: list[tuple[str, str]]) -> str:
+    """Return the text of ``(content, ending)`` pairs, each line with its own ending.
+
+    Used by the GTK settings and Firefox user.js transforms, which split text
+    into such pairs and join them back after an edit.
+    """
+    return "".join(content + ending for content, ending in lines)
+
+
 def strip_bom(text: str) -> str:
     """Return *text* without its leading UTF-8 BOM, if it has one."""
     return text[len(BOM) :] if text.startswith(BOM) else text
