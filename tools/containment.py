@@ -187,6 +187,8 @@ def read_capped_bytes(
     letting ``FileNotFoundError`` escape. The repository readers and the
     Firefox profile and discovery readers share this read.
     """
+    if limit < 0:
+        raise ValueError(f"byte limit must be non-negative: {limit}")
     try:
         with open_regular_binary(path) as handle:
             data = handle.read(limit + 1)

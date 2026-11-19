@@ -190,6 +190,18 @@ class TestReadCappedBytes(unittest.TestCase):
     through those callers.
     """
 
+    def test_negative_limit_is_rejected_before_opening_the_path(self):
+        with mock.patch.object(
+            containment_impl, "open_regular_binary"
+        ) as open_file:
+            with self.assertRaisesRegex(
+                ValueError, r"^byte limit must be non-negative: -1$"
+            ):
+                containment_impl.read_capped_bytes(
+                    "unused.ini", -1, "this test reads"
+                )
+        open_file.assert_not_called()
+
     def test_missing_ok_returns_none_for_an_absent_path(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "missing.ini"
