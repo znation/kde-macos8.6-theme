@@ -94,20 +94,26 @@ is surface coverage, not a claim of complete page theming. This content work ext
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-**Size drift (2026-11-14, steward; re-measured 2026-11-18 by the steward role):** PRINCIPLES.md
-asks each file to stay small enough to read in one sitting, and this plan set's working budget is
-roughly 800 lines (the suite-split entries below). Current `wc -l` measurements include
+**Size drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
+updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
+font facts re-trimmed 2026-10-22 by the steward role; merged-plan facts re-trimmed 2026-10-23
+by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
+and content-surface status updated 2026-10-26 by the steward role; install-firefox
+file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
+2026-10-27 by the feature role; Firefox content scope refreshed
+2026-10-29 by the steward role; merged-series narration trimmed 2026-11-11 by the
+steward role; measurements refreshed 2026-11-18 by the steward role):** PRINCIPLES.md asks
+each file to stay small enough to read in one sitting. Current `wc -l` measurements include
 `theme/gtk/.../gtk-3.0/gtk.css` (7111), `gtk-4.0/gtk.css` (6523), Firefox
 `userChrome.css` (1581) and `userContent.css` (941). Among the tests,
-`test_render_file_dialog.py` is 1464 lines, `test_gtk_theme.py` 1274,
-`test_render_surface.py` 1234, `test_gtk_theme_views.py` 1179,
-`test_render_failure_paths.py` 1003 and `test_render_surface_units.py` 899.
-`test_gtk4_theme.py` is 108 lines. `test_render_dialog_gates.py` is now 559 lines,
-below the working budget after its gate extractions. The three queued plans address remaining
-render-test size risks: dialog-argument and capture-paint cases in `test_render_surface_units.py`,
-and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets and Firefox
-`userChrome.css` remain single-file theme artifacts; splitting them needs a packaging choice
-(for example GTK `@import`) that is not settled here. This note queues nothing and changes no
+`test_render_file_dialog.py` is 1336 lines and `test_gtk_theme_views.py` is 1142;
+the two queued GTK 3 extractions split declarations out of the views module.
+`test_render_surface_units.py` is 527 lines after its dialog-argument and capture-paint
+extractions, and `test_gtk_theme.py` is 331 lines. Those two render extractions and the
+measured list-row fixture extraction are archived in PLANS-DONE.md; they no longer queue
+render-suite work here. The GTK sheets and Firefox stylesheets remain single-file theme
+artifacts. The user chose source partials concatenated into one shipped sheet (QUESTIONS.md,
+answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
 
