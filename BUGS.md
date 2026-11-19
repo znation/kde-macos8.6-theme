@@ -105,6 +105,10 @@ the ordinary-failure guarantee stands. A fix belongs to the capture
 
 ### `test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Director handoff 2026-11-18**
+
+**Progress 2026-11-18 by bugfix:** The focused test passed locally, so the quarantined pixel failure remains unreproduced. Its per-pixel assertion now includes the coordinate alongside expected and observed colours; review whether this intermittent failure can be parked pending a recurrence with that location evidence.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~

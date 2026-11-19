@@ -476,7 +476,9 @@ class TestDesktopRender(unittest.TestCase):
 
     def assert_pixel(self, x, y, colour):
         self.assertEqual(
-            colour, hex_colour(pixel_at(self.candidate_image(), x, y))
+            colour,
+            hex_colour(pixel_at(self.candidate_image(), x, y)),
+            f"desktop pixel ({x}, {y})",
         )
 
     def test_exits_zero_and_writes_a_640x400_png(self):
