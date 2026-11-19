@@ -119,6 +119,47 @@ PLANS-DONE.md). This note queues no stylesheet work and changes no behavior.
 
 _None yet._
 
+### GTK stylesheet parser tests: isolate whitespace normalization cases (planned 2026-11-19 by the plan role)
+
+**Goal.** Make the whitespace contract readable separately from declaration splitting and
+selector grouping in `tests/test_gtk_css.py::TestRuleBlockSemantics`. This is an independent
+test organization change; it does not change parser behavior or shipped stylesheets.
+
+**Approach and files.** Create `tests/test_gtk_css_whitespace.py::TestWhitespaceNormalization`
+with `unittest` and `support.gtk_css.parse_css` imports. Move these methods from
+`TestRuleBlockSemantics`, retaining their inputs, assertions and subtests:
+
+- `test_whitespace_inside_a_quoted_selector_value_is_preserved`
+- `test_whitespace_inside_a_quoted_declaration_value_is_preserved`
+- `test_only_css_ascii_whitespace_collapses_between_tokens`
+- `test_non_css_whitespace_at_declaration_boundaries_is_preserved`
+- `test_escaped_trailing_value_whitespace_is_preserved`
+- `test_hex_escape_selector_terminator_is_distinct_from_separator`
+- `test_hex_escape_lengths_and_terminators_in_values`
+- `test_hex_escape_terminators_survive_selector_and_value_normalization`
+
+Move `_boundaries_preserve_or_refuse` with its caller. Move the `itertools` import to the
+new module (its use is in the escaped-trailing-whitespace case). Give the new module and
+class short docstrings describing whitespace normalization and escape terminators. Leave
+selector grouping, declaration splitting and hostile-input timing in the original module.
+Update the moved method anchors in `docs/invariants.md`: the declaration-boundary and
+hex-escape rows, plus the whitespace anchors in the shared-parser summary row. Search
+`tests/`, `docs/` and `README.md` for references to the moved methods and update any live
+anchors; historical plan records stay historical. No test module imports another test module.
+
+**Acceptance criteria.**
+
+- Normal unittest discovery and a focused run of `test_gtk_css_whitespace` discover the
+  moved cases under `TestWhitespaceNormalization`; the former class no longer defines them.
+- The retained fixtures still distinguish quoted double spaces from single spaces, preserve
+  U+00A0/U+2003/U+000B, collapse CSS ASCII whitespace between tokens, preserve escaped trailing
+  whitespace after odd backslash runs, trim it after even runs, and retain hex-escape
+  terminators including CRLF. The malformed boundary fixtures still raise `ValueError`.
+- The extraction retains the fixtures and assertion bodies, with no duplicate copies left
+  in the source module. Production parser files and generated theme files have no diff.
+- The invariant register resolves the moved anchors, and `make check` passes after the
+  final edit.
+
 ## Done
 
 ### GTK stylesheet parser tests: move the rule-block brace-pairing cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the review role
