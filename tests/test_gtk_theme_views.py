@@ -3,7 +3,8 @@
 This module owns the views-and-dialogs slice of
 ``tests/test_gtk_theme.py``'s split: the file chooser's path-bar tabs,
 the stack switcher, the list and icon-view focus outlines, the spin-button
-field and title-button boxes. Header drag-and-drop declarations are in
+field and title-button boxes. Rubberband declarations are in
+``tests/test_gtk_theme_rubberband.py``. Header drag-and-drop declarations are in
 ``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
@@ -300,26 +301,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules
              if "needs-attention" in selector},
             set(spellings),
-        )
-
-    def test_rubberband(self):
-        selectors = (
-            ".rubberband",
-            "rubberband",
-            ".content-view rubberband",
-            ".content-view .rubberband",
-            "treeview.view rubberband",
-            "flowbox rubberband",
-        )
-        self.assert_rubberband(selectors)
-        self.assertEqual(
-            {selector for selector in self.rules if "rubberband" in selector},
-            set(selectors),
-        )
-        # A later .view rule would win the cascade again.
-        self.assert_rule_after(
-            ".rubberband, rubberband,\n.content-view rubberband,",
-            ".view, textview text, list {",
         )
 
     def test_spin_button_field(self):
