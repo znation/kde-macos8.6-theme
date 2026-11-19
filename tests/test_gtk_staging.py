@@ -235,6 +235,10 @@ class TestCommit(StagingCase):
         self.assertEqual("old good\n", good.read_text(encoding="utf-8"))
         self.assertEqual([], self.backups_of(good))
         self.assertEqual([], self.backups_of(blocked))
+        # Failed publication must also discard every staged sibling when
+        # the second target did not previously exist.
+        for _, staging in staged:
+            self.assertFalse(staging.exists())
 
     def test_rollback_restores_a_symlink_target_it_replaced(self):
         referent = self.root / "real-settings.ini"
