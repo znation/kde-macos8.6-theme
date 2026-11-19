@@ -103,6 +103,14 @@ every inactive pin met the active decoration instead. Not a SIGKILL case;
 the ordinary-failure guarantee stands. A fix belongs to the capture
 (settling the windows' focus state before reading pixels), not to the pins.
 
+### `test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)
+~~~~
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
