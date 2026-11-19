@@ -127,7 +127,8 @@ class TestRenderReadiness(unittest.TestCase):
             encoding="utf-8",
         )
         monitor.chmod(0o755)
-        for name in ("sleep", "date", "rm", "touch"):
+        # mkfifo is present so only the qdbus guard keeps the listener off.
+        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, str(bindir), 1)
         log = (root / "session.log").read_text(encoding="utf-8")
