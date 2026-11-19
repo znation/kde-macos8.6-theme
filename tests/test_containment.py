@@ -211,6 +211,26 @@ class TestReadCappedBytes(unittest.TestCase):
                 )
             )
 
+    def test_missing_ok_still_refuses_an_unreadable_path(self):
+        # missing_ok excuses only an absent path. A caller that reads profile
+        # files treats None as "no file here" and then writes over it, so an
+        # open failure that is not FileNotFoundError must still raise.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            blocker = tmp / "file.ini"
+            blocker.write_bytes(b"x")
+            with self.assertRaises(NotADirectoryError):
+                containment_impl.read_capped_bytes(
+                    blocker / "child.ini", 16, "this test reads",
+                    missing_ok=True,
+                )
+            directory = tmp / "dir.ini"
+            directory.mkdir()
+            with self.assertRaisesRegex(ValueError, "not a regular file"):
+                containment_impl.read_capped_bytes(
+                    directory, 16, "this test reads", missing_ok=True,
+                )
+
     def test_oversize_refusal_uses_the_callers_error_type(self):
         class Refusal(Exception):
             pass
