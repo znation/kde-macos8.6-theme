@@ -153,6 +153,17 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
+    def test_remove_clears_owned_user_js_without_creating_a_missing_chrome_dir(self):
+        block = self._owned_user_js_block()
+        _write(self.user_js_path(), block)
+        self.assertFalse((self.profile / "chrome").exists())
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual("", _read(self.user_js_path()))
+        self.assertFalse((self.profile / "chrome").exists())
+
     def test_remove_deletes_our_sheet_and_leaves_a_user_js_without_our_block(self):
         foreign_js = 'user_pref("tabs", 0);\n'
         _write(self.sheet_path(), f"{install_firefox.CSS_MARKER}\n/* owned */\n")
