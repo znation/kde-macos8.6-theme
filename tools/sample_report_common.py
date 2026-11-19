@@ -70,8 +70,13 @@ def region_pixels(image, x: int, y: int, width: int, height: int):
 
 def positioned_region_pixels(image, x: int, y: int, width: int, height: int):
     """Yield each RGB pixel in a rectangle with its absolute image position."""
-    for index, rgb in enumerate(region_pixels(image, x, y, width, height)):
-        yield x + index % width, y + index // width, rgb
+    rgb = image.rgb
+    image_width = image.width
+    for row in range(y, y + height):
+        offset = (row * image_width + x) * 3
+        for column in range(x, x + width):
+            yield column, row, (rgb[offset], rgb[offset + 1], rgb[offset + 2])
+            offset += 3
 
 
 def positioned_region_column_pixels(image, x: int, y: int, width: int, height: int):
