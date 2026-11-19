@@ -309,17 +309,20 @@ class TestGitFailures(unittest.TestCase):
         )
         for failure, detail in cases:
             with self.subTest(failure=type(failure).__name__):
-                with mock.patch.object(
-                    local_hook_git, "_git", return_value="/repo"
-                ), mock.patch.object(
-                    Path, "resolve", side_effect=failure
-                ):
-                    with self.assertRaisesRegex(
-                        local_hook_git.LocalHookError,
-                        "^cannot resolve path from git rev-parse --show-toplevel: "
-                        + re.escape(detail) + "$",
-                    ):
-                        local_hook_git.top_level()
+                self._assert_top_level_resolve_error(failure, detail)
+
+    def _assert_top_level_resolve_error(self, failure, detail):
+        with mock.patch.object(
+            local_hook_git, "_git", return_value="/repo"
+        ), mock.patch.object(
+            Path, "resolve", side_effect=failure
+        ):
+            with self.assertRaisesRegex(
+                local_hook_git.LocalHookError,
+                "^cannot resolve path from git rev-parse --show-toplevel: "
+                + re.escape(detail) + "$",
+            ):
+                local_hook_git.top_level()
 
 
 class TestGitEnvironment(unittest.TestCase):

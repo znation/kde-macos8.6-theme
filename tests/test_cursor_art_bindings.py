@@ -198,18 +198,21 @@ class TestCursorArtBindings(unittest.TestCase):
             if grid_name.endswith("_GRID")
         ]
         for grid_name, grid in grids:
-            with self.subTest(grid=grid_name):
-                self.assertEqual(len(grid), 16, f"{grid_name} has {len(grid)} rows")
-                for row_index, row in enumerate(grid):
-                    self.assertEqual(
-                        len(row), 16,
-                        f"{grid_name} row {row_index} is {len(row)} cells wide",
-                    )
-                    self.assertTrue(
-                        set(row) <= allowed,
-                        f"{grid_name} row {row_index} has characters "
-                        f"outside '#', '.' and space: {row!r}",
-                    )
+            self._assert_grid_shape(grid_name, grid, allowed)
+
+    def _assert_grid_shape(self, grid_name, grid, allowed):
+        with self.subTest(grid=grid_name):
+            self.assertEqual(len(grid), 16, f"{grid_name} has {len(grid)} rows")
+            for row_index, row in enumerate(grid):
+                self.assertEqual(
+                    len(row), 16,
+                    f"{grid_name} row {row_index} is {len(row)} cells wide",
+                )
+                self.assertTrue(
+                    set(row) <= allowed,
+                    f"{grid_name} row {row_index} has characters "
+                    f"outside '#', '.' and space: {row!r}",
+                )
 
 
 if __name__ == "__main__":

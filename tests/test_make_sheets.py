@@ -77,17 +77,20 @@ class TestShippedSheetIsFresh(unittest.TestCase):
             self.assertTrue(partials, f"no Firefox partials under {source}")
             for partial in partials:
                 with self.subTest(partial=partial.relative_to(ROOT).as_posix()):
-                    text = partial.read_text(encoding="utf-8")
-                    lines = text.splitlines()
-                    if partial.name == "000-header.css":
-                        self.assertEqual(firefox_header_problems(text), [])
-                        continue
-                    self.assertLessEqual(len(lines), MAX_PARTIAL_LINES)
-                    first = lines[0]
-                    self.assertTrue(
-                        first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
-                        f"{partial.name} does not start at a top-level comment or rule",
-                    )
+                    self._assert_partial_shape(partial)
+
+    def _assert_partial_shape(self, partial):
+        text = partial.read_text(encoding="utf-8")
+        if partial.name == "000-header.css":
+            self.assertEqual(firefox_header_problems(text), [])
+            return
+        lines = text.splitlines()
+        self.assertLessEqual(len(lines), MAX_PARTIAL_LINES)
+        first = lines[0]
+        self.assertTrue(
+            first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
+            f"{partial.name} does not start at a top-level comment or rule",
+        )
 
     def test_a_firefox_header_with_a_rule_after_its_comment_is_rejected(self):
         header = "/* sheet header */\n\ntooltip {\n  color: #000000 !important;\n}\n"
