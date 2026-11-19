@@ -5,6 +5,58 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate infobar declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the GTK 3 infobar band and button-family declaration checks
+a focused module outside `tests/test_gtk_theme.py`. This is independent of
+the queued notebook and pending expander extractions. The archived GTK 4
+infobar extractions cover another sheet.
+
+**Approach and files touched.** Move `TestGtkTheme.test_infobar` and
+`test_infobar_button_family`, preserving bodies and provenance comments,
+to new `tests/test_gtk_theme_infobar.py::TestGtkThemeInfobar`. Inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, binding
+`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+Import `ROOT` from `support.repo_root`, `gtk_css` from `support`,
+`BLACK`, `FACE` and `SELECTION` from `support.platinum_palette`, and
+`BUTTON_BEVEL`, `INVERTED_BUTTON_BEVEL`, `DISABLED_TEXT` and `LINK` from
+`support.gtk_theme_spec`. Do not inherit `GtkSharedControlCases` or import
+another test module. Update the source routing docstring and remove imports
+only when no remaining method uses them. Repoint the moved anchors in
+`docs/invariants.md`, preserving provenance and GTK 4 anchors. Search
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` for other moved anchors. Leave the shared assertion helpers,
+stylesheets and production tools unchanged.
+
+**Acceptance criteria.**
+
+- Discovery locates the named methods under the new class without duplicate
+  definitions in `TestGtkTheme` or inherited shared-control tests in the new
+  module. Source and destination run independently through check selectors.
+- The band still requires its existing face, ink and etched edge, and the
+  message-type ban still rejects typed infobar selectors across the sheet.
+- Button-family checks retain their exact declaration dictionaries,
+  count-one assertions, selector census and ordering after the band rule.
+  A reversed pressed bevel, missing disabled-backdrop arm or extra infobar
+  selector fails the extracted checks.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
+SUMMARY: Extract GTK 3 infobar declaration checks into a focused suite
+WHY: Keep infobar coverage separate from the large GTK 3 theme test module.
+RISK: A moved assertion could stop covering the GTK sheet; inspect `tests/test_gtk_theme_infobar.py` and its invariant anchors.
+VERIFIED: none
+Objection 1: done
+Objection 2: unchanged-by-design because the named XDG fallback test passed and this extraction does not touch that behavior.
+Objection 3: unchanged-by-design because the named XDG diagnostic test passed and this extraction does not touch that behavior.
+Objection 4: unchanged-by-design because the named diagnostics test passed and this extraction does not touch config-home resolution.
+Objection 5: unchanged-by-design because the named quoting test passed and this extraction does not touch shell quoting.
+Objection 6: unchanged-by-design because the named empty-value test passed and this extraction does not touch XDG value handling.
+Objection 7: unchanged-by-design because this is a test-run separator.
+Objection 8: unchanged-by-design because it reports a successful test run.
+Objection 9: unchanged-by-design because it reports a successful test suite.
+Objection 10: unchanged-by-design because the reported build-check failure was the unused import in objection 1, now removed.
+
 ### GTK 3 suite extraction: isolate notebook declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Move notebook declaration checks out of the oversized
