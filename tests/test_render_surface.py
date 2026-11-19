@@ -474,7 +474,7 @@ class TestDesktopRender(unittest.TestCase):
         if cls._candidate is None:
             try:
                 cls._candidate = read_png(cls.output)
-            except PngError as exc:
+            except (OSError, PngError) as exc:
                 raise AssertionError(
                     f"desktop capture is missing or unreadable: {exc}; "
                     f"render exited {cls.returncode}; stdout: {cls.stdout!r}; "

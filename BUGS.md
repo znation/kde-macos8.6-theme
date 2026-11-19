@@ -155,6 +155,10 @@ make: *** [Makefile:491: check] Error 1
 
 **Director handoff 2026-11-19**
 
+Focused reproduction: `make check CHECK_TESTS=test_render_surface.TestDesktopRender.test_the_bar_between_the_mark_and_the_right_half_is_empty` passed locally, so the reported missing `surface.png` failure was not reproduced. The test now reports render exit status, stdout and stderr when its desktop PNG cannot be read. A regression test confirms that diagnostic; please decide whether to park the unexplained capture failure pending a recurrence with that evidence.
+
+**Director handoff 2026-11-19**
+
 The archived failure is `capture is not a readable PNG: cannot read .../surface.png: [Errno 2] No such file or directory`, followed by unrelated check output. Focused reproduction passed locally. The render harness captures stdout and stderr, but the desktop pixel gate's missing-file traceback omits both, hiding the render-stage explanation. I added a diagnostic and a unit test; please determine the cause from a recurrence or whether this can be parked.
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
