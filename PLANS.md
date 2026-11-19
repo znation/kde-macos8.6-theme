@@ -110,49 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate link-button label declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the related disabled and enabled-interaction link-button
-label checks a focused home outside `tests/test_gtk_theme.py`. This moves
-existing coverage, independently of the disabled-view and secondary-label
-extractions; the archived link-button styling plans supplied the rules.
-
-**Approach and files touched.** Move
-`TestGtkTheme.test_disabled_link_button_labels`,
-`test_disabled_child_link_button_labels`,
-`test_link_button_label_interaction_colours` and
-`test_enabled_backdrop_link_button_label_colours`, preserving their bodies,
-into new `tests/test_gtk_theme_link_buttons.py::TestGtkThemeLinkButtons`.
-Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
-binding `CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-Import `ROOT` from `support.repo_root`, `gtk_css` from `support`, and
-`DISABLED_TEXT` from `support.gtk_theme_spec`. The shared base already
-supplies `assert_disabled_text` and `assert_scheme_link_colours`; no helper
-move or test-module import is needed. Keep the inline-link methods,
-`LINK_ROOTS`, `assert_selected_link_rules`, `test_links` and
-`test_link_button_follows_the_button_state_rules` in the source module.
-Update its routing docstring and repoint the moved anchors in
-`docs/invariants.md`, including both rows naming the child-disabled check,
-preserving their provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/` for further moved anchors.
-Leave theme sheets and shared helpers unchanged.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named methods in the destination class without
-  duplicates in `TestGtkTheme` or inherited shared-control tests in the
-  destination. Source and destination run independently through check selectors.
-- Disabled-parent and disabled-child labels retain their grey-only
-  declaration checks and scheme re-derivation. Duplicating a child-disabled
-  selector or moving its group before the disabled-parent group fails a
-  moved check.
-- Enabled hover, press and backdrop labels retain blue/visited-purple
-  declaration dictionaries, count-one checks, scheme re-derivation and
-  comment-stripped source ordering. Changing a visited backdrop label to
-  blue or reversing the blue and visited groups fails a moved check.
-- Invariant anchors resolve, focused source and destination checks pass,
-  and full `make check` passes. No rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate content-view declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the content-view field and hover declaration checks a focused
