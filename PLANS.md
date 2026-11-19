@@ -262,8 +262,6 @@ GTK 4 coverage and theme sheets stay outside this relocation.
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
-### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
-
 **Goal.** Give the application notification band and frame checks a focused
 suite outside `tests/test_gtk_theme.py`. This extraction is independent of
 the notebook and infobar entries; notification button-state checks stay
