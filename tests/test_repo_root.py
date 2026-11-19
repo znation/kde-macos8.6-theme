@@ -16,7 +16,7 @@ import sys
 import unittest
 
 from support import repo_root
-from tools import apply_theme, check_references, make_cursors, make_wallpaper
+from tools import apply_theme, check_references, make_cursors, make_sheets, make_wallpaper
 from tools import reference_validation, render_setup, render_workflow, theme_defaults
 from tools import repo_root as tools_root
 
@@ -52,6 +52,7 @@ class TestSharedRoot(unittest.TestCase):
             apply_theme,
             check_references,
             make_cursors,
+            make_sheets,
             make_wallpaper,
             reference_validation,
             render_setup,

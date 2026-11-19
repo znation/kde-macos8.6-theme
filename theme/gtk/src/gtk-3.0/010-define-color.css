@@ -1,0 +1,496 @@
+@define-color theme_bg_color #DDDDDD;
+@define-color theme_fg_color #000000;
+@define-color theme_base_color #FFFFFF;
+@define-color theme_text_color #000000;
+@define-color theme_selected_bg_color #CCCCFF;
+@define-color theme_selected_fg_color #000000;
+/* No reference screenshot shows GTK backdrop selection; reuse the existing
+   selection lavender and black ink for these symbolic roles (2026-10-31). */
+@define-color theme_unfocused_selected_bg_color #CCCCFF;
+@define-color theme_unfocused_selected_fg_color #000000;
+@define-color borders #000000;
+@define-color unfocused_borders #999999;
+
+window, .background {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
+headerbar, .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
+}
+
+headerbar {
+  border-width: 0 0 1px 0;
+}
+
+headerbar:backdrop, .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
+}
+
+/* No reference screenshot shows GTK header subtitles; reuse the inactive-text
+   #888888 palette. The installed GTK 3 theme resource groups these selectors
+   with .dim-label under opacity: 0.55 (probed 2026-10-31); keep the Platinum
+   grey fully visible. */
+.titlebar:not(headerbar) .subtitle, headerbar .subtitle {
+  color: #888888;
+  opacity: 1;
+  text-shadow: none;
+}
+
+headerbar button.titlebutton.close, .titlebar button.titlebutton.close {
+  background-color: transparent;
+  background-image: url("../assets/window-close.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton.maximize, .titlebar button.titlebutton.maximize {
+  background-color: transparent;
+  background-image: url("../assets/window-maximize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton.minimize, .titlebar button.titlebutton.minimize {
+  background-color: transparent;
+  background-image: url("../assets/window-minimize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton image, .titlebar button.titlebutton image {
+  background-color: transparent;
+  color: transparent;
+  min-height: 16px;
+  min-width: 16px;
+}
+
+button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+/* GTK 3 has no reference button-focus surface; reuse the dotted black
+   scale-focus outline and offset, with square button corners. */
+button:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* GTK 3 has no reference check-button focus surface; reuse the dotted black
+   button-focus outline and offset, with square outline corners. */
+checkbutton:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* Adaptation (2026-10-29): no reference shows GTK 3 radio-button focus; reuse the check-button
+   parent's dotted outline, offset and square outline corners. */
+radiobutton:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+button:hover {
+  background-color: #DDDDDD;
+}
+
+button:active, button:checked {
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+entry, spinbutton:not(.vertical) {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+/* Adaptation (2026-11-11): no reference screenshot shows a GTK spin
+   button; this mirrors the existing etch above onto a horizontal spin
+   field's exposed edge in right-to-left text direction, because GTK 3
+   does not mirror box-shadow for direction. Measured 2026-11-11 in a GTK
+   3 offscreen child: in a horizontal RTL spin button the steppers sit
+   left of the field and cover the etch's vertical arm at the left edge,
+   so the exposed field drew only the horizontal top arm — a half-etched
+   field, where the LTR field shows the full L; the mirror puts the
+   vertical arm at the exposed right edge, the corner where the LTR
+   field's arm sits. Plain entry fields are untouched — only the spin
+   field's overlay is the defect. The four .osd spinbutton state groups
+   now carry their RTL twins beside them in the OSD entry-field record
+   below (pinned by tests/test_gtk_theme_osd.py::TestGtkThemeOsd::
+   test_osd_spin_field_mirrors_the_etch_in_rtl and rendered by
+   tests/test_gtk_theme_spinbutton.py::TestGtkThemeSpinbutton::
+   test_osd_spin_field_renders_the_mirrored_etch_in_rtl). The
+   :not(.vertical) arm keeps vertical spin fields out. */
+spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+/* No GTK entry-focus reference exists; reuse button:focus's outline, offset
+   and square outline corners (2026-10-29). */
+entry:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* No GTK spin-button keyboard-focus reference exists; reuse button:focus's
+   outline, offset and square outline corners (2026-10-29). */
+spinbutton:focus:not(.vertical) {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* No GTK vertical spin-button keyboard-focus reference exists; reuse
+   button:focus's outline, offset and square outline corners on the vertical
+   orientation too (2026-10-29). */
+spinbutton.vertical:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+check, radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check {
+  border-radius: 0;
+}
+
+radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+}
+
+radio:checked {
+  -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+check:indeterminate, radio:indeterminate {
+  -gtk-icon-source: url("../assets/check-mixed.svg");
+}
+
+combobox arrow {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  min-height: 16px;
+  min-width: 16px;
+}
+
+menu > arrow.top, .menu > arrow.top, .context-menu > arrow.top {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+  border-radius: 0;
+}
+
+menu > arrow.bottom, .menu > arrow.bottom, .context-menu > arrow.bottom {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  border-radius: 0;
+}
+
+notebook > header {
+  background-color: #DDDDDD;
+  border: 1px solid #000000;
+}
+
+tab, tab.reorderable-page,
+notebook > header > tabs > tab,
+notebook > header > tabs > tab.reorderable-page {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:hover, tab.reorderable-page:hover,
+notebook > header > tabs > tab:hover,
+notebook > header > tabs > tab.reorderable-page:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:checked, tab.reorderable-page:checked,
+notebook > header > tabs > tab:checked,
+notebook > header > tabs > tab.reorderable-page:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+tab:checked:hover, tab.reorderable-page:checked:hover,
+notebook > header > tabs > tab:checked:hover,
+notebook > header > tabs > tab.reorderable-page:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* No GTK 3 notebook keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. */
+notebook > header > tabs > tab:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* A stack switcher's page buttons draw as the existing tab recipe, the active
+   page's button included; :backdrop stays out of scope. */
+stackswitcher > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:checked,
+stackswitcher > button:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 2026-11-03: needs-attention badges. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a stack switcher or a stack sidebar
+ * needs-attention badge (the standing GTK-scope adaptation premise), so the
+ * pulse is cleared to this sheet's inherited paint and existing motion policy
+ * instead of stock's translucent accent dot; the class tokens and their
+ * cascade place stay as stock put them, following the existing colour-class
+ * precedent, and the labels keep the inherited text and box. Stock arms
+ * probed 2026-11-03 with gresource from the installed theme resource (full
+ * library path in docs/invariants.md):
+ *   stacksidebar row.needs-attention > label,
+ *   .stack-switcher > button.needs-attention > label,
+ *   .stack-switcher > button.needs-attention > image
+ *     { animation: needs_attention 150ms ease-in; background-image:
+ *       two full-stop radial gradients, an accent dot over a light halo;
+ *       background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+ *       background-position: right 3px, right 4px; }
+ * plus the resource's own `needs_attention` keyframes and three residual
+ * arms that declare only size or position — the `:backdrop` twin
+ * (`background-size: 6px 6px, 0 0`), the `:dir(rtl)` twin
+ * (`background-position: left 3px, left 4px`) and a later bare
+ * `stacksidebar row.needs-attention > label` arm
+ * (`background-size: 6px 6px, 0 0`). Stock already clears the active and
+ * checked switcher button's label and image with its own counter-arm;
+ * that counter-arm stays undeclared so stock holds that state. One grouped
+ * rule restates the three byte-equal stock twin selectors directly after
+ * the existing stack-switcher face group: equal specificity plus later
+ * source order wins every property, so the dot image and the pulse
+ * animation fall away and the three residual arms govern no image
+ * anywhere. The keyframes lose their last user without gaining a new
+ * animation name. Declaration checks do not establish rendered pixels or
+ * animation runs. */
+stacksidebar row.needs-attention > label,
+.stack-switcher > button.needs-attention > label,
+.stack-switcher > button.needs-attention > image {
+  animation: none;
+  background-image: none;
+}
+
+tab:backdrop, tab.reorderable-page:backdrop,
+notebook > header > tabs > tab:backdrop,
+notebook > header > tabs > tab.reorderable-page:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:backdrop:checked, tab.reorderable-page:backdrop:checked,
+notebook > header > tabs > tab:backdrop:checked,
+notebook > header > tabs > tab.reorderable-page:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+treeview.view header button {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  border-width: 0 1px 1px 0;
+  border-style: solid;
+  border-color: #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+treeview.view header button:hover {
+  background-color: #DDDDDD;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+treeview.view header button:active {
+  color: #000000;
+  text-shadow: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+treeview.view header button:last-child {
+  border-right-width: 0;
+}
+
+menu, .menu, popover, .popover {
+  background-color: #DDDDDD;
+  border: 1px solid #000000;
+  border-radius: 0;
+}
+
+menuitem:hover, .menuitem:hover {
+  background-color: #CCCCFF;
+}
+
+popover modelbutton:hover, popover modelbutton:selected {
+  background-color: #CCCCFF;
+}
+
+menu menuitem check, menu menuitem radio,
+popover modelbutton check, popover modelbutton radio {
+  margin: 0;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+menu menuitem arrow {
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
+}
+
+popover modelbutton arrow.right {
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
+}
+
+tooltip {
+  background-color: #FFFFCC;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 2px 4px;
+}
+
+tooltip.background {
+  background-color: #FFFFCC;
+  background-clip: padding-box;
+}
+
+/* No reference screenshot shows GTK tooltip text; black reuses the tooltip
+   foreground and the shadow reset follows treeview.view header button. */
+tooltip * {
+  color: #000000;
+  text-shadow: none;
+}
+
+menu separator, .menu separator {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  margin: 2px 0;
+  min-height: 1px;
+  padding: 0;
+}
+
+separator.horizontal {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  min-height: 1px;
+  padding: 0;
+}
+
+separator.vertical {
+  background-color: #888888;
+  border: 0;
+  border-right: 1px solid #FFFFFF;
+  min-width: 1px;
+  padding: 0;
+}
+

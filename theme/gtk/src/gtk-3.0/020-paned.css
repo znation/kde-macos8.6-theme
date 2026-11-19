@@ -1,0 +1,496 @@
+paned.horizontal > separator {
+  background-color: #888888;
+  border: 0;
+  border-right: 1px solid #FFFFFF;
+  min-width: 1px;
+  padding: 0;
+  -gtk-icon-source: none;
+  margin: 0;
+}
+
+paned.vertical > separator {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  min-height: 1px;
+  padding: 0;
+  -gtk-icon-source: none;
+  margin: 0;
+}
+
+/* No GTK split-pane reference is available; clear the stock images to expose
+ * the reference-grounded etched separator policy. */
+paned > separator,
+paned > separator:selected,
+paned > separator:backdrop,
+paned > separator.wide,
+paned > separator.wide:backdrop {
+  background-image: none;
+}
+
+headerbar separator.titlebutton, .titlebar separator.titlebutton {
+  opacity: 0;
+}
+
+frame > border, .frame {
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  margin: 0;
+  padding: 0;
+}
+
+/* Stock GTK 3 resets the viewport that a scrolled window wraps around a child
+ * which cannot scroll itself: gtk-contained.css, extracted from
+ * libgtk-3.so.0 with gresource on 2026-11-11, declares
+ * scrolledwindow viewport.frame { border-style: none; }. box-shadow is reset
+ * too, because the frame > border, .frame recipe above adds an inset shadow
+ * that stock frames do not have. Without this rule the viewport drew a second
+ * frame inside the scrolled window's own frame (measured 2026-11-11 with a
+ * GTK 3 offscreen child). Recorded 2026-11-11 by the feature role. */
+scrolledwindow viewport.frame {
+  border-style: none;
+  box-shadow: none;
+}
+
+/* Stock GTK 3 keeps a flat frame frameless: gtk-contained.css, extracted
+ * from libgtk-3.so.0 with gresource on 2026-11-11, declares
+ * frame > border.flat, .frame.flat { border-style: none; }. box-shadow is
+ * reset too, because the frame > border, .frame recipe above adds an inset
+ * shadow that stock frames do not have. Without this rule a Gtk.Frame with
+ * shadow type NONE drew the same sunken frame as one with shadow IN
+ * (measured 2026-11-11 with a GTK 3 offscreen child). Recorded 2026-11-11
+ * by the feature role. */
+frame > border.flat, .frame.flat {
+  border-style: none;
+  box-shadow: none;
+}
+
+/* No reference screenshot shows a GTK color chooser. Square corners adapt
+ * the existing frame > border, .frame recipe (border-radius: 0).
+ * Qualified stock GTK corner selectors also reset their overlay nodes.
+ * Recorded 2026-10-28 by the feature role. */
+colorswatch,
+colorswatch.top,
+colorswatch.bottom,
+colorswatch.left,
+colorswatch.right,
+colorswatch:first-child:not(.top),
+colorswatch:last-child:not(.bottom),
+colorswatch#add-color-button,
+colorswatch#add-color-button:only-child,
+colorswatch#editor-color-sample,
+colorswatch overlay,
+colorswatch.top overlay,
+colorswatch.bottom overlay,
+colorswatch.left overlay,
+colorswatch.right overlay,
+colorswatch:first-child:not(.top) overlay,
+colorswatch:last-child:not(.bottom) overlay,
+colorswatch#add-color-button overlay,
+colorswatch#add-color-button:only-child overlay,
+colorswatch#editor-color-sample overlay {
+  border-radius: 0;
+}
+
+/* No reference screenshot shows a GTK color chooser's add-color action.
+ * GTK 3's installed theme resource declares grey foregrounds and borders
+ * and a translucent outline here; reuse this sheet's black window
+ * foreground, frame border and palette-swatch focus outline.
+ * The stock base and hover arms also set white text and icon shadows; the
+ * backdrop arms clear them. Clear both using the sheet's shadow-free label
+ * treatment (adaptation 2026-10-31).
+ * The installed GTK 3 theme resource in
+ * `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` (extracted with `gresource`
+ * 2026-10-31; its path is recorded in docs/invariants.md) also supplies
+ * gradient fills on base and hover and an `image(...)` backdrop fill; no
+ * collected reference shows this action, so give all four arms the existing
+ * `button` face `#DDDDDD` as a platform adaptation (recorded 2026-10-31 by
+ * the feature role). */
+colorswatch#add-color-button overlay,
+colorswatch#add-color-button overlay:hover,
+colorswatch#add-color-button overlay:backdrop,
+colorswatch#add-color-button overlay:backdrop:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  box-shadow: none;
+  border-color: #000000;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No reference screenshot shows a GTK color button swatch. Clear the stock
+ * decorative shadow while preserving the swatch color and geometry.
+ * Recorded 2026-10-30 by the feature role. */
+button.color colorswatch:only-child {
+  box-shadow: none;
+}
+
+/* No reference screenshot shows a GTK selected-row color swatch. Reuse the
+ * black frame border and GTK's stock 2px selection-ring geometry as a
+ * platform adaptation (2026-10-31). */
+row:selected colorswatch {
+  box-shadow: 0 0 0 2px #000000;
+}
+
+/* No reference screenshot shows a GTK palette swatch hover. Reuse the
+ * stock backdrop-hover shadow reset as a platform adaptation (2026-10-30). */
+colorswatch overlay:hover {
+  box-shadow: none;
+}
+
+/* No reference screenshot shows GTK palette swatch borders. Reuse the
+ * sheet's solid black frame border as a platform adaptation (2026-10-31). */
+colorswatch overlay,
+colorswatch.light overlay:hover,
+colorswatch.dark overlay:hover,
+colorswatch overlay:backdrop,
+colorswatch overlay:backdrop:hover,
+colorswatch:disabled overlay {
+  border-color: #000000;
+}
+
+/* No reference screenshot shows a GTK palette swatch drop target. Reuse
+ * Platinum selection lavender and the black frame border; retain GTK's
+ * stock 2px/1px inset geometry (adaptation 2026-10-31). */
+colorswatch:drop(active).light overlay,
+colorswatch:drop(active).dark overlay {
+  border-color: #CCCCFF;
+  box-shadow: inset 0 0 0 2px #000000, inset 0 0 0 1px #CCCCFF;
+}
+
+/* No reference screenshot shows GTK palette swatch focus. Match the sheet's
+ * black focus outline and frame border color (platform adaptation 2026-10-31). */
+colorswatch.light,
+colorswatch.dark {
+  outline-color: #000000;
+}
+
+/* No reference screenshot shows a GTK palette swatch selection mark.
+ * Keep the installed GTK 3 resource's contrasting base foregrounds solid
+ * in backdrop (platform adaptation 2026-10-31). */
+colorswatch.light overlay:backdrop {
+  color: #000000;
+}
+
+colorswatch.dark overlay:backdrop {
+  color: #FFFFFF;
+}
+
+/* Views paint the white content field with black text. */
+.view, textview text, list {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+/* No reference screenshot shows GTK content-view fields; reuse the existing
+ * white view palette. The installed GTK 3 theme resource declares this class
+ * and its backdrop state with a grey background (2026-10-31). */
+.content-view, .content-view:backdrop {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+/* No GTK selection-marquee reference is available. Keep the existing dotted
+ * outline adaptation for GTK 3's stock view-specific nodes (theme resource,
+ * inspected 2026-11-01), using the reference-grounded black outline. */
+.rubberband, rubberband,
+.content-view rubberband, .content-view .rubberband,
+treeview.view rubberband, flowbox rubberband {
+  background-color: transparent;
+  border: 1px dotted #000000;
+}
+
+treeview.view:hover, list row.activatable:hover {
+  background-color: transparent;
+}
+
+treeview.view:selected, treeview.view:selected:hover,
+list row.activatable:selected, list row.activatable:selected:hover {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+treeview.view:selected:backdrop, list row.activatable:selected:backdrop {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+/* No GTK reference screenshot shows drag-and-drop feedback; the stock
+   toolkit floods a dropped-over header button with its accent fill and a
+   white inset ring in every drag state. The selection fill answers it,
+   as for selected rows (adaptation 2026-10-30). */
+treeview.view button.dnd, treeview.view button.dnd:hover,
+treeview.view button.dnd:active, treeview.view button.dnd:selected,
+treeview.view header.button.dnd, treeview.view header.button.dnd:hover,
+treeview.view header.button.dnd:active, treeview.view header.button.dnd:selected,
+treeview.view header button.dnd, treeview.view header button.dnd:hover,
+treeview.view header button.dnd:active, treeview.view header button.dnd:selected {
+  background-color: #CCCCFF;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: none;
+  border-style: none;
+  border-radius: 0;
+}
+
+/* No GTK reference screenshot shows accelerator editing either. The
+   stock GTK 3 scheme fills the on-screen accelerator editor a view
+   header button opens while it captures a key -- the overlay label
+   carrying the "New accelerator..." prompt -- with its accent face.
+   The pinned selection fill answers it, as for the selected rows and
+   the drag-and-drop header arm above, and the label's ink is stock's
+   own inheritance from the existing view field, so it follows
+   per-property with no colour member stock claims or the theme needs
+   to answer. Stock arm probed 2026-11-09 with gresource extract of
+   the toolkit resource in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (the compiled base stylesheet whose resource path is recorded in
+   docs/invariants.md): line 755 declares `treeview.view acceleditor
+   > label { background-color: <the foreign accent>; }`, the
+   resource's only acceleditor arm, with no :backdrop, :disabled or
+   .osd sibling arm anywhere (adaptation 2026-11-09). */
+
+treeview.view acceleditor > label {
+  background-color: #CCCCFF;
+}
+
+/* No GTK list-row keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. */
+list row:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* No GTK tree-view keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. */
+treeview.view:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* No GTK icon-view keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners (adaptation 2026-10-29). */
+iconview:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* No GTK flow-box keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners (adaptation 2026-10-29). */
+flowbox > flowboxchild:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+treeview.view.expander, expander title > arrow {
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: url("../assets/arrow-right.svg");
+}
+
+treeview.view.expander:checked, expander title > arrow:checked {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+}
+
+/* GTK's installed stylesheet uses a left-facing disclosure in RTL layouts;
+   reflect the shared triangle without changing its 16px canvas (adaptation 2026-11-01). */
+treeview.view.expander:not(:checked):dir(rtl), expander title > arrow:not(:checked):dir(rtl) {
+  -gtk-icon-transform: scaleX(-1);
+}
+
+/* No GTK 3 expander keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. GTK draws focus on the title
+   node, so keep this rule off the outer expander and disclosure arrow. */
+expander > title:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* 2026-10-31: the horizontal spin button spelling matches its stock selector. */
+entry selection, spinbutton:not(.vertical) selection, label selection, textview text selection {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+scrollbar {
+  background-color: #EEEEEE;
+  border: 1px solid #000000;
+  padding: 0;
+  /* 2026-11-09: stock animates every repaint of the bar with a 300ms
+     ease (the toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 981); the existing no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the bar repaints instantly. */
+  transition: none;
+}
+
+scrollbar slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  /* 2026-11-09: stock animates every repaint of the thumb with the
+     same 300ms ease (the toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 995); the existing no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the thumb repaints instantly. */
+  transition: none;
+}
+
+/* A scrollbar's thumb repaints through the toolkit's own hover, drag and
+   disabled arms the moment the pointer enters, drags or the control is
+   made insensitive, and no collected reference surface has those faces:
+   no collected reference screenshot in `macos8.6-screenshots/` shows a
+   GTK scrollbar in any of these states (the standing GTK-scope adaptation
+   premise), so each answer restates the existing base thumb face this
+   sheet's bare `scrollbar slider` rule pins (FACE, asserted in
+   tests/test_gtk_theme_scrollbars.py) — the same policy the existing GTK 4
+   state-face groups apply at the same nodes. Recorded 2026-11-09. Fresh
+   probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 997 `scrollbar slider:hover { background-color:
+   …; }`, line 999 `scrollbar slider:hover:active { background-color: …;
+   }` and line 1003 `scrollbar slider:disabled { background-color:
+   transparent; }`; the toolkit's dark-twin resource gtk-contained-dark.css
+   declares the identical three arms at lines 989, 991 and 995. Each
+   stock arm carries more pseudo-classes than the existing bare group and
+   declares only a background colour, so each rule below spells its stock
+   twin byte-equal — winning the equal-specificity tie by later user-sheet
+   source order — and declares only the existing face, leaving the bare
+   arm's bevel, border and flat fill governing every other property.
+   Foreign colour values stay out of the sheet per its palette convention;
+   the verbatim stock values live in the docs/invariants.md row. No
+   transition, geometry, margin, backdrop or overlay-state declaration is
+   added: the backdrop pair is the existing unfocused-window record and the
+   bare arm's motion is erased inside the existing bare group above. */
+scrollbar slider:hover {
+  background-color: #DDDDDD;
+}
+
+scrollbar slider:hover:active {
+  background-color: #DDDDDD;
+}
+
+scrollbar slider:disabled {
+  background-color: #DDDDDD;
+}
+
+/* No GTK thumb minimum-length policy appears in the reference set; reuse the overlay square minimum from its 16px band minus both 1px borders. */
+scrollbar:not(.overlay-indicator) slider {
+  min-width: 12px;
+  min-height: 12px;
+}
+
+/* Adaptation recorded 2026-11-09: no GTK overlay scrollbar appears in the reference set; reuse the ordinary 16px band minus the two 1px borders. */
+scrollbar.overlay-indicator slider {
+  min-width: 12px;
+  min-height: 12px;
+}
+
+scrollbar:not(.overlay-indicator) {
+  -GtkScrollbar-has-backward-stepper: true;
+  -GtkScrollbar-has-forward-stepper: true;
+}
+
+scrollbar.overlay-indicator {
+  -GtkScrollbar-has-backward-stepper: false;
+  -GtkScrollbar-has-forward-stepper: false;
+}
+
+scrollbar button {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 14px;
+  min-width: 14px;
+  padding: 0;
+}
+
+scrollbar button:hover {
+  background-color: #EEEEEE;
+}
+
+scrollbar button:active {
+  background-color: #EEEEEE;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+scrollbar.vertical button.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+  border-bottom: 1px solid #555555;
+}
+
+scrollbar.vertical button.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  border-top: 1px solid #555555;
+}
+
+scrollbar.horizontal button.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+  -gtk-icon-transform: rotate(-0.25turn);
+  border-right: 1px solid #555555;
+}
+
+scrollbar.horizontal button.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  -gtk-icon-transform: rotate(-0.25turn);
+  border-left: 1px solid #555555;
+}
+
+/* Adaptation 2026-10-30: no collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK over-scroll glow, but the stock GTK 3
+   resource in libgtk-3 paints a pair of radial shade fades on the four
+   overshoot nodes of a scrolled window, while Platinum scroll fields are
+   flat: the white field runs to the sunken frame with nothing at any edge.
+   One grouped rule below lists the four direction arms and their :backdrop
+   versions verbatim, as the stock resource spells them, and clears each.
+   The stock theme paints no undershoot nodes, so there is no undershoot
+   family to clear. */
+scrolledwindow overshoot.top,
+scrolledwindow overshoot.top:backdrop,
+scrolledwindow overshoot.bottom,
+scrolledwindow overshoot.bottom:backdrop,
+scrolledwindow overshoot.left,
+scrolledwindow overshoot.left:backdrop,
+scrolledwindow overshoot.right,
+scrolledwindow overshoot.right:backdrop {
+  background-image: none;
+}
+
+/* Adaptation 2026-10-30: no collected reference screenshot in
+   macos8.6-screenshots/ shows the corner square a scrolled window paints
+   where its two scrollbars meet, but the stock GTK 3 resource in libgtk-3
+   fills that junction node with its own grey and draws a trough line down
+   one edge of the band through a border-image gradient, while the Platinum
+   scrollbar band is flat, so the junction reads as the same flat #EEEEEE
+   band the scrollbar rule pins, in normal and backdrop state. The stock
+   left-to-right mirror arm only re-slices the border-image; under an empty
+   border-image that slice has nothing to apply to, and the sheet leaves
+   that arm undeclared. */
+scrolledwindow junction {
+  background-color: #EEEEEE;
+  border-color: transparent;
+  border-image: none;
+}
+
+scrolledwindow junction:backdrop {
+  background-color: #EEEEEE;
+  border-color: transparent;
+  border-image: none;
+}
+

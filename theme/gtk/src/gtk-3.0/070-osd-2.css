@@ -1,0 +1,467 @@
+.osd button.destructive-action:active:backdrop, .osd
+button.destructive-action:active, .osd
+button.destructive-action:checked:backdrop, .osd
+button.destructive-action:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD spinbutton stepper.
+ * GTK 3.24.49's gtk-contained.css resource (extracted from libgtk-3.so.0
+ * with gresource, 2026-10-30) supplies dark translucent
+ * vertical faces and transparent horizontal faces with directional
+ * separators; it also claims a translucent vertical outline, padding-box
+ * clipping, and 5px edge radii. Reuse the existing push-button recipe: the
+ * full black border clears both separator directions, square corners clear
+ * the edge radii, black clears the stock outline, and border-box clears
+ * the vertical clip. */
+.osd spinbutton:not(.vertical) button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK scale popup. The GTK 3
+   toolkit resource's rounded borderless flat-button arms are restated with
+   the existing square button border and face; the hover face reuses the
+   plain-button FACE. Probed from gtk-contained.css in libgtk-3 3.24.49
+   with gresource on 2026-10-30. */
+.osd .scale-popup button.flat {
+  border-style: solid;
+  border-radius: 0;
+}
+
+.scale-popup button:hover {
+  background-color: #DDDDDD;
+  border-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK message
+   dialog, so the dialog is a platform adaptation like the sheets' other band
+   restatements. The GTK 3 toolkit resource (the libgtk-3 theme CSS, probed
+   with gresource, 2026-10-31) declares a messagedialog .titlebar arm of
+   min-height 20px, an off-white face, no border and 7px top radii that carries
+   one class and element more than the existing headerbar, .titlebar group and so
+   repaints the dialog's title band, a 9px-corner csd.background arm, and csd
+   action-area button arms that re-pad to 10px 14px and round the end buttons
+   to 7px with -gtk-outline-radius. Each twin below restates the stocked-out
+   values from the existing header and button groups in this same sheet: the band
+   takes the headerbar values plus the headerbar-only 1px bottom border, the
+   backdrop band the existing inactive header values, the body corners and action
+   buttons square, and the action buttons the stock button base padding the
+   existing button group leaves in force. Stock's shared-edge side tricks on the
+   action buttons (border-right-style/border-bottom-style and the
+   :first-child border-left-style) already match the existing
+   .linked:not(.vertical) > button shared-border recipe and stay untouched. */
+messagedialog .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-width: 0 0 1px 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
+}
+
+messagedialog .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
+}
+
+messagedialog.csd.background {
+  border-radius: 0;
+}
+
+messagedialog.csd .dialog-action-area button {
+  padding: 4px 9px;
+}
+
+messagedialog.csd .dialog-action-area button:first-child,
+messagedialog.csd .dialog-action-area button:last-child {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a disabled
+   GTK push button or a push button in an unfocused window, so the disabled
+   label reuses the recorded insensitive grey #888888 -- the colour scheme's
+   ForegroundInactive, Kvantum's disabled.text.color and the existing
+   label:disabled grey in this same sheet -- and both states restate the
+   existing `button` raised face and `button:active, button:checked` sunken
+   face. Each selector below is its exact stock twin so the later source
+   order in this sheet decides every tie. The toolkit resource (the libgtk-3
+   theme CSS in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0, probed with
+   gresource, 2026-10-31) declares the surviving residues: button:disabled
+   repainting the face off-white with a greyed label and
+   -gtk-icon-filter: opacity(0.5) -- the icon dimming stays in force, a kept
+   toolkit value -- button:backdrop flattening the bevel with the stock
+   border grey, and the active, checked, backdrop:disabled and backdrop:active
+   compounds with their own off-white and pressed-grey faces. The stock 200ms
+   backdrop transition is restated to none like the GTK 4 sheet's restatement,
+   and stock's backdrop text-shadow and -gtk-icon-shadow resets already match
+   the existing label treatment and stay applied. */
+button:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop:active, button:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:disabled,
+button:disabled:active,
+button:disabled:checked,
+button:backdrop:disabled,
+button:backdrop:disabled:active,
+button:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK split pane, so
+   the paned handles keep the existing etched pair and the image clearance
+   above on base, selected, backdrop, wide and wide-backdrop handles. The
+   direction residue the existing rules cannot outrank is restated here: the
+   stock 8px direction margins, probed from the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49) with
+   gresource on 2026-10-31, win the margin and padding cascade because each
+   :dir arm carries one class more than the existing orientation rules, so
+   they are reset to those rules' own margin and padding. */
+paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
+  margin: 0;
+  padding: 0;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK push button, so
+   the plain enabled arms carry only the existing `button` group's face above.
+   The stock arms underneath still emboss them: the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49, probed with
+   gresource 2026-10-31; this sheet never names upstream themes, so the
+   probed resource's provenance lives in docs/invariants.md) declares on
+   `button` and re-declares on `button:hover` `text-shadow:
+   0 1px rgba(255, 255, 255, 0.769231)` and the same `-gtk-icon-shadow`,
+   and the hover arm adds `-gtk-icon-effect: highlight`, none of which the
+   reference's Platinum buttons show. Each selector below is its exact stock
+   twin so sheet order decides the tie, the clearance reuses the sheet's
+   established `none`-shadow treatment grounded in the existing face, and
+   `-gtk-icon-effect` stays out of the shared group so stock's `*:disabled`
+   `dim` keeps greyed icons (a kept toolkit value). */
+button, button:hover {
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button:hover {
+  -gtk-icon-effect: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK icon view or
+   content-view container, so hovering one keeps the Platinum glyphs as
+   drawn: the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49, probed with
+   gresource 2026-10-31; the base and backdrop groups are already restated
+   by the existing `.content-view, .content-view:backdrop` rule above, so
+   only the hover axis survives here) declares
+   `.content-view:hover { -gtk-icon-effect: highlight; }`, which this
+   sheet never declared, so hovering an icon view asked the toolkit to
+   highlight the item icons on a property axis separate from the shadows
+   the existing push-button clearance above clears. The clearance reuses
+   this sheet's established `none` convention for stock interaction
+   recolours, the selector is the exact stock twin and sits later in
+   source order, so it wins the tie, and stock's `*:disabled` dimming
+   stays a kept toolkit value. */
+.content-view:hover {
+  -gtk-icon-effect: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK
+   suggested-action button at all (the GTK scope's standing adaptation
+   premise), so a generic push button carrying the `suggested-action`
+   class must draw the existing Platinum push-button face in every armed
+   state instead of the stock blue gradient family — the toolkit's
+   erase-the-colour-distinction adaptation the existing
+   `.osd button.suggested-action` and plain restatements all follow.
+   The libgtk-3 theme CSS in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49, probed with gresource 2026-10-31; this sheet
+   never names upstream themes, so the probed resource's provenance
+   lives in docs/invariants.md) declares ten stock blocks, some mixing
+   `.flat` members into the same comma list: a base arm with a white
+   label, a translucent white `outline-color`, a blue one-line border
+   with a darker bottom edge, a `linear-gradient` blue face and dark
+   `text-shadow`/`-gtk-icon-shadow`; a `:hover` arm with a fresh
+   gradient; an `:active`/`:checked` arm resized to a solid blue
+   `image()` fill; backdrop arms respainted in the blue family; and
+   off-white disabled arms with a light grey blue-family label and
+   lighter labels besides. Only the opaque members are restated here,
+   each with its exact stock-twin selector, so sheet source order
+   decides every intra-family tie exactly as stock spells them and the
+   existing plain `button`, `button:hover`, `button:backdrop...` and
+   `button:disabled...` groups — which these arms out-tie by one class —
+   never reach a suggested button. Every opaque arm reuses this sheet's
+   existing plain push-button recipe as its value source: the `#DDDDDD`
+   face with the `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA`
+   raised bevel, the `1px solid` black one-line border, black labels,
+   the existing `button:active, button:checked` sunken
+   `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF` press face, and the
+   `#888888` disabled label (the constants
+   `tests/support/gtk_theme_spec.py` pins as `BUTTON_BEVEL`,
+   `INVERTED_BUTTON_BEVEL` and `DISABLED_TEXT`). A black
+   `outline-color` is restated in every non-disabled arm because the
+   stock family claims a translucent white one there, which would
+   defeat the existing dotted black `button:focus` outline on a
+   keyboard-focused suggested button; the stock disabled arms claim no
+   `outline-color`, so the disabled recipe does not either — the same
+   extension every existing disabled arm gives back.
+   `text-shadow`/`-gtk-icon-shadow` are cleared in every non-disabled
+   arm because the stock family paints dark or white shadows on them;
+   the stock disabled arms already claim `text-shadow: none` and
+   `-gtk-icon-shadow: none`, so the disabled recipe leaves them to
+   stock. No `transition` is restated because the GTK 3 stock base
+   arm, unlike the GTK 4 one, claims none. The nine restated blocks
+   keep stock's arm ordering — base, `:hover`, `:active`/`:checked`,
+   the backdrop forms and the disabled forms — in the stock comma-list
+   pairings so sheet order decides every intra-family tie exactly as
+   stock spells them; no appended selector carries `.flat`, so the
+   stock `.flat` colour-class family keeps governing whole (2026-10-31:
+   the colour-class members are since restated at the sheet tail by the
+   existing colour-class family plan). The rest of the stock family (the
+   transparent `.flat` variants, a plain `button.destructive-action`
+   red mirror) stays out as its own candidate plan. No geometry, artwork, padding or dependency change;
+   no other rule in the sheet is touched. Declaration checks do not
+   establish rendered pixels. */
+
+button.suggested-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:active, button.suggested-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop:active,
+button.suggested-action:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:backdrop:disabled:active,
+button.suggested-action:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:disabled:active, button.suggested-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+

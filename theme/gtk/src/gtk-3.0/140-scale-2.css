@@ -1,0 +1,500 @@
+scale.horizontal.marks-after:not(.marks-before) slider:disabled,
+scale.horizontal.marks-after:not(.marks-before) slider:backdrop,
+scale.horizontal.marks-after:not(.marks-before) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-after:not(.marks-before).fine-tune slider {
+  margin: -5px;
+}
+
+scale.vertical.marks-before:not(.marks-after) slider,
+scale.vertical.marks-before:not(.marks-after) slider:hover,
+scale.vertical.marks-before:not(.marks-after) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-before:not(.marks-after) slider:disabled,
+scale.vertical.marks-before:not(.marks-after) slider:backdrop,
+scale.vertical.marks-before:not(.marks-after) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-before:not(.marks-after).fine-tune slider {
+  margin: -5px;
+}
+
+scale.vertical.marks-after:not(.marks-before) slider,
+scale.vertical.marks-after:not(.marks-before) slider:hover,
+scale.vertical.marks-after:not(.marks-before) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-after:not(.marks-before) slider:disabled,
+scale.vertical.marks-after:not(.marks-before) slider:backdrop,
+scale.vertical.marks-after:not(.marks-before) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 16px;
+  min-height: 12px;
+}
+
+scale.vertical.marks-after:not(.marks-before).fine-tune slider {
+  margin: -5px;
+}
+
+/* An infobar's close and action buttons leave the existing plain `button`
+   paint underneath stock's typed arms, so the toolkit resource's infobar
+   button, selection and link families are restated with the existing
+   surface-button recipe.
+
+   The stock arms probed 2026-11-09 with `gresource extract` of
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49, the 2055-line resource, foreign hex literals
+   below elided with `...`)
+   are the four typed button families — `infobar.info button`, the
+   `question`, `warning` and `error` twins, three-to-five tokens each:
+   `infobar.info button, ... { color: ...; outline-color: rgba(46, 52,
+   54, 0.3); border-color: ...; border-bottom-color: ...;
+   background-image: linear-gradient(to top, ... 2px, ...); text-shadow:
+   0 1px rgba(255, 255, 255, 0.769231); -gtk-icon-shadow: 0 1px
+   rgba(255, 255, 255, 0.769231); box-shadow: inset 0 1px white, 0 1px
+   2px rgba(0, 0, 0, 0.07); }` and its `:hover` twin on a lighter
+   gradient (resource lines 1745 and 1747), the `:active`/`:checked`
+   group settling `box-shadow` to `inset 0 1px rgba(255, 255, 255, 0)`
+   over an `image(...)` wash (line 1749), the `:disabled` group (line
+   1751), the `:backdrop` twins with a repeated `border-color` claim
+   (line 1753), the `:backdrop:disabled` twins (line 1755) and a late
+   grouped arm re-declaring the ink on `...button:backdrop label`/
+   `...button label` and the button spellings again (line 1757); outside
+   the button families, `infobar.info selection, ...` retints selected
+   text inside the band (line 1759) and `infobar.info *:link, ...`
+   retints a message-area link (line 1761). The toolkit's warm band
+   inks, toolkit gradient inks and the toolkit link blue live in the
+   `## gtk` table row of docs/invariants.md; no collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK infobar at all — the
+   standing GTK-scope adaptation premise.
+
+   Every spelling embeds the existing measured chain `infobar > revealer >
+   box` and carries no message-type token, so the existing `test_infobar`
+   message-type ban stays in force, and each out-tokens its stock rival
+   or wins the equal-token tie by later user-sheet source order. The
+   face, pressed and insensitive recipes come from the existing
+   `.app-notification button` and `.osd` button restatements above
+   (pinned by tests/test_gtk_theme.py::TestGtkTheme::test_button and
+   test_app_notification_band): the raised #DDDDDD face with the 1px
+   black border and square corners, the `inset 1px 1px #FFFFFF,
+   inset -1px -1px #AAAAAA` bevel swapped for its inverse when pressed,
+   the insensitive arm without `outline-color` (the existing
+   `.osd button:disabled` shape) and the Inactive grey #888888 ink, and
+   the backdrop arm keeping the existing face (the existing
+   `.osd button:backdrop` shape). The `#CCCCFF` selection fill and the
+   #0000EE link ink are the existing entry-selection groups' fill and the
+   existing `label:link` record's ink; the state-only `:link` descent is
+   spelled on the two node names GTK realizes inside a bar, so no
+   universal selector appears and the sheet-wide
+   test_no_universal_selector ban stays green.
+
+   Exclusions: the message label's own typed ink arm (`infobar.info
+   > revealer > box label`, resource line 1741, five tokens because of
+   the type class) is NOT restated — no untyped band-chain spelling can
+   out-token it (the chain tops at four) and no message type may be
+   named, so a message label keeps its near-black toolkit ink inside the
+   black-text band, a written limitation with its reason, not silently
+   dropped; the typed band-box and backdrop band arms (the resource's
+   line 1735 `:hover` group and line 1739 group with its backdrop
+   members) are the existing band record's own scope and stay; the two
+   `text-shadow: none` statements (resource lines 1737 and 1743) are
+   already none at the existing policy and need no twin; no motion, no
+   geometry and no radius beyond the square `border-radius: 0` the face
+   recipe carries (stock's bar arms declare none of them); and the GTK
+   4 toolkit's infobar arms (the Default resource's `infobar > revealer
+   > box` padding and border-spacing, its typed band twins and the
+   `infobar .close` circular arms) are a different family left for a
+   later entry. Declaration and source-order checks do not establish
+   rendered pixels. */
+infobar > revealer > box button,
+infobar > revealer > box button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:active,
+infobar > revealer > box button:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:disabled,
+infobar > revealer > box button:disabled:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+infobar > revealer > box button label,
+infobar > revealer > box button:backdrop label {
+  color: #000000;
+}
+
+infobar > revealer > box selection {
+  background-color: #CCCCFF;
+}
+
+infobar > revealer > box label:link,
+infobar > revealer > box button:link {
+  color: #0000EE;
+}
+
+/* A places view's server button — the disc button the file chooser's
+   network page (GtkPlacesView) shows for connecting to a server —
+   flips its icon half a turn in stock while checked, through a 200ms
+   ease that no collected reference surface has: no collected
+   reference screenshot in `macos8.6-screenshots/` shows a GTK places
+   view or its server button (the standing GTK-scope adaptation
+   premise), so the existing no-transition policy stands in (the existing
+   `button:backdrop` groups restate stock's 200ms backdrop ease as
+   `transition: none`, pinned by the
+   `button.flat:hover:active` and backdrop assertions in
+   tests/test_gtk_theme_buttons.py, erasing only the animation while
+   state values stay inherited per-property). Recorded 2026-11-09.
+   Fresh probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 1701 `placesview .server-list-button > image
+   { transition: 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); -gtk-icon-transform:
+   rotate(0turn); }` and line 1703 `placesview
+   .server-list-button:checked > image` with the same 200ms transition
+   and `rotate(-0.5turn)`. The two rules below erase only the
+   animation, each spelling a byte-equal stock twin so later
+   user-sheet source order wins the equal-specificity tie; the
+   `-gtk-icon-transform: rotate(0turn)` rest and `rotate(-0.5turn)`
+   checked orientations stay stock per-property, and no rotation,
+   transform, colour or geometry declaration is added. Declaration
+   checks do not establish rendered pixels. */
+
+placesview .server-list-button > image {
+  transition: none;
+}
+
+placesview .server-list-button:checked > image {
+  transition: none;
+}
+
+/* A check box's or radio's mark — the tick or dot the pressed and
+   checked states flip between — animates its flip in stock: the
+   checked and mixed marks restore their orientation through a 400ms
+   ease that no collected reference surface has. No collected
+   reference screenshot in `macos8.6-screenshots/` shows a GTK check
+   box's or radio's mark (the standing GTK-scope adaptation premise),
+   so the existing no-transition policy stands in (the existing
+   `button:backdrop` groups restate stock's 200ms backdrop ease as
+   `transition: none`, pinned by the
+   `button.flat:hover:active` and backdrop assertions in
+   tests/test_gtk_theme_buttons.py, erasing only the animation while
+   state values stay inherited per-property). Recorded 2026-11-09.
+   Fresh probe the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares the stock arms at its lines 1185
+   `radio:not(:indeterminate):not(:checked):active:not(:backdrop)
+   { -gtk-icon-transform: scale(0); }`, 1187
+   `check:not(:indeterminate):not(:checked):active:not(:backdrop)
+   { -gtk-icon-transform: translate(6px, -3px) rotate(-45deg) scaleY(0.2)
+   rotate(45deg) scaleX(0); }`, 1189 `radio:active, check:active
+   { -gtk-icon-transform: scale(0, 1); }`, 1191
+   `radio:checked:not(:backdrop), radio:indeterminate:not(:backdrop),
+   check:checked:not(:backdrop), check:indeterminate:not(:backdrop)
+   { -gtk-icon-transform: unset; transition: 400ms; }` and 1193 the
+   menu-exempt twin `menu menuitem radio:checked:not(:backdrop), …
+   { transition: none; }`; the toolkit's dark-twin resource
+   gtk-contained-dark.css declares the identical checked and menu arms
+   at lines 1175 and 1177. Stock's own menu twin shows the toolkit
+   already exempts menu rows, and menu rows keep that exemption: they
+   carry no transition statement here either way. The rule below erases
+   only the animation, spelling a byte-equal stock twin so later
+   user-sheet source order wins the equal-specificity tie; the pressed
+   scale and translate arms, the active arm and the checked
+   `-gtk-icon-transform: unset` restore stay stock per-property, so the
+   mark jumps between unchecked-pressed, checked, mixed and at-rest
+   looks instantly while retaining stock's pressed previews, and no
+   transform, colour or geometry declaration is added. Declaration
+   checks do not establish rendered pixels. */
+
+radio:checked:not(:backdrop), radio:indeterminate:not(:backdrop), check:checked:not(:backdrop), check:indeterminate:not(:backdrop) {
+  transition: none;
+}
+
+/* A scrollbar's band and thumb — the bar a scroll field sits against and
+   the grip painted on it — repaint through the toolkit's own backdrop
+   arms when a window loses focus, through a 200ms ease no collected
+   reference surface has: no collected reference screenshot in
+   `macos8.6-screenshots/` shows a GTK scrollbar in an unfocused window
+   (the standing GTK-scope adaptation premise), so the backdrop answers
+   restate the existing faces this sheet already pins: the existing `TROUGH`
+   band the bare `scrollbar` rule paints and the existing `FACE` of its
+   bare `scrollbar slider` rule (pinned in
+   tests/test_gtk_theme_scrollbars.py). Recorded 2026-11-09. Fresh probe
+   the same day: the toolkit resource gtk-contained.css in
+   `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+   extract`, declares line 981
+   `scrollbar { background-color: …; transition: all 300ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); }`, line 993
+   `scrollbar:backdrop { background-color: …; border-color: …;
+   transition: 200ms ease-out; }`, line 995 the bare `scrollbar slider`
+   arm whose paint carries the same 300ms cubic-bezier transition, and
+   line 1001 `scrollbar slider:backdrop { background-color: …; }`; the
+   toolkit's dark-twin resource gtk-contained-dark.css declares the
+   identical four arms at lines 973, 985, 987 and 993. The two rules
+   below erase only the animation on the bare bar (its 300ms ease is
+   already erased inside the existing bare arm above) and restate the
+   backdrop paint to the existing faces, each spelling a byte-equal
+   stock twin so later user-sheet source order wins the
+   equal-specificity ties. Excluded per-property arms stay stock: the
+   thumb's `scrollbar slider:hover` grey-restore,
+   `scrollbar slider:hover:active` accent and `scrollbar slider:disabled`
+   `{ background-color: transparent; }` faces (each its own
+   face-decision candidate under the same policy, not a motion
+   question), and the scrollbar buttons' bare
+   `scrollbar button { … transition-property: min-height, min-width,
+   color; … }` sizing mechanics that the existing steppers repaint
+   statically. No geometry, margin, minimum, overlay state or
+   disabled-arm declaration is added. Declaration checks do not
+   establish rendered pixels. */
+
+scrollbar:backdrop {
+  background-color: #EEEEEE;
+  border-color: #000000;
+  transition: none;
+}
+
+scrollbar slider:backdrop {
+  background-color: #DDDDDD;
+}
+
+/* The self-class base fill ties the plain disabled selector in specificity;
+   preserve the existing disabled grey explicitly. */
+progressbar.osd progress:disabled {
+  background-color: #999999;
+}
+
+/* The existing activatable-row selection rules outrank row alone. Name
+   their nodes and disabled state so inactive text also wins there,
+   including backdrop and the selected:hover arms. */
+list row.activatable:disabled:selected,
+list row.activatable:disabled:selected:backdrop {
+  color: #888888;
+}
+
+
+/* 2026-11-11: no collected reference screenshot shows a GTK notebook tab
+   scroll arrow, so the notebook header's overflow arrows — the
+   `notebook > header > tabs > arrow` nodes stock paints beside `button` —
+   take the existing flat-button recipe: each state arm below carries exactly
+   the existing plain `button.flat` family's same-sheet dictionary,
+   byte-equal, at the arrow's own exact stock spelling, so later user-sheet
+   source order wins stock's equal-specificity tie per-property. Stock
+   groups the arrow with `button.titlebutton`/`button` on a radius-5px
+   raised arm, then paints it with the flat family's transparent face at
+   equal specificity (the group that also names `arrow.flat`), gives hover
+   a raised gradient plus `-gtk-icon-effect: highlight`, presses it with
+   `button`, raises backdrop, backdrop-pressed, backdrop-disabled,
+   backdrop-pressed-disabled, disabled and pressed-disabled arms, paints
+   backdrop and disabled transparent in the flat-style group, and its
+   later dedicated notebook section re-squares the radius, paints a
+   translucent hover wash on the higher-specificity
+   `arrow:hover:not(:active):not(:backdrop)` spelling and a transparent
+   disabled arm — so the arrows beside the existing squared Platinum tab
+   faces render stock: transparent at rest, a toolkit-gradient wash and a
+   highlighted glyph on hover, 5px-rounded corners. The arrow-bearing
+   stock arms were probed 2026-11-11 with gresource from gtk-contained.css
+   in libgtk-3 3.24.49 (the 2055-line toolkit resource; the dark-twin
+   resource gtk-contained-dark.css declares the same arms with its own
+   palette values — the button-family block at the same lines 215-249, the
+   direction block at 884-902, the dedicated notebook section at
+   904-908). Each arm's arrow member is quoted with its resource line and
+   the properties it sets (values elided with `...`, the existing
+   scrollbar-comment precedent, and the comma-group co-members elided):
+   line 215 `notebook > header > tabs > arrow` sets minimums, paddings,
+   the 1px border, radius 5px, the 200ms cubic-bezier transition, ink,
+   outline colour, border colours, the gradient face, text and icon
+   shadows and the two-part box shadow; line 217 the `arrow` and
+   `arrow.flat` members set transparent faces and borders, no face image,
+   cleared text and icon shadows and `transition: none`; line 219
+   `arrow:hover` and line 221 `arrow:hover:active` are transitions-only
+   arms; line 223 `arrow:hover` repaints the gradient face and carries
+   `-gtk-icon-effect: highlight`; line 225 the `arrow:active`
+   and `arrow:checked` members press the face with a 50ms
+   transition-duration; line 227 `arrow:backdrop` repaints with a 200ms
+   ease-out transition and `-gtk-icon-effect: none`; line 229 the
+   `arrow:backdrop:active` and `arrow:backdrop:checked` members; line 231
+   `arrow:backdrop:disabled`; line 233 the
+   `arrow:backdrop:disabled:active` and `:checked` members; line 235 the
+   flat-style group's `arrow:backdrop` and `arrow:disabled` members set
+   transparent faces and borders with cleared shadows; line 237
+   `arrow:disabled`; line 239 the `arrow:disabled:active` and `:checked`
+   members; lines 241-247 the `arrow.image-button`, `arrow.text-button`
+   and `arrow.text-button.image-button` (with its label arm) geometry
+   members; line 249 the `arrow:drop(active)` green drop arm; lines
+   892-910 the direction arms — the `header.top`/`header.bottom` and
+   `header.left`/`header.right` border-side arms, their negative-margin
+   and padding pairs and the `.down`/`.up` icon-source twins of both
+   pairs; line 912 `arrow` re-squares the radius with 16px minimums;
+   line 914 `arrow:hover:not(:active):not(:backdrop)` paints the
+   translucent wash with `background-clip: padding-box` and no shadow;
+   line 916 `arrow:disabled` sets the transparent face and borders.
+   Exclusions, each inherited per-property as kept toolkit values:
+   stock's geometry arms (the lines-241-247 minimums and paddings, the
+   direction arms' border-side styles, negative margins, paddings and
+   icon sources, the line-912 minimums) — the shipped sheet declares no
+   button or flat-button geometry, and the direction arms keep stock's
+   edge-nulled tab-band fit; the line-249 drop arm — the shipped sheet
+   declares no drop arm; the line-916 transparent disabled arm, which
+   loses the equal-specificity tie to the later disabled twin below;
+   stock's line-219/221 hover transitions, beaten by the twins'
+   `transition: none`. The two additions the flat dictionaries cannot
+   reach from the arrow node: `border-radius: 0` in the base twin (stock
+   line 215 rounds 5px and no existing rule reaches the arrow node to
+   square it, though stock's own line-912 re-square arm would) and
+   `-gtk-icon-effect: none` in the hover twins (stock line 223 highlights
+   the glyph); the line-914 wash twin below restates the
+   higher-specificity spelling so the hover face renders, the same
+   clearance the waiting GTK 4 twin's wash group applies to its toolkit
+   wash. No `.osd` arrow twin exists in this toolkit. No restated arm
+   sets on-disk geometry beyond the two named additions. Declaration
+   checks do not establish rendered pixels. */
+
+
+notebook > header > tabs > arrow,
+notebook > header > tabs > arrow.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:hover,
+notebook > header > tabs > arrow.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  -gtk-icon-effect: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:hover:active,
+notebook > header > tabs > arrow.flat:hover:active {
+  transition: none;
+}
+
+notebook > header > tabs > arrow:active,
+notebook > header > tabs > arrow:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+notebook > header > tabs > arrow:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:backdrop:active,
+notebook > header > tabs > arrow:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+notebook > header > tabs > arrow:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+

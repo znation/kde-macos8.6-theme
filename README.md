@@ -21,6 +21,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 - [Prerequisites](#prerequisites)
 - [Installing](#installing)
 - [Generating the wallpaper](#generating-the-wallpaper)
+- [Generating the stylesheets](#generating-the-stylesheets)
 - [Reference screenshots](#reference-screenshots)
 - [Validating the reference set](#validating-the-reference-set)
 - [Sampling reference pixels](#sampling-reference-pixels)
@@ -168,6 +169,13 @@ neutral placeholder rather than a crop of the reference desktop. The output is d
 so re-running it rewrites identical bytes. It refuses an images directory that resolves outside
 the repository — a checked-in symlink — so the generated images stay inside the wallpaper
 package. `PLACEHOLDERS.md` tracks this temporary artwork.
+
+## Generating the stylesheets
+
+The GTK 3 sheet, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, is generated: it is the
+concatenation of the `*.css` partials in the gtk-3.0 directory under theme/gtk/src, joined in filename order.
+Edit the partials, never the shipped sheet, then run `python3 tools/make_sheets.py` to rewrite
+it. The output is deterministic, and the generator validates every partial before it writes.
 
 ## Reference screenshots
 

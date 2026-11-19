@@ -1,0 +1,495 @@
+/* No collected reference screenshot shows a field inside a GTK OSD overlay,
+   so those fields keep the toolkit's stock arms: grouped `.osd
+   spinbutton:not(.vertical), .osd entry` rules painting a translucent dark
+   field with white text and black shadows under this sheet's existing light
+   container band. Restate all four stock state arms with the existing entry
+   recipe (the ENTRY_FIELD spec in tests/support/gtk_theme_spec.py, grounded
+   by tests/test_gtk_theme.py::TestGtkTheme::test_entry): the opaque white
+   face, black square border, inset grey etch and black text, the existing
+   dotted focus outline on the focused arms, and the Inactive grey
+   (#888888, re-derived from the colour scheme's [Colors:Button]
+   ForegroundInactive) on the disabled arm's text. The arm selectors and
+   state names come from the toolkit resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the existing base entry/spin-button rules keep governing
+   outside .osd. Declaration checks do not establish rendered pixels. */
+.osd spinbutton:not(.vertical),
+.osd entry {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* Adaptation (2026-11-11): no collected reference screenshot shows a
+   field inside a GTK OSD overlay — the standing premise the record above
+   keeps — so the etch is the existing field recipe and this mirror is the
+   theme's adaptation, because GTK 3 does not mirror box-shadow for
+   direction. The four groups of this record restate the etch at
+   equal-or-higher specificity, so the existing plain mirror never reached
+   an OSD RTL field: measured 2026-11-11 on this host with a GTK 3
+   offscreen child, the shipped sheet read #999999, #FFFFFF, #FFFFFF,
+   #FFFFFF at the RTL field's exposed right edge. Each twin below
+   restates the existing mirror beside its base state group and out-ranks
+   that group by one class, so the win does not depend on source
+   position. Plain entry fields stay untouched — they have no steppers
+   to cover the arm, so the existing exclusion's reason stands for them. */
+.osd spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+.osd spinbutton:focus:not(.vertical),
+.osd entry:focus {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+.osd spinbutton:dir(rtl):focus:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+.osd spinbutton:backdrop:not(.vertical),
+.osd entry:backdrop {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:dir(rtl):backdrop:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+.osd spinbutton:disabled:not(.vertical),
+.osd entry:disabled {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:dir(rtl):disabled:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a check or
+   radio inside one, so the toolkit resource's five `.osd` indicator arms —
+   translucent dark bubbles with white-on-dark text and icon shadows — are
+   restated with the existing plain check and radio recipes (the CHECK and
+   RADIO specs in tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_check_and_radio):
+   the raised #DDDDDD check face with its etched bevel and square corners and
+   the flat white round radio, black borders, the 14px minimums and 0 4px
+   margins, the stock text and icon shadows cleared, and a black
+   focus-outline colour replacing the stock rgba(238,238,236,0.3). No stock
+   `.osd` indicator arm sets geometry, an -gtk-icon-source or a
+   :checked/:indeterminate spelling and the static shipped glyph assets are
+   never recoloured, so the existing plain check, radio, check:checked,
+   radio:checked and check:indeterminate rules keep governing inside .osd
+   overlays at every state. The arm selectors and state names come from the
+   toolkit resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the existing base check/radio rules keep governing outside .osd.
+   Declaration checks do not establish rendered pixels. */
+.osd check, .osd radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:hover, .osd radio:hover {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:hover {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:active, .osd radio:active {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:active {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:backdrop, .osd radio:backdrop {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:backdrop {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:disabled, .osd radio:disabled {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:disabled {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a scale
+   thumb inside one, so the toolkit resource's six `.osd scale slider` arms
+   — translucent dark bubbles with white-on-dark text and icon shadows — are
+   restated with the existing plain scale-thumb recipe (SCALE_THUMB in
+   tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_scale and
+   TestGtkTheme::test_scale): the raised #DDDDDD face with its black border,
+   zero radius and white/grey bevel, identical in the base, hover, active and
+   backdrop states, and the existing grey disabled face in both disabled
+   states. The stock arms claim the text-shadow 0 1px black / -gtk-icon-shadow
+   0 1px black pair and an rgba(238,238,236,0.3) outline colour, cleared and
+   restated black the same way the existing .osd entry and check blocks do;
+   stock's background-clip: padding-box is part of its translucent
+   dark-bubble arm, while the existing plain thumb draws without it, so the
+   restated thumb omits it and draws exactly like the plain one. No stock arm
+   sets geometry, so the existing plain scale slider, scale.horizontal slider,
+   scale.vertical slider and scale slider:disabled rules keep governing size,
+   and the stateless arms keep the plain thumb's -5px margin. The arm
+   selectors and states come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30. Declaration checks do not establish rendered pixels. */
+
+.osd scale slider,
+.osd scale slider:hover,
+.osd scale slider:active,
+.osd scale slider:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd scale slider,
+.osd scale slider:backdrop {
+  margin: -5px;
+}
+
+.osd scale slider:disabled,
+.osd scale slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a meter
+   inside one, so the toolkit resource's six `.osd` trough, fill and
+   progress paints — translucent dark bubbles (rgba(0,0,0,0.5)
+   foundations over rgba(0,0,0,0.7) edges, with an rgba(71,71,71,0.5)
+   disabled trough face, an rgba(91,91,90,0.775) bare fill and a
+   transparent disabled fill) — are restated with the existing plain
+   progress-bar and scale recipes (PROGRESSBAR_TROUGH, PROGRESSBAR_PROGRESS,
+   SCALE_TROUGH and SCALE_EMPTY_FILL in tests/support/gtk_theme_spec.py,
+   pinned by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::
+   assert_progressbar and TestGtkTheme::test_scale): the flat #EEEEEE
+   trough face with its 1px black border, zero radius and inset 1px 1px
+   #999999 etch at the existing 10px/6px minimums, the flat #CCCCFF progress
+   fill, the transparent scale fill and highlight face, and the existing
+   #999999 disabled progress fill. The existing sheet declares no disabled
+   trough, fill or highlight arm of its own, so the disabled restatements
+   repeat the existing paints byte-for-byte, keeping both stock states on the
+   existing face. The stock arms claim no geometry, glyph source or
+   box-shadow, so the existing plain progressbar trough, progressbar
+   progress, scale trough, scale fill/highlight and scale slider rules keep
+   governing size and every state an arm does not restate. The arm
+   selectors and states come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30. Declaration checks do not establish rendered pixels. */
+
+.osd progressbar trough, progressbar .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+.osd scale trough, scale .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+
+.osd scale fill, scale .osd fill,
+.osd scale highlight, scale .osd highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar progress, progressbar .osd progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar trough:disabled, progressbar .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+.osd scale trough:disabled, scale .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+
+.osd scale fill:disabled:backdrop, .osd scale fill:disabled,
+scale .osd fill:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd scale highlight:disabled, scale .osd highlight:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar progress:disabled, progressbar .osd progress:disabled {
+  background-color: #999999;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay, a meter inside
+   one or a self-class `.osd` thin bar (a `progressbar.osd`, the thin
+   Epiphany-style headerbar indicator), so the toolkit resource's stock
+   `progressbar.osd` trough and progress arms — a transparent trough face with
+   `border-style: none`, `border-radius: 0`, `background-color: transparent`
+   and `box-shadow: none`, and a transparent, borderless progress arm — are
+   restated with the existing plain progress-bar recipes (PROGRESSBAR_TROUGH and
+   PROGRESSBAR_PROGRESS in tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_progressbar,
+   tests/test_gtk_theme.py::TestGtkTheme::test_scale and
+   TestGtkTheme::test_osd_thin_bar), the same reuse the existing GTK 4 sheet's
+   `progressbar.osd > trough` face makes (pinned by
+   tests/test_gtk4_theme.py::TestGtk4Theme::test_progressbar_osd_trough_paint,
+   whose sheet comment reads "No reference shows an OSD GTK progress trough;
+   reuse the base paint (2026-10-29)"). The equal-specificity (0,1,2) restatements
+   append after the toolkit resource, so they pre-empt exactly the stock arms
+   they restate; the existing `.osd progressbar trough, progressbar .osd trough`
+   ancestor arms are untouched and disjoint, because a bar carrying `.osd`
+   itself is not a descendant of an `.osd` element. The bare `progressbar.osd`
+   node arm stays undeclared: its `3px` minimum is dominated by the trough's
+   `10px` minimum and its transparent node background stays beneath the trough
+   face, and the existing `min-height`/`min-width` already fall through to the
+   plain rule today — no stock arm claims geometry — so only the face, border
+   and etch change. The stock arms and their claims come from
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3
+   3.24.49), probed 2026-10-30. Declaration checks do not establish rendered
+   pixels. */
+
+progressbar.osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+progressbar.osd progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a push
+   button inside one, so the toolkit resource's stock push-button arms
+   under this sheet's existing light container band — the self-class
+   `button.osd` family and the grouped `.app-notification button, …,
+   .osd button` family painting translucent dark bubbles with near-white
+   labels — are restated with the existing plain push-button recipe (pinned
+   by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_button):
+   the raised #DDDDDD face with its 1px black border and square corners
+   (zero radius, overriding the stock 5px; the byte-equal dictionaries
+   verbatim in tests/support/gtk_theme_spec.py), the inset
+   `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA` bevel, and black
+   labels; `:active`/`:checked` arms swap only `box-shadow` to the existing
+   inverted bevel `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF`;
+   disabled arms keep the base bevel with the Inactive grey (#888888, the
+   sheet's `label:disabled, entry:disabled, spinbutton:disabled` text
+   colour); the stock white-on-dark `text-shadow`/`-gtk-icon-shadow` pair
+   is cleared, and a black `outline-color` replaces the stock
+   rgba(238,238,236,0.3) in the base, hover and active arms whose stock
+   counterparts claim it, while the stock disabled and backdrop arms claim
+   none so those restatements stay without one. Stock's
+   `background-clip: padding-box` belongs only to its translucent
+   dark-bubble arms and stays omitted, so a button inside an overlay
+   draws exactly like the plain one. No restated arm sets on-disk
+   geometry, so the stock geometry claims keep governing: `button.osd`'s
+   `min-width: 26px; min-height: 32px` and the `button.osd.image-button`
+   `min-width: 34px` arm stay undeclared. The restatements keep the stock
+   selector spellings, so each appends after its stock twin at equal
+   specificity and pre-empts exactly the stock arms they restate;
+   the grouped `.app-notification button.flat, …, .osd button.flat` arms
+   are restated by the flat-button block appended after this one; the
+   `.osd spinbutton … button` stepper arms are restated by the
+   `.osd spinbutton:not(.vertical) button` groups onward (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_osd_spinbutton_buttons),
+   the `colorchooser .popover.osd` button arms are restated by the
+   `colorchooser .popover.osd` corner group (pinned by
+   tests/test_gtk_theme_osd.py::TestGtkThemeOsd::test_colorchooser_osd_popover_corners),
+   and the `.osd button.color colorswatch` arm carries no restatement
+   in this sheet — its stock claims stay in force and nothing is
+   queued against it, while the
+   `.osd button.suggested-action` arms are restated by the
+   suggested-action block after the flat-button block and the
+   `.osd button.destructive-action` arms by the destructive-action
+   block at the sheet tail. The arm
+   selectors,
+   states and stock claims come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the existing base `button`, `button:hover` and
+   `button:active`/`button:checked` rules keep governing outside .osd.
+   Backdrop restatements precede interactive states so equal-specificity
+   matches preserve the pressed bevel and insensitive label in inactive
+   windows. Declaration checks do not establish rendered pixels. */
+button.osd {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.osd:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+

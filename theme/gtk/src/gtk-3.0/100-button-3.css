@@ -1,0 +1,498 @@
+/* Adaptation 2026-11-09: no collected reference screenshot shows places-
+   sidebar navigation-button images. The GTK 3 toolkit resource gives those
+   images 0.7 opacity at rest and under backdrop; full opacity follows the
+   existing GTK 4 embedded-entry-icon adaptation, preserving authored artwork
+   without an extra toolkit veil. This platform value is not sampled. */
+button.sidebar-button:not(:hover):not(:active) > image,
+button.sidebar-button:backdrop > image {
+  opacity: 1;
+}
+
+button.titlebutton:not(.appmenu) {
+  border-radius: 0;
+}
+
+modelbutton.flat,
+.menuitem.button.flat {
+  border-radius: 0;
+}
+
+/* No reference screenshot shows GTK emoji section labels. The installed GTK 3
+   theme resource gives them opacity: 0.55 at rest and 0.775 on hover
+   (probed 2026-11-09); like subtitles and dim labels, remove the extra
+   transparency layer while retaining the inherited label colour. */
+button.emoji-section label, button.emoji-section:hover label {
+  opacity: 1;
+}
+
+scrollbar.overlay-indicator:not(.dragging):not(.hovering) button {
+  border-radius: 0;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK CSD
+   popup menu, generic popover container, popup-window shadow shell, tooltip
+   shadow shell or message-dialog shadow shell (the GTK scope's standing
+   adaptation premise), so the five radius-bearing stock arm spellings this
+   sheet never restates are squared against the existing square-corner policy
+   of this same sheet — the existing `menu`, `popover` and `tooltip`
+   restatements and the existing messagedialog band and body groups carry
+   `border-radius: 0`, with the existing `radio` circle as the
+   reference-grounded exception. The toolkit resource (gtk-contained.css
+   inside libgtk-3, probed with gresource on 2026-11-04, libgtk-3 3.24.49;
+   its full resource path is recorded in docs/invariants.md) rounds five
+   faces this sheet answers at nothing: `.csd menu, .csd .menu,
+   .csd .context-menu` rounds the CSD-classed popup menus 5px;
+   `.csd popover.background, popover.background` rounds the generic popover
+   border container 9px; `.csd.popup decoration` rounds the popup-window
+   decoration shell 5px; `tooltip.csd decoration` rounds the tooltip
+   window's decoration wrapper 5px; and `messagedialog.csd decoration`
+   rounds the message dialog's decoration shell 8px. The existing plain
+   `menu, .menu, popover, .popover` face group, the existing `tooltip` group
+   and the existing messagedialog groups are name-level rules that match none
+   of these class-armed or decoration-node spellings; the existing popover
+   tint groups declare colours only; and this sheet names no `decoration`
+   selector at all. One existing record reads a GTK 3 theme selection as
+   replacing the stock stylesheet entirely, while the existing per-property
+   records read the toolkit resource as the lower sheet; every restatement
+   below is byte-equal to its stock twin and sits later in source order, so
+   under either reading only the radius changes hands — the restatement
+   wins each equal-specificity tie per-property, or is the sheet's own pin
+   for a surface it did not cover. The toolkit resource itself already
+   squares the menu-bar neighbour `menubar .csd.popup decoration` (and its
+   `.menubar` twin) to 0, so it is left unrestated here as inert. Stock's
+   `border: none` on the CSD menu arm, the popover pair's border and
+   background paint, the two shadow-bearing decorations' box-shadow paint,
+   the tooltip decoration's empty shadow and stock's backdrop decoration
+   arms stay inherited per-property, and every state arm of these spellings
+   that carries no radius is left inherited. Declaration checks do not
+   establish rendered pixels. */
+.csd menu,
+.csd .menu,
+.csd .context-menu {
+  border-radius: 0;
+}
+
+.csd popover.background,
+popover.background {
+  border-radius: 0;
+}
+
+.csd.popup decoration {
+  border-radius: 0;
+}
+
+tooltip.csd decoration {
+  border-radius: 0;
+}
+
+messagedialog.csd decoration {
+  border-radius: 0;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   inline toolbar, keyboard-shortcut keycap, fine-tuned scale trough or
+   emoji-picker hover highlight (the GTK scope's standing adaptation
+   premise), so the four radius-bearing stock arm spellings this sheet
+   never restates are squared against the existing square-corner policy —
+   the existing `menu`, `button`, frame and scrollbar restatements this
+   same sheet carries `border-radius: 0`, with the existing `radio`
+   circle as the reference-grounded exception. The toolkit resource
+   (gtk-contained.css inside libgtk-3, probed with gresource on
+   2026-11-04; its full resource path is recorded in docs/invariants.md)
+   rounds four faces this sheet answers at nothing (stock arm quoted,
+   hex paint values elided, resource line named): line 572 declares
+   `.inline-toolbar { padding: 3px; border-width: 0 1px 1px;
+   border-radius: 0  0 5px 5px; }`, rounding the inline toolbar
+   container's two bottom corners 5px; line 1926 declares `.keycap {
+   min-width: 20px; min-height: 25px; ... border-radius: 5px; ... }`,
+   rounding the keyboard-shortcut keycap 5px; line 1238 declares
+   `scale.fine-tune fill, scale.fine-tune highlight,
+   scale.fine-tune trough { border-radius: 5px;
+   -gtk-outline-radius: 7px; }`, rounding the fine-tuned scale's fill,
+   highlight and trough 5px; and line 1968 declares
+   `popover.emoji-picker .emoji :hover { ... border-radius: 6px; }`,
+   rounding the emoji-picker grid cell hover highlight 6px. No existing group reaches
+   these four spellings: none of the four selectors appears elsewhere in
+   this sheet, and the existing keycap corner record is the GTK 4 spelling
+   `shortcut > .keycap`, which cannot match the bare GTK 3 compound.
+   Stock's own neighbours carry no radius: the `.inline-toolbar
+   toolbutton > button` state arms recolour only (their `:backdrop` twin
+   sets colours and shadow only), `.keycap:backdrop` sets colours and a
+   transition only, the scrollbar and scale fine-tune slider, marks and
+   indicator arms set minimum sizes, border widths and margins only, and
+   the emoji completion row arm carries no radius. The `.inline-toolbar
+   button` members inside stock's linked-field comma-group arms are the
+   reserved linked-field arms a later part owns — this entry squares the
+   standalone container rule only. Loading path: one existing record reads
+   a GTK 3 theme selection as replacing the stock stylesheet entirely,
+   while the existing per-property records read the toolkit resource as
+   the lower sheet; every restatement below is byte-equal to its stock
+   twin and sits later in source order, so under either reading only the
+   radius changes hands — the restatement wins each equal-specificity
+   tie per-property, or is the sheet's own pin for a surface it did not
+   cover. The restated arms' other properties stay inherited
+   per-property: the toolbar container's `padding: 3px` and
+   `border-width: 0 1px 1px`; the keycap's minimum sizes, top margin,
+   paddings, colour, background, border, border colours, inset relief
+   shadow and smaller font size; the trough arm's
+   `-gtk-outline-radius: 7px`; and the emoji hover's highlight fill.
+   Declaration checks do not establish rendered pixels. */
+.inline-toolbar {
+  border-radius: 0;
+}
+
+.keycap {
+  border-radius: 0;
+}
+
+scale.fine-tune fill,
+scale.fine-tune highlight,
+scale.fine-tune trough {
+  border-radius: 0;
+}
+
+/* Stock sizes a plain (non-fine-tuned) scale's container — the node's own
+   transverse minimum breadth and the 12px push-out padding stock puts
+   between trough and slider — with the last of stock's plain-node arms
+   this sheet left unrestated. No collected reference screenshot shows a
+   plain GTK scale's container spacing (the GTK scope's standing
+   adaptation premise), so no existing value exists to derive: the values
+   are the toolkit's own container allocation, kept under either loading
+   reading the existing records treat as live. The reading that takes a
+   theme selection as replacing the stock stylesheet entirely would
+   otherwise lose the arm, collapsing the plain container to the
+   stockless defaults (no transverse minimum, no push-out padding) while
+   the existing `scale trough` group keeps the trough's face and its own 6px
+   trough minimums and the existing slider groups keep the knob minimums,
+   so the trough-to-slider breathing room the padding provides vanishes
+   and consecutive controls touch; the per-property readings take the
+   toolkit resource as the lower sheet, where this restate is byte-equal
+   to the stock arm it ties with at equal specificity and sits later,
+   winning the single per-property tie with the same value. The compiled
+   toolkit stylesheet (2055 lines, probed fresh 2026-11-09 with gresource
+   extract; the library path lives in docs/invariants.md) declares the
+   standalone container arm at line 1226 `scale { min-height: 10px;
+   min-width: 10px; padding: 12px; }` — the only stock arm anywhere in
+   the resource that sizes the plain scale node's own container, with no
+   `scale:disabled`, `scale:backdrop` or `.osd` state counter-arm on the
+   bare spelling; the dark-twin resource carries the identical arm at
+   line 1210, every line shifted -16 for this region. The existing 2026-11-09
+   meter geometry record's exclusion, the existing fine-tuned container
+   record below and the existing marked-node record each leave this arm as
+   the plain node's own un-updated candidate rather than restating it
+   there; this record takes it. Exclusions with per-property reasons:
+   the `scale fill, scale highlight { margin: -1px; }` arm (line 1228) is
+   answered by the existing same-spelling group's zero margin, which wins
+   the equal-specificity source-order tie; the `scale slider { min-height:
+   18px; min-width: 18px; margin: -9px; }` arm (line 1230) and the knob
+   colour and transition arm it partly shadows (line 1250) are the knob's
+   own geometry and repaint, answered by the existing slider and meter
+   groups; the fine-tuned container arms (lines 1232/1234), the
+   fine-tuned slider margin (line 1236) and the fine-tune radius arm
+   (line 1238) are the existing fine-tuned container and 2026-11-04 radius
+   and marks records' deliveries directly below; the `scale trough`
+   outline arm (line 1240) is the existing `scale trough` group's own focus
+   keys; the fill and knob backdrop disabled arms (lines 1242-1260) are
+   the existing meter state record's own; the `scale marks, scale value`
+   ink arm (line 1276) is the existing 2026-11-09 decoration-ink record's
+   deliverable, not geometry; the marked-node spacing and minimum arms
+   (lines 1278-1300) are the existing marked-node record's own; and stock's
+   has-marks slider arms (line 1302 onward) are the existing marked-scale
+   record's slider faces. Declaration, count and source-order checks do
+   not establish rendered pixels. Restated 2026-11-09 by the feature
+   role. */
+
+scale {
+  min-height: 10px;
+  min-width: 10px;
+  padding: 12px;
+}
+
+/* Stock sizes a fine-tuned scale's container — the container padding and
+   transverse minimum that take effect while the modifier is held — with
+   two arms this sheet never restated. No collected reference
+   screenshot shows a fine-tuned GTK scale (the GTK scope's standing
+   adaptation premise), so no existing value exists to derive: the values
+   are the toolkit's own container geometry, kept under either loading
+   reading the existing records treat as live. The reading that takes a
+   theme selection as replacing the stock stylesheet entirely would
+   otherwise lose both arms, collapsing the container to the stockless
+   defaults (no transverse paddings, no transverse minimum) while the
+   existing marked-scale record keeps its fine-tuned slider restate, so
+   the fine-tuned thumb slides hard against the trough ends and the
+   marks reflow; the per-property readings take the toolkit resource as
+   the lower sheet, where these restates are byte-equal to the stock
+   arms they tie with at equal specificity and sit later, winning the
+   single per-property tie with the same value. The compiled toolkit
+   stylesheet (2055 lines, probed fresh 2026-11-09 with gresource
+   extract; the library path lives in docs/invariants.md) declares the
+   arms stock-side, each quoted here exactly and hex-free, the only
+   stock arms anywhere in the resource that size the scale node's
+   fine-tuned containers: line 1232 `scale.fine-tune.horizontal { padding-top: 9px;
+   padding-bottom: 9px; min-height: 16px; }` and line 1234
+   `scale.fine-tune.vertical { padding-left: 9px; padding-right: 9px;
+   min-width: 16px; }`; the dark-twin resource carries the same pair at
+   lines 1216/1218, every line shifted -16 for this region, and neither
+   resource arms a disabled, :backdrop or other state counter-arm on
+   either container spelling. The existing 2026-11-09 meter geometry
+   record touches the neighbouring scale arms and names these two
+   container arms as its own candidate rather than restating them
+   there; this record takes them. Exclusions with per-property reasons:
+   the `scale.fine-tune slider { margin: -6px; }` arm (line 1236) is
+   the fine-tuned thumb's own geometry, not the container's: the existing
+   marked-scale record's fine-tune margin restate out-specifies it
+   where the existing marked arms reach, and that record's own exclusion
+   already frames the bare arm's claim as left stock (a geometry-only
+   claim mixing into no art), pinned by
+   tests/test_gtk_theme.py::TestGtkTheme::test_marked_scale_thumb_arms; the fine-tune radius arm itself (line
+   1238) is restated by the existing 2026-11-04 corner record's
+   `scale.fine-tune fill, scale.fine-tune highlight, scale.fine-tune
+   trough` group directly above, whose `-gtk-outline-radius: 7px`
+   member that record keeps inherited, so this record declares no
+   outline property; the fine-tuned marks and indicator margin and
+   minimum arms (lines 1281-1300) only space the fine-tuned scale's own
+   tick lines and readout, not the container, and rest unrestated
+   candidates outside this entry; the scrollbar's `.fine-tune` slider
+   border-width arms and the `scale.color` fine-tune container and
+   member padding arms tune other widgets' fine-tune surfaces and stay
+   outside this record's scale-node scope; and stock's plain `scale { min-height:
+   10px; min-width: 10px; padding: 12px; }` node arm (line 1226) is the
+   plain node's own spacing, left unrestated as the existing meter
+   geometry record's exclusion already reasons. Declaration checks do
+   not establish rendered pixels. Restated 2026-11-09 by the feature
+   role. */
+
+scale.fine-tune.horizontal {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  min-height: 16px;
+}
+
+scale.fine-tune.vertical {
+  padding-left: 9px;
+  padding-right: 9px;
+  min-width: 16px;
+}
+
+popover.emoji-picker .emoji :hover {
+  border-radius: 0;
+}
+
+/* Stock rounds the two ends and the lone child of every linked container
+   onto per-corner radius arms the shipped sheet cannot answer. The
+   existing 2026-10-29 linked-border record gives each group its shared
+   black border through style-only groups, the existing unclassed `button`
+   restate carries no pseudo-class, and the existing round-button class
+   twins spell no `:first-child`/`:last-child`/`:only-child` linked
+   member, so stock's 5px corner cuts and their matching
+   `-gtk-outline-radius` focus-ring halves would paint every linked
+   row's two ends instead — no collected reference screenshot shows a
+   GTK linked field's end corners (the GTK scope's standing adaptation
+   premise), so the ends square against the existing square-corner policy
+   (the existing `menu`, `button`, frame and scrollbar restatements this
+   same sheet carry `border-radius: 0`, with the existing `radio` circle
+   as the reference-grounded exception), and the focus-ring halves
+   square through the `-gtk-outline-` longhands zeroed beside their
+   radius twins.
+
+   The toolkit resource (gtk-contained.css inside libgtk-3, probed with
+   gresource on 2026-11-04; its full resource path is recorded in
+   docs/invariants.md) rounds six of its linked arms, each quoted
+   verbatim at its resource line:
+
+   * line 405 — `.linked:not(.vertical) > combobox:first-child > box >
+     button.combo, combobox.linked button:nth-child(2):dir(rtl),
+     filechooser .path-bar.linked > button:dir(rtl):last-child,
+     filechooser .path-bar.linked > button:dir(ltr):first-child,
+     .linked:not(.vertical) > spinbutton:first-child:not(.vertical),
+     .linked:not(.vertical) > entry:first-child, .inline-toolbar
+     button:first-child, .linked > button:first-child,
+     toolbar.inline-toolbar toolbutton:first-child > button.flat {
+     border-top-left-radius: 5px; border-bottom-left-radius: 5px;
+     -gtk-outline-top-left-radius: 5px;
+     -gtk-outline-bottom-left-radius: 5px; }`
+   * line 407 — the first-child arm's nine spellings with `:first-child`
+     recast `:last-child` and its two `:dir` members swapped for the
+     rtl/ltr mirror twins, closing `{ border-right-style: solid;
+     border-top-right-radius: 5px; border-bottom-right-radius: 5px;
+     -gtk-outline-top-right-radius: 5px;
+     -gtk-outline-bottom-right-radius: 5px; }`
+   * line 409 — `.linked:not(.vertical) > combobox:only-child > box >
+     button.combo, filechooser .path-bar.linked > button:only-child,
+     .linked:not(.vertical) > spinbutton:only-child:not(.vertical),
+     .linked:not(.vertical) > entry:only-child, .inline-toolbar
+     button:only-child, .linked > button:only-child,
+     toolbar.inline-toolbar toolbutton:only-child > button.flat {
+     border-style: solid; border-radius: 5px; -gtk-outline-radius: 5px
+     }`
+   * line 413 — `.linked.vertical > combobox:first-child > box >
+     button.combo, .linked.vertical > spinbutton:first-child:not(.vertical),
+     .linked.vertical > entry:first-child, .linked.vertical >
+     button:first-child { border-top-left-radius: 5px;
+     border-top-right-radius: 5px; -gtk-outline-top-left-radius: 5px;
+     -gtk-outline-top-right-radius: 5px; }`
+   * line 415 — the same four vertical family spellings with
+     `:last-child`, closing `{ border-bottom-style: solid;
+     border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+     -gtk-outline-bottom-left-radius: 5px;
+     -gtk-outline-bottom-right-radius: 5px; }`
+   * line 417 — the same four vertical family spellings with
+     `:only-child`, closing `{ border-style: solid; border-radius: 5px;
+     -gtk-outline-radius: 5px; }`
+
+   Stock's other `.linked` arms carry no radius — the sibling-adjacency
+   focus, error, drop and disabled border-coupling arms recolour the
+   shared border only — and the non-radius companions stock pairs into
+   the corner arms stay inherited per-property: the horizontal last
+   arm's `border-right-style: solid`, both only-child arms'
+   `border-style: solid` and the vertical last arm's
+   `border-bottom-style: solid` keep governing beside the existing
+   border-sharing groups' own style declarations. Loading path: one
+   existing record reads a GTK 3 theme selection as replacing the stock
+   stylesheet entirely, while the existing per-property records read the
+   toolkit resource as the lower sheet; every restatement below is
+   byte-equal to its stock twin and sits later in source order, so
+   under either reading only the radius changes hands — the
+   restatement wins each equal-specificity tie per-property, or is the
+   sheet's own pin for a surface it did not cover. Declaration checks
+   do not establish rendered pixels. */
+.linked:not(.vertical) > combobox:first-child > box > button.combo,
+combobox.linked button:nth-child(2):dir(rtl),
+filechooser .path-bar.linked > button:dir(rtl):last-child,
+filechooser .path-bar.linked > button:dir(ltr):first-child,
+.linked:not(.vertical) > spinbutton:first-child:not(.vertical),
+.linked:not(.vertical) > entry:first-child,
+.inline-toolbar button:first-child,
+.linked > button:first-child,
+toolbar.inline-toolbar toolbutton:first-child > button.flat {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  -gtk-outline-top-left-radius: 0;
+  -gtk-outline-bottom-left-radius: 0;
+}
+
+.linked:not(.vertical) > combobox:last-child > box > button.combo,
+combobox.linked button:nth-child(2):dir(ltr),
+filechooser .path-bar.linked > button:dir(rtl):first-child,
+filechooser .path-bar.linked > button:dir(ltr):last-child,
+.linked:not(.vertical) > spinbutton:last-child:not(.vertical),
+.linked:not(.vertical) > entry:last-child,
+.inline-toolbar button:last-child,
+.linked > button:last-child,
+toolbar.inline-toolbar toolbutton:last-child > button.flat {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  -gtk-outline-top-right-radius: 0;
+  -gtk-outline-bottom-right-radius: 0;
+}
+
+.linked:not(.vertical) > combobox:only-child > box > button.combo,
+filechooser .path-bar.linked > button:only-child,
+.linked:not(.vertical) > spinbutton:only-child:not(.vertical),
+.linked:not(.vertical) > entry:only-child,
+.inline-toolbar button:only-child,
+.linked > button:only-child,
+toolbar.inline-toolbar toolbutton:only-child > button.flat {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+.linked.vertical > combobox:first-child > box > button.combo,
+.linked.vertical > spinbutton:first-child:not(.vertical),
+.linked.vertical > entry:first-child,
+.linked.vertical > button:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  -gtk-outline-top-left-radius: 0;
+  -gtk-outline-top-right-radius: 0;
+}
+
+.linked.vertical > combobox:last-child > box > button.combo,
+.linked.vertical > spinbutton:last-child:not(.vertical),
+.linked.vertical > entry:last-child,
+.linked.vertical > button:last-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  -gtk-outline-bottom-left-radius: 0;
+  -gtk-outline-bottom-right-radius: 0;
+}
+
+.linked.vertical > combobox:only-child > box > button.combo,
+.linked.vertical > spinbutton:only-child:not(.vertical),
+.linked.vertical > entry:only-child,
+.linked.vertical > button:only-child {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   vertical spin button's steppers or a content view's selection check
+   face (the GTK scope's standing adaptation premise), so the two
+   radius-bearing stock families this sheet never restates are squared
+   against the existing square-corner policy — the existing `check` and
+   `button` restatements this same sheet carries `border-radius: 0`,
+   with the existing `radio` circle as the reference-grounded exception.
+   The toolkit resource (gtk-contained.css inside libgtk-3, probed with
+   gresource on 2026-11-04; its full resource path is recorded in
+   docs/invariants.md) rounds the faces stock this sheet answers at
+   nothing (stock arms quoted, hex paint values elided, resource lines
+   named): line 530 declares `spinbutton.vertical button {
+   min-height: 32px; min-width: 32px; padding: 0; }` — the steppers'
+   radius-free geometry arm; line 532 declares `spinbutton.vertical
+   button.up { border-radius: 5px 5px 0 0; border-style: solid solid
+   none solid; }`, rounding the column's upper stepper's two head
+   corners 5px; line 534 declares `spinbutton.vertical button.down {
+   border-radius: 0 0 5px 5px; border-style: none solid solid solid; }`,
+   rounding the lower stepper's two tail corners 5px; and each of
+   resource lines 1089 through 1103 declares one state arm of the
+   eight-state comma group triple `.view.content-view.check:not(list),
+   iconview.content-view.check:not(list), .content-view:not(list)
+   check` — base, hover, active, backdrop, checked, checked:hover,
+   checked:active and backdrop:checked — each carrying
+   `border-radius: 5px` among margins, minimum sizes, colours, paints,
+   transition, border-width, icon source and icon shadow. No existing
+   group reaches these spellings: the existing bare `check, radio` recipe
+   names the element node and loses to the class-armed triple, the
+   existing `.osd spinbutton.vertical button:first-child` groups name the
+   on-screen-display overlay's stacked twins only, the existing
+   `.content-view` groups name no `check` node, and the existing
+   unclassed `button` restate names neither spelling. On the fresh
+   extract no other arm of either family carries a radius. Stock's
+   non-radius companions stay inherited per-property: the steppers' own
+   32px geometry arm, the `border-style` halves stock pairs onto the
+   radius shorthands, the check faces' margins, minimum sizes, colours,
+   paints, transition, border-width, icon source and icon shadow, and
+   `.content-view .tile`'s own already-zero radius arm (line 40, left
+   stock). Loading path: one existing record reads a GTK 3 theme
+   selection as replacing the stock stylesheet entirely, while the
+   existing per-property records read the toolkit resource as the lower
+   sheet; every restatement below is byte-equal to its stock twin and
+   sits later in source order, so under either reading this record
+   changes only the radius — the restatement wins each equal-specificity
+   tie per-property, or is the sheet's own pin for a surface it did not
+   cover. The 2026-11-05 tile-check face comment below extends the eight
+   tile groups of this record with the existing face declarations; the
+   face claims are that record's. Declaration checks do not establish
+   rendered pixels. */
+/* Vertical stepper joins, 2026-11-11. Stock pairs border-style halves
+   onto the radius shorthands of these two steppers: the toolkit
+   resource gtk-contained.css (inside libgtk-3.so.0, re-extracted with
+   gresource that day) declares `spinbutton.vertical button.up { …
+   border-style: solid solid none solid; }` at resource line 532 and
+   `spinbutton.vertical button.down { … border-style: none solid solid
+   solid; }` at resource line 534. The radius record above calls those
+   halves per-property inheritance that needs no restatement; the
+   doubling measurement that day disproves the claim on the selecting
+   path — with the halves absent each member paints its own full 1px
+   black border, so both field/stepper joins drew two adjacent black
+   rows. Restating the halves gives the up stepper its solid head and
+   the down stepper its solid tail, so the field's own 1px borders
+   supply each join's single line. The existing `.osd
+   spinbutton.vertical button:first-child` groups declare no
+   border-style, so these halves shape their stacked steppers the way
+   stock's own halves shape them. */
+spinbutton.vertical button.up {
+  border-radius: 0;
+  border-style: solid solid none solid;
+}
+

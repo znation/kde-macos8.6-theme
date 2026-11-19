@@ -1,0 +1,499 @@
+/* No collected reference screenshot shows an entry's tag chips (the
+   fill tokens a tagged entry embeds at its tail): the missing
+   entry-tag reference surfaces, so the chip reuses the palette's flat
+   selection fill SELECTION (#CCCCFF, grounded by the firstboot-banner
+   selection anchor in firstboot_betawiki.png) and the existing field's
+   black ink (#000000), with the existing button:backdrop record's
+   keep-the-existing-face-in-backdrop policy (Platinum's model is
+   active=frontmost) for the pale backdrop twin and the existing
+   button:hover and .content-view:hover full-strength erase precedents
+   for the close button's dimmed translucent white inks. Recorded
+   2026-11-08. The toolkit resource's own entry-tag arms (extracted the
+   same day from libgtk-3's compiled stylesheet, resource lines 195,
+   197, 199, 201, 203, 205, 207 and 209 of the 2055-line extract,
+   quoted here with the foreign inks elided) otherwise paint on the
+   chips: an accent-blue fill with white ink at rest, a lighter accent
+   under hover, a pale-repeat twin inside an unfocused window and a
+   dimmed translucent white close-button ink with an accent ring and
+   fill under hover and press. Stock's own geometry is kept byte-equal
+   (the 5px padding, the 2px vertical margins, no border, the 8px and
+   -5px direction margins mirrored between the two direction
+   spellings), and each colour rule below restates its stock twin's
+   spelling exactly with the existing values, later in user-sheet source
+   order, so the restatement wins the equal-specificity tie under
+   either cascade reading; the sheet gains no rule-level translucent
+   value. Excluded: the Gtk 4 twin chip arms in the integration
+   library's resource (a separate candidate needing its own fresh
+   probe of that tagged-entry region), the check, radio and submenu
+   glyph sources and the other `> image` families (recorded above),
+   and the Gtk 4 sheet (the waiting entry-image sibling owns it).
+   Declaration checks do not establish rendered pixels. */
+
+.entry-tag {
+  padding: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  border-style: none;
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+:dir(ltr) .entry-tag {
+  margin-left: 8px;
+  margin-right: -5px;
+}
+
+:dir(rtl) .entry-tag {
+  margin-left: -5px;
+  margin-right: 8px;
+}
+
+.entry-tag:hover {
+  background-color: #CCCCFF;
+}
+
+:backdrop .entry-tag {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+.entry-tag.button {
+  background-color: transparent;
+  color: #000000;
+}
+
+:not(:backdrop) .entry-tag.button:hover {
+  border: 1px solid #000000;
+  color: #000000;
+}
+
+:not(:backdrop) .entry-tag.button:active {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+/* No reference screenshot shows a GTK calendar header rule, navigation
+   button, day highlight or backdrop state, so these faces are
+   platform-required. libgtk-3's compiled stylesheet declares nine further
+   calendar arms: a pale translucent header rule that recolours nowhere,
+   dim translucent grey navigation-button glyphs that recolour under
+   hover, backdrop and disabled states, a day-highlight ink twin that
+   repens paler in an unfocused window, and a pale backdrop day grain and
+   greige backdrop outer border. The header rule takes the etched dark
+   half #888888, the existing calendar:indeterminate ink that already edges
+   the GTK 4 calendar header; the navigation buttons take full-strength
+   black #000000 at rest, under hover and in an unfocused window (one
+   existing glyph, per the erase precedents, so the recolours never show)
+   and the inactive grey #888888 while disabled; day highlights take
+   #888888 at rest and in an unfocused window, with no pale repen; and
+   the backdrop window keeps the existing day grain and outer border face,
+   per the existing button:backdrop keep-the-existing-face policy. Stock
+   declares only the colour on each arm, so stock's separator geometry
+   and the byte-equal stock spellings stay. Restated 2026-11-08 by the
+   feature role. */
+calendar.header {
+  border-bottom-color: #888888;
+}
+calendar.header:backdrop {
+  border-bottom-color: #888888;
+}
+calendar.button {
+  color: #000000;
+}
+calendar.button:hover {
+  color: #000000;
+}
+calendar.button:backdrop {
+  color: #000000;
+}
+calendar.button:disabled {
+  color: #888888;
+}
+calendar.highlight {
+  color: #888888;
+}
+calendar.highlight:backdrop {
+  color: #888888;
+}
+calendar:backdrop {
+  color: #000000;
+  border-color: #000000;
+}
+
+/* No reference screenshot shows a GTK assistant step sidebar, so these
+   faces are platform-required. libgtk-3's compiled stylesheet declares
+   five assistant sidebar arms: a greige-edged sidebar field, a paler
+   backdrop twin that repens it in an unfocused window, a csd arm that
+   drops the top edge, a step-label padding and a blue-grey active-step
+   label face. The sidebar field keeps the existing white content field
+   #FFFFFF; the top edge takes the etched dark half #888888, the existing
+   etched band edge the infobar reuses; the active step label takes the
+   existing face grey #DDDDDD, the existing neutral band face — the current
+   page of a wizard is not a selected row, so no selection blue applies.
+   The label padding and the csd top-edge drop are stock's own shapes,
+   kept byte-equal. In an unfocused window the sidebar keeps exactly the
+   existing field, edge and step face — no pale backdrop repen — per the
+   existing button:backdrop keep-the-existing-face policy. The existing GTK 4
+   assistant step-label corners row is the cross-toolkit twin. Restated
+   2026-11-08 by the feature role. */
+assistant .sidebar {
+  background-color: #FFFFFF;
+  border-top: 1px solid #888888;
+}
+assistant.csd .sidebar {
+  border-top-style: none;
+}
+assistant .sidebar label {
+  padding: 6px 12px;
+}
+assistant .sidebar label.highlight {
+  background-color: #DDDDDD;
+}
+
+/* No reference screenshot in macos8.6-screenshots/ shows a GTK sidebar
+   list, places sidebar or stack sidebar, so these faces and shapes are
+   platform-required adaptations. libgtk-3's compiled stylesheet
+   declares, beyond the existing .sidebar field record, seam and geometry
+   arms the existing records never touch: directional border twins along
+   the sidebar's outer edge (resource lines 1638 and 1640), a greige
+   sidebar-direction separator (1654), a places-sidebar viewport edge
+   drop (1663), a 36px places row with zero padding (1665), a 14px
+   revealer inlay (1667) and pane-internal sidebar border drops (1646).
+   The existing .sidebar field record owns the field face and text only,
+   so the border twins' greige seam keeps painting between that field
+   and the content. The seam edge and the sidebar separator take the
+   etched dark half #888888, the existing etched band edge the existing
+   separator.horizontal, separator.vertical, menu-separator and infobar
+   records reuse (the same band edge the assistant sidebar block and
+   its GTK 4 twin give the wizard sidebar); the existing .sidebar field
+   record is the neighbouring face owner. Every padding, the 36px row
+   height, the viewport edge drop and the paned border drop are stock's
+   own shapes, kept byte-equal; direction margins mirror between the
+   :dir(ltr) and :dir(rtl) twins exactly as stock spells them. Stock
+   calls the same sheets: .sidebar { border-style: none; } (1636) stays
+   undeclared, since stock's own none already reads the existing look's
+   borderless field and the existing colour record deliberately never
+   touched shape.  Stock statements probed 2026-11-08 with gresource
+   extract from /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49,
+   the 2055-line resource; line numbers below). Restated arms, with the
+   foreign greiges elided to their existing sources: 1638 the five
+   left-splash selectors take border-right: 1px solid #888888;
+   border-left-style: none; 1640 the four right-splash selectors take
+   border-left: 1px solid #888888; border-right-style: none; 1646 the
+   six paned child selectors keep stock's border-style: none; 1648
+   stacksidebar row keeps stock's padding: 10px 4px; 1650
+   stacksidebar row > label keeps stock's 6px left and right clips;
+   1654 separator.sidebar re-inks to #888888; 1663 the places viewport
+   keeps stock's border-style: none; 1665 the places row keeps stock's
+   min-height: 36px; padding: 0px; 1667 the places revealer keeps
+   stock's 0 14px inlay; 1679 the :dir(ltr) icon gain keeps stock's 8px
+   padding-right; 1681 the :dir(rtl) twin keeps stock's 8px
+   padding-left; 1683 the :dir(ltr) label clip keeps stock's 2px
+   padding-right; 1685 the :dir(rtl) twin keeps stock's 2px
+   padding-left. Each restated spelling is byte-equal to its stock twin
+   and wins the equal-specificity tie by later user-sheet source order.
+   Owned contrasts stay out: the row state colours (row:selected,
+   row:disabled, row:backdrop and row:selected:active, and the places
+   row colour twins including the existing row.activatable:selected:backdrop
+   arm) are the existing selection, dimmed-row and backdrop colour
+   records' own states; the row.sidebar-placeholder-row and
+   row:drop(active) drag-and-drop arms are the existing 2026-11-09 drag
+   restatement block's own; button.sidebar-button's
+   minimums, margins and padding are its existing corner record's, and
+   row:selected button.sidebar-button the existing 2026-10-31 comment's;
+   entry-image and image:disabled icon-ink records'; row-icon opacity is
+   restated separately below; the pale
+   separator.sidebar:backdrop twin never shows, per the active=frontmost
+   model and the existing button:backdrop keep-the-existing-face policy.
+   No reference screenshot shows a selection-mode sidebar separator;
+   libgtk-3 3.24.49's 2026-11-09 resource probe gives both selection-mode
+   spellings a blue face. They reuse the etched dark half from the existing
+   base separator.sidebar and separator.horizontal records, adapting the
+   toolkit face without claiming a sampled pixel. Declaration checks do
+   not establish rendered pixels.
+   Restated 2026-11-08 by the feature role. */
+stacksidebar.sidebar:dir(ltr) list, stacksidebar.sidebar.left list, stacksidebar.sidebar.left:dir(rtl) list, .sidebar:not(separator):dir(ltr), .sidebar:not(separator).left {
+  border-right: 1px solid #888888;
+  border-left-style: none;
+}
+stacksidebar.sidebar:dir(rtl) list, stacksidebar.sidebar.right list, .sidebar:not(separator):dir(rtl), .sidebar:not(separator).right {
+  border-left: 1px solid #888888;
+  border-right-style: none;
+}
+paned .sidebar.left, paned .sidebar.right, paned .sidebar.left:dir(rtl), paned .sidebar:dir(rtl), paned .sidebar:dir(ltr), paned .sidebar {
+  border-style: none;
+}
+stacksidebar row {
+  padding: 10px 4px;
+}
+stacksidebar row > label {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+separator.sidebar {
+  background-color: #888888;
+}
+separator.sidebar.selection-mode, .selection-mode separator.sidebar {
+  background-color: #888888;
+}
+placessidebar > viewport.frame {
+  border-style: none;
+}
+placessidebar row {
+  min-height: 36px;
+  padding: 0px;
+}
+placessidebar row > revealer {
+  padding: 0 14px;
+}
+placessidebar row image.sidebar-icon:dir(ltr) {
+  padding-right: 8px;
+}
+placessidebar row image.sidebar-icon:dir(rtl) {
+  padding-left: 8px;
+}
+/* No collected reference shows a GTK sidebar row icon. The 2026-11-09
+   libgtk-3 theme-resource probe gives row image.sidebar-icon a 0.7 veil.
+   Full opacity preserves authored artwork, following the existing GTK 4
+   embedded-entry-icon adaptation; this is platform provenance, not a
+   sampled reference value. */
+row image.sidebar-icon {
+  opacity: 1;
+}
+placessidebar row label.sidebar-label:dir(ltr) {
+  padding-right: 2px;
+}
+placessidebar row label.sidebar-label:dir(rtl) {
+  padding-left: 2px;
+}
+
+/* No collected screenshot shows a places sidebar inside a drag session, and
+   the reference set's desktop shows no places sidebar at all, so no ground
+   exists for the drop strip or the drag-over row twins; the toolkit
+   resource's own arms paint foreign greens the set never shows, and the
+   existing 2026-11-08 sidebar restatement left them out as a separate
+   candidate. Dropping or dragging a bookmark reads the existing
+   selection lavender with black ink, the same mapping the existing
+   colour-swatch drop-target record composes, while the strip's and the
+   drag-over rows' shape keeps the resource's own geometry so the restated
+   spellings stay the stock twins that win the cascade by later user-sheet
+   source order. Stock statements probed 2026-11-09 with gresource extract
+   from the 2055-line resource; line numbers below. Restated arms, with the
+   foreign greens elided to the reference-pinned #CCCCFF selection fill of
+   widgets/listitem.svg: 1693 the placeholder strip keeps stock's padding,
+   min-height and background clip and inks to the lavender; 1697 the
+   drag-over row inks its label black and its two inset hover bands
+   lavender; 1699 the selected drag-over row takes the lavender fill with
+   black ink, the existing placessidebar row.activatable:selected:backdrop
+   record's pair. Declaration checks do not establish rendered pixels.
+   Restated 2026-11-09 by the feature role. */
+placessidebar row.sidebar-placeholder-row {
+  padding: 0 8px;
+  min-height: 2px;
+  background-image: image(#CCCCFF);
+  background-clip: content-box;
+}
+
+placessidebar row:drop(active):not(:disabled) {
+  color: #000000;
+  box-shadow: inset 0 1px #CCCCFF, inset 0 -1px #CCCCFF;
+}
+
+placessidebar row:drop(active):not(:disabled):selected {
+  color: #000000;
+  background-color: #CCCCFF;
+}
+
+/* Stock spaces a marked scale away from its tick lines and sizes the tick
+   lines themselves with twelve allocation-only arms this sheet never
+   restated. No collected reference screenshot shows a GTK scale's tick
+   marks or their fine-tuned spacing (the GTK scope's standing adaptation
+   premise), so no existing value exists to derive: the values are the
+   toolkit's own allocation, kept under either loading reading the existing
+   records treat as live. The reading that takes a theme selection as
+   replacing the stock stylesheet entirely would otherwise lose all twelve
+   arms, crowding the drawn ticks against the trough and shrinking the
+   tick lines to stockless defaults while the existing marked-scale record
+   directly below keeps only the thumb faces; the per-property readings
+   take the toolkit resource as the lower sheet, where these restates are
+   byte-equal to the stock arms they tie with at equal specificity and
+   sit later, winning the single per-property tie with the same values.
+   The compiled toolkit stylesheet (2055 lines, probed fresh 2026-11-09
+   with gresource extract; the library paths live in docs/invariants.md)
+   declares the twelve arms stock-side, each quoted here exactly and
+   hex-free, the only stock arms anywhere in the resource that push a
+   marked scale away from its tick lines or size those tick lines (no
+   disabled, :backdrop or .osd counter-arm reaches any of the twelve
+   spellings): light resource lines 1278/1280/1282/1284/1286/1288/
+   1290/1292/1294/1296/1298/1300 and dark-twin resource lines 1262..1284,
+   every line shifted -16: `scale.horizontal marks.top { margin-bottom:
+   6px; margin-top: -12px; }`, `scale.horizontal.fine-tune marks.top {
+   margin-bottom: 6px; margin-top: -9px; }`, `scale.horizontal
+   marks.bottom { margin-top: 6px; margin-bottom: -12px; }`,
+   `scale.horizontal.fine-tune marks.bottom { margin-top: 6px;
+   margin-bottom: -9px; }`, `scale.vertical marks.top { margin-right:
+   6px; margin-left: -12px; }`, `scale.vertical.fine-tune marks.top {
+   margin-right: 6px; margin-left: -9px; }`, `scale.vertical
+   marks.bottom { margin-left: 6px; margin-right: -12px; }`,
+   `scale.vertical.fine-tune marks.bottom { margin-left: 6px;
+   margin-right: -9px; }`, `scale.horizontal indicator { min-height: 6px;
+   min-width: 1px; }`, `scale.horizontal.fine-tune indicator {
+   min-height: 3px; }`, `scale.vertical indicator { min-height: 1px;
+   min-width: 6px; }` and `scale.vertical.fine-tune indicator {
+   min-width: 3px; }`. The existing 2026-11-09 fine-tuned container record
+   directly names these twelve as its own candidate rather than
+   restating the modifiers' tick spacing; this record takes them.
+   Exclusions with per-property reasons: the pair ink and typography arm
+   (`scale marks, scale value`, resource line 1276) is the existing
+   2026-11-09 scale decoration ink record's deliverable, ink not
+   geometry; the fine-tuned container paddings and minimums, the
+   fine-tuned slider margin and the fine-tune radius arms (resource
+   lines 1232/1234/1236 and 1238) are the existing fine-tuned container
+   record's and the existing 2026-11-04 radius record's deliveries; stock's
+   bare `scale` node arm (resource line 1226) is the plain node's own
+   container spacing, a separately recorded candidate; and the has-marks
+   slider arms the resource carries next (resource lines 1302 onward)
+   are the existing marked-scale thumb record's slider faces directly
+   below. Declaration checks do not establish rendered pixels. Restated
+   2026-11-09 by the feature role. */
+
+scale.horizontal marks.top {
+  margin-bottom: 6px;
+  margin-top: -12px;
+}
+
+scale.horizontal.fine-tune marks.top {
+  margin-bottom: 6px;
+  margin-top: -9px;
+}
+
+scale.horizontal marks.bottom {
+  margin-top: 6px;
+  margin-bottom: -12px;
+}
+
+scale.horizontal.fine-tune marks.bottom {
+  margin-top: 6px;
+  margin-bottom: -9px;
+}
+
+scale.vertical marks.top {
+  margin-right: 6px;
+  margin-left: -12px;
+}
+
+scale.vertical.fine-tune marks.top {
+  margin-right: 6px;
+  margin-left: -9px;
+}
+
+scale.vertical marks.bottom {
+  margin-left: 6px;
+  margin-right: -12px;
+}
+
+scale.vertical.fine-tune marks.bottom {
+  margin-left: 6px;
+  margin-right: -9px;
+}
+
+scale.horizontal indicator {
+  min-height: 6px;
+  min-width: 1px;
+}
+
+scale.horizontal.fine-tune indicator {
+  min-height: 3px;
+}
+
+scale.vertical indicator {
+  min-height: 1px;
+  min-width: 6px;
+}
+
+scale.vertical.fine-tune indicator {
+  min-width: 3px;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a marked
+   GTK scale (the GTK scope's standing adaptation premise); a GtkScale node
+   carrying one-sided value marks (marks-before or marks-after, never both)
+   paints the toolkit's raster has-marks slide arrows instead of this
+   theme's axis-aligned rectangular thumb, because every marked arm stacks
+   heavier claims than the existing plain thumb record's spelling can outbid.
+   The compiled toolkit stylesheet (2055 lines, probed fresh 2026-11-09
+   with gresource extract; the library path lives in docs/invariants.md)
+   gives the four one-sided families -- horizontal marks-before, horizontal
+   marks-after, vertical marks-before, vertical marks-after -- six state
+   arms each (plain, hover, active, disabled, backdrop and
+   backdrop+disabled), every arm claiming margin: -10px with a -14px
+   margin-top or margin-bottom (horizontal) or margin-left or margin-right
+   (vertical) side twin, border-style: none, border-radius: 0,
+   background-color: transparent, background-image: a -gtk-scaled source
+   naming assets/slider-<axis>-scale-has-marks-<side><state>.png with a 2x
+   twin, the orientation minima (horizontal min-width: 22px and
+   min-height: 26px; vertical swapped to min-width: 26px and min-height:
+   22px), background-position and background-repeat: no-repeat, and
+   box-shadow: none. Each family adds one .fine-tune slider arm claiming
+   margin: -7px with a -11px side twin. The existing GTK 4 marked blocks (the
+   scale.marks-before:not(.marks-after) > trough > slider transform, bevel
+   and disabled-shadow groups in the gtk-4.0 sheet) are the cross-toolkit
+   precedent for the axis-aligned-rectangular-thumb policy, so each combo
+   is restated here in stock order at byte-equal stock-twin spellings that
+   win the equal-specificity per-longhand ties by later user-sheet source
+   order: base, hover and active arms take the existing plain thumb face and
+   the existing orientation minima (horizontal min-width: 12px and
+   min-height: 16px, vertical swapped); disabled, backdrop and
+   backdrop+disabled arms the existing disabled thumb face; each family's
+   fine-tune arm the existing -5px margin, replacing stock's -7px plus side
+   twin. Stock's background-position and background-repeat claims are not
+   restated: they are inert under the restated background-image: none.
+   Exclusions with reasons: the resource declares no marks-before.marks-
+   after both-marks arm and no radius-bearing marked arm (grep of the same
+   resource), and the bare scale.fine-tune slider arm claims margin: -6px
+   only, a geometry-only claim mixing into no art that the existing
+   fine-tune-radius record already frames as left stock. Statement checks
+   do not establish rendered pixels. Restated 2026-11-09 by the feature
+   role. */
+
+scale.horizontal.marks-before:not(.marks-after) slider,
+scale.horizontal.marks-before:not(.marks-after) slider:hover,
+scale.horizontal.marks-before:not(.marks-after) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-before:not(.marks-after) slider:disabled,
+scale.horizontal.marks-before:not(.marks-after) slider:backdrop,
+scale.horizontal.marks-before:not(.marks-after) slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.horizontal.marks-before:not(.marks-after).fine-tune slider {
+  margin: -5px;
+}
+
+scale.horizontal.marks-after:not(.marks-before) slider,
+scale.horizontal.marks-after:not(.marks-before) slider:hover,
+scale.horizontal.marks-after:not(.marks-before) slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  min-width: 12px;
+  min-height: 16px;
+}
+

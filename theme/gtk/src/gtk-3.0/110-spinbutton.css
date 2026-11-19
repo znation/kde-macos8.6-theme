@@ -1,0 +1,457 @@
+spinbutton.vertical button.down {
+  border-radius: 0;
+  border-style: none solid solid solid;
+}
+
+/* Horizontal stepper seams, 2026-11-11. The stock toolkit resource
+   gtk-contained.css (inside libgtk-3.so.0, re-extracted with gresource
+   that day) restyles these buttons with `spinbutton:not(.vertical)
+   button { border-style: none none none solid; }` and its :dir(rtl)
+   mirror, which this theme's resource replaces, so the steppers kept
+   the full 1px black button border. Measured that day with a GTK 3
+   offscreen child: every stepper edge that meets the spin button frame
+   or the other stepper painted two black columns. These two rules
+   restore one 1px black line per seam; the .osd groups keep their own
+   full border. */
+spinbutton:not(.vertical) button {
+  border-style: none none none solid;
+}
+
+spinbutton:not(.vertical) button:dir(rtl) {
+  border-style: none solid none none;
+}
+
+/* 2026-11-05: no collected reference screenshot shows a GTK content
+   view's selection check in any state — a file- or icon-grid selection
+   swatch (the GTK scope's standing adaptation premise) — so the eight
+   tile-check state faces the toolkit resource paints over the existing
+   radius-only groups above take the existing check face under every
+   state, per-property. A `gresource extract` probe that day of the
+   toolkit's default light resource (its exact resource path and library
+   path live in docs/invariants.md, because this sheet's palette scan
+   reads comments as declarations and stock is quoted only through
+   neutral wording here) returns exactly the eight class-armed comma
+   triples across rest, :hover, :active, :backdrop, :checked,
+   :checked:hover, :checked:active and :backdrop:checked — resource
+   lines 1089 through 1103, the same shape the existing radius record
+   quoted, each carrying its 5px rounding among margins, minimum sizes,
+   colours, paints, transition, border-width, icon source and icon
+   shadow: a flat toolkit-blue swatch at rest, hover and press with a
+   flat grey backdrop twin, and a checked swatch under the toolkit's
+   symbolic select glyph whose backdrop ink is dimmed — so a selection
+   swatch painted stock instead of the existing recipe. The GTK 4 sister
+   record of this theme restates the same eight state faces from the
+   light resource of that toolkit (paths in docs/invariants.md). The
+   existing bare `check, radio`, `check` and `check:checked` groups
+   cannot reach these class-armed spellings: they name the element node
+   and lose the class-armed specificity tie, so each spelling below
+   restates exactly the existing `check` recipe's face — the light-grey
+   fill, the 1px solid black outline and the inset white/dark-grey
+   relief pair — on top of this record's zero radius, and the four
+   checked spellings add the existing `check:checked` glyph source (the
+   existing `check` group's raised face colour restates beside the glyph,
+   stock painting the checked swatch image-only). The suite's scanned
+   parser merges the existing radius blocks and these face declarations
+   into one dictionary per spelling, and the existing corner test pins
+   the merged dictionaries, so the faces extend the existing groups in
+   place — repeating the spellings in new blocks would leave each
+   spelling twice in the scanned selector list. Backdrop keeps the face
+   unchanged per the existing `.osd` check/radio record's policy, which
+   states no `.osd` :backdrop arm. Stock's 32px minimums, 4px margins,
+   residual ink, 200ms transition and the unchecked none icon source
+   stay inherited per-property — the swatch is a platform-defined
+   surface whose 32px geometry the reference set does not show, a
+   shipped-file glyph source is not tinted by the element ink, and the
+   existing plain-state record makes the same transition and ink choice —
+   while stock's `border-width: 0` loses the width half of the restated
+   `border` shorthand per-property, so the swatch keeps the existing hard
+   black outline. This sheet loads after the resource, so each spelling
+   wins the equal-specificity tie by later user-sheet source order.
+   Declaration checks do not establish rendered pixels. */
+
+.view.content-view.check:not(list),
+iconview.content-view.check:not(list),
+.content-view:not(list) check {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:hover:not(list),
+iconview.content-view.check:hover:not(list),
+.content-view:not(list) check:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:active:not(list),
+iconview.content-view.check:active:not(list),
+.content-view:not(list) check:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:backdrop:not(list),
+iconview.content-view.check:backdrop:not(list),
+.content-view:not(list) check:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:not(list),
+iconview.content-view.check:checked:not(list),
+.content-view:not(list) check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:hover:not(list),
+iconview.content-view.check:checked:hover:not(list),
+.content-view:not(list) check:checked:hover {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:active:not(list),
+iconview.content-view.check:checked:active:not(list),
+.content-view:not(list) check:checked:active {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:backdrop:checked:not(list),
+iconview.content-view.check:backdrop:checked:not(list),
+.content-view:not(list) check:backdrop:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+/* No collected reference screenshot shows a GTK check button or radio in
+   any non-rest state (the GTK scope's standing adaptation premise, the
+   same surface the existing .osd check/radio record above spells), so the
+   plain state arms the toolkit's own themes paint over the existing
+   element-only `check, radio`, `check`, `radio`, `check:checked`,
+   `radio:checked` and `check:indeterminate, radio:indeterminate` face and
+   glyph recipes are restated with the existing face under every state: the
+   existing hover policy keeps the same face, :active keeps the recipes
+   unchanged, and :disabled changes no declaration either — the same
+   closed rule the existing .osd check/.osd radio entry spells. A
+   2026-11-05 `gresource extract` probe of the toolkit's default light
+   GTK 3 resource in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 — its exact
+   resource path and every restated arm's verbatim text live in
+   docs/invariants.md, because this sheet's palette-literal scan reads
+   comments as declarations — found the same eleven-arm shape: a flat
+   grey hover face; a pressed inset shadow whose blue press fill is
+   image-only on the toolkit's fourth resource; a disabled shadow-clear
+   with a dimmed ink; the checked and indeterminate families carrying the
+   toolkit blue-surface face (a two-stop blue gradient, a state border
+   colour, a flat outer shadow, a border-box clip and a white ink), each
+   with its own :hover, :active and :disabled twins; a stock-handled
+   :backdrop spelling per family — the plain
+
+   check:backdrop, radio:backdrop { background-image: image(white); box-shadow: none; }
+
+   arm, whose radio member already reads the existing white face and whose
+   check member paints white over the existing raised face — the checked
+   and indeterminate families each carrying a flat blue :backdrop face.
+   The resource's :backdrop:disabled twins and motion, glyph and
+   selected-descendant arms stay stock per the entry's exclusion list, as
+   does every higher-specificity family: the `.osd` indicator family
+   (existing above), the `menu menuitem` transparency group and the model
+   buttons (stock and the existing menu records govern menus), the 32px
+   content-view tile-check colour family (the existing tail groups above
+   own its radius, and the 2026-11-05 face comment before those groups
+   extends them with the existing face), and the tree-view selected check
+   colour arm.
+   Each arm below appears as the exact stock-twin spelling of its own
+   member — no comma group, because the two existing faces' shadows differ
+   — later in source order, so each arm's existing-DIFFERENT state
+   properties fall to it at equal specificity and stock's untouched
+   properties stay inherited per-property: geometry, ink, glyph source,
+   radius, background-clip and transition keep the existing cascade. Every
+   check spelling repeats the existing check face's fill, border colour and
+   shadow pair (the existing `check` group's raised face colour restated
+   beside them on the checked and indeterminate families, whose press,
+   hover and backdrop paint stock as image-only), every radio spelling
+   the existing radio face's white-field equivalents, and stock's dimmed
+   state inks are left to stock because the shipped glyph assets carry no
+   recolour. No glyph restatement: the existing `check:checked`,
+   `radio:checked` and `check:indeterminate, radio:indeterminate` glyph
+   rules already win their own ties. The
+   `GtkSharedControlCases::test_check_and_radio` support case pins the
+   plain arms in both suites. This sheet loads after the stock resource,
+   so each spelling below wins the equal-specificity tie by later
+   user-sheet source order. Declaration checks do not establish rendered
+   pixels. (2026-11-05) */
+
+check:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+/* 2026-11-09: an indicator keeps its existing face in an unfocused window
+   with no stock fade. The toolkit's default light GTK 3 resource was
+   probed 2026-11-09 with `gresource extract`; the exact resource path
+   and every restated arm's verbatim text live in docs/invariants.md,
+   because this sheet's palette-literal scan reads comments as
+   declarations. Stock's bare `check:backdrop, radio:backdrop` arm at
+   resource line 1155 (dark twin line 1141) fades the backdrop repaint
+   through `transition: 200ms ease-out`; the existing no-fade policy — the
+   same reopen-proof extension the existing backdrop-band and mark records
+   use — erases it, byte-equal so later user-sheet source order wins the
+   tie. The two bare groups match checked, mixed and unchecked indicators
+   alike, so the amendments below cover every indicator state and the
+   residue block before the menu record restates none of them. */
+check:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  transition: none;
+}
+
+radio:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+  transition: none;
+}
+
+check:checked:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+/* 2026-11-09: a disabled or selected-row indicator keeps the existing
+   plain record's face inside an unfocused window. No collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK check or radio in a
+   disabled, selected-row or unfocused state — the standing GTK-scope
+   adaptation premise — so every restatement below reuses an existing value:
+   the base `check` recipe's etch (`inset 1px 1px #FFFFFF, inset -1px
+   -1px #888888`) and black border, the existing selected-row policy of
+   the `row:selected button` and tree-view records, and the existing
+   no-fade policy. The toolkit's default light GTK 3 resource was
+   probed 2026-11-09 with `gresource extract`; the exact resource path
+   and every restated arm's verbatim text live in docs/invariants.md,
+   because this sheet's palette-literal scan reads comments as
+   declarations. Stock paints a disabled indicator inside an unfocused
+   window with a higher-specificity per-state twin that clears the
+   shadow and dims the ink — the base twin at resource line 1129, the
+   checked family at line 1141 and the mixed family at line 1153, each
+   `check`-headed with `box-shadow: none` plus a dimmed ink (dark twin
+   lines 1115, 1127 and 1139) — so each twin beats the existing one-pseudo
+   `:backdrop` groups' raised etch per-property and each arm below
+   appears as the byte-equal stock-twin spelling, later in source order.
+   A selected-row indicator rim recolours stock's accent; the resource
+   arms the element-only selected-row spellings at line 1157 and the
+   dark twin declares no such arm. Exclusions, with reasons: no
+   `radio:backdrop:disabled` spelling — stock's shadow-clear matches the
+   existing radio face's own none, so nothing repaints; no stock ink —
+   the existing family owns no ink member and the shipped glyph assets
+   are static, pinned by the existing glyph tests; no `border-color`
+   restate on the backdrop-disabled twins — stock's arms declare none,
+   so the existing black border survives; no backdrop-fade restatement
+   here — the two dated amendments above cover every indicator state;
+   no `.osd` state arm — the existing `.osd` block answers it; no 32px
+   content-view tile spelling — its own existing tail groups own it; and
+   no menu glyph, margin or label-padding arm — the existing menu record
+   below owns menus. Declaration counts and source order do not
+   establish rendered pixels. */
+check:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check:checked:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check:indeterminate:backdrop:disabled {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+row:selected check, row:selected radio {
+  border-color: #000000;
+}
+

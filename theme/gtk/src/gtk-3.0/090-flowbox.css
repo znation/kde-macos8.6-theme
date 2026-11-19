@@ -1,0 +1,495 @@
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flow
+   box selection (the GTK scope's standing adaptation premise), so the
+   flow-box child stock paints with the stock accent family is restated
+   against the existing row-selection groups of this same sheet (flat #CCCCFF
+   fill, square corners, black text, re-stated unchanged in an unfocused
+   window by the rows' constant-backdrop group). The toolkit resource
+   (gtk-contained.css, the built-in theme the toolkit ships as a gresource
+   inside libgtk-3, probed on 2026-10-31, libgtk-3 3.24.49; its full
+   resource path is recorded in docs/invariants.md) paints
+   `flowbox flowboxchild:selected` with the accent fill and a white label
+   inside its large selection comma groups, recolours the label to a pale
+   near-white in a `:backdrop:selected` twin, ships a separate `selected`
+   `outline-offset: -2px` geometry arm and blue-grey `:disabled:selected`
+   and `:backdrop:disabled:selected` label twins: the geometry arm carries
+   no colour and stays stock, the disabled twins keep governing (the
+   disabled remainder this sheet records for rows drives the same held-out
+   family here; 2026-10-31: the rows-and-children disabled twins are since
+   restated at the sheet tail — the `:disabled:selected` disabled selected
+   rows and view children entry — with the existing inactive-text grey; the
+   remainder stays stock), and the backdrop twin loses to the appended
+   same-spelling group's later source order. Each appended selector is the exact stock
+   twin, so every tie is decided purely by later source order, in cold and
+   backdrop windows alike. Declaration checks do not establish rendered
+   pixels. */
+flowbox flowboxchild:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+flowbox flowboxchild:backdrop:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   icon-view selection (the GTK scope's standing adaptation premise), so the
+   selection stock paints into an icon view is restated against the existing
+   row-selection groups of this same sheet (flat #CCCCFF fill, square
+   corners, black text, re-stated unchanged in an unfocused window by the
+   rows' constant-backdrop group). The toolkit resource
+   (gtk-contained.css, the built-in theme the toolkit ships as a gresource
+   inside libgtk-3, probed on 2026-10-31, libgtk-3 3.24.49; its full
+   resource path is recorded in docs/invariants.md) lists
+   `iconview:selected` and `iconview:selected:focus` in its large accent
+   background/colour comma groups, sharpens the shape with a `3px`
+   selection `border-radius` geometry arm, and recolours the selection
+   label to a pale near-white in `:backdrop:selected` twins. Each appended
+   selector names element, class and states, so it outranks the element-only
+   stock twins over icon-view nodes and sits later in source order, while
+   the existing row groups keep governing the tree and list nodes their
+   selectors name. GTK's `GtkIconView` carries the `view` class in both
+   toolkits, so every icon-view node still matches the classed spelling.
+   The :not(:disabled) guard preserves stock disabled-selection paint.
+   Declaration checks do not establish rendered pixels. */
+iconview.view:not(:disabled):selected,
+iconview.view:not(:disabled):selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+iconview.view:not(:disabled):backdrop:selected,
+iconview.view:not(:disabled):backdrop:selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   disabled selected row or view child (the GTK scope's standing adaptation
+   premise), so the pale-blue disabled-selected labels the toolkit resource
+   (gtk-contained.css, the built-in theme the toolkit ships as a gresource
+   inside libgtk-3, probed on 2026-10-31, libgtk-3 3.24.49; its full
+   resource path is recorded in docs/invariants.md) paints on the
+   rows-and-children members of its big disabled-selected comma groups and
+   on the dedicated tree-view cold and backdrop arms are restated with the
+   existing disabled-text grey (the same grey the sheet's disabled label,
+   dim-label, separator and field-disabled arms paint, re-derived from the
+   colour scheme's [Colors:Button] ForegroundInactive). The existing row and
+   view-child selection groups already paint the #CCCCFF fill with black
+   enabled text in every state, so only the label colour changes. Each
+   appended selector is the exact stock twin, so every tie is decided
+   purely by later source order; the toolkit's remaining disabled-selected
+   members (selection text, calendar, icon-view, model- and title-button
+   members and the class-only .view twins) stay stock. Declaration checks
+   do not establish rendered pixels. */
+row:disabled:selected,
+flowbox flowboxchild:disabled:selected,
+treeview.view:disabled:selected {
+  color: #888888;
+}
+
+row:backdrop:disabled:selected,
+flowbox flowboxchild:backdrop:disabled:selected,
+treeview.view:disabled:selected:backdrop {
+  color: #888888;
+}
+
+/* 2026-10-31: gresource probe of the GTK 3 gtk-contained.css selection arms
+   (libgtk-3 3.24.49; full resource path in docs/invariants.md). No collected
+   reference shows GTK selected, backdrop-selected or disabled-selected text.
+   Reuse the existing black text and inactive-text grey; the selection fill stays
+   supplied by the existing selection rule. */
+label:selected,
+textview text:selected,
+textview text:selected:focus,
+.view text:selected,
+.view text:selected:focus,
+textview text selection:focus,
+.view text selection:focus,
+.view text selection {
+  color: #000000;
+}
+
+label:backdrop selection,
+label:backdrop:selected,
+entry selection:backdrop,
+spinbutton:not(.vertical) selection:backdrop,
+textview text:backdrop:selected,
+textview text:backdrop:selected:focus,
+.view text:backdrop:selected,
+textview text selection:backdrop,
+textview text selection:backdrop:focus,
+.view text selection:backdrop {
+  color: #000000;
+}
+
+label:disabled selection,
+label:disabled:selected,
+entry selection:disabled,
+spinbutton:not(.vertical) selection:disabled,
+textview text:disabled:selected,
+textview text:disabled:selected:focus,
+.view text:disabled:selected,
+textview text selection:disabled,
+textview text selection:disabled:focus,
+.view text selection:disabled {
+  color: #888888;
+}
+
+label:backdrop selection:disabled,
+label:backdrop:disabled:selected,
+entry selection:backdrop:disabled,
+spinbutton:not(.vertical) selection:backdrop:disabled,
+textview text:backdrop:disabled:selected,
+.view text:backdrop:disabled:selected,
+textview text selection:backdrop:disabled,
+.view text selection:backdrop:disabled {
+  color: #888888;
+}
+
+/* 2026-11-11: gresource probe of the GTK 3 gtk-contained.css disabled view
+   arms (libgtk-3 3.24.49; full resource path in docs/invariants.md): the
+   resource arms exactly three disabled view groups — a five-member
+   `.view:disabled, iconview:disabled, .view text:disabled, iconview
+   text:disabled, textview text:disabled` comma group (resource line 28),
+   `treeview.view:disabled` (line 699) and `treeview.view:disabled:backdrop`
+   (line 705) — and the dark-twin resource `gtk-contained-dark.css` carries
+   the same-shaped family (comma group at its own line 28, tree arms at
+   lines 691 and 697; all five foreign literals elided here, their verbatim
+   values in the docs/invariants.md row). Render-probed the same day: the
+   user sheet installs above the toolkit resource, so the existing
+   `.view, textview text, list` base group already wins per-property and an
+   insensitive view today paints the existing white field — under the base
+   group's unconditional black ink, unlike every other existing insensitive
+   text (the disabled label, entry and disabled-selected arms paint the
+   existing insensitive grey). These restatements give the insensitive view
+   family that same grey, the ink re-derived from the existing insensitive
+   records, and restate the existing white field per-family so the restated
+   group stays self-contained; the backdrop tree twin keeps the grey in
+   unfocused windows, the policy the existing disabled-selected backdrop
+   restatements follow. The `:disabled:selected` combinations stay owned by
+   the existing disabled-selected groups above (their ink, including the
+   treeview disabled-selected pair); the toolkit's remaining insensitive
+   arms outside the view family (label, entry and button fields) are the
+   existing disabled-text records' own; and the GTK 4 sibling — the
+   integration library's per-family disabled view ink arms and the existing
+   2026-11-09 GTK 4 disabled-view group's deliberately excluded `color`
+   co-declaration — is a separate candidate, not this one. No geometry,
+   margin, transition or other-state declaration is added. */
+.view:disabled,
+iconview:disabled,
+.view text:disabled,
+iconview text:disabled,
+textview text:disabled {
+  color: #888888;
+  background-color: #FFFFFF;
+}
+
+treeview.view:disabled {
+  color: #888888;
+}
+
+treeview.view:disabled:backdrop {
+  color: #888888;
+}
+
+/* 2026-10-31: libgtk-3 3.24.49 tab-close ink from its bundled GTK resource
+ * (full resource path in docs/invariants.md); no reference screenshot shows
+ * this control. Reuse the existing black label and insensitive grey. */
+notebook > header tab button.flat,
+notebook > header tab button.flat:backdrop {
+  color: #000000;
+}
+
+notebook > header tab button.flat:disabled,
+notebook > header tab button.flat:backdrop:disabled {
+  color: #888888;
+}
+
+/* 2026-10-31: no reference screenshot shows GTK inline-link interaction;
+ * reuse the colour scheme's link roles for GTK 3's stock interaction states.
+ * GtkLabel's gtklabel.c CSS-node documentation names child link nodes,
+ * carrying mutually exclusive link and visited states (checked 2026-11-11). */
+label > link:link:hover:not(:disabled),
+label > link:link:active:not(:disabled) {
+  color: #0000EE;
+}
+
+label > link:visited:hover:not(:disabled),
+label > link:visited:active:not(:disabled) {
+  color: #551A8B;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   GTK inline links; reuse [Colors:Button] ForegroundInactive. The installed
+   GTK 3 gtk-contained.css resource (libgtk-3 3.24.49; path in
+   docs/invariants.md) gives disabled links a dim grey foreground. */
+label:link:disabled, label:visited:disabled {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   GTK backdrop inline links; reuse [Colors:Button] ForegroundInactive. The
+   installed GTK 3 gtk-contained.css resource (libgtk-3 3.24.49; path in
+   docs/invariants.md) supplies the backdrop link states. */
+label:link:disabled:backdrop,
+label:link:disabled:backdrop:hover,
+label:link:disabled:backdrop:active,
+label:visited:disabled:backdrop,
+label:visited:disabled:backdrop:hover,
+label:visited:disabled:backdrop:active {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled GTK
+   backdrop inline links; reuse the scheme's link roles. GTK 3's bundled
+   gtk-contained.css supplies the stock backdrop link state spellings. */
+label:link:backdrop:not(:disabled),
+label:link:backdrop:hover:not(:disabled),
+label:link:backdrop:active:not(:disabled) {
+  color: #0000EE;
+}
+
+label:link:visited:backdrop:not(:disabled),
+label:link:visited:backdrop:hover:not(:disabled),
+label:link:visited:backdrop:active:not(:disabled) {
+  color: #551A8B;
+}
+
+/* No collected reference shows GTK link-button interaction states. Keep the
+   scheme's link roles in hover and press; GTK 3's installed gtk-contained.css
+   resource supplies these child-label state spellings. Recorded 2026-10-31. */
+button:link:not(:disabled) > label:hover:not(:disabled),
+button:link:not(:disabled) > label:active:not(:disabled) {
+  color: #0000EE;
+}
+
+button:visited:not(:disabled) > label:hover:not(:disabled),
+button:visited:not(:disabled) > label:active:not(:disabled) {
+  color: #551A8B;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled GTK
+   backdrop link-button labels; reuse the scheme's link roles. The installed
+   GTK 3 gtk-contained.css resource supplies the backdrop state spellings. */
+button:link:not(:disabled) > label:backdrop:not(:disabled),
+button:link:not(:disabled) > label:backdrop:hover:not(:disabled),
+button:link:not(:disabled) > label:backdrop:active:not(:disabled) {
+  color: #0000EE;
+}
+
+button:visited:not(:disabled) > label:backdrop:not(:disabled),
+button:visited:not(:disabled) > label:backdrop:hover:not(:disabled),
+button:visited:not(:disabled) > label:backdrop:active:not(:disabled) {
+  color: #551A8B;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows child-disabled
+   GTK link-button labels. Reuse [Colors:Button] ForegroundInactive; the installed
+   GTK 3 gtk-contained.css resource supplies the child and backdrop state spellings. */
+button:link > label:disabled,
+button:visited > label:disabled,
+button:link > label:disabled:backdrop,
+button:visited > label:disabled:backdrop {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected GTK inline
+   links. Reuse [Colors:Selection] ForegroundNormal; GTK 3's installed
+   gtk-contained.css resource supplies these link state spellings. */
+label:link:selected:not(:disabled):not(:backdrop),
+label:link:selected:not(:disabled):not(:backdrop):hover,
+label:link:selected:not(:disabled):not(:backdrop):active,
+label:visited:selected:not(:disabled):not(:backdrop),
+label:visited:selected:not(:disabled):not(:backdrop):hover,
+label:visited:selected:not(:disabled):not(:backdrop):active,
+label:link:visited:selected:not(:disabled):not(:backdrop),
+label:link:visited:selected:not(:disabled):not(:backdrop):hover,
+label:link:visited:selected:not(:disabled):not(:backdrop):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows selected GTK
+   backdrop inline links; reuse [Colors:Selection] ForegroundNormal. GTK 3's
+   installed gtk-contained.css resource supplies these link state spellings. */
+label:link:selected:backdrop:not(:disabled),
+label:link:selected:backdrop:not(:disabled):hover,
+label:link:selected:backdrop:not(:disabled):active,
+label:visited:selected:backdrop:not(:disabled),
+label:visited:selected:backdrop:not(:disabled):hover,
+label:visited:selected:backdrop:not(:disabled):active,
+label:link:visited:selected:backdrop:not(:disabled),
+label:link:visited:selected:backdrop:not(:disabled):hover,
+label:link:visited:selected:backdrop:not(:disabled):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled
+   inline links inside selected GTK ancestors. Reuse [Colors:Selection]
+   ForegroundNormal; GTK 3's installed gtk-contained.css resource supplies
+   the selected-ancestor link state spellings. */
+:selected label:link:not(:disabled):not(:backdrop),
+:selected label:link:not(:disabled):not(:backdrop):hover,
+:selected label:link:not(:disabled):not(:backdrop):active,
+:selected label:visited:not(:disabled):not(:backdrop),
+:selected label:visited:not(:disabled):not(:backdrop):hover,
+:selected label:visited:not(:disabled):not(:backdrop):active,
+:selected label:link:visited:not(:disabled):not(:backdrop),
+:selected label:link:visited:not(:disabled):not(:backdrop):hover,
+:selected label:link:visited:not(:disabled):not(:backdrop):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows enabled
+   backdrop inline labels inside selected ancestors. Reuse [Colors:Selection]
+   ForegroundNormal; GTK 3's installed gtk-contained.css resource supplies
+   the selected-ancestor backdrop link state spellings. */
+:selected label:link:backdrop:not(:disabled),
+:selected label:link:backdrop:not(:disabled):hover,
+:selected label:link:backdrop:not(:disabled):active,
+:selected label:visited:backdrop:not(:disabled),
+:selected label:visited:backdrop:not(:disabled):hover,
+:selected label:visited:backdrop:not(:disabled):active,
+:selected label:link:visited:backdrop:not(:disabled),
+:selected label:link:visited:backdrop:not(:disabled):hover,
+:selected label:link:visited:backdrop:not(:disabled):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   inline links inside selected GTK ancestors. Reuse [Colors:Button]
+   ForegroundInactive; the installed GTK 3 gtk-contained.css resource supplies
+   selected-ancestor visited and hover link state spellings. */
+:selected label:link:disabled:not(:backdrop),
+:selected label:link:disabled:not(:backdrop):hover,
+:selected label:link:disabled:not(:backdrop):active,
+:selected label:visited:disabled:not(:backdrop),
+:selected label:visited:disabled:not(:backdrop):hover,
+:selected label:visited:disabled:not(:backdrop):active,
+:selected label:link:visited:disabled:not(:backdrop),
+:selected label:link:visited:disabled:not(:backdrop):hover,
+:selected label:link:visited:disabled:not(:backdrop):active {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   backdrop inline links inside selected ancestors. Reuse [Colors:Button]
+   ForegroundInactive; the installed GTK 3 gtk-contained.css resource supplies
+   selected-ancestor visited and hover link state spellings. */
+:selected label:link:disabled:backdrop,
+:selected label:link:disabled:backdrop:hover,
+:selected label:link:disabled:backdrop:active,
+:selected label:visited:disabled:backdrop,
+:selected label:visited:disabled:backdrop:hover,
+:selected label:visited:disabled:backdrop:active,
+:selected label:link:visited:disabled:backdrop,
+:selected label:link:visited:disabled:backdrop:hover,
+:selected label:link:visited:disabled:backdrop:active {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   self-selected GTK inline links in active windows. Reuse [Colors:Button]
+   ForegroundInactive; the installed GTK 3 gtk-contained.css resource supplies
+   the self-selected visited and hover link state spellings. */
+label:link:selected:disabled:not(:backdrop),
+label:link:selected:disabled:not(:backdrop):hover,
+label:link:selected:disabled:not(:backdrop):active,
+label:visited:selected:disabled:not(:backdrop),
+label:visited:selected:disabled:not(:backdrop):hover,
+label:visited:selected:disabled:not(:backdrop):active,
+label:link:visited:selected:disabled:not(:backdrop),
+label:link:visited:selected:disabled:not(:backdrop):hover,
+label:link:visited:selected:disabled:not(:backdrop):active {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows disabled
+   self-selected GTK inline links in backdrop windows. Reuse [Colors:Button]
+   ForegroundInactive; the installed GTK 3 gtk-contained.css resource supplies
+   the self-selected backdrop link state spellings. */
+label:link:selected:disabled:backdrop,
+label:link:selected:disabled:backdrop:hover,
+label:link:selected:disabled:backdrop:active,
+label:visited:selected:disabled:backdrop,
+label:visited:selected:disabled:backdrop:hover,
+label:visited:selected:disabled:backdrop:active,
+label:link:visited:selected:disabled:backdrop,
+label:link:visited:selected:disabled:backdrop:hover,
+label:link:visited:selected:disabled:backdrop:active {
+  color: #888888;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   circular button, sidebar navigation button, non-window-control title-bar
+   button, popover-menu model button row or overlay-scrollbar indicator dot
+   (the GTK scope's standing adaptation premise), so the five radius-bearing
+   stock arm spellings this sheet never restates are squared against the
+   existing square-corner policy of this same sheet — the existing plain `button`
+   restatement and the existing `scrollbar button` and window-control
+   restatements carry `border-radius: 0`, with the existing `radio` circle as
+   the reference-grounded exception. The toolkit resource (gtk-contained.css
+   inside libgtk-3, probed with gresource on 2026-11-04, libgtk-3 3.24.49;
+   its full resource path is recorded in docs/invariants.md) rounds five
+   faces this sheet answers at nothing: `button.circular` rounds 9999px with
+   an equal outline radius; `button.sidebar-button` rounds 100% with an equal
+   outline radius; `button.titlebutton:not(.appmenu)` rounds 9999px beyond
+   the three existing window controls; `modelbutton.flat, .menuitem.button.flat`
+   rounds 5px on the popover-menu and menu-item row faces; and
+   `scrollbar.overlay-indicator:not(.dragging):not(.hovering) button` rounds
+   100%. The existing plain `button` restatement is unclassed and loses stock's
+   class-qualified arms by one more class token; the existing window-control
+   groups reach only the closed, maximize and minimize title-buttons; the
+   existing `scrollbar button` rule is two elements and loses stock's
+   three-class overlay arm; and the existing popover tint groups declare
+   colours only, so no existing rule owns the model-button row radius. Each
+   restated selector below is the exact stock twin and sits later in source
+   order, so it wins every equal-specificity tie per-property; the two
+   outline-radius zeros keep the circular and sidebar keyboard focus rings
+   square like the existing focus restatements. Stock's padding, margins,
+   minimum sizes, background boxes, borders, dark face colour, opacity and
+   icon sources stay inherited per-property, and every state arm of these
+   spellings that carries no radius is left inherited — for the four other
+   faces, that is: the sidebar button's minimum sizes, vertical margins and
+   padding joined the existing restatement on 2026-11-08 (the note below), so
+   this sentence now bounds the circular, title, model and overlay-dot
+   faces only.
+
+   Adaptation 2026-11-08: re-probed the resource with gresource on
+   2026-11-08 (the same gtk-contained.css inside libgtk-3, libgtk-3
+   3.24.49, 2055 lines): the sidebar-button arm reads `button.sidebar-button
+   { min-height: 26px; min-width: 26px; margin-top: 3px; margin-bottom: 3px;
+   padding: 0; border-radius: 100%; -gtk-outline-radius: 100%; }` at
+   resource line 1687. No collected reference screenshot in
+   macos8.6-screenshots/ shows a places sidebar's per-row navigation button
+   (the GTK scope's standing adaptation premise above), so the five joined
+   declarations are the probe's byte-equal stock values — platform values
+   the reference set does not show. The 2026-11-04 merge squared the
+   radius pair and left the arm's padding, margins and minimum sizes
+   inherited per-property; this join extends the existing restatement to pin
+   the button's 26px square box, 3px vertical margins and zero padding
+   inside the existing places rows against upstream libgtk geometry drift —
+   under the probed library it is inert and changes no rendered surface.
+   The `> image` opacity arms are restated below. Left stock on purpose:
+   `button.circular`'s and the other four faces' own geometry, and
+   every state arm of these spellings carrying no geometry here.
+   Declaration checks do not establish rendered pixels. */
+button.circular {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}
+
+button.sidebar-button {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+  min-height: 26px;
+  min-width: 26px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  padding: 0;
+}
+

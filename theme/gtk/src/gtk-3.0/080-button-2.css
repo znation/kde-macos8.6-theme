@@ -1,0 +1,479 @@
+/* 2026-10-31: no collected reference screenshot shows a GTK
+   destructive-action button at all (the GTK scope's standing adaptation
+   premise), so a generic push button carrying the `destructive-action`
+   class must draw the existing Platinum push-button face in every armed
+   state instead of the stock red gradient family — the toolkit's
+   erase-the-colour-distinction adaptation the existing
+   `.osd button.destructive-action` restatement and the plain
+   suggested-action and destructive-action restatements in the GTK 4
+   sheet all follow; this block is the red mirror of the existing plain
+   suggested-action restatement at the tail above. The libgtk-3 theme
+   CSS in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49,
+   probed with gresource 2026-10-31; this sheet never names upstream
+   themes, so the probed resource's provenance lives in
+   docs/invariants.md) declares ten stock blocks outside the overlays,
+   some mixing `.flat` members into the same comma list: a base arm
+   with a white label, a translucent white `outline-color`, a red
+   one-line border with a darker bottom edge, a `linear-gradient` red
+   face and dark `text-shadow`/`-gtk-icon-shadow`; a `:hover` arm with
+   a fresh gradient; an `:active`/`:checked` arm resized to a solid red
+   `image()` fill; backdrop arms repainted in the red family; and
+   off-white disabled arms with a light grey red-family label and
+   lighter labels besides. Only the opaque members are restated here,
+   each with its exact stock-twin selector, so sheet source order
+   decides every intra-family tie exactly as stock spells them and the
+   existing plain `button`, `button:hover`, `button:backdrop...` and
+   `button:disabled...` groups — which these arms out-tie by one
+   class — never reach a destructive button. Every opaque arm reuses
+   this sheet's existing plain push-button recipe as its value source,
+   byte-equal to the existing plain suggested-action restatement above,
+   including the erased destructive colour distinction: the `#DDDDDD`
+   face with the `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA`
+   raised bevel, the `1px solid` black one-line border, black labels,
+   the existing `button:active, button:checked` sunken
+   `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF` press face, and
+   the `#888888` disabled label (the constants
+   `tests/support/gtk_theme_spec.py` pins as `BUTTON_BEVEL`,
+   `INVERTED_BUTTON_BEVEL` and `DISABLED_TEXT`). A black
+   `outline-color` is restated in every non-disabled arm because the
+   stock base, `:hover` and `:active`/`:checked` arms claim a
+   translucent white one, which would defeat the existing dotted black
+   `button:focus` outline on a keyboard-focused destructive button;
+   the stock disabled arms claim no `outline-color`, so the disabled
+   recipe does not either — the same extension every existing disabled
+   arm gives back. `text-shadow`/`-gtk-icon-shadow` are cleared in
+   every non-disabled arm because the stock family paints dark or
+   white shadows on them; the stock disabled arms already claim
+   `text-shadow: none` and `-gtk-icon-shadow: none`, so the disabled
+   recipe leaves them to stock. The `:backdrop` arm repeats the base
+   recipe byte-equal, recipe `outline-color` included, as the existing
+   `.osd` `:backdrop` restatement does — the stock backdrop arm claims
+   no `outline-color`, so no tie decides it. No `transition` is
+   restated because the GTK 3 stock base arm claims none, and the
+   existing plain `button:backdrop` group's `transition: none` keeps
+   governing the restated backdrop arms. The nine restated blocks keep
+   stock's arm ordering — base, `:hover`, `:active`/`:checked`, the
+   backdrop forms and the disabled forms — in the stock comma-list
+   pairings so sheet order decides every intra-family tie exactly as
+   stock spells them and a pressed hovered destructive button wins the
+   later press arm; no appended selector carries `.flat`, so the stock
+   `.flat` colour-class family keeps governing whole (2026-10-31: the
+   colour-class members are since restated at the sheet tail by the
+   existing colour-class family plan). The rest of the stock family (the
+   transparent `.flat` variants) stays out as its own candidate plan,
+   covered for both action classes by the existing GTK 3 flat
+   colour-class family plan. No geometry, artwork, padding or
+   dependency change; no other rule in the sheet is touched.
+   Declaration checks do not establish rendered pixels. */
+
+button.destructive-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action:active, button.destructive-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action:backdrop:active,
+button.destructive-action:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action:backdrop:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action:backdrop:disabled:active,
+button.destructive-action:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action:disabled:active, button.destructive-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flat
+   button at all (the GTK scope's standing adaptation premise), so the plain
+   flat colour-class arms outside overlays are restated with the existing
+   push-button recipe — the face and bevel dictionaries the existing plain
+   suggested-action and destructive-action restatements and the existing
+   `.app-notification button.flat, …, .osd button.flat` overlay block all
+   declare. Probed from gtk-contained.css in libgtk-3 3.24.49 with gresource
+   on 2026-10-31: the stock plain flat claims group `button.flat` with the
+   held-out titlebutton, sidebar-button and notebook-arrow families, claim
+   transparent faces and borders and cleared `background-image` in every
+   state, hold transparent faces and grey labels in the backdrop and
+   disabled states, and raise no face of their own, so a flat button outside
+   an overlay sits transparent at rest and pops a raised bevel on hover.
+   Each twin below is the exact stock member carrying the same single
+   `flat` class, at equal specificity sitting later in source order, so it
+   pre-empts exactly its stock arm; the stock motion claims are cleared by
+   `transition: none` the way the existing plain backdrop arm cleared it, and
+   the pressed hover arm keeps stock's own arm order so a hovered pressed
+   flat sinks. The disabled arms re-declare the face colour beside the
+   existing disabled dictionary and claim no `outline-color`, as every existing
+   disabled arm does. No restated arm sets on-disk geometry. Declaration
+   checks do not establish rendered pixels. */
+
+button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:hover:active {
+  transition: none;
+}
+
+button.flat:active, button.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:backdrop:active, button.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:backdrop:disabled:active, button.flat:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:disabled:active, button.flat:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   flat action button at all (the GTK scope's standing adaptation
+   premise), so the plain suggested-action and destructive-action
+   `.flat` members outside the overlays are restated with the existing
+   push-button recipe — the face and bevel dictionaries the existing
+   plain suggested-action and destructive-action restatements above and
+   the existing plain `button.flat` family all declare, erasing the last
+   stock colour distinction the flat family holds. Probed from
+   gtk-contained.css in libgtk-3 3.24.49 with gresource on 2026-10-31:
+   the stock colour-class `.flat` singles claim transparent faces with
+   blue or red labels and translucent labels in the disabled and
+   backdrop triples, and the flat members mixed into the opaque comma
+   lists take those class claims one token above the plain family's
+   arms, so rest, backdrop, disabled and pressed-backdrop colour-class
+   flats keep stock's transparent face and coloured label while hover
+   and press resolve to the plain family's state arms. Each appended
+   selector is the exact stock twin at equal class count sitting later
+   in source order, so source order pre-empts it exactly as the existing
+   opaque restatements pre-empted the opaque families; the press and
+   pressed-backdrop pairs sit at three class tokens, one above the
+   stock `.flat` members and the plain family's state arms, so no base
+   arm's source order can lift the raised bevel back over a pressed
+   flat; the disabled and disabled-backdrop singles tie their stock
+   members and win by later source; and the disabled arms re-declare
+   the face colour beside the existing disabled dictionary and claim no
+   `outline-color`, as every existing disabled arm does. No `transition`
+   is restated here: the plain family's `transition: none` claims
+   already hold at equal-or-higher class counts and the stock
+   colour-class arms claim none of their own. No restated arm sets
+   on-disk geometry. Declaration checks do not establish rendered
+   pixels. */
+
+button.suggested-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:active, button.suggested-action.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:backdrop:active,
+button.suggested-action.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action.flat:backdrop:disabled:active,
+button.suggested-action.flat:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:active, button.destructive-action.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:backdrop:active,
+button.destructive-action.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat:backdrop:disabled:active,
+button.destructive-action.flat:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   push button inside a selected row (the GTK scope's standing adaptation
+   premise), so the toolkit's three selected-row button arms are restated
+   against the existing selection fill and the existing plain `button` and
+   flat-family recipes of this same sheet. The toolkit resource
+   (gtk-contained.css inside libgtk-3, probed with gresource on
+   2026-10-31, libgtk-3 3.24.49) declares a standing `row:selected button`
+   arm plus the twin `row:selected button.sidebar-button…, row:selected
+   button.flat…` white-label list and its `:backdrop` recolour, byte-equal
+   with the GTK 4 toolkit resource: the standing arm's border out-ranks
+   the existing plain `button` group by one more element, the twin list
+   out-ranks the existing flat family on label and border at more class
+   tokens, so a flat button on a selected row would paint a white or
+   near-white label on the existing light-lavender selection fill and lose
+   its black at-rest bevel border. Each restated selector below is a
+   stock-derived arm; the label arms add a disabled-state guard;
+   every restated value is the existing black — the selection label the
+   existing selection groups declare and the border and flat backdrop label
+   the existing plain `button` and flat-family groups already carry. Stock's
+   chain excludes pressed and hovered states. Review 2026-11-11: stock's
+   :not(disabled) excludes a node name, not a state; :not(:disabled) is
+   added to preserve the deferred disabled remainder. No face,
+   background, box-shadow, geometry or motion claim is restated.
+   Declaration checks do not establish rendered pixels. */
+row:selected button {
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled),
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled) {
+  color: #000000;
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop,
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop {
+  color: #000000;
+}
+
+

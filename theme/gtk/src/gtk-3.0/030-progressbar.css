@@ -1,0 +1,499 @@
+/* A meter's show-text percentage label — the text the toolkit paints
+ * over the bar itself when `show-text` is enabled — keeps the existing
+ * black window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK meter's percentage label, so the bare
+ * `progressbar` widget node's ink is platform-required and the existing
+ * `progressbar trough`, `progressbar progress`, `progressbar progress:disabled`,
+ * `progressbar.osd` and `treeview.view.progressbar` groups — other nodes or
+ * other bars — can reach it in no plain context. The installed GTK 3 theme
+ * resource gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+ * (extracted with `gresource`) declares the node's one ink arm at its
+ * resource line 1439, `progressbar { font-size: smaller; color: <the
+ * toolkit's translucent ink>; font-feature-settings: "tnum"; }`, and the
+ * dark-twin resource gtk-contained-dark.css declares the same arm at line
+ * 1423 with its own translucent grey literal, every line shifted by −16;
+ * no state, backdrop or `.osd` arm repaints the bare node ink in either
+ * resource. The restatement below wins the single per-property
+ * equal-specificity tie by later user-sheet source order, so one kit ink
+ * answers light and dark deliveries and the `.osd` meter contexts the
+ * plain node reaches alike; the value source is the existing black window
+ * ink, the same policy the existing treeview progress-cell record above
+ * applies to the cell text and the existing insensitive-label,
+ * separator-label and disabled link-button records apply to toolkit-painted
+ * text. The two stock typography members stay inherited: `font-size:
+ * smaller` is stock-only label sizing the existing theme synthesizes for no
+ * other control and `font-feature-settings: "tnum"` likewise, and neither
+ * has a toolkit or user counter-arm to tie. The scale's own mark and value
+ * decoration ink (`scale marks, scale value` at the light resource's line
+ * 1276 and the dark twin's line 1260) is the scale-decoration ink candidate
+ * outside this restatement, as this record's cell-text ink above is separate
+ * from the existing treeview progress-cell record's. Declaration checks do
+ * not establish rendered pixels. */
+
+progressbar {
+  color: #000000;
+}
+
+progressbar trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+progressbar progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+progressbar progress:disabled {
+  background-color: #999999;
+}
+
+/* The existing plain meter `progressbar trough`, `progressbar progress` and
+   `progressbar progress:disabled` groups pin the existing #EEEEEE trough,
+   the existing #CCCCFF fill and the disabled grey but cannot reach the
+   toolkit's class-armed and corner-armed statements around them. No
+   collected reference screenshot in macos8.6-screenshots/ shows a plain
+   GTK meter's thickness, a meter fill in a selected or disabled context
+   (the existing state records keep those faces already), a meter fill's
+   leading end, the trough's square corners or the scale's focus ring
+   (the GTK scope's standing adaptation premise), so every answer below
+   reuses an existing value: the existing trough recipe's 10px minimums and
+   the existing fill recipe's zero margin, the existing square-corner policy,
+   and the existing 2026-11-04 `scale:focus` record as the focus-shape
+   source. The installed GTK 3 theme resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource
+   extract`) declares the out-reaching arms at its resource lines 1441
+   and 1443 (the orientation-minimum pair), 1445 and 1447 (the fill
+   side-margins), and 1453/1455/1457/1459 under the base line-1451
+   `progressbar progress` corner arm; the dark-twin resource
+   gtk-contained-dark.css carries the same arms with every line shifted
+   by -16 for this region. Each restated pair below quotes its stock
+   spelling byte-equal with the existing value per member, so later
+   user-sheet source order wins each equal-specificity tie; every
+   spelling is new to this sheet. Arms that stay out of the restatement,
+   with reasons: the orientation-minimum arms' two comma-group fill
+   members — the fill's own minimum is now declared by the oriented
+   `progressbar.horizontal progress` (min-height: 10px) and
+   `progressbar.vertical progress` (min-width: 10px) rules: a 100×10
+   offscreen render measured 2026-11-11 showed GTK 3 centring a fill of
+   its own preferred size in the trough (rows 4–7 of 10 interior rows),
+   so the minimum makes the fill span the trough's 10px interior, and
+   the existing `progressbar progress` recipe declares no minimum at all,
+   so there is no existing value to restate per-property; the base line-1451 corner arm — equal specificity with
+   the existing `progressbar progress` group's square radius, which wins
+   the per-property source-order tie, so nothing repaints; the
+   line-1467 trough-empty fill erase arm — erases the fill node only
+   while the trough holds a zero fraction, where the existing fill paints
+   nothing visible in a zero-width allocation; the line-1439 node arm
+   carrying the percentage label's smaller size, tabular figures and a
+   translucent ink — the meter label's own ink and typography, answered
+   by the existing label-ink record above; the resource's line-1226 scale
+   node arm declaring the node's own padding and minimum size —
+   allocation that spaces the existing trough, whose existing trough and
+   slider groups declare their own sizes; the resource's line-1228
+   `scale fill, scale highlight` margin arm — equal specificity with the
+   existing same-spelling group's zero margin, which wins the
+   per-property source-order tie, so nothing repaints; the fine-tuned
+   container padding and minimum arms at lines 1232 and 1234 —
+   allocation-only geometry for the held-modifier state the existing
+   theme never answered, its own geometric candidate; and the line-1236
+   fine-tuned slider margin arm — already answered by the existing marks
+   record's own negative-margin restate. Declaration checks do not
+   establish rendered pixels. */
+
+progressbar.horizontal trough {
+  min-height: 10px;
+}
+
+progressbar.vertical trough {
+  min-width: 10px;
+}
+
+progressbar.horizontal progress {
+  margin: 0;
+  min-height: 10px;
+}
+
+progressbar.vertical progress {
+  margin: 0;
+  min-width: 10px;
+}
+
+progressbar progress.left {
+  border-radius: 0;
+}
+
+progressbar progress.right {
+  border-radius: 0;
+}
+
+progressbar progress.top {
+  border-radius: 0;
+}
+
+progressbar progress.bottom {
+  border-radius: 0;
+}
+
+entry progress {
+  background-color: transparent;
+  background-image: none;
+  border-color: #CCCCFF;
+  border-radius: 0;
+  border-style: solid;
+  border-width: 0 0 2px;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* A treeview row's progress cell — the cell renderer's fill and trough
+ * inside a tree column — restates the existing meter recipe here, 2026-11-09.
+ * No collected reference screenshot in macos8.6-screenshots/ shows a GTK
+ * treeview's progress cell at all, so the cell is platform-required and the
+ * existing plain meter `progressbar trough`, `progressbar progress` and
+ * `progressbar progress:disabled` groups cannot reach it: the toolkit resource
+ * re-declares the fill's whole node with treeview-armed statements and the
+ * trough under its own `treeview.view.trough` spelling that is not the bare
+ * `progressbar trough` descendant pairing those groups name. The installed
+ * GTK 3 theme resource gtk-contained.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource`)
+ * declares six such arms at its resource lines 735, 737, 739, 741 and
+ * 743/745: the base fill arm
+ * `treeview.view.progressbar` paints the toolkit's selection accent over the
+ * cell text in white; the two selected and selected-backdrop arms paint the
+ * accent text over a white paper tint; the backdrop fill arm paints paper
+ * text over the kept accent fill; the trough arm washes translucent ink over
+ * the meter face; the selected trough arm washes translucent white over it.
+ * The recipes below answer each arm per-property in stock arm order and each
+ * selector spelling is byte-equal to its stock twin so the later user-sheet
+ * source order wins the equal-specificity tie; the value sources are the
+ * existing meter's own inks and the existing row selection's black text.
+ * Declaration checks do not establish rendered pixels. */
+
+treeview.view.progressbar {
+  color: #000000;
+  background-color: #CCCCFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+treeview.view.progressbar:selected:focus, treeview.view.progressbar:selected {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+treeview.view.progressbar:selected:focus:backdrop, treeview.view.progressbar:selected:backdrop {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+treeview.view.progressbar:backdrop {
+  color: #000000;
+  background-image: none;
+  box-shadow: none;
+}
+
+treeview.view.trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+}
+
+treeview.view.trough:selected:focus, treeview.view.trough:selected {
+  background-color: #EEEEEE;
+}
+
+levelbar trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  padding: 0;
+}
+
+levelbar block.filled {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+levelbar block.filled:disabled {
+  background-color: #999999;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+levelbar.horizontal block {
+  min-height: 10px;
+}
+
+levelbar.vertical block {
+  min-width: 10px;
+}
+
+@keyframes spin {
+  to {
+    -gtk-icon-transform: rotate(1turn);
+  }
+}
+
+spinner {
+  background: none;
+  opacity: 0;
+  -gtk-icon-source: -gtk-icontheme("process-working-symbolic");
+}
+
+spinner:checked {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+spinner:checked:disabled {
+  opacity: 0.5;
+}
+
+scale trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+  /* 2026-11-09: the toolkit resource gtk-contained.css in
+     /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource
+     extract`) declares a rounded outward-offset focus shape
+     (`-gtk-outline-radius: 5px`, `outline-offset: 2px`) on the trough
+     itself, the focus-geometry node stock names, at its resource line
+     1240; this group carries the existing `scale:focus` record's dotted
+     black zero-offset zero-radius shape on the node stock reaches, so
+     the plain trough keeps the existing square focus geometry. Stock's
+     fine-tune radius arm at resource line 1238
+     (`scale.fine-tune fill, scale.fine-tune highlight,
+     scale.fine-tune trough` carries `-gtk-outline-radius: 7px`) still
+     out-specifies this spelling while the scale holds the fine-tune
+     state, the stock fine-tune focus geometry the existing 2026-11-04
+     radius record deliberately keeps (it squares only that arm's
+     `border-radius`); and if the toolkit in fact paints the ring
+     through the scale node, the existing `scale:focus` group already
+     covers it and this extension is inert, both nodes carrying the
+     existing values. */
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+scale fill, scale highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+   meter (a progress bar or a scale) in any state — disabled, behind a
+   selected row or in an unfocused window (the GTK scope's standing
+   adaptation premise) — so the toolkit's nine state, backdrop,
+   selected-row and node-motion meter arms are restated against the
+   existing meter recipe of this same sheet: the flat #EEEEEE trough with
+   its 1px solid black border and inset 1px 1px #999999 etch, the
+   transparent fill and highlight, the flat #CCCCFF progress fill and
+   the square #DDDDDD knob with its raised inset 1px 1px #FFFFFF,
+   inset -1px -1px #999999 bevel, pinned as PROGRESSBAR_TROUGH,
+   PROGRESSBAR_PROGRESS, SCALE_TROUGH, SCALE_EMPTY_FILL and SCALE_THUMB
+   in tests/support/gtk_theme_spec.py — and the existing `row:selected
+   button` record. Fresh probe the same day: the toolkit resource
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0,
+   extracted with `gresource extract` (libgtk-3 3.24.49, the 2055-line
+   resource), declares, and the existing meter groups answer none of: a
+   line 1200 `progressbar trough:disabled, scale fill:disabled, scale
+   trough:disabled` pale probe face, a line 1202
+   `progressbar trough:backdrop, scale fill:backdrop, scale
+   trough:backdrop` greige face and greige border behind a 200ms
+   ease-out fade, a line 1204 `progressbar trough:backdrop:disabled,
+   scale fill:backdrop:disabled, scale trough:backdrop:disabled` pale
+   face, a line 1206 selected-row trough rim group (six members; only
+   the four trough members are restated, see the exclusions), a line
+   1214 `progressbar progress:disabled, scale highlight:disabled`
+   transparent arm, lines 1216/1218 `progressbar progress:backdrop
+   (and :backdrop:disabled), scale highlight:backdrop (and
+   :backdrop:disabled)` border-colour arms, a line 1220 selected-row
+   progress/highlight rim group, a line 1242 `scale fill:backdrop,
+   scale fill` greige face whose bare member ties with and loses to the
+   existing `scale fill` and `scale highlight` rule above while its
+   `:backdrop` member repaints, a line 1250 bare `scale slider` knob
+   arm whose 200ms double transition members animate every knob
+   repaint, a line 1258 `scale slider:backdrop` pale image behind a
+   200ms fade with a greige border and a flat inset, a line 1260
+   `scale slider:backdrop:disabled` arm, a line 1262 `row:selected
+   scale slider:disabled, row:selected scale slider` accent rim (with
+   stock's odd disabled-first member order, reproduced byte-equal
+   below) and a line 1449 `progressbar:backdrop` 200ms ease-out arm; the
+   toolkit's dark-twin resource gtk-contained-dark.css carries the same
+   arms with its own palette at lines 1184–1246 and 1433, every line
+   shifted −16. Each selector below is the exact stock spelling and
+   sits later in source order, so it wins every tie; each declared
+   value is the existing recipe. The existing bare `scale slider` rule
+   below is amended with one member to hold the recipe through the
+   states. Exclusions, each with its reason: no ink member (`color`,
+   `text-shadow`, `-gtk-icon-shadow`) on the knob arms — the existing
+   thumb owns no ink member and the stock text shadows describe a label
+   the existing knob never shows; the stock `scale fill:disabled`,
+   `scale fill:disabled:backdrop` and `scale highlight:disabled`
+   transparent arms — matched to the existing transparent fill/highlight
+   face, nothing repaints; the stock `progressbar progress:backdrop`,
+   `progressbar progress:backdrop:disabled`, `scale
+   highlight:backdrop`, `scale highlight:backdrop:disabled` and
+   selected-row progress/highlight border-colour arms plus the two
+   selected-row `scale fill` members of the line 1206 group —
+   border-colour members inert over the existing fill's zero-width
+   border, no repaint; the stock meter geometry arms (`progressbar
+   .horizontal/.vertical trough/progress` 2px minimums, the progress
+   orientation margins, the per-side progress radius arms, the `scale
+   trough` outline arm, the `scale fill` and `scale highlight` margin
+   arm, and the empty-progress reset arm) and the `progressbar`
+   text-ink and font arms — each its own geometry or ink candidate; and
+   the `.osd` meter arms — the existing `.osd` meter blocks already
+   answer them. No hover arm is required: stock declares no trough
+   hover arm, and the existing `scale slider:hover, scale slider:active`
+   rule wins its equal-specificity tie with the stock knob hover arm by
+   later source order. Declaration checks do not establish rendered
+   pixels. */
+
+progressbar trough:disabled, scale trough:disabled {
+  background-color: #EEEEEE;
+}
+
+progressbar trough:backdrop, scale trough:backdrop {
+  background-color: #EEEEEE;
+  border-color: #000000;
+  transition: none;
+}
+
+progressbar trough:backdrop:disabled, scale trough:backdrop:disabled {
+  background-color: #EEEEEE;
+}
+
+row:selected progressbar trough, progressbar row:selected trough, row:selected scale trough, scale row:selected trough {
+  border-color: #000000;
+}
+
+scale fill:backdrop {
+  background-color: transparent;
+}
+
+scale slider:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  transition: none;
+}
+
+scale slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #999999;
+  box-shadow: none;
+  transition: none;
+}
+
+/* A scale's tick marks and shown numeric readout — the text the toolkit
+ * paints beside the trough and over the value — keep the existing black
+ * window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK scale's marks or its numeric readout
+ * text, so the pair's ink is platform-required and the existing trough,
+ * fill, highlight and slider groups — other nodes — can reach the text in
+ * no context. The toolkit resource gtk-contained.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (extracted with `gresource`)
+ * declares the pair's one ink arm anywhere in the resource, `scale marks,
+ * scale value` at line 1276 with color set to the toolkit's translucent
+ * diluted ink and its tabular-figure setting, after the slider state
+ * twins and before its marks geometry arms; the dark-twin resource
+ * gtk-contained-dark.css declares the identical arm at line 1260, every
+ * line shifted by −16, so one existing ink answers both deliveries. No
+ * disabled, backdrop or `.osd` arm repaints the pair in either resource:
+ * those state twins (resource lines 1250–1260) set the slider node's own
+ * colour only — the ink the existing slider face groups already answer
+ * per-property — never the marks or value text, so this group wins the
+ * single per-property equal-specificity tie by later user-sheet source
+ * order in every state the bare pair reaches. The value source is the
+ * existing black window ink, the same policy the existing treeview
+ * progress-cell record applies to the cell's toolkit-painted text and the
+ * existing insensitive-label, separator-label and disabled link-button
+ * records apply to inherited-window-ink text. Removed members: the arm's
+ * tabular-figure setting stays inherited — stock-only readout typography
+ * no counter-arm repaints, the existing theme synthesizes no other
+ * control's font-feature setting, and the user-sheet read is per-property;
+ * the marks arms that closely follow the ink arm (resource lines
+ * 1278–1300: the four orientation margins and their fine-tune twins and
+ * the indicator minimum arms) are allocation-only spacing and sizing of
+ * the tick lines, painting no face or ink; and the existing marked-scale
+ * record's marks-before/marks-after arms restate the slider node's own
+ * asset faces, not this text. Declaration, count and source-order checks
+ * do not establish rendered pixels. */
+scale marks, scale value {
+  color: #000000;
+}
+
+row:selected scale slider:disabled, row:selected scale slider {
+  border-color: #000000;
+}
+
+progressbar:backdrop {
+  transition: none;
+}
+
+scale slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  /* 2026-11-09: stock animates every knob repaint with a 200ms curve
+     and a background/border/box-shadow transition-property member (the
+     toolkit resource gtk-contained.css in
+     `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource
+     extract`, line 1250); the existing no-transition policy erases only
+     the animation, so later user-sheet source order wins the
+     equal-specificity tie and the knob repaints instantly. */
+  transition: none;
+}
+
+scale.horizontal slider {
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.vertical slider {
+  min-width: 16px;
+  min-height: 12px;
+}
+

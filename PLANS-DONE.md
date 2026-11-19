@@ -5,6 +5,72 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Stylesheet sources, part 1/3: concatenate GTK 3 partials into the shipped sheet (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Act on the user's answer in QUESTIONS.md ("How should the oversized GTK and Firefox
+stylesheets be split?", option 1, answered 2026-11-14). Contributors edit per-family source
+partials, and a generator concatenates them into the single sheet that ships. The shipped GTK 3
+`theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (7111 lines) stays checked in and byte-identical,
+so install, apply and every existing sheet test are unaffected. This part adds the generator and
+its freshness gate and splits GTK 3 only. Part 2/3 (GTK 4) and part 3/3 (Firefox) add their
+sheets to the same table.
+
+**Approach and files touched.**
+
+- New `tools/make_sheets.py`, standard library only, modelled on `tools/make_wallpaper.py`. It
+  uses the same dual import block, `EscapingArgumentParser` with no options, and
+  `generated_files.write_generated_files` for the containment refusal and atomic writes. A
+  module constant `SHEETS` holds (source directory, shipped sheet) repository-relative pairs.
+  This part sets one pair: `theme/gtk/src/gtk-3.0` → `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`.
+- A public `sheet_bytes(source_dir)` returns the concatenation of the directory's `*.css` files
+  in sorted filename order, byte for byte with nothing inserted between them, and ignores other
+  files. It raises `ValueError` naming the directory when no `*.css` partial exists, and naming
+  the partial when a partial is empty or does not end in `\n`.
+- `main` validates every pair before writing any file. On a `ValueError` it reports through the
+  shared error reporter and returns 2. Otherwise it writes each sheet through
+  `write_generated_files`, passing the sheet's parent directory and `ROOT` as the caller's root.
+- Split the GTK 3 sheet into `theme/gtk/src/gtk-3.0/NNN-<slug>.css` as a verbatim cut:
+  - Cut only at a line that starts a top-level comment or rule and follows a blank line, never
+    inside a rule or comment.
+  - Keep each partial to at most 500 lines.
+  - Number the partials 000, 010, 020, … so a later carve can slot between neighbours.
+    `000-header.css` holds the opening header comment.
+  - Each later slug is the leading node or class name of the partial's first selector (for
+    example `button`, `scrollbar`), with `-2`, `-3` appended when a slug repeats.
+- New `tests/test_make_sheets.py`:
+  - A freshness test: each `SHEETS` shipped file equals `sheet_bytes` of its source. On
+    failure, the message names the source directory and `python3 tools/make_sheets.py`.
+  - Temp-tree unit tests for `sheet_bytes` and `main`, with `ROOT` pointed at the temp tree as
+    `tests/test_make_wallpaper.py` does.
+- `docs/invariants.md`: a `## gtk` row stating the shipped GTK 3 sheet is the concatenation of
+  its partials, pinned by the freshness test. A `## tooling` row for the generator's validation
+  and containment refusals.
+- README.md: a short "Generating the stylesheets" section after "Generating the wallpaper",
+  with its Contents entry. It says to edit the partials, never the shipped sheet, and to rerun
+  the generator. Edit nothing between the tumwater:prompt markers.
+- PLANS.md: no size-drift note carrying "no split-source plan is queued" exists in PLANS.md
+  at this run, so there was nothing to replace; this series is not pointed to from PLANS.md.
+
+Keep partials under `theme/gtk/src/`, outside the package directory, so `GTK_FILES`, the
+install loops and the `shipped_files` registries see no new file. Because the partials stay
+under `theme/`, the placeholder scan in `tests/support/placeholders.py` still covers their text.
+
+**Acceptance criteria.**
+
+- `python3 tools/make_sheets.py` exits 0. Afterwards `git diff` shows no change to the shipped
+  GTK 3 sheet; the split itself left it byte-identical.
+- Every GTK 3 partial is at most 500 lines and starts at a top-level comment or rule.
+  Concatenating them in filename order reproduces the shipped sheet byte for byte.
+- If a contributor edits one declaration in the shipped sheet without touching a partial,
+  `make check` fails the freshness test. The message names `theme/gtk/src/gtk-3.0` and the
+  regeneration command.
+- For temp source directories, the generator's output is the partials joined in sorted order
+  regardless of creation order. A non-`.css` file is ignored. An empty directory, an empty
+  partial, or a partial without a trailing newline exits 2 with a diagnostic that names it,
+  and every shipped sheet in the table is left unwritten. A sheet directory symlinked outside
+  the repository is refused with exit 2 before any write. An unknown argument exits 2.
+- `make check` passes after the final edit.
+
 ### GTK 3 suite extraction: consolidate residual widget-corner declarations (planned 2026-11-18 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Reduce the views suite by moving its inline-toolbar, keycap,

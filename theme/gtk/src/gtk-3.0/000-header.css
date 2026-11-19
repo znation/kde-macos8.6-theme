@@ -1,0 +1,143 @@
+/* Mac OS 8.6 Platinum for GTK 3 applications.
+
+   This is a standalone sheet: it imports nothing, so no upstream sheet's rule
+   can outrank the Platinum tab faces. The palette values are the reference-grounded
+   Platinum values pinned by tests/support/platinum_palette.py (#DDDDDD face,
+   #FFFFFF white, #999999 grey, #000000 black, #AAAAAA raised-button shadow,
+   #EEEEEE trough and #CCCCFF selection), plus the etched separator's #888888
+   dark half pinned by tests/test_desktoptheme_line.py and the #FFFFCC tooltip
+   face pinned by tests/support/platinum_palette.py. No reference screenshot
+   shows a GTK widget, so the GTK-specific geometry below is this theme's
+   adaptation, not a reference crop. The check button's raised #DDDDDD face
+   reuses the reference-grounded Kvantum check box, the radio face matches
+   widgets/radiobutton.svg, and the checked glyphs load from the shared
+   assets/checkmark.svg and assets/bullet.svg this package installs; a mixed
+   (indeterminate) check box or radio loads the shared assets/check-mixed.svg
+   dash. The combo
+   box dropdown arrow and the menu scroll arrows load from the shared
+   assets/arrow-down.svg and assets/arrow-up.svg, whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes. Spin-button arrows stay
+   from the icon theme because GTK draws them there, not from a CSS
+   -gtk-icon-source this sheet can redirect.
+   Tree-view and expander disclosure arrows load the shared assets/arrow-right.svg
+   (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
+   shows a GTK widget, and the node names are GTK-required.
+   A menu row's or popover menu row's submenu arrow loads the shared
+   assets/submenu-arrow.svg, the icon theme's reference-grounded submenu triangle.
+   Views (the view class, the list box and GTK 3's text-view text node) paint
+   the reference-grounded white content field, the colour scheme's View
+   background, with black text; no reference screenshot shows a GTK widget, and
+   the view class and node names are GTK-required.
+   The drag-selection rubberband is a 1px dotted black outline with no fill,
+   after the Mac OS Finder marquee; no reference screenshot shows a marquee,
+   so its shape is this theme's adaptation, and the rubberband node and class
+   names are GTK-required.
+   Menu-bar titles (menubar > menuitem) take widgets/menubaritem.svg's 3px/7px
+   margins, re-derived from the reference title gaps; an open title's colour
+   comes from the existing menuitem:hover rule. A popover menu row
+   (modelbutton) takes the same #CCCCFF highlight as a menu row when hovered
+   or selected, and its check and radio show the bare glyph, as a menu row's do.
+   The tree-view and list-box row
+   rules adapt the reference-grounded row in widgets/listitem.svg: a hovered
+   row stays the view background and a selected row is its flat #CCCCFF fill
+   with square corners and black text. No reference screenshot shows a GTK
+   widget, so the row geometry is this theme's adaptation and the node and
+   class names are GTK-required. A selected row keeps the flat #CCCCFF selection
+   in an unfocused window through :backdrop arms, because the stock sheets'
+   own backdrop arms would otherwise grey or blue it.
+   The tree-view and column header rules adapt
+   the same reference-grounded Platinum push button: a #DDDDDD face with the
+   raised bevel and one black line between columns and under the header row,
+   and no right line after the last column. The generic button rule already
+   reaches a header button because this sheet is standalone, so the header
+   rule narrows its outline to that shared grid. GTK 3's default sheet exposes
+   no sort-indicator node, so this sheet paints none. No reference screenshot
+   shows a GTK widget, so the header geometry is this theme's adaptation. The
+   title-bar close, zoom (maximize) and collapse (minimize) buttons paint the
+   reference-grounded Aurorae box art from the shared assets/window-close.svg,
+   assets/window-maximize.svg and assets/window-minimize.svg, centred in a 16px
+   hit area with the toolkit glyph hidden. GTK's restore state keeps the
+   maximize class, so it uses the zoom art and needs no fourth asset. No
+   reference screenshot shows a GTK widget, so the 16px hit area is this
+   theme's adaptation. The headerbar is floored at the reference's 22px title
+   bar (the Aurorae TitleHeight) with the 4px title edge
+   (TitleEdgeLeft/TitleEdgeRight), and a backdrop headerbar paints the
+   reference's flat inactive frame from desktop_fandom.png: the #DDDDDD field,
+   the #555555 outline and the rc's #999999 inactive title text. The floor is
+   not a cap, so a headerbar with a taller child still grows. No reference
+   screenshot shows a GTK widget, so the headerbar and backdrop node names
+   are GTK-required and the geometry is this theme's adaptation. The
+   scroll-bar stepper rules paint the reference's
+   arrow box at each end of a normal scroll bar: the installer CD window's
+   bar (setup_emaculation.png, y=462..477) shows a 16px box whose 14px
+   #EEEEEE face sits inside the bar's 1px #000000 border, with a 1px
+   #555555 divider on the edge facing the trough. A stepper therefore draws
+   the 14px face and one #555555 edge; the bar's own border supplies the
+   black outline, so no second inset ring is added. The sheet zeroes the
+   scroll bar's own padding so the toolkit's end padding cannot leave a
+   trough strip before the box. The shared assets/arrow-up.svg and
+   assets/arrow-down.svg triangles rotate a quarter turn on a horizontal
+   bar; their provenance comments sit inside the SVG root because GTK 3's
+   CSS icon loader rejects a comment before it. GTK shows the steppers only
+   on a normal scroll bar, so this sheet turns both stepper properties on
+   there and off on an overlay scroll bar, whose slider stays alone. The
+   triangles reuse the desktop theme's pinned widgets/arrows.svg shapes, the
+   box geometry is sampled from the reference screenshot, and the property
+   names are GTK-required. The reference's grey disabled glyph is not
+   reproduced: a URL icon's fill is fixed, so the shipped triangle stays
+   black when disabled.
+   The switch reuses the desktop theme's widgets/switch.svg faces (the #EEEEEE
+   trough, the #FFFFFF active field and the raised #DDDDDD thumb with no glyph);
+   GTK splits the track between the two states, so the thumb's drawn width is
+   GTK's layout rather than the 12px floor. No reference screenshot shows a
+   switch, so its shape is KDE-required provenance, and the node names and the
+   hidden I/O glyphs are GTK-required.
+   Selected text in entries, spin buttons, labels and text views reuses the
+   reference-grounded #CCCCFF selection fill with black text; no reference
+   screenshot shows selected text in a field, so applying the fill there is
+   this theme's adaptation, and the node names are GTK-required.
+
+   The standalone separators reuse the reference-grounded etched pair in both
+   orientations, and the paned split handles reuse the same etch; the
+   orientation classes and the paned orientation classes are GTK-required. The level bar
+   reuses the reference-grounded progress-bar trough and selection fill, and
+   its node and class names are GTK-required. An entry's progress fraction is
+   a 2px strip of the same selection fill, drawn as the progress node's bottom border because GTK 3 ignores its min-height; the 2px thickness is the stock
+   GTK value, because no reference screenshot shows an entry progress, and
+   the node names are GTK-required. Spin buttons reuse the entry
+   field because their field node is spinbutton, not entry; that node name is
+   GTK-required.
+   An insensitive widget's label and entry text use the colour scheme's
+   ForegroundInactive grey #888888, which Kvantum's disabled text also uses; no
+   reference screenshot shows a disabled GTK widget, and the node names and
+   :disabled state are GTK-required.
+   Links use the colour scheme's ForegroundLink blue #0000EE and ForegroundVisited
+   purple #551A8B (Kvantum's link colours too), and a link button draws no
+   button face; no reference screenshot shows a GTK link, and the node names
+   and :link/:visited states are GTK-required.
+   A calendar's selected day reuses the row selection fill #CCCCFF with black
+   text, and other months' days use the disabled-text ForegroundInactive grey
+   #888888; no reference screenshot shows a calendar, and the node names and
+   states are GTK-required. A spinner shows the icon theme's
+   process-working-symbolic while it runs and is hidden while stopped; it adds no
+   colour or metric, and no reference screenshot shows a GTK spinner. An
+   infobar band reuses the menu-bar band's face and etched bottom rule with
+   black text; no reference screenshot shows a GTK infobar, and the four
+   message-type class names are GTK-required, so all types take the same
+   band. A search bar and an action bar band reuse the same menu-bar band
+   with the same etched bottom rule; no reference screenshot shows a GTK
+   search bar or action bar, and the revealer and box node names are
+   GTK-required. A status bar band reuses the same menu-bar band with the
+   same etched bottom rule, and on GTK 3 its shadowless internal frame
+   border stays flat; no reference screenshot shows a GTK status bar, and
+   the statusbar node name is GTK-required. A stack switcher's page buttons
+   paint as the existing tab recipe byte-for-byte; no reference screenshot shows
+   a GTK stack switcher, and the stackswitcher and button node names are
+   GTK-required. A file chooser's path bar paints its buttons as the existing
+   tab recipe byte-for-byte; no reference screenshot shows a GTK path bar,
+   and the path-bar and linked classes and the pathbar, scrolledwindow,
+   viewport and box node names are GTK-required. A linked group shares one
+   black border between its members; no reference screenshot shows a GTK
+   linked group, and the linked class is GTK-required. */
+
