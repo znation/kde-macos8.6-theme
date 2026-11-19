@@ -10,9 +10,19 @@ else:  # imported as a top-level module through tools/fidelity.py's direct run
     from terminal import escape_controls
 
 
+def _json_text(value) -> str:
+    """Encode *value* as one ASCII-escaped JSON line: the report's JSON form."""
+    return json.dumps(value, ensure_ascii=True)
+
+
+def _json_line(label: str, value) -> str:
+    """Return ``label: `` followed by *value* in the report's JSON form."""
+    return f"{label}: {_json_text(value)}"
+
+
 def render_json(result: dict) -> str:
     """Return the assembled result as one ASCII-escaped JSON line."""
-    return json.dumps(result, ensure_ascii=True)
+    return _json_text(result)
 
 
 def render_text(result: dict, candidate, reference) -> list[str]:
@@ -73,7 +83,7 @@ def render_text(result: dict, candidate, reference) -> list[str]:
             )
     explanation = result.get("worst_pixel")
     if explanation is not None:
-        lines.append("worst pixel: " + json.dumps(explanation, ensure_ascii=True))
+        lines.append(_json_line("worst pixel", explanation))
     channels = result.get("channel_counts")
     if channels is not None:
         lines.append(
@@ -82,10 +92,7 @@ def render_text(result: dict, candidate, reference) -> list[str]:
         )
     bias = result.get("channel_bias")
     if bias is not None:
-        lines.append(
-            "channel bias (candidate - reference): "
-            + json.dumps(bias, ensure_ascii=True)
-        )
+        lines.append(_json_line("channel bias (candidate - reference)", bias))
     maxima = result.get("channel_maxima")
     if maxima is not None:
         lines.append(
@@ -102,7 +109,7 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     ):
         value = result.get(key)
         if value is not None:
-            lines.append(f"{label}: " + json.dumps(value, ensure_ascii=True))
+            lines.append(_json_line(label, value))
     if "difference_run_count" in result:
         lines.append(f"difference run count: {result['difference_run_count']}")
     if "difference_column_run_count" in result:
@@ -110,35 +117,22 @@ def render_text(result: dict, candidate, reference) -> list[str]:
     if result.get("difference_column_runs") is not None:
         if "difference_column_run_offset" in result:
             lines.append(f"difference column run offset: {result['difference_column_run_offset']}")
-        lines.append(
-            "difference column runs: "
-            + json.dumps(result["difference_column_runs"], ensure_ascii=True)
-        )
+        lines.append(_json_line("difference column runs", result["difference_column_runs"]))
     if "omitted_difference_column_runs" in result:
         lines.append(f"omitted difference column runs: {result['omitted_difference_column_runs']}")
     if result.get("difference_runs") is not None:
         if "difference_run_offset" in result:
             lines.append(f"difference run offset: {result['difference_run_offset']}")
-        lines.append(
-            "difference runs: "
-            + json.dumps(result["difference_runs"], ensure_ascii=True)
-        )
+        lines.append(_json_line("difference runs", result["difference_runs"]))
     if "omitted_difference_runs" in result:
         lines.append(f"omitted difference runs: {result['omitted_difference_runs']}")
     if "difference_centroid" in result:
-        lines.append(
-            "difference centroid: "
-            + json.dumps(result["difference_centroid"], ensure_ascii=True)
-        )
+        lines.append(_json_line("difference centroid", result["difference_centroid"]))
     if "longest_difference_run" in result:
-        lines.append(
-            "longest difference run: "
-            + json.dumps(result["longest_difference_run"], ensure_ascii=True)
-        )
+        lines.append(_json_line("longest difference run", result["longest_difference_run"]))
     if "longest_difference_column_run" in result:
         lines.append(
-            "longest difference column run: "
-            + json.dumps(result["longest_difference_column_run"], ensure_ascii=True)
+            _json_line("longest difference column run", result["longest_difference_column_run"])
         )
     thresholds = result["thresholds"]
     verdict = "PASS" if result["passed"] else "FAIL"
