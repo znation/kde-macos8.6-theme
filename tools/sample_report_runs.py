@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 if __package__:
     from tools.sample_report_common import (
         hex, print_json_report, print_report_header, region_alpha, region_pixels, report_context,

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 if __package__:
     from tools.sample_report_common import (
         compact_json, hex, positioned_region_column_pixels,
