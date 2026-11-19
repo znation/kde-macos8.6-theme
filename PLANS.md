@@ -145,6 +145,46 @@ check, theme sheets and shared helpers unchanged.
 - Invariant anchors resolve, focused source and destination checks pass,
   and full `make check` passes. No rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate ordinary inline-link states (planned 2026-11-18 by the plan role)
+
+**Goal.** Give ordinary inline-link disabled and interaction declarations
+a focused test module. This moves existing coverage; the archived inline-link
+styling plans supplied the rules. It is independent of the content-view
+extraction and the pending link-button extraction.
+
+**Approach and files touched.** Move
+`TestGtkTheme.test_disabled_inline_link_foregrounds`,
+`test_disabled_backdrop_inline_link_foregrounds`,
+`test_inline_link_interaction_colours` and
+`test_enabled_backdrop_inline_link_colours` from `tests/test_gtk_theme.py`,
+preserving bodies and comments, into new
+`tests/test_gtk_theme_inline_links.py::TestGtkThemeInlineLinks`.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`;
+set `CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`,
+importing `ROOT` from `support.repo_root` and `gtk_css` from `support`.
+The base supplies sheet setup and the disabled-text and scheme-colour
+assertions. Leave `test_links` (which also checks buttons), selected-context
+methods, `LINK_ROOTS` and `assert_selected_link_rules` in the source module.
+Update its routing docstring and repoint the moved anchors in
+`docs/invariants.md`, preserving provenance. Search `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and `tests/support/` for
+further moved anchors. No theme sheet or shared helper change is needed.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the destination class without
+  duplicates in `TestGtkTheme` or inherited shared-control tests in the
+  destination. Source and destination run independently through check selectors.
+- Disabled ordinary and backdrop links retain exact grey dictionaries,
+  single-occurrence checks, scheme re-derivation and source-order assertions.
+  Duplicating a disabled-backdrop selector or changing its ink fails a moved check.
+- Enabled interaction and backdrop links retain exact blue/visited-purple
+  dictionaries, single-occurrence checks, scheme comparisons and comment-stripped
+  source ordering. Changing visited ink to blue or reversing the blue and
+  visited groups fails a moved check.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
