@@ -27,8 +27,8 @@ class TestDifferenceCentroid(unittest.TestCase):
         reference = Image(4, 3, bytes(36))
         self.assertEqual(difference_centroid(candidate, reference, 0),
                          {"x": 4 / 3, "y": 2 / 3})
-        self.assertEqual(difference_centroid(candidate, reference, 100), None)
-        self.assertEqual(difference_centroid(reference, reference, 0), None)
+        self.assertIsNone(difference_centroid(candidate, reference, 100))
+        self.assertIsNone(difference_centroid(reference, reference, 0))
 
     def test_alpha_fallback_and_hidden_rgb(self):
         changed = Image(2, 1, bytes([0, 0, 0, 8, 0, 0]))
