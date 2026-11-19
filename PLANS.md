@@ -185,6 +185,34 @@ installer test move and the Stylesheet sources series; neither touches these fil
 - No file under `theme/`, `tools/`, `tests/support/gtk_css.py` or the `Makefile` changes.
 - `make check` passes after the final edit, and its run includes the new module's tests.
 
+### Render session: split `session_script`'s shell text into stage builders (planned 2026-11-19 by the organize role)
+
+**Goal.** `tools/render_session.py` (400 lines, the largest production module, 2.5 times the 160-line production median over 115 files) holds five responsibilities: the `Session` scratch-root class (lines 65-176), the `SessionCommand` record, `session_script` (lines 185-356), and `session_command` (lines 357-400). Most of the file is `session_script`, a 170-line function whose docstring alone is about 50 lines and whose body is one string expression built from five stages in fixed order. Move the shell-text construction into a new `tools/render_session_script.py`, one builder per stage, and leave `render_session.py` with the scratch session and command assembly.
+
+**Target structure.**
+
+- `tools/render_session_script.py` (new): `session_script(focus_script, readiness_script)` keeps its signature and docstring, and joins the stage fragments in the current order. Stage builders, each returning a shell fragment as a string, take the shell variable names they need from the common prologue:
+  1. `_prologue(focus, readiness)`: the `QT_QPA_PLATFORM` export, `plasma-apply-colorscheme`, positional parameter reads and the `focus=`/`readiness=` assignments.
+  2. `_readiness_listener(readiness)`: the `dbus-monitor` / `qdbus` lookup, `mkfifo` pipe, the `ClientReady` reader and the readiness script load and run. Uses `READINESS_INTERFACE` and `READINESS_MEMBER` from `tools/render_window_rules.py`.
+  3. `_client_start()`: the `started=` timestamp, backgrounded `"$@"`, `RENDER_SESSION_CLIENT_PID` export and the start log line.
+  4. `_focus_settle(focus)`: the focus-script load and the bounded re-run loop, including the `settle_loop` variable.
+  5. `_settle_wait()`: the ceiling timer, the ready/ceiling poll, listener teardown, paint grace and the liveness check.
+  6. `_capture_and_terminate(focus)`: the SIGSTOP hold, `spectacle` capture, settle-loop stop sentinel, post-capture liveness record, SIGCONT wait, SIGTERM then `kill -9` fallback, and `exit $status`.
+- `tools/render_session.py` keeps `Session`, `SessionCommand`, `session_command`, and the constants, and imports `session_script` from the new module so every existing `render_session.session_script` call site keeps resolving.
+- The `session_script` docstring moves with the function and is unchanged, except that its module reference is updated if it names `render_session`.
+
+**Cost removed.** One 170-line string expression that a reader must scan to check a single stage, and no way to test a stage's text in isolation. Splitting by stage makes each fragment readable in one sitting and lets the ordering contract be pinned in one place.
+
+**Files touched.** `tools/render_session.py`, `tools/render_session_script.py` (new), `tests/test_render_session_focus_settle.py`, `tests/test_render_readiness.py`, `tests/test_render_session_command.py`, `tests/test_render_failure_paths.py` (imports only if they reach through `render_session` for `session_script`), and `docs/invariants.md` rows that name `tools/render_session.py::session_script`. Grep `session_script` and `render_session.py` across `tools/`, `tests/`, `docs/`, `README.md`, `BUGS.md` and `PLANS.md` for stale references after the move.
+
+**Acceptance criteria.**
+
+- This is a pure refactor: for the four combinations of `focus_script` and `readiness_script` (both `None`, focus only, readiness only, both set), the new `session_script` returns a string byte-identical to the one the pre-split function returns. The plan's test records those four strings from the pre-split tree and pins them, with expected values taken from the fixtures, not from calling the new code.
+- Stage order is pinned: the readiness listener starts before the client, the focus settle starts before the settle sleep, SIGSTOP precedes `spectacle`, and SIGCONT precedes SIGTERM. A swapped stage fails the byte-identical test.
+- `render_session.py` is under 250 lines and the new module is under 250 lines, with no function over 60 lines in either file.
+- Every existing `session_script` test passes unchanged, and the invariant anchors still resolve.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
