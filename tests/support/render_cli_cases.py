@@ -1,7 +1,7 @@
 """Shared ``render_surface.main`` argument assertions for the per-mode CLI tests.
 
 The render CLI's general argument tests in ``tests/test_render_cli_arguments.py``
-and per-mode tests in ``tests/test_render_surface_units.py`` and
+and per-mode tests in ``tests/test_render_dialog_arguments.py`` and
 ``tests/test_render_fixed_client_modes.py`` call these helpers to pin what
 ``main`` delegates, which flags it refuses together, and which tool it names
 when one is missing. They start no session.

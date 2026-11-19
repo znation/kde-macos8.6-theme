@@ -3,8 +3,9 @@
 These two modes open a fixed plain client (``plasmashell`` and ``ksplashqml``)
 instead of a ``kdialog`` or applet window, so their argument checks differ from
 the dialog-mode checks. They were moved out of
-``tests/test_render_surface_units.py``; the dialog-mode argument checks stay
-there, and the splash client argv is pinned in ``tests/test_render_splash_client.py``.
+``tests/test_render_surface_units.py``; dialog-mode argument checks live in
+``tests/test_render_dialog_arguments.py``, and the splash client argv is pinned
+in ``tests/test_render_splash_client.py``.
 The shared assertions live in ``tests/support/render_cli_cases.py``.
 """
 
