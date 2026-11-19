@@ -207,6 +207,13 @@ class TestArgumentsExcludeProgramName(CheckerTestCase):
         self.assertEqual(code, 0)
         self.assertIn("usage:", out)
 
+    def test_short_help_alias_prints_usage_without_running_the_check(self):
+        module = self.checker
+        code, out, err = _capture(module.main, ["-h"])
+        self.assertEqual(code, 0)
+        self.assertIn("usage:", out)
+        self.assertEqual("", err)
+
 
 class TestUnknownArgumentEscaping(CheckerTestCase):
     """An unrecognized argument must not print raw control bytes.
