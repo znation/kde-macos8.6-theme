@@ -60,6 +60,16 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             self.assert_rule(selector, {"background-color": SELECTION})
 
     def test_menu_row_state_faces(self):
+        """Pin the existing menu-row and menu-bar-title faces under every state.
+
+        The nine appended arms rest the toolkit resource's
+        higher-specificity classic-menu state spellings so a hovered row or
+        hovered or open menu-bar title keeps the selection fill with black
+        text, a disabled or backdropped row keeps black rest text and the
+        inactive grey when disabled, and a `:dir` arrow keeps the shipped
+        submenu triangle in both text directions; the exact stock arms live
+        in docs/invariants.md.
+        """
         hover = (
             "menu menuitem:hover", ".menu menuitem:hover",
             ".context-menu menuitem:hover", "menu menuitem:backdrop:hover",
@@ -77,6 +87,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             ".menubar > menuitem:disabled",
         )
         self.assert_rule_group({s: DISABLED_TEXT for s in disabled})
+        # The inactive grey is re-derived from the colour scheme, as the
+        # existing disabled-text callers do.
         self.assert_disabled_text(disabled)
         arrows = (
             "menu menuitem arrow:dir(ltr)", ".menu menuitem arrow:dir(ltr)",
@@ -84,9 +96,20 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             ".menu menuitem arrow:dir(rtl)", ".context-menu menuitem arrow:dir(rtl)",
         )
         self.assert_rule_group({s: SUBMENU_ARROW for s in arrows})
+        # Source order: every appended spelling sits after the existing
+        # `menuitem:hover` and `menubar > menuitem` selectors, so the
+        # byte-equal stock twins win the equal-specificity ties under the
+        # lower-sheet reading of how the toolkit resource competes.
         for selector in hover + backdrop + disabled + arrows + menubar_hover:
-            self.assertGreater(self.selectors.index(selector), self.selectors.index("menuitem:hover"))
-            self.assertGreater(self.selectors.index(selector), self.selectors.index("menubar > menuitem"))
+            with self.subTest(selector=selector):
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("menuitem:hover"),
+                )
+                self.assertGreater(
+                    self.selectors.index(selector),
+                    self.selectors.index("menubar > menuitem"),
+                )
 
     def test_path_bar_tabs(self):
         forms = {
