@@ -238,6 +238,132 @@ check: 468 modules, 1 module failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
 
+### `test_draws_the_flat_window_face (test_render_dialog_gates.TestIconDialogRender.test_draws_the_flat_window_face)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_draws_the_grid_field_top_edge (test_render_dialog_gates.TestIconDialogRender.test_draws_the_grid_field_top_edge)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_draws_the_push_button_face_at_the_existing_recipe (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_face_at_the_existing_recipe)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_draws_the_push_button_frame_and_cell (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_frame_and_cell)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_draws_the_search_field (test_render_dialog_gates.TestIconDialogRender.test_draws_the_search_field)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_exits_zero (test_render_dialog_gates.TestIconDialogRender.test_exits_zero)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 478 modules, 2 modules failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
