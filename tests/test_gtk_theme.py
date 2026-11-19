@@ -4,7 +4,7 @@ The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``.
 The palette is reference-grounded through ``support.platinum_palette``; no
 reference screenshot shows a GTK widget, so most GTK geometry is this
 theme's adaptation. This module holds the sheet-level invariants and the
-windows, bands and text roles; the OSD overlays, views and menus,
+windows, bands and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
 ``test_gtk_theme_*.py`` suites. Calendar declarations live in
 ``test_gtk_theme_calendar.py``.
@@ -297,28 +297,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             self.rules["treeview.view header button"]["text-shadow"],
         )
 
-    def test_expander_arrows(self):
-        self.assert_expander_arrows(
-            ("treeview.view.expander", "expander title > arrow"),
-            ("treeview.view.expander:checked", "expander title > arrow:checked"),
-        )
-
-    def test_rtl_collapsed_expander_arrows(self):
-        selectors = (
-            "treeview.view.expander:not(:checked):dir(rtl)",
-            "expander title > arrow:not(:checked):dir(rtl)",
-        )
-        self.assertEqual(
-            {selector: self.rules[selector] for selector in selectors},
-            {selector: {"-gtk-icon-transform": "scaleX(-1)"} for selector in selectors},
-        )
-        for selector in selectors:
-            self.assertEqual(self.selectors.count(selector), 1)
-        self.assert_expander_arrows(
-            ("treeview.view.expander", "expander title > arrow"),
-            ("treeview.view.expander:checked", "expander title > arrow:checked"),
-        )
-
     def test_rtl_spin_field_mirrors_the_etch(self):
         # No reference shows a GTK spin button; the existing field rule etches
         # with `inset 1px 1px #999999`, and GTK 3 does not mirror box-shadow
@@ -336,9 +314,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             "spinbutton:dir(rtl):not(.vertical) {",
             "entry, spinbutton:not(.vertical) {",
         )
-
-    def test_expander_title_focus_outline(self):
-        self.assert_dotted_focus_outline("expander > title:focus")
 
     def test_submenu_arrow(self):
         self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)
