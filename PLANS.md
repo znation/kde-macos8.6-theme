@@ -145,6 +145,38 @@ termination still point at classes that stay behind. Production
 - Focused checks for both modules and full `make check` pass after the
   move. No GUI probe or live-session validation claim is added.
 
+### Apply suite extraction: isolate direct optional-selection helper checks (planned 2026-11-18 by the plan role)
+
+**Goal.** Separate the direct optional-selection boundary checks from the
+large `tests/test_apply_theme.py`, independently of the queued KWin
+reconfigure extraction.
+
+**Approach and files touched.** Move `TestOptionalSelectionHelpers` with
+its existing methods and fixtures to new `tests/test_apply_optional_helpers.py`.
+Import `contextlib`, `io`, `os`, `shutil`, `stat`, `tempfile`, `unittest`,
+`Path`, `mock`, `support.repo_root` and `tools.apply_optional` directly;
+no shared fixture extraction or test-module import is needed. Preserve
+the stub bodies, assertions, cleanup and timeout arguments. Adjust the
+class docstring's reference to classes "above" and add a routing note to
+the source module docstring. Remove source imports only when unused by
+the remaining classes. Search documentation and test support for moved
+qualified anchors and update any found; the current class-name search
+finds its definition alone. Keep production `tools/apply_optional.py`
+unchanged.
+
+**Acceptance criteria.**
+
+- Discovery finds the existing methods under `TestOptionalSelectionHelpers`
+  in the new module without duplicate definitions in the source. Both
+  modules run independently through the existing check selector.
+- With an empty stub PATH, optional selection returns zero and stderr
+  names both missing tools: `kvantummanager` and the `qdbus6`/`qdbus`
+  alternatives. No real desktop tool runs.
+- With the existing successful shell stub, the best-effort call emits
+  no stderr and creates `tool.log` under the temporary root.
+- Focused checks for both modules and full `make check` pass after the
+  move. No live-session validation claim is added.
+
 ## Done
 
 ### Reference-pixel sampler: cap the vertical color-match interval report (planned 2026-11-04 by the plan role) — done 2026-11-04 by the feature role
