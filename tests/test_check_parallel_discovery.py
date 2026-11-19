@@ -39,16 +39,16 @@ class TestDiscovery(unittest.TestCase):
         tests_dir = make_suite_dir(self)
         gone = make_package(tests_dir, "gone")
         _write_module(gone, "test_hidden.py", OK_MODULE)
-        real_listdir = os.listdir
+        real_scandir = os.scandir
 
-        def guarded_listdir(directory):
+        def guarded_scandir(directory):
             if os.path.samefile(directory, gone):
                 raise PermissionError(13, "Permission denied")
-            return real_listdir(directory)
+            return real_scandir(directory)
 
         with mock.patch(
-            "tools.check_parallel_discovery.os.listdir",
-            side_effect=guarded_listdir,
+            "tools.check_parallel_discovery.os.scandir",
+            side_effect=guarded_scandir,
         ):
             with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
                 check_parallel_discovery.discover_modules(tests_dir, "test*.py")
@@ -62,7 +62,7 @@ class TestDiscovery(unittest.TestCase):
         # the sorted() walk.
         tests_dir = make_suite_dir(self)
         with mock.patch(
-            "tools.check_parallel_discovery.os.listdir",
+            "tools.check_parallel_discovery.os.scandir",
             side_effect=PermissionError(13, "Permission denied"),
         ):
             with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:

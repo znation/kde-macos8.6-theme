@@ -192,16 +192,16 @@ class TestCoordinator(unittest.TestCase):
         # neither the module list nor the tree has been touched.
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         unreadable = make_package(tests_dir, "gone")
-        real_listdir = os.listdir
+        real_scandir = os.scandir
 
-        def guarded_listdir(directory):
+        def guarded_scandir(directory):
             if os.path.samefile(directory, unreadable):
                 raise PermissionError(13, "Permission denied")
-            return real_listdir(directory)
+            return real_scandir(directory)
 
         with mock.patch(
-            "tools.check_parallel_discovery.os.listdir",
-            side_effect=guarded_listdir,
+            "tools.check_parallel_discovery.os.scandir",
+            side_effect=guarded_scandir,
         ):
             result = self._run("--tests-dir", tests_dir)
         self.assertEqual(2, result.returncode)

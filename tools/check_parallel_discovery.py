@@ -38,19 +38,20 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
 
     def visit(directory: str, prefix: str) -> None:
         try:
-            entries = sorted(os.listdir(directory))
+            with os.scandir(directory) as iterator:
+                entries = sorted(iterator, key=lambda entry: entry.name)
         except OSError as exc:
             raise DiscoveryError(f"cannot list {directory}: {exc}") from exc
-        for entry in entries:
-            path = os.path.join(directory, entry)
+        for item in entries:
+            entry = item.name
             # unittest discovery does not follow package-directory symlinks;
             # following one here could import contributor-controlled code
             # from outside the selected test tree.
-            if os.path.islink(path):
+            if item.is_symlink():
                 continue
-            if os.path.isdir(path):
-                if os.path.isfile(os.path.join(path, "__init__.py")):
-                    visit(path, f"{prefix}{entry}.")
+            if item.is_dir():
+                if os.path.isfile(os.path.join(item.path, "__init__.py")):
+                    visit(item.path, f"{prefix}{entry}.")
                 continue
             if (_VALID_MODULE_NAME.match(entry)
                     and (pattern is None or fnmatch.fnmatch(entry, pattern))):
