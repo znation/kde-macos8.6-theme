@@ -150,6 +150,54 @@ further moved anchors. No theme sheet or shared helper change is needed.
 - Invariant anchors resolve, focused source and destination checks pass,
   and full `make check` passes. No rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate selected-context inline links (planned 2026-11-18 by the plan role)
+
+**Goal.** Put selected-context inline-link declaration checks in a focused
+suite, independent of the waiting ordinary inline-link extraction. This is
+a coverage relocation, not new link styling.
+
+**Approach and files touched.** Move these `TestGtkTheme` methods from
+`tests/test_gtk_theme.py` into new
+`tests/test_gtk_theme_selected_links.py::TestGtkThemeSelectedLinks`, preserving
+their bodies and comments:
+
+- `test_selected_inline_link_foregrounds`
+- `test_disabled_selected_inline_link_foregrounds`
+- `test_selected_ancestor_inline_link_foregrounds`
+- `test_disabled_selected_ancestor_inline_link_foregrounds`
+- `test_selected_backdrop_inline_link_foregrounds`
+- `test_disabled_selected_backdrop_inline_link_foregrounds`
+- `test_selected_ancestor_backdrop_inline_link_foregrounds`
+- `test_disabled_selected_ancestor_backdrop_inline_link_foregrounds`
+
+Move `LINK_ROOTS` and `assert_selected_link_rules` with their callers;
+revise the roots' comment to describe selected-context cases. Inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, setting
+`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"` with
+`ROOT` from `support.repo_root`. Import `gtk_css` and `load_scheme` in the
+destination; remove source imports only if no remaining caller uses them.
+Leave `TestGtkTheme.setUpClass` and its index descriptor checks in place.
+Update the source routing docstring and repoint moved method anchors in
+`docs/invariants.md`, preserving their provenance. Search `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and `tests/support/` for
+additional moved anchors. Theme sheets and shared helpers need no edits.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named cases in the destination without duplicates
+  in `TestGtkTheme` or inherited shared-control cases in the destination.
+  Source and destination pass independently using check selectors.
+- Enabled self-selected and selected-ancestor links retain black ink checks
+  re-derived from selection foreground; disabled counterparts retain grey
+  re-derived from inactive button foreground, in active and backdrop states.
+  Changing selected visited ink to purple fails a moved check.
+- Exact declaration dictionaries, selector occurrence checks and
+  comment-stripped source ordering survive the move. A duplicate disabled
+  self-selected backdrop selector or its group preceding the ordinary
+  disabled-backdrop group fails a moved check.
+- Invariant anchors resolve and full `make check` passes. The relocation
+  adds no rendered-pixel claim.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
