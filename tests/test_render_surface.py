@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import os
 import shutil
+import tempfile
 import unittest
-from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import REFERENCE_BOUNDS
@@ -36,7 +36,7 @@ from support.render_gates import (
     software_renderer_skip_reason,
 )
 from tools.fidelity_metrics import compare, crop  # noqa: E402
-from tools.png import Image, pixel_at, read_png  # noqa: E402
+from tools.png import Image, PngError, pixel_at, read_png  # noqa: E402
 
 
 REFERENCE = str(
@@ -474,7 +474,7 @@ class TestDesktopRender(unittest.TestCase):
         if cls._candidate is None:
             try:
                 cls._candidate = read_png(cls.output)
-            except OSError as exc:
+            except PngError as exc:
                 raise AssertionError(
                     f"desktop capture is missing or unreadable: {exc}; "
                     f"render exited {cls.returncode}; stdout: {cls.stdout!r}; "
@@ -1229,13 +1229,16 @@ class TestDesktopPixelDiagnostic(unittest.TestCase):
             stdout = "capture started"
             stderr = "render-session: capture status 1"
 
-        with mock.patch("test_render_surface.read_png", side_effect=FileNotFoundError("gone")):
+        with tempfile.TemporaryDirectory() as directory:
+            MissingCapture.output = os.path.join(directory, "desktop.png")
             with self.assertRaises(AssertionError) as failure:
                 TestDesktopRender.candidate_image.__func__(MissingCapture)
         message = str(failure.exception)
         self.assertIn("desktop capture is missing or unreadable", message)
         self.assertIn("render exited 0", message)
+        self.assertIn("capture started", message)
         self.assertIn("capture status 1", message)
+        self.assertIn(MissingCapture.output, message)
 
 
 class TestDesktopGateSkipGuard(unittest.TestCase):
