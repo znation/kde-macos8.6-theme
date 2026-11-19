@@ -370,6 +370,39 @@ class TestSessionScript(unittest.TestCase):
         self.assertIn("render-session: no dbus-monitor for client readiness", log)
         self.assertIn("settle ceiling reached before a client ready file", log)
 
+    def test_missing_qdbus_keeps_the_settle_ceiling_without_starting_monitor(self):
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        monitor_pid = root / "monitor.pid"
+        write_executable(
+            root / "dbus-monitor", "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
+        )
+        for name in ("date", "rm", "sleep", "touch"):
+            (root / name).symlink_to(shutil.which(name))
+        client = root / "client.py"
+        client.write_text(
+            "import signal\nsignal.alarm(30)\nsignal.pause()\n", encoding="utf-8"
+        )
+        environment = dict(
+            os.environ, PATH=str(root), RENDER_MONITOR_PID=str(monitor_pid)
+        )
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["/bin/sh", "-c", "spectacle() { return 0; }; " +
+             render_session.session_script(None, str(root / "readiness.js")),
+             "sh", "1", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 10, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertGreaterEqual(elapsed, 1, log)
+        self.assertIn("render-session: no qdbus for client readiness", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(monitor_pid.exists(), "monitor started without a D-Bus script loader")
+
     def test_fifo_creation_failure_keeps_the_settle_ceiling_without_starting_monitor(self):
         import time
 
