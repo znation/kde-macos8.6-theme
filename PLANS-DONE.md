@@ -5,6 +5,87 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox installer tests: move the removal cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** `tests/test_install_firefox.py` is 1191 lines, and PRINCIPLES.md asks for files small
+enough to read in one sitting. Its last class, `TestRemove`, pins `install_firefox.py --remove`
+and is about 515 lines on its own. This plan moves that class unchanged into a new
+`tests/test_remove_firefox.py`, leaving `TestInstall` and `TestProfileLock` behind. No tool
+behavior or test body changes. It is independent of the "Stylesheet sources" series and of the
+`@define-color` test move; neither touches these files.
+
+**Approach and files touched.**
+
+- `tests/support/firefox_profile_case.py`: add a module-level `read_utf8(path)` that returns
+  `path.read_bytes().decode("utf-8")`, the body of `_read` in `tests/test_install_firefox.py`.
+  Both suites call `_read` (per L4, the helper moves into support rather than one test module
+  importing the other). Each suite imports it as `_read`
+  (`from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read`), so
+  the moved bodies stay verbatim. Also update the following docstrings in this file:
+  - The module docstring: name `tests/test_remove_firefox.py` beside
+    `tests/test_install_firefox.py` as a user of the case.
+  - `assert_profile_absent`: say its call sites are in both installer suites, not only
+    `tests/test_install_firefox.py`.
+  - `run_with_failed_write`: the "Seven callers" sentence becomes six callers in
+    `tests/test_install_firefox.py` and one in `tests/test_remove_firefox.py`.
+  - `interrupt_unlink_to`: both of its callers move, so "Two callers in
+    `tests/test_install_firefox.py`" becomes "Two callers in `tests/test_remove_firefox.py`".
+  - `interrupt_write_to`: all five callers stay, so leave it unchanged.
+  - Recount each changed docstring with grep after the move.
+- New `tests/test_remove_firefox.py`:
+  - Module docstring: it pins the removal half of the Firefox profile workflow. The install and
+    profile-lock cases stay in `tests/test_install_firefox.py`.
+  - Move `class TestRemove(FirefoxProfileTestCase)` there verbatim, with its `install` helper
+    and every method in its current order, and keep the class name.
+  - Give it the `if __name__ == "__main__": unittest.main()` footer.
+  - Import only what the moved bodies use. As of this plan that is `errno`, `os`, `unittest`,
+    `Path`, `mock`, `snippet_child`, `repo_root` (the sys.path side-effect import),
+    `assert_fifo_refused`, `make_fifo`, `write_file as _write`, `FirefoxProfileTestCase`,
+    `read_utf8 as _read`, and `firefox_user_files`, `firefox_user_js` and `install_firefox`
+    from `tools`. Confirm each with grep.
+- `tests/test_install_firefox.py`:
+  - Delete `TestRemove` and the local `_read` function, and import `_read` from support as
+    above.
+  - Drop the imports no remaining code uses. As of this plan those are `os`, `snippet_child`,
+    `assert_fifo_refused` and `make_fifo`. Confirm with grep and keep anything still referenced.
+  - Its module docstring says it covers install and removal: point the removal part at
+    `tests/test_remove_firefox.py`.
+- `docs/invariants.md`: in the Firefox install row (the one that begins "The Firefox install
+  copies both sheets") and the symlinked-`chrome/` row ("Firefox installation and removal refuse
+  a symlinked `chrome/` directory"), rewrite every `tests/test_install_firefox.py::TestRemove`
+  anchor, both the bare class and the `::method` forms, to `tests/test_remove_firefox.py::TestRemove`.
+  Leave `TestInstall` and `TestProfileLock` anchors alone.
+- `tests/support/validation_gaps/no_fake.py`: the `firefox-profile-file-fifo` reproduction
+  anchors `tests/test_install_firefox.py::TestRemove::test_a_fifo_at_either_profile_file_is_refused_without_blocking`.
+  Rewrite it to the new module.
+- Docstrings that say removal is pinned in `tests/test_install_firefox.py`: name the new
+  module for removal in `tests/support/firefox_chrome_cases.py` ("pins its install and
+  removal"). `tests/test_firefox_user_js.py` and `tests/support/firefox_content_cases.py`
+  name the file only for the install, so they stay. In `tests/support/theme_install.py`'s
+  `write_file` docstring, add `test_remove_firefox.py` to the modules that bind `_write` as an
+  import alias.
+- Per L1/L3, also grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+  and `tests/support/validation_gaps/*.py` for `test_install_firefox.py::TestRemove` and the
+  moved method names. As of this plan, the only hits outside the test file are the two
+  invariants rows and the `no_fake.py` entry above. These are not render gates, so the
+  `_GATE_FILES` lists do not apply. Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their
+  historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_remove_firefox.py` defines `TestRemove` with the same test methods, names and
+  bodies the class had in `tests/test_install_firefox.py`. `grep -n '^class TestRemove'
+  tests/test_install_firefox.py` prints nothing.
+- Together, the `test_*` method names collected from the two modules equal the set the
+  original `tests/test_install_firefox.py` defined, with nothing lost or duplicated.
+  `tests/test_install_firefox.py` is under 700 lines (`wc -l`).
+- `grep -rn 'test_install_firefox.py::TestRemove' docs tests` prints nothing, and the
+  invariants-anchor and validation-gap tests pass with the rewritten anchors.
+- Each "N callers" count in `tests/support/firefox_profile_case.py` matches what grep finds
+  across the two suites.
+- No file under `theme/` or `tools/`, and not the `Makefile`, changes.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
 ### GTK stylesheet parser tests: move the `@define-color` scanner cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** `tests/test_gtk_css.py` is 859 lines, and PRINCIPLES.md asks for files small enough

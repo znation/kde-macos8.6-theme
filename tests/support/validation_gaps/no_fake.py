@@ -112,7 +112,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "firefox-profile-file-fifo",
         ("Firefox profile file blocks the install",),
-        "tests/test_install_firefox.py::TestRemove"
+        "tests/test_remove_firefox.py::TestRemove"
         "::test_a_fifo_at_either_profile_file_is_refused_without_blocking",
     ),
     Reproduction(

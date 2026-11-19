@@ -69,7 +69,7 @@ def write_file(path, body):
     GTK user-CSS/uninstall suites stage user-file fixtures through it inline.
 
     Callers outside this module keep local names:
-    test_install_firefox.py and test_firefox_profile.py bind ``_write`` as an
+    test_install_firefox.py, test_remove_firefox.py and test_firefox_profile.py bind ``_write`` as an
     import alias, ApplyGtkTestCase.write and test_gtk_install._write delegate
     their bodies here, and test_gtk_user_files.py's two ``css()`` helpers call
     it directly, test_invariants.py's ``_write``/``_register``,

@@ -1,7 +1,8 @@
 """The temp-home Firefox profile case shared by the Firefox installer suites.
 
-``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``
-and ``tests/test_install_firefox.py`` installs into a temp profile; both need
+``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``,
+``tests/test_install_firefox.py`` installs into a temp profile and
+``tests/test_remove_firefox.py`` removes from one; all need
 the same scratch root, home, profile and symlink/write-failure fixtures. They
 live here once so each suite states only the behaviour it pins. The module
 name does not match ``test*.py``, so ``unittest discover`` never collects it.
@@ -16,6 +17,11 @@ from unittest import mock
 from support.cli_fixtures import run_main_with_env
 from support.tmp_dir import make_tmp_dir
 from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
+
+
+def read_utf8(path):
+    """Return the UTF-8 text at *path*."""
+    return path.read_bytes().decode("utf-8")
 
 
 class FirefoxProfileTestCase(unittest.TestCase):
@@ -63,8 +69,8 @@ class FirefoxProfileTestCase(unittest.TestCase):
     def assert_profile_absent(self, *paths):
         """Assert none of *paths* exist, naming the first survivor on failure.
 
-        Shared by the installer suites' absence pins; every call site lives
-        in ``tests/test_install_firefox.py``.
+        Shared by the installer suites' absence pins; the call sites live in
+        both ``tests/test_install_firefox.py`` and ``tests/test_remove_firefox.py``.
         """
         for path in paths:
             self.assertFalse(path.exists(), f"{path} unexpectedly exists")
@@ -110,8 +116,9 @@ class FirefoxProfileTestCase(unittest.TestCase):
         passes ``--remove`` plus its profile. The run must be refused with
         exit status 2 and the by-name ``cannot write`` diagnostic naming
         *target*; the result is returned so a caller can pin what the
-        rollback left behind. Seven callers in
-        ``tests/test_install_firefox.py``; the write stand-in is
+        rollback left behind. Six callers in
+        ``tests/test_install_firefox.py`` and one in
+        ``tests/test_remove_firefox.py``; the write stand-in is
         :meth:`fail_write_to`.
         """
         if not tool_args:
@@ -152,7 +159,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         The stand-in unlinks *target* really and raises ``KeyboardInterrupt``
         on the way back, so a test pins what survives a removal whose unlink
         took effect before the caller recorded it. Other paths still unlink
-        really. Two callers in ``tests/test_install_firefox.py``; the
+        really. Two callers in ``tests/test_remove_firefox.py``; the
         failure twin is :meth:`fail_unlink_to`.
         """
         real_unlink = Path.unlink
