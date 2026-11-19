@@ -115,6 +115,78 @@ The check failed on this test and then passed on a re-run of the same tree, so t
 test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)
 ~~~~
 
+### `test_left_mark_is_the_raised_box (test_render_surface.TestDesktopRender.test_left_mark_is_the_raised_box)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is not a readable PNG: cannot read /tmp/render-surface-4758ej_h/surface.png: [Errno 2] No such file or directory: '/tmp/render-surface-4758ej_h/surface.png'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+OK
+check: 468 modules, 1 module failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_the_bar_between_the_mark_and_the_right_half_is_empty (test_render_surface.TestDesktopRender.test_the_bar_between_the_mark_and_the_right_half_is_empty)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is not a readable PNG: cannot read /tmp/render-surface-4758ej_h/surface.png: [Errno 2] No such file or directory: '/tmp/render-surface-4758ej_h/surface.png'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+OK
+check: 468 modules, 1 module failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_the_right_half_draws_its_live_content (test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is not a readable PNG: cannot read /tmp/render-surface-4758ej_h/surface.png: [Errno 2] No such file or directory: '/tmp/render-surface-4758ej_h/surface.png'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+OK
+check: 468 modules, 1 module failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
+### `test_exits_zero_and_writes_a_640x400_png (test_render_surface.TestDesktopRender.test_exits_zero_and_writes_a_640x400_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is not a readable PNG: cannot read /tmp/render-surface-4758ej_h/surface.png: [Errno 2] No such file or directory: '/tmp/render-surface-4758ej_h/surface.png'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+OK
+check: 468 modules, 1 module failed
+make: *** [Makefile:491: check] Error 1
+~~~~
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
