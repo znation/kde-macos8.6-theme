@@ -3,8 +3,9 @@
 These cases pin ``support.gtk_css.parse_css``'s declaration merging: name
 decoding and ASCII case folding, the first unescaped colon that separates a
 name from its value, later-wins replacement of an earlier declaration, and
-``!important`` priority. The rule-pairing, grouping, whitespace and
-``@define-color`` cases remain in ``tests/test_gtk_css_define_color.py``.
+``!important`` priority. The rule-pairing, grouping and whitespace cases
+remain in ``tests/test_gtk_css.py``, and the ``@define-color`` cases in
+``tests/test_gtk_css_define_color.py``.
 """
 
 from __future__ import annotations
