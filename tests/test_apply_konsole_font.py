@@ -364,6 +364,54 @@ class TestFallback(StubKonsoleTools):
         self.assertIn(f"Font={FONT}\n", self.read(profile))
 
 
+class TestFallbackDirectoryRefusals(StubKonsoleTools):
+    """A regular file where the ``konsole`` data directory belongs is refused.
+
+    The fallback path creates that directory before any write; a file
+    squatting on it must stop the apply with the actionable diagnostic, and
+    no selection is written.
+    """
+
+    def test_a_regular_file_at_the_konsole_data_directory_is_refused(self):
+        write_file(self.profile_dir, "squatting file\n")
+        with self.assertRaises(KonsoleError) as raised:
+            self.apply_font()
+        self.assertIn("it is not a directory", str(raised.exception))
+        self.assertFalse(self.konsolerc.exists())
+
+
+class TestSearchBases(StubKonsoleTools):
+    """The profile search visits the data home, then absolute XDG_DATA_DIRS.
+
+    Relative and empty entries are invalid under the XDG Base Directory spec,
+    so they are skipped; an unset or empty XDG_DATA_DIRS means the spec's
+    default pair, ``/usr/local/share`` then ``/usr/share``.
+    """
+
+    def test_an_unset_data_dirs_searches_the_spec_defaults(self):
+        bases = apply_konsole_font._search_bases({}, self.data)
+        self.assertEqual(
+            bases, [self.data, Path("/usr/local/share"), Path("/usr/share")]
+        )
+
+    def test_an_empty_data_dirs_searches_the_spec_defaults(self):
+        bases = apply_konsole_font._search_bases({"XDG_DATA_DIRS": ""}, self.data)
+        self.assertEqual(
+            bases, [self.data, Path("/usr/local/share"), Path("/usr/share")]
+        )
+
+    def test_relative_and_empty_entries_are_skipped(self):
+        env = {"XDG_DATA_DIRS": "relative/share::/opt/share:"}
+        bases = apply_konsole_font._search_bases(env, self.data)
+        self.assertEqual(bases, [self.data, Path("/opt/share")])
+
+    def test_only_relative_entries_leave_the_data_home_alone(self):
+        bases = apply_konsole_font._search_bases(
+            {"XDG_DATA_DIRS": "relative/share"}, self.data
+        )
+        self.assertEqual(bases, [self.data])
+
+
 class TestRefusals(StubKonsoleTools):
     def assert_refused(self, message_part, profile="Mine.profile"):
         """The helper raises, prints nothing, and writes nothing."""
