@@ -98,9 +98,12 @@ class TestHotspotValidation(unittest.TestCase):
 
     def test_returns_a_tuple_for_valid_list_coordinates(self):
         self.assertEqual(cursor_checks.checked_hotspot([0, 15]), (0, 15))
+        self.assertIsInstance(cursor_checks.checked_hotspot([3, 4]), tuple)
+        self.assertEqual(cursor_checks.checked_hotspot((3, 4)), (3, 4))
 
     def test_refuses_non_integer_coordinates_including_booleans(self):
-        for hotspot in ((True, 1), (1, False), (1.0, 2), ("1", 2)):
+        for hotspot in ((True, 1), (1, False), (1.0, 2), ("1", 2),
+                        (1,), (1, 2, 3), None, 5):
             with self.subTest(hotspot=hotspot):
                 assert_error_names(
                     self, ValueError, cursor_checks.checked_hotspot, hotspot,
@@ -533,33 +536,6 @@ class TestVectorArrow(unittest.TestCase):
     def test_rows_that_are_neither_a_grid_nor_vector_art_are_refused(self):
         with self.assertRaises(ValueError):
             make_cursors.cursor_bytes(rows=5)
-
-
-class TestHotspotValidation(unittest.TestCase):
-    """Pin ``cursor_checks.checked_hotspot`` directly, not only through the generator."""
-
-    def test_two_integers_in_a_list_or_tuple_return_a_tuple(self):
-        self.assertEqual(cursor_checks.checked_hotspot([3, 4]), (3, 4))
-        self.assertEqual(cursor_checks.checked_hotspot((0, 15)), (0, 15))
-        self.assertIsInstance(cursor_checks.checked_hotspot([3, 4]), tuple)
-
-    def test_a_hotspot_that_is_not_two_plain_integers_is_refused(self):
-        for hotspot in ((True, 1), (1, False), (1.0, 1), ("1", 1),
-                        (1,), (1, 2, 3), None, 5):
-            with self.subTest(hotspot=hotspot):
-                assert_error_names(
-                    self, ValueError, cursor_checks.checked_hotspot, hotspot,
-                    needles=(f"hotspot must be two integers: hotspot={hotspot!r}",),
-                )
-
-    def test_a_hotspot_one_step_outside_the_grid_is_refused(self):
-        for hotspot in ((-1, 0), (0, -1), (16, 0), (0, 16)):
-            with self.subTest(hotspot=hotspot):
-                x, y = hotspot
-                assert_error_names(
-                    self, ValueError, cursor_checks.checked_hotspot, hotspot,
-                    needles=(f"hotspot ({x}, {y}) lies outside the 16x16 grid",),
-                )
 
 
 if __name__ == "__main__":
