@@ -128,6 +128,19 @@ test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.
 
 ### `test_left_mark_is_the_raised_box (test_render_surface.TestDesktopRender.test_left_mark_is_the_raised_box)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Needs review 2026-11-19 by director: approve parking this unconfirmed missing-capture failure pending recurrence with diagnostics; the desktop gate already reports the render result.**
+
+Director investigation (2026-11-19):
+`tests/test_render_surface.py::TestDesktopRender.candidate_image` includes
+the render exit status, stdout and stderr when reading the desktop output
+raises `OSError`; `test_missing_capture_reports_render_result` exercises
+that path. In `tools/render_workflow.py::render`, the recorded
+"capture is not a readable PNG" message follows a zero session status from
+`run_logged`; nonzero status takes the earlier "render session exited"
+branch. This explains the reporting path, not why `surface.png` was absent.
+Recommend retaining the open quarantine pending a recurrence with the complete
+failure output rather than duplicating the existing diagnostic improvement.
+
 **Director handoff 2026-11-18**
 
 The recorded failure reports only that `surface.png` is absent; it does not include the
