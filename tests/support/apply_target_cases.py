@@ -18,6 +18,7 @@ import shutil
 import tempfile
 
 from support.process_assertions import assert_failed, assert_succeeded
+from support.executable_stubs import write_executable
 from support.theme_install import make_env, run_make
 from support.tmp_dir import make_tmp_dir
 
@@ -81,8 +82,7 @@ class ApplyTargetMakeCases:
     def test_python_version_is_refused(self):
         tmp = make_tmp_dir(self)
         fake = tmp / "python"
-        fake.write_text("#!/bin/sh\nexit 3\n", encoding="utf-8")
-        fake.chmod(0o755)
+        write_executable(fake, "#!/bin/sh\nexit 3\n")
         result = run_make(
             [self.TARGET, f"PYTHON={fake}"], env=make_env("PYTHON")
         )

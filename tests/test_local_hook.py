@@ -29,6 +29,7 @@ from support import tmp_dir
 from support.atomic_write_failures import crashing_fdopen, swapping_mkstemp
 from support.cli_fixtures import run_main
 from support.close_tracking import failing_fdopen
+from support.executable_stubs import write_executable
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
@@ -147,14 +148,13 @@ def write_fake_make(bindir, record, exit_status=0):
     """Write an executable ``make`` that records its cwd and argv, then exits."""
     bindir.mkdir(parents=True, exist_ok=True)
     make = bindir / "make"
-    make.write_text(
+    write_executable(
+        make,
         "#!/bin/sh\n"
         f'printf \'%s\\n\' "$PWD" > "{record}"\n'
         f'printf \'%s\\n\' "$*" >> "{record}"\n'
         f"exit {exit_status}\n",
-        encoding="utf-8",
     )
-    make.chmod(0o755)
 
 
 class TestGitFailures(unittest.TestCase):
@@ -229,8 +229,7 @@ class TestGitFailures(unittest.TestCase):
         bindir = tmp_dir.make_tmp_dir(self) / "bin"
         bindir.mkdir()
         fake = bindir / "git"
-        fake.write_bytes(b"#!/bin/sh\nprintf '\\377\\376\\n'\n")
-        fake.chmod(0o755)
+        write_executable(fake, "#!/bin/sh\nprintf '\\377\\376\\n'\n")
         with mock.patch.dict(os.environ, {"PATH": str(bindir)}):
             self.assertEqual(
                 local_hook_git._git("rev-parse", "--show-toplevel"),

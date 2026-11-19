@@ -16,6 +16,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.executable_stubs import write_executable
 from support.cli_fixtures import run_main_with_env
 from support.cursor_theme_fixtures import write_cursor_theme
 from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
@@ -45,12 +46,11 @@ class CursorLockCase(unittest.TestCase):
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""
         path = self.bin / cursor_workflow.SELECT_TOOL
-        path.write_text(
+        write_executable(
+            path,
             "#!/bin/sh\n"
             f"{body}\n",
-            encoding="utf-8",
         )
-        path.chmod(0o755)
 
     def hold_data_lock(self):
         """Take the data-home lock a concurrent install or uninstall holds."""

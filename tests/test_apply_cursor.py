@@ -20,6 +20,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import process_runner
+from support.executable_stubs import write_executable
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.apply_target_cases import ApplyTargetMakeCases
@@ -57,13 +58,12 @@ class CursorCase(unittest.TestCase):
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""
         path = self.bin / cursor_selection.SELECT_TOOL
-        path.write_text(
+        write_executable(
+            path,
             "#!/bin/sh\n"
             f'printf \'%s\\n\' "$*" >> "{self.calls}"\n'
             f"{body}\n",
-            encoding="utf-8",
         )
-        path.chmod(0o755)
 
     def run_tool(self, *args, env=None):
         return run_main_with_env(
@@ -449,8 +449,7 @@ class TestSelection(CursorCase):
         # through to a real selector later on PATH.
         self.install_theme()
         selector = self.bin / cursor_selection.SELECT_TOOL
-        selector.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
-        selector.chmod(0o755)
+        write_executable(selector, "#!/nonexistent/interpreter\n")
 
         result = self.run_tool()
 

@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root, theme_install
+from support.executable_stubs import write_executable
 from support.process_assertions import assert_failed, assert_succeeded
 from tools.render_dialogs import DIALOG_MODES
 
@@ -18,12 +19,12 @@ class TestRenderMake(unittest.TestCase):
         self.record = self.root / "argv"
 
     def env(self):
-        self.python.write_text(
+        write_executable(
+            self.python,
             "#!/bin/sh\n"
             'if [ "$1" = "-c" ]; then exit 0; fi\n'
             f'for arg do printf "%s\\n" "$arg" >> "{self.record}"; done\n'
         )
-        self.python.chmod(0o755)
         env = theme_install.make_env("PYTHON", "RENDER_MODE", "RENDER_OUTPUT")
         env["PYTHON"] = str(self.python)
         return env

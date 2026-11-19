@@ -22,6 +22,7 @@ from pathlib import Path
 from unittest import mock
 
 from support.process_assertions import assert_succeeded
+from support.executable_stubs import write_executable
 from support.repo_root import ROOT
 from support.theme_install import run_captured
 from support.tmp_dir import make_tmp_dir
@@ -82,8 +83,7 @@ def call_main(main, *args):
 def _write_tool_stub(directory, name):
     """Write an executable ``#!/bin/sh`` stub for *name* into *directory*."""
     tool = Path(directory) / name
-    tool.write_text("#!/bin/sh\n", encoding="utf-8")
-    tool.chmod(0o755)
+    write_executable(tool, "#!/bin/sh\n")
 
 
 def _run_without_tool(main, required, missing, argv):

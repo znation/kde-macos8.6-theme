@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from support import theme_install
+from support.executable_stubs import write_executable
 from support.process_assertions import assert_failed, assert_succeeded
 
 
@@ -21,8 +22,7 @@ class TestMakeApplyPlasma(unittest.TestCase):
         self.python = self.root / "python"
 
     def interpreter(self, body):
-        self.python.write_text("#!/bin/sh\n" + body)
-        self.python.chmod(0o755)
+        write_executable(self.python, "#!/bin/sh\n" + body)
         env = theme_install.make_env("PYTHON", "DESTDIR", "XDG_DATA_HOME")
         env.update(
             {
