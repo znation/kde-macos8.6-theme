@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import shutil
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import REFERENCE_BOUNDS
@@ -471,7 +472,14 @@ class TestDesktopRender(unittest.TestCase):
     def candidate_image(cls):
         """Return the desktop render decoded once, reused by every read below."""
         if cls._candidate is None:
-            cls._candidate = read_png(cls.output)
+            try:
+                cls._candidate = read_png(cls.output)
+            except OSError as exc:
+                raise AssertionError(
+                    f"desktop capture is missing or unreadable: {exc}; "
+                    f"render exited {cls.returncode}; stdout: {cls.stdout!r}; "
+                    f"stderr: {cls.stderr!r}"
+                ) from exc
         return cls._candidate
 
     def assert_pixel(self, x, y, colour):
@@ -1212,6 +1220,22 @@ class TestDesktopPixelDiagnostic(unittest.TestCase):
         self.assertIn("desktop pixel (2, 1)", message)
         self.assertIn("#ABCDEF", message)
         self.assertIn("#123456", message)
+
+    def test_missing_capture_reports_render_result(self):
+        class MissingCapture:
+            _candidate = None
+            output = "/missing/desktop.png"
+            returncode = 0
+            stdout = "capture started"
+            stderr = "render-session: capture status 1"
+
+        with mock.patch("test_render_surface.read_png", side_effect=FileNotFoundError("gone")):
+            with self.assertRaises(AssertionError) as failure:
+                TestDesktopRender.candidate_image.__func__(MissingCapture)
+        message = str(failure.exception)
+        self.assertIn("desktop capture is missing or unreadable", message)
+        self.assertIn("render exited 0", message)
+        self.assertIn("capture status 1", message)
 
 
 class TestDesktopGateSkipGuard(unittest.TestCase):

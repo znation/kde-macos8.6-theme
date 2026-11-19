@@ -153,6 +153,10 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_the_bar_between_the_mark_and_the_right_half_is_empty (test_render_surface.TestDesktopRender.test_the_bar_between_the_mark_and_the_right_half_is_empty)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Director handoff 2026-11-19**
+
+The archived failure is `capture is not a readable PNG: cannot read .../surface.png: [Errno 2] No such file or directory`, followed by unrelated check output. Focused reproduction passed locally. The render harness captures stdout and stderr, but the desktop pixel gate's missing-file traceback omits both, hiding the render-stage explanation. I added a diagnostic and a unit test; please determine the cause from a recurrence or whether this can be parked.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
