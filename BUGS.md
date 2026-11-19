@@ -124,6 +124,13 @@ test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.
 
 ### `test_left_mark_is_the_raised_box (test_render_surface.TestDesktopRender.test_left_mark_is_the_raised_box)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Director handoff 2026-11-18**
+
+The recorded failure reports only that `surface.png` is absent; it does not include the
+desktop render's exit status or stderr, so this run cannot identify why capture publication
+failed. The focused gate passed locally. Please decide whether to park pending a recurrence
+with render diagnostics or improve the failure output first.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
