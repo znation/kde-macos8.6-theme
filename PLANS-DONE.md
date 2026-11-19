@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate calendar declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give GTK 3 calendar declaration checks a focused module outside
+the oversized `tests/test_gtk_theme.py`. The GTK 4 calendar extraction
+covers a different sheet.
+
+**Approach and files touched.** Moved `test_calendar`,
+`test_calendar_outer_border`, `test_calendar_focus_outline` and
+`test_calendar_state_arms` to
+`tests/test_gtk_theme_calendar.py::TestGtkThemeCalendar`, inheriting
+`GtkSheetRuleCases` directly and binding `CSS_PATH` to the GTK 3 sheet. Kept
+shared-control cases in `TestGtkTheme`. Updated source routing, the GTK 3
+calendar anchors in `docs/invariants.md`, and count-based helper docstrings
+in `tests/support/gtk_rule_cases.py`. Search found no other moved anchors in
+the listed documentation, CI workflow or support files. Production sheets
+and tools were unchanged.
+
+**Acceptance criteria.**
+
+- The new class holds the four declaration checks and does not inherit the
+  shared-control cases; the source class no longer defines those methods.
+- The extracted checks retain selected-day and other-month colors, border
+  equality with both frame selectors, dotted focus outline, exact calendar
+  arm declarations, selector census and header-after-focus ordering.
+- Invariant anchors resolve to the new module; focused source and
+  destination checks and full `make check` pass. No rendered-pixel claim
+  was added.
+
 ### Apply suite extraction: isolate aggregate Make target checks (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give aggregate `make apply` recipe checks a focused module outside

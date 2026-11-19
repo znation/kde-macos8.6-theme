@@ -110,46 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate calendar declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give GTK 3 calendar declaration checks a focused module outside
-the oversized `tests/test_gtk_theme.py`, independently of the apply-suite
-extractions. The completed GTK 4 calendar extraction covers a different sheet.
-
-**Approach and files touched.** Move `TestGtkTheme` methods `test_calendar`,
-`test_calendar_outer_border`, `test_calendar_focus_outline` and
-`test_calendar_state_arms`, preserving their bodies and provenance comments,
-to new `tests/test_gtk_theme_calendar.py::TestGtkThemeCalendar`.
-Inherit `GtkSheetRuleCases` and `unittest.TestCase`, binding `CSS_PATH` to
-`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`. Import the existing
-`BLACK`, `ETCH_DARK` and `DISABLED_TEXT` constants directly from their support
-modules. The shared base already supplies parsing and calendar assertions;
-do not inherit `GtkSharedControlCases` or import another test module.
-Update the source routing docstring and prune imports only if unused there.
-Repoint the moved calendar anchors in `docs/invariants.md`, preserving the
-GTK 4 anchors and provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/` for additional moved anchors.
-In `tests/support/gtk_rule_cases.py`, replace the stale numerical suite-count
-claims in module, class and setup docstrings with count-free descriptions
-that cover split suites. Leave stylesheets and production tools unchanged.
-
-**Acceptance criteria.**
-
-- Discovery lists the named calendar methods under the new class without
-  duplicates in `TestGtkTheme`; inherited shared-control test cases do not
-  appear in the new module. Both modules run independently through the
-  existing check selectors.
-- The moved checks still require lavender selected-day fill with black
-  text, inactive-grey other-month text, a black outer border matching both
-  frame selectors, and a square dotted black focus outline with zero offset.
-- Calendar header, navigation, highlight and backdrop declarations retain
-  their existing exact rule dictionaries, selector census and header-after-
-  focus ordering assertions. A changed disabled navigation ink or extra
-  calendar selector still fails the extracted checks.
-- The invariants checker resolves the moved anchors. Focused checks for
-  source and destination modules and full `make check` pass after the move;
-  no rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate expander declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give GTK 3 disclosure-arrow and expander-title focus checks a

@@ -6,7 +6,8 @@ reference screenshot shows a GTK widget, so most GTK geometry is this
 theme's adaptation. This module holds the sheet-level invariants and the
 windows, bands and text roles; the OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
-``test_gtk_theme_*.py`` suites.
+``test_gtk_theme_*.py`` suites. Calendar declarations live in
+``test_gtk_theme_calendar.py``.
 """
 
 from __future__ import annotations
@@ -926,57 +927,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         link = self.css.index("button:link, button:visited {")
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
-
-    def test_calendar(self):
-        self.assert_calendar(("calendar:selected",), ("calendar:indeterminate",))
-
-    def test_calendar_outer_border(self):
-        self.assert_rule("calendar", {"border": f"1px solid {BLACK}"})
-        for selector in ("frame > border", ".frame"):
-            self.assertEqual(
-                self.rules["calendar"]["border"],
-                self.rules[selector]["border"],
-            )
-
-    def test_calendar_focus_outline(self):
-        self.assert_dotted_focus_outline("calendar:focus")
-
-    def test_calendar_state_arms(self):
-        # No reference screenshot shows a GTK calendar header, navigation
-        # button, day highlight or backdrop state, so the nine stock arms
-        # rest on existing faces: ETCH_DARK for the header rule and day
-        # highlights, BLACK for the navigation glyphs (the erase
-        # precedents, with no hover motion) and the disabled grey, and the
-        # existing button:backdrop keep-the-existing-face policy for the
-        # backdrop window.
-        expected = {
-            "calendar.header": {"border-bottom-color": ETCH_DARK},
-            "calendar.header:backdrop": {"border-bottom-color": ETCH_DARK},
-            "calendar.button": {"color": BLACK},
-            "calendar.button:hover": {"color": BLACK},
-            "calendar.button:backdrop": {"color": BLACK},
-            "calendar.button:disabled": {"color": DISABLED_TEXT["color"]},
-            "calendar.highlight": {"color": ETCH_DARK},
-            "calendar.highlight:backdrop": {"color": ETCH_DARK},
-            "calendar:backdrop": {"color": BLACK, "border-color": BLACK},
-        }
-        for selector, rule in expected.items():
-            self.assertEqual(self.selectors.count(selector), 1, selector)
-            self.assertEqual(self.rules[selector], rule, selector)
-        self.assertEqual(
-            {s for s in self.rules if s.startswith("calendar")},
-            {
-                "calendar",
-                "calendar:selected",
-                "calendar:indeterminate",
-                "calendar:focus",
-                *expected,
-            },
-        )
-        self.assert_rule_after(
-            "calendar.header {",
-            "calendar:focus {",
-        )
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))

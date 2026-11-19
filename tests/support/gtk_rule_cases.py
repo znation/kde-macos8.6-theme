@@ -1,18 +1,17 @@
 """Reusable GTK and Firefox sheet rule assertions and shared control cases.
 
-The seven GTK sheet rule-cases classes parse their shipped stylesheet
+GTK sheet rule-cases classes parse their shipped stylesheet
 through :class:`GtkSheetRuleCases`'s shared ``setUpClass``; the Firefox
 sheet suite parses its own sheet, and these classes hold the rule
-assertion all three use and the control rules the two GTK suites both
+assertions shared across the suites and the control rules GTK theme suites
 satisfy. The Platinum spec values they assert live in the sibling
 ``tests/support/gtk_theme_spec.py``.
 
-:class:`SheetRuleAssertions` holds the rule assertions all three suites
-use (the single-rule check and the grouped whole-rule check).
-:class:`GtkSheetRuleCases` holds the control assertions the two GTK suites
-share, and :class:`GtkSharedControlCases` holds the control test cases each
-suite runs once against its own parsed sheet (suite-level test classes
-inherit it so those cases do not repeat per split-out module).
+:class:`SheetRuleAssertions` holds the shared single-rule and grouped
+whole-rule checks. :class:`GtkSheetRuleCases` holds GTK sheet assertions,
+and :class:`GtkSharedControlCases` holds control test cases for the suites
+that inherit it (suite-level test classes use it so those cases do not
+repeat per split-out module).
 GTK 3 and GTK 4 spell the same nodes differently, so the link, calendar,
 infobar, progress-bar, level-bar, scale, switch, spin-button field,
 menu-separator, menu-bar-title, frame, tree-header, expander-arrow,
@@ -168,10 +167,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     """The shared sheet setup and the control assertions the GTK sheets satisfy.
 
     A rule-cases class binds the setup to its shipped sheet with a
-    ``CSS_PATH`` class attribute and inherits the parse; the six classes that
-    carry no other class state set it alone, and the index-reader in
+    ``CSS_PATH`` class attribute and inherits the parse; classes that carry
+    no other class state set it alone, and the index-reader in
     tests/test_gtk_theme.py overrides this setup and chains to it with
-    ``super`` (the one suite whose ``setUpClass`` loads a second file).
+    ``super`` to load its additional file.
 
     Suites run their sheet's own parsed ``self.rules``. Selectors
     and values that differ between the sheets
@@ -217,12 +216,12 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     def setUpClass(cls):
         """Parse the sheet at ``cls.CSS_PATH`` onto cls.css/colours/rules/selectors.
 
-        The seven GTK sheet classes each parse one shipped ``gtk.css`` into
-        the same four class attributes: ``cls.css`` (the sheet text) and
+        Each GTK sheet class parses one shipped ``gtk.css`` into the same
+        four class attributes: ``cls.css`` (the sheet text) and
         ``cls.colours``, ``cls.rules`` and ``cls.selectors`` (the parsed
         maps). This setup reads the file once per class and names it to
-        ``parse_css`` by its repository-root-relative path, spelled exactly
-        as the seven per-suite setups it replaces spelled it.
+        ``parse_css`` by its repository-root-relative path, matching the
+        path form used by the suite setup this helper replaces.
         """
         cls.css = gtk_css.read_theme_text(cls.CSS_PATH)
         cls.colours, cls.rules, cls.selectors = parse_css(
@@ -641,7 +640,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
 
 
 class GtkSharedControlCases(GtkSheetRuleCases):
-    """The control test cases the two GTK suites run against their own sheets.
+    """Shared control test cases run against each inheriting GTK sheet.
 
     Each suite-level class inherits these cases once, so a suite like the
     GTK 3 theme's ``TestGtkTheme`` runs them exactly once however many
