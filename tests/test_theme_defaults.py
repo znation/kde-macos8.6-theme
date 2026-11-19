@@ -646,6 +646,33 @@ class TestWriteConfigs(unittest.TestCase):
             recorded,
         )
 
+    def test_writes_every_group_for_a_config_in_defaults_order(self):
+        # Several defaults sections can target one config file. Omitting a
+        # later group would silently drop part of the theme configuration.
+        recorded = []
+        with _recording_writer(recorded):
+            theme_config_writer.publish_configs(
+                make_tmp_dir(self),
+                ("kwinrc",),
+                defaults_path=make_tmp_dir(self) / "defaults",
+                read_groups=lambda _path: {
+                    ("kwinrc", "org.kde.kdecoration2"): {
+                        "theme": "org.macos8.desktop",
+                    },
+                    ("kwinrc", "Compositing"): {"Enabled": "true"},
+                },
+            )
+        self.assertEqual(
+            [
+                (
+                    "kwinrc",
+                    "[org.kde.kdecoration2]\ntheme=org.macos8.desktop\n\n"
+                    "[Compositing]\nEnabled=true\n",
+                ),
+            ],
+            recorded,
+        )
+
     def test_a_failing_second_write_keeps_the_first_config_and_leaves_no_scratch(self):
         # Only the failing write is prevented: the first config was already
         # written through the real temp-sibling-and-rename path, and the
