@@ -18,8 +18,9 @@ def refusing_os_errors(error: type[Exception], action: str, path: Path) -> Itera
     :mod:`tools.firefox_user_files`, :mod:`tools.firefox_profile_actions`,
     :mod:`tools.firefox_transaction`, :mod:`tools.file_lock` (the
     parent-directory create), :mod:`tools.apply_konsole_font` (the
-    directory create and the font reads and writes) and :mod:`tools.cursor_link`
-    (the symlink read and the link removal) use this helper.
+    directory create and the font reads and writes), :mod:`tools.cursor_link`
+    (the symlink read and the link removal) and :mod:`tools.kvantum_selection`
+    (the kvconfig rewrite) use this helper.
     """
     try:
         yield
