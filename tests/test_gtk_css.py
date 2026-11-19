@@ -6,12 +6,12 @@ in ``support.gtk_css`` replace two backtracking regular expressions that were
 quadratic on input a contributor controls: many comment starts with no end,
 and a long run of text with no brace. The timing cases below use a size where
 the old expressions took seconds while the scanners finish in milliseconds;
-the bound is generous so a slow machine does not flake.
+the bound is generous so a slow machine does not flake. Whitespace normalization
+cases live in ``test_gtk_css_whitespace``.
 """
 
 from __future__ import annotations
 
-import itertools
 import time
 import unittest
 
@@ -301,46 +301,6 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
-    def test_hex_escape_terminators_survive_selector_and_value_normalization(self):
-        css = (
-            r".\31  a { color: red; } .\31 a { margin: 1px; } "
-            "a { --hex: \\41   ; --tab: \\42\t  ; --crlf: \\43\r\n  ; }"
-        )
-        _, rules, selectors = parse_css(css)
-        self.assertEqual(selectors, [r".\31  a", r".\31 a", "a"])
-        self.assertEqual(rules[r".\31  a"], {"color": "red"})
-        self.assertEqual(rules[r".\31 a"], {"margin": "1px"})
-        self.assertEqual(rules["a"], {
-            "--hex": r"\41 ",
-            "--tab": "\\42\t",
-            "--crlf": "\\43\r\n",
-        })
-
-    def test_hex_escape_selector_terminator_is_distinct_from_separator(self):
-        _, rules, selectors = parse_css(r".\31  a { color: red; } .\31 a { margin: 1px; }")
-        self.assertEqual(selectors, [r".\31  a", r".\31 a"])
-        self.assertEqual(rules, {
-            r".\31  a": {"color": "red"},
-            r".\31 a": {"margin": "1px"},
-        })
-
-    def test_hex_escape_lengths_and_terminators_in_values(self):
-        values = (
-            (r"\a ", r"\a "),
-            (r"\AB ", r"\AB "),
-            (r"\123 ", r"\123 "),
-            (r"\1234 ", r"\1234 "),
-            (r"\12345 ", r"\12345 "),
-            (r"\123456 ", r"\123456 "),
-            (r"\1234567", r"\1234567"),
-        )
-        for source, expected in values:
-            with self.subTest(source=source):
-                _, rules, _ = parse_css("a { --value: " + source + "  ; }")
-                self.assertEqual(rules["a"]["--value"], expected)
-        _, rules, _ = parse_css("a { --crlf: \\41\r\n  ; }")
-        self.assertEqual(rules["a"]["--crlf"], "\\41\r\n")
-
     def test_semicolons_inside_square_bracket_values_are_preserved(self):
         cases = (
             ("a { --tokens: [a;b]; color: red; }", ["a"],
@@ -414,136 +374,6 @@ class TestRuleBlockSemantics(unittest.TestCase):
                         [selector, "b"],
                     ),
                 )
-
-    def test_whitespace_inside_a_quoted_selector_value_is_preserved(self):
-        # Normalizing a selector collapses a run of whitespace between its
-        # tokens, but whitespace inside a quoted attribute value is part of
-        # that value: collapsing it renamed the selector and merged two
-        # distinct rules into one.
-        self.assertEqual(
-            parse_css('[title="a  b"] { color: #111111; }')[1:],
-            (
-                {'[title="a  b"]': {"color": "#111111"}},
-                ['[title="a  b"]'],
-            ),
-        )
-        self.assertEqual(
-            parse_css(
-                '[title="a  b"] { color: #111111; }'
-                '[title="a b"] { margin: 1px; }'
-            )[1],
-            {
-                '[title="a  b"]': {"color": "#111111"},
-                '[title="a b"]': {"margin": "1px"},
-            },
-        )
-
-    def test_whitespace_inside_a_quoted_declaration_value_is_preserved(self):
-        # The same normalization applies to a declaration's value, where a
-        # quoted string may hold significant spaces (``content`` or a URL).
-        self.assertEqual(
-            parse_css('a { content: "a  b"; }')[1],
-            {"a": {"content": '"a  b"'}},
-        )
-        self.assertEqual(
-            parse_css('a { background-image: url("a  b.png"); }')[1],
-            {"a": {"background-image": 'url("a  b.png")'}},
-        )
-
-    def test_only_css_ascii_whitespace_collapses_between_tokens(self):
-        for character in ("\u00a0", "\u2003", "\u000b"):
-            with self.subTest(codepoint=f"U+{ord(character):04X}"):
-                self.assertEqual(
-                    parse_css(
-                        f".a{character}b {{ color: red; }}"
-                        ".a b { color: blue; }"
-                    ),
-                    (
-                        {},
-                        {
-                            f".a{character}b": {"color": "red"},
-                            ".a b": {"color": "blue"},
-                        },
-                        [f".a{character}b", ".a b"],
-                    ),
-                )
-                self.assertEqual(
-                    parse_css(f"a {{ content: token{character}name; }}")[1],
-                    {"a": {"content": f"token{character}name"}},
-                )
-
-        self.assertEqual(
-            parse_css(".a \t\n\r\f b { color: red; }")[1:],
-            ({".a b": {"color": "red"}}, [".a b"]),
-        )
-
-    def test_non_css_whitespace_at_declaration_boundaries_is_preserved(self):
-        for character in ("\u00a0", "\u2003", "\u000b"):
-            with self.subTest(codepoint=f"U+{ord(character):04X}"):
-                self._boundaries_preserve_or_refuse(character)
-
-    def _boundaries_preserve_or_refuse(self, character):
-        """`character` survives verbatim in a value, or a bare one is refused."""
-        for value, expected in (
-            (f"{character}token", f"{character}token"),
-            (f"token{character}", f"token{character}"),
-            (f" \t{character}token{character}\r\n",
-             f"{character}token{character}"),
-            (character, character),
-        ):
-            with self.subTest(value=repr(value)):
-                self.assertEqual(
-                    parse_css(f"a {{ content: {value}; }}")[1],
-                    {"a": {"content": expected}},
-                )
-
-        with self.assertRaisesRegex(
-            ValueError,
-            r"^source\.css: malformed declaration in selector 'a':",
-        ):
-            parse_css("a { \u00a0; }" if character == "\u00a0" else
-                      f"a {{ {character}; }}", source="source.css")
-
-        self.assertEqual(
-            parse_css("a { ; \t\n\r\f; content: token \t; }")[1],
-            {"a": {"content": "token"}},
-        )
-
-    def test_escaped_trailing_value_whitespace_is_preserved(self):
-        # Unescaped trailing whitespace is trimmed: only an escaped run keeps
-        # its trailing CSS whitespace, whatever the following declaration is.
-        for suffix in ("; color: red;", ""):
-            with self.subTest(suffix=suffix):
-                declarations = parse_css(f"a {{ --sample: token   {suffix}}}")[1]["a"]
-                expected = {"--sample": "token"}
-                if suffix:
-                    expected["color"] = "red"
-                self.assertEqual(declarations, expected)
-
-        for whitespace, slash_count, suffix in itertools.product(
-                (" ", "\t"), (1, 2, 3), ("; color: red;", "")):
-            with self.subTest(whitespace=repr(whitespace), slashes=slash_count,
-                              suffix=suffix):
-                value = "token" + "\\" * slash_count + whitespace
-                source = f"a {{ --value: {value}   {suffix}}}"
-                # A pair of backslashes escapes a literal backslash, so
-                # the trailing whitespace escapes only after an odd
-                # run; an even run leaves it unescaped and trimmed.
-                escaped = slash_count % 2
-                expected = "token" + "\\" * slash_count + (whitespace if escaped else "")
-                declarations = parse_css(source)[1]["a"]
-                self.assertEqual(declarations["--value"], expected)
-                if suffix:
-                    self.assertEqual(declarations["color"], "red")
-
-        self.assertEqual(
-            parse_css("a { --value: token\\\\ ; }")[1],
-            {"a": {"--value": "token\\\\"}},
-        )
-        self.assertEqual(
-            parse_css('a { --value: "token "; }')[1],
-            {"a": {"--value": '"token "'}},
-        )
 
 class TestHostileStylesheet(unittest.TestCase):
     def test_comment_scanning_finishes_promptly(self):

@@ -1,7 +1,7 @@
 """Rule-block pairing cases for the shared GTK stylesheet parser.
 
-Declaration-splitting, grouping and whitespace cases remain in
-``tests/test_gtk_css.py``, declaration-merging cases in
+Declaration-splitting and grouping cases remain in ``tests/test_gtk_css.py``;
+whitespace cases live in ``tests/test_gtk_css_whitespace.py``. Declaration-merging cases in
 ``tests/test_gtk_css_cascade.py`` and ``@define-color`` cases in
 ``tests/test_gtk_css_define_color.py``.
 """

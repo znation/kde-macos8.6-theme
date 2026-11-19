@@ -3,8 +3,9 @@
 These cases pin how ``support.gtk_css`` finds ``@define-color`` definitions:
 only CSS whitespace separates the directive's parts, and a definition inside
 a quoted value, a function value or a rule block is text. The rule-pairing
-cases live in ``tests/test_gtk_css_blocks.py``; grouping and whitespace
-cases remain in ``tests/test_gtk_css.py``, and the
+cases live in ``tests/test_gtk_css_blocks.py``; grouping cases remain in
+``tests/test_gtk_css.py``, whitespace cases live in
+``tests/test_gtk_css_whitespace.py``, and the
 declaration-merging cases in ``tests/test_gtk_css_cascade.py``.
 """
 
