@@ -690,6 +690,26 @@ class TestInstall(unittest.TestCase):
         self.assertIn("Permission denied", result.stderr)
         self.assertFalse(hook.exists(), "a refused write must not create the hook")
 
+    def test_a_refused_hooks_directory_creation_exits_2(self):
+        repo = make_repo(self)
+        hook = hook_path(repo)
+        hooks = hook.parent
+        refused = PermissionError(13, "Permission denied")
+        original_mkdir = Path.mkdir
+
+        def refuse_hooks_directory(path, *args, **kwargs):
+            if path == hooks:
+                raise refused
+            return original_mkdir(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "mkdir", refuse_hooks_directory):
+            result = run_tool(repo, "install")
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot write {hook}", result.stderr)
+        self.assertIn("Permission denied", result.stderr)
+        self.assertFalse(hook.exists())
+
     def test_failed_fdopen_closes_descriptor(self):
         path = tmp_dir.make_tmp_dir(self) / "hook"
         with failing_fdopen() as closed:
