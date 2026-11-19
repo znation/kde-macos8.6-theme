@@ -533,6 +533,31 @@ class TestVectorArrow(unittest.TestCase):
                         rows=self.art, hotspot=hotspot, needles=("hotspot",),
                     )
 
+    def test_a_vector_hotspot_outside_the_design_size_is_refused_every_time(self):
+        # Vector hotspots are design units in [0, design_size) = [0, 32) for
+        # the arrow, not cells of the 16x16 grid, so the vector check must
+        # refuse 32 (and -1) by design_size on every call, cached or not.
+        make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        for hotspot, needle in (((32, 3), "hotspot x"), ((3, 32), "hotspot y"),
+                                ((-1, 3), "hotspot x")):
+            for _ in range(2):
+                with self.subTest(hotspot=hotspot):
+                    assert_error_names(
+                        self, ValueError, make_cursors.cursor_bytes,
+                        rows=self.art, hotspot=hotspot, needles=(needle,),
+                    )
+
+    def test_a_malformed_vector_hotspot_is_refused_after_a_valid_build(self):
+        make_cursors.cursor_bytes(rows=self.art, hotspot=self.hotspot)
+        for hotspot, needle in (((3,), "hotspot must be an (x, y) pair"),
+                                ((3, True), "hotspot y must be a number"),
+                                (("3", 3), "hotspot x must be a number")):
+            with self.subTest(hotspot=hotspot):
+                assert_error_names(
+                    self, ValueError, make_cursors.cursor_bytes,
+                    rows=self.art, hotspot=hotspot, needles=(needle,),
+                )
+
     def test_rows_that_are_neither_a_grid_nor_vector_art_are_refused(self):
         with self.assertRaises(ValueError):
             make_cursors.cursor_bytes(rows=5)
