@@ -116,41 +116,6 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
-## Done
-
-### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
-
-**Goal.** Give the GTK 3 selection-marquee declaration check a focused
-module outside the oversized views suite. This is independent of the queued
-accelerator-editor relocation and pending header drag-and-drop extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_rubberband` from `tests/test_gtk_theme_views.py`
-to new `tests/test_gtk_theme_rubberband.py::TestGtkThemeRubberband`,
-preserving its body. Inherit `support.gtk_rule_cases.GtkSheetRuleCases`
-and `unittest.TestCase`; import `ROOT` from `support.repo_root` and set
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-The base already supplies `assert_rubberband`, parsed rules and the order
-assertion; no shared-helper change is needed. Update the views routing
-docstring and both GTK 3 rubberband rows in `docs/invariants.md` to the new
-anchor, retaining their guarantees and provenance. Search
-`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
-`tests/support/` for other moved anchors. Keep GTK 4 coverage and theme
-sheets outside this relocation.
-
-**Acceptance criteria.**
-
-- Discovery exposes `test_rubberband` in the destination without a duplicate
-  in views or inherited shared-control tests in the destination. Source and
-  destination pass independently through project check selectors.
-- The moved check retains the exact bare and view-specific rubberband
-  selector inventory and existing recipe assertions. Altering the
-  `flowbox rubberband` border or adding a rubberband selector fails it.
-- Moving the rubberband group before the white `.view` group fails the
-  moved order assertion.
-- Both invariant anchors resolve and full `make check` passes. This is a
-  declaration-test relocation with no new rendered-pixel claim.
-
 ### GTK 3 suite extraction: isolate path-bar declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the file chooser breadcrumb declaration check a focused
@@ -221,6 +186,40 @@ or GTK 4 coverage changes.
   retains its qualification that declarations do not establish rendered
   pulse absence or animation runs.
 
+## Done
+
+### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the GTK 3 selection-marquee declaration check a focused
+module outside the oversized views suite. This is independent of the queued
+accelerator-editor relocation and pending header drag-and-drop extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_rubberband` from `tests/test_gtk_theme_views.py`
+to new `tests/test_gtk_theme_rubberband.py::TestGtkThemeRubberband`,
+preserving its body. Inherit `support.gtk_rule_cases.GtkSheetRuleCases`
+and `unittest.TestCase`; import `ROOT` from `support.repo_root` and set
+`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+The base already supplies `assert_rubberband`, parsed rules and the order
+assertion; no shared-helper change is needed. Update the views routing
+docstring and both GTK 3 rubberband rows in `docs/invariants.md` to the new
+anchor, retaining their guarantees and provenance. Search
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` for other moved anchors. Keep GTK 4 coverage and theme
+sheets outside this relocation.
+
+**Acceptance criteria.**
+
+- Discovery exposes `test_rubberband` in the destination without a duplicate
+  in views or inherited shared-control tests in the destination. Source and
+  destination pass independently through project check selectors.
+- The moved check retains the exact bare and view-specific rubberband
+  selector inventory and existing recipe assertions. Altering the
+  `flowbox rubberband` border or adding a rubberband selector fails it.
+- Moving the rubberband group before the white `.view` group fails the
+  moved order assertion.
+- Both invariant anchors resolve and full `make check` passes. This is a
+  declaration-test relocation with no new rendered-pixel claim.
 
 ### GTK 3 suite extraction: isolate accelerator-editor declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
