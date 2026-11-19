@@ -63,8 +63,9 @@ def applet_problem(applet_id: str, data_roots=None) -> str | None:
     package.) With ``data_roots`` unset the roots come from
     :func:`data_roots_from_environment`; a root whose
     ``plasma/plasmoids/<id>/metadata.json`` is a plain file ends the search
-    with ``None``, and the returned problem names the id and every root that
-    was searched.
+    with ``None``. Ubuntu's split applet layout also counts its Qt 6 plugin at
+    ``<prefix>/lib/<arch>/qt6/plugins/plasma/applets/<id>.so``. The returned
+    problem names the id and every data root that was searched.
     """
     if not isinstance(applet_id, str):
         raise ValueError(
@@ -87,8 +88,21 @@ def applet_problem(applet_id: str, data_roots=None) -> str | None:
     for root in roots:
         if (Path(root) / relative).is_file():
             return None
+        prefix = Path(root).parent
+        for library_root in (prefix / "lib", prefix / "lib64"):
+            plugin = (
+                library_root / "qt6" / "plugins" / "plasma" / "applets"
+                / f"{applet_id}.so"
+            )
+            if plugin.is_file() or any(
+                library_root.glob(
+                    f"*/qt6/plugins/plasma/applets/{applet_id}.so"
+                )
+            ):
+                return None
     searched = ", ".join(str(root) for root in roots)
     return (
         f"required applet package not found: {applet_id} "
-        f"(no plasma/plasmoids/{applet_id}/metadata.json under {searched})"
+        f"(no plasma/plasmoids/{applet_id}/metadata.json or Qt 6 applet plugin "
+        f"under {searched})"
     )

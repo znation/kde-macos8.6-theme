@@ -47,6 +47,16 @@ class TestAppletFinder(unittest.TestCase):
         roots = [self.homed_style / "unused", self.dirs_style]
         self.assertIsNone(render_applet.applet_problem(APPLET, roots))
 
+    def test_found_via_split_architecture_plugin_layout(self):
+        root = Path(self.tmp.name) / "usr" / "share"
+        plugin = (
+            root.parent / "lib" / "x86_64-linux-gnu" / "qt6" / "plugins"
+            / "plasma" / "applets" / f"{APPLET}.so"
+        )
+        plugin.parent.mkdir(parents=True)
+        plugin.touch()
+        self.assertIsNone(render_applet.applet_problem(APPLET, [root]))
+
     def test_the_first_matching_root_wins(self):
         roots = [self.homed_style, self.dirs_style]
         self.assertIsNone(render_applet.applet_problem(APPLET, roots))
@@ -71,7 +81,8 @@ class TestAppletFinder(unittest.TestCase):
         other.mkdir()
         problem = render_applet.applet_problem(APPLET, [bare, other])
         self.assertIn(
-            f"no plasma/plasmoids/{APPLET}/metadata.json under "
+            f"no plasma/plasmoids/{APPLET}/metadata.json or Qt 6 applet plugin "
+            "under "
             f"{bare}, {other}",
             problem,
         )
