@@ -1,11 +1,11 @@
-"""Validate the GTK 3 Platinum sheet's views, menus and dialogs.
+"""Validate the GTK 3 Platinum sheet's views and dialogs.
 
 This module owns the views-and-dialogs slice of
 ``tests/test_gtk_theme.py``'s split: the file chooser's path-bar tabs and
 places sidebar, the stack switcher, the list and icon-view focus outlines,
 the header's drop indicators, the spin-button field, the message dialog's
-header band and action area, the title-button boxes, and the menus with
-their scroll arrows, separators, checks and shipped icon sources. The
+header band and action area, and the title-button boxes. Menu declarations
+are in ``tests/test_gtk_theme_menu.py``; shipped icon-source checks stay here. The
 sheet's comment blocks carry each value's provenance.
 """
 
@@ -15,14 +15,10 @@ from pathlib import Path
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     CHECK_GLYPH,
-    DISABLED_TEXT,
-    BUTTON_BEVEL,
-    MENU_CHECK,
     ROW_HOVER,
     MIXED_GLYPH,
     RADIO_GLYPH,
     SELECTION_CHECK_STATES,
-    SUBMENU_ARROW,
     TILE_CHECK_FACE,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
@@ -38,78 +34,8 @@ from support.repo_root import ROOT
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
-MENU_SCROLL_UP = ("menu > arrow.top", ".menu > arrow.top", ".context-menu > arrow.top")
-MENU_SCROLL_DOWN = (
-    "menu > arrow.bottom",
-    ".menu > arrow.bottom",
-    ".context-menu > arrow.bottom",
-)
-
 class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
-
-    def test_menu(self):
-        for selector in ("menu", ".menu", "popover", ".popover"):
-            self.assert_rule(selector, {
-                "background-color": FACE,
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            })
-        for selector in ("menuitem:hover", ".menuitem:hover",
-                         "popover modelbutton:hover", "popover modelbutton:selected"):
-            self.assert_rule(selector, {"background-color": SELECTION})
-
-    def test_menu_row_state_faces(self):
-        """Pin the existing menu-row and menu-bar-title faces under every state.
-
-        The nine appended arms rest the toolkit resource's
-        higher-specificity classic-menu state spellings so a hovered row or
-        hovered or open menu-bar title keeps the selection fill with black
-        text, a disabled or backdropped row keeps black rest text and the
-        inactive grey when disabled, and a `:dir` arrow keeps the shipped
-        submenu triangle in both text directions; the exact stock arms live
-        in docs/invariants.md.
-        """
-        hover = (
-            "menu menuitem:hover", ".menu menuitem:hover",
-            ".context-menu menuitem:hover", "menu menuitem:backdrop:hover",
-            ".menu menuitem:backdrop:hover", ".context-menu menuitem:backdrop:hover",
-        )
-        self.assert_rule_group({s: {"color": BLACK, "background-color": SELECTION} for s in hover})
-        backdrop = ("menu menuitem:backdrop", ".menu menuitem:backdrop", ".context-menu menuitem:backdrop")
-        self.assert_rule_group({s: {"color": BLACK} for s in backdrop})
-        menubar_hover = ("menubar > menuitem:hover", ".menubar > menuitem:hover")
-        self.assert_rule_group({s: {"color": BLACK, "box-shadow": "none"} for s in menubar_hover})
-        disabled = (
-            "menu menuitem:disabled", ".menu menuitem:disabled", ".context-menu menuitem:disabled",
-            "menu menuitem:disabled:backdrop", ".menu menuitem:disabled:backdrop",
-            ".context-menu menuitem:disabled:backdrop", "menubar > menuitem:disabled",
-            ".menubar > menuitem:disabled",
-        )
-        self.assert_rule_group({s: DISABLED_TEXT for s in disabled})
-        # The inactive grey is re-derived from the colour scheme, as the
-        # existing disabled-text callers do.
-        self.assert_disabled_text(disabled)
-        arrows = (
-            "menu menuitem arrow:dir(ltr)", ".menu menuitem arrow:dir(ltr)",
-            ".context-menu menuitem arrow:dir(ltr)", "menu menuitem arrow:dir(rtl)",
-            ".menu menuitem arrow:dir(rtl)", ".context-menu menuitem arrow:dir(rtl)",
-        )
-        self.assert_rule_group({s: SUBMENU_ARROW for s in arrows})
-        # Source order: every appended spelling sits after the existing
-        # `menuitem:hover` and `menubar > menuitem` selectors, so the
-        # byte-equal stock twins win the equal-specificity ties under the
-        # lower-sheet reading of how the toolkit resource competes.
-        for selector in hover + backdrop + disabled + arrows + menubar_hover:
-            with self.subTest(selector=selector):
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("menuitem:hover"),
-                )
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("menubar > menuitem"),
-                )
 
     def test_path_bar_tabs(self):
         forms = {
@@ -973,132 +899,11 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                     self.selectors.index("popover.emoji-picker .emoji :hover"),
                 )
 
-    def test_menu_scroll_arrows(self):
-        for selector in MENU_SCROLL_UP:
-            self.assert_rule(
-                selector,
-                {
-                    "-gtk-icon-source": 'url("../assets/arrow-up.svg")',
-                    "border-radius": "0",
-                },
-            )
-        for selector in MENU_SCROLL_DOWN:
-            self.assert_rule(
-                selector,
-                {
-                    "-gtk-icon-source": 'url("../assets/arrow-down.svg")',
-                    "border-radius": "0",
-                },
-            )
-
-    def test_menu_scroll_arrow_faces(self):
-        """Pin the menu scroll-arrow face restatement."""
-        # Stock paints the menu's scroll arrows with an opaque
-        # white face, a grey hover wash and a near-white backdrop tile, and
-        # no collected reference screenshot shows the arrows, so each state
-        # arm below restates the existing plain `button.flat` family's
-        # dictionary at the arrow's own exact stock spelling, later source
-        # order winning the tie per-property.
-        raised = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-            "transition": "none",
-        }
-        disabled = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        for selector in (
-            "menu > arrow",
-            ".menu > arrow",
-            ".context-menu > arrow",
-            "menu > arrow:hover",
-            ".menu > arrow:hover",
-            ".context-menu > arrow:hover",
-            "menu > arrow:backdrop",
-            ".menu > arrow:backdrop",
-            ".context-menu > arrow:backdrop",
-        ):
-            self.assertEqual(self.selectors.count(selector), 1, selector)
-            self.assertEqual(self.rules[selector], raised, selector)
-        for selector in (
-            "menu > arrow:disabled",
-            ".menu > arrow:disabled",
-            ".context-menu > arrow:disabled",
-        ):
-            self.assertEqual(self.selectors.count(selector), 1, selector)
-            self.assertEqual(self.rules[selector], disabled, selector)
-        # The token sweep keys on a substring no other existing selector
-        # carries: a dropped twin, a renamed spelling, a lost comma member
-        # or a stray extra rule fails.
-        self.assertEqual(
-            {selector for selector in self.selectors if "menu > arrow" in selector},
-            set(MENU_SCROLL_UP) | set(MENU_SCROLL_DOWN)
-            | {
-                "menu > arrow",
-                ".menu > arrow",
-                ".context-menu > arrow",
-                "menu > arrow:hover",
-                ".menu > arrow:hover",
-                ".context-menu > arrow:hover",
-                "menu > arrow:backdrop",
-                ".menu > arrow:backdrop",
-                ".context-menu > arrow:backdrop",
-                "menu > arrow:disabled",
-                ".menu > arrow:disabled",
-                ".context-menu > arrow:disabled",
-            },
-        )
-        # Source order: every appended spelling files after the existing
-        # glyph group, so the restated faces decide the equal-specificity
-        # race against the stock arms.
-        for selector in (
-            "menu > arrow",
-            ".menu > arrow",
-            ".context-menu > arrow",
-            "menu > arrow:hover",
-            ".menu > arrow:hover",
-            ".context-menu > arrow:hover",
-            "menu > arrow:backdrop",
-            ".menu > arrow:backdrop",
-            ".context-menu > arrow:backdrop",
-            "menu > arrow:disabled",
-            ".menu > arrow:disabled",
-            ".context-menu > arrow:disabled",
-        ):
-            self.assertGreater(
-                self.selectors.index(selector),
-                self.selectors.index("menu > arrow.top"),
-            )
-
     def test_icon_sources_resolve_to_shipped_files(self):
         self.assert_icon_sources_resolve()
 
     def test_icon_sources_point_at_shipped_assets(self):
         self.assert_shipped_asset_urls()
-
-    def test_menu_check_and_radio_are_boxless(self):
-        for selector in (
-            "menu menuitem check",
-            "menu menuitem radio",
-            "popover modelbutton check",
-            "popover modelbutton radio",
-        ):
-            self.assert_rule(selector, MENU_CHECK)
-
-    def test_menu_separator(self):
-        self.assert_menu_separator(("menu separator", ".menu separator"))
 
     def test_titlebutton_separator_hidden(self):
         for selector in (

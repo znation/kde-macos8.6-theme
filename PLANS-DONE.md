@@ -5,6 +5,47 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate menu declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the menu declarations in the oversized
+`tests/test_gtk_theme_views.py` a focused suite, independent of the queued
+inline-link extractions. This relocates existing coverage.
+
+**Approach and files touched.** Move `TestGtkThemeViews.test_menu`,
+`test_menu_row_state_faces`, `test_menu_scroll_arrows`,
+`test_menu_scroll_arrow_faces`, `test_menu_check_and_radio_are_boxless`
+and `test_menu_separator` into new
+`tests/test_gtk_theme_menu.py::TestGtkThemeMenu`, preserving bodies,
+comments and provenance. Inherit `support.gtk_rule_cases.GtkSheetRuleCases`
+and `unittest.TestCase`; set `CSS_PATH` to
+`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`, importing `ROOT`
+from `support.repo_root`. Move `MENU_SCROLL_UP` and `MENU_SCROLL_DOWN`
+with their callers. Import `BUTTON_BEVEL`, `MENU_CHECK`, `SUBMENU_ARROW`
+and `DISABLED_TEXT` from `support.gtk_theme_spec`, and `BLACK`, `FACE`
+and `SELECTION` from `support.platinum_palette`; prune source imports
+only where no caller remains. Keep the sheet-wide icon-source checks in
+the source module. Update its routing docstring and repoint the moved
+anchors in `docs/invariants.md`, including prose anchors outside the
+test column. Search `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for further moved anchors.
+Theme sheets and shared helpers need no changes.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named cases in the destination without duplicate
+  methods in the source or inherited shared-control tests in the destination.
+  Both modules pass independently through the project's check selectors.
+- Menu shells, hover and backdrop rows, disabled ink re-derived from the
+  scheme, directional submenu glyphs, boxless indicators and etched
+  separators retain their existing declaration checks and source-order pins.
+  Replacing a hovered row's selection fill with white fails a moved check.
+- Scroll arrows retain exact glyph and face dictionaries, occurrence
+  checks, selector-family sweep and ordering after the glyph group.
+  Adding an extra scroll-arrow state or duplicating a base selector fails
+  a moved check.
+- Invariant anchors resolve and full `make check` passes. This relocation
+  adds no rendered-pixel claim.
+
 ### GTK 3 suite extraction: isolate selected-context inline links (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Put selected-context inline-link declaration checks in a focused
