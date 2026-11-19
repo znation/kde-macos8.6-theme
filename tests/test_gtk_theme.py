@@ -6,8 +6,8 @@ reference screenshot shows a GTK widget, so most GTK geometry is this
 theme's adaptation. This module holds the sheet-level invariants and the
 windows, bands and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
-``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar and application
-notification declarations live in focused suites.
+``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar, assistant
+sidebar and application notification declarations live in focused suites.
 """
 
 from __future__ import annotations
@@ -758,36 +758,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
         link = self.css.index("button:link, button:visited {")
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
-
-    def test_assistant_sidebar_arms(self):
-        # No reference screenshot shows a GTK assistant sidebar, so the
-        # five stock sidebar arms rest on existing faces: WHITE for the
-        # sidebar field, ETCH_DARK for the top edge (the existing etched
-        # band edge the infobar reuses) and FACE for the active-step
-        # label — a wizard's current page is not a selected row, so no
-        # selection blue applies. Stock's own padding and csd shape stay
-        # byte-equal, and the backdrop window keeps the existing face per
-        # the existing button:backdrop keep-the-existing-face policy.
-        expected = {
-            "assistant .sidebar": {
-                "background-color": WHITE,
-                "border-top": "1px solid " + ETCH_DARK,
-            },
-            "assistant.csd .sidebar": {"border-top-style": "none"},
-            "assistant .sidebar label": {"padding": "6px 12px"},
-            "assistant .sidebar label.highlight": {"background-color": FACE},
-        }
-        for selector, rule in expected.items():
-            self.assertEqual(self.selectors.count(selector), 1, selector)
-            self.assertEqual(self.rules[selector], rule, selector)
-        self.assertEqual(
-            {s for s in self.rules if "assistant" in s}, set(expected)
-        )
-        self.assertNotIn("assistant .sidebar:backdrop", self.rules)
-        self.assert_rule_after(
-            "assistant .sidebar {",
-            "infobar > revealer > box {",
-        )
 
     def test_search_bar(self):
         self.assert_infobar(("searchbar > revealer > box",))

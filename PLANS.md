@@ -110,49 +110,11 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate assistant sidebar declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the GTK 3 assistant sidebar declaration check a focused
-module outside `tests/test_gtk_theme.py`. This is independent of the
-infobar and application notification extractions. The archived assistant
-sidebar feature adds the styling; the GTK 4 corner extraction covers a
-different sheet and check.
-
-**Approach and files touched.** Move
-`TestGtkTheme.test_assistant_sidebar_arms`, preserving its body and
-provenance comment, to new
-`tests/test_gtk_theme_assistant.py::TestGtkThemeAssistant`. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, binding
-`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-Import `ROOT` from `support.repo_root`, `FACE` and `WHITE` from
-`support.platinum_palette`, and `ETCH_DARK` from
-`support.gtk_theme_spec`, plus `unittest`. Do not inherit
-`GtkSharedControlCases` or import another test module. Update the source
-routing docstring and remove imports only when unused. Repoint the moved
-anchor in `docs/invariants.md`, preserving provenance. Search
-`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
-`tests/support/` for other moved anchors. Leave shared helpers, theme
-sheets and production tools unchanged.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named method in the new class without a duplicate
-  in `TestGtkTheme` or inherited shared-control tests in the new module.
-  Source and destination run independently through check selectors.
-- The sidebar field, etched top edge, CSD border drop, label padding and
-  active-step face retain their exact declaration and count checks.
-  Changing the active-step face to selection blue fails the moved check.
-- The assistant selector census still rejects an extra assistant rule,
-  including a backdrop arm, and placing the sidebar rule before the
-  infobar band still fails the source-order assertion.
-- Invariant anchors resolve, focused source and destination checks pass,
-  and full `make check` passes. No rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate auxiliary band declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the related search, location, action and status band
 declaration checks a focused home outside `tests/test_gtk_theme.py`.
-This is independent of the waiting assistant extraction. The existing
+This is independent of the assistant-sidebar extraction. The existing
 `tests/test_gtk_theme_bars.py` owns menu/toolbar declarations and a notebook
 render probe; keep that scope separate from these declaration-only checks.
 
