@@ -105,6 +105,8 @@ the ordinary-failure guarantee stands. A fix belongs to the capture
 
 ### `test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Needs review 2026-11-18 by director: Decide whether to park this failure pending a recurrence with coordinates. Current code review confirms that `TestDesktopRender.assert_pixel` includes `(x, y)` and passes the expected colour first to `assertEqual`; the reported `'#CCCCCC' != '#000000'` therefore identifies an observed black pixel in the gray desktop loop (y=20..399), but does not establish why it was black. This supersedes the older review note's statements that the region is unidentified and the coordinate diagnostic is absent. Recommend parking pending that evidence; no cause was established by this review.**
+
 **Needs review 2026-11-18 by director: Decide whether to park this unexplained pixel mismatch until a recurrence supplies the failing coordinate and expected/observed colors. Code review found that `TestDesktopRender.test_bar_rows_pin_the_platinum_structure` checks panel rows and the desktop background; the report does not identify which region failed. In this worktree, `TestDesktopRender.assert_pixel` still lacks the coordinate diagnostic described in the handoff. Recommend parking pending that evidence; the cause remains unconfirmed.**
 
 **Director handoff 2026-11-18**
