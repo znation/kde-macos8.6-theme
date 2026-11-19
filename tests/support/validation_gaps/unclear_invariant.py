@@ -399,7 +399,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-define-color-in-quoted-value",
         ("invents a colour from a @define-color inside a quoted value",),
-        "tests/test_gtk_css.py::TestRuleBlockSemantics"
+        "tests/test_gtk_css_define_color.py::TestDefineColorScan"
         "::test_a_define_color_inside_a_quoted_value_is_text",
         "A quoted string is literal to the comment, block and "
         "`@define-color` scanners too, so a comment marker, a brace or a "
