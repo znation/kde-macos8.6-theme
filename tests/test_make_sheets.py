@@ -23,6 +23,23 @@ def write(path: Path, text: str) -> Path:
     return path
 
 
+def firefox_header_problems(text: str) -> list[str]:
+    """Return what is wrong with a Firefox ``000-header.css``, empty when it is sound.
+
+    The header must open with a comment, hold exactly one comment, and end
+    with that comment's closing ``*/`` line, so no rule follows it.
+    """
+    problems = []
+    nonblank = [line for line in text.splitlines() if line.strip()]
+    if not nonblank or not nonblank[0].startswith("/*"):
+        problems.append("does not start with a comment")
+    if text.count("/*") != 1 or text.count("*/") != 1:
+        problems.append("does not hold exactly one comment")
+    if not nonblank or not nonblank[-1].rstrip().endswith("*/"):
+        problems.append("last non-blank line is not */")
+    return problems
+
+
 class TestShippedSheetIsFresh(unittest.TestCase):
     """The shipped sheets are the concatenation of their checked-in partials."""
 
@@ -52,6 +69,34 @@ class TestShippedSheetIsFresh(unittest.TestCase):
                         first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
                         f"{partial.name} does not start at a top-level comment or rule",
                     )
+
+    def test_every_firefox_partial_starts_at_top_level_and_is_capped_except_the_header(self):
+        for sheet in ("userChrome", "userContent"):
+            source = ROOT / "theme/firefox/src" / sheet
+            partials = sorted(source.glob("*.css"))
+            self.assertTrue(partials, f"no Firefox partials under {source}")
+            for partial in partials:
+                with self.subTest(partial=partial.relative_to(ROOT).as_posix()):
+                    text = partial.read_text(encoding="utf-8")
+                    lines = text.splitlines()
+                    if partial.name == "000-header.css":
+                        self.assertEqual(firefox_header_problems(text), [])
+                        continue
+                    self.assertLessEqual(len(lines), MAX_PARTIAL_LINES)
+                    first = lines[0]
+                    self.assertTrue(
+                        first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
+                        f"{partial.name} does not start at a top-level comment or rule",
+                    )
+
+    def test_a_firefox_header_with_a_rule_after_its_comment_is_rejected(self):
+        header = "/* sheet header */\n\ntooltip {\n  color: #000000 !important;\n}\n"
+        problems = firefox_header_problems(header)
+        self.assertTrue(problems, "a rule after the header comment must be reported")
+        self.assertIn("last non-blank line is not */", problems)
+
+    def test_a_firefox_header_holding_only_its_comment_is_accepted(self):
+        self.assertEqual(firefox_header_problems("/* one\n   two */\n\n"), [])
 
 
 class TestSheetBytes(unittest.TestCase):

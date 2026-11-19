@@ -1,0 +1,452 @@
+/* org.macos8.desktop Firefox content, standalone userContent.css
+
+   Provenance exception: no reference screenshot in macos8.6-screenshots/
+   shows Firefox's about:downloads, about:config, about:preferences,
+   about:support or about:networking pages, so this sheet samples no reference
+   pixel directly. Their paint adapts the shared Platinum palette and this
+   theme's fields, rows, buttons, check boxes, radio circles and etched bands.
+   The surface-specific provenance and reference pins follow below.
+
+   No reference shows Firefox's about:downloads list field; its white face,
+   square 1px black outline and sunken #999999 top-left shadow adapt
+   widgets/lineedit.svg's face, outline and shadow, the same paint this
+   theme's userChrome.css find bar applies to .findbar-textbox
+   (platform colour adaptation 2026-10-26). The white view background is
+   pinned by
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_view_background
+   and the line-edit face by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit.test_lineedit_face_is_white
+   and test_lineedit_colours.
+
+   No reference shows Firefox's selected downloads row; the flat #CCCCFF
+   black-text selection adapts widgets/listitem.svg's pressed slices with no
+   hover highlight, pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem.test_listitem_selection_is_flat_selection_colour
+   and test_listitem_normal_has_no_fill; #CCCCFF is the pinned
+   [Colors:Selection] token of
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Square rows are set directly on richlistitem because the page shares no
+   radius token with the chrome panels.
+
+   In the installed Firefox ESR 153.5.1, browser/omni.ja
+   chrome/browser/content/browser/downloads/contentAreaDownloadsView.xhtml
+   defines <window id="contentAreaDownloadsView"> around
+   <richlistbox id="downloadsListBox" class="allDownloadsListBox">, and
+   chrome/browser/content/browser/downloads/allDownloadsView.js builds each
+   row as a richlistitem with the download and download-state classes.
+   chrome/browser/skin/classic/browser/downloads/allDownloadsView.inc.css
+   sets #downloadsListBox > richlistitem { min-height: 4.5em } and paints no
+   row hover background, leaving the .downloadButton its own hover.
+   chrome/toolkit/skin/classic/global/richlistbox.css paints richlistbox with
+   appearance: auto, background-color: Field, color: FieldText and
+   border: 1px solid ThreeDShadow, and paints richlistitem[selected="true"]
+   with -moz-cellhighlight / SelectedItem;
+   chrome/browser/content/browser/downloads/contentAreaDownloadsView.css
+   hides an empty #downloadsListBox with
+   #downloadsListBox:empty { display: none; }. browser/omni.ja
+   defaults/preferences/firefox.js sets
+   browser.tabs.remote.separatePrivilegedContentProcess true, so
+   about:downloads runs in a content process where userContent.css applies. A
+   headless run of this ESR with a temporary profile whose userContent.css
+   held an @-moz-document url("about:downloads") rule painting the page
+   background red rendered the page red, confirming both the URL match and
+   this sheet's reach; declaration checks do not establish rendered list
+   pixels.
+
+   The :not(:empty) guard leaves Firefox's hidden empty-list state
+   (#downloadsListBox:empty { display: none; }). No
+   rule is added for the page background, .downloadButton, #downloadsHistory,
+   #downloadsListEmptyDescription or the #downloadsContextMenu context menu.
+   make install-firefox copies this sheet into the profile's
+   chrome/userContent.css and adds the stylesheet preference to its user.js;
+   make remove-firefox removes both.
+
+   No reference shows Firefox's about:config page; its preference table
+   (#prefs), search field (#about-config-search), Show All button (#show-all)
+   and warning-page primary button (#warningButton) adapt this theme's
+   Platinum controls (platform colour adaptation 2026-10-26). The white square
+   sunken field adapts widgets/lineedit.svg, the rows adapt
+   widgets/listitem.svg (which paints no hover highlight; the flat #CCCCFF
+   hover adapts widgets/viewitem.svg, pinned by test_selection_background),
+   the alternate #EEEEEE row is the pinned [Colors:View] BackgroundAlternate
+   trough (test_view_background_alternate), and the #DDDDDD push buttons with
+   their white/#AAAAAA bevel adapt widgets/button.svg, pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference.
+
+   In the installed Firefox ESR 153.5.1,
+   chrome/toolkit/content/global/aboutconfig/aboutconfig.html defines the ids,
+   aboutconfig.js builds each row and disables the info-pages.css ("infop")
+   sheet for the main page, and aboutconfig.css with
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css owns the
+   stock table and control paint. A headless run of this ESR with
+   browser.aboutConfig.showWarning=false reached the page and rendered the
+   search field's square black border and the Show All button's #DDDDDD face;
+   declaration checks do not establish rendered row pixels.
+
+   No reference shows Firefox's about:preferences; its category navigation
+   adapts this theme's Platinum list rows. The rows adapt
+   widgets/listitem.svg (flat #CCCCFF selection with black text and no
+   separate selected affordance) and widgets/viewitem.svg (flat #CCCCFF
+   hover), with #CCCCFF the pinned selection token
+   (test_selection_background): a platform colour adaptation 2026-10-27.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/preferences/preferences.xhtml builds the sidebar as moz-page-nav#categories of moz-page-nav-button
+   hosts whose chrome/toolkit/content/global/elements/moz-page-nav-button.css
+   paints the inner a[href]/button from the :host tokens with no ::part
+   exposed, so this sheet overrides those tokens on the host element. A
+   headless run of this ESR on 2026-10-27 confirmed the URL match, this
+   sheet's reach and that outer-sheet custom properties override the shadow
+   :host defaults; declaration checks do not establish rendered row pixels.
+   The sidebar's separators follow: the mid-list #nav-separator is document
+   light DOM (moz-page-nav.mjs slots it and styles hr only in its own shadow
+   tree, whose rules cannot match slotted content) and gets the full etched
+   widgets/line.svg pair pinned by tests/test_desktoptheme_line.py, while
+   the shadow hr and the :host inline-end border each take one colour
+   through one custom property, so they carry the dark half alone as this
+   theme's own choice. The token names come from
+   chrome/toolkit/content/global/elements/moz-page-nav.css and
+   moz-page-nav.tokens.css (2026-10-27) and the token route reuses the
+   headless verification the rows' adaptation recorded. The pane follows:
+   Firefox paints the page from :root's background-color-canvas in
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css and each
+   heading band from .subcategory's border-top in
+   chrome/browser/skin/classic/browser/preferences/preferences.css (both
+   read 2026-10-27), the hbox.subcategory rows of #mainPrefPane that hold
+   each pane's html:h1 and the search-results html:h2; the page takes the
+   reference-grounded white view background (test_window_view_background)
+   and each band the part 2 etch with black text and an inset white half
+   over the band's own padding, no geometry changed; the panes' controls
+   stay Firefox's for a later part; declaration checks do not establish
+   rendered pane pixels; declaration checks do not establish rendered
+   separator pixels. The panes' search field follows: preferences.xhtml
+   builds it as html:moz-input-search#searchInput (in the installed Firefox
+   ESR 153.5.1, chrome/browser/content/browser/preferences/preferences.xhtml
+   line ~237), a shadow-DOM custom element whose inner #input is styled by
+   chrome/toolkit/content/global/elements/moz-input-text.css exclusively
+   through tokens — border: var(--input-text-border),
+   border-radius: var(--input-text-border-radius),
+   background-color: var(--input-text-background-color),
+   color: var(--input-text-color) — with the magnifier icon filled by
+   var(--icon-color) through -moz-context-properties and no ::part()
+   exposed; token defaults come from
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   (all three read 2026-10-27). The field adapts this theme's white-face
+   1px-black-outline line edit only through #FFFFFF and #000000
+   (widgets/lineedit.svg, platform colour adaptation 2026-10-27): the five
+   tokens --input-text-border, --input-text-border-radius,
+   --input-text-background-color, --input-text-color and --icon-color are
+   overridden on the host element, the token route reusing part 1's
+   headless verification that outer-sheet custom properties override the
+   shadow :host defaults; moz-input-text.css reads no shadow token, so the
+   line edit's sunken bevel (inset 1px 1px #999999, this sheet's own
+   FIELD_RULE recipe) is not delivered and the field ships as the outline,
+   face, text and icon only, with geometry, the disabled state and any
+   focus indicator Firefox's; declaration checks do not establish rendered
+   field pixels.
+
+   The panes' push buttons follow: preferences.xhtml authors every pane's
+   buttons inside vbox#mainPrefPane's html:templates (42 button elements,
+   enumerated by a full walk of preferences.xhtml 2026-10-27), and in the
+   installed Firefox ESR 153.5.1
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css paints
+   each one from tokens defined in
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css and
+   tokens-brand.css, with
+   chrome/browser/skin/classic/browser/preferences/preferences.css owning
+   the page's own button classes (all read 2026-10-27). Every button inside
+   #mainPrefPane except the six class-.arrowhead disclosure arrows is the
+   sheet's square Platinum push button: the #DDDDDD face with a 1px black
+   outline and the reference's white/#AAAAAA raised bevel adapt
+   widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, the
+   #AAAAAA shadow being the pinned tests/support/platinum_palette.py
+   BUTTON_SHADOW sampled from the Get Info window's popup buttons in
+   aboutsystem_betawiki.png; an enabled hovered button is flat #CCCCFF with
+   black text and no bevel, the hover fill of widgets/viewitem.svg pinned
+   by tests/test_desktoptheme_viewitem.py and test_selection_background
+   (platform colour adaptation 2026-10-27). :not([disabled]) on the face
+   rule keeps a disabled button's Firefox disabled paint, and no pressed
+   rule is added, so a pressed enabled button keeps the flat #CCCCFF face
+   as on every other push button. Class .arrowhead and everything under
+   #dialogTemplate (the sub-dialog overlay) stay Firefox's, as do button
+   geometry (min-height, padding, margins and the .accessory-button
+   min-width), the inner hbox/label anatomy and the focus outline. Only
+   #FFFFFF, #000000, #DDDDDD, #AAAAAA and #CCCCFF appear, every one already
+   a member of the pinned palette (test_palette_is_exact); declaration
+   checks do not establish rendered pane-button pixels.
+
+   The panes' enabled XUL check boxes follow: preferences.xhtml authors
+   many checkbox elements inside vbox#mainPrefPane's groupboxes, and
+   chrome/toolkit/content/global/elements/checkbox.js appends a real
+   light-DOM image.checkbox-check fragment, so the sheet matches
+   .checkbox-check directly. chrome/toolkit/skin/classic/global/checkbox.css
+   paints the stock box (appearance: auto, -moz-default-appearance:
+   checkbox, and :not([native]) adding -moz-theme: non-native), and
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css sizes
+   the square xul|*.checkbox-check from --checkbox-size, resolving through
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   --size-item-small to 16px, with
+   chrome/browser/skin/classic/browser/preferences/preferences.css owning
+   the panes' checkbox margins (all read 2026-10-27 from the installed
+   Firefox ESR 153.5.1). Every enabled checkbox's .checkbox-check inside
+   #mainPrefPane is the Platinum square box: the #DDDDDD face with a 1px
+   black outline and the inner #FFFFFF top-left / #888888 bottom-right
+   bevel adapt the Kvantum checkbox-normal interior element of
+   theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg (the checked
+   box's checkbox-checked-normal element shares that arrangement, its
+   glyph replaced by the data-URI check below), pinned by
+   tests/test_kvantum_checkbox_reference.py; the checked glyph overlays
+   theme/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg's checkbox
+   path, the 2px black check, pinned by
+   tests/test_desktoptheme_checkmarks.py::TestCheckmarks, inlined as a
+   data-URI SVG whose black is written rgb(0, 0, 0) so the sheet gains no
+   new hex literal and test_palette_is_exact stays exact untouched
+   (platform colour adaptation 2026-10-27). No hover rule: the reference's
+   check box face does not change on hover and the Kvantum art ships no
+   hover state. :not([disabled]) keeps a disabled check box's whole
+   Firefox disabled paint (the push buttons' choice); the shadow-DOM
+   html:moz-checkbox elements, the XUL radio groups and the dialog check
+   boxes (under #dialogTemplate) match neither selector and stay Firefox's;
+   geometry (--checkbox-size), the label anatomy and the
+   checkbox:focus-visible focus outline stay Firefox's. Declaration checks
+   do not establish rendered checkbox pixels.
+
+   The panes' enabled XUL radio buttons follow: preferences.xhtml authors
+   11 XUL radio elements in 4 radiogroups inside #mainPrefPane and 0
+   shadow-DOM html:moz-radio elements, and
+   chrome/toolkit/content/global/elements/radio.js appends a real
+   light-DOM image.radio-check fragment, so the sheet matches
+   .radio-check directly. chrome/toolkit/skin/classic/global/radio.css
+   paints the stock disc (appearance: auto, -moz-default-appearance:
+   radio, its linux media rule setting width/height to 1.3em), and
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css sizes
+   the xul|*.radio-check disc from --checkbox-size alongside
+   .checkbox-check, so the box geometry stays Firefox's whichever sizer
+   wins (all read 2026-10-27 from the installed Firefox ESR 153.5.1).
+   Every enabled radio's .radio-check inside #mainPrefPane is the
+   Platinum circle face: the #FFFFFF face with a 1px black circular ring
+   and no bevel adapt the Kvantum radio-normal interior element of
+   theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg (the checked
+   radio-checked-normal element shares the arrangement with its dot
+   replaced by the data-URI dot below), and the selected dot overlays
+   theme/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg's
+   radiobutton circle, the black r=3 circle centred in its 16x16 cell,
+   pinned by tests/test_desktoptheme_checkmarks.py::TestCheckmarks,
+   inlined as a data-URI SVG whose black is written rgb(0, 0, 0) so the
+   sheet gains no new hex literal and test_palette_is_exact stays exact
+   untouched (platform colour adaptation 2026-10-27: the 14x14 Kvantum
+   cell scaled onto the 16px box and the dot taken 1:1 from the
+   desktoptheme element). The selected predicate is [selected], the
+   attribute radio.js's inheritedAttributes maps onto .radio-check and
+   the radiogroup sets on the chosen item. No hover rule: the reference's
+   radio face does not change on hover and the Kvantum art ships no radio
+   hover state. :not([disabled]) keeps a disabled radio's whole Firefox
+   disabled paint (the push-button and checkbox choice); the shadow-DOM
+   html:moz-radio elements and the #dialogTemplate dialog radios match
+   neither selector and stay Firefox's (the panes' entry fields and
+   menulists have their own paragraph below); geometry (the
+   --checkbox-size/1.3em box), the label anatomy, the disabled GrayText
+   colour and the radiogroup:focus-visible focus outline stay Firefox's.
+   Declaration checks do not establish rendered radio pixels.
+
+   The panes' enabled entry fields and menulists follow: preferences.xhtml
+   authors four html:input[type="text"] fields (#homePageUrl,
+   #dohEnabledInputField, #dohStrictInputField and the disabled
+   #fxaSyncComputerName) and eight XUL menulist elements
+   (#primaryBrowserLocale, #homeMode, #newTabMode, #blockCookiesMenu,
+   #trackingProtectionMenu, #fingerprintingProtectionMenu,
+   #dohEnabledResolverChoices and #dohStrictResolverChoices) as ordinary
+   light-DOM elements inside #mainPrefPane (all read 2026-10-27 from the
+   installed Firefox ESR 153.5.1, the pane document from browser/omni.ja
+   and the skin files from the root omni.ja).
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css paints
+   the fields border: 1px solid var(--border-color), border-radius:
+   var(--border-radius-medium), background-color:
+   var(--background-color-box) and color: inherit — rounded grey boxes
+   reading as nothing Platinum on the white page — and paints the
+   menulists with the buttons through the --button-* token recipe from
+   tokens-shared.css/tokens-brand.css, recolouring :hover and
+   [open="true"] and dimming the disabled; the field's focus outline and
+   :user-invalid error ring live in the same file.
+   chrome/toolkit/skin/classic/global/menulist.css gives the menulist's
+   shadow-tree dropmarker its arrow-down-12.svg content drawn
+   currentColor, so the arrow already follows the black text. Each
+   enabled field is the Platinum sunken line edit — the #FFFFFF face,
+   black text, square 1px black outline and the inset 1px 1px #999999
+   top-left shadow, the byte-recipe of the existing about:config
+   #about-config-search rule in this same sheet — adapting
+   theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference. Each enabled menulist is the existing
+   #mainPrefPane button push-button recipe — the #DDDDDD face with the
+   1px black outline and the #FFFFFF/#AAAAAA raised bevel — adapting
+   theme/desktoptheme/org.macos8.desktop/widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and
+   a hovered or [open="true"] menulist takes the existing
+   #mainPrefPane button:hover flat #CCCCFF no-bevel recipe, the
+   reference-grounded widgets/viewitem.svg selection fill pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.
+   test_selection_background (platform colour adaptation 2026-10-27).
+   The disabled #fxaSyncComputerName keeps Firefox's whole disabled
+   paint (the push buttons', checkboxes' and radios' :not([disabled])
+   choice), and the field rule's [type="text"] step keeps it from
+   widening past the authored population. Intentionally unscoped: the
+   dropdown menupopup lists and their stock styling, the field focus
+   outline and :user-invalid error ring, the dropmarker geometry and the
+   panes' sub-dialogs (separate documents this sheet does not reach) stay
+   Firefox's, and there is no field hover rule because lineedit.svg
+   ships no hover state. Geometry (min-height, padding, margin, font)
+   stays Firefox's. Declaration checks do not establish rendered field
+   or menulist pixels.
+
+   No reference shows Firefox's about:support troubleshooting page; its
+   #contents tables and ten page buttons adapt this theme's Platinum
+   controls (platform colour adaptation 2026-10-27). In the installed
+   Firefox ESR 153.5.1, chrome/toolkit/content/global/aboutSupport.xhtml is
+   the page loaded at about:support and aboutSupport.js builds its rows,
+   both light DOM (grep -c attachShadow returns 0 for each), so every node
+   these rules touch is reachable from a document-level rule; the markup
+   defines exactly ten <button id> elements — #copy-raw-data-to-clipboard
+   and #copy-to-clipboard in the page header, #reset-box-button,
+   #restart-in-safe-mode-button and #clear-startup-cache-button inside
+   .action-box, and #profile-dir-button, #enumerate-database-button,
+   #verify-place-integrity-button, #place-database-stats-toggle and
+   #support-printing-clear-settings-button inside #contents — with 26
+   <table> elements inside div#contents, 59 th class="column" header cells
+   plus four th class="name"/th class="value" cells, and
+   chrome/toolkit/skin/classic/global/aboutSupport.css painting
+   #codec-table's supported/unsupported washes on the tds themselves. Each
+   #contents table is the Platinum sunken list field — the #FFFFFF face,
+   square 1px #000000 outline and inset 1px 1px #999999 top-left shadow of
+   widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference — with the #EEEEEE alternate row of the pinned
+   [Colors:View] BackgroundAlternate trough
+   (test_view_background_alternate) beneath the codec table's own td
+   washes, so #codec-table's supported/unsupported status colours survive
+   while its outer face and outline become the field's; each th header cell
+   is the raised #DDDDDD header face of the existing Library content-tree
+   column headers (widgets/tabbar.svg's raised tab face, pinned by
+   tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
+   and the four name/value cells take the same face so one header run;
+   a hovered th and every enabled page button, the .action-box buttons
+   included, take the flat #CCCCFF black-text hover (the pinned
+   [Colors:Selection], test_selection_background), the buttons being the
+   existing #DDDDDD push button with the widgets/button.svg white/#AAAAAA
+   bevel pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference while
+   a :disabled button keeps Firefox's disabled paint. The page body,
+   its h1/h2 headings, the loaded-about paragraphs and the .action-box
+   card stay Firefox's. The `#contents table` selector matches all 26
+   tables aboutSupport.js builds inside div#contents — the Application
+   Basics details table and every generated helper sub-table — so they
+   all take the field, zebra and header paint above;
+   about:logins and about:addons are shadow-DOM pages with no ::part, so
+   this document-level sheet cannot reach them (out of scope here).
+   The page loads top-level in a tab like the existing about:config. A
+   headless run of this ESR on 2026-10-27 with a temporary profile whose
+   userContent.css held an @-moz-document url("about:support") recolour
+   rule painting body red and #contents table green rendered both,
+   confirming the URL match and this sheet's reach; declaration checks do
+   not establish rendered table pixels.
+
+   No reference shows Firefox's about:networking page; its .main-content
+   tables and four page buttons adapt this theme's Platinum controls
+   (platform colour adaptation 2026-10-27). In the installed Firefox
+   ESR 153.5.1, chrome/toolkit/content/global/aboutNetworking.html is
+   the page loaded at about:networking — an .html document, not .xhtml
+   like aboutSupport.xhtml — and aboutNetworking.js builds its tbody
+   rows, both light DOM (grep -c attachShadow returns 0 for each), so
+   every node these rules touch is reachable from a document-level rule;
+   div.main-content holds exactly ten <table> elements (one each in
+   #http, #sockets, #websockets, #altsvc and #networkid, three in #dns
+   and two in #dnslookuptool), each table > thead > tr > th plus a
+   JS-filled tbody, and the stock paint comes from the imported
+   chrome://global/skin/in-content/common.css plus aboutNetworking.css.
+   Each of the ten tables is the Platinum sunken list field — the #FFFFFF
+   face, square 1px #000000 outline and inset 1px 1px #999999 top-left
+   shadow of widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference — with the #EEEEEE alternate row of the pinned
+   [Colors:View] BackgroundAlternate trough
+   (test_view_background_alternate); each th header cell is the raised
+   #DDDDDD header face of the existing about:support column headers
+   (widgets/tabbar.svg's raised tab face, pinned by
+   tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
+   and a hovered th takes the flat #CCCCFF black-text hover (the pinned
+   [Colors:Selection], test_selection_background); each of the four
+   buttons — #refreshButton in the .header, #clearHTTPCache,
+   #clearDNSCache and #dnsLookupButton — is the existing #DDDDDD push
+   button with the widgets/button.svg white/#AAAAAA bevel pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference and
+   the same :disabled-guarded flat hover, a :disabled button keeping
+   Firefox's disabled paint. The #categories sidebar of .category divs,
+   the #host field and the #autorefcheck checkbox are the recorded
+   natural subjects of a later plan and are painted by the appended
+   rules: the rows reuse the existing about:preferences nav-row values
+   (the pinned #CCCCFF selection of test_selection_background and the
+   list-row border-radius: 0, the row selected by the [selected]
+   attribute only, which aboutNetworking.js flips and never a class),
+   the field reuses the existing line-edit recipe (widgets/lineedit.svg,
+   pinned by tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference), and the checkbox reuses the existing
+   about:preferences check-box face and its shipped check-mark data URI
+   (the #DDDDDD face with the inset 1px 1px #FFFFFF, inset -1px -1px
+   #888888 bevel, whose provenance the existing checkbox paragraph
+   records; a checked box, #autorefcheck:checked, overlays the shipped
+   glyph; #autorefcheck's stock --checkbox-size sizing from
+   in-content/common-shared.css stays Firefox's). The #sectionTitle
+   heading, the three hrs and the about-logging link paragraph stay
+   Firefox's. The page loads top-level in a tab like the existing
+   about:support. A headless run of this ESR on 2026-10-27 with a
+   temporary profile whose userContent.css held an
+   @-moz-document url("about:networking") recolour rule painting body
+   red and .main-content table green rendered both, confirming the URL
+   match and this sheet's reach; declaration checks do not establish
+   rendered table pixels.
+
+   No reference shows Firefox's about:telemetry page; its furniture — the
+   #categories sidebar rows, the .category-subsection rows, the #search
+   section-filter field, the #stores store menu and the #ping-picker panel —
+   is painted by an @-moz-document url("about:telemetry") body whose rules
+   aboutTelemetry.js outweigh (selection is the .category.selected class,
+   subsections are JS-added), the rows, field, menu and panel reusing the
+   existing about:networking/about:preferences recipes (the #CCCCFF selection
+   of test_selection_background, the line-edit recipe of
+   widgets/lineedit.svg with
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, the pane button/menulist byte-recipes
+   PANE_MENULIST_RULE and PANE_MENULIST_HOVER_RULE, and the sheet's white
+   face and black square outline for the panel, whose rounded shadowed
+   stock shape is Firefox's own light-scheme paint and no reference
+   screenshot shows this page) — a platform colour adaptation 2026-10-27;
+   the #sectionTitle heading and other page chrome stay Firefox's.
+
+   No reference shows the page's data payloads either; the JS-built
+   .main-content tables reuse the existing about:support/about:networking
+   arms byte-for-byte (the sunken white table field of FIELD_RULE, the
+   #EEEEEE zebra of TROUGH, the raised #DDDDDD th band of SUPPORT_TH_RULE,
+   the cleared cell borders of SUPPORT_CELL_RULE and the flat #CCCCFF
+   th:hover of BUTTON_HOVER_RULE), the .histogram box reuses the existing
+   #ping-picker panel values (the sheet's white face and square 1px solid
+   #000000 outline, no shadow), each bar's .bar-inner reuses the
+   Platinum progress fill as a flat adaptation (2026-10-28):
+   tests/test_desktoptheme_progressbar.py::TestProgressBar pins the
+   ten-row gradient in widgets/bar_meter_horizontal.svg; this histogram
+   instead uses the flat #CCCCFF selection fill with border: 0 and
+   border-radius: 0, its colour pinned by
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.
+   test_selection_background — and the .copy-node and #payload-json-viewer
+   buttons reuse the existing push-button recipes BUTTON_RULE and
+   BUTTON_HOVER_RULE (grounded in widgets/button.svg and
+   aboutsystem_betawiki.png, pinned by
+   tests/test_desktoptheme_button.py::TestButton and TestButtonReference);
+   the stock row hover (rgba(0,0,0,.05)), #raw-payload-data's stock
+   black-on-white text (aboutTelemetry.css paints no pre colour and the
+   page face is white) and the copy button's reveal-on-hover geometry stay
+   Firefox's — a platform colour adaptation 2026-10-27.
+*/
+

@@ -175,6 +175,10 @@ package. `PLACEHOLDERS.md` tracks this temporary artwork.
 The GTK 3 sheet, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, and the GTK 4 sheet,
 `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, are generated: each is the concatenation of the
 `*.css` partials in its family directory under theme/gtk/src (gtk-3.0 or gtk-4.0), joined in filename order.
+The Firefox chrome sheet, `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, and the Firefox
+content sheet, `theme/firefox/org.macos8.desktop/chrome/userContent.css`, are generated the same way
+from the partials in theme/firefox/src/userChrome and theme/firefox/src/userContent. Each sheet's
+`000-header.css` holds only its opening comment and is exempt from the 500-line cap.
 Edit the partials, never the shipped sheet, then run `python3 tools/make_sheets.py` to rewrite
 them. The output is deterministic, and the generator validates every partial before it writes.
 

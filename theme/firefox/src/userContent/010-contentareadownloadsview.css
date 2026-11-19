@@ -1,0 +1,489 @@
+@-moz-document url("about:downloads") {
+  #contentAreaDownloadsView #downloadsListBox:not(:empty) {
+    appearance: none !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #contentAreaDownloadsView #downloadsListBox > richlistitem {
+    border-radius: 0 !important;
+  }
+
+  #contentAreaDownloadsView #downloadsListBox > richlistitem[selected] {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+}
+
+/* about:config control adaptation 2026-10-26 */
+@-moz-document url("about:config") {
+  #prefs:not(:empty) {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #prefs > tr.odd {
+    background-color: #EEEEEE !important;
+  }
+
+  #prefs > tr:hover {
+    background-color: transparent !important;
+    color: #000000 !important;
+  }
+
+  #prefs > tr.odd:hover {
+    background-color: #EEEEEE !important;
+  }
+
+  #about-config-search {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #show-all,
+  #warningButton {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #show-all:hover:not(:disabled),
+  #warningButton:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* about:preferences category navigation adaptation 2026-10-27 */
+@-moz-document url("about:preferences") {
+  moz-page-nav-button {
+    --page-nav-button-background-color: transparent !important;
+    --page-nav-button-background-color-hover: #CCCCFF !important;
+    --page-nav-button-background-color-active: #CCCCFF !important;
+    --page-nav-button-background-color-selected: #CCCCFF !important;
+    --page-nav-button-text-color: #000000 !important;
+    --page-nav-button-text-color-hover: #000000 !important;
+    --page-nav-button-text-color-active: #000000 !important;
+    --page-nav-button-border-radius: 0 !important;
+    --page-nav-button-indicator-color: #000000 !important;
+    --page-nav-button-indicator-width: 0 !important;
+    --border-radius-small: 0 !important;
+  }
+
+  moz-page-nav {
+    --page-nav-border-color: #888888 !important;
+    --page-nav-hr-background-color: #888888 !important;
+  }
+
+  #nav-separator {
+    border: 0 !important;
+    border-top: 1px solid #888888 !important;
+    border-bottom: 1px solid #FFFFFF !important;
+  }
+
+  :root {
+    background-color: #FFFFFF !important;
+  }
+
+  .subcategory {
+    border-top-color: #888888 !important;
+    box-shadow: inset 0 1px 0 #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  moz-input-search#searchInput {
+    --input-text-border: 1px solid #000000 !important;
+    --input-text-border-radius: 0 !important;
+    --input-text-background-color: #FFFFFF !important;
+    --input-text-color: #000000 !important;
+    --icon-color: #000000 !important;
+  }
+
+  #mainPrefPane button:not(.arrowhead):not([disabled]) {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #mainPrefPane button:not(.arrowhead):not([disabled]):hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #mainPrefPane checkbox:not([disabled]) .checkbox-check {
+    appearance: none !important;
+    background-color: #DDDDDD !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888 !important;
+  }
+
+  #mainPrefPane checkbox:not([disabled])[checked] .checkbox-check {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+  }
+
+  #mainPrefPane radio:not([disabled]) .radio-check {
+    appearance: none !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #000000 !important;
+    border-radius: 50% !important;
+  }
+
+  #mainPrefPane radio:not([disabled])[selected] .radio-check {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='rgb(0, 0, 0)'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+  }
+
+  /* The panes' entry fields and menulists: the Platinum sunken line
+     edit and raised push button (see the header's provenance
+     paragraph). */
+  #mainPrefPane input[type="text"]:not([disabled]) {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #mainPrefPane menulist:not([disabled]) {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #mainPrefPane menulist:not([disabled]):hover,
+  #mainPrefPane menulist[open="true"]:not([disabled]) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* about:support tables and buttons adaptation 2026-10-27 (see the
+   header's provenance paragraph) */
+@-moz-document url("about:support") {
+  #contents table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #contents table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  #contents table th,
+  #contents table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #contents table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #contents table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #copy-raw-data-to-clipboard,
+  #copy-to-clipboard,
+  .action-box button,
+  #profile-dir-button,
+  #enumerate-database-button,
+  #verify-place-integrity-button,
+  #place-database-stats-toggle,
+  #support-printing-clear-settings-button {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #copy-raw-data-to-clipboard:hover:not(:disabled),
+  #copy-to-clipboard:hover:not(:disabled),
+  .action-box button:hover:not(:disabled),
+  #profile-dir-button:hover:not(:disabled),
+  #enumerate-database-button:hover:not(:disabled),
+  #verify-place-integrity-button:hover:not(:disabled),
+  #place-database-stats-toggle:hover:not(:disabled),
+  #support-printing-clear-settings-button:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* about:networking tables and buttons adaptation 2026-10-27 (see the
+   header's provenance paragraph) */
+@-moz-document url("about:networking") {
+  .main-content table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  .main-content table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  .main-content table th,
+  .main-content table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .main-content table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .main-content table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #refreshButton,
+  #clearHTTPCache,
+  #clearDNSCache,
+  #dnsLookupButton {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #refreshButton:hover:not(:disabled),
+  #clearHTTPCache:hover:not(:disabled),
+  #clearDNSCache:hover:not(:disabled),
+  #dnsLookupButton:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  /* The sidebar rows, the DNS-lookup field and the autorefresh checkbox
+     are the recorded natural subjects of a later plan: the rows take the
+     existing about:preferences nav-row paint, the field the existing line
+     edit and the checkbox the existing preferences check box face with its
+     shipped check-mark glyph. */
+  #categories > .category {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #categories > .category:hover,
+  #categories > .category:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories > .category[selected],
+  #categories > .category[selected]:hover,
+  #categories > .category[selected]:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  /* The DNS-lookup field: the Platinum line edit (see the header's
+     provenance paragraph). */
+  #host {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  /* The autorefresh checkbox: the existing preferences check box face and
+     its shipped check-mark glyph (see the header's provenance
+     paragraph). */
+  #autorefcheck {
+    appearance: none !important;
+    background-color: #DDDDDD !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888 !important;
+  }
+
+  #autorefcheck:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+  }
+}
+
+/* about:telemetry page furniture adaptation 2026-10-27 (see the header's
+   provenance paragraph) */
+@-moz-document url("about:telemetry") {
+  #categories > .category {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #categories > .category:hover,
+  #categories > .category:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories > .category.selected,
+  #categories > .category.selected:hover,
+  #categories > .category.selected:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories .category-subsection {
+    color: #000000 !important;
+  }
+
+  #categories .category-subsection.selected {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #search {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #stores {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #stores:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #ping-picker {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* The sections' data payloads (see the header's provenance
+     paragraph). */
+  .main-content table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  .main-content table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  .main-content table th,
+  .main-content table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .main-content table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .main-content table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .histogram {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .bar-inner {
+    background-color: #CCCCFF !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .copy-node,
+  #payload-json-viewer {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .copy-node:hover,
+  #payload-json-viewer:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Scrollbar colour adaptation 2026-10-30: no collected reference screenshot
+   shows a Firefox scrollbar, so this one top-level `scrollbar-color` rule —
+   the standard property from CSS Scrollbars Styling Level 1, supported since
+   Firefox 64 (probed as the toolkit's own colour mechanism by
+   `unzip -p /usr/lib/firefox-esr/omni.ja chrome/toolkit/res/scrollbars.css`
+   on 2026-10-30) — recolours every page scrollbar's thumb and trough with the
+   two faces of the desktop-theme scrollbar art pinned by
+   `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference`. Because the
+   property is inherited and user-origin important values outrank normal
+   author styles, a page that sets its own scrollbar-color keeps its paint;
+   the thumb's bevel, the trough and thumb outlines and the step boxes have no
+   property equivalent and stay the toolkit's, and the toolkit keeps the
+   scrollbar's geometry.
+*/
+:root {
+  scrollbar-color: #DDDDDD #EEEEEE !important;
+}

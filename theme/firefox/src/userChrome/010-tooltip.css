@@ -1,0 +1,497 @@
+tooltip {
+  appearance: none !important;
+  background-color: #FFFFCC !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Scrollbar colour adaptation 2026-10-30: no collected reference screenshot
+   shows a Firefox scrollbar, so the chrome UI scrollbars take the standard
+   scrollbar-color sweep (CSS Scrollbars Styling Level 1, supported since
+   Firefox 64 — probed as the toolkit's own colour mechanism by
+   `unzip -p /usr/lib/firefox-esr/omni.ja chrome/toolkit/res/scrollbars.css`
+   on 2026-10-30: the native-anonymous `scrollbar`, `thumb`, `scrollbarbutton`
+   and `scrollcorner` parts carry only `-moz-default-appearance:` scrollbar
+   declarations and no brandable class or id). The two faces reuse the
+   desktop-theme scrollbar art pinned by
+   `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference` — the flat
+   trough grounded in `setup_emaculation.png` and the thumb face of the same
+   artwork (`tests/support/platinum_palette.py`'s TROUGH and FACE). The
+   property carries exactly two colours, so the thumb's bevel, the 1px trough
+   and thumb outlines and the step boxes have no equivalent and stay the
+   toolkit's paint; geometry, band width, fade and steppers stay Firefox's.
+*/
+:root {
+  --lwt-accent-color: #DDDDDD !important;
+  --lwt-text-color: #000000 !important;
+  --toolbar-bgcolor: #DDDDDD !important;
+  --toolbar-color: #000000 !important;
+  --tab-selected-bgcolor: #EEEEEE !important;
+  --tab-selected-textcolor: #000000 !important;
+  --toolbarbutton-border-radius: 0 !important;
+  --toolbarbutton-background-color-hover: #EEEEEE !important;
+  --toolbarbutton-background-color-active: #CCCCFF !important;
+  --urlbar-box-background-color-hover: #EEEEEE !important;
+  --urlbar-box-background-color-active: #CCCCFF !important;
+  scrollbar-color: #DDDDDD #EEEEEE !important;
+}
+
+#navigator-toolbox {
+  background-color: #DDDDDD !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+#TabsToolbar {
+  background-color: #DDDDDD !important;
+}
+
+#nav-bar,
+#PersonalToolbar,
+#toolbar-menubar {
+  background-color: #DDDDDD !important;
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+/* A menu-bar title takes the Platinum title box's 3px/7px margins; the zero
+   bottom pad leaves Firefox's stock 3px transparent bottom border to complete
+   the bottom margin, so an idle title stays transparent. */
+#toolbar-menubar menubar > menu {
+  padding: 3px 7px 0 !important;
+}
+
+/* An open menu-bar title takes the Platinum selection fill instead of
+   Firefox's accent underline; closed and hovered titles stay transparent. */
+#toolbar-menubar menubar > menu[open] {
+  background-color: #CCCCFF !important;
+  border-bottom-color: #CCCCFF !important;
+}
+
+/* The sidebar frame takes the Platinum face and etched rule; its inner
+   panel document stays Firefox's. */
+#sidebar-box {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+}
+
+#sidebar-header {
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+.tab-background {
+  background-color: #DDDDDD !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
+}
+
+.tabbrowser-tab:is([selected], [multiselected]) .tab-background {
+  background-color: #EEEEEE !important;
+  border-bottom-color: #EEEEEE !important;
+}
+
+/* Firefox's own hover fill is suppressed by the base .tab-background rule's
+   greater user-origin weight, so repaint the hovered unselected face. */
+.tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected]):not([multiselected]) {
+  background-color: #EEEEEE !important;
+}
+
+/* Paint only the unfocused toolbar fields. Provenance exception: no
+   reference shows Firefox's toolbar fields, so both reuse the existing field
+   recipe (platform adaptation 2026-10-25). The band's markup is class-only
+   in the installed Firefox ESR 153.6.0esr — UrlbarInput.mjs's #markup emits
+   <html:div class="urlbar-background"/> and no element carries
+   id="urlbar-background" (probed against the extracted omni.ja 2026-10-30),
+   so the rule keys the class under each id — and the default
+   browser.search.widget.new=true makes #searchbar-new the toolbar search
+   field. Focused and open paints, the results bubble's ground and the field
+   text stay Firefox's. Firefox's
+   chrome/browser/skin/classic/browser/urlbar-searchbar.css owns the focused
+   and open appearances. */
+#urlbar:not([focused], [open]) > .urlbar-background,
+#searchbar-new:not([focused], [open]) > .urlbar-background {
+  background-color: #FFFFFF !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Paint only the unfocused classic search field; it is live only for a user
+   who disables the default browser.search.widget.new pref, whose focused
+   appearance stays Firefox's. */
+#searchbar:not(:focus-within) {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.urlbarView-row {
+  border-radius: 0 !important;
+}
+
+/* Direct paints keep shared tokens available to realtime items and one-offs. */
+.urlbarView-row[row-selectable]:not([selected]):hover {
+  background-color: #EEEEEE !important;
+}
+
+.urlbarView-row[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
+
+.urlbarView-body-inner {
+  border-top-color: #888888 !important;
+}
+
+#statuspanel-label {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+}
+
+/* The downloads panel rows adapt the desktop theme's list item: square, no
+   violet hover wash, and a flat #CCCCFF selected row. Only the panel's own
+   list is scoped; the content-area downloads view keeps Firefox's rows. */
+#downloadsPanel #downloadsListBox > richlistitem {
+  border-radius: 0 !important;
+}
+
+#downloadsPanel #downloadsListBox > richlistitem:not([selected]):hover {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+}
+
+#downloadsPanel #downloadsListBox > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
+
+/* The downloads panel's footer, subview and per-row action buttons adapt the
+   desktop theme's push button; disabled ones keep Firefox's paint. */
+#downloadsPanel .downloadsPanelFooterButton:not([disabled]),
+#downloadsPanel .downloadButton:not([disabled]),
+#downloadsPanel .footer-button:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#downloadsPanel .downloadsPanelFooterButton:not([disabled]):hover,
+#downloadsPanel .downloadButton:not([disabled]):hover,
+#downloadsPanel .footer-button:not([disabled]):hover {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+panel[type="arrow"] {
+  --panel-border-radius: 0 !important;
+  --panel-background-color: #DDDDDD !important;
+  --panel-text-color: #000000 !important;
+  --panel-border-color: #000000 !important;
+}
+
+menupopup {
+  --panel-border-radius: 0 !important;
+  --panel-background-color: #DDDDDD !important;
+  --panel-text-color: #000000 !important;
+  --panel-border-color: #000000 !important;
+}
+
+toolbarbutton:hover:not([disabled="true"]) {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
+}
+
+toolbarbutton:hover:active:not([disabled="true"]) {
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* The app menu rows adapt the desktop theme's view item: square corners and a
+   flat #CCCCFF hover with black text and no toolbar bevel. The selector covers
+   body and footer rows but not the panel-header back and edit buttons. */
+#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The toolbar overflow panel rows adapt the desktop theme's view item: square
+   corners and a flat #CCCCFF hover with black text and no toolbar bevel. Only
+   the overflow panel's rows are scoped; the panel header stays Firefox's. */
+#widget-overflow .subviewbutton:not(.panel-header .subviewbutton),
+#widget-overflow .widget-overflow-list .toolbarbutton-1 {
+  border-radius: 0 !important;
+}
+
+#widget-overflow .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]),
+#widget-overflow .widget-overflow-list .toolbarbutton-1:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The unified extensions panel rows adapt the desktop theme's view item:
+   square corners and a flat #CCCCFF hover with black text and no toolbar
+   bevel. The gear menu button, the panel header and the empty state's
+   discover button keep Firefox's own paint. */
+#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions) {
+  border-radius: 0 !important;
+}
+
+#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The generic toolbar bevel would also paint the gear menu button, so drop it
+   there and leave Firefox's icon-only hover paint in place. */
+#unified-extensions-panel .unified-extensions-item-menu-button:hover {
+  box-shadow: none !important;
+}
+
+/* The site-information panel rows adapt the desktop theme's view item:
+   square corners and a flat #CCCCFF hover with black text and no toolbar
+   bevel. The generated back button in the panel header, the .panel-button
+   certificate action, the header, separators and the panel body keep
+   Firefox's own paint. */
+#identity-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The protections panel rows adapt the desktop theme's view item: square
+   corners and a flat #CCCCFF hover with black text and no toolbar bevel. The
+   show-report button sits in a stack under the blocked-counter box, so its
+   stack's hover triggers the same fill. The generated back buttons in the
+   panel header, the moz-toggle tracking switch, the tracker list rows, the
+   header, separators and the panel body keep Firefox's own paint. */
+#protections-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]),
+#protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The trust panel rows adapt the desktop theme's view item: square corners and
+   a flat #CCCCFF hover with black text and no toolbar bevel. The generated
+   back buttons in the panel header, the moz-button rows and actions, the
+   moz-toggle tracking switch, the https-only menulist, the cards, graphics,
+   labels, separators and the panel body keep Firefox's own paint. */
+#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The all-tabs panel rows adapt the desktop theme's list item: no hover wash,
+   a flat #CCCCFF selection and square corners. The row and its main button are
+   squared directly, leaving the mute and close subviewbuttons' Firefox radius. */
+#allTabsMenu-allTabsView .all-tabs-item,
+#allTabsMenu-allTabsView .all-tabs-item > .all-tabs-button {
+  border-radius: 0 !important;
+}
+
+#allTabsMenu-allTabsView .all-tabs-item:not([selected]) > .all-tabs-button:hover {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#allTabsMenu-allTabsView .all-tabs-item[selected] > .all-tabs-button {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The permission popup's clear button and permission dropdown adapt the
+   desktop theme's push button: a #DDDDDD face, black outline and the
+   reference's white/#AAAAAA raised bevel; an enabled hovered one is flat
+   #CCCCFF with black text and no bevel. Only these two controls are scoped,
+   leaving the permission rows, labels, icons, header, separator and panel
+   body Firefox's. */
+#permission-popup .permission-popup-permission-remove-button {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#permission-popup .permission-popup-permission-remove-button:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#permission-popup-menulist {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#permission-popup-menulist:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The notification doorhanger's primary button adapts the desktop theme's
+   push button: a flat #DDDDDD face with a black outline and black label; an
+   enabled hovered or active one is a flat #CCCCFF face with black text and
+   the same outline. Only the primary button is scoped, leaving the secondary
+   split/close button, the footer group, header, icon, description, checkbox,
+   learn-more link and panel body Firefox's. */
+#notification-popup .popup-notification-primary-button {
+  --button-background-color-primary: #DDDDDD !important;
+  --button-background-color-primary-hover: #CCCCFF !important;
+  --button-background-color-primary-active: #CCCCFF !important;
+  --button-border: 1px solid !important;
+  --button-border-color-primary: #000000 !important;
+  --button-border-color-primary-hover: #000000 !important;
+  --button-border-color-primary-active: #000000 !important;
+  --button-text-color-primary: #000000 !important;
+  --button-text-color-primary-hover: #000000 !important;
+  --button-text-color-primary-active: #000000 !important;
+  --button-border-radius: 0 !important;
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-radius: 0 !important;
+}
+
+menupopup > menuitem:hover,
+menupopup > menu:hover,
+menupopup > menuitem[_moz-menuactive="true"],
+menupopup > menu[_moz-menuactive="true"] {
+  background-color: #CCCCFF !important;
+}
+
+#PersonalToolbar .bookmark-item:hover,
+#PersonalToolbar .bookmark-item[open] {
+  background-color: #CCCCFF !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF !important;
+}
+
+menupopup > menuseparator {
+  padding: 0 !important;
+  margin: 2px 0 !important;
+}
+
+menupopup > menuseparator::before {
+  border-top: 1px solid #888888 !important;
+  border-bottom: 1px solid #FFFFFF !important;
+}
+
+findbar {
+  background-color: #DDDDDD !important;
+  border-top: 1px solid #000000 !important;
+}
+
+/* Leave Firefox's not-found, flash and focus states to its own sheet, so
+   the find bar keeps its red/yellow result feedback and focus ring. */
+findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus) {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* The bookmark editor's fields, folder dropdown and Done/Remove footer
+   buttons adapt this sheet's Platinum line-edit and push-button paint; no
+   reference shows Firefox's bookmark editor (platform adaptation 2026-10-26). */
+#editBookmarkPanel #editBMPanel_namePicker,
+#editBookmarkPanel #editBMPanel_locationField,
+#editBookmarkPanel #editBMPanel_tagsField,
+#editBookmarkPanel #editBMPanel_keywordField {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#editBookmarkPanel #editBMPanel_folderMenuList,
+#editBookmarkPanel #editBookmarkPanelDoneButton,
+#editBookmarkPanel #editBookmarkPanelRemoveButton {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#editBookmarkPanel #editBMPanel_folderMenuList:hover:not([disabled]),
+#editBookmarkPanel #editBookmarkPanelDoneButton:hover:not([disabled]),
+#editBookmarkPanel #editBookmarkPanelRemoveButton:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The Page Info window's top band and view tabs adapt the sheet's Platinum
+   toolbar and tab faces: the top band is the grey face with the etched pair,
+   the unselected tab is the raised face with a square 1px black outline and
+   the white/grey bevel, and the selected and unselected-hovered tab is the
+   flat trough with the selected tab's merged bottom border. Its action
+   buttons take the push-button face, square 1px black outline and the
+   white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
+   black text and no bevel. Disabled buttons, the stock tab width and padding,
+   the focus ring, the dialog body, fields, security-table rows and
+   labels keep Firefox's own paint (the permission list is painted
+   in its own rule below); the paint is scoped through the page-info-only
+   ids. */
+#topBar {
+  background-color: #DDDDDD !important;
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+#viewGroup > radio {
+  appearance: none !important;
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
+}
+
+#viewGroup > radio[selected] {
+  background-color: #EEEEEE !important;
+  border-bottom-color: #EEEEEE !important;
+  box-shadow: none !important;
+}
+
+#viewGroup > radio:not([selected]):hover {
+  background-color: #EEEEEE !important;
+  box-shadow: none !important;
+}
+

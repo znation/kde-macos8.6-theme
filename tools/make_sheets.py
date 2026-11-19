@@ -49,6 +49,14 @@ SHEETS = (
         "theme/gtk/src/gtk-4.0",
         "theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css",
     ),
+    (
+        "theme/firefox/src/userChrome",
+        "theme/firefox/org.macos8.desktop/chrome/userChrome.css",
+    ),
+    (
+        "theme/firefox/src/userContent",
+        "theme/firefox/org.macos8.desktop/chrome/userContent.css",
+    ),
 )
 
 

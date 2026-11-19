@@ -5,6 +5,51 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Stylesheet sources, part 3/3: split the Firefox chrome and content sheets into partials (planned 2026-11-19 by the plan role; "requires part 1/3 landed") — done 2026-11-19 by the feature role
+
+**Goal.** Give `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (1581 lines) and
+`userContent.css` (941 lines) per-family source partials, under the user's 2026-11-14 option 1
+answer. Concatenation needs no `@import`, so the Firefox relative-import question does not
+arise. Both shipped sheets stay byte-identical.
+
+**Header exception (revised 2026-11-19 by the plan role).** `userChrome.css` opens with one
+top-level comment spanning 802 lines (its first `*/` at column 0 closes it), so no legal cut
+inside it exists. Byte identity outranks the size cap: each Firefox sheet's `000-header.css`
+holds exactly that sheet's opening comment (through its closing `*/` line and the blank line
+after it) and is exempt from the 500-line cap. No `*/`/`/*` pair is inserted and no shipped
+byte changes. Every other Firefox partial keeps the cap.
+
+**Approach and files touched.** Add two pairs to `tools/make_sheets.py::SHEETS`:
+
+- `theme/firefox/src/userChrome` → the shipped `chrome/userChrome.css`
+- `theme/firefox/src/userContent` → the shipped `chrome/userContent.css`
+
+Split each sheet by part 1/3's cut, numbering and naming rules, with the header exception
+above. For a partial led by an `@-moz-document` or `@media` block, the slug is the block's
+first inner selector's leading name. The partials stay outside
+`theme/firefox/org.macos8.desktop/`, so `tools/install_firefox.py` and its file lists see no
+new file. In `tests/test_make_sheets.py`, add a Firefox counterpart to
+`TestShippedSheetIsFresh.test_every_gtk_partial_is_at_most_500_lines_and_starts_at_top_level`
+that applies the same start-of-partial check to every Firefox partial and the cap to every one
+but `000-header.css`, asserting instead that `000-header.css` starts with `/*`, holds exactly
+one comment, and its last non-blank line is `*/`. Add two `## firefox` rows to
+`docs/invariants.md` (one per sheet) in the shape of the GTK concatenation rows, stating the
+header exception. Extend part 1/3's README section to name the Firefox sheets.
+
+**Acceptance criteria.**
+
+- `python3 tools/make_sheets.py` exits 0 and leaves both Firefox sheets byte-identical
+  (`git diff` empty for them), along with every sheet already in the table.
+- Each Firefox `000-header.css` is exactly its sheet's opening comment; every other Firefox
+  partial is at most 500 lines and starts at a top-level comment, rule or at-rule.
+- A Firefox `000-header.css` that also carried a rule after its comment fails the new test.
+- If a contributor edits only a shipped Firefox sheet, the freshness test fails and names that
+  sheet's source directory.
+- `make install-firefox` against a staged profile installs the same file set as before (the
+  existing install tests pass unchanged), and `make check` passes after the final edit.
+
+**Done note (2026-11-19 by the feature role).** Cuts are greedy at top-level boundaries, each partial at most 500 lines. Chrome: `000-header.css` (lines 1–803), `010-tooltip.css` (804–1300), `020-maindeck.css` (1301–1581). Content: `000-header.css` (lines 1–452) and `010-contentareadownloadsview.css` (453–941, 489 lines, so the body is one partial). Slugs for partials led by an `@-moz-document` block use the block's first inner selector identifier. Partials sit in `theme/firefox/src/`, outside the install tree.
+
 ### Firefox installer tests: move the removal cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** `tests/test_install_firefox.py` is 1191 lines, and PRINCIPLES.md asks for files small

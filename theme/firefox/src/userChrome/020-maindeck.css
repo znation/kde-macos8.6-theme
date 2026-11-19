@@ -1,0 +1,281 @@
+#mainDeck .help-button:not([disabled]),
+#mainDeck #selectallbutton:not([disabled]),
+#mainDeck #imagesaveasbutton:not([disabled]),
+#mainDeck #mediasaveasbutton:not([disabled]),
+#mainDeck #security-view-qwac:not([disabled]),
+#mainDeck #security-view-cert:not([disabled]),
+#mainDeck #security-clear-sitedata:not([disabled]),
+#mainDeck #security-view-password:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#mainDeck .help-button:not([disabled]):hover,
+#mainDeck #selectallbutton:not([disabled]):hover,
+#mainDeck #imagesaveasbutton:not([disabled]):hover,
+#mainDeck #mediasaveasbutton:not([disabled]):hover,
+#mainDeck #security-view-qwac:not([disabled]):hover,
+#mainDeck #security-view-cert:not([disabled]):hover,
+#mainDeck #security-clear-sitedata:not([disabled]):hover,
+#mainDeck #security-view-password:not([disabled]):hover {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* Page Info display fields: the Platinum line edit (see the header's
+   provenance paragraph). */
+#mainDeck input {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* Page Info permission list: the Platinum sunken list field, and a hovered
+   row that keeps the field's face; see the header's provenance paragraph. */
+#permList {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#permList .permission:hover {
+  background-color: transparent !important;
+  color: #000000 !important;
+}
+
+/* Page Info media preview: the Platinum sunken field (see the header's
+   provenance paragraph). */
+#imagecontainerbox {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* Page Info meta and image trees: the Platinum sunken list field with
+   transparent rows, a flat #CCCCFF selected row and the broken image
+   rows' italic graytext (see the header's provenance paragraph). */
+#metatree,
+#imagetree {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+tree#metatree treechildren::-moz-tree-row(hover),
+tree#imagetree treechildren::-moz-tree-row(hover) {
+  background-color: transparent !important;
+}
+
+tree#metatree treechildren::-moz-tree-row(selected),
+tree#imagetree treechildren::-moz-tree-row(selected) {
+  background-color: #CCCCFF !important;
+}
+
+tree#metatree treechildren::-moz-tree-cell-text,
+tree#imagetree treechildren::-moz-tree-cell-text {
+  color: #000000 !important;
+}
+
+tree#imagetree treechildren::-moz-tree-cell-text(broken) {
+  color: graytext !important;
+}
+
+/* Page Info security panel: the reference's etched group box (see the
+   header's provenance paragraph). The frames' contents and the deck's
+   other painted surfaces keep their own paints. */
+#securityPanel > groupbox {
+  border: 1px solid #888888 !important;
+  border-radius: 0 !important;
+  padding: 2px 8px !important;
+  box-shadow: 1px 1px #FFFFFF, inset 1px 1px #FFFFFF !important;
+}
+
+#securityPanel > groupbox + groupbox {
+  margin-top: 1em !important;
+}
+
+#securityPanel > groupbox > label.header {
+  color: #000000 !important;
+}
+
+/* Library window places trees: the Platinum sunken list field with
+   transparent rows, a flat #CCCCFF selected row and the odd-row
+   stripe floated back onto the field (see the header's provenance
+   paragraph). */
+#placesList,
+#placeContent {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+tree#placesList treechildren::-moz-tree-row(hover),
+tree#placeContent treechildren::-moz-tree-row(hover) {
+  background-color: transparent !important;
+}
+
+tree#placesList treechildren::-moz-tree-row(selected),
+tree#placeContent treechildren::-moz-tree-row(selected) {
+  background-color: #CCCCFF !important;
+}
+
+tree#placesList treechildren::-moz-tree-cell-text,
+tree#placeContent treechildren::-moz-tree-cell-text {
+  color: #000000 !important;
+}
+
+tree#placeContent treechildren::-moz-tree-row(multicol, odd) {
+  background-color: transparent !important;
+}
+
+/* Library window search box: the Platinum line edit through the
+   moz-input-search tokens (see the header's provenance paragraph). */
+moz-input-search#searchFilter {
+  --input-text-border: 1px solid #000000 !important;
+  --input-text-border-radius: 0 !important;
+  --input-text-background-color: #FFFFFF !important;
+  --input-text-color: #000000 !important;
+  --icon-color: #000000 !important;
+}
+
+/* Library content-tree column headers: the Platinum raised
+   header buttons (see the header's provenance paragraph). */
+treecols#placeContentColumns > treecol,
+treecols#placeContentColumns .tree-columnpicker-button {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+treecols#placeContentColumns > treecol:hover,
+treecols#placeContentColumns > treecol:hover:active,
+treecols#placeContentColumns .tree-columnpicker-button:hover,
+treecols#placeContentColumns .tree-columnpicker-button:hover:active {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The Library window's toolbar band and menu titles adapt the sheet's
+   toolbar and menubar-title recipes (see the header's provenance
+   paragraph). */
+toolbar#placesToolbar {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+menubar#placesMenu > menu {
+  padding: 3px 7px 0 !important;
+}
+
+menubar#placesMenu > menu[open] {
+  background-color: #CCCCFF !important;
+  border-bottom-color: #CCCCFF !important;
+}
+
+/* The Library window's downloads list adapts the sheet's sunken
+   list-field and row recipes (see the header's provenance
+   paragraph); the browser skin paints no row hover, so there is
+   no hover rule. */
+#placesViewsBox richlistbox#downloadsListBox {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#placesViewsBox richlistbox#downloadsListBox > richlistitem {
+  border-radius: 0 !important;
+}
+
+#placesViewsBox richlistbox#downloadsListBox > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
+
+/* The Library's Clear Downloads button adapts the sheet's push
+   button; disabled ones keep Firefox's paint. */
+toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The Library details pane's bookmark fields, folder dropdown and tag
+   selector adapt the sheet's existing line-edit, push-button and sunken
+   list-field recipes. The same editBMPanel ids live in browser.xhtml's
+   #editBookmarkPanel, whose existing rules paint its copies, and a
+   detailsPane element exists only in places.xhtml, so these rules scope
+   through #detailsPane. The expander buttons, the New Folder button,
+   the folder tree, the labels and the popup lists stay Firefox's, as
+   the existing bookmark editor's section does. */
+#detailsPane #editBMPanel_namePicker,
+#detailsPane #editBMPanel_locationField,
+#detailsPane #editBMPanel_tagsField,
+#detailsPane #editBMPanel_keywordField {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#detailsPane #editBMPanel_folderMenuList {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#detailsPane #editBMPanel_folderMenuList:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem {
+  border-radius: 0 !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
