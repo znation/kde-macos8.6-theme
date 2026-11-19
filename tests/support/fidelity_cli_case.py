@@ -119,18 +119,9 @@ class FidelityCliTestCase(CliTestCase):
         selects exactly the surface. Returns the surface path and the
         reference path.
         """
-        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        border = bytes([0, 0, 0] * 4)
-        rows = [
-            border,
-            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
-            border,
-        ]
-        full_png = make_png(4, 4, rows)
         return (
-            self._write(directory, "surface.png", surface_png),
-            self._write(directory, "full.png", full_png),
+            self._write(directory, "surface.png", self._padded_surface_png(2, 2, 0, 0)),
+            self._write(directory, "full.png", self._padded_surface_png(4, 4, 1, 1)),
         )
 
     def _padded_surface_png(self, width, height, ox, oy) -> bytes:
