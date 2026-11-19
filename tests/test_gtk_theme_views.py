@@ -45,9 +45,48 @@ MENU_SCROLL_DOWN = (
     ".context-menu > arrow.bottom",
 )
 
-
 class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
+
+    def test_menu(self):
+        for selector in ("menu", ".menu", "popover", ".popover"):
+            self.assert_rule(selector, {
+                "background-color": FACE,
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            })
+        for selector in ("menuitem:hover", ".menuitem:hover",
+                         "popover modelbutton:hover", "popover modelbutton:selected"):
+            self.assert_rule(selector, {"background-color": SELECTION})
+
+    def test_menu_row_state_faces(self):
+        hover = (
+            "menu menuitem:hover", ".menu menuitem:hover",
+            ".context-menu menuitem:hover", "menu menuitem:backdrop:hover",
+            ".menu menuitem:backdrop:hover", ".context-menu menuitem:backdrop:hover",
+        )
+        self.assert_rule_group({s: {"color": BLACK, "background-color": SELECTION} for s in hover})
+        backdrop = ("menu menuitem:backdrop", ".menu menuitem:backdrop", ".context-menu menuitem:backdrop")
+        self.assert_rule_group({s: {"color": BLACK} for s in backdrop})
+        menubar_hover = ("menubar > menuitem:hover", ".menubar > menuitem:hover")
+        self.assert_rule_group({s: {"color": BLACK, "box-shadow": "none"} for s in menubar_hover})
+        disabled = (
+            "menu menuitem:disabled", ".menu menuitem:disabled", ".context-menu menuitem:disabled",
+            "menu menuitem:disabled:backdrop", ".menu menuitem:disabled:backdrop",
+            ".context-menu menuitem:disabled:backdrop", "menubar > menuitem:disabled",
+            ".menubar > menuitem:disabled",
+        )
+        self.assert_rule_group({s: DISABLED_TEXT for s in disabled})
+        self.assert_disabled_text(disabled)
+        arrows = (
+            "menu menuitem arrow:dir(ltr)", ".menu menuitem arrow:dir(ltr)",
+            ".context-menu menuitem arrow:dir(ltr)", "menu menuitem arrow:dir(rtl)",
+            ".menu menuitem arrow:dir(rtl)", ".context-menu menuitem arrow:dir(rtl)",
+        )
+        self.assert_rule_group({s: SUBMENU_ARROW for s in arrows})
+        for selector in hover + backdrop + disabled + arrows + menubar_hover:
+            self.assertGreater(self.selectors.index(selector), self.selectors.index("menuitem:hover"))
+            self.assertGreater(self.selectors.index(selector), self.selectors.index("menubar > menuitem"))
 
     def test_path_bar_tabs(self):
         forms = {
@@ -640,105 +679,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 f"messagedialog.csd .dialog-action-area button:{arm}",
                 {"border-radius": "0", "-gtk-outline-radius": "0"},
             )
-
-    def test_menu(self):
-        for selector in ("menu", ".menu", "popover", ".popover"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "border": f"1px solid {BLACK}",
-                    "border-radius": "0",
-                },
-            )
-        for selector in (
-            "menuitem:hover",
-            ".menuitem:hover",
-            "popover modelbutton:hover",
-            "popover modelbutton:selected",
-        ):
-            self.assert_rule(selector, {"background-color": SELECTION})
-
-    def test_menu_row_state_faces(self):
-        """Pin the existing menu-row and menu-bar-title faces under every state.
-
-        The nine appended arms rest the toolkit resource's
-        higher-specificity classic-menu state spellings so a hovered row or
-        hovered or open menu-bar title keeps the selection fill with black
-        text, a disabled or backdropped row keeps black rest text and the
-        inactive grey when disabled, and a `:dir` arrow keeps the shipped
-        submenu triangle in both text directions; the exact stock arms live
-        in docs/invariants.md.
-        """
-        hover = (
-            "menu menuitem:hover",
-            ".menu menuitem:hover",
-            ".context-menu menuitem:hover",
-            "menu menuitem:backdrop:hover",
-            ".menu menuitem:backdrop:hover",
-            ".context-menu menuitem:backdrop:hover",
-        )
-        self.assert_rule_group(
-            {selector: {"color": BLACK, "background-color": SELECTION}
-             for selector in hover}
-        )
-        backdrop = (
-            "menu menuitem:backdrop",
-            ".menu menuitem:backdrop",
-            ".context-menu menuitem:backdrop",
-        )
-        self.assert_rule_group(
-            {selector: {"color": BLACK} for selector in backdrop}
-        )
-        self.assert_rule_group(
-            {selector: {"color": BLACK, "box-shadow": "none"}
-             for selector in ("menubar > menuitem:hover",
-                              ".menubar > menuitem:hover")}
-        )
-        disabled = (
-            "menu menuitem:disabled",
-            ".menu menuitem:disabled",
-            ".context-menu menuitem:disabled",
-            "menu menuitem:disabled:backdrop",
-            ".menu menuitem:disabled:backdrop",
-            ".context-menu menuitem:disabled:backdrop",
-            "menubar > menuitem:disabled",
-            ".menubar > menuitem:disabled",
-        )
-        self.assert_rule_group(
-            {selector: DISABLED_TEXT for selector in disabled}
-        )
-        # The inactive grey is re-derived from the colour scheme, as the
-        # existing disabled-text callers do.
-        self.assert_disabled_text(disabled)
-        arrows = (
-            "menu menuitem arrow:dir(ltr)",
-            ".menu menuitem arrow:dir(ltr)",
-            ".context-menu menuitem arrow:dir(ltr)",
-            "menu menuitem arrow:dir(rtl)",
-            ".menu menuitem arrow:dir(rtl)",
-            ".context-menu menuitem arrow:dir(rtl)",
-        )
-        self.assert_rule_group(
-            {selector: SUBMENU_ARROW for selector in arrows}
-        )
-        # Source order: every appended spelling sits after the existing
-        # `menuitem:hover` and `menubar > menuitem` selectors, so the
-        # byte-equal stock twins win the equal-specificity ties under the
-        # lower-sheet reading of how the toolkit resource competes.
-        for selector in hover + backdrop + disabled + arrows + (
-            "menubar > menuitem:hover",
-            ".menubar > menuitem:hover",
-        ):
-            with self.subTest(selector=selector):
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("menuitem:hover"),
-                )
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("menubar > menuitem"),
-                )
 
     def test_csd_container_corners(self):
         """Pin the CSD container and decoration corner restatements.
