@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate content-view declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the content-view field and hover declaration checks a focused
+home outside `tests/test_gtk_theme.py`. The archived content-view plans
+supplied styling; this extraction is independent of the queued link-button
+and pending disabled-view extractions.
+
+**Approach and files touched.** Move
+`TestGtkTheme.test_content_view_background` and `test_content_view_hover`,
+preserving their bodies, into new
+`tests/test_gtk_theme_content_views.py::TestGtkThemeContentViews`.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
+binding `CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"
+with `ROOT` imported from `support.repo_root`. The base supplies sheet
+setup, `assert_view_background` and `assert_rule`; no shared helper move
+or test-module import is needed. Update the source routing docstring and
+repoint the moved anchors in `docs/invariants.md`, preserving provenance
+and the GTK 4 anchor in the shared content-view row. Recheck
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` for moved anchors. Leave the ordinary view-background
+check, theme sheets and shared helpers unchanged.
+
 ### GTK 3 suite extraction: isolate link-button label declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the related disabled and enabled-interaction link-button

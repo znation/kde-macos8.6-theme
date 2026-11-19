@@ -12,6 +12,8 @@ link-button declarations live in focused suites. Disabled-view declarations
 live in ``test_gtk_theme_disabled_views.py``.
 Secondary-label ink and opacity declarations live in
 ``test_gtk_theme_label_inks.py``.
+Content-view field and hover declarations live in
+``test_gtk_theme_content_views.py``.
 """
 
 from __future__ import annotations
@@ -219,17 +221,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
 
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
-
-    def test_content_view_background(self):
-        selectors = (".content-view", ".content-view:backdrop")
-        self.assert_view_background(selectors)
-        expected = {"background-color": "#FFFFFF", "color": "#000000"}
-        for selector in selectors:
-            self.assertEqual(self.rules[selector], expected)
-            self.assertEqual(self.selectors.count(selector), 1)
-
-    def test_content_view_hover(self):
-        self.assert_rule(".content-view:hover", {"-gtk-icon-effect": "none"})
 
     def test_links(self):
         self.assert_links(
