@@ -24,6 +24,9 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
+import signal
+import subprocess
+import threading
 import sys
 import unittest
 from pathlib import Path
@@ -141,6 +144,41 @@ class TestSessionScript(unittest.TestCase):
         self.assertLess(
             script.index('kill "$client"'), script.index('wait "$client"')
         )
+
+    def test_resume_wait_reads_state_after_a_process_name_with_spaces(self):
+        # Linux comm may contain spaces and closing parentheses; state follows
+        # the final ') ', rather than the third whitespace-delimited field.
+        child = subprocess.Popen([
+            sys.executable, "-c",
+            "import ctypes, os, signal; "
+            "ctypes.CDLL(None).prctl(15, b'held ) client', 0, 0, 0); "
+            "os.kill(os.getpid(), signal.SIGSTOP); signal.pause()",
+        ])
+        timer = None
+        try:
+            os.waitpid(child.pid, os.WUNTRACED)
+            script = render_session.session_script()
+            wait = script.split('kill -CONT "$client" 2>/dev/null; ', 1)[1]
+            wait = wait.split('kill "$client" 2>/dev/null; ', 1)[0]
+            # Delay the resume so a broken parser deterministically returns
+            # while the real client is still stopped.
+            timer = threading.Timer(1, os.kill, args=(child.pid, signal.SIGCONT))
+            timer.start()
+            result = subprocess.run(
+                ["sh", "-c", 'client="$1"; ' + wait +
+                 'sed \'s/.*) //; s/ .*//\' "/proc/$client/stat"',
+                 "sh", str(child.pid)],
+                capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertNotEqual("T", result.stdout.strip())
+        finally:
+            if timer is not None:
+                timer.cancel()
+                timer.join()
+            child.terminate()
+            os.kill(child.pid, signal.SIGCONT)
+            child.wait(timeout=5)
 
     def test_exports_the_client_pid_before_the_freeze(self):
         # A capture-side helper cannot learn the client pid from a pidfile

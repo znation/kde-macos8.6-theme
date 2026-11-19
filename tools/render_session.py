@@ -340,7 +340,7 @@ def session_script(
         # SIGCONT only queues the resume. Let the client run before SIGTERM
         # so a stopped process cannot take the termination signal first.
         'resumed=0; while [ "$resumed" -lt 50 ]; do '
-        'state=$(awk \'{print $3}\' "/proc/$client/stat" 2>/dev/null); '
+        'state=$(sed \'s/.*) //; s/ .*//\' "/proc/$client/stat" 2>/dev/null); '
         '[ "$state" != T ] && break; '
         'sleep 0.1; resumed=$((resumed + 1)); done; '
         'kill "$client" 2>/dev/null; '
