@@ -411,5 +411,41 @@ class TestAuthorityPorts(unittest.TestCase):
             self.assertFalse(is_absolute_url(url), url)
 
 
+class TestNonAsciiAndUnencodedBrackets(unittest.TestCase):
+    """A raw non-ASCII byte or an unencoded ``[``/``]`` is malformed everywhere.
+
+    RFC 3986 gives ``[`` and ``]`` no place outside an IP-literal host, and no
+    unreserved, sub-delim or pct-encoded form covers a non-ASCII character in
+    any component. The module documents both, so each component's rejection
+    is pinned with its own diagnostic, not only as a generic failure.
+    """
+
+    def test_non_ascii_host_userinfo_path_query_and_fragment_are_rejected(self):
+        cases = (
+            ("https://exämple.test/x", "must use only reg-name characters in the host"),
+            ("https://usér@host.test/x", "must use only userinfo characters before '@'"),
+            ("https://example.test/café.png", "must use only path characters"),
+            ("https://example.test/a?q=é", "must use only query characters"),
+            ("https://example.test/a#é", "must use only fragment characters"),
+        )
+        for url, needle in cases:
+            problem = url_problem(url)
+            self.assertIsNotNone(problem, url)
+            self.assertIn(needle, problem, url)
+            self.assertFalse(is_absolute_url(url), url)
+
+    def test_unencoded_square_brackets_outside_an_ip_literal_are_rejected(self):
+        for url in (
+            "https://example.test/a[1]",
+            "https://example.test/a?q[]=1",
+            "https://example.test/a#[x]",
+        ):
+            self.assertFalse(is_absolute_url(url), url)
+        self.assertIn(
+            "must use only path characters",
+            url_problem("https://example.test/a[1]"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
