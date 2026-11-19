@@ -36,7 +36,8 @@ def report_context(args, width: int, height: int) -> dict:
 
 def hex(rgb: tuple[int, int, int]) -> str:
     """Format one RGB triple as the reports' ``#RRGGBB`` text."""
-    return "#{:02X}{:02X}{:02X}".format(*rgb)
+    red, green, blue = rgb
+    return f"#{red:02X}{green:02X}{blue:02X}"
 
 
 def print_region_line(args) -> None:

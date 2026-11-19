@@ -41,10 +41,8 @@ def expected_d(digit, ox, oy):
     draw inside a cell further along the row.
     """
     return " ".join(
-        "M %d,%d L %d,%d" % (
-            SEGMENTS[s][0] + ox, SEGMENTS[s][1] + oy,
-            SEGMENTS[s][2] + ox, SEGMENTS[s][3] + oy,
-        )
+        f"M {SEGMENTS[s][0] + ox},{SEGMENTS[s][1] + oy} "
+        f"L {SEGMENTS[s][2] + ox},{SEGMENTS[s][3] + oy}"
         for s in DIGIT_SEGMENTS[digit]
     )
 
@@ -61,7 +59,7 @@ class TestTimer(SvgCase, unittest.TestCase):
         # the normal row, then the alert row, then the two separators.
         expected = (
             [str(i) for i in range(10)]
-            + ["%d_1" % i for i in range(10)]
+            + [f"{i}_1" for i in range(10)]
             + ["separator", "separator_1"]
         )
         ids = [
@@ -83,7 +81,7 @@ class TestTimer(SvgCase, unittest.TestCase):
         by_id = elements_by_id(self.tree)
         for row_y, suffix in ((0, ""), (32, "_1")):
             for i in range(10):
-                group = by_id["%d%s" % (i, suffix)]
+                group = by_id[f"{i}{suffix}"]
                 self.assertEqual(local_name(group), "g")
                 assert_bounds_rect(
                     self, group,
@@ -114,7 +112,7 @@ class TestTimer(SvgCase, unittest.TestCase):
             normal = children_named(by_id[str(i)], "path")
             self.assertEqual(len(normal), 1)
             self.assertEqual(normal[0].get("stroke"), "#000000")
-            alert = children_named(by_id["%d_1" % i], "path")
+            alert = children_named(by_id[f"{i}_1"], "path")
             self.assertEqual(len(alert), 1)
             self.assertEqual(alert[0].get("stroke"), "#CC0000")
 

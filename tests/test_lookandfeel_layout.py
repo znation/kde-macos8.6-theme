@@ -153,7 +153,7 @@ class TestLayout(unittest.TestCase):
             re.M,
         )
         self.assertIsNotNone(group, "no currentConfigGroup = [\"Appearance\"]")
-        first_write = re.search(r"^%s\.writeConfig\(" % re.escape(name), self.text, re.M)
+        first_write = re.search(rf"^{re.escape(name)}\.writeConfig\(", self.text, re.M)
         self.assertIsNotNone(first_write, "no writeConfig call")
         self.assertLess(group.start(), first_write.start())
 

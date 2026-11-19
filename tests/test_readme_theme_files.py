@@ -58,11 +58,11 @@ class TestReadmeThemeFiles(unittest.TestCase):
         """Fail when a shipped *label* SVG is absent from README's backticks."""
         named = set(token.findall(readme_text()))
         on_disk = shipped(package, pattern)
-        self.assertTrue(on_disk, "no %s SVGs found under %s" % (label, package))
+        self.assertTrue(on_disk, f"no {label} SVGs found under {package}")
         self.assertEqual(
             set(),
             on_disk - named,
-            "%s SVGs README does not name in backticks" % label,
+            f"{label} SVGs README does not name in backticks",
         )
 
     def test_every_desktop_theme_svg_is_named_in_readme(self):

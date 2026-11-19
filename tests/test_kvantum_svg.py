@@ -627,7 +627,7 @@ class TestMdiButtons(unittest.TestCase):
         self.assertEqual(
             ids,
             {
-                "mdi-%s-%s" % (role, state)
+                f"mdi-{role}-{state}"
                 for role in MDI_ROLES
                 for state in MDI_STATES
             },
@@ -640,7 +640,7 @@ class TestMdiButtons(unittest.TestCase):
         self.assertEqual(
             order[order.index("titlebar-focused") + 1 : -36],
             [
-                "mdi-%s-%s" % (role, state)
+                f"mdi-{role}-{state}"
                 for role in MDI_ROLES
                 for state in MDI_STATES
             ],
@@ -652,7 +652,7 @@ class TestMdiButtons(unittest.TestCase):
             for state in MDI_STATES:
                 with self.subTest(role=role, state=state):
                     self.assertEqual(
-                        _drawing_elements(by_id["mdi-%s-%s" % (role, state)]),
+                        _drawing_elements(by_id[f"mdi-{role}-{state}"]),
                         self._expectation(role, disabled=(state == "disabled")),
                     )
 
@@ -672,7 +672,7 @@ class TestMdiButtons(unittest.TestCase):
     def _assert_role_glyph(self, by_id, role, glyph):
         """Pin *glyph*'s pixels inside every MDI state of *role*."""
         for state in MDI_STATES:
-            shipped = _drawing_elements(by_id["mdi-%s-%s" % (role, state)])
+            shipped = _drawing_elements(by_id[f"mdi-{role}-{state}"])
             with self.subTest(role=role, state=state):
                 for pixel in glyph:
                     self.assertIn(pixel, shipped)
