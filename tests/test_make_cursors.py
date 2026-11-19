@@ -93,6 +93,29 @@ class TestGridValidation(unittest.TestCase):
                 )
 
 
+class TestHotspotValidation(unittest.TestCase):
+    """The shared hotspot check accepts only coordinates inside the art grid."""
+
+    def test_returns_a_tuple_for_valid_list_coordinates(self):
+        self.assertEqual(cursor_checks.checked_hotspot([0, 15]), (0, 15))
+
+    def test_refuses_non_integer_coordinates_including_booleans(self):
+        for hotspot in ((True, 1), (1, False), (1.0, 2), ("1", 2)):
+            with self.subTest(hotspot=hotspot):
+                assert_error_names(
+                    self, ValueError, cursor_checks.checked_hotspot, hotspot,
+                    needles=(f"hotspot must be two integers: hotspot={hotspot!r}",),
+                )
+
+    def test_refuses_coordinates_on_or_outside_each_grid_edge(self):
+        for hotspot in ((-1, 0), (16, 0), (0, -1), (0, 16)):
+            with self.subTest(hotspot=hotspot):
+                assert_error_names(
+                    self, ValueError, cursor_checks.checked_hotspot, hotspot,
+                    needles=(f"hotspot ({hotspot[0]}, {hotspot[1]}) lies outside the 16x16 grid",),
+                )
+
+
 class TestGeneratorValidation(unittest.TestCase):
     """Pin the size and hotspot refusals ``cursor_bytes`` builds on."""
 
