@@ -195,6 +195,38 @@ class TestSessionFocusSettle(unittest.TestCase):
         self.assertNotIn("focus settle loop running", log)
         self.assertFalse(runs.exists(), "the settle script was run without loading")
 
+    def test_a_non_numeric_focus_script_id_is_not_run_and_the_settle_ceiling_still_ends_it(self):
+        # A loadScript answer that is not a script number ("x") is not an id
+        # the settle may address as /Scripting/Script<id>: the session must
+        # report the script did not load, start no settle loop, and still
+        # reach its ceiling so the capture runs.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        runs = root / "runs.log"
+        qdbus = bindir / "qdbus6"
+        qdbus.write_text(
+            "#!/bin/sh\n"
+            "case \"$*\" in\n"
+            "  *loadScript*) echo x;;\n"
+            f"  *) echo \"$*\" >> {runs};;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        qdbus.chmod(0o755)
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._run_focus_session(
+            root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: the focus settle script did not load", log)
+        self.assertNotIn("focus settle loop running", log)
+        self.assertIn("capture status 0", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(runs.exists(), "the settle script was run with a non-numeric id")
+
 
 if __name__ == "__main__":
     unittest.main()
