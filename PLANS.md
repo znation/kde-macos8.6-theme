@@ -110,7 +110,7 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role)
+### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the application notification band and frame checks a focused
 suite outside `tests/test_gtk_theme.py`. This extraction is independent of

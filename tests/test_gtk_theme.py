@@ -6,14 +6,13 @@ reference screenshot shows a GTK widget, so most GTK geometry is this
 theme's adaptation. This module holds the sheet-level invariants and the
 windows, bands and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
-``test_gtk_theme_*.py`` suites. Calendar, notebook and infobar declarations
-live in focused suites.
+``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar and application
+notification declarations live in focused suites.
 """
 
 from __future__ import annotations
 
 import configparser
-import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -853,63 +852,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             "statusbar {",
             "searchbar > revealer > box:backdrop",
         )
-
-    def test_app_notification_band(self):
-        roots = (
-            ".app-notification",
-            ".app-notification.frame",
-            ".app-notification:backdrop",
-            ".app-notification.frame:backdrop",
-        )
-        self.assert_infobar(roots)
-        expected = {
-            "background-color": FACE,
-            "background-image": "none",
-            "color": BLACK,
-            "border": "0",
-            "border-bottom": f"1px solid {ETCH_DARK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 0 -1px {WHITE}",
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        for selector in roots:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected)
-                sheet = gtk_css.strip_comments(self.css)
-                block = next(
-                    body for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", sheet)
-                    if selector in {arm.strip() for arm in selectors.split(",")}
-                )
-                self.assertLess(block.index("border: 0;"), block.index("border-bottom:"))
-        self.assertEqual(
-            {selector for selector in self.rules if ".app-notification" in selector},
-            set(roots)
-            | {
-                ".app-notification > border",
-                ".app-notification.frame > border",
-                ".app-notification button",
-                ".app-notification.frame button",
-                ".app-notification button:hover",
-                ".app-notification button:active",
-                ".app-notification button:checked",
-                ".app-notification button:disabled",
-                ".app-notification button:backdrop",
-                ".app-notification button.flat",
-                ".app-notification button.flat:hover",
-                ".app-notification button.flat:active",
-                ".app-notification button.flat:checked",
-                ".app-notification button.flat:disabled",
-                ".app-notification button.flat:backdrop",
-            },
-        )
-
-    def test_app_notification_frame_border(self):
-        for selector in (".app-notification > border", ".app-notification.frame > border"):
-            with self.subTest(selector=selector):
-                self.assertEqual(
-                    self.rules[selector], {"border-style": "none", "box-shadow": "none"}
-                )
 
     def test_osd_button_states_follow_backdrop(self):
         # These pairs tie on specificity. When both states match, the
