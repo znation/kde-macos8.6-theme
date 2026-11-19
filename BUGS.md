@@ -107,6 +107,13 @@ the ordinary-failure guarantee stands. A fix belongs to the capture
 
 **Director handoff 2026-11-18**
 
+The focused test reproduced once with `AssertionError: '#CCCCCC' != '#000000'` in the
+desktop-area row loop; the assertion did not include coordinates. After adding coordinates to
+`TestDesktopRender.assert_pixel`, the same focused test passed. Diagnose only from a recurrence
+with the new coordinate message; no cause is established yet.
+
+**Director handoff 2026-11-18**
+
 **Progress 2026-11-18 by bugfix:** The focused test passed locally, so the quarantined pixel failure remains unreproduced. Its per-pixel assertion now includes the coordinate alongside expected and observed colours; review whether this intermittent failure can be parked pending a recurrence with that location evidence.
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
