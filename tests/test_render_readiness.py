@@ -116,6 +116,26 @@ class TestRenderReadiness(unittest.TestCase):
         self.assertIn("render-session: no dbus-monitor for client readiness", log)
         self.assertIn("settle ceiling reached before a client ready file", log)
 
+    def test_a_missing_qdbus_names_the_tool_and_starts_no_listener(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        started_marker = root / "monitor.started"
+        monitor = bindir / "dbus-monitor"
+        monitor.write_text(
+            f"#!/bin/sh\ntouch {started_marker}\nexec sleep 30\n",
+            encoding="utf-8",
+        )
+        monitor.chmod(0o755)
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._session(root, str(bindir), 1)
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: no qdbus for client readiness", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(started_marker.exists(), log)
+
 
 if __name__ == "__main__":
     unittest.main()
