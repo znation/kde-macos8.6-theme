@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: consolidate residual widget-corner declarations (planned 2026-11-18 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Reduce the views suite by moving its inline-toolbar, keycap,
+fine-tuned trough and emoji corner check into the existing corner suite.
+This relocation is independent of the pending CSD extraction and the queued
+sampler parser split.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_inline_toolbar_keycap_finetune_emoji_corners` from
+`tests/test_gtk_theme_views.py` into
+`tests/test_gtk_theme_corners.py::TestGtkThemeCorners`, preserving its body
+and comments. The destination already inherits `GtkSheetRuleCases` and
+selects the GTK 3 sheet; the method needs no additional imports or local
+helpers. Broaden the destination module docstring to describe both corner
+families and update the views routing docstring. Update both references to
+the moved method in `docs/invariants.md` (the widget-corner row and emoji
+section-label row), preserving their guarantees and provenance. Search
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` for moved anchors. Keep the combined check intact: its
+family sweeps and source-order assertions jointly pin the corner rules and
+their explicitly allowed neighbours. No stylesheet change is needed.
+
+**Acceptance criteria.**
+
+- Discovery exposes the moved method on `TestGtkThemeCorners` without a
+  duplicate in `TestGtkThemeViews`; both suites pass independently through
+  project check selectors.
+- The moved check accepts the existing six radius selector spellings once
+  each with exactly `border-radius: 0`; a missing or duplicate spelling,
+  changed radius or added declaration fails it.
+- An unexpected selector containing `inline-toolbar`, `keycap`, `fine-tune`
+  or `emoji` fails the corresponding family sweep. Moving a pinned radius
+  selector or either emoji-section label selector before `modelbutton.flat`
+  fails its source-order assertion.
+- Both invariant references resolve to the destination, and full
+  `make check` passes after the final edit. This relocation adds no
+  rendered-pixel claim.
+
 ### Reference-pixel sampler: split command-line declaration groups (planned 2026-11-18 by the organize role) — done 2026-11-19 by the feature role
 
 **Goal.** Make the sampler's command-line interface easier to inspect by separating its large parser declaration from its validation logic. `tools/sample_arguments.py` is 317 lines, versus a production Python median near 165; `build_parser` begins at line 166 and contains the long sequence of option declarations, while `option_error` and `region_error` are separate validation responsibilities.

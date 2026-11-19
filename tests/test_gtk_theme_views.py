@@ -14,7 +14,8 @@ Needs-attention declarations are in ``tests/test_gtk_theme_attention.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
-are in ``tests/test_gtk_theme_menu.py``; CSD container corners are in
+are in ``tests/test_gtk_theme_menu.py``; inline-toolbar, keycap, fine-tune and
+emoji-picker corners are in ``tests/test_gtk_theme_corners.py``; CSD container corners are in
 ``tests/test_gtk_theme_csd_containers.py``; shipped icon-source checks stay here. The
 sheet's comment blocks carry each value's provenance.
 """
@@ -255,106 +256,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 f"{scope} button.titlebutton image", TITLE_BUTTON_IMAGE
             )
 
-    def test_inline_toolbar_keycap_finetune_emoji_corners(self):
-        """Pin inline-toolbar, keycap, fine-tune trough and emoji corners.
-
-        The four appended groups rest stock's inline-toolbar container,
-        shortcut keycap, fine-tuned scale trough family and emoji-picker
-        hover radius arms at zero; the emoji section labels also have explicit
-        opacity arms tested with their own declarations.
-        """
-        selectors = (
-            ".inline-toolbar",
-            ".keycap",
-            "scale.fine-tune fill",
-            "scale.fine-tune highlight",
-            "scale.fine-tune trough",
-            "popover.emoji-picker .emoji :hover",
-        )
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                self.assertEqual(self.selectors.count(selector), 1, selector)
-                self.assert_rule(selector, {"border-radius": "0"})
-        # The four tokens have no existing or unrelated neighbours: the existing
-        # keycap corner record is the GTK 4 `shortcut > .keycap` spelling,
-        # and the emoji-label rules are the only additional emoji selectors.
-        # The linked-field end-corner record restates six more
-        # linked arm members naming the inline-toolbar token — the three
-        # `.inline-toolbar button…` end members and the three
-        # `toolbar.inline-toolbar toolbutton…` end members — all pinned
-        # with the other linked-field spellings by
-        # test_gtk_theme_linked.TestGtkThemeLinked::
-        # test_linked_end_field_corners.
-        self.assertEqual(
-            {s for s in self.rules if "inline-toolbar" in s},
-            {".inline-toolbar",
-             ".inline-toolbar button:first-child",
-             ".inline-toolbar button:last-child",
-             ".inline-toolbar button:only-child",
-             "toolbar.inline-toolbar toolbutton:first-child > button.flat",
-             "toolbar.inline-toolbar toolbutton:last-child > button.flat",
-             "toolbar.inline-toolbar toolbutton:only-child > button.flat"},
-        )
-        self.assertEqual({s for s in self.rules if "keycap" in s}, {".keycap"})
-        # The four marked-scale fine-tune thumb arms also name
-        # the token and are pinned with the marked-scale thumbs by
-        # test_gtk_theme.TestGtkTheme.test_marked_scale_thumb_arms; the
-        # fine-tuned container geometry restatement adds the
-        # two orientation container spellings, pinned by
-        # test_gtk_theme_scale.TestGtkThemeScale::
-        # test_scale_fine_tune_container_geometry; and the
-        # marked-node geometry restatement adds the six fine-tuned tick
-        # margin and minimum spellings, pinned by
-        # test_gtk_theme_scale.TestGtkThemeScale::
-        # test_scale_marks_indicator_geometry.
-        self.assertEqual(
-            {s for s in self.rules if "fine-tune" in s},
-            {
-                "scale.fine-tune fill",
-                "scale.fine-tune highlight",
-                "scale.fine-tune trough",
-                "scale.fine-tune.horizontal",
-                "scale.fine-tune.vertical",
-                "scale.horizontal.marks-before:not(.marks-after).fine-tune slider",
-                "scale.horizontal.marks-after:not(.marks-before).fine-tune slider",
-                "scale.vertical.marks-before:not(.marks-after).fine-tune slider",
-                "scale.vertical.marks-after:not(.marks-before).fine-tune slider",
-                "scale.horizontal.fine-tune marks.top",
-                "scale.horizontal.fine-tune marks.bottom",
-                "scale.vertical.fine-tune marks.top",
-                "scale.vertical.fine-tune marks.bottom",
-                "scale.horizontal.fine-tune indicator",
-                "scale.vertical.fine-tune indicator",
-            },
-        )
-        self.assertEqual(
-            {s for s in self.rules if "emoji" in s},
-            {
-                "popover.emoji-picker .emoji :hover",
-                "button.emoji-section label",
-                "button.emoji-section:hover label",
-            },
-        )
-        for selector in (
-            "button.emoji-section label",
-            "button.emoji-section:hover label",
-        ):
-            with self.subTest(selector=selector, after="modelbutton.flat"):
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("modelbutton.flat"),
-                )
-        # Source order: every appended spelling sits after the existing
-        # modelbutton restatement near the sheet tail, so the byte-equal
-        # stock twins win the equal-specificity ties under the lower-sheet
-        # reading of how the toolkit resource competes.
-        for selector in selectors:
-            with self.subTest(selector=selector, after="modelbutton.flat"):
-                self.assertGreater(
-                    self.selectors.index(selector),
-                    self.selectors.index("modelbutton.flat"),
-                )
 
     def test_vertical_stepper_and_content_view_check_corners(self):
         """Pin the vertical steppers and content-view check faces square.
