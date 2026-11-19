@@ -5,6 +5,67 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Makefile refusal tests: move the unquoted-word and check-variable guards into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** `tests/test_make_refusals.py` is 1063 lines, and PRINCIPLES.md asks for files small
+enough to read in one sitting. Four of its eleven classes guard variables that are pasted into
+*unquoted* recipe words or into `make check`'s own guard lines, rather than into double-quoted
+install paths: `PYTHON`, `CHECK_PATTERN`, `INSTALL_PACKAGES`, and `CHECK_TESTS`/`CHECK_PARALLEL`.
+This plan moves those four classes into a new module. It changes no Makefile behavior and no
+test body. It is independent of the "Stylesheet sources" series and of the GTK parser test
+extraction, which touch neither file.
+
+**Approach and files touched.**
+
+- New `tests/test_make_refusals_tools.py`. Its module docstring says it pins the Makefile's
+  parse-time refusals for the interpreter, check-narrowing and package-list variables
+  (`PYTHON`, `CHECK_PATTERN`, `INSTALL_PACKAGES`, `CHECK_TESTS`, `CHECK_PARALLEL`). It says the
+  path, profile, color-scheme, theme-root, render-output and control-byte refusals stay in
+  `test_make_refusals.py`. Move these classes verbatim, keeping their names, docstrings and
+  method bodies, in their current file order: `TestShellUnsafePython`,
+  `TestShellUnsafeCheckPattern`, `TestShellUnsafeInstallPackages`,
+  `TestShellUnsafeCheckVariables`. The file has no module-level helpers, so nothing needs to go
+  into `tests/support/`. Import only what the moved classes use. Today that is `os`,
+  `unittest`, `installed_paths`, `repo_root`, `theme_install`, `assert_failed`,
+  `assert_succeeded` and `make_tmp_dir`. Confirm each name with grep after moving.
+- `tests/test_make_refusals.py`: delete the four classes. Drop any import that no remaining
+  class uses. Trim the module docstring's coverage claim so it does not describe the moved
+  variables, and add a pointer to `test_make_refusals_tools.py`. `TestShellUnsafeRenderOutput`,
+  which sits between two moved classes today, stays.
+- `docs/invariants.md`: in the make-variable guard rows (the "Environment supplied make
+  variables are read as literal text" row and the long `DESTDIR`/`XDG_DATA_HOME`/… row),
+  rewrite every `tests/test_make_refusals.py::<Class>` anchor for the four moved classes to
+  `tests/test_make_refusals_tools.py::<Class>`. Method-level anchors keep their method name.
+  Leave anchors for classes that stay.
+- Docstring cross-references: `tests/test_theme_install.py` and
+  `tests/test_make_control_chars_evaluation.py` name `test_make_refusals` as where the guard
+  refusals live. Have each name both modules.
+- Per L1/L3, grep `tests/support/validation_gaps/*.py`, `docs/rendering.md`,
+  `docs/fidelity.md` and `tests/test_ci_workflow.py` for the four class names. Today none
+  matches: `validation_gaps/no_repro.py` names only `TestShellUnsafeInstallPaths`, which stays.
+  Update any hit that does turn up.
+- Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors and are not edited.
+
+**Acceptance criteria.**
+
+- `tests/test_make_refusals_tools.py` defines exactly the four classes listed above, each with
+  the same name, docstring and set of test methods as before. `grep -n
+  'class TestShellUnsafe\(Python\|CheckPattern\|InstallPackages\|CheckVariables\)'
+  tests/test_make_refusals.py` prints nothing.
+- Both files are under 700 lines (`wc -l`). Compare the `TestShellUnsafe*` class-and-method
+  names collected from both files after the move with the set from the original file. They
+  match, with nothing lost or duplicated.
+- `grep -rn 'test_make_refusals.py::TestShellUnsafe\(Python\|CheckPattern\|InstallPackages\|CheckVariables\)'
+  docs tests` prints nothing. The invariants-anchor test passes with the rewritten anchors.
+- No file under `theme/`, `tools/`, or the `Makefile` changes.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
+**Deviation (feature, 2026-11-19).** `TestShellUnsafeCheckPattern`, `TestShellUnsafeInstallPackages` and
+`TestShellUnsafePython` read `TestShellUnsafeInstallPaths.HOSTILES`, which stays in `test_make_refusals.py`. The new
+module imports that file as `refusals` and reads `refusals.TestShellUnsafeInstallPaths.HOSTILES` (three spots). A
+`from ... import` of the class would make unittest collect it twice, so the module is imported instead. The four
+classes are otherwise verbatim.
+
 ### GTK stylesheet parser tests: move the declaration-cascade cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** `tests/test_gtk_css.py` is 1170 lines. Its `TestRuleBlockSemantics` class alone is

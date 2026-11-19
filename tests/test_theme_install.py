@@ -7,7 +7,7 @@ that the Makefile survives a `DESTDIR` or `XDG_DATA_HOME` that contains
 whitespace (its recipe words are quoted), that an empty or relative data home
 falls back to the XDG default, and that an invalid `FLOCK_TIMEOUT` is refused
 before the lock is taken. The make-level refusal of a value carrying shell
-syntax or a control byte lives in ``test_make_refusals.py``, `make check`'s
+syntax or a control byte lives in ``test_make_refusals.py`` and ``test_make_refusals_tools.py``, `make check`'s
 variables in ``test_make_check.py`` and `make help` in ``test_make_help.py``.
 """
 
