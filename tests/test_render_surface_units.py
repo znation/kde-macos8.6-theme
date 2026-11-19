@@ -379,7 +379,7 @@ class TestSessionScript(unittest.TestCase):
         write_executable(
             root / "dbus-monitor", "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
         )
-        for name in ("date", "rm", "sleep", "touch"):
+        for name in ("date", "mkfifo", "rm", "sleep", "touch"):
             (root / name).symlink_to(shutil.which(name))
         client = root / "client.py"
         client.write_text(
