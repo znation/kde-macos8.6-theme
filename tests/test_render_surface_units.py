@@ -124,6 +124,10 @@ class TestSessionScript(unittest.TestCase):
         )
         self.assertLess(
             script.index('kill -CONT "$client"'),
+            script.index('resumed=0; while [ "$resumed" -lt 50 ]'),
+        )
+        self.assertLess(
+            script.index('resumed=0; while [ "$resumed" -lt 50 ]'),
             script.index('kill "$client"'),
         )
         self.assertLess(

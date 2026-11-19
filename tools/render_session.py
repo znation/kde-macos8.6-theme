@@ -337,6 +337,12 @@ def session_script(
         'else '
         f'echo "{CLIENT_EXITED_DURING_CAPTURE} at $capture_done" >&2; fi; '
         'kill -CONT "$client" 2>/dev/null; '
+        # SIGCONT only queues the resume. Let the client run before SIGTERM
+        # so a stopped process cannot take the termination signal first.
+        'resumed=0; while [ "$resumed" -lt 50 ]; do '
+        'state=$(awk \'{print $3}\' "/proc/$client/stat" 2>/dev/null); '
+        '[ "$state" != T ] && break; '
+        'sleep 0.1; resumed=$((resumed + 1)); done; '
         'kill "$client" 2>/dev/null; '
         'waited=0; '
         'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
