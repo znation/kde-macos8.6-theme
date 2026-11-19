@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate CSD container-corner declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the CSD popup, popover and decoration-shell corner check a
+focused module outside the GTK 3 views suite. This move is independent of
+the queued places-view server-button extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_csd_container_corners` from
+`tests/test_gtk_theme_views.py` to new
+`tests/test_gtk_theme_csd_containers.py::TestGtkThemeCsdContainers`, preserving
+its body and comments. Inherit `support.gtk_rule_cases.GtkSheetRuleCases`
+and `unittest.TestCase`; import `ROOT` from `support.repo_root` and set
+`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+The method uses no module-local helper or palette constant. Update the
+views routing docstring and the CSD container and decoration-faces row in
+`docs/invariants.md` to the new anchor, retaining its guarantee and
+provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for moved anchors.
+Theme sheets and GTK 4 coverage stay outside this relocation.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named method in the destination without a duplicate
+  in views or inherited shared-control tests in the destination. Source and
+  destination pass independently through project check selectors.
+- The moved check accepts the existing eight selector spellings exactly
+  once each with only `border-radius: 0`. Removing a spelling, changing its
+  radius, adding a declaration or duplicating it fails the check.
+- An additional selector containing `csd menu`, `csd .menu`,
+  `csd .context-menu` or `decoration` fails the corresponding selector sweep.
+  Moving any of the eight rules before `menu`, `popover` or
+  `messagedialog.csd.background` fails the order assertion.
+- The invariant anchor resolves and full `make check` passes. This
+  declaration-test relocation adds no rendered-pixel claim.
+
 ### GTK 3 suite extraction: isolate needs-attention badge declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the GTK 3 attention-badge declaration check a focused module
