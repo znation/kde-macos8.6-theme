@@ -55,6 +55,18 @@ def _longer_run(longest, line_runs):
     return longest
 
 
+def _record_run(run, args, selected_colors, excluded_colors, runs,
+                skipped_runs, omitted_runs):
+    if not _keeps_run(run, selected_colors, excluded_colors, args):
+        return skipped_runs, omitted_runs
+    if args.run_offset is not None and skipped_runs < args.run_offset:
+        return skipped_runs + 1, omitted_runs + 1
+    if args.max_runs is not None and len(runs) >= args.max_runs:
+        return skipped_runs, omitted_runs + 1
+    runs.append(run)
+    return skipped_runs, omitted_runs
+
+
 def _runs_result(args, image, width: int, height: int) -> dict:
     """Assemble one run report's result mapping: scan the rectangle row by row
     or column by column, keep only the runs the color, length, offset and cap
@@ -84,15 +96,10 @@ def _runs_result(args, image, width: int, height: int) -> dict:
         if track_longest:
             longest_run = _longer_run(longest_run, line_runs)
         for run in line_runs:
-            if not _keeps_run(run, selected_colors, excluded_colors, args):
-                continue
-            if args.run_offset is not None and skipped_runs < args.run_offset:
-                skipped_runs += 1
-                omitted_runs += 1
-            elif args.max_runs is not None and len(runs) >= args.max_runs:
-                omitted_runs += 1
-            else:
-                runs.append(run)
+            skipped_runs, omitted_runs = _record_run(
+                run, args, selected_colors, excluded_colors, runs,
+                skipped_runs, omitted_runs,
+            )
     result = {**context, "axis": axis, "runs": [
             {**run, "rgb": list(run["rgb"]), "hex": hex(run["rgb"])} for run in runs
         ]}
