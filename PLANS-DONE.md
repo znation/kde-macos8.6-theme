@@ -5,6 +5,39 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate ordinary inline-link states (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give ordinary inline-link disabled and interaction declarations
+a focused test module. This moves existing coverage; the archived inline-link
+styling plans supplied the rules. It is independent of the content-view
+extraction and the pending link-button extraction.
+
+**Approach and files touched.** Move the four ordinary inline-link checks from
+`tests/test_gtk_theme.py` into
+`tests/test_gtk_theme_inline_links.py::TestGtkThemeInlineLinks`. They inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, use the GTK 3
+sheet at `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, and retain their exact
+declaration, scheme-colour and source-order assertions. `test_links` (which also
+checks buttons), selected-context methods, `LINK_ROOTS` and
+`assert_selected_link_rules` stay in the source module. The source routing
+docstring and `docs/invariants.md` anchors point to the focused module; searches
+of `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/` found no further moved anchors. No theme sheet or shared helper
+changed.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the destination class without
+  duplicates in `TestGtkTheme`; destination does not inherit shared-control
+  tests.
+- Disabled ordinary and backdrop links retain exact grey dictionaries,
+  single-occurrence checks, scheme re-derivation and source-order assertions.
+- Enabled interaction and backdrop links retain exact blue/visited-purple
+  dictionaries, single-occurrence checks, scheme comparisons and comment-stripped
+  source ordering.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ### GTK 3 suite extraction: isolate content-view declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the content-view field and hover declaration checks a focused
