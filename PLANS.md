@@ -110,47 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate disabled-view declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the disabled-view declaration check a focused home outside
-`tests/test_gtk_theme.py`. This is independent of the queued secondary-label
-extraction and pending round-button extraction. The archived disabled-view
-feature supplied the styling; the archived frame extraction moved its render
-probe, leaving this declaration method in the main suite.
-
-**Approach and files touched.** Move
-`TestGtkTheme.test_disabled_view_face_and_ink`, preserving its body and
-provenance comments, into new
-`tests/test_gtk_theme_disabled_views.py::TestGtkThemeDisabledViews`.
-Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
-binding `CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-Import `ROOT` from `support.repo_root`, `gtk_css` from `support`,
-`DISABLED_TEXT` from `support.gtk_theme_spec`, and `WHITE` from
-`support.platinum_palette`. The method uses the existing sheet setup and
-`assert_rule`; no new helper or import from another test module is needed.
-Update the source routing docstring and repoint the moved anchor in
-`docs/invariants.md`, preserving its render-probe anchor and provenance.
-Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
-and `tests/support/` for further moved anchors. Leave theme sheets,
-shared helpers and the offscreen probe in `tests/test_gtk_theme_frames.py`
-unchanged.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named method in the destination class without a
-  duplicate in `TestGtkTheme` or inherited shared-control tests in the new
-  module. Source and destination run independently through check selectors.
-- The five-member disabled-view group retains its exact white-field and
-  grey-ink dictionaries, and the treeview disabled/backdrop pair retains
-  its exact ink dictionaries and count-one checks. Replacing the group's
-  white field with another colour fails the moved check.
-- The selector-family sweeps retain their selected-state exceptions.
-  Adding an extra `iconview:disabled` state spelling fails the moved check.
-  Moving the disabled-view group before the disabled-selected group fails
-  the existing comment-stripped source-order assertion.
-- Invariant anchors resolve, focused source and destination checks pass,
-  and full `make check` passes. No rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate link-button label declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the related disabled and enabled-interaction link-button
