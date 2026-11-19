@@ -95,9 +95,9 @@ def applet_problem(applet_id: str, data_roots=None) -> str | None:
                 / f"{applet_id}.so"
             )
             if plugin.is_file() or any(
-                library_root.glob(
-                    f"*/qt6/plugins/plasma/applets/{applet_id}.so"
-                )
+                (arch / "qt6" / "plugins" / "plasma" / "applets"
+                 / f"{applet_id}.so").is_file()
+                for arch in library_root.glob("*")
             ):
                 return None
     searched = ", ".join(str(root) for root in roots)

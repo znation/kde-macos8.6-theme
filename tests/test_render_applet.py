@@ -61,6 +61,28 @@ class TestAppletFinder(unittest.TestCase):
         roots = [self.homed_style, self.dirs_style]
         self.assertIsNone(render_applet.applet_problem(APPLET, roots))
 
+    def test_split_plugin_directory_does_not_match(self):
+        root = Path(self.tmp.name) / "usr" / "share"
+        plugin = (
+            root.parent / "lib" / "x86_64-linux-gnu" / "qt6" / "plugins"
+            / "plasma" / "applets" / f"{APPLET}.so"
+        )
+        plugin.mkdir(parents=True)
+        self.assertIsNotNone(render_applet.applet_problem(APPLET, [root]))
+
+    def test_split_plugin_id_is_a_literal_filename(self):
+        root = Path(self.tmp.name) / "usr" / "share"
+        plugin = (
+            root.parent / "lib" / "x86_64-linux-gnu" / "qt6" / "plugins"
+            / "plasma" / "applets" / f"{APPLET}.so"
+        )
+        plugin.parent.mkdir(parents=True)
+        plugin.touch()
+        self.assertIsNotNone(render_applet.applet_problem("org.example.*", [root]))
+        literal = plugin.with_name("org.example.*.so")
+        literal.touch()
+        self.assertIsNone(render_applet.applet_problem("org.example.*", [root]))
+
     def test_a_directory_without_metadata_json_still_misses(self):
         bare = _make_root(f"{self.tmp.name}/bare", install=False)
         problem = render_applet.applet_problem(APPLET, [bare])
