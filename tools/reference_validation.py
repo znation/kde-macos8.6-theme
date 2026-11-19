@@ -131,40 +131,45 @@ def _check_entries(
     """Check accepted declarations against files in the reference directory."""
     problems: list[tuple[int, str]] = []
     for filename, lineno in entries.items():
-        image = directory / filename
-        safe_filename = escape_controls(filename)
-        if not resolves_within(directory, image):
-            problems.append(
-                (lineno, f"{sources}:{lineno}: {safe_filename!r} points outside "
-                 f"{directory}/ (a symlink escape)")
-            )
-            continue
-        if not image.is_file():
-            problems.append((lineno, f"{sources}:{lineno}: {safe_filename!r} does not exist in {directory}/"))
-            continue
-        try:
-            head, tail, size = _image_head_and_tail(image)
-            if head.startswith(LFS_POINTER_MAGIC):
-                problems.append(
-                    (lineno, f"{sources}:{lineno}: {safe_filename!r} is an unmaterialized Git LFS pointer; "
-                     "run `git lfs install && git lfs pull` to fetch the image")
-                )
-            elif not is_image(head):
-                # The unrecognized-payload diagnostic outranks a truncation
-                # one: without a known format there is no ending to judge.
-                problems.append(
-                    (lineno, f"{sources}:{lineno}: {safe_filename!r} is not a PNG, JPEG, GIF or WebP image; "
-                     "it may be an HTML error page or a truncated download")
-                )
-            elif not is_complete(head, tail, size):
-                problems.append(
-                    (lineno,
-                     f"{sources}:{lineno}: {filename!r} "
-                     f"{_incomplete_stream_suffix(head, tail, size)}")
-                )
-        except (OSError, ValueError) as exc:
-            problems.append((lineno, f"{sources}:{lineno}: {safe_filename!r} could not be read: {exc}"))
+        problems.extend(_check_entry(directory, sources, filename, lineno))
     return problems
+
+
+def _check_entry(
+    directory: Path, sources: Path, filename: str, lineno: int
+) -> list[tuple[int, str]]:
+    """Return any validation problem for one declared reference image."""
+    image = directory / filename
+    safe_filename = escape_controls(filename)
+    if not resolves_within(directory, image):
+        return [
+            (lineno, f"{sources}:{lineno}: {safe_filename!r} points outside "
+             f"{directory}/ (a symlink escape)")
+        ]
+    if not image.is_file():
+        return [(lineno, f"{sources}:{lineno}: {safe_filename!r} does not exist in {directory}/")]
+    try:
+        head, tail, size = _image_head_and_tail(image)
+    except (OSError, ValueError) as exc:
+        return [(lineno, f"{sources}:{lineno}: {safe_filename!r} could not be read: {exc}")]
+    if head.startswith(LFS_POINTER_MAGIC):
+        return [
+            (lineno, f"{sources}:{lineno}: {safe_filename!r} is an unmaterialized Git LFS pointer; "
+             "run `git lfs install && git lfs pull` to fetch the image")
+        ]
+    if not is_image(head):
+        # The unrecognized-payload diagnostic outranks a truncation one:
+        # without a known format there is no ending to judge.
+        return [
+            (lineno, f"{sources}:{lineno}: {safe_filename!r} is not a PNG, JPEG, GIF or WebP image; "
+             "it may be an HTML error page or a truncated download")
+        ]
+    if not is_complete(head, tail, size):
+        return [
+            (lineno, f"{sources}:{lineno}: {filename!r} "
+             f"{_incomplete_stream_suffix(head, tail, size)}")
+        ]
+    return []
 
 
 def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
