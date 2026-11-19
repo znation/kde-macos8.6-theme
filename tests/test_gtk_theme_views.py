@@ -7,7 +7,9 @@ field and title-button boxes. Rubberband declarations are in
 ``tests/test_gtk_theme_rubberband.py``. Header drag-and-drop declarations are in
 ``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
-Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
+Places-view server-button motion declarations are in
+``tests/test_gtk_theme_server_button.py``. Message-dialog declarations are in
+``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
 are in ``tests/test_gtk_theme_menu.py``; shipped icon-source checks stay here. The
@@ -235,36 +237,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 ".view text:backdrop:disabled:selected",
             },
         )
-
-    def test_server_list_button_rotation_motion(self):
-        selectors = (
-            "placesview .server-list-button > image",
-            "placesview .server-list-button:checked > image",
-        )
-        for selector in selectors:
-            self.assert_rule(selector, {"transition": "none"})
-            # Exact-dict, not the per-property subset: a stray rotation,
-            # transform, colour or geometry declaration on either twin
-            # must fail, per the entry's guarantee.
-            self.assertEqual(self.rules[selector], {"transition": "none"}, selector)
-            self.assertEqual(self.selectors.count(selector), 1, selector)
-        # The element-level family is exactly these two stock arms: the
-        # sweep kills a renamed spelling, a stray state twin or a second
-        # rule.
-        self.assertEqual(
-            {s for s in self.rules if "server-list-button" in s},
-            set(selectors),
-        )
-        # The rules hold the sheet tail, after the existing infobar band's
-        # closing selection and link spellings (the parser splits a
-        # comma group into its member selectors).
-        tail_anchor = max(
-            self.selectors.index("infobar > revealer > box selection"),
-            self.selectors.index("infobar > revealer > box label:link"),
-            self.selectors.index("infobar > revealer > box button:link"),
-        )
-        for selector in selectors:
-            self.assertGreater(self.selectors.index(selector), tail_anchor)
 
     def test_stack_switcher_tabs(self):
         forms = {

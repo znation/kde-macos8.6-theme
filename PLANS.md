@@ -116,40 +116,6 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); no split-source plan is queued. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate places-view server-button motion declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the places-view server-button motion check a focused module
-outside the oversized GTK 3 views suite. This relocation is independent of
-the queued rubberband and pending accelerator-editor relocations.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_server_list_button_rotation_motion` from
-`tests/test_gtk_theme_views.py` to new
-`tests/test_gtk_theme_server_button.py::TestGtkThemeServerButton`, preserving
-its body and comments. Inherit `support.gtk_rule_cases.GtkSheetRuleCases`
-and `unittest.TestCase`; import `ROOT` from `support.repo_root` and set
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-The method needs no module-local helper or palette constant. Update the
-views routing docstring and the GTK 3 places-view server-button row in
-`docs/invariants.md` to the new anchor, retaining its guarantee and
-provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
-GTK 4 coverage and theme sheets stay outside this relocation.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named method in the destination without a duplicate
-  in views or inherited shared-control tests in the destination. Source and
-  destination pass independently through project check selectors.
-- The moved check accepts exactly the two existing server-button image
-  selector spellings, each appearing once with only `transition: none`.
-  Adding a transform declaration, duplicating either selector or adding a
-  server-button state selector fails it.
-- Moving either server-button rule before the existing infobar selection
-  and link group fails the moved order assertion.
-- The invariant anchor resolves and full `make check` passes. This
-  declaration-test relocation adds no rendered-pixel claim.
-
 ## Done
 
 ### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
