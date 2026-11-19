@@ -1,0 +1,474 @@
+/* Mac OS 8.6 Platinum for GTK 4 applications.
+
+   This is a standalone sheet: it imports nothing, so no upstream sheet's rule
+   can outrank the Platinum faces. The palette values are the reference-grounded
+   Platinum values pinned by tests/support/platinum_palette.py (#DDDDDD face,
+   #FFFFFF white, #999999 grey, #000000 black, #AAAAAA raised-button shadow,
+   #EEEEEE trough and #CCCCFF selection), plus the etched separator's #888888
+   dark half pinned by tests/test_desktoptheme_line.py and the #FFFFCC tooltip
+   face pinned by tests/support/platinum_palette.py. No reference screenshot
+   shows a GTK widget, so the GTK-specific geometry below is this theme's
+   adaptation, not a reference crop. The opaque GTK 4 surface names use those
+   same values; status and translucent shade roles keep the toolkit defaults
+   because the reference set shows no Platinum value for them. The check
+   button's raised #DDDDDD face reuses the reference-grounded Kvantum check
+   box, the radio face matches widgets/radiobutton.svg, and the checked glyphs
+   load from the shared assets/checkmark.svg and assets/bullet.svg this
+   package installs; a mixed (indeterminate) check box or radio loads the
+   shared assets/check-mixed.svg dash. The combo box and dropdown arrows, and a menu button's down
+   arrow, load from the shared assets/arrow-down.svg (its up arrow from
+   assets/arrow-up.svg), whose triangle reuses the desktop theme's pinned
+   widgets/arrows.svg shape. GTK 4 scrolls menus inside a popover rather than
+   through the menu arrow nodes, so this sheet names no menu scroll arrows.
+   The scroll-bar thumb's 12px minimum fills the reference's 16px bar inside
+   the trough's and thumb's 1px borders, because GTK 4 has no steppers to
+   size the bar.
+   Spin-button arrows stay from the icon theme because GTK draws them there,
+   not from a CSS -gtk-icon-source this sheet can redirect.
+   Views (the view class and the list box) paint
+   the reference-grounded white content field, the colour scheme's View
+   background, with black text; no reference screenshot shows a GTK widget, and
+   the view class and node names are GTK-required.
+   The drag-selection rubberband is a 1px dotted black outline with no fill,
+   after the Mac OS Finder marquee; no reference screenshot shows a marquee,
+   so its shape is this theme's adaptation, and the rubberband node and class
+   names are GTK-required.
+   Menu-bar titles take widgets/menubaritem.svg's 3px/7px margins, re-derived
+   from the reference title gaps, and an open title takes the #CCCCFF
+   selection; the menubar > item node and :selected state are GTK-required.
+   The tree-view,
+   list-box, column-view and list-view row rules adapt the reference-grounded
+   row in widgets/listitem.svg: a hovered row stays the view background and a
+   selected row is its flat #CCCCFF fill with square corners and black text.
+   No reference screenshot shows a GTK widget, so the row geometry is this
+   theme's adaptation and the node and class names are GTK-required.
+   A selected row keeps the flat #CCCCFF selection in an unfocused window
+   through :backdrop arms, because the stock sheets' own backdrop arms would
+   otherwise grey or blue it. The
+   tree-view and column header rules adapt the same reference-grounded
+   Platinum push button: a #DDDDDD face with the raised bevel and one black
+   line between columns and under the header row, and no right line after the
+   last column. Their ascending and descending sort indicators load from the
+   shared assets/arrow-up.svg and assets/arrow-down.svg, whose triangles
+   reuse the desktop theme's pinned widgets/arrows.svg shapes. No reference
+   screenshot shows a GTK widget, so the header geometry is this theme's
+   adaptation. The title-bar close, zoom (maximize) and collapse (minimize)
+   buttons paint the reference-grounded Aurorae box art from the shared
+   assets/window-close.svg, assets/window-maximize.svg and
+   assets/window-minimize.svg, centred in a 16px hit area with the toolkit
+   glyph and its default 30px image circle hidden. GTK's restore state keeps
+   the maximize class, so it uses the zoom art and needs no fourth asset. No
+   reference screenshot shows a GTK widget, so the 16px hit area is this
+   theme's adaptation. The headerbar is floored at the reference's 22px title
+   bar (the Aurorae TitleHeight) with the 4px title edge
+   (TitleEdgeLeft/TitleEdgeRight), and a backdrop headerbar paints the
+   reference's flat inactive frame from desktop_fandom.png: the #DDDDDD field,
+   the #555555 outline and the rc's #999999 inactive title text. The floor is
+   not a cap, so a headerbar with a taller child still grows. No reference
+   screenshot shows a GTK widget, so the headerbar and backdrop node names
+   are GTK-required and the geometry is this theme's adaptation.
+   The switch reuses the desktop theme's widgets/switch.svg faces (the #EEEEEE
+   trough, the #FFFFFF active field and the raised #DDDDDD thumb with no glyph);
+   GTK splits the track between the two states, so the thumb's drawn width is
+   GTK's layout rather than the 12px floor. No reference screenshot shows a
+   switch, so its shape is KDE-required provenance, and the node names and the
+   hidden I/O glyphs are GTK-required.
+   Selected text in entries, spin buttons, labels and text views reuses the
+   reference-grounded #CCCCFF selection fill with black text; no reference
+   screenshot shows selected text in a field, so applying the fill there is
+   this theme's adaptation, and the node names are GTK-required.
+
+   Tree-view and expander disclosure arrows load the shared assets/arrow-right.svg
+   (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
+   shows a GTK widget, and the node names are GTK-required.
+   A menu row's submenu arrow loads the shared assets/submenu-arrow.svg, the
+   icon theme's reference-grounded submenu triangle.
+
+   The standalone separators reuse the reference-grounded etched pair in both
+   orientations, and the paned split handles reuse the same etch; the
+   orientation classes and the paned orientation classes are GTK-required. The level bar
+   reuses the reference-grounded progress-bar trough and selection fill, and
+   its node and class names are GTK-required. An entry's progress fraction is
+   a 2px strip of the same selection fill; the 2px thickness is the stock
+   GTK value, because no reference screenshot shows an entry progress, and
+   the node names are GTK-required. Spin buttons reuse the entry
+   field because their field node is spinbutton (vertical: spinbutton.vertical
+   > text), not entry; those node names are GTK-required.
+   An insensitive widget's label and entry text use the colour scheme's
+   ForegroundInactive grey #888888, which Kvantum's disabled text also uses; no
+   reference screenshot shows a disabled GTK widget, and the node names and
+   :disabled state are GTK-required.
+   Links use the colour scheme's ForegroundLink blue #0000EE and ForegroundVisited
+   purple #551A8B (Kvantum's link colours too), and a link button draws no
+   button face; no reference screenshot shows a GTK link, and the node names
+   and :link/:visited states are GTK-required.
+   A calendar's selected day reuses the row selection fill #CCCCFF with black
+   text, and other months' days use the disabled-text ForegroundInactive grey
+   #888888; no reference screenshot shows a calendar, and the node names and
+   states are GTK-required. A spinner shows the icon theme's
+   process-working-symbolic while it runs and is hidden while stopped; it adds no
+   colour or metric, and no reference screenshot shows a GTK spinner. An
+   infobar band reuses the menu-bar band's face and etched bottom rule with
+   black text; no reference screenshot shows a GTK infobar, and the four
+   message-type class names are GTK-required, so all types take the same
+   band. A search bar and an action bar band reuse the same menu-bar band
+   with the same etched bottom rule; no reference screenshot shows a GTK
+   search bar or action bar, and the revealer and box node names are
+   GTK-required. A status bar band reuses the same menu-bar band with the
+   same etched bottom rule, and on GTK 3 its shadowless internal frame
+   border stays flat; no reference screenshot shows a GTK status bar, and
+   the statusbar node name is GTK-required. A stack switcher's page buttons
+   paint as the existing tab recipe byte-for-byte; no reference screenshot shows
+   a GTK stack switcher, and the stackswitcher and button node names are
+   GTK-required. A file chooser's path bar paints its buttons as the existing
+   tab recipe byte-for-byte; no reference screenshot shows a GTK path bar,
+   and the path-bar and linked classes and the pathbar, scrolledwindow,
+   viewport and box node names are GTK-required. A linked group shares one
+   black border between its members; no reference screenshot shows a GTK
+   linked group, and the linked class is GTK-required. */
+
+@define-color theme_bg_color #DDDDDD;
+@define-color theme_fg_color #000000;
+@define-color theme_base_color #FFFFFF;
+@define-color theme_text_color #000000;
+/* No reference screenshot shows GTK's general backdrop roles; GTK names were
+   probed in Default-light.css, and the window/view palette stays constant
+   across focus states (2026-10-31). */
+@define-color theme_unfocused_bg_color #DDDDDD;
+@define-color theme_unfocused_fg_color #000000;
+@define-color theme_unfocused_base_color #FFFFFF;
+@define-color theme_unfocused_text_color #000000;
+@define-color theme_selected_bg_color #CCCCFF;
+@define-color theme_selected_fg_color #000000;
+/* No reference screenshot shows backdrop selection; keep the selection palette constant across window focus states (2026-10-31). */
+@define-color theme_unfocused_selected_bg_color #CCCCFF;
+@define-color theme_unfocused_selected_fg_color #000000;
+@define-color borders #000000;
+@define-color unfocused_borders #999999;
+@define-color accent_bg_color #CCCCFF;
+@define-color accent_fg_color #000000;
+@define-color window_bg_color #DDDDDD;
+@define-color window_fg_color #000000;
+@define-color view_bg_color #FFFFFF;
+@define-color view_fg_color #000000;
+@define-color headerbar_bg_color #DDDDDD;
+@define-color headerbar_fg_color #000000;
+@define-color headerbar_border_color #000000;
+@define-color headerbar_backdrop_color #DDDDDD;
+@define-color popover_bg_color #DDDDDD;
+@define-color popover_fg_color #000000;
+@define-color card_bg_color #DDDDDD;
+@define-color card_fg_color #000000;
+@define-color dialog_bg_color #DDDDDD;
+@define-color dialog_fg_color #000000;
+@define-color sidebar_bg_color #DDDDDD;
+@define-color sidebar_fg_color #000000;
+@define-color sidebar_backdrop_color #DDDDDD;
+@define-color sidebar_border_color #000000;
+@define-color secondary_sidebar_bg_color #DDDDDD;
+@define-color secondary_sidebar_fg_color #000000;
+@define-color secondary_sidebar_backdrop_color #DDDDDD;
+@define-color secondary_sidebar_border_color #000000;
+@define-color thumbnail_bg_color #FFFFFF;
+@define-color thumbnail_fg_color #000000;
+@define-color scrollbar_outline_color #000000;
+
+window, .background {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-radius: 0;
+}
+
+headerbar, .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
+}
+
+headerbar {
+  border-width: 0 0 1px 0;
+}
+
+headerbar:backdrop, .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
+}
+
+/* Adaptation 2026-10-31: no reference shows GTK header subtitles; the installed
+   GTK 4 base resource groups these nodes with dim-label. Reuse inactive grey. */
+headerbar .subtitle, windowtitle .subtitle {
+  color: #888888;
+  opacity: 1;
+}
+
+/* Adaptation 2026-10-31: no reference shows GTK separator labels; the installed
+   GTK 4 Default-light resource groups them with dimmed placeholders. Reuse the
+   inactive-text grey at full opacity. */
+label.separator {
+  color: #888888;
+  opacity: 1;
+  text-shadow: none;
+}
+
+headerbar windowcontrols button.close, .titlebar windowcontrols button.close {
+  background-color: transparent;
+  background-image: url("../assets/window-close.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar windowcontrols button.maximize, .titlebar windowcontrols button.maximize {
+  background-color: transparent;
+  background-image: url("../assets/window-maximize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar windowcontrols button.minimize, .titlebar windowcontrols button.minimize {
+  background-color: transparent;
+  background-image: url("../assets/window-minimize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar windowcontrols button image, .titlebar windowcontrols button image {
+  background-color: transparent;
+  color: transparent;
+  min-height: 16px;
+  min-width: 16px;
+}
+
+headerbar windowcontrols button:hover > image, .titlebar windowcontrols button:hover > image,
+headerbar windowcontrols button:active > image, .titlebar windowcontrols button:active > image,
+headerbar windowcontrols button:checked > image, .titlebar windowcontrols button:checked > image {
+  background-color: transparent;
+}
+
+button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  /* No reference screenshot shows GTK push-button focus motion; reuse the
+   * immediate scale focus policy. Recorded 2026-10-29 by the feature role. */
+  transition: none;
+}
+
+button:hover {
+  background-color: #DDDDDD;
+}
+
+button:active, button:checked {
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+/* No reference screenshot shows GTK push-button keyboard focus; reuse the
+ * scale focus black. The inherited outline geometry is GTK-required.
+ * Recorded 2026-10-29 by the feature role. */
+button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+entry, spinbutton:not(.vertical), spinbutton.vertical > text {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+/* Adaptation (2026-11-11): no reference screenshot shows a GTK spin
+   button in either direction; this mirrors the existing etch above onto a
+   horizontal spin field's exposed edge in right-to-left text direction,
+   because GTK 4 does not mirror box-shadow for direction. Measured
+   2026-11-11 in a GTK 4 child render before this edit: in a horizontal
+   RTL spin button the existing :dir(rtl) stepper arms sit at the field's
+   left edge and cover the etch's vertical arm there, so the exposed
+   field drew only the horizontal top arm — a half-etched field, where
+   the LTR field shows the full L; the mirror puts the vertical arm at
+   the exposed right edge, the corner where the LTR field's arm sits.
+   Vertical spin fields stay out (no horizontal stepper covers the arm —
+   the existing GTK 3 exclusion's reason stands), plain entry fields stay
+   out (no steppers, the existing GTK 3 plain-entry exclusion) and the
+   treeview-embedded entry group stays out (an entry, not a spin field).
+   The existing GTK 3 sheet carries the same mirror
+   (spinbutton:dir(rtl):not(.vertical) in the gtk-3.0 sheet). The
+   :not(.vertical) arm keeps the vertical spin fields out. */
+spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+/* No GTK entry-focus motion reference; reuse the immediate scale-focus
+ * policy. Recorded 2026-10-29 by the feature role. */
+entry {
+  transition: none;
+}
+
+/* No GTK spin-button focus-motion reference; reuse the immediate
+ * scale-focus policy. Recorded 2026-10-29 by the feature role. */
+spinbutton {
+  transition: none;
+}
+
+/* No GTK entry-focus reference; reuse the scale-focus black. The stock
+ * outline width and offset remain inherited. Recorded 2026-10-29. */
+entry:focus-within {
+  outline-color: #000000;
+}
+
+/* No GTK spin-button focus reference; reuse the scale-focus black. The stock
+ * outline geometry remains inherited. Recorded 2026-10-29; extended
+ * 2026-11-03 with the stock state-spelled twins the toolkit resource groups
+ * in one arm — `spinbutton.vertical > text:focus-within` and
+ * `spinbutton:focus-within:not(.vertical)` (each above the existing spelling
+ * through the extra compound or `:not()`), so each byte-equal twin restates
+ * the stock arm below in the same shape the existing error/warning class
+ * twins already follow. */
+spinbutton.vertical > text:focus-within, spinbutton:focus-within:not(.vertical),
+spinbutton:focus-within {
+  outline-color: #000000;
+}
+
+/* No collected reference screenshot shows a GTK flat entry, the standing
+ * GTK-scope adaptation premise: restating the stock transparent flat field
+ * with the existing entry recipe above (the same erased stock
+ * flat-versus-raised distinction the existing flat-button arms follow).
+ * Stock grouped arm probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `spinbutton.vertical > text.flat, spinbutton.flat:not(.vertical),
+ * entry.flat:focus-within, entry.flat:backdrop, entry.flat:disabled,
+ * entry.flat { min-height: 0; padding: 2px;
+ * background-color: transparent; border-color: transparent;
+ * border-radius: 0 }`. Each restated selector is the byte-equal stock twin
+ * and the group sits after the existing base arms, so later source order wins
+ * every state tie and a focused, backdrop or disabled flat entry keeps the
+ * raised field; stock's min-height and padding stay in force because the
+ * cascade is per-property. */
+spinbutton.vertical > text.flat, spinbutton.flat:not(.vertical),
+entry.flat:focus-within, entry.flat:backdrop, entry.flat:disabled,
+entry.flat {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+/* No collected reference screenshot shows a GTK error- or warning-classed
+ * entry, the standing GTK-scope adaptation premise: the existing entry policy
+ * takes no colour class, so an entry carrying the `error` or `warning`
+ * class paints the existing recipe above instead of stock's red or orange.
+ * Stock colour-class arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `spinbutton.vertical > text.error, spinbutton.error:not(.vertical),
+ * entry.error { color: #cc0000; transition-property: outline,
+ * outline-width, outline-offset, outline-color; transition-duration:
+ * 300ms; animation-timing-function: ease-in-out; }` and the
+ * per-property-identical warning twin with `color: #f57900`, each with a
+ * `:focus-within` twin declaring `outline-color: rgba(204, 0, 0, 0.5);
+ * outline-width: 2px; outline-offset: -2px;` (warning:
+ * `rgba(245, 121, 0, 0.5)`). Each restated selector is the byte-equal
+ * stock twin and each group sits after the existing base arms, so later
+ * source order wins every colour-class tie and the class keeps its place
+ * in the cascade while its paint falls back to the raised field. Stock's
+ * `animation-timing-function: ease-in-out` stays in force but is inert:
+ * the resource declares no `animation-name` anywhere. Stock's
+ * class-specific outline-reset arm (`outline: 0 solid transparent;
+ * outline-offset: 4px`) is per-property identical to the stock generic
+ * base arm at the plain `entry` spellings, so nothing deviates there, and
+ * the focused `outline-width: 2px; outline-offset: -2px` geometry is what
+ * the existing `entry:focus-within` arm already inherits. The resource's
+ * later error repeat colour arm is per-property identical to its first,
+ * and this sheet sits entirely after the stock resource, so one twin
+ * group per class and one per class-state covers every order tie. */
+spinbutton.vertical > text.error, spinbutton.error:not(.vertical),
+entry.error {
+  color: #000000;
+  transition: none;
+}
+
+spinbutton.vertical > text.error:focus-within,
+spinbutton.error:focus-within:not(.vertical), entry.error:focus-within {
+  outline-color: #000000;
+}
+
+spinbutton.vertical > text.warning, spinbutton.warning:not(.vertical),
+entry.warning {
+  color: #000000;
+  transition: none;
+}
+
+spinbutton.vertical > text.warning:focus-within,
+spinbutton.warning:focus-within:not(.vertical), entry.warning:focus-within {
+  outline-color: #000000;
+}
+
+/* 2026-11-03: no collected reference screenshot shows a GTK spinbutton
+   stepper in any state, the standing GTK-scope adaptation premise: the
+   plain horizontal stepper arms outside the existing .osd overlay restate
+   the toolkit resource's seven plain `spinbutton ... button` stepper
+   arms with the existing raised push-button face, mirroring the existing .osd
+   stepper restate further down this sheet (pinned by the same suite). The
+   stock transparent faces, the left-edge rgba(205, 199, 194, 0.3)
+   separator and its :dir flip, the hover #ebe8e6 recolour, the
+   translucent grey insensitive ink and pressed face and the corner arms'
+   0 5px 5px 0 / 5px 0 0 5px outer radii are all cleared. Stock's
+   min-height: 16px, its zero margins and its zero vertical paddings stay
+   undeclared so stock keeps governing the steppers' geometry. Stock
+   declares the :active arm only in this plain horizontal family, and the
+   plain vertical spinbutton.vertical > button geometry arms stay stock:
+   their face flows from the existing generic button restate and their
+   shared-edge mechanics are the existing linked-group policy. Stock
+   selectors probed from Default-light.css and Default-dark.css in
+   libgtk-4 4.18.6 with gresource on 2026-11-03. */
+spinbutton:not(.vertical) > button.image-button.up:not(.flat),
+spinbutton:not(.vertical) > button.image-button.down:not(.flat) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+

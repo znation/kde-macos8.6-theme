@@ -172,10 +172,11 @@ package. `PLACEHOLDERS.md` tracks this temporary artwork.
 
 ## Generating the stylesheets
 
-The GTK 3 sheet, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, is generated: it is the
-concatenation of the `*.css` partials in the gtk-3.0 directory under theme/gtk/src, joined in filename order.
+The GTK 3 sheet, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, and the GTK 4 sheet,
+`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, are generated: each is the concatenation of the
+`*.css` partials in its family directory under theme/gtk/src (gtk-3.0 or gtk-4.0), joined in filename order.
 Edit the partials, never the shipped sheet, then run `python3 tools/make_sheets.py` to rewrite
-it. The output is deterministic, and the generator validates every partial before it writes.
+them. The output is deterministic, and the generator validates every partial before it writes.
 
 ## Reference screenshots
 

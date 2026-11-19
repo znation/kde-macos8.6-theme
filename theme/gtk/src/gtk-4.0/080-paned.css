@@ -1,0 +1,479 @@
+/* 2026-10-31: no collected reference screenshot shows a GTK split pane, so
+   the paned handles stay the reference-grounded etched pair pinned by
+   tests/test_desktoptheme_line.py::TestLineReference. The toolkit
+   resource's remaining paned arms are restated here: the stock grey grip
+   images on the base, selected and wide handles lose to background-image:
+   none (each selector is the exact stock twin, so sheet order decides the
+   tie like the existing image clearances do), and the stock 8px direction
+   margins the existing orientation rules cannot outrank — each :dir arm
+   carries one class more — are reset to those rules' own margin and
+   padding. Stock selectors probed from Default-light.css in libgtk-4
+   4.18.6 with gresource on 2026-10-31. */
+paned > separator, paned > separator:selected, paned > separator.wide {
+  background-image: none;
+}
+
+paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
+  margin: 0;
+  padding: 0;
+}
+
+
+/* 2026-10-31: no collected reference screenshot shows a GTK push button in a
+   checked-and-hovered state, so the stock hover and press repaints of a
+   checked button are restated with the existing sunken face pinned by the
+   existing `button:active, button:checked` group. Stock declares
+   `button:checked:hover` and `button:checked:active` with rounded off-white
+   faces and no bevel; those outrank the existing one-pseudo-class group, and
+   Eastern-flavoured hovering a checked toggle-type button would flip the
+   theme's square sunken face to stock's rounded one. Each selector here is
+   the exact stock twin and sits later in source order, so it decides every
+   tie — including the equal-specificity backdrop checked hover, consistent
+   with the existing disabled/backdrop policy that backdrop never varies the
+   face. Stock selectors probed from Default-light.css in libgtk-4 4.18.6
+   with gresource on 2026-10-31. */
+button:checked:hover, button:checked:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a hovered GTK push
+   button, so the stock hover recolour of the button's glyphs is cleared to
+   keep the existing face unchanged: stock brightens every icon inside a
+   hovered button with `-gtk-icon-filter: brightness(1.2)`, and the sheet
+   declared no hover value for the property, so that clause survived under
+   the existing `button:hover` face group. The selector here is the exact
+   stock twin and sits later in source order, so it wins the tie; the existing
+   `button` and `button:hover` groups above stay the face source, and the
+   kept-toolkit `-gtk-icon-filter: opacity(0.5)` dimming on `button:disabled`
+   stays untouched. Stock selectors probed from Default-light.css in
+   libgtk-4 4.18.6 with gresource on 2026-10-31. */
+button:hover {
+  -gtk-icon-filter: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK icon view or
+   content-view container, so a container carrying GTK's `content-view`
+   class keeps the existing white view field: the sheet named the class
+   nowhere, so stock's grey fill reached the container. The base rule below
+   restates the field of the existing `.view, list` group above
+   (background-color and color), and a hovered content view keeps its glyphs
+   as drawn because stock brightens them with
+   `-gtk-icon-filter: brightness(1.2)` on a separate `.content-view:hover`
+   arm (stock declares no `.content-view:backdrop` compound, so none is
+   restated here). Each selector below is the exact stock twin and sits
+   later in source order, so it wins the tie; the stock `.content-view
+   .tile` members keep their own selectors. Stock selectors probed from
+   Default-light.css in libgtk-4 4.18.6 with gresource on 2026-10-31. */
+.content-view {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+.content-view:hover {
+  -gtk-icon-filter: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK suggested-action
+   button at all (the GTK scope's standing adaptation premise), so the plain
+   `button.suggested-action` family is restated with the existing push-button
+   recipe of this same sheet — the recipe precedent the existing
+   `.osd button.suggested-action` plan follows, including the erased
+   suggested colour distinction. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
+   probed with gresource, 2026-10-31) declares a stock blue gradient family
+   with white text whose selectors each carry one class more than the existing
+   `button`, `button:hover`, `button:active, button:checked`,
+   `button:focus:focus-visible` and `button:disabled…` groups, so they would
+   win the cascade; each restated selector here is the exact stock twin and
+   sits later in source order, so it wins every tie. The base arm restates
+   `transition: none` because the stock base's 300ms outline animation
+   outranks the existing `button` group's lower-specificity transition policy,
+   and the plain `button:disabled` `-gtk-icon-filter: opacity(0.5)` dimming
+   stays in force here because no restated arm names the property. */
+button.suggested-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  transition: none;
+}
+
+button.suggested-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action:active, button.suggested-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action:disabled, button.suggested-action:disabled:active, button.suggested-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK destructive-action
+   button at all (the GTK scope's standing adaptation premise), so the plain
+   `button.destructive-action` family is restated with the existing push-button
+   recipe of this same sheet, byte-equal to the plain suggested-action
+   restatement above apart from the class token, including the erased
+   destructive colour distinction. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
+   probed with gresource, 2026-10-31) declares a stock red gradient family with
+   white text whose selectors each carry one class more than the existing
+   `button`, `button:hover`, `button:active, button:checked`,
+   `button:focus:focus-visible` and `button:disabled…` groups, so they would
+   win the cascade; each restated selector here is the exact stock twin and
+   sits later in source order, so it wins every tie. The base arm restates
+   `transition: none` because the stock base's 300ms outline animation
+   outranks the existing `button` group's lower-specificity transition policy,
+   and the plain `button:disabled` `-gtk-icon-filter: opacity(0.5)` dimming
+   stays in force here because no restated arm names the property. */
+button.destructive-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  transition: none;
+}
+
+button.destructive-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action:active, button.destructive-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action:disabled, button.destructive-action:disabled:active, button.destructive-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK flat button at
+   all (the GTK scope's standing adaptation premise), so the generic
+   `button.flat` family is restated with the existing push-button recipe of
+   this same sheet — the recipe precedent the existing `.osd .scale-popup
+   button.flat` square-border clearance and the existing plain suggested- and
+   destructive-action restatements follow. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
+   probed with gresource, 2026-10-31) declares a stock transparent-face flat
+   family — a transparent face at rest, a grey hover and pressed fill with a
+   500ms hover transition, and backdrop-first arms that repaint the bevel
+   off-white in an unfocused window — whose selectors each carry one class
+   token more than the existing `button`, `button:hover`,
+   `button:active, button:checked` and `button:backdrop…` groups, so they
+   would win the cascade and stock's transparency would reach every flat
+   arm. Each restated selector here is the exact stock twin and sits later
+   in source order, so it wins every tie; the backdrop arms keep the existing
+   face like every existing plain backdrop arm, since the existing
+   `button:backdrop` group's face policy never varies, and stock's only
+   spare `button:backdrop.flat:not(:disabled)` arm — a toolkit-default icon
+   filter — is not restated. Stock selectors probed from Default-light.css
+   in libgtk-4 4.18.6 with gresource on 2026-10-31. */
+button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+button.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+button.flat:active, button.flat:checked, button.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  transition: none;
+}
+
+button.flat:backdrop, button.flat:disabled, button.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button:backdrop.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop.flat:active, button:backdrop.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button:backdrop.flat:disabled:active, button:backdrop.flat:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK flat action
+   button (the GTK scope's standing adaptation premise), so the colour-class
+   `.flat` members are restated with the existing push-button recipe of this
+   same sheet — part 1/2's generic `button.flat` arms and the existing plain
+   suggested- and destructive-action restatements are the recipe sources.
+   The toolkit resource (/org/gtk/libgtk/theme/Default/Default-light.css
+   inside libgtk-4 4.18.6, probed with gresource, 2026-10-31) declares the
+   colour-class flat claims as four standalone groups — a transparent face
+   with the class's own label colour, reclaimed with translucent labels
+   when disabled — and no hover, press, backdrop or backdrop-first member
+   of either class carries the flat token. Each restated selector below is
+   the exact stock twin and sits later in source order, so it wins every
+   tie over the stock family, whose blue and red label distinction is
+   erased by the existing recipe's black labels. Only the base, pressed and
+   disabled states are restated: stock's colour-class arms claim no motion,
+   part 1/2's `transition: none` keeps the family still at lower class
+   counts, and hover, backdrop, pressed-backdrop and pressed-disabled-
+   backdrop resolve through part 1/2's generic arms and the existing plain
+   disabled and pressed restatements to the same faces. */
+button.suggested-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action.flat:active, button.suggested-action.flat:checked, button.suggested-action.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action.flat:active, button.destructive-action.flat:checked, button.destructive-action.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   push button inside a selected row (the GTK scope's standing adaptation
+   premise), so the toolkit's three selected-row button arms are restated
+   against the existing selection fill and the existing plain `button` and
+   flat-family recipes of this same sheet. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4,
+   probed with gresource on 2026-10-31, libgtk-4 4.18.6) declares a
+   standing `row:selected button` arm plus the twin
+   `row:selected button.sidebar-button…, row:selected button.flat…`
+   white-label list and its `:backdrop` recolour, byte-equal with the GTK
+   3 toolkit resource: the standing arm's border out-ranks the existing
+   plain `button` group by one more element, the twin list out-ranks the
+   existing flat family and the existing colour-class `.flat` blocks on label
+   and border at more class tokens, so a flat button on a selected row
+   would paint a white or near-white label on the existing light-lavender
+   selection fill and lose its black at-rest bevel border. Each appended
+   label selector adds a disabled-state guard and wins by specificity;
+   every restated value is the existing black — the
+   selection label the existing selection groups declare and the border and
+   flat backdrop label the existing plain `button` and flat-family blocks
+   already carry. Stock's chain excludes pressed and hovered states.
+   Review 2026-11-11:
+   :not(disabled) excludes a node name, not a state; :not(:disabled) is
+   added to preserve the deferred disabled remainder. No face,
+   background, box-shadow, geometry or
+   motion claim is restated. Declaration checks do not establish rendered
+   pixels. */
+row:selected button {
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled),
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled) {
+  color: #000000;
+  border-color: #000000;
+}
+
+row:selected button.sidebar-button:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop,
+row:selected button.flat:not(:active):not(:checked):not(:hover):not(disabled):not(:disabled):backdrop {
+  color: #000000;
+}
+
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flow
+   box, grid-view or file-chooser grid selection (the GTK scope's standing
+   adaptation premise), so the view children stock paints with the stock
+   accent family are restated against the existing row-selection groups of
+   this same sheet (flat #CCCCFF fill, square corners, black text, re-stated
+   unchanged in an unfocused window by the rows' constant-backdrop group)
+   and the existing `outline-color: #000000` focus-outline policy. The toolkit
+   resource (/org/gtk/libgtk/theme/Default/Default-light.css inside
+   libgtk-4, probed with gresource on 2026-10-31, libgtk-4 4.18.6) paints
+   `flowbox > flowboxchild:selected` and `gridview > child:selected` with
+   the accent fill and a white label, ships the selected outline colour in
+   a narrowed-to-zero-width `outline` arm, and paints a file chooser's grid
+   items with a thin accent tint (alpha 0.15 over the white pane, 0.20 on
+   hover, 0.25 while active) whose label stays inherited black. Each
+   appended selector is the exact stock twin and sits later in source
+   order, so it wins every tie in cold and backdrop windows alike; folding
+   the outline colour into the restated base group is cascade-neutral
+   because per-property cascades decide each property at the same
+   specificity on the same spelling, and stock's zero-width base outline
+   keeps the restated colour invisible until an outline arm draws it. The
+   file-chooser tints are declaration-only background recolours and leave
+   stock's `color: inherit` governing the label. Stock's wide
+   `:disabled:selected` blue-grey-label group keeps governing, so a disabled
+   selected child keeps the stock disabled label (the disabled remainder
+   this sheet records for rows drives the same held-out family here;
+   2026-10-31: the rows-and-children disabled twins are since restated at
+   the sheet tail — the `:disabled:selected` disabled selected rows and
+   view children entry — with the existing inactive-text grey; the remainder
+   stays stock).
+   The base selected rules also cover backdrop: adding a backdrop state
+   would outrank the file-chooser base tint. Keep the more specific tint
+   and disabled-selected rules governing.
+   Declaration checks do not establish rendered pixels. */
+flowbox > flowboxchild:selected,
+gridview > child:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  outline-color: #000000;
+  border-radius: 0;
+}
+
+filechooser gridview child:selected {
+  background-color: rgba(204, 204, 255, 0.15);
+}
+
+filechooser gridview child:selected:hover {
+  background-color: rgba(204, 204, 255, 0.20);
+}
+
+filechooser gridview child:selected:active {
+  background-color: rgba(204, 204, 255, 0.25);
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   icon-view selection (the GTK scope's standing adaptation premise), so the
+   selection stock paints into an icon view is restated against the existing
+   row-selection groups of this same sheet (flat #CCCCFF fill, square
+   corners, black text, re-stated unchanged in an unfocused window by the
+   rows' constant-backdrop treatment, which stands in for the backdrop arm
+   the toolkit resource does not even name for an icon view). The toolkit
+   resource (/org/gtk/libgtk/theme/Default/Default-light.css inside
+   libgtk-4, probed with gresource on 2026-10-31, libgtk-4 4.18.6) lists
+   `iconview:selected` in its large accent background/colour comma groups
+   behind the `.view`-class members GTK's `GtkIconView` also carries, and
+   sharpens the shape with a `3px` selection `border-radius` geometry arm;
+   no `:backdrop`-selected comma group in it names `iconview` or `view`, so
+   the toolkit itself never recolours a backdrop icon-view selection. Each
+   appended selector names element, class and states, so it outranks every
+   two-token stock twin over icon-view nodes and sits later in source
+   order, while the existing row groups keep governing the tree, list and
+   grid nodes their selectors name. Declaration checks do not establish
+   rendered pixels. The :not(:disabled) guard preserves stock
+   disabled-selection paint. */
+iconview.view:not(:disabled):selected,
+iconview.view:not(:disabled):selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+iconview.view:not(:disabled):backdrop:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+

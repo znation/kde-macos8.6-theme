@@ -1,0 +1,476 @@
+/* GTK toolbar keyboard focus has no collected reference surface; reuse the
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
+.toolbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+.toolbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK headerbar keyboard focus has no collected reference surface; reuse the
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
+headerbar menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+headerbar menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+headerbar menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+headerbar button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+headerbar button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+headerbar button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK actionbar keyboard focus has no collected reference surface; reuse the
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
+actionbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+actionbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK searchbar keyboard focus has no collected reference surface; reuse the
+   existing black button focus colour. Stock arms were inspected 2026-11-03. */
+searchbar > revealer > box menubutton.suggested-action > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+searchbar > revealer > box menubutton.opaque > button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+searchbar > revealer > box .close:focus:focus-visible,
+searchbar > revealer > box menubutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque).image-button > button:focus:focus-visible,
+searchbar > revealer > box button.arrow-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+searchbar > revealer > box button.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+searchbar > revealer > box button.image-text-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque),
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button:focus:focus-visible,
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK toolbar-band and flat split buttons have no collected reference
+   surface: no screenshot in macos8.6-screenshots/ shows a GTK split
+   button, so their faces square to the existing square-corner policy
+   (frame > border, .frame, the existing button, card, tab-family,
+   toggle-group, menu-selection, cursor-handle and alert-dialog
+   restatements; all border-radius: 0). The platform style library's
+   base.css resource declares exactly one radius-bearing band arm, quoted
+   verbatim: actionbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, searchbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, .toolbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, headerbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > button, actionbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, searchbar > revealer > box
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, .toolbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, headerbar
+   splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):
+   not(.opaque) > menubutton > button, splitbutton.flat > button,
+   splitbutton.flat > menubutton > button { border-radius: 9px; }
+   The toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no splitbutton radius
+   of any kind (inspected 2026-11-04). The existing splitbutton container
+   record already squares the splitbutton node, the .raised,
+   .suggested-action, .destructive-action and .opaque variants stay stock
+   by stock's own :not() exclusions, and the :dir() corner arms keep their
+   zero per-corner longhands and shared-edge margins inherited. Each
+   spelling below is byte-equal to its stock twin and wins the
+   equal-specificity tie by later user-sheet source order.
+   Recorded 2026-11-04 by the feature role. */
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > button,
+actionbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+searchbar > revealer > box splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+.toolbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+headerbar splitbutton:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) > menubutton > button,
+splitbutton.flat > button,
+splitbutton.flat > menubutton > button {
+  border-radius: 0;
+}
+
+/* GTK label, link, expander-title, color-swatch, plane and shortcut
+   keyboard focus has no collected reference surface; reuse the existing
+   black focus colour and keep stock's inherited outline geometry. The
+   toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 was inspected 2026-11-03; the
+   second focus resource's per-widget offsets are recorded in
+   docs/invariants.md, so only this colour is restated. */
+label:focus:focus-visible,
+link:focus:focus-visible,
+expander-widget:focus:focus-visible > box > title,
+colorswatch:focus:focus-visible,
+plane:focus:focus-visible,
+shortcut:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK card keyboard focus has no collected reference surface: no
+   screenshot in macos8.6-screenshots/ shows a GTK card's keyboard focus,
+   so the colour follows this theme's existing black focus policy and the
+   stock arms' outline geometry (the 2px width plus -1px offset and the
+   card's outline transitions) stays inherited per-property. The platform
+   style library's base.css resource inside the integration library
+   declares exactly two focus arms carrying it, quoted verbatim:
+   button.card:focus:focus-visible { outline-color: color-mix(in srgb,
+   var(--accent-color) 50%, transparent); outline-width: 2px;
+   outline-offset: -1px; } and .card:focus:focus-visible { outline-color:
+   color-mix(in srgb, var(--accent-color) 50%, transparent);
+   outline-width: 2px; outline-offset: -1px; } — and nothing else in that
+   resource restates them; the toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no .card arm of any
+   kind. Each restated spelling is byte-equal to its stock twin, so later
+   user-sheet source order wins every equal-specificity tie and only the
+   colour changes ownership. */
+button.card:focus:focus-visible,
+.card:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK text-selection and insertion cursor handles have no collected
+   reference surface: no screenshot in macos8.6-screenshots/ shows a GTK
+   touch text cursor handle, so the corner follows this theme's existing
+   square-corner policy (the frame border, frame class and card
+   restatements all declare border-radius: 0). The platform style
+   library's base.css resource inside the integration library declares
+   the radius-bearing groups, quoted verbatim:
+   cursor-handle { all: unset; padding: 24px 20px; },
+   cursor-handle > contents { min-width: 20px; min-height: 20px;
+   border-radius: 50%; background-color: var(--accent-bg-color); },
+   cursor-handle.top > contents { border-top-right-radius: 0; },
+   cursor-handle.bottom > contents { border-top-left-radius: 0;
+   transform: translateX(1px); } and
+   cursor-handle.insertion-cursor > contents { border-top-left-radius: 0;
+   transform: translateX(1px) translateY(4px) rotate(45deg); } — a
+   radius-bearing circle cut to a teardrop per orientation, with only the
+   > contents groups carrying radius. The plain toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no radius-bearing
+   cursor-handle arm — its cursor-handle groups carry bitmap
+   -gtk-icon-source drag art and no border-radius anywhere — and the
+   shipped GTK 3 theme resource inside
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 likewise paints cursor
+   handles with bitmap icon sources only (grep matched ten groups, none
+   radius-bearing), so no GTK 3 sheet change follows. This squared whole-radius
+   restatement makes the orientation arms' per-corner radius
+   cuts no-ops and leaves their transforms and stock's all: unset reset,
+   24px-by-20px hit-area padding and the base arm's min-width and
+   min-height governing size untouched per-property; the accent
+   background stays inherited per-property too — stock's :root maps
+   --accent-bg-color and the existing accent_bg_color redefinition in this
+   sheet's palette supplies the Platinum selection fill, so the squared
+   handle paints without any background restatement, like the existing
+   tab-indicator accent restatements that resolve through the same
+   redefinition. (2026-11-04) */
+cursor-handle > contents {
+  border-radius: 0;
+}
+
+/* GTK alert and message dialogs have no collected reference surface: no
+   screenshot in macos8.6-screenshots/ shows a GTK message or alert dialog,
+   so the corners follow this theme's existing square-corner policy (the
+   frame border, frame class, card, button, tab-family, menu-selection and
+   cursor-handle restatements all declare border-radius: 0). The integration
+   library's base.css resource (probe path recorded in docs/invariants.md,
+   extracted 2026-11-04) declares six radius-bearing alert arms, quoted
+   verbatim:
+   window.dialog.message.csd:not(.solid-csd) { border-radius: 18px; },
+   window.dialog.message.csd .dialog-action-area > button { min-height:
+   24px; padding: 10px 20px; border-radius: 12px; }, dialog-host >
+   dialog.alert sheet { border-radius: 18px; outline: none; },
+   window.messagedialog.csd:not(.solid-csd),
+   window.dialog-window.alert.csd:not(.solid-csd) { border-radius:
+   18px; }, dialog-host > dialog.alert sheet .body-scrolled-window >
+   viewport, window.dialog-window.alert .body-scrolled-window > viewport
+   { border-top-left-radius: 18px; border-top-right-radius: 18px; } and
+   window.messagedialog .response-area > button, dialog.alert
+   .response-area > button { min-height: 24px; min-width: 60px; padding:
+   10px 20px; border-radius: 12px; }. Two of these actively beat existing
+   squarings: the :not(.solid-csd) shell arm carries one class more than
+   the existing window.csd.dialog.message shell group, so the legacy
+   message-dialog shell re-rounds through it, and this > button arm
+   re-rounds every action button, since the existing
+   window.dialog.message.csd .dialog-action-area
+   button:first-child/last-child group squares only the end buttons, and
+   the plain button record sits at the dialog-row node, not the > button
+   child. The surface-colour arm window.messagedialog, dialog-host >
+   dialog.alert sheet, window.dialog-window.alert { background-color:
+   var(--dialog-bg-color); color: var(--dialog-fg-color); } declares no
+   radius and stays stock: the existing palette supplies the fill through
+   the dialog_bg_color and dialog_fg_color redefinitions, like the existing
+   checked-toggle accents, and the titlebar, short-variant,
+   message-area, scrollbar-padding and outline arms declare no radius.
+   The restatements below are byte-equal to stock's spellings, and this
+   sheet loads after the stock resource, so later source order wins each
+   equal-specificity tie per-property; stock's min-heights, min-width,
+   paddings, outline: none and margins stay inherited. (2026-11-04) */
+window.dialog.message.csd:not(.solid-csd) {
+  border-radius: 0;
+}
+
+window.dialog.message.csd .dialog-action-area > button {
+  border-radius: 0;
+}
+
+window.messagedialog .response-area > button,
+dialog.alert .response-area > button {
+  border-radius: 0;
+}
+
+dialog-host > dialog.alert sheet {
+  border-radius: 0;
+}
+
+window.messagedialog.csd:not(.solid-csd),
+window.dialog-window.alert.csd:not(.solid-csd) {
+  border-radius: 0;
+}
+
+dialog-host > dialog.alert sheet .body-scrolled-window > viewport,
+window.dialog-window.alert .body-scrolled-window > viewport {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* GTK expander widgets have no collected reference surface: no screenshot
+   in macos8.6-screenshots/ shows a GTK expander widget, so the title bar's
+   corners follow this theme's existing square-corner policy (the frame
+   border, frame class, card, button, tab-family, menu-selection,
+   cursor-handle and alert-dialog restatements all declare
+   border-radius: 0). Two stock resources round the title through one
+   selector string: the integration library's base.css resource (probe
+   path recorded in docs/invariants.md, extracted 2026-11-04) declares the
+   one radius-bearing expander-widget arm, quoted verbatim,
+   expander-widget > box > title { border-radius: 6px; }, and the toolkit
+   resource's expander-widget > box > title twin (the resource path the
+   existing focus and cursor-handle comments quote) carries 200ms
+   outline-width and outline-offset transitions beside border-radius: 5px,
+   losing at rest to the integrated 6px arm by later equal-specificity
+   source order. One byte-equal twin restated after both stock resources
+   is specified equally and loaded later, so it wins both cascades
+   whatever order the stock race resolves. Stock's remaining
+   expander-widget arms declare no radius and stay inherited
+   per-property: the :drop(active) box-shadow pair, the outline reset and
+   its 200ms transitions, the :focus:focus-visible outline geometry and
+   the expander-arrow opacity arms. (2026-11-04) */
+expander-widget > box > title {
+  border-radius: 0;
+}
+
+/* GTK bottom sheets, floating sheets and their drag handles have no
+   collected reference surface: no screenshot in macos8.6-screenshots/
+   shows a GTK bottom sheet, floating sheet or drag handle, so the
+   corners follow this theme's existing square-corner policy (the frame
+   border, frame class, card, button, tab-family, menu-selection,
+   cursor-handle, alert-dialog, expander-title and container-corner
+   restatements all declare border-radius: 0). The integration library's
+   base.css resource (probe path recorded in docs/invariants.md, extracted
+   2026-11-04) declares exactly three radius-bearing arms across the two
+   sheet families, quoted verbatim:
+   bottom-sheet > sheet > stack > widget > drag-handle { background-color:
+   color-mix(in srgb, currentColor 25%, transparent); min-width: 54px;
+   min-height: 6px; margin: 15px; border-radius: 99px; },
+   bottom-sheet > sheet, bottom-sheet > sheet > outline,
+   bottom-sheet > sheet > stack > widget, bottom-sheet > sheet > stack >
+   button, bottom-sheet > sheet > stack > button > widget {
+   border-top-left-radius: 15px; border-top-right-radius: 15px; } — the
+   two top-corner longhands alone, no shorthand — and
+   floating-sheet > sheet { border-radius: 15px; box-shadow: 0 2px 8px
+   2px RGB(0 0 6/7%), 0 3px 20px 10px RGB(0 0 6/5%), 0 6px 32px 16px
+   RGB(0 0 6/2%), 0 0 0 1px RGB(0 0 6 / 5%); outline: 1px solid
+   RGB(255 255 255/7%); outline-offset: -1px; }. The plain toolkit
+   resource /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares none of the three
+   tokens bottom-sheet, floating-sheet or drag-handle (extracted and
+   token-grepped 2026-11-04: zero matches), and the shipped GTK 3 sheet
+   carries none of the three tokens either — the two sheet widget
+   families have no GTK 3 twin — so the GTK 3 sheet needs nothing. The
+   missing reference surface makes this a platform adaptation: each
+   radius lands at zero because the square corners of the frame and
+   button families are the policy the reference set grounds. Stock's
+   arms inside these families that declare zero themselves or no radius
+   stay out and inherited per-property: the stack button's own
+   border-radius: 0 arm also clearing its padding, sizing and faces; the
+   two .bottom-bar.flush-left and .flush-right five-member comma groups
+   declaring border-top-left-radius: 0 and border-top-right-radius: 0
+   already; the bottom-sheet > sheet and > outline transition arms (100ms
+   border-radius, 250ms box-shadow, 100ms radius transition) and the
+   dialog.bottom-sheet:not(.narrow) sheet margin arm declaring no radius
+   — the dialog-mode sheet's corners are the existing alert-family
+   territory. The restated shells keep the shadows, outline and offset
+   and the drag handle keeps its translucent fill, min sizes and margins
+   inherited per-property; each restated spelling is byte-equal to its
+   stock twin, so later user-sheet source order wins every
+   equal-specificity tie and only the radius changes ownership.
+   (2026-11-04) */
+bottom-sheet > sheet > stack > widget > drag-handle {
+  border-radius: 0;
+}
+
+bottom-sheet > sheet,
+bottom-sheet > sheet > outline,
+bottom-sheet > sheet > stack > widget,
+bottom-sheet > sheet > stack > button,
+bottom-sheet > sheet > stack > button > widget {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+floating-sheet > sheet {
+  border-radius: 0;
+}
+
+/* GTK message-item (infobar) and search-bar close buttons have no collected
+   reference surface: no screenshot in macos8.6-screenshots/ shows either
+   close button, so the corners follow this theme's existing square-corner
+   policy (the frame border, frame class, button, card, tab-family and
+   cursor-handle restatements all declare border-radius: 0, with the existing
+   radio button's 50% circle as the reference-grounded exception). The
+   integration library's base.css resource (probe path recorded in
+   docs/invariants.md, extracted 2026-11-04: a 2622-line resource) declares
+   exactly two radius-bearing close-button arms, quoted verbatim:
+   infobar .close { min-width: 18px; min-height: 18px; padding: 4px;
+   border-radius: 50%; } and searchbar > revealer > box .close {
+   min-width: 18px; min-height: 18px; padding: 4px; border-radius: 50%; }.
+   The existing restatements cannot reach these faces: the generic button
+   group's radius arm loses both stock arms' higher specificity (a type and
+   a close class against button alone), the existing circular and pill button
+   records name menubutton.circular button, button.circular and the pill
+   spellings, the existing tab-family records name the tab-page image
+   buttons, and the existing window-controls record squares only
+   headerbar windowcontrols button.close and
+   .titlebar windowcontrols button.close. Each twin below is byte-equal to
+   its stock spelling and wins the equal-specificity tie by later
+   user-sheet source order. Extended 2026-11-09: the pair's face is no
+   longer stock's transparent band — the group below also declares this
+   theme's existing `button.flat` face recipe (the same
+   background-color/background-image/border/box-shadow recipe that
+   restatement states, plus the existing immediate transition) beside the
+   radius, answering the toolkit band arm's transparent face, transparent
+   border, no image and no shadow in full for this theme; stock's
+   min-width, min-height and padding geometry and :dir margins stay
+   inherited per-property (this record's own precedent; no reference shows
+   the close button), and the hover, pressed, checked and disabled band
+   arms naming the close class are restated in the dated family comment
+   that follows this group. The shipped GTK 3 sheet names no message-item
+   or search-bar close button outside the existing title-button pair, so it
+   needs nothing. (2026-11-04, face extended 2026-11-09) */
+
+infobar .close,
+searchbar > revealer > box .close {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+/* 2026-11-09: the infobar and search-bar close-button families follow the
+   extended corner pair above, restating the stock flat-band arms the
+   existing generic `button` groups' one-token selectors cannot reach. A
+   fresh two-probe re-check at implementation time found the 2026-11-04
+   corner record's same arm inventory and versions. The toolkit resource
+   (Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6, re-probed with gresource 2026-11-09: a 1940-line
+   resource) pairs the flat band `infobar .close, searchbar .close` (a
+   transparent face, a transparent border, no image, no shadow) with its
+   `:hover` twin (a stock ink, a stock border colour, a gradient face and
+   a drop shadow), and arms the band around them: a geometry arm (padding
+   and border spacing, restated existing-geometry by the existing band record),
+   a warm `infobar.action:hover > revealer > box` face that out-tokens the
+   existing band group's selectors, and four typed band twins the existing
+   message-type ban keeps stock. The integration library's base.css
+   resource (probe path recorded in docs/invariants.md, re-extracted
+   2026-11-09: a 2622-line resource) arms the close class inside its canopy
+   lists — a transparent base arm and a motion-transition arm, an accent
+   `:focus:focus-visible` ring, a colour-mix hover arm, a pressed arm
+   naming `.keyboard-activating.close` and `:active`, `:checked`,
+   `:checked:hover`, `:checked.keyboard-activating` and `:checked:active`,
+   a `:disabled:not(:checked)` arm with a dim filter and a
+   `:drop(active)` accent ring — beside two geometry arms and their `:dir`
+   margins. Every one of these faces is restated below except the four
+   typed band twins (a restatement would need a message-type token, which
+   the existing `test_infobar` ban forbids inside the infobar family, so a
+   typed message item keeps its toolkit band face) and the `:drop(active)`
+   ring (no numbered rule states it; nothing existing governs a button drop
+   arm). Each spelling below is byte-equal to its stock twin or twin
+   member, so the equal-specificity tie falls to the later user-sheet
+   source order the existing records establish; stock geometry stays
+   inherited per-property. Declaration and source-order checks do not
+   establish rendered pixels. */
+
+infobar.action:hover > revealer > box {
+  /* The toolkit's warm band-hover face carries two class tokens the existing
+   * band group lacks; this byte-equal twin re-states the `#DDDDDD` band
+   * face, and the integration library's own hover-image wash on the same
+   * spelling stays inherited per-property. */
+  background-color: #DDDDDD;
+}
+
+infobar .close:hover,
+searchbar .close:hover,
+searchbar > revealer > box .close:hover {
+  /* The existing `button.flat` hover face recipe with the stock ink claim
+   * cleared to black. The plain `searchbar .close:hover` member ties the
+   * toolkit twin; the deep member joins because the integration library's
+   * own hover arm names that deeper spelling, and its extra element
+   * tokens outrank any plain byte-equal twin (the corner record's deep
+   * precedent). No radius declaration joins the family spellings; the
+   * corner pair above keeps the radius ownership. */
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+  color: #000000;
+}
+
+infobar .keyboard-activating.close,
+infobar .close:active,
+searchbar > revealer > box .keyboard-activating.close,
+searchbar > revealer > box .close:active,
+infobar .close:checked,
+searchbar > revealer > box .close:checked {
+  /* The existing pressed bevel for the toolkit's pressed and checked band
+   * arms. */
+  background-color: #DDDDDD;
+  background-image: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+infobar .close:checked:hover,
+searchbar > revealer > box .close:checked:hover,
+infobar .close:checked.keyboard-activating,
+infobar .close:checked:active,
+searchbar > revealer > box .close:checked.keyboard-activating,
+searchbar > revealer > box .close:checked:active {
+  /* The same existing pressed bevel for the checked-hover and
+   * checked-motion arms. */
+  background-color: #DDDDDD;
+  background-image: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+infobar .close:disabled:not(:checked),
+searchbar > revealer > box .close:disabled:not(:checked) {
+  /* The existing `button:disabled` group's shape, with the stock dim filter
+   * cleared under the existing preserve-the-palette policy. */
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  filter: none;
+}
+

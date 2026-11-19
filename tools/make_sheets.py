@@ -45,6 +45,10 @@ SHEETS = (
         "theme/gtk/src/gtk-3.0",
         "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css",
     ),
+    (
+        "theme/gtk/src/gtk-4.0",
+        "theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css",
+    ),
 )
 
 

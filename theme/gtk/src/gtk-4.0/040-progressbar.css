@@ -1,0 +1,478 @@
+progressbar > trough:disabled, scale > trough:disabled {
+  background-color: #EEEEEE;
+  border-color: #000000;
+}
+
+/* 2026-11-09: a meter inside a selected GTK 4 view row keeps the existing
+   trough and thumb rims. No collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK meter inside a selected row (the GTK
+   scope's standing adaptation premise), so the kept values are the existing
+   rim recipes this sheet already pins: the trough's 1px solid #000000 rim
+   (the `scale > trough` and `progressbar > trough` groups), the thumb's
+   #000000 rim (`scale > trough > slider`) and the disabled thumb's flat
+   #999999 rim (`scale > trough > slider:disabled`) — the same per-state
+   value split the existing GTK 3 meter-state record applied when stock's
+   selected-row comma group reached two existing values. The toolkit
+   resource /org/gtk/libgtk/theme/Default/Default-light.css (extracted
+   with `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) arms with
+   `outline-color: <the stock translucent white selection outline ink>`
+   and `border-color: <the stock accent-deep rim ink>` on line 1085's
+   selected-row comma group over `progressbar > trough`,
+   `scale > trough > fill` and `scale > trough`; it arms `progressbar >
+   trough > progress` and `scale > trough > highlight` with
+   `border-color: <the stock accent-deep rim ink>` on line 1095; and it
+   arms both thumb states with `border-color: <the stock accent-deep rim
+   ink>` on line 1133's `scale > trough > slider` comma group, disabled
+   first and enabled second. The dark twin resource carries the identical
+   three arms at lines 1073, 1083 and 1121 (every line in this region
+   shifted -12) with its own translucent white and accent-deep inks; the
+   desktop integration library's base.css resource (probe paths, resource
+   paths and versions recorded verbatim in docs/invariants.md) declares
+   no `row:selected` meter arm at all, and the toolkit grep behind this
+   restatement is exhaustive in both resources: these three arms plus the
+   existing `row:selected button` remarks' button, flat-list and backdrop
+   arms are the whole selected-row inventory the toolkits paint, the
+   remaining `row:selected` spellings falling on non-meter nodes. Each
+   appended selector is the exact stock twin and sits later in source
+   order, so under the lower-sheet reading it wins the per-property tie
+   at stock's own specificity; under the replacement reading these rules
+   are the only holders of the spellings, none of which the shipped sheet
+   parses today, and the standing `row:selected button` groups carry
+   neither a trough nor a slider token. The restatement splits stock's
+   comma groups by existing value, the existing GTK 3 record's own precedent:
+   one group cannot carry the existing disabled thumb's flat grey rim and
+   the enabled thumb's black rim, and a comma group shares its
+   declarations across every member, so the thumb states are restated as
+   two single-spelling rules (the disabled thumb's grey rim first, the
+   enabled thumb's black rim after) — the disabled spelling
+   out-specifies the bare thumb spelling, so a selected disabled thumb
+   keeps the grey rim while an enabled thumb takes the black one — while
+   the trough arm's two existing states (plain and disabled) share the
+   black rim and stay merged on the comma group. Exclusions, each with its
+   per-property reason: stock's trough comma group carries
+   `scale > trough > fill` — the existing `scale > trough > fill,
+   scale > trough > highlight` group declares `border: 0`, so a
+   border-colour member over the fill repaints nothing, the reason the
+   existing GTK 3 meter-state record excluded its same-shaped fill
+   members; stock's whole progress/highlight comma group claims only that
+   same border member — the existing `progressbar > trough > progress` and
+   fill/highlight groups declare `border: 0`, so nothing repaints and no
+   restate is quoted; the trough comma group's `outline-color` member —
+   the stock selected-row outline ink stays per the existing selection
+   policy ("the stock selected-row outline colour stays unrestated", the
+   stance the existing dropdown selection comment records), an outline
+   paints only under focus and no existing selection surface restates one;
+   and no `.osd` selected-row meter arm exists in either resource, so
+   none is answered here. Declaration, count and order checks do not
+   establish rendered pixels. */
+
+row:selected progressbar > trough,
+row:selected scale > trough {
+  border-color: #000000;
+}
+
+row:selected scale > trough > slider:disabled {
+  border-color: #999999;
+}
+
+row:selected scale > trough > slider {
+  border-color: #000000;
+}
+
+/* No reference shows a disabled GTK progress bar; keep its opaque palette. (2026-10-29) */
+progressbar:disabled {
+  filter: none;
+}
+
+entry > progress {
+  margin-bottom: 1px;
+}
+
+entry > progress > trough {
+  min-height: 2px;
+}
+
+entry > progress > trough > progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 2px;
+}
+
+levelbar > trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  padding: 0;
+}
+
+levelbar > trough > block.filled {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+levelbar > trough > block.filled:disabled {
+  background-color: #999999;
+}
+
+/* No reference shows a disabled level meter; keep its palette opaque. (2026-10-29) */
+levelbar:disabled {
+  filter: none;
+}
+
+levelbar > trough > block.empty {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+levelbar.horizontal > trough > block {
+  min-height: 10px;
+}
+
+levelbar.vertical > trough > block {
+  min-width: 10px;
+}
+
+/* No reference shows a discrete level meter; reuse the progress-bar block cross-size. (2026-10-29) */
+levelbar.horizontal.discrete > trough > block {
+  min-height: 10px;
+}
+
+levelbar.vertical.discrete > trough > block {
+  min-width: 10px;
+}
+
+/* No reference screenshot shows a continuous or discrete level meter; reuse the square progress-bar adaptation. (2026-10-29) */
+levelbar.horizontal trough > block,
+levelbar.vertical trough > block,
+levelbar.horizontal trough > block.empty,
+levelbar.horizontal trough > block.full,
+levelbar.vertical trough > block.empty,
+levelbar.vertical trough > block.full,
+levelbar.horizontal.discrete > trough > block:first-child,
+levelbar.horizontal.discrete > trough > block:last-child,
+levelbar.vertical.discrete > trough > block:first-child,
+levelbar.vertical.discrete > trough > block:last-child {
+  border-radius: 0;
+}
+
+/* GTK direction-qualified levelbar corners outrank the base rule; no reference shows this surface. Reuse square progress-bar corners. (2026-10-31) */
+levelbar.horizontal trough > block:dir(ltr),
+levelbar.horizontal trough > block:dir(rtl) {
+  border-radius: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+spinner {
+  background: none;
+  opacity: 0;
+  -gtk-icon-source: -gtk-icontheme("process-working-symbolic");
+}
+
+spinner:checked {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+spinner:checked:disabled {
+  opacity: 0.5;
+}
+
+scale > trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+
+/* 2026-10-29: no GTK fine-tune scale reference; keep external trough spacing at zero. */
+scale.horizontal.fine-tune > trough,
+scale.vertical.fine-tune > trough {
+  margin: 0;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a
+ * fine-tuned GTK scale in any state (the GTK scope's standing
+ * adaptation premise), so the fine-tuned trough, fill and highlight
+ * corners keep the existing square-corner policy — the same squared set
+ * this sheet already carries on `scale > trough`,
+ * `scale > trough > fill, scale > trough > highlight`,
+ * `scale > trough > slider`, their hover/active and disabled twins and
+ * the progressbar trough/progress groups; the existing GTK 3 fine-tune
+ * radius record restates the libgtk-3 twin arm the same way, keeping
+ * that arm's outline member inherited, while this sheet's toolkit
+ * resource declares no outline-radius companion on the arm. Stock's
+ * fine-tune radius arm is the only fine-tune radius arm anywhere in
+ * the toolkit resource (probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css, the light twin, and
+ * gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-dark.css, the dark twin; there
+ * is no disabled, :backdrop or .osd counter-arm on the bare spelling):
+ * light line 1117 declares `scale.fine-tune > trough > fill,
+ * scale.fine-tune > trough > highlight, scale.fine-tune > trough {
+ * border-radius: 5px; }` and the dark twin declares it identically at
+ * line 1105, every line in this region shifted -12. The restate below
+ * repeats the group byte-equal and sits later, so under either loading
+ * reading — a theme selection replacing the stock sheet entirely,
+ * where the restate is the only holder of the spellings, or the stock
+ * declarations riding as a lower sheet, where the restate wins the
+ * single per-property tie at equal specificity — the held modifier
+ * never re-rounds the existing square faces. Exclusions with
+ * per-property reasons: the fine-tune trough-margin arm (light 1113,
+ * dark 1101) and the fine-tune slider-margin arm (light 1115, dark
+ * 1103) are answered above by the existing `margin: 0` trough-spacing
+ * group and below by the existing `-5px` thumb-margin group; the desktop
+ * integration library (name and resource path recorded in
+ * docs/invariants.md) declares no fine-tune radius arm at all — its
+ * trough and progress rounding rides orientationless
+ * `border-radius: 99px` comma groups the existing base and oriented
+ * groups already answer per-property, and its fine-tuned marks,
+ * indicator and margin arms are their own future geometry candidates,
+ * its fine-tune trough and slider margins answered by the existing
+ * margin groups; the transparent `scale > trough > fill:disabled` and
+ * `.osd scale > trough > fill:disabled` arms (light 1119 and 1123,
+ * dark 1107 and 1111) answer nothing this sheet repaints over the
+ * existing transparent fill; and the fine-tuned marked-slider margin
+ * twins (light 1193 onward, dark 1181 onward) restate the existing
+ * marked-thumb records' transform and shadow policy — margins, not a
+ * corner. Declared 2026-11-09 by the feature role. */
+
+scale.fine-tune > trough > fill,
+scale.fine-tune > trough > highlight,
+scale.fine-tune > trough {
+  border-radius: 0;
+}
+
+/* 2026-10-29: no GTK scale interaction reference; parent states reuse the trough face. */
+scale:hover > trough, scale:active > trough {
+  background-color: #EEEEEE;
+}
+
+scale > trough > fill, scale > trough > highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+ * meter widget inside a headerbar, so a progress bar or scale under
+ * the title band keeps the existing meter faces this sheet already
+ * pins. The toolkit resource declares one headerbar-descended meter
+ * arm anywhere (probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css and
+ * gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-dark.css): light line 1081
+ * declares `headerbar progressbar > trough, headerbar scale > trough
+ * > fill, headerbar scale > trough { background-color: <greige>; }`
+ * and the dark twin carries the identical spelling at line 1069 with
+ * stock's near-black face value (every line in this region shifted
+ * -12), repainting troughs and scale fills inside the title band. The
+ * desktop integration library declares no headerbar-descended meter
+ * arm, and the GTK 3 resource declares none at all, so no GTK 3
+ * change rides along — names and paths recorded in
+ * docs/invariants.md. The restate below splits stock's comma group by
+ * existing value and sits later, so under either loading reading — a
+ * theme selection replacing the stock sheet entirely, where the
+ * restate is the only holder of the spellings, or the stock
+ * declarations riding as a lower sheet, where the restate wins the
+ * per-property tie at equal specificity — meters inside the title
+ * band keep the existing `#EEEEEE` trough face and the existing
+ * transparent fill and highlight faces, the value sources the
+ * `scale > trough`/`progressbar > trough` groups and the
+ * `scale > trough > fill, scale > trough > highlight` group above
+ * pin. Stock's arm claims only `background-color`, so the existing
+ * trough border, etch, radius and minimums stay governed
+ * per-property. Exclusions with per-property reasons: the disabled
+ * trough face arm (light 1083, dark 1071) is stock's own
+ * higher-specificity state repaint on the same spellings and its own
+ * separate face-state candidate — this sheet already answers the
+ * disabled progress member and the `scale:disabled` and
+ * `progressbar:disabled` filter groups; the two selected-row meter
+ * outline and border arms (light 1085 and 1095, dark twins shifted
+ * -12) are selected-row ink, not headerbar meters, and their outline
+ * and border members are separate ink candidates; the four `.osd`
+ * meter arms (light 1087, 1089, 1097 and 1099, dark twins shifted
+ * -12) are answered by the existing `.osd` block; the disabled
+ * highlight arm (light 1093, dark 1081) declares stock's own
+ * transparent answer that ties the existing transparent fill on that
+ * state's spelling, so nothing repaints; and the bare
+ * `scale > trough` outline arm (light 1103), the focus-visible
+ * outline arm (light 1105) and the outline-motion arm (light 1107,
+ * dark twins shifted -12) are the existing scale-focus groups' focus
+ * keys and the existing bare `scale` restate's motion riders. Declared
+ * 2026-11-09 by the feature role. */
+
+headerbar progressbar > trough, headerbar scale > trough {
+  background-color: #EEEEEE;
+}
+
+headerbar scale > trough > fill, headerbar scale > trough > highlight {
+  background-color: transparent;
+}
+
+/* 2026-10-29: no GTK scale interaction reference; keep the highlight transparent. */
+scale:hover > trough > highlight, scale:active > trough > highlight {
+  background-image: none;
+}
+
+scale > trough > slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -5px;
+  /* 2026-10-29: no GTK scale motion reference; match immediate calendar focus. */
+  transition: none;
+}
+
+scale.horizontal > trough > slider {
+  min-width: 12px;
+  min-height: 16px;
+}
+
+scale.vertical > trough > slider {
+  min-width: 16px;
+  min-height: 12px;
+}
+
+/* 2026-10-29: no GTK scale keyboard-focus reference; reuse the calendar focus black. */
+scale:focus:focus-visible > trough > slider {
+  outline-color: #000000;
+}
+
+/* 2026-10-29: no GTK fine-tune scale reference; reuse the base thumb margin. */
+scale.horizontal.fine-tune > trough > slider,
+scale.vertical.fine-tune > trough > slider {
+  margin: -5px;
+}
+
+/* 2026-10-29: no marked GTK scale reference; marked thumbs reuse the
+   theme's axis-aligned rectangular thumb policy. */
+scale.marks-before:not(.marks-after) > trough > slider,
+scale.marks-after:not(.marks-before) > trough > slider {
+  transform: none;
+}
+
+/* 2026-10-29: no enabled marked GTK scale reference; reuse the base thumb bevel. */
+scale.marks-before:not(.marks-after):not(:disabled) > trough > slider:not(:disabled),
+scale.marks-after:not(.marks-before):not(:disabled) > trough > slider:not(:disabled) {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+/* 2026-10-29: no GTK scale reference; parent interaction reuses the thumb face. */
+scale:hover > trough > slider, scale:active > trough > slider {
+  background-color: #DDDDDD;
+}
+
+/* 2026-10-29: no disabled-scale reference; preserve its Platinum palette. */
+scale:disabled {
+  filter: none;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows a GTK
+ * scale's container spacing (the GTK scope's standing adaptation
+ * premise), so the plain (non-fine-tuned) scale node keeps the
+ * toolkit's own allocation — the 10px transverse node minimums and the
+ * 12px push-out padding that separates a scale from its neighbours,
+ * with the bare node's stock outline-motion riders. Stock's bare scale
+ * arm is the toolkit resource's only arm on the `scale` spelling: the
+ * existing `scale > trough`, fine-tune and state groups all quote
+ * compound spellings, so without a bare restate a plain scale loses
+ * both minimums and the padding and its container collapses to the
+ * toolkit's stockless defaults, crowding neighbouring controls. The
+ * existing GTK 3 plain container record restates the libgtk-3 twin arm
+ * the same way (its spelling carries no motion members); this sheet
+ * restate keeps its three motion riders byte-equal because the bare
+ * node reads them stock-only and no existing counter-arm carries them.
+ * Probed fresh 2026-11-09 with gresource extract
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * /org/gtk/libgtk/theme/Default/Default-light.css: light line 1101
+ * declares `scale { min-height: 10px; min-width: 10px; padding: 12px;
+ * transition-property: outline, outline-width, outline-offset,
+ * outline-color; transition-duration: 300ms;
+ * animation-timing-function: ease-in-out; }` and the dark twin
+ * (Default-dark.css) declares the identical arm byte-for-byte at line
+ * 1089, every line in this region shifted -12; the desktop integration
+ * library (name and resource path recorded in docs/invariants.md)
+ * declares at line 1888 the same allocation without motion members.
+ * The restate below repeats the arm byte-equal and sits later, so under
+ * either loading reading — a theme selection replacing the stock sheet
+ * entirely, where the restate is the only holder of the spellings, or
+ * the stock declarations riding as a lower sheet, where the restate
+ * wins each single per-property tie at equal specificity — the plain
+ * scale's container allocation is unchanged. Exclusions with
+ * per-property reasons: the `scale > trough` outline arm (light 1103,
+ * dark 1091), the `scale:focus:focus-visible > trough` outline arm
+ * (light 1105, dark 1093) and the `scale > trough` outline-motion arm
+ * (light 1107, dark 1095) are the existing scale-focus groups' focus
+ * keys; the `scale > trough > fill, scale > trough > highlight {
+ * margin: -1px; }` arm (light 1109, dark 1097) is answered by the
+ * existing same-spelling group's `margin: 0` riding the equal-specificity
+ * source-order win, so the existing zero governs; the `scale > trough >
+ * slider { min-height: 18px; min-width: 18px; margin: -9px; }` arm
+ * (light 1111, dark 1099) is the knob's own geometry, answered by the
+ * existing slider groups; the fine-tune trough-margin (light 1113, dark
+ * 1101) and slider-margin (light 1115, dark 1103) arms and the
+ * fine-tune radius arm (light 1117, dark 1105) are the existing
+ * fine-tune margin restates' and the existing fine-tuned radius record's
+ * deliverables, not the plain container; the integration library's knob
+ * arm (its resource line 1894, 20px minimums, -8px margin, rounded) is
+ * the knob too, answered per-property by the existing slider groups; and
+ * the integration library's fine-tune marks, margin and indicator arms
+ * (its resource lines 1926-1970) are the fine-tuned marked-scale
+ * geometry, their own separate candidate outside this entry. No
+ * descending group's policy changes: the motion riders ride the bare
+ * node alone and the existing descendant focus groups keep their own
+ * no-motion policy. Declared 2026-11-09 by the feature role. */
+
+scale {
+  min-height: 10px;
+  min-width: 10px;
+  padding: 12px;
+  transition-property: outline, outline-width, outline-offset, outline-color;
+  transition-duration: 300ms;
+  animation-timing-function: ease-in-out;
+}
+
+scale > trough > slider:hover, scale > trough > slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+scale > trough > slider:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+

@@ -1,0 +1,468 @@
+/* Adaptation 2026-11-03: no collected reference screenshot shows GTK 4
+   keyboard focus on an icon view, flow-box child or grid-view child. Reuse
+   the existing black focus-outline policy; stock's 2px outline width and
+   -2px offset remain inherited. The GTK 4 resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css in libgtk-4 4.18.6)
+   and the platform style library's base.css resource were probed with
+   gresource on 2026-11-03; both provide these three focus-visible spellings, and the
+   toolkit resource provides the iconview and view-child outline transitions. */
+iconview {
+  transition: none;
+}
+
+iconview:focus:focus-visible,
+flowbox > flowboxchild:focus:focus-visible,
+gridview > child:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   disabled selected row or view child (the GTK scope's standing adaptation
+   premise), so the pale-blue disabled-selected labels the toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
+   with gresource on 2026-10-31, libgtk-4 4.18.6) paints on the
+   rows-and-children members of its big disabled-selected comma group
+   (#9ac2f2) and on the dedicated column- and tree-view arms (#86b5ef cold,
+   #71a8eb backdrop; no big `:backdrop` disabled-selected group exists in
+   the resource, so the backdrop restatement carries the dedicated view
+   arms alone) are restated with the existing disabled-text grey (the same
+   grey the sheet's disabled label, dim-label and field-disabled arms
+   paint, re-derived from the colour scheme's [Colors:Button]
+   ForegroundInactive). The existing row and view-child selection groups
+   already paint the #CCCCFF fill with black enabled text in every state,
+   so only the label colour changes. Each appended selector is the exact
+   stock twin, so every tie is decided purely by later source order; the
+   toolkit's remaining disabled-selected members (selection text, calendar,
+   icon-view, model-button members and the class-only .view twins) stay
+   stock. Declaration checks do not establish rendered pixels. */
+row:disabled:selected,
+flowbox > flowboxchild:disabled:selected,
+gridview > child:disabled:selected,
+columnview.view:disabled:selected,
+treeview.view:disabled:selected {
+  color: #888888;
+}
+
+columnview.view:disabled:selected:backdrop,
+treeview.view:disabled:selected:backdrop {
+  color: #888888;
+}
+
+/* 2026-11-03: GTK 4 keyboard-focused list rows. No collected reference
+ * screenshot in macos8.6-screenshots/ shows a GTK list row's keyboard
+ * focus ring (the collected lists show flat or icon selections, and a
+ * tree or column view's focused row is not collected), so the ring colour
+ * reuses the existing black focus-outline policy this sheet already states
+ * for buttons, entries, spin buttons and check buttons; stock's outline
+ * width and offset stay inherited per-property, and one bare `row` arm
+ * removes stock's 300 ms outline fade the existing transition policy drops
+ * on the other controls. Stock arms probed 2026-11-03 with gresource —
+ * four row focus arms from `/org/gtk/libgtk/theme/Default/Default-light.css`
+ * inside `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6):
+ *   row:focus:focus-visible { outline-color: rgba(53, 132, 228, 0.5);
+ *     outline-width: 2px; outline-offset: -2px; }
+ *   .boxed-list > row:focus:focus-visible { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -1px; }
+ *   stacksidebar row:focus:focus-visible { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -2px; }
+ *   .navigation-sidebar > row:focus-visible:focus-within { outline-color:
+ *     rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -2px; }
+ * — plus, for the deeper list-family spellings, the platform style
+ * library's base.css resource (both paths and probes recorded in
+ * docs/invariants.md): it carries its own generic `row:focus:focus-visible`
+ * arm byte-equal to the toolkit's (so both resources share that spelling
+ * above) and seven deeper spellings with the same outline geometry (the
+ * boxed lists' `-1px` offset):
+ *   list.boxed-list > row:focus:focus-visible,
+ *   list.content > row:focus:focus-visible,
+ *   list.boxed-list > row.expander row.header:focus:focus-visible,
+ *   list.content > row.expander row.header:focus:focus-visible,
+ *   row.expander list.nested > row:focus:focus-visible,
+ *   list.boxed-list-separate > row:focus:focus-visible,
+ *   list.boxed-list-separate > row.expander row.header:focus:focus-visible
+ * Eleven distinct spellings in all; each selector below is the byte-equal
+ * stock twin, and the two groups sit after the existing disabled-selected
+ * groups above, so later source order wins every tie. Declaration checks
+ * do not establish rendered pixels. */
+row {
+  transition: none;
+}
+
+row:focus:focus-visible,
+.boxed-list > row:focus:focus-visible,
+stacksidebar row:focus:focus-visible,
+.navigation-sidebar > row:focus-visible:focus-within,
+list.boxed-list > row:focus:focus-visible,
+list.content > row:focus:focus-visible,
+list.boxed-list > row.expander row.header:focus:focus-visible,
+list.content > row.expander row.header:focus:focus-visible,
+row.expander list.nested > row:focus:focus-visible,
+list.boxed-list-separate > row:focus:focus-visible,
+list.boxed-list-separate > row.expander row.header:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* 2026-11-03: GTK 4 needs-attention badges. No collected reference
+ * screenshot in macos8.6-screenshots/ shows a GTK stack switcher or a stack
+ * sidebar needs-attention badge (the standing GTK-scope adaptation
+ * premise), so the pulse is cleared to this sheet's inherited paint and
+ * existing motion policy instead of stock's accent dot; the class tokens and
+ * their cascade place stay as stock put them, following the existing
+ * colour-class precedent, and the labels keep the inherited text and box.
+ * Stock arms probed 2026-11-03 with gresource from the toolkit's bundled
+ * GTK theme resource (full library path in docs/invariants.md):
+ *   stacksidebar row.needs-attention > label,
+ *   stackswitcher > button.needs-attention > label,
+ *   stackswitcher > button.needs-attention > image
+ *     { animation: needs_attention 150ms ease-in; background-image:
+ *       radial-gradient(farthest-side, #3584e4 96%, rgba(53, 132, 228, 0));
+ *       background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+ *       background-position: right 3px, right 4px; }
+ * plus the resource's own `needs_attention` keyframes and three residual
+ * arms that declare only size or position — the `:backdrop` twin
+ * (`background-size: 6px 6px, 0 0`), the `:dir(rtl)` twin
+ * (`background-position: left 3px, left 4px`) and a later bare
+ * `stacksidebar row.needs-attention > label` arm
+ * (`background-size: 6px 6px, 0 0`). One grouped rule restates the three
+ * byte-equal stock twin selectors directly after the existing row-focus
+ * outline rule: equal specificity plus later source order wins every
+ * property, so the dot image and the pulse animation fall away and the
+ * three residual arms govern no image anywhere. The keyframes lose their
+ * last user without gaining a new animation name. Declaration checks do
+ * not establish rendered pixels or animation runs. */
+stacksidebar row.needs-attention > label,
+stackswitcher > button.needs-attention > label,
+stackswitcher > button.needs-attention > image {
+  animation: none;
+  background-image: none;
+}
+
+/* 2026-10-31: libgtk-4 4.18.6 tab-close ink from its bundled GTK resource
+ * (full resource path in docs/invariants.md); no reference screenshot shows
+ * this control. Reuse the existing black label and insensitive grey. */
+notebook > header > tabs > tab button.flat,
+notebook > header > tabs > tab button.flat:backdrop {
+  color: #000000;
+}
+
+notebook > header > tabs > tab button.flat:disabled,
+notebook > header > tabs > tab button.flat:backdrop:disabled {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected, focused-
+   selected or disabled-selected GTK text. libgtk-4 4.18.6 stock arms from
+   /org/gtk/libgtk/theme/Default/Default-light.css (full library path in
+   docs/invariants.md) are restated with the existing selection palette and
+   inactive-text grey derived from [Colors:Button] ForegroundInactive. */
+entry > text > selection,
+spinbutton:not(.vertical) > text > selection,
+spinbutton.vertical > text > text > selection,
+spinbutton.vertical > text > selection,
+editablelabel > stack > text > selection,
+textview > text > selection {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+label > selection:focus-within,
+textview > text > selection:focus-within,
+entry > text > selection:focus-within,
+spinbutton:not(.vertical) > text > selection:focus-within,
+spinbutton.vertical > text > text > selection:focus-within,
+spinbutton.vertical > text > selection:focus-within,
+editablelabel > stack > text > selection:focus-within {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+label:disabled > selection,
+label:disabled:selected,
+textview > text:disabled:selected,
+textview > text:disabled:selected:focus {
+  color: #888888;
+}
+
+/* Adaptation 2026-11-03: no reference screenshot shows a GTK editable
+   label or a column view's cell editing. libgtk-4 4.18.6 stock arms from
+   /org/gtk/libgtk/theme/Default/Default-light.css (full library path in
+   docs/invariants.md):
+   editablelabel > stack > text { color: black; border-color: #cdc7c2; background-color: #ffffff; }
+   columnview row:not(:selected) cell editablelabel:not(.editing):focus-within { outline: 2px solid rgba(53, 132, 228, 0.5); }
+   columnview row:not(:selected) cell editablelabel.editing:focus-within { outline: 2px solid #3584e4; }
+   columnview row:not(:selected) cell editablelabel.editing text selection { background-color: rgba(141, 141, 141, 0.5); color: transparent; }
+   columnview row:not(:selected) cell editablelabel.editing text selection:focus-within { background-color: rgba(53, 132, 228, 0.3); color: #2e3436; }
+   are restated with the existing ENTRY_FIELD recipe, the existing focus-black
+   outline and the existing TEXT_SELECTION fill; stock's outline geometry
+   stays in force per-property. */
+
+editablelabel > stack > text {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+columnview row:not(:selected) cell editablelabel:not(.editing):focus-within,
+columnview row:not(:selected) cell editablelabel.editing:focus-within {
+  outline-color: #000000;
+}
+
+columnview row:not(:selected) cell editablelabel.editing text selection,
+columnview row:not(:selected) cell editablelabel.editing text selection:focus-within {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows a disabled selected
+   GTK calendar day. GTK 4.18.6's Default-light.css stock arm is restated with
+   the inactive-text grey already used for disabled calendar days. */
+calendar > grid > label.day-number:disabled:selected {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a selected
+   generic GTK view. libgtk-4 4.18.6's Default-light.css stock .view arms
+   (resource provenance in docs/invariants.md) use blue selection, white ink
+   and rounded corners; reuse the existing GTK selection palette and frame. */
+.view:selected,
+.view:selected:focus {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+.view:disabled:selected {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows a disabled GTK link
+   button. Reuse the inactive-text grey from [Colors:Button]
+   ForegroundInactive for GTK's disabled link-button labels. */
+button.link:disabled > label,
+button.link:visited:disabled > label {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows selected GTK links.
+   Reuse [Colors:Selection] ForegroundNormal as the selected link ink; GTK 4's
+   Default-light.css resource supplies the selected-link state vocabulary. */
+link:selected:not(:disabled),
+link:selected:not(:disabled):hover,
+link:selected:not(:disabled):active,
+link:visited:selected:not(:disabled),
+link:visited:selected:not(:disabled):hover,
+link:visited:selected:not(:disabled):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows inline links
+   inside a selected GTK node. Reuse [Colors:Selection] ForegroundNormal.
+   GTK 4.18.6's Default-light.css resource (source in docs/invariants.md)
+   supplies the selected-ancestor descendant state spellings. */
+:selected link:not(:disabled),
+:selected link:not(:disabled):hover,
+:selected link:not(:disabled):active,
+:selected link:visited:not(:disabled),
+:selected link:visited:not(:disabled):hover,
+:selected link:visited:not(:disabled):active {
+  color: #000000;
+}
+
+/* Adaptation 2026-10-31: no collected reference shows disabled inline links
+   inside selected nodes. Reuse [Colors:Button] ForegroundInactive; GTK 4's
+   Default-light.css resource supplies the selected-ancestor link states. */
+:selected link:disabled,
+:selected link:disabled:hover,
+:selected link:disabled:active,
+:selected link:visited:disabled,
+:selected link:visited:disabled:hover,
+:selected link:visited:disabled:active {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference shows disabled links that
+   carry their own selection. Reuse [Colors:Button] ForegroundInactive;
+   GTK 4's Default-light.css resource supplies the selected-link state. */
+link:selected:disabled,
+link:selected:disabled:hover,
+link:selected:disabled:active,
+link:visited:selected:disabled,
+link:visited:selected:disabled:hover,
+link:visited:selected:disabled:active {
+  color: #888888;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK window
+   shell, so the CSD top-level frames restate the stock shell arms with the
+   shipped Aurorae chrome's outline instead of sampled metrics: square corners
+   and a hard 1px #000000 outline on the active frame, recoloured #555555 when
+   the window is unfocused -- the same outline and recolour the existing
+   headerbar:backdrop pair carries, pinned on the Aurorae frame by
+   tests/test_aurorae_frame.py -- and no soft shadow. The cleared stock claims
+   come from the "Window Decorations" section of
+   /org/gtk/libgtk/theme/Default/Default-light.css inside
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6), extracted with
+   gresource and verified 2026-11-03: window.csd rounds the top corners 8px
+   under blurred rgba shadows plus a translucent ring, with a weaker backdrop
+   set behind a 200ms transition; window.csd.popup and tooltip.csd round 5px;
+   window.csd.dialog.message rounds 8px; and the maximized, fullscreen, tiled
+   and ssd arms each carry a shadow arm of their own, while window.solid-csd
+   -- the stock shell arm GTK 4 selects for a decorated top level without an
+   alpha visual, which no reference screenshot shows -- pads 4px and frames
+   itself with inset #cdc7c2 and white shadows. The base rules below restate
+   the stock selectors so the later source position wins every
+   equal-specificity tie exactly as the existing restatements do; the
+   maximized/fullscreen and tiled :backdrop arms carry their own :backdrop
+   classes so they override window.csd:backdrop. Popup and message-dialog
+   backdrop arms override their more specific active shell rules. Stock's
+   tiled/maximized radius-zero arms already square those states' corners of
+   their own, and the existing window.dialog.message.csd.background group
+   already squares the message-dialog body. Stock's window.csd:backdrop
+   carries a 200ms box-shadow transition of its own; it is restated to none
+   like the existing button group's transition policy, so the outline switches
+   hard between focus states instead of cross-fading. */
+window.csd {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd:backdrop {
+  transition: none;
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.csd.popup {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd.popup:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.csd.dialog.message {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.csd.dialog.message:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows any GTK
+   window shell, so the compositor-less solid-csd frame re-derives the shipped
+   square Aurorae chrome's outline -- #000000 active and #555555 backdrop,
+   pinned on the Aurorae frame by tests/test_aurorae_frame.py -- with stock's
+   own bevel cleared, and the outline is painted as the window border rather
+   than a shadow ring for three reasons: stock's own .solid-csd .titlebar
+   and .solid-csd headerbar arm stretches with margin-left/right/top of -1px
+   and needs the 1px window border to cover it, so keeping a 1px border keeps
+   that geometry intact; an outside ring is clipped to the window bounds in
+   the no-compositor environments the arm exists for, so a shadow ring could
+   vanish entirely there; and the cleared stock claims come from the "Window
+   Decorations" section of /org/gtk/libgtk/theme/Default/Default-light.css
+   inside /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6), extracted
+   with gresource and verified 2026-11-03: window.solid-csd { margin: 0;
+   padding: 4px; border: solid 1px #cdc7c2; border-radius: 0; box-shadow:
+   inset 0 0 0 4px #cdc7c2, inset 0 0 0 3px white, inset 0 1px rgba(255, 255,
+   255, 0.8); } and window.solid-csd:backdrop { box-shadow: inset 0 0 0 4px
+   #cdc7c2, inset 0 0 0 3px #f6f5f4, inset 0 1px rgba(255, 255, 255, 0.8); }.
+   Stock's margin: 0 and border-radius: 0 already equal the Platinum values
+   and are not restated; the arms sit before the maximized flats exactly as
+   the stock "Window Decorations" order does. */
+window.solid-csd {
+  padding: 0;
+  border: solid 1px #000000;
+  box-shadow: none;
+}
+
+window.solid-csd:backdrop {
+  border-color: #555555;
+  box-shadow: none;
+}
+
+
+window.maximized,
+window.fullscreen {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+window.maximized:backdrop,
+window.fullscreen:backdrop {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+window.tiled,
+window.tiled-top,
+window.tiled-left,
+window.tiled-right,
+window.tiled-bottom {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+window.tiled:backdrop,
+window.tiled-top:backdrop,
+window.tiled-left:backdrop,
+window.tiled-right:backdrop,
+window.tiled-bottom:backdrop {
+  box-shadow: 0 0 0 1px #555555;
+}
+
+window.ssd {
+  box-shadow: none;
+}
+
+tooltip.csd {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Adaptation 2026-11-03: no collected reference shows GTK tab previews.
+   Keep their nested clip hierarchy square, following the frame and .frame
+   corner policy. The stock selectors were probed in base.css. */
+tabthumbnail,
+tabthumbnail .card picture {
+  border-radius: 0;
+}
+
+/* The tab-overview button and badge-cap spellings answer the same extracted
+   arms; the grounding comment sits at the tab seam, 2026-11-04. The badge's
+   stock pulse paint stays inherited per-property. */
+tabthumbnail button {
+  border-radius: 0;
+}
+
+tabthumbnail button > image {
+  border-radius: 0;
+}
+
+tabthumbnail .needs-attention > widget {
+  border-radius: 0;
+}
+
+/* GTK sidebar keyboard focus has no collected reference surface; reuse the
+   black focus colour from the existing policy. Resource base.css supplies the
+   stock button.sidebar-button:focus:focus-visible rule, inspected 2026-11-03. */
+button.sidebar-button:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* GTK emoji section keyboard focus has no collected reference surface; reuse
+   the existing black focus colour. The stock selector was inspected 2026-11-03. */
+button.emoji-section.image-button:focus:focus-visible:not(.raised):not(.suggested-action):not(.destructive-action):not(.opaque) {
+  outline-color: #000000;
+}
+
+/* GTK file-chooser breadcrumb focus has no collected reference surface;
+   reuse the existing black button focus colour. */
+filechooser #pathbarbox > stack > box > button:focus:focus-visible,
+filechooser #pathbarbox > stack > box > box > button:focus:focus-visible,
+filechooser #pathbarbox > stack > box > menubutton > button:focus:focus-visible {
+  outline-color: #000000;
+}
+

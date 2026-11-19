@@ -1,0 +1,475 @@
+radio:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:checked:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:checked:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:hover {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+check:indeterminate:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+radio:indeterminate:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: none;
+}
+
+/* 2026-11-05: no collected reference screenshot shows a GTK content
+   view's selection check in any state — a file- or icon-grid selection
+   swatch (the GTK scope's standing adaptation premise) — so the toolkit
+   resource's eight class-armed tile-check state arms take the existing
+   check face under every state, per-property. A `gresource extract`
+   probe of the toolkit's light resource
+   /org/gtk/libgtk/theme/Default/Default-light.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6; both probe
+   paths live here and in docs/invariants.md) returns exactly the eight
+   comma triples across rest, :hover, :active, :backdrop, :checked,
+   :checked:hover, :checked:active and :backdrop:checked, quoted
+   verbatim; the toolkit resource used by the GTK 3 sheet of this theme
+   also carries the same eight arms with that sheet's own
+   `:not(list)`-suffixed third-member spelling, probed the same day
+   (both exact resource paths and library paths live in
+   docs/invariants.md):
+
+   .view.content-view.check:not(list), iconview.content-view.check:not(list), .content-view .tile check:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: transparent; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: none; -gtk-icon-shadow: none; }
+
+   .view.content-view.check:hover:not(list), iconview.content-view.check:hover:not(list), .content-view .tile check:hover:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: transparent; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: none; -gtk-icon-shadow: none; }
+
+   .view.content-view.check:active:not(list), iconview.content-view.check:active:not(list), .content-view .tile check:active:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: transparent; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: none; -gtk-icon-shadow: none; }
+
+   .view.content-view.check:backdrop:not(list), iconview.content-view.check:backdrop:not(list), .content-view .tile check:backdrop:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: transparent; background-color: #8d8d8d; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: none; -gtk-icon-shadow: none; }
+
+   .view.content-view.check:checked:not(list), iconview.content-view.check:checked:not(list), .content-view .tile check:checked:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: #eeeeec; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: -gtk-icontheme('object-select-symbolic'); -gtk-icon-shadow: none; }
+
+   .view.content-view.check:checked:hover:not(list), iconview.content-view.check:checked:hover:not(list), .content-view .tile check:checked:hover:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: #eeeeec; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: -gtk-icontheme('object-select-symbolic'); -gtk-icon-shadow: none; }
+
+   .view.content-view.check:checked:active:not(list), iconview.content-view.check:checked:active:not(list), .content-view .tile check:checked:active:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: #eeeeec; background-color: #3584e4; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: -gtk-icontheme('object-select-symbolic'); -gtk-icon-shadow: none; }
+
+   .view.content-view.check:backdrop:checked:not(list), iconview.content-view.check:backdrop:checked:not(list), .content-view .tile check:backdrop:checked:not(list) { margin: 4px; min-width: 32px; min-height: 32px; color: rgba(238, 238, 236, 0.8); background-color: #8d8d8d; border-radius: 5px; background-image: none; transition: 200ms; box-shadow: none; border-width: 0; -gtk-icon-source: -gtk-icontheme('object-select-symbolic'); -gtk-icon-shadow: none; }
+
+   — so a content-view selection swatch painted stock takes the toolkit's
+   blue surfaces and a flat grey backdrop twin instead of the existing
+   recipe, keeps a 5px rounding where the existing square-corner policy
+   squares checks, and shows the toolkit's symbolic select glyph instead
+   of the shipped checkmark; the probe names no `:indeterminate` tile
+   arm. The existing bare `check, radio`, `check` and `check:checked`
+   groups cannot reach these class-armed spellings: they name the
+   element node and lose the class-armed specificity tie, so each
+   spelling below restates exactly the existing `check` recipe's face —
+   the light-grey fill, the 1px solid black outline, the zero radius and
+   the inset white/dark-grey relief pair — byte-equal to its stock twin
+   and sitting later in source order, and the four checked spellings add
+   the existing `check:checked` glyph source on top (the existing `check`
+   group's raised face colour restates beside the glyph stock paints the
+   checked swatch image-only). Stock's `margin: 4px`,
+   `min-width`/`min-height: 32px`, residual colour and
+   `transition: 200ms` stay inherited per-property — the swatch is a
+   platform-defined surface whose 32px geometry the reference set does
+   not show, a shipped-file icon source is not tinted by the element
+   colour, and the existing plain-state record makes the same transition
+   and colour choice — while stock's `border-width: 0` loses the width
+   half
+   of the restated `border` shorthand per-property, so the swatch keeps
+   the existing hard black outline. Backdrop keeps the face unchanged per
+   the existing `.osd` check/radio record's policy, which states no
+   `.osd` :backdrop arm. This sheet loads after the stock resource, so
+   each spelling below wins the equal-specificity tie by later user-sheet
+   source order. Declaration checks do not establish rendered pixels. */
+
+.view.content-view.check:not(list),
+iconview.content-view.check:not(list),
+.content-view .tile check:not(list) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:hover:not(list),
+iconview.content-view.check:hover:not(list),
+.content-view .tile check:hover:not(list) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:active:not(list),
+iconview.content-view.check:active:not(list),
+.content-view .tile check:active:not(list) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:backdrop:not(list),
+iconview.content-view.check:backdrop:not(list),
+.content-view .tile check:backdrop:not(list) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:not(list),
+iconview.content-view.check:checked:not(list),
+.content-view .tile check:checked:not(list) {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:hover:not(list),
+iconview.content-view.check:checked:hover:not(list),
+.content-view .tile check:checked:hover:not(list) {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:checked:active:not(list),
+iconview.content-view.check:checked:active:not(list),
+.content-view .tile check:checked:active:not(list) {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+.view.content-view.check:backdrop:checked:not(list),
+iconview.content-view.check:backdrop:checked:not(list),
+.content-view .tile check:backdrop:checked:not(list) {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+/* A popover-menu row's accelerator label keeps the existing face in every
+   row state, 2026-11-06. No collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK menu accelerator or any GTK menu
+   label, so this face is platform-required and the existing `.dim-label`
+   secondary-label record is the policy source. Under the dual cascade
+   reading the existing records accept, either GTK 4 toolkit resource could
+   be in force for a presented app, and each declares the one twin arm
+   that dims the row's colour — verbatim, the toolkit base stylesheet's
+   `popover.menu accelerator { color: color-mix(in srgb, currentColor
+   var(--dim-opacity), transparent); }` grouped under its root
+   `--dim-opacity: 55%`, and the GTK 4 default light resource's twin
+   `popover.menu accelerator { color: rgb(from currentColor r g b /
+   calc(alpha * 0.55)); }` (both resources' exact library paths, the
+   probe commands and the base stylesheet's dim-opacity declaration live
+   in docs/invariants.md; `gresource extract` on libgtk-4 and the base
+   library, re-probed 2026-11-06) — so at 0.55, 45% of whatever the row
+   state inherits shows through, with no palette colour pinned under the
+   arm in any row state anywhere. The restatement below reuses the existing
+   `.dim-label` record's grey at full opacity (the twins dim inside the
+   `color` declaration alone, so no `opacity` or `text-shadow` clamp is
+   needed) with the stock spelling itself, one class token and one element
+   token and no state pseudo-class, so it wins the equal-specificity tie
+   by later user-sheet source order; the twins' `:dir` margin arms (12px
+   at each menu side) are geometry with no existing conflict and stay
+   stock. Declaration checks do not establish rendered pixels. */
+
+popover.menu accelerator {
+  color: #888888;
+}
+
+/* A check's and a radio's faces on a selected treeview row keep the existing
+   faces under every node state, 2026-11-06. No collected reference
+   screenshot in macos8.6-screenshots/ shows a GTK treeview's row check or
+   radio at all, let alone on a selected row — this face is
+   platform-required, and the existing check/radio recipe plus the existing
+   row-selection ink are the policy sources. Under the dual cascade reading
+   the existing records accept, either toolkit resource could style a
+   presented app's treeview rows, and the toolkit base stylesheet's
+   Default-light twin (libgtk-4/Default-light.css; probed 2026-11-06, exact
+   library paths and probe commands in docs/invariants.md — the base
+   integration stylesheet returns none of these arms) declares the four
+   treeview-class-armed selected-row arms the existing recipes cannot reach:
+   the colour arm `treeview.view check:selected:focus, treeview.view
+   check:selected, treeview.view radio:selected:focus, treeview.view
+   radio:selected { color: #ffffff; border-color: #185fb4; }` (Default-light
+   line 1076) turns the box's ink and border to the toolkit's white and its
+   selection-accent blue over the existing `#CCCCFF` selection fill, the
+   checked glyph arm `treeview.view radio:checked:selected, radio:checked
+   { -gtk-icon-source: -gtk-scaled(-gtk-recolor of the toolkit's own
+   assets/bullet-symbolic.symbolic.png and its assets/bullet@2-symbolic
+   .symbolic.png half-scale path) }` (line 1072) and the
+   indeterminate twin `treeview.view radio:indeterminate:selected,
+   radio:indeterminate { -gtk-icon-source: -gtk-scaled(-gtk-recolor of the
+   toolkit's own assets/dash-symbolic.symbolic.png and its
+   assets/dash@2-symbolic.symbolic.png half-scale path) }` (line 1074)
+   recolour the toolkit's symbolic dot and dash, and the plane arm `treeview.view
+   radio:selected:focus, treeview.view radio:selected, radio
+   { border-radius: 100%; -gtk-icon-size: 14px; }` (line 1070) rounds and
+   sizes the face. The restatement answers both members of the colour arm
+   per-property — the ink takes the existing row-selection record's black
+   text and the border the existing check/radio recipe's hard black — and
+   swaps each glyph to the existing `radio:checked` and `check:indeterminate,
+   radio:indeterminate` records' own shipped black-ink assets, one group
+   per lost arm, each spelling byte-equal to its Default-light twin
+   statement and later in user-sheet source order, so the
+   equal-specificity tie falls the existing face's way under either cascade
+   reading (a theme selection replacing the stock stylesheet entirely, or
+   the resource loading first as the lower sheet). Stock's plane arm
+   restates nothing: both of its members paint the same circle on the
+   square 14px box (the existing radio keeps its 50% radius) and the 14px
+   glyph size equals the existing face's own minimums, so radius and size
+   stay inherited. The shipped glyph assets carry their baked black ink, so
+   the colour arm's white remnant recolours no shipped source and the glyph
+   answers are source swaps, not recolours. Declaration checks do not
+   establish rendered pixels. */
+
+treeview.view check:selected:focus, treeview.view check:selected,
+treeview.view radio:selected:focus, treeview.view radio:selected {
+  color: #000000;
+  border-color: #000000;
+}
+
+treeview.view radio:checked:selected {
+  -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+treeview.view radio:indeterminate:selected {
+  -gtk-icon-source: url("../assets/check-mixed.svg");
+}
+
+/* Adaptation 2026-11-06: no collected reference screenshot shows a GTK list
+   row pressed or holding an open context-menu popup (the standing GTK-scope
+   adaptation premise), but two resources paint these states. The resource
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (extracted with gresource on
+   2026-11-06, libgtk-4 4.18.6) declares four element-level row arms the
+   existing selection and hover records never answer:
+   row.activatable.has-open-popup, row.activatable:hover { background-color:
+   rgba(46, 52, 54, 0.05); }, row.activatable:active { box-shadow: inset 0
+   2px 2px -2px rgba(0, 0, 0, 0.2); }, row.activatable:selected:active {
+   box-shadow: inset 0 2px 3px -1px rgba(0, 0, 0, 0.5); } and
+   row.activatable:selected.has-open-popup, row.activatable:selected:hover {
+   background-color: #347cd3; }; the integration library's base.css resource
+   (probe path recorded in docs/invariants.md) paints the same four states as
+   background colours on five spellings: row.activatable:hover and
+   row.activatable.has-open-popup in a color-mix(in srgb, currentColor 4%,
+   transparent) wash, row.activatable:active in an 8% wash,
+   row.activatable:selected:hover and row.activatable:selected.has-open-popup
+   in a var(--accent-bg-color) 32% mix, and row.activatable:selected:active
+   in a 39% mix. Each rule below is the byte-equal stock twin appended after
+   the existing selection-backdrop groups, so later source order wins every
+   tie: the popup-holding hover pair take the existing transparent hover face
+   (the ROW_HOVER recipes), the pressed arms carry the background answers as
+   well as the toolkit's shadow answers (the base stylesheet paints
+   background-color on both pressed spellings while the toolkit resource
+   paints only the insets) with box-shadow: none so the etched row face keeps
+   no shadow under states no existing record gives one, and the selected
+   popup-hover and pressed-selection arms take the existing #CCCCFF selection
+   fill (the ROW_SELECTED recipe). No color is appended: none of the painted
+   statements paints row ink, so the existing selection ink reaches the
+   selected members through the existing selected groups alone. Nothing else is
+   restated: the existing bare-row record owns row motion, and the toolkit and
+   base stylesheet declarations outside these groups keep their existing
+   answers. Declaration checks do not establish rendered pixels. Recorded
+   2026-11-06 by the feature role. */
+
+row.activatable.has-open-popup, row.activatable:hover {
+  background-color: transparent;
+}
+
+row.activatable:active {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+row.activatable:selected:active {
+  background-color: #CCCCFF;
+  box-shadow: none;
+}
+
+row.activatable:selected.has-open-popup, row.activatable:selected:hover {
+  background-color: #CCCCFF;
+}
+
+/* No collected reference screenshot shows an entry's or spin button's
+   embedded icon child (the magnifier, clear-button or stepper glyph GTK
+   stacks inside a field), so the existing field recipe's black ink and the
+   existing button:hover erase precedent's full-strength icon stand in per
+   the standing GTK-scope adaptation premise. Recorded 2026-11-07. The
+   toolkit theme resource's own image arms (extracted the same day from
+   the toolkit's compiled light stylesheet, stock lines 132, 134, 164,
+   166 and 168, quoted here with the foreign inks elided) otherwise paint
+   on the embedded icons: a grey-green at rest, a dark grey under hover,
+   the accent hue while pressed or keyboard-active, and a 6px gap between
+   each side icon and the field's text — geometry the existing sheet repeats
+   nowhere. Each colour rule below restates its stock twin's spelling
+   exactly with the existing black ink, and the two margin twins keep
+   stock's own values byte-equal, later in user-sheet source order, so
+   the restatement wins the equal-specificity tie under either cascade
+   reading. The resource names the entry-image family with :backdrop
+   nowhere, so no backdrop twin is restated. The global disabled-image
+   icon-filter arm of each resource stays out: kept toolkit residue,
+   dimming a disabled entry's icon exactly as the existing button:disabled
+   record keeps it. Declaration checks do not establish rendered
+   pixels. */
+
+spinbutton.vertical > text > image.left,
+spinbutton:not(.vertical) > image.left,
+entry > image.left {
+  margin-right: 6px;
+}
+
+spinbutton.vertical > text > image.right,
+spinbutton:not(.vertical) > image.right,
+entry > image.right {
+  margin-left: 6px;
+}
+
+spinbutton.vertical > text > image,
+spinbutton:not(.vertical) > image,
+entry > image {
+  color: #000000;
+}
+
+spinbutton.vertical > text > image:hover,
+spinbutton:not(.vertical) > image:hover,
+entry > image:hover {
+  color: #000000;
+}
+
+spinbutton.vertical > text > image:active,
+spinbutton:not(.vertical) > image:active,
+entry > image:active {
+  color: #000000;
+}
+

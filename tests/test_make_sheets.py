@@ -38,19 +38,20 @@ class TestShippedSheetIsFresh(unittest.TestCase):
                     "edit the partials and run `python3 tools/make_sheets.py`",
                 )
 
-    def test_every_gtk3_partial_is_at_most_500_lines_and_starts_at_top_level(self):
-        source = ROOT / "theme/gtk/src/gtk-3.0"
-        partials = sorted(source.glob("*.css"))
-        self.assertTrue(partials, f"no GTK 3 partials under {source}")
-        for partial in partials:
-            with self.subTest(partial=partial.name):
-                lines = partial.read_text(encoding="utf-8").splitlines()
-                self.assertLessEqual(len(lines), MAX_PARTIAL_LINES)
-                first = lines[0]
-                self.assertTrue(
-                    first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
-                    f"{partial.name} does not start at a top-level comment or rule",
-                )
+    def test_every_gtk_partial_is_at_most_500_lines_and_starts_at_top_level(self):
+        for family in ("gtk-3.0", "gtk-4.0"):
+            source = ROOT / "theme/gtk/src" / family
+            partials = sorted(source.glob("*.css"))
+            self.assertTrue(partials, f"no GTK partials under {source}")
+            for partial in partials:
+                with self.subTest(partial=partial.relative_to(ROOT).as_posix()):
+                    lines = partial.read_text(encoding="utf-8").splitlines()
+                    self.assertLessEqual(len(lines), MAX_PARTIAL_LINES)
+                    first = lines[0]
+                    self.assertTrue(
+                        first.startswith("/*") or (first and not first[0].isspace() and first[0] != "}"),
+                        f"{partial.name} does not start at a top-level comment or rule",
+                    )
 
 
 class TestSheetBytes(unittest.TestCase):

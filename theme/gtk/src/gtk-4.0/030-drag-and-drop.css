@@ -1,0 +1,478 @@
+/* Adaptation 2026-10-30: no collected reference screenshot shows a GTK
+   drag-and-drop state, but the stock GTK 4 scheme paints the drop surfaces
+   with its accent family -- an accent border around the icon view's drop
+   target, accent top and bottom lines on a row drop target, and a full
+   accent fill with white text and an inset white ring on a header button
+   while a column drags over it -- while Platinum's elevation cue is the
+   selection: the pinned #CCCCFF repaints each state and black text replaces
+   the white label. Each rule below names one of the stock painting arms
+   verbatim in a group; the directional arms that hide one of the two row
+   lines carry no colour this adaptation must replace, so they stay
+   undeclared, and the state variants mirror the stock header arm's states so
+   no stock hover, active or selected paint outranks the selection below. */
+iconview > dndtarget:drop(active) {
+  border: 1px solid #CCCCFF;
+}
+
+columnview.view > dndtarget:drop(active),
+treeview.view > dndtarget:drop(active),
+window.print:not(.ssd-frame) treeview.dialog-action-box > dndtarget:drop(active) {
+  border-style: solid none;
+  border-width: 1px;
+  border-color: #CCCCFF;
+}
+
+columnview.view > header > button.dnd,
+columnview.view > header > button.dnd:hover,
+columnview.view > header > button.dnd:active,
+columnview.view > header > button.dnd:selected,
+treeview.view > header > button.dnd,
+treeview.view > header > button.dnd:hover,
+treeview.view > header > button.dnd:active,
+treeview.view > header > button.dnd:selected,
+window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd {
+  background-color: #CCCCFF;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: none;
+  border-style: none;
+  border-radius: 0;
+}
+
+/* Adaptation 2026-11-09: no collected reference screenshot shows GTK
+   accelerator editing. The stock GTK 4 scheme fills the view family's
+   on-screen accelerator editor -- the overlay label a view header
+   button shows while it captures a key -- with its accent face. The
+   pinned selection fill answers it, as for the selected rows, view
+   selections and the drag-and-drop header arm this block carries.
+   Stock grouped arm probed 2026-11-09 with gresource extract
+   /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+   /org/gtk/libgtk/theme/Default/Default-light.css (libgtk-4 4.18.6):
+   light line 726 declares `columnview.view acceleditor > label,
+   treeview.view acceleditor > label { background-color: <the foreign
+   accent>; }`, the resource's only acceleditor arm, and the dark twin
+   carries the identical spelling at line 718 with its own accent-deep
+   light-field value. The desktop integration library's base stylesheet
+   resource (library name and resource path recorded in
+   docs/invariants.md) rides the same spellings at base line 716,
+   naming the print dialog's action box beside the bare views and
+   composing its wash from currentColor over the view field, a colour
+   member no stock arm claims. Each spelling below is byte-equal to its
+   stock twin, wins the per-property tie by later user-sheet source
+   order under a lower stock sheet and stands as the spelling's only
+   holder when this sheet replaces stock entirely. The label's ink
+   stays inherited from the existing view field per-property; geometry
+   and shadings stay inherited per-property too, and grep-fact no
+   `:backdrop`, `:disabled` or `.osd` sibling acceleditor arm exists in
+   any of the three sources. Recorded 2026-11-09 by the feature role.
+   */
+
+columnview.view acceleditor > label, treeview.view acceleditor > label {
+  background-color: #CCCCFF;
+}
+
+window.print:not(.ssd-frame) treeview.dialog-action-box acceleditor > label {
+  background-color: #CCCCFF;
+}
+
+treeview.view.expander, expander {
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: url("../assets/arrow-right.svg");
+}
+
+treeview.view.expander:not(:checked):dir(rtl), expander:not(:checked):dir(rtl) {
+  -gtk-icon-transform: scaleX(-1);
+}
+
+treeview.view.expander:checked, expander:checked {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+}
+
+text > selection, label > selection {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+scrollbar > range > trough {
+  background-color: #EEEEEE;
+  border: 1px solid #000000;
+  border-radius: 0;
+  /* Adaptation 2026-10-29: no reference shows GTK scrollbar-trough motion; reuse the immediate thumb-state policy. */
+  transition: none;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK trough spacing; reuse the slider margin reset to avoid extra toolkit spacing. */
+scrollbar.horizontal:not(.overlay-indicator) > range > trough,
+scrollbar.vertical:not(.overlay-indicator) > range > trough {
+  margin: 0;
+}
+
+/* Adaptation 2026-10-29: no collected reference screenshot shows a GTK
+   scroll-edge band of either family, but the stock GTK 4 scheme paints a
+   shade-coloured fade band on the undershoot nodes of a scrolled window and
+   a pair of radial glows on its overshoot nodes, while Platinum lists are
+   flat: the white field runs to the sunken frame with nothing at the edge.
+   Each mirror arm below names one of those stock undershoot contexts
+   verbatim in a group that clears it, and the four overshoot rules clear
+   the radial glows. The stock reset arms that already paint none in the
+   print tree-view and popover toolbar-view cases stay untouched, because
+   clearing would only repeat what they already declare. */
+scrolledwindow.undershoot-top > undershoot.top,
+scrolledwindow.undershoot-bottom > undershoot.bottom,
+scrolledwindow.undershoot-start:dir(ltr) > undershoot.left,
+scrolledwindow.undershoot-start:dir(rtl) > undershoot.right,
+scrolledwindow.undershoot-end:dir(ltr) > undershoot.right,
+scrolledwindow.undershoot-end:dir(rtl) > undershoot.left,
+columnview ~ undershoot.top,
+treeview.view ~ undershoot.top,
+window.print:not(.ssd-frame) treeview.dialog-action-box ~ undershoot.top,
+dropdown popover.menu .dropdown-searchbar + scrolledwindow:not(.undershoot-top) > undershoot.top,
+combobox popover.menu .dropdown-searchbar + scrolledwindow:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker scrolledwindow.view:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker window.print:not(.ssd-frame) scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top,
+window.print:not(.ssd-frame) popover.emoji-picker scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker scrolledwindow.view:not(.undershoot-bottom) > undershoot.bottom,
+popover.emoji-picker window.print:not(.ssd-frame) scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom,
+window.print:not(.ssd-frame) popover.emoji-picker scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom,
+filechooser gridview ~ undershoot.top,
+filechooser placesview > stack > scrolledwindow > undershoot.bottom,
+row.combo popover > contents .combo-searchbar + scrolledwindow > undershoot.top,
+toolbarview.undershoot-top scrolledwindow > undershoot.top,
+toolbarview.undershoot-bottom scrolledwindow > undershoot.bottom {
+  background: none;
+  box-shadow: none;
+}
+
+scrolledwindow > overshoot.top,
+scrolledwindow > overshoot.bottom,
+scrolledwindow > overshoot.left,
+scrolledwindow > overshoot.right {
+  background-image: none;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+   scrollbar-corner junction, but the stock GTK 4 scheme paints the corner
+   node a scrolled window builds between two visible scrollbars with a beige
+   fill and two 1px grey trough-line gradients —
+   scrolledwindow > junction { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to right, transparent 1px, #cecece 1px); }
+   scrolledwindow > junction:dir(rtl) { background: #cdc7c2, linear-gradient(to bottom, transparent 1px, #cecece 1px), linear-gradient(to left, transparent 1px, #cecece 1px); }
+   — while the existing scrollbar trough is a flat #EEEEEE band with a 1px
+   black border and no gradient lines. Restate both arms (the right-to-left
+   twin must be restated too: its opposite-direction gradient line otherwise
+   wins over the plain twin there and leaves a leftover line in that
+   corner) with the existing trough band colour and no image, so the corner
+   square reads as the same flat scrollbar band in both directions. */
+scrolledwindow > junction,
+scrolledwindow > junction:dir(rtl) {
+  background-color: #EEEEEE;
+  background-image: none;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK overlay trough spacing; reuse the ordinary trough's zero-margin policy. */
+scrollbar.overlay-indicator.horizontal.hovering > range > trough,
+scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough,
+scrollbar.overlay-indicator.vertical.hovering > range > trough,
+scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough {
+  margin: 0;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK overlay-scrollbar hover; reuse the ordinary trough face. */
+scrollbar.overlay-indicator.hovering > range > trough {
+  background-color: #EEEEEE;
+}
+
+scrollbar > range > trough > slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  margin: 0;
+  min-width: 12px;
+  min-height: 12px;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  /* Adaptation 2026-10-29: no reference shows GTK scrollbar motion; reuse the immediate scale-focus policy. */
+  transition: none;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK overlay scrollbars; reuse the ordinary thumb bevel without the stock inset outline. */
+scrollbar.overlay-indicator > range > trough > slider {
+  outline: none;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK overlay scrollbars; reuse the ordinary thumb minimum from the sampled band. */
+scrollbar.overlay-indicator.horizontal.hovering > range > trough > slider,
+scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough > slider {
+  min-height: 12px;
+}
+
+scrollbar.overlay-indicator.vertical.hovering > range > trough > slider,
+scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough > slider {
+  min-width: 12px;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK scrollbar interaction; retain the reference-grounded base thumb face. */
+scrollbar > range > trough > slider:hover,
+scrollbar > range > trough > slider:active {
+  background-color: #DDDDDD;
+}
+
+/* Adaptation 2026-10-29: no reference shows GTK fine-tune scrollbars; reuse the base thumb face. */
+scrollbar > range.fine-tune > trough > slider,
+scrollbar > range.fine-tune > trough > slider:hover,
+scrollbar > range.fine-tune > trough > slider:active {
+  background-color: #DDDDDD;
+}
+
+/* Adaptation 2026-10-29: no reference shows a disabled GTK scrollbar; retain opaque disabled controls. */
+scrollbar > range > trough > slider:disabled {
+  opacity: 1;
+}
+
+/* A meter's show-text percentage label — the text the toolkit paints
+ * over the bar itself when `show-text` is enabled — keeps the existing
+ * black window ink here, 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a GTK meter's percentage label, so the bare
+ * `progressbar` widget node's ink is platform-required and the existing
+ * `progressbar > trough`, `progressbar > trough > progress`,
+ * `progressbar.osd > trough` and headerbar-descended meter groups — other
+ * nodes or other bars — can reach it in no plain context. The installed
+ * GTK 4 theme resource Default-light.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (extracted with `gresource`)
+ * declares the node's one ink arm at its resource line 1268,
+ * `progressbar { font-size: smaller; color: <the toolkit's translucent
+ * ink>; font-feature-settings: "tnum"; }`, and the dark-twin resource
+ * Default-dark.css declares the same arm at line 1256 with its own
+ * translucent grey literal, every line shifted by −12; no state,
+ * backdrop or `.osd` arm repaints the bare node ink in either resource.
+ * The integration library's `base.css` resource (probe path recorded
+ * in docs/invariants.md) declares no bare meter ink arm and collects
+ * the label node only through the `.dimmed` `opacity`
+ * family (line 1050), the `.numeric` `font-feature-settings` family
+ * (line 1079) and its own `progressbar > text { font-size: smaller; }`
+ * arm (line 1858) — no resource carries a `progressbar > text` color, so
+ * the label rides inheritance from the bare node, and the restatement
+ * below owns it in one group. It wins the single per-property
+ * equal-specificity tie by later user-sheet source order, so one existing
+ * ink answers light and dark deliveries and the `.osd` meter contexts
+ * the plain node reaches alike; the value source is the existing black
+ * window ink, the same policy the existing GTK 3 meter percentage-label
+ * record in the toolkit's other sheet applies to toolkit-painted text.
+ * The two stock typography members stay inherited: `font-size: smaller`
+ * is stock-only label sizing the existing theme synthesizes for no other
+ * control and `font-feature-settings: "tnum"` likewise, and neither has
+ * a toolkit, integration or user counter-arm to tie; the integration
+ * library's dilution and disabled-filter members (`.dimmed` opacity,
+ * `.numeric`
+ * figures, and the meter's disabled filter arm at base line 1860,
+ * already answered by the existing opaque-disabled `filter: none` group)
+ * stay outside this restatement, and so does a `progressbar >
+ * text` spelling, which would add a node arm the resources never
+ * declare. The toolkit's `columnview.view.progressbar,
+ * treeview.view.progressbar` cell arms (light lines 702–706, base
+ * lines 708–710) carry their own accent text ink over the accent fill
+ * under both cascade readings, so the cell meters are a separate future
+ * candidate; the `.osd` meter arms (light lines 1294–1298) carry only
+ * face and sizing members and no ink. Declaration checks do not
+ * establish rendered pixels. */
+
+progressbar {
+  color: #000000;
+}
+
+/* A view row's progress cell — the meter GTK paints inside a columnview
+ * or treeview row's cell node — keeps the existing meter's faces here,
+ * 2026-11-09. No collected reference screenshot in
+ * macos8.6-screenshots/ shows a treeview or columnview progress cell, so
+ * the cell meters are platform-required and answer to the existing GTK 3
+ * treeview progress-cell record's faces — the existing meter's lavender
+ * fill, the existing trough face with its black rim and sunken bevel,
+ * black cell text either way, and a selected or backdropped selection
+ * keeping the white fill and black text — the one-existing-face-set policy
+ * answering light and dark alike, with the existing white selected-cell
+ * fill (not the stock selected accent-over-fill choice) standing, per
+ * the stance the existing selected-row face records apply. The existing
+ * meter groups' child-combinator spellings reach no cell's internal
+ * paint, so the restatement below owns the cell family in its own record
+ * beside the existing groups it neighbours. The installed GTK 4 theme
+ * resource Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * (extracted with `gresource`) declares the cell family's five arms at
+ * its resource lines 702 (the bare cell meter: a foreign white cell ink
+ * over the foreign accent fill, the same fill again as a fill image, and
+ * nothing extruded as a shadow), 704 (the selected cell: the foreign
+ * accent ink over a foreign white paper fill image), 706 (the selected
+ * backdropped cell: the foreign accent ink over the foreign pale
+ * paper), 708 (the cell trough: the stock diluted grey face) and 710
+ * (the selected cell troughs: the stock translucent white face); the
+ * dark-twin resource Default-dark.css declares the same family at its
+ * lines 694–702, every line shifted by −8, its bare cell arm dropping
+ * the ink member, its selected cell arm adding a foreign inset shadow
+ * over the foreign paper choice and its selected backdrop settling on
+ * the foreign deep paper, so the existing faces answer dark too; the
+ * integration library's `base.css` resource (probe path recorded in
+ * docs/invariants.md) rides the bare trough (a colour-mix translucent
+ * face), the bare meter (nothing extruded) and its selected member (the
+ * integration accent variables) at its lines 708/710/712 beside two
+ * print-dialog twin spellings — the integration-only print-dialog tree
+ * arms the toolkit resource never declares (grepped before recording;
+ * left with whichever resource rides the sheet, not restated here).
+ * No `:disabled` arm at all: the toolkit resource declares none in its
+ * cell family, and the integration resource's disabled view arms speak
+ * for the view node, not the cells. No size declaration follows: stock's
+ * cell family declares no minimum at all, cell size is the view's own
+ * allocation, and the existing bare meter groups keep owning the plain
+ * meter's minimums (the existing GTK 3 record's same exclusion). Each of
+ * the five rules below restates one stock comma-group spelling keyed per
+ * member and wins the per-property equal-specificity tie by later
+ * user-sheet source order. Selected rules explicitly clear the dark
+ * selected arm's inset shadow at matching specificity; trough members not the stock face colour are
+ * fills the stock arm never spoke of, carried byte-equal from the existing
+ * trough face recipe the child-combinator spelling keeps for the plain
+ * bar. Declaration checks do not establish rendered pixels. */
+
+columnview.view.progressbar,
+treeview.view.progressbar {
+  color: #000000;
+  background-color: #CCCCFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+columnview.view.progressbar:selected:focus,
+columnview.view.progressbar:selected,
+treeview.view.progressbar:selected:focus,
+treeview.view.progressbar:selected {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+columnview.view.progressbar:selected:focus:backdrop,
+columnview.view.progressbar:selected:backdrop,
+treeview.view.progressbar:selected:focus:backdrop,
+treeview.view.progressbar:selected:backdrop {
+  color: #000000;
+  background-color: #FFFFFF;
+  background-image: none;
+  box-shadow: none;
+}
+
+columnview.view.trough,
+treeview.view.trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+}
+
+columnview.view.trough:selected:focus,
+columnview.view.trough:selected,
+treeview.view.trough:selected:focus,
+treeview.view.trough:selected {
+  background-color: #EEEEEE;
+}
+
+progressbar > trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+/* No reference shows an OSD GTK progress trough; reuse the base paint (2026-10-29). */
+progressbar.osd > trough {
+  background-color: #EEEEEE;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #999999;
+}
+
+/* No reference shows an oriented GTK OSD progress trough; reuse the base minimum. (2026-10-29) */
+progressbar.osd.horizontal > trough {
+  min-height: 10px;
+}
+
+progressbar.osd.vertical > trough {
+  min-width: 10px;
+}
+
+/* No reference shows an oriented GTK progress trough; reuse the base minimum. (2026-10-29) */
+progressbar.horizontal > trough {
+  min-height: 10px;
+}
+
+progressbar.vertical > trough {
+  min-width: 10px;
+}
+
+progressbar > trough > progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+progressbar > trough > progress.left,
+progressbar > trough > progress.right,
+progressbar > trough > progress.top,
+progressbar > trough > progress.bottom {
+  border-radius: 0;
+}
+
+progressbar > trough > progress:disabled {
+  background-color: #999999;
+}
+
+/* 2026-11-09: a disabled GTK 4 meter (a progress bar or a scale) keeps the
+   existing trough face and rim. No collected reference screenshot in
+   macos8.6-screenshots/ shows a disabled GTK meter (the GTK scope's standing
+   adaptation premise), so the kept values are the existing faces this sheet
+   already pins: the #EEEEEE trough face and its #000000 rim, the values the
+   existing GTK 3 meter-state record restated on its toolkit's disabled trough
+   arm (tests/test_gtk_theme_progress.py::TestGtkThemeProgress::
+   test_meter_state_and_backdrop_faces). The toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares on line 1083
+   `progressbar > trough:disabled, scale > trough > fill:disabled, scale >
+   trough:disabled { background-color: <the stock pale disabled face ink>;
+   border-color: <the stock greige disabled rim ink>; }` and the dark
+   twin /org/gtk/libgtk/theme/Default/Default-dark.css carries the
+   identical spelling at line 1071 (every line in this region shifted -12)
+   with its own pale-and-dark face and rim inks; the integration library's
+   base.css resource (probe paths, resource paths and versions recorded
+   verbatim in docs/invariants.md) — where `trough:disabled` appears
+   nowhere — declares no disabled trough face arm at all. The `:disabled` pseudo-class raises
+   the arm above the existing plain meter groups, so the trough face repaints
+   stock's pale face and the rim stock's per-appearance rim ink under
+   lower-sheet riding, and the group below restates the existing face and rim
+   colours at stock's specificity, winning the single per-property tie by
+   later user-sheet source order; under the replacement reading the existing
+   plain groups already govern these spellings and the restate changes
+   nothing. Exclusions, each with its per-property reason: the stock arm's
+   `scale > trough > fill:disabled` member — stock's own later arm (light
+   1119, dark 1107) ties the existing transparent fill at equal specificity
+   and wins inside the resource, and under the
+   replacement reading the existing `scale > trough > fill, scale > trough >
+   highlight` group governs the spelling, so the fill stays transparent
+   under either reading and no restate is quoted; the `progressbar > trough
+   > progress:disabled, scale > trough > highlight:disabled {
+   background-color: transparent; border-color: transparent; }` arm (light
+   1093, dark 1081) — the existing grey progress-face group at the same
+   specificity wins the progress face by later user-sheet source order, and
+   the highlight matches the existing transparent fill/highlight face, so
+   nothing repaints; the `.osd` disabled meter arms (light 1089, 1099 and
+   1123; dark 1077, 1087 and 1111, each shifted -12) — the existing `.osd`
+   meter blocks already answer them; and the existing opaque-disabled
+   `filter: none` policy groups on both bare meter states — stock claims no
+   filter member on any of these arms, so that policy stands untouched.
+   Declaration, count and order checks do not establish rendered
+   allocation. */
+

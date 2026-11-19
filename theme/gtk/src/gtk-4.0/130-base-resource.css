@@ -1,0 +1,379 @@
+/* The base stylesheet resource the toolkit's clients load alongside the
+   theme resource paints the same icon family a second time (extracted
+   2026-11-07 from its compiled base stylesheet, stock lines 809, 811,
+   813, 815 and 817, quoted here with the dimming elided): a dimmed icon
+   at rest, full strength under hover, dimmed again while pressed, and
+   the same 6px side gaps byte-equal as the theme resource's. The rules
+   below restate those five arms in stock line order: every state's
+   opacity is the existing erase precedent's full strength so the embedded
+   icon never shows either resource's dimming motion, and the two margin
+   twins keep stock's own values byte-equal. The icon spelling shared
+   with the theme resource (each bare `entry > image` and the two
+   `entry > image.left`/`.right` twins) merges both resources'
+   declarations on one key, so the colour rule above and the opacity
+   rule below meet there; the margin arms repeat the theme resource's
+   identical 6px values exactly. The resource names the entry-image
+   family with :backdrop nowhere, so no backdrop twin is restated, and
+   its global disabled-image icon-filter arm stays out with the theme
+   resource's. Declaration checks do not establish rendered pixels. */
+
+spinbutton > image,
+entry > image {
+  opacity: 1;
+}
+
+spinbutton > image:hover,
+entry > image:hover {
+  opacity: 1;
+}
+
+spinbutton > image:active,
+entry > image:active {
+  opacity: 1;
+}
+
+spinbutton > image.left,
+entry > image.left {
+  margin-right: 6px;
+}
+
+spinbutton > image.right,
+entry > image.right {
+  margin-left: 6px;
+}
+
+/* A password entry's Caps Lock indicator — the `caps-lock-indicator`
+   image child GTK stacks inside a password field — carries no collected
+   reference screenshot, so the existing entry-image family's black ink and
+   full-strength opacity stand in per the standing GTK-scope adaptation
+   premise, reusing the same two values the existing family restates on
+   every embedded icon. Recorded 2026-11-09. A display-less introspection
+   probe this run built a `Gtk.PasswordEntry` and walked every child:
+   exactly two, its `Text` node and an `Image` carrying the
+   `caps-lock-indicator` class, so the existing `entry > image` element
+   family reaches the node but loses both its answers on stock's
+   two-class specificity. Each tier paints its own look (both probed the
+   same day): the toolkit theme resource
+   `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` at
+   `/org/gtk/libgtk/theme/Default/Default-light.css` line 170 declares
+   `spinbutton.vertical > text.password image.caps-lock-indicator,
+   spinbutton.password:not(.vertical) image.caps-lock-indicator,
+   entry.password image.caps-lock-indicator { color: <the resource's
+   own greige tint, named here rather than quoted>; }`, and the platform
+   style library's compiled base stylesheet (the toolkit's clients load
+   it alongside the theme resource; its provenance and resource line
+   are recorded in docs/invariants.md) declares at line 819 the
+   twin `spinbutton.password image.caps-lock-indicator,
+   entry.password image.caps-lock-indicator { opacity: 30%; }`. The two
+   rules below restate these arms in stock line order, each spelling
+   byte-equal to its stock twin so later user-sheet source order wins
+   the equal-specificity tie: the colour rule declares the existing black,
+   and the opacity rule restates the dim arm at full strength. Neither
+   resource names the indicator family with :backdrop, so no backdrop
+   twin is restated, and the node has no hover or active arms, so none
+   are restated. Declaration checks do not establish rendered pixels. */
+
+spinbutton.vertical > text.password image.caps-lock-indicator,
+spinbutton.password:not(.vertical) image.caps-lock-indicator,
+entry.password image.caps-lock-indicator {
+  color: #000000;
+}
+
+spinbutton.password image.caps-lock-indicator,
+entry.password image.caps-lock-indicator {
+  opacity: 1;
+}
+
+/* A places view's server button — the disc button the file chooser's
+   network page shows for connecting to a server — flips its icon half a
+   turn in stock while checked, through a 200ms ease that no collected
+   reference surface has: no collected reference screenshot in
+   `macos8.6-screenshots/` shows a GTK places view or its server button,
+   so the existing no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the existing tab-bar
+   motion record erase stock motion the same way, leaving state values
+   inherited per-property). Recorded 2026-11-09. Fresh probes the same
+   day: the toolkit resource
+   `/org/gtk/libgtk/theme/Default/Default-light.css` in
+   `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6) declares
+   line 1618 `placesview .server-list-button > image { transition: 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); -gtk-icon-transform:
+   rotate(0turn); }` and line 1620 the `:checked` twin with the same
+   200ms transition and `rotate(-0.5turn)`; the same extraction of
+   `Default-dark.css` (1928 lines) declares lines 1606 and 1608 the
+   identical pair; and the platform style library's compiled base
+   stylesheet (the toolkit's clients load it alongside the theme
+   resource; its provenance and resource line are recorded in
+   docs/invariants.md) declares line 875 the property-scoped spelling
+   `placesview .server-list-button > image { transition:
+   -gtk-icon-transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+   -gtk-icon-transform: rotate(0turn); }` and line 877
+   `placesview .server-list-button:checked > image {
+   -gtk-icon-transform: rotate(-0.5turn); }` with no transition of its
+   own. The two rules below erase only the animation, each spelling a
+   byte-equal stock twin so later user-sheet source order wins the
+   equal-specificity tie; both `-gtk-icon-transform` orientation values
+   stay stock per-property, and no rotation, transform, colour or
+   geometry declaration is added. Declaration checks do not establish
+   rendered pixels. */
+
+placesview .server-list-button > image {
+  transition: none;
+}
+
+placesview .server-list-button:checked > image {
+  transition: none;
+}
+
+/* An expander row's disclosure arrow — the small arrow glyph the
+   boxed-list row flips when it unfolds its nested list — glides through
+   a 200ms icon-transform ease in stock, and no collected reference
+   screenshot in `macos8.6-screenshots/` shows the toolkit's expander
+   row or its arrow, so the existing no-transition policy stands in (the
+   `checkbutton { transition: none; ... }` group and the existing tab-bar
+   motion record erase stock motion the same way, leaving state values
+   inherited per-property). Recorded 2026-11-09. Fresh probe the same
+   day: the platform style library's compiled base stylesheet (the
+   toolkit's clients load it alongside the theme resource; its
+   provenance and resource line are recorded in docs/invariants.md)
+   declares line 1387 the only transition statement naming this family
+   anywhere in the stock resources (the toolkit's `Default-light.css`
+   and `Default-dark.css`, extracted from the same library the same
+   day, never name the family, so there is no toolkit-resource twin):
+   `row.expander image.expander-row-arrow { transition:
+   -gtk-icon-transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }`.
+   The orientation arms stay stock per-property, undeclared here: the
+   rest transforms (resource lines 1393 and 1395), the checked upright
+   transform and full opacity (line 1399), the 3px directional margins
+   (lines 1389 and 1391), the disabled opacity filter (line 1397) and
+   the checked accent ink (line 1401, with its `.osd` twin at line
+   1403) are colour, geometry, transform and style values this group
+   does not answer, so an expanded row keeps its distinct arrow look —
+   only the animation is erased. The rule below spells a byte-equal
+   stock twin so later user-sheet source order wins the
+   equal-specificity tie. Declaration checks do not establish rendered
+   pixels. */
+
+row.expander image.expander-row-arrow {
+  transition: none;
+}
+
+/* Retain the Default toolbar inset even when no stock sheet is loaded. */
+.toolbar.osd {
+  padding: 13px;
+}
+
+/* The existing activatable-row selection rules outrank row alone. Name
+   their nodes and disabled state so inactive text also wins there,
+   including backdrop and the selected:hover arms. */
+list row.activatable:disabled:selected,
+listview > row.activatable:disabled:selected,
+list row.activatable:disabled:selected:backdrop,
+listview > row.activatable:disabled:selected:backdrop {
+  color: #888888;
+}
+
+
+/* 2026-11-11: no collected reference screenshot shows a GTK notebook tab
+   scroll arrow, so the notebook header's overflow arrows — the
+   `notebook > header > tabs > arrow` nodes stock paints beside `button` —
+   take the existing push-button recipe: the existing generic `button` restate's
+   raised dictionary with the sheet's square-corner policy (the existing
+   `radio` 50% circle stays the sole exception), each state arm byte-equal
+   to the existing same-sheet button arm at the arrow's own exact stock
+   spelling, so later user-sheet source order wins stock's equal-specificity
+   tie per-property. Stock groups the arrow with `button` on a 5px
+   gradient-bevel arm, keeps the gradient face and `#cdc7c2` border in a
+   later dedicated section that only re-squares the radius, and adds a
+   translucent hover wash and a transparent disabled arm, so resting,
+   hovered, pressed, disabled and backdrop arrows render rounded
+   grey-gradient bevels with an accent-brightened hover glyph. The
+   arrow-bearing stock arms were probed 2026-11-11 with gresource from
+   `/org/gtk/libgtk/theme/Default/Default-light.css` in
+   `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` (libgtk-4 4.18.6, the
+   1940-line toolkit resource) and from the integration library's base.css
+   resource (probe path recorded in docs/invariants.md, 2026-11-11: a
+   2622-line resource); each arm's arrow member is quoted
+   verbatim with its resource line, the comma-group co-members elided.
+   Toolkit arms: line 215 `notebook > header > tabs > arrow` — { min-height:
+   24px; min-width: 16px; padding: 4px 9px; border: 1px solid;
+   border-radius: 5px; transition: all 200ms cubic-bezier(0.25, 0.46, 0.45,
+   0.94); color: #2e3436; outline-color: rgba(53, 132, 228, 0.5);
+   border-color: #cdc7c2; background-image: linear-gradient(to top, #f6f5f4
+   2px, #fbfafa); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+   transition-property: outline, outline-width, outline-offset,
+   outline-color; transition-duration: 300ms; animation-timing-function:
+   ease-in-out; }; line 217 the same spelling — { outline: 0 solid
+   transparent; outline-offset: 4px; }; line 219
+   `notebook > header > tabs > arrow:focus:focus-visible` — { outline-color:
+   rgba(53, 132, 228, 0.5); outline-width: 2px; outline-offset: -2px; };
+   line 221 `notebook > header > tabs > arrow:hover` — { color: #2e3436;
+   border-color: #cdc7c2; background-image: linear-gradient(to top, #d6d1cd,
+   #e8e6e3 1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+   -gtk-icon-filter: brightness(1.2); }; line 223 the
+   arrow.keyboard-activating, arrow:active and arrow:checked members — {
+   color: #2e3436; border-color: #cdc7c2; background-image: image(#dad6d2);
+   box-shadow: none; transition-duration: 50ms; }; line 225
+   arrow:checked:hover — { color: #2e3436; border-color: #cdc7c2;
+   background-image: image(#d1ccc7); box-shadow: none; }; line 227
+   arrow:checked:active — { color: #2e3436; border-color: #cdc7c2;
+   background-image: image(#c8c2bc); box-shadow: none; }; line 229
+   arrow:backdrop — { color: #929595; border-color: #d5d0cc;
+   background-image: image(#f6f5f4); box-shadow: none; transition: 200ms
+   ease-out; }; line 231 arrow:backdrop:not(:disabled) — {
+   -gtk-icon-filter: none; }; line 233 the arrow:backdrop:active and
+   arrow:backdrop:checked members — { color: #929595; border-color: #d5d0cc;
+   background-image: image(#e9e9e3); box-shadow: none; }; line 235
+   arrow:backdrop:disabled — { color: #d4cfca; border-color: #d5d0cc;
+   background-image: image(#faf9f8); box-shadow: none; }; line 237 the
+   arrow:backdrop:disabled:active and arrow:backdrop:disabled:checked
+   members — { color: #d4cfca; border-color: #d5d0cc; background-image:
+   image(#e9e9e3); box-shadow: none; }; line 239 arrow:disabled — { color:
+   #929595; border-color: #d5d0cc; background-image: image(#faf9f8);
+   -gtk-icon-filter: opacity(0.5); }; line 241 the arrow:disabled:active and
+   arrow:disabled:checked members — { color: #929595; border-color: #d5d0cc;
+   background-image: image(#e9e9e3); box-shadow: none; }; line 243 the
+   arrow and arrow.flat members — { border-color: transparent;
+   background-color: transparent; background-image: none; box-shadow: none;
+   transition: none; }; line 245 the arrow:hover member — { border-color:
+   transparent; background-image: none; box-shadow: none; background-color:
+   #dad6d2; transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+   transition-duration: 500ms; }; line 247 the arrow.keyboard-activating,
+   arrow:active and arrow:checked members — { border-color: transparent;
+   background-image: none; box-shadow: none; background-color: #cdc7c2;
+   transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }; line 249
+   the arrow:backdrop and arrow:disabled members — { border-color:
+   transparent; background-color: transparent; background-image: none;
+   box-shadow: none; }; lines 251-261 the arrow.image-button,
+   arrow.text-button, arrow.text-button.image-button (with its label and
+   box arms) and arrow.arrow-button (with its box arm) geometry members —
+   min-widths, paddings and border-spacing; line 263 the arrow:drop(active)
+   member — { color: #2ec27e; border-color: #2ec27e; box-shadow: inset 0 0
+   0 1px #2ec27e; }; line 879 `notebook > header > tabs > arrow` — {
+   min-height: 16px; min-width: 16px; border-radius: 0; }; line 881
+   `notebook > header > tabs > arrow:hover:not(:active):not(:backdrop)` — {
+   background-clip: padding-box; background-image: none; background-color:
+   rgba(255, 255, 255, 0.3); border-color: transparent; box-shadow: none; };
+   line 883 arrow:disabled — { border-color: transparent;
+   background-color: transparent; background-image: none; box-shadow: none;
+   }. Integration-library arms: line 166 the arrow member — { min-height:
+   24px; min-width: 16px; padding: 5px 10px; border-radius: 9px;
+   font-weight: bold; }; line 168 the arrow member — { outline: 0 solid
+   transparent; outline-offset: 4px; transition: outline-color 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94), outline-width 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94), outline-offset 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94), background 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 200ms
+   cubic-bezier(0.25, 0.46, 0.45, 0.94); }; line 170 the
+   arrow:focus:focus-visible member — { outline-color: color-mix(in srgb,
+   var(--accent-color) 50%, transparent); outline-width: 2px;
+   outline-offset: -2px; }; line 180 the arrow:checked:hover member — {
+   background-color: color-mix(in srgb, currentColor 35%, transparent); };
+   line 182 the arrow:checked.keyboard-activating and arrow:checked:active
+   members — { background-color: color-mix(in srgb, currentColor 40%,
+   transparent); }; line 184 the arrow:disabled member — { filter:
+   Opacity(var(--disabled-opacity)); }; lines 188-204 the arrow
+   geometry members (image-button, text-button, text-button.image-button,
+   arrow-button and their box and label arms); line 204 the
+   arrow:drop(active) member, stock's green drop arm; line 1760
+   `notebook > header > tabs > arrow` — { min-height: 16px; min-width: 16px;
+   border-radius: 0; }; line 1762 `notebook > header > tabs >
+   arrow:hover:not(:active)` — { box-shadow: none; }.
+   Exclusions, each inherited per-property with the kept-toolkit filters:
+   stock's geometry arms (minimums, paddings, border-spacing), stock's
+   outline geometry (the existing focus policy declares the outline colour
+   only), the #2e3436 ink (the existing button family keeps it too), the two
+   disabled filters (the toolkit's -gtk-icon-filter: opacity(0.5) and the
+   integration library's Opacity arm, the existing button:disabled record's
+   policy), the line-263 and line-204 drop arms (the shipped sheet declares
+   no drop arm), and the checked-mix arms of integration lines 180 and 182
+   (unreachable on a scroll arrow without :checked, restated only where the
+   existing byte-equal completeness twins already cover the spelling). The
+   base group's `transition: none` beats the integration line-168
+   transition list at equal specificity, and the hover wash twin below
+   beats the integration line-1762 flat hover shadow; the one corner the
+   nine groups do not restate is the hovered backdrop arrow's shadow, where
+   stock's own wash (toolkit line 881) also excludes backdrop, so that
+   state keeps stock's flat shadow instead of a tenth group. Each group
+   below carries only the named declarations. */
+notebook > header > tabs > arrow {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+  -gtk-icon-filter: none;
+}
+
+notebook > header > tabs > arrow:hover:not(:active):not(:backdrop) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+  -gtk-icon-filter: none;
+}
+
+notebook > header > tabs > arrow.keyboard-activating,
+notebook > header > tabs > arrow:active,
+notebook > header > tabs > arrow:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:checked:hover,
+notebook > header > tabs > arrow:checked:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:focus:focus-visible {
+  outline-color: #000000;
+}
+
+notebook > header > tabs > arrow:disabled,
+notebook > header > tabs > arrow:disabled:active,
+notebook > header > tabs > arrow:disabled:checked,
+notebook > header > tabs > arrow:backdrop:disabled,
+notebook > header > tabs > arrow:backdrop:disabled:active,
+notebook > header > tabs > arrow:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+notebook > header > tabs > arrow:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+notebook > header > tabs > arrow:backdrop:active,
+notebook > header > tabs > arrow:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}

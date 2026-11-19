@@ -1,0 +1,479 @@
+/* No collected reference screenshot shows a check or radio inside a GTK OSD
+ * overlay — a fullscreen video toolbar, a scale button's value bubble, an
+ * application notification, a bare .osd container — so every stock OSD
+ * indicator arm takes the existing check and radio recipes: the raised #DDDDDD
+ * check face with the inset #FFFFFF/#888888 etch, square corners and the
+ * flat #FFFFFF round radio, drawn at the plain indicator rules' 14px
+ * geometry. The stock arm inventory and states come from the toolkit
+ * resources /org/gtk/libgtk/theme/Default/Default-dark.css and
+ * Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * (libgtk-4 4.18.6, probed with gresource 2026-10-30): four `.osd`
+ * check-radio arms each — base and :hover, :active, :disabled, no :backdrop
+ * arm — painting translucent dark bubbles, and the platform style
+ * library's base.css resource (1.7.6) carries no `.osd`
+ * check-radio arm at all, only the `.osd popover.menu` transparency
+ * override left untouched here. The recipe values are the existing CHECK and
+ * RADIO specs (tests/support/gtk_theme_spec.py), pinned by the shared
+ * GtkSheetRuleCases::test_check_and_radio; every state group repeats them
+ * byte-for-byte because the stock arms set no geometry, glyph source or
+ * checked spelling, so the plain `check`, `radio` and mixed/checked glyph
+ * rules keep governing inside overlays. The one clearance is
+ * `outline-color: #000000`, replacing the toolkit's accent-tinted focus
+ * ring to match the sheet's existing black focus colour; the stock arms'
+ * leftover `color`, `background-clip: padding-box` and shadow claims stay
+ * undeclared because the shipped glyph assets do not recolour or shadow and
+ * the opaque black border already paints the clip band.
+ * Declaration checks do not establish rendered pixels.
+ * Recorded 2026-10-30 by the feature role. */
+.osd check, .osd radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:hover, .osd radio:hover {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:hover {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:active, .osd radio:active {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:active {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:disabled, .osd radio:disabled {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:disabled {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD meter. The stock
+ * trough, fill and progress paints were probed in both Default resources
+ * with gresource (libgtk-4 4.18.6, 2026-10-30); their translucent dark
+ * bubbles and differing disabled fills are replaced by the existing
+ * PROGRESSBAR_* and SCALE_* recipes in tests/support/gtk_theme_spec.py.
+ * The GTK-required child selectors repeat those recipes across states.
+ * Declaration checks do not establish rendered pixels. */
+.osd progressbar > trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+.osd scale > trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+.osd scale > trough > fill,
+.osd scale > trough > highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar > trough > progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar > trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+.osd scale > trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+.osd scale > trough > fill:disabled,
+.osd scale > trough > highlight:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar > trough > progress:disabled {
+  background-color: #999999;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* 2026-10-30: no GTK OSD scale-thumb reference; reuse the ordinary scale
+   thumb recipes. GTK 4.18.6 Default-light.css and Default-dark.css supply
+   these four arms; clear their dark faces, accent outline, padding clip and
+   active flat shadow while leaving inherited geometry and transitions. */
+.osd scale > trough > slider,
+.osd scale > trough > slider:hover,
+.osd scale > trough > slider:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  background-clip: border-box;
+}
+.osd scale > trough > slider:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #999999;
+  border-radius: 0;
+  box-shadow: none;
+  color: #000000;
+  outline-color: #000000;
+  background-clip: border-box;
+}
+
+/* 2026-11-03: no collected reference screenshot shows a spinbutton
+   stepper inside a GTK OSD overlay, so the overlay band restates the
+   toolkit resource's `.osd spinbutton ... button` stepper arms with the
+   existing raised push-button face, like the existing .osd check/radio and
+   scale thumb restatements. The stock translucent dark bubbles, the
+   horizontal arms' left-edge rgba(0, 0, 0, 0.4) separator and its
+   :dir flip, the corner arms' 5px outer radii, the 0 1px black icon
+   shadows, the vertical family's rgba(53, 132, 228, 0.5) accent
+   outline and background-clip: padding-box and the vertical pressed
+   bubble's translucent image are all cleared; the resource's button.osd
+   geometry minimums stay in force. Stock declares no horizontal :active
+   stepper arm and no :backdrop arm in either family, so pressed
+   horizontal steppers rest on the hover arm. Stock selectors probed
+   from Default-light.css and Default-dark.css in libgtk-4 4.18.6 with
+   gresource on 2026-11-03. */
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat),
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl),
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):hover,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):disabled,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(ltr):last-child,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl):first-child,
+.osd spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton.vertical > button:first-child:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK scale popup,
+   so the scale popup is a platform adaptation like the restated GTK 3
+   counterpart. The toolkit resource's rounded scale-popup button arms —
+   the borderless flat-button arm and the translucent-dark hover arm — are
+   restated with the existing square push-button treatment. Unlike the GTK 3
+   counterpart, this sheet has no restated `.osd button.flat` family, and
+   the stock `.osd button`/`button.flat` arms claim a transparent face and
+   border and no bevel at (0,2,1)/(0,1,1), outranking the existing base
+   `button` group's (0,0,1) face, border and bevel — so each arm restates
+   the existing plain push-button recipe itself (the base `button`
+   dictionary the suite's existing button case pins). Stock selectors probed
+   from Default-light.css in libgtk-4 4.18.6 with gresource on 2026-10-31. */
+.osd .scale-popup button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.scale-popup button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK message
+   dialog, so the dialog is a platform adaptation like the sheets' other band
+   restatements. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
+   with gresource, 2026-10-31) declares a window.dialog.message .titlebar arm of min-height
+   20px, an off-white face, no border and 7px top radii that carries one class
+   and element more than the existing headerbar, .titlebar group and so repaints
+   the dialog's title band, a 9px-corner csd.background arm, and csd action-area
+   button arms that re-pad to 10px 14px and round the end buttons to 7px. Each
+   twin below restates the stocked-out values from the existing header and button
+   groups in this same sheet: the band takes the headerbar values plus the
+   headerbar-only 1px bottom border, the backdrop band the existing inactive
+   header values, the body corners and action buttons square, and the action
+   buttons the stock button base padding the existing button group leaves in
+   force. Stock's shared-edge side tricks on the action buttons
+   (border-left-style/border-right-style/border-bottom-style and the
+   :first-child border-left-style) already match the existing
+   .linked:not(.vertical) > button shared-border recipe and stay untouched. */
+window.dialog.message .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-width: 0 0 1px 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
+}
+
+window.dialog.message .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
+}
+
+window.dialog.message.csd.background {
+  border-radius: 0;
+}
+
+window.dialog.message.csd .dialog-action-area button {
+  padding: 4px 9px;
+}
+
+window.dialog.message.csd .dialog-action-area button:first-child,
+window.dialog.message.csd .dialog-action-area button:last-child {
+  border-radius: 0;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a disabled
+   GTK push button or a push button in an unfocused window, so the disabled
+   label reuses the recorded insensitive grey #888888 -- the colour scheme's
+   ForegroundInactive, Kvantum's disabled.text.color and the existing
+   label:disabled grey in this same sheet -- and both states restate the
+   existing `button` raised face and `button:active, button:checked` sunken
+   face. Each selector below is its exact stock twin so the later source
+   order in this sheet decides every tie. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
+   with gresource, 2026-10-31) declares the surviving residues: button:disabled
+   repainting the face off-white image(#faf9f8) with a greyed #929595 label and
+   -gtk-icon-filter: opacity(0.5) -- the icon dimming stays in force, a kept
+   toolkit value -- button:backdrop flattening the bevel to image(#f6f5f4)
+   with the #d5d0cc border, and the active, checked, backdrop:disabled and
+   backdrop:active compounds with their own off-white and pressed #e9e9e3
+   faces. The stock 200ms backdrop transition is restated to none like the
+   existing `button` group's transition policy. */
+button:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop:active, button:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:disabled,
+button:disabled:active,
+button:disabled:checked,
+button:backdrop:disabled,
+button:backdrop:disabled:active,
+button:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+

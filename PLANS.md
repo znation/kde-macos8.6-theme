@@ -116,27 +116,6 @@ artifacts. The user chose source partials concatenated into one shipped sheet (Q
 answered 2026-11-14); the "Stylesheet sources" series below queues that split. This note queues nothing and changes no
 behavior.
 
-### Stylesheet sources, part 2/3: split the GTK 4 sheet into partials (planned 2026-11-19 by the plan role; "requires part 1/3 landed")
-
-**Goal.** Give `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` (6523 lines) per-family source
-partials, as part 1/3 did for GTK 3. The shipped sheet stays byte-identical.
-
-**Approach and files touched.** Add the pair `theme/gtk/src/gtk-4.0` →
-`theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` to `tools/make_sheets.py::SHEETS`. Split the
-sheet into `theme/gtk/src/gtk-4.0/NNN-<slug>.css` by part 1/3's cut, numbering and naming rules
-(at most 500 lines per partial). The existing freshness test covers the new pair through the
-table; add a `## gtk` row to `docs/invariants.md` for the GTK 4 concatenation. If part 1/3's
-README section names only GTK 3, extend it to cover GTK 4.
-
-**Acceptance criteria.**
-
-- `python3 tools/make_sheets.py` exits 0 and leaves the shipped GTK 4 and GTK 3 sheets
-  byte-identical (`git diff` is empty for both).
-- Every GTK 4 partial is at most 500 lines and starts at a top-level comment or rule.
-- If a contributor edits a declaration only in the shipped GTK 4 sheet, the freshness test
-  fails and names `theme/gtk/src/gtk-4.0`.
-- `make check` passes after the final edit, including `tests/test_gtk4_theme.py::TestGtk4Theme::test_stands_alone`.
-
 ### Stylesheet sources, part 3/3: split the Firefox chrome and content sheets into partials (planned 2026-11-19 by the plan role; "requires part 1/3 landed")
 
 **Goal.** Give `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (1581 lines) and

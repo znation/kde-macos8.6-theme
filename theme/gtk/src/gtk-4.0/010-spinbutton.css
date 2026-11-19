@@ -1,0 +1,476 @@
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl),
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):hover,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):disabled,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):active,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):active {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(ltr):last-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+spinbutton:not(.vertical) > button.image-button.up:not(.flat):dir(rtl):first-child,
+spinbutton:not(.vertical) > button.image-button.down:not(.flat):dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK treeview-embedded entry,
+ * the standing GTK-scope adaptation premise: restating the stock
+ * treeview-embedded entry arms with the existing entry recipe above. Stock
+ * grouped arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `treeview entry.flat, treeview entry { border-radius: 0;
+ * background-image: none; background-color: #ffffff }`,
+ * `treeview entry.flat:focus-within, treeview entry:focus-within
+ * { border-color: #3584e4 }` and `treeview
+ * entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr)
+ * { background-color: #ffffff; transition-property: color, background }`.
+ * Each restated selector is the byte-equal stock twin and the groups sit
+ * after the existing base arms, so later source order wins every tie inside
+ * a treeview: the field recipe, a black focus border and the entry motion
+ * policy apply there too, while stock's `background-image: none` stays in
+ * force because the cascade is per-property. */
+treeview entry.flat, treeview entry {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+treeview entry.flat:focus-within, treeview entry:focus-within {
+  border-color: #000000;
+}
+
+treeview entry:focus-within:dir(rtl), treeview entry:focus-within:dir(ltr) {
+  transition: none;
+}
+
+/* No collected reference screenshot shows a text field inside a GTK OSD
+ * overlay, the standing GTK-scope adaptation premise: restating the stock
+ * translucent dark `.osd` field bubbles with the existing entry recipe above,
+ * mirroring the shipped GTK 3 sheet's existing OSD entry restate. Stock
+ * grouped arms probed 2026-11-03 with gresource from both
+ * /org/gtk/libgtk/theme/Default/Default-light.css and
+ * /org/gtk/libgtk/theme/Default/Default-dark.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `.osd spinbutton.vertical > text, .osd spinbutton:not(.vertical),
+ * .osd entry { color: white; border-color: rgba(0, 0, 0, 0.7);
+ * background-color: rgba(0, 0, 0, 0.5); background-clip: padding-box;
+ * box-shadow: none; -gtk-icon-shadow: 0 1px black; }`, its `:focus-within`
+ * twin (border-color #3584e4 in the light resource, #15539e in the dark),
+ * and its `:disabled` twin (color #919190 on rgba(71, 71, 71, 0.5) in the
+ * light, #8a8a89 on rgba(58, 58, 57, 0.5) in the dark). Neither resource
+ * declares another `.osd`-scoped entry or spin-button field spelling, and
+ * the toolkit's companion library stylesheet declares no `.osd` field arm
+ * at all. Each
+ * restated selector is the byte-equal stock twin and the groups sit after
+ * the existing base arms, so later source order wins every stock tie: every
+ * state redraws the same raised field, because stock's own state twins set
+ * no geometry stock could keep. Stock's leftover
+ * `background-clip: padding-box` stays in force, harmless behind the
+ * opaque 1px black border, exactly as the existing `.osd` check/radio
+ * restate argues. Stock claims no `.osd` focus outline, so the existing
+ * `entry:focus-within` outline colour and motion policy cascade
+ * unchanged. */
+.osd spinbutton.vertical > text, .osd spinbutton:not(.vertical), .osd entry {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* Adaptation (2026-11-11): the existing OSD field groups above restate the
+   same etch, so a horizontal RTL spin field inside the overlay keeps the
+   same half-etched defect and carries its own mirror, one class above
+   the existing plain RTL mirror so the OSD record governs the overlay.
+   Plain OSD entry fields stay out (no steppers), and the vertical OSD
+   spin fields stay out (no horizontal stepper covers the arm); the
+   focused and disabled state twins mirror the same arm directly after
+   their own groups. */
+.osd spinbutton:dir(rtl):not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+.osd spinbutton.vertical > text:focus-within, .osd spinbutton:focus-within:not(.vertical), .osd entry:focus-within {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* The focused OSD field twin mirrors the same arm (2026-11-11). */
+.osd spinbutton:dir(rtl):focus-within:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+.osd spinbutton.vertical > text:disabled, .osd spinbutton:disabled:not(.vertical), .osd entry:disabled {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* The disabled OSD field twin mirrors the same arm (2026-11-11). */
+.osd spinbutton:dir(rtl):disabled:not(.vertical) {
+  box-shadow: inset -1px 1px #999999;
+}
+
+check, radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+/* No reference shows GTK check-button focus motion; reuse immediate scale focus. (2026-10-29) */
+checkbutton {
+  transition: none;
+  border-radius: 0;
+}
+
+/* No reference screenshot shows GTK check-button keyboard focus; reuse the
+ * scale focus black. The inherited outline geometry is GTK-required.
+ * Recorded 2026-10-29 by the feature role. */
+checkbutton:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* The platform library rounds the check-button wrapper. No collected
+ * reference screenshot shows a GTK check-button wrapper, so this
+ * theme's square-corner policy applies: the existing `check` face
+ * restatement squares the check-mark itself and `radio` keeps its
+ * 50% circle as the reference-grounded exception, so only the wrapper
+ * arms are squared. The stock rounded wrapper arms come from the
+ * integration library's `base.css` resource (probe path recorded in
+ * docs/invariants.md), probed 2026-11-04 with `gresource extract`; it
+ * declares three radius-bearing wrapper arms:
+ * `checkbutton { border-spacing: 4px; border-radius: 9px; padding: 3px; }`,
+ * `checkbutton.grouped { border-radius: 999px; }` and
+ * `checkbutton.selection-mode { border-radius: 100px; }`. Each group
+ * below is byte-equal to its stock spelling, wins the equal-specificity
+ * tie by later user-sheet source order, and states nothing else: stock's
+ * `border-spacing`, paddings, outline focus geometry and the
+ * label-margin twins stay inherited per-property. Stock's fourth arm,
+ * `checkbutton.selection-mode check, checkbutton.selection-mode radio
+ * { padding: 7px; border-radius: 100px; }`, stays stock: no collected
+ * reference set shows a selection-mode check button, squaring that twin
+ * would square its radio member against the circle `radio` record, and
+ * a radius-0 restatement on its check member alone would abandon the
+ * byte-equal twin spelling. (2026-11-04) */
+checkbutton.grouped {
+  border-radius: 0;
+}
+
+checkbutton.selection-mode {
+  border-radius: 0;
+}
+
+check {
+  border-radius: 0;
+}
+
+radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+}
+
+radio:checked {
+  -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+check:indeterminate, radio:indeterminate {
+  -gtk-icon-source: url("../assets/check-mixed.svg");
+}
+
+combobox arrow, dropdown arrow {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  min-height: 16px;
+  min-width: 16px;
+}
+
+menubutton arrow.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+}
+
+menubutton arrow.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+}
+
+notebook > header {
+  background-color: #DDDDDD;
+  border: 1px solid #000000;
+  border-radius: 0;
+}
+
+tab, tab.reorderable-page,
+notebook > header > tabs > tab,
+notebook > header > tabs > tab.reorderable-page {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:hover, tab.reorderable-page:hover,
+notebook > header > tabs > tab:hover,
+notebook > header > tabs > tab.reorderable-page:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:checked, tab.reorderable-page:checked,
+notebook > header > tabs > tab:checked,
+notebook > header > tabs > tab.reorderable-page:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+tab:checked:hover, tab.reorderable-page:checked:hover,
+notebook > header > tabs > tab:checked:hover,
+notebook > header > tabs > tab.reorderable-page:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+tab:backdrop, tab.reorderable-page:backdrop,
+notebook > header > tabs > tab:backdrop,
+notebook > header > tabs > tab.reorderable-page:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:backdrop:checked, tab.reorderable-page:backdrop:checked,
+notebook > header > tabs > tab:backdrop:checked,
+notebook > header > tabs > tab.reorderable-page:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* No reference shows GTK notebook focus motion; reuse immediate scale focus. (2026-10-29) */
+notebook > header > tabs > tab:checked {
+  transition: none;
+}
+
+/* No reference shows GTK notebook keyboard focus; reuse the scale focus black. (2026-10-29) */
+notebook:focus:focus-visible > header > tabs > tab:checked {
+  outline-color: #000000;
+}
+
+/* No reference shows GTK tab-bar backdrop content; reuse the opaque-palette
+   policy from disabled switches (2026-10-29). */
+tabbar .box:backdrop > scrolledwindow,
+tabbar .box:backdrop > .start-action,
+tabbar .box:backdrop > .end-action {
+  filter: none;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows keyboard
+   focus in a GTK tab bar or tab grid. The GTK integration resource's
+   `base.css` focus arms, probed with gresource on 2026-11-03, paint
+   `tabbar tabbox > tabboxchild` and
+   `tabgrid > tabgridchild .card` with 2px accent outlines at offsets -2px
+   and 0; each focus arm uses the accent colour and each base arm transitions
+   outline colour, width and offset over 200ms. Use the existing black focus
+   colour policy and no transition; stock outline geometry remains inherited. */
+tabbar tabbox > tabboxchild {
+  border-radius: 0;
+  transition: none;
+}
+
+tabgrid > tabgridchild .card {
+  transition: none;
+}
+
+tabbar tabbox > tabboxchild:focus-within:focus-visible {
+  outline-color: #000000;
+}
+
+tabgrid > tabgridchild:focus:focus-visible .card {
+  outline-color: #000000;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK tab
+   bar, a dragged tab, a tab-overview thumbnail button or a page indicator,
+   so the corners are a platform value the reference set does not show and
+   the chosen value is this theme's square-corner policy — `frame > border`,
+   `.frame` and the existing `button` and card restatements all carry
+   `border-radius: 0`. The stock rounded arms come from the platform style
+   library's `base.css` resource (probe path recorded in docs/invariants.md),
+   extracted 2026-11-04 with `gresource extract`; it declares seven
+   radius-bearing tab-family arms:
+   `tabbar tabbox > tabboxchild { border-radius: 9px; }`,
+   `tabbar tab, dnd tab { ... border-radius: 9px; }` alongside its
+   `min-height: 26px; padding: 4px` claims,
+   `tabbar tab button.image-button, dnd tab button.image-button { ... border-radius: 99px; }`,
+   `tabbar tabbox > revealer > indicator { min-width: 2px; border-radius: 2px; ... }`,
+   `tabbar tab indicator, dnd tab indicator { min-height: 2px; border-radius: 2px; ... }`,
+   `tabthumbnail button { border-radius: 99px; }` and
+   `tabthumbnail button > image { ... border-radius: 9999px; }`, with the
+   attention badge cap `tabthumbnail .needs-attention > widget { ... border-radius: 8px; ... }`.
+   The plain toolkit resource /org/gtk/libgtk/theme/Default/Default-light.css
+   inside /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 declares no tabbar, dnd tab,
+   tab-thumbnail or tab-indicator arm at all (grep matches none), so only the
+   integration resource's twins are restated. Each group below is byte-equal
+   to its stock spelling, wins by later user-sheet source order at stock's own
+   specificity, and states nothing else: the rounded indicator's fill paint,
+   the dragged tab's shadow paint, the tab geometry and every other stock
+   declaration stay inherited per-property. */
+tabbar tab, dnd tab {
+  border-radius: 0;
+}
+
+tabbar tab button.image-button, dnd tab button.image-button {
+  border-radius: 0;
+}
+
+tabbar tab indicator, dnd tab indicator {
+  border-radius: 0;
+}
+
+tabbar tabbox > revealer > indicator {
+  border-radius: 0;
+}
+
+/* A stack switcher's page buttons draw as the existing tab recipe, the active
+   page's button included; :backdrop stays out of scope. */
+stackswitcher > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:checked,
+stackswitcher > button:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+columnview.view > header > button,
+treeview.view > header > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  border-width: 0 1px 1px 0;
+  border-style: solid;
+  border-color: #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+

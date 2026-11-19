@@ -1,0 +1,460 @@
+/* 2026-10-29: no disabled GTK scale reference; reuse the flat disabled-thumb shadow. */
+scale:disabled > trough > slider {
+  box-shadow: none;
+}
+
+/* 2026-10-29: no disabled marked-scale reference; reuse the flat disabled-thumb shadow. */
+scale.marks-before:not(.marks-after) > trough > slider:disabled,
+scale.marks-after:not(.marks-before) > trough > slider:disabled,
+scale.marks-before:not(.marks-after):disabled > trough > slider,
+scale.marks-after:not(.marks-before):disabled > trough > slider {
+  box-shadow: none;
+}
+
+/* 2026-11-09: a GTK 4 scale's tick-mark lines and its value label read the
+   existing black window ink. No collected reference screenshot in
+   macos8.6-screenshots/ shows GTK scale marks, tick lines or a scale value
+   label (the GTK scope's standing adaptation premise), so the restated
+   value is the existing black window ink this sheet already pins (the value
+   the existing GTK 3 decoration-ink record restated on its toolkit's arms,
+   tests/test_gtk_theme_scale.py::TestGtkThemeScale::test_scale_decoration_ink,
+   re-extracted 2026-11-09). The toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares on line 1143
+   `scale > value { color: <the stock diluted grey ink>;
+   font-feature-settings: "tnum"; }`, on line 1145
+   `scale.horizontal > marks { color: <the stock diluted grey ink>; }` and
+   on line 1167 `scale.vertical > marks { color: <the stock diluted grey
+   ink>; }` — the three ink members this entry restates — and the dark
+   twin /org/gtk/libgtk/theme/Default/Default-dark.css carries the
+   identical spellings at lines 1131, 1133 and 1155 (every line in this
+   region shifted -12) with the identical diluted grey expression; the
+   integration library's base.css resource (probe paths, resource paths
+   and versions recorded verbatim in docs/invariants.md) rides the same
+   property on its two marks arms with another diluted expression and
+   reaches the value label only through its dilution and typography
+   families, never declaring a colour on the value. The user sheet wins
+   the single per-property tie under lower-sheet source order, and under
+   the replacement reading it arms the spellings stock's own arms cover.
+   Exclusions, each with its per-property reason: the value arm's
+   `font-feature-settings: "tnum"` member (light 1143) — stock-only label
+   typography the integration library restarts in its numeric family and
+   no repainted member answers, so it stays inherited; the marks indicator
+   `background-color: currentColor` arms (light 1151 and 1173, dark
+   1139 and 1161, each shifted -12) — `currentColor` inherits from the
+   restated marks ink, so the tick lines follow the restate without a
+   restate of their own; the integration library's dilution `opacity`
+   family and its disabled-row `opacity: 1` twin — opacity members the
+   ink restate never claims; the marks top/bottom and value margin arms
+   (light 1147-1187) and the integration library's plain and fine-tuned
+   marks, margin and indicator arms — allocation geometry, their own
+   future candidates; and the has-marks slider arms (light 1189 onward) —
+   the existing marked-thumb records' slider faces. Declaration, count and
+   order checks do not establish rendered pixels. */
+
+scale > value, scale.horizontal > marks, scale.vertical > marks {
+  color: #000000;
+}
+
+/* 2026-11-09: a plain or fine-tuned GTK 4 marked scale's horizontal
+   tick-line allocation keeps the toolkit's own push-out margins, tick
+   minimums and value-label orientation margins. No collected reference
+   screenshot in macos8.6-screenshots/ shows a marked GTK scale's tick
+   spacing or value margins (the GTK scope's standing adaptation
+   premise), so no repainted value exists and these ten restatements
+   carry the toolkit's own allocation — the keep-both-readings parity
+   restate the existing plain-container record set, applied byte-equal (the
+   existing ink comment above left the indicator currentColor member
+   unrestated so the tick lines would follow the restated marks ink;
+   this block carries that member byte-equal anyway, on that record's
+   byte-equal precedent, so the arm also survives the replacement
+   reading — one rationale in one place, so the two records read
+   together rather than against each other). The toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares, and the dark twin
+   /org/gtk/libgtk/theme/Default/Default-dark.css repeats byte-for-byte
+   at every line in this bank shifted -12 (light 1147-1165, dark
+   1135-1153): line 1147 `scale.horizontal > marks.top` carries
+   `margin-bottom: 6px`, 1149 `scale.horizontal > marks.bottom` carries
+   `margin-top: 6px`, 1151 `scale.horizontal > marks indicator` carries
+   `background-color: currentColor` with the `min-height: 6px` and
+   `min-width: 1px` minimums, 1153
+   `scale.horizontal:not(.marks-before) > value.top` carries
+   `margin-bottom: 12px`, 1155
+   `scale.horizontal:not(.marks-after) > value.bottom` carries
+   `margin-top: 12px`, 1157 `scale.horizontal > value.left` carries
+   `margin-right: 9px`, 1159 `scale.horizontal > value.right` carries
+   `margin-left: 9px`, 1161 `scale.horizontal.fine-tune > marks.top`
+   carries `margin-top: 3px`, 1163
+   `scale.horizontal.fine-tune > marks.bottom` carries
+   `margin-bottom: 3px` and 1165
+   `scale.horizontal.fine-tune > marks indicator` carries
+   `min-height: 3px` — the horizontal half of the toolkit's allocation
+   bank; the integration library's base.css resource carries identical
+   values on the same spellings (base 1912-1924 and 1930-1934; probe
+   paths, resource paths and versions recorded verbatim in
+   docs/invariants.md) and is the parity source, left unrepeated here.
+   No disabled, :backdrop or .osd counter-arm reaches any of the ten
+   spellings in any probed resource. Exclusions, each with its
+   per-property reason: the `scale.horizontal > marks` colour arm (light
+   1145) — the existing ink comma group's own member above; the whole
+   vertical bank (light 1169-1187, and light 1167's vertical colour arm
+   likewise already existing by that comma group) — the queued vertical
+   twin part's own queue, listed so no reader counts this block as the
+   whole allocation; the fine-tune trough and slider margin arms
+   (toolkit light 1113 -3px and 1115 -6px, and the integration library's
+   base 1926 -3px 0px and 1928 -5px -8px for this orientation) —
+   answered above by the existing `margin: 0` trough-spacing group and
+   above by the existing `-5px` thumb-margin group; and the has-marks
+   slider arms (light 1189 onward) alongside the integration library's
+   marks-before and marks-after zero-padding container arms (base 1936
+   `padding-top: 0` and 1940 `padding-bottom: 0`) — the existing
+   marked-thumb records' slider faces, with no container-padding
+   spelling in any probed resource (all three greps returned zero
+   matches), so neither toolkit side carries a counter-arm and the
+   padded arms sit with whichever resource rides the sheet. Declaration,
+   count and order checks do not establish rendered pixels. */
+
+scale.horizontal > marks.top {
+  margin-bottom: 6px;
+}
+
+scale.horizontal > marks.bottom {
+  margin-top: 6px;
+}
+
+scale.horizontal > marks indicator {
+  background-color: currentColor;
+  min-height: 6px;
+  min-width: 1px;
+}
+
+scale.horizontal:not(.marks-before) > value.top {
+  margin-bottom: 12px;
+}
+
+scale.horizontal:not(.marks-after) > value.bottom {
+  margin-top: 12px;
+}
+
+scale.horizontal > value.left {
+  margin-right: 9px;
+}
+
+scale.horizontal > value.right {
+  margin-left: 9px;
+}
+
+scale.horizontal.fine-tune > marks.top {
+  margin-top: 3px;
+}
+
+scale.horizontal.fine-tune > marks.bottom {
+  margin-bottom: 3px;
+}
+
+scale.horizontal.fine-tune > marks indicator {
+  min-height: 3px;
+}
+
+/* 2026-11-09: a plain or fine-tuned GTK 4 marked scale's vertical
+   tick-line allocation keeps the toolkit's own push-out margins, tick
+   minimums and value-label orientation margins. No collected reference
+   screenshot in macos8.6-screenshots/ shows a marked GTK scale's tick
+   spacing or value margins (the GTK scope's standing adaptation
+   premise), so no repainted value exists and these ten restatements
+   carry the toolkit's own allocation — the keep-both-readings parity
+   restate the existing plain-container record set, applied byte-equal,
+   companion to the horizontal twin block above and read together with
+   it and with the existing marks/value ink comma group above it. The
+   toolkit resource
+   /org/gtk/libgtk/theme/Default/Default-light.css (extracted with
+   `gresource extract` from /usr/lib/x86_64-linux-gnu/libgtk-4.so.1,
+   libgtk-4 4.18.6: a 1940-line resource) declares, and the dark twin
+   /org/gtk/libgtk/theme/Default/Default-dark.css repeats byte-for-byte
+   at every line in this bank shifted -12 (light 1169-1187, dark
+   1157-1175): line 1169 `scale.vertical > marks.top` carries
+   `margin-right: 6px`, 1171 `scale.vertical > marks.bottom` carries
+   `margin-left: 6px`, 1173 `scale.vertical > marks indicator` carries
+   `background-color: currentColor` with the `min-height: 1px` and
+   `min-width: 6px` minimums, 1175
+   `scale.vertical:not(.marks-before) > value.left` carries
+   `margin-right: 12px`, 1177
+   `scale.vertical:not(.marks-after) > value.right` carries
+   `margin-left: 12px`, 1179 `scale.vertical > value.top` carries
+   `margin-bottom: 9px`, 1181 `scale.vertical > value.bottom` carries
+   `margin-top: 9px`, 1183 `scale.vertical.fine-tune > marks.top`
+   carries `margin-left: 3px`, 1185
+   `scale.vertical.fine-tune > marks.bottom` carries
+   `margin-right: 3px` and 1187
+   `scale.vertical.fine-tune > marks indicator` carries `min-width: 3px`
+   — the vertical half of the toolkit's allocation bank; the integration
+   library's base.css resource carries identical values on the same
+   spellings with the two fine-tune trough and slider margin arms it
+   interleaves between the plain pair and the fine-tune marks intervals
+   (base 1948-1960 for the plain arms and 1966-1970 for the fine-tune
+   marks arms; probe paths, resource paths and versions recorded
+   verbatim in docs/invariants.md) and is the parity source, left
+   unrepeated here. No disabled, :backdrop or .osd counter-arm reaches
+   any of the ten spellings in any probed resource. Exclusions, each
+   with its per-property reason: the `scale.vertical > marks` colour arm
+   (light 1167) — the existing ink comma group's own member above; the
+   whole horizontal bank (light 1147-1165) — the horizontal twin block
+   above, restated there so no reader counts this block as the whole
+   allocation; the vertical fine-tune trough and slider margin arms (the
+   integration library's base 1962 `0px -3px` trough margin and 1964
+   `-8px -5px` slider margin) — answered above by the existing `margin: 0`
+   trough-spacing group and above by the existing `-5px` thumb-margin
+   group; and the has-marks slider arms (light 1189 onward) alongside
+   the integration library's marks-before and marks-after zero-padding
+   container arms (base 1972 `padding-left: 0` and 1976
+   `padding-right: 0`) — the existing marked-thumb records' slider faces,
+   with no container-padding spelling in any probed toolkit resource
+   (its grep returned zero matches), so the padded arms sit with
+   whichever resource rides the sheet. Declaration, count and order
+   checks do not establish rendered pixels. */
+
+scale.vertical > marks.top {
+  margin-right: 6px;
+}
+
+scale.vertical > marks.bottom {
+  margin-left: 6px;
+}
+
+scale.vertical > marks indicator {
+  background-color: currentColor;
+  min-height: 1px;
+  min-width: 6px;
+}
+
+scale.vertical:not(.marks-before) > value.left {
+  margin-right: 12px;
+}
+
+scale.vertical:not(.marks-after) > value.right {
+  margin-left: 12px;
+}
+
+scale.vertical > value.top {
+  margin-bottom: 9px;
+}
+
+scale.vertical > value.bottom {
+  margin-top: 9px;
+}
+
+scale.vertical.fine-tune > marks.top {
+  margin-left: 3px;
+}
+
+scale.vertical.fine-tune > marks.bottom {
+  margin-right: 3px;
+}
+
+scale.vertical.fine-tune > marks indicator {
+  min-width: 3px;
+}
+
+switch {
+  /* No reference screenshot shows a GTK switch (adaptation 2026-10-29);
+     zero internal spacing keeps
+     the thumb against the track, reusing the desktop-theme switch recipe. */
+  /* No reference shows switch motion; disable inherited state transitions,
+     following the immediate GTK scale and calendar focus policy (2026-10-29). */
+  transition: none;
+  padding: 0;
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 30px;
+  min-height: 16px;
+}
+
+switch:checked {
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+/* No reference shows GTK OSD switch tracks; keep the checked track opaque using its existing white (2026-10-29). */
+.osd switch:checked {
+  background-color: #FFFFFF;
+}
+
+/* No reference shows GTK switch keyboard focus; reuse the scale focus black (2026-10-29). */
+switch:focus:focus-visible {
+  outline-color: #000000;
+}
+
+/* No reference shows GTK switch interaction tracks; reuse the existing track faces (2026-10-29). */
+switch:hover,
+switch:active {
+  background-color: #EEEEEE;
+  background-image: none;
+}
+
+switch:checked:hover,
+switch:checked:active {
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+switch:disabled {
+  /* 2026-10-29: no reference shows a disabled GTK switch; preserve the Platinum palette. */
+  filter: none;
+  border-color: #999999;
+}
+
+switch > slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -1px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+/* No reference shows GTK switch interaction states; keep the existing thumb face (2026-10-29). */
+switch:hover > slider,
+switch:active > slider {
+  background-color: #DDDDDD;
+}
+
+switch:checked > slider {
+  /* No reference shows a checked GTK switch; reuse the existing thumb face (2026-10-29). */
+  background-color: #DDDDDD;
+}
+
+switch:disabled > slider {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+
+switch > image {
+  color: transparent;
+}
+
+/* Adaptation 2026-11-04: no collected reference screenshot shows a GTK
+   toggle group (no Mac OS 8.6 surface has one), so the corners are a
+   platform value the reference set does not show and the chosen value is
+   this theme's square-corner policy — `frame > border`, `.frame` and the
+   existing `button`, card, tab-family and cursor-handle restatements all
+   carry `border-radius: 0`. The stock rounded arms come from the platform
+   style library's `base.css` resource inside the integration library (probe
+   path recorded in docs/invariants.md), extracted 2026-11-04 with
+   `gresource extract`; it declares four radius-bearing toggle-group arms:
+   `toggle-group { ---group-padding: 3px; background: color-mix(in srgb, currentColor 10%, transparent); border-radius: 9px; padding: var(---group-padding); }`,
+   `toggle-group > toggle { border-radius: calc(9px - var(---group-padding)); font-weight: bold; min-width: 34px; min-height: calc(34px - var(---group-padding) * 2); }`,
+   `toggle-group.round { border-radius: 17px; }` and
+   `toggle-group.round toggle { border-radius: calc(17px - var(---group-padding)); }`
+   (stock spells that last selector without `>`). The `.flat` variant
+   declares no radius of its own. Each group below is byte-equal to its
+   stock spelling, wins by later user-sheet source order at stock's own
+   specificity, and states nothing else: the translucent group face, the
+   checked toggle's accent fill, the geometry and every other stock
+   declaration stay inherited per-property. The restated groups declare no
+   `calc()` that reads `---group-padding`, so that variable keeps resolving
+   unchanged for stock's own surviving calc arms. The two toggle focus arms
+   and the `.osd` variable arm stay stock; later entries own those
+   surfaces. */
+
+toggle-group {
+  border-radius: 0;
+}
+
+toggle-group > toggle {
+  border-radius: 0;
+}
+
+toggle-group.round {
+  border-radius: 0;
+}
+
+toggle-group.round toggle {
+  border-radius: 0;
+}
+
+.toolbar, menubar {
+  background-color: #DDDDDD;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+menubar > item {
+  padding: 3px 7px;
+  border-radius: 0;
+}
+menubar > item:selected {
+  background-color: #CCCCFF;
+}
+
+/* Insensitive widgets grey their label and entry text. */
+label:disabled, text:disabled, spinbutton.vertical > text:disabled {
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no reference shows GTK vertical-spinbutton
+   placeholders. The installed /org/gtk/libgtk/theme/Default/Default-light.css
+   groups the nested node with dimmed placeholders; reuse inactive grey at full
+   opacity. */
+entry > text > placeholder, spinbutton > text > placeholder,
+spinbutton.vertical > text > text > placeholder {
+  color: #888888;
+  opacity: 1;
+}
+
+/* No reference screenshot shows GTK 4 secondary labels; reuse the inactive-text
+   grey. The installed GTK 4 base resource dims this selector, so keep the
+   adapted palette grey at full opacity. (2026-10-31) */
+.dim-label {
+  color: #888888;
+  opacity: 1;
+}
+
+/* Adaptation 2026-10-31: no reference screenshot shows GTK dimmed labels. The
+   installed GTK 4 base resource groups .dimmed with .dim-label under dim
+   opacity, so a label carrying .dimmed otherwise fades away; give it the
+   inactive-text grey at full opacity. Keep the rule on labels alone: other
+   dimmed nodes and images keep their stock treatment. */
+label.dimmed {
+  color: #888888;
+  opacity: 1;
+}
+
+/* Adaptation 2026-11-03: no collected reference screenshot shows a GTK
+ * error-classed label, the standing GTK-scope adaptation premise, so the
+ * stock colour-class distinction is erased and the class keeps its place
+ * in the cascade while its paint falls back to the existing label policy.
+ * Stock colour-class arms probed 2026-11-03 with gresource from
+ * /org/gtk/libgtk/theme/Default/Default-light.css inside
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6):
+ * `label.error { color: #cc0000; }` and
+ * `label.error:disabled { color: rgba(204, 0, 0, 0.5); }`; a grep over the
+ * resource confirms the family ships nothing else - no `label.warning`
+ * arm exists, so a warning-classed label inherits black with no override
+ * and needs no restatement. The disabled arm widens stock's plain
+ * `label:disabled { color: #929595; }` grey to translucent red with one
+ * class token, so it out-ranks the existing `label:disabled` grey.
+ * The base arm conflicts with no existing rule; labels inherit black from
+ * the existing `window, .background` group. Each restated selector is the
+ * byte-equal stock twin and this sheet sits entirely after the stock
+ * resource, so one twin per arm covers every order tie. The colours reuse
+ * the existing label-policy values: the inherited window foreground
+ * (`#000000`) and the insensitive grey (`#888888`) already in the sheet.
+ * `label.error > selection` and `label.error:selected` stay out of scope:
+ * the resource ships no such arm, so the existing selection groups still
+ * govern. */
+label.error {
+  color: #000000;
+}
+
+label.error:disabled {
+  color: #888888;
+}
+
