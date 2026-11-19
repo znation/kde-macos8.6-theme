@@ -18,6 +18,7 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import errno
 import os
 import unittest
 from pathlib import Path
@@ -237,6 +238,39 @@ class TestCommit(StagingCase):
         self.assertEqual([], self.backups_of(blocked))
         # Failed publication must also discard every staged sibling when
         # the second target did not previously exist.
+        for _, staging in staged:
+            self.assertFalse(staging.exists())
+
+    def test_a_backup_link_failure_is_reported_by_name_and_restores_the_earlier_target(
+        self,
+    ):
+        good = self.root / "gtk-3.0" / "settings.ini"
+        blocked = self.root / "gtk-4.0" / "settings.ini"
+        write_file(good, "old good\n")
+        write_file(blocked, "old blocked\n")
+        staged = stage_all([(good, "new good\n"), (blocked, "new blocked\n")])
+        # Creating the backup hard link is the first step that touches the
+        # second target. A link failure that is not "name taken" or "gone"
+        # (here EPERM, as on a filesystem without hard links) must refuse the
+        # commit by name, not be read as an absent target, and the first
+        # target must come back. The second target was never touched.
+        real_link = os.link
+
+        def link(source, destination, *args, **kwargs):
+            if Path(source) == blocked:
+                raise PermissionError(errno.EPERM, "injected link failure")
+            return real_link(source, destination, *args, **kwargs)
+
+        with mock.patch.object(os, "link", link):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
+
+        self.assertIn(f"cannot write {blocked}", str(caught.exception))
+        self.assertIn("injected link failure", str(caught.exception))
+        self.assertEqual("old good\n", good.read_text(encoding="utf-8"))
+        self.assertEqual("old blocked\n", blocked.read_text(encoding="utf-8"))
+        self.assertEqual([], self.backups_of(good))
+        self.assertEqual([], self.backups_of(blocked))
         for _, staging in staged:
             self.assertFalse(staging.exists())
 
