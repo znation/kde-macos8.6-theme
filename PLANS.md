@@ -110,46 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate secondary-label declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the related secondary-label ink and opacity checks a focused
-home outside `tests/test_gtk_theme.py`, following the existing GTK 4
-`test_gtk4_label_inks.py` separation. This is independent of the waiting
-band and round-button extractions; their methods stay with those plans.
-
-**Approach and files touched.** Move `TestGtkTheme.test_separator_label_foreground`,
-`test_dim_label_foreground`, `test_menu_accelerator_foreground`,
-`test_header_subtitle_foreground` and `test_emoji_section_label_opacity`,
-preserving bodies and provenance comments, into new
-`tests/test_gtk_theme_label_inks.py::TestGtkThemeLabelInks`. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, binding
-`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-Import `ROOT` from `support.repo_root` and `DISABLED_TEXT` from
-`support.gtk_theme_spec`. The assertion helpers already belong to
-`GtkSheetRuleCases`; no shared-helper change or test-module import is
-needed. Update the source routing docstring and remove imports only when
-unused. Repoint the moved anchors in `docs/invariants.md`, preserving
-provenance and the other anchors in shared rows. Search `docs/rendering.md`,
-`docs/fidelity.md`, `tests/test_ci_workflow.py` and `tests/support/` for
-further moved anchors. Leave theme sheets and production tools unchanged.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named methods in the destination class without
-  duplicates in `TestGtkTheme` or inherited shared-control tests in the
-  destination. Source and destination run independently through check selectors.
-- Separator, dim-label and subtitle checks retain their foreground,
-  full-opacity and shadow declarations. Changing dim-label opacity from
-  `1` to `0.55` fails a moved check.
-- The menu accelerator retains its exact declaration dictionary, selector
-  census and position after `menu menuitem:hover`. Moving its rule before
-  that hover rule fails the moved check.
-- Emoji section labels retain their rest/hover opacity assertions and
-  exact selector set. Adding another emoji-section selector fails a moved
-  check.
-- Invariant anchors resolve, focused source and destination checks pass,
-  and full `make check` passes. No rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate disabled-view declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the disabled-view declaration check a focused home outside

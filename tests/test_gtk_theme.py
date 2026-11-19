@@ -8,6 +8,8 @@ windows and text roles; expander arrows, OSD overlays, views and menus,
 color-chooser swatches, scrollbar band and controls live in their own
 ``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar, assistant
  sidebar, auxiliary band, application notification and round-button corner declarations live in focused suites.
+Secondary-label ink and opacity declarations live in
+``test_gtk_theme_label_inks.py``.
 """
 
 from __future__ import annotations
@@ -292,50 +294,6 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             stripped.index(".view:disabled,"),
             stripped.index("label:backdrop selection:disabled,"),
             "the disabled view restatements do not follow the disabled-selected groups",
-        )
-
-    def test_separator_label_foreground(self):
-        self.assert_separator_label_foreground()
-
-    def test_dim_label_foreground(self):
-        selector = ".dim-label"
-        self.assert_disabled_text((selector,))
-        self.assertEqual(
-            self.rules[selector],
-            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
-        )
-        self.assertEqual(self.selectors.count(selector), 1)
-
-    def test_menu_accelerator_foreground(self):
-        selector = "menuitem accelerator"
-        self.assert_disabled_text((selector,))
-        self.assert_rule(selector, {**DISABLED_TEXT})
-        # Stock dims the accelerator inside the color declaration alone, so
-        # the restatement carries the opacity-free, shadow-free dict whole.
-        self.assertEqual(self.rules[selector], {**DISABLED_TEXT})
-        self.assertEqual(self.selectors.count(selector), 1)
-        # The stock-twin spelling lands after the existing menu-row hover
-        # face, the source position that beats the toolkit arm on the tie.
-        self.assertGreater(
-            self.selectors.index(selector),
-            self.selectors.index("menu menuitem:hover"),
-        )
-
-    def test_header_subtitle_foreground(self):
-        selectors = (".titlebar:not(headerbar) .subtitle", "headerbar .subtitle")
-        self.assert_disabled_text(selectors)
-        expected = {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}
-        self.assert_rule_group(dict.fromkeys(selectors, expected))
-
-    def test_emoji_section_label_opacity(self):
-        selectors = (
-            "button.emoji-section label",
-            "button.emoji-section:hover label",
-        )
-        self.assert_rule_group(dict.fromkeys(selectors, {"opacity": "1"}))
-        self.assertEqual(
-            {selector for selector in self.rules if "emoji-section" in selector},
-            set(selectors),
         )
 
     def test_view_background(self):
