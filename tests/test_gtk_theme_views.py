@@ -1,15 +1,16 @@
 """Validate the GTK 3 Platinum sheet's views and dialogs.
 
 This module owns the views-and-dialogs slice of
-``tests/test_gtk_theme.py``'s split: the file chooser's path-bar tabs,
-the stack switcher, the list and icon-view focus outlines, the spin-button
+``tests/test_gtk_theme.py``'s split: the stack switcher, the list and
+icon-view focus outlines, the spin-button
 field and title-button boxes. Rubberband declarations are in
 ``tests/test_gtk_theme_rubberband.py``. Header drag-and-drop declarations are in
 ``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
 Places-view server-button motion declarations are in
-``tests/test_gtk_theme_server_button.py``. Message-dialog declarations are in
-``tests/test_gtk_theme_message_dialog.py``.
+``tests/test_gtk_theme_server_button.py``.
+Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
+Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
 Paned declarations
 are in ``tests/test_gtk_theme_paned.py``. Menu declarations
 are in ``tests/test_gtk_theme_menu.py``; shipped icon-source checks stay here. The
@@ -38,15 +39,6 @@ CSS = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"
 
 class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
-
-    def test_path_bar_tabs(self):
-        forms = {
-            "base": (".path-bar > button",),
-            "hover": (".path-bar > button:hover",),
-            "checked": (".path-bar > button:checked",),
-            "checked+hover": (".path-bar > button:checked:hover",),
-        }
-        self.assert_tab_faces(forms)
 
     def test_row_selection_backdrop(self):
         self.assert_row_selection_backdrop((

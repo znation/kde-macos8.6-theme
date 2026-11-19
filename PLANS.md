@@ -128,39 +128,6 @@ behavior.
 - Each declaration helper owns one option family, and `sample_arguments.build_parser` remains the supported import path.
 - No stale module or moved-helper references remain in source, tests, or Markdown; `make check` passes after the final edit.
 
-### GTK 3 suite extraction: isolate path-bar declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the file chooser breadcrumb declaration check a focused
-module outside the GTK 3 views suite. This relocation is independent of
-the pending needs-attention extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_path_bar_tabs` from `tests/test_gtk_theme_views.py`
-to new `tests/test_gtk_theme_path_bar.py::TestGtkThemePathBar`, preserving
-its body and four-state selector mapping. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, import
-`ROOT` from `support.repo_root`, and set
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-The existing `assert_tab_faces` supplies the recipe assertions; no helper
-extraction is needed. Update the views routing docstring and the GTK 3
-anchor in the file-chooser path-bar row of `docs/invariants.md`, retaining
-its guarantee and provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
-Keep GTK 4 coverage, stack-switcher checks and theme sheets outside this
-relocation.
-
-**Acceptance criteria.**
-
-- Discovery exposes `test_path_bar_tabs` in the destination without a
-  duplicate in views or inherited shared-control tests in the destination.
-  Source and destination pass independently through project check selectors.
-- The moved check still covers `.path-bar > button` in base, hover,
-  checked and checked-plus-hover states. Changing the base bevel or the
-  checked state's bottom-border colour fails the destination check.
-- The invariant's GTK 3 anchor resolves to the destination, its GTK 4
-  anchor remains valid, and full `make check` passes. This declaration-test
-  relocation makes no new rendered-pixel claim.
-
 ### GTK 3 suite extraction: isolate needs-attention badge declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the GTK 3 attention-badge declaration check a focused module
