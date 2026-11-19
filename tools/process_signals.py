@@ -114,8 +114,6 @@ def popen_deferred(
     return process, deferred, previous, previous_interrupts
 
 
-
-
 @contextlib.contextmanager
 def exit_on_termination() -> Iterator[None]:
     """Turn SIGTERM and SIGHUP into ``SystemExit`` so the ``finally`` blocks run.

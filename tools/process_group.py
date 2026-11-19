@@ -207,4 +207,3 @@ def _feed_stdin(sink, data: bytes) -> None:
             sink.close()
         except (BrokenPipeError, OSError):
             pass
-
