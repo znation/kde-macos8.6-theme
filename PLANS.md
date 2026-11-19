@@ -148,6 +148,46 @@ sheets and production tools unchanged.
 - Invariant anchors resolve, focused source and destination checks pass,
   and full `make check` passes. No rendered-pixel claim is added.
 
+### GTK 3 suite extraction: isolate auxiliary band declarations (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the related search, location, action and status band
+declaration checks a focused home outside `tests/test_gtk_theme.py`.
+This is independent of the waiting assistant extraction. The existing
+`tests/test_gtk_theme_bars.py` owns menu/toolbar declarations and a notebook
+render probe; keep that scope separate from these declaration-only checks.
+
+**Approach and files touched.** Move `TestGtkTheme.test_search_bar`,
+`test_location_bar`, `test_action_bar`, `test_status_bar`,
+`test_status_bar_frame_border_is_flat` and `test_band_backdrop_faces`,
+preserving their bodies and comments, into new
+`tests/test_gtk_theme_bands.py::TestGtkThemeBands`. Inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, bind
+`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`, and
+import `ROOT` from `support.repo_root`, `FACE` and `WHITE` from
+`support.platinum_palette`, and `ETCH_DARK` from `support.gtk_theme_spec`.
+The band assertions already live on `GtkSheetRuleCases`; inherit neither
+`GtkSharedControlCases` nor a GUI probe mixin. Update the source routing
+docstring and remove imports only if unused. Repoint the moved anchors in
+`docs/invariants.md`, including references embedded in guarantee prose,
+preserving provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
+Leave theme sheets, production tools and shared helpers unchanged.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the destination class without
+  duplicates in `TestGtkTheme` or inherited shared-control tests in the
+  destination. Source and destination run independently through check selectors.
+- Search, location, action and status band declaration checks and the flat
+  status-frame assertion retain their existing expected values. Changing
+  the location face or restoring the status-frame border fails a moved check.
+- The location selector census, backdrop group declarations and selector
+  exclusions retain their existing coverage. An extra location rule or a
+  changed backdrop face fails; placing the backdrop group before the base
+  search band still fails its source-order assertion.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
