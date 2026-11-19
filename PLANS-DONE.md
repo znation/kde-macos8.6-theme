@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Apply suite extraction: isolate KWin reconfigure checks (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the direct KWin reconfigure checks a focused module outside
+the oversized `tests/test_apply_theme.py`, independently of the queued
+render-session extractions.
+
+**Approach and files touched.** Move `TestReconfigureKwin`, including its
+`setUp`, `_stub`, `_run` and test methods, to new
+`tests/test_apply_reconfigure_kwin.py`. Import `contextlib`, `io`, `os`,
+`shutil`, `stat`, `tempfile`, `unittest`, `Path`, `mock`, `support.repo_root`
+and `tools.apply_optional` directly; do not import another test module.
+Preserve the stub bodies, assertions and timeout. Replace the class's stale
+claim that the found-qdbus branch never executes with a factual description
+of its direct stub coverage. Update the source module's routing docstring
+and remove imports only if its remaining cases no longer use them. Search
+documentation and test support for qualified anchors to the moved class
+and update any found. The current repository search finds the class name
+only in its definition; the tooling invariants for apply failures and
+termination still point at classes that stay behind. Production
+`tools/apply_optional.py::reconfigure_kwin` stays unchanged.
+
+**Acceptance criteria.**
+
+- Discovery finds `TestReconfigureKwin` in the new module with no duplicate
+  definition in the source; both modules run independently through the
+  existing check selector.
+- A stub `qdbus6` receives `org.kde.KWin /KWin reconfigure`, and wins when
+  both executable names exist. With only `qdbus` present, it receives the
+  same arguments. Successful runs return zero and produce no stderr.
+- A stub exiting 3 still yields status zero and the existing explanatory
+  KWin reconfigure note. These checks use their narrowed stub PATH and
+  start no desktop session or real KWin reconfigure command.
+- Focused checks for both modules and full `make check` pass after the
+  move. No GUI probe or live-session validation claim is added.
+
 ### Render units suite extraction: isolate inactive-window focus-settle checks (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Separate the inactive-window focus-loop checks from the other
