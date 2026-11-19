@@ -62,11 +62,15 @@ class TestRenderReadiness(unittest.TestCase):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
         bindir.mkdir()
+        premature_ready = root / "premature-ready"
+        ready_emitted = root / "ready-emitted"
         write_executable(
             bindir / "dbus-monitor",
             "#!/bin/sh\n"
             "echo 'member=PropertiesChanged'\n"
             "sleep 0.3\n"
+            f'if [ -e "$RENDER_SESSION_READY_FILE" ]; then touch "{premature_ready}"; fi\n'
+            f'touch "{ready_emitted}"\n'
             "echo 'member=ClientReady'\n"
             "exec sleep 30\n",
         )
@@ -80,7 +84,8 @@ class TestRenderReadiness(unittest.TestCase):
         log = (root / "session.log").read_text(encoding="utf-8")
 
         self.assertEqual(0, status, log)
-        self.assertGreaterEqual(elapsed, 0.25, log)
+        self.assertTrue(ready_emitted.exists(), log)
+        self.assertFalse(premature_ready.exists(), log)
         self.assertLess(elapsed, 10, log)
         self.assertIn("render-session: client ready at", log)
 
