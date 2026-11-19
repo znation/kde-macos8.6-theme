@@ -293,6 +293,33 @@ class TestProfileResolution(FirefoxProfileTestCase):
         )
         self.assertEqual(first, self.resolve())
 
+    def test_a_discovered_candidate_whose_inspection_fails_is_refused_not_skipped(self):
+        # A live second profile must not hide the first candidate's failed
+        # inspection: discovery names the error instead of falling through.
+        first = self.firefox_root / "first"
+        second = self.firefox_root / "second"
+        first.mkdir(parents=True)
+        second.mkdir()
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=first\nPath=first\n"
+            "[Profile1]\nName=second\nPath=second\n",
+        )
+        real_stat = firefox_profile.Path.stat
+
+        def stat_first_denied(path, *args, **kwargs):
+            if path == first:
+                raise PermissionError("denied")
+            return real_stat(path, *args, **kwargs)
+
+        with mock.patch.object(firefox_profile.Path, "stat", stat_first_denied):
+            with self.assertRaises(firefox_user_files.ConfigError) as caught:
+                self.resolve()
+        self.assertEqual(
+            f"cannot inspect Firefox profile directory {first}: denied",
+            str(caught.exception),
+        )
+
     def test_absolute_profile_path_ignores_the_firefox_root(self):
         chosen = self.root / "elsewhere"
         chosen.mkdir()
