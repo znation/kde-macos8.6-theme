@@ -73,5 +73,4 @@ class ApplyGtkTestCase(unittest.TestCase):
         write_file(path, text)
 
     def write_bytes(self, path, data):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
+        write_file(path, data)

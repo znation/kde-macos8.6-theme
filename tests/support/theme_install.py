@@ -80,9 +80,9 @@ def write_file(path, body):
     test_placeholders.py stage their fixtures with direct ``write_file``
     calls, support/checker_scratch.py's ``_write`` adds containment and
     recording around its ``write_file`` call, and test_apply_konsole_font.py's
-    ``write_konsolerc``/``write_profile`` delegate to it. Deliberately left:
-    ApplyGtkTestCase.write_bytes and the containment-refusal fixtures write
-    raw bytes, not UTF-8 text, the kdedefaults suites' one-line direct
+    ``write_konsolerc``/``write_profile`` delegate to it, and
+    ApplyGtkTestCase.write_bytes delegates too. Deliberately left:
+    the containment-refusal fixtures write raw bytes, not UTF-8 text, the kdedefaults suites' one-line direct
     ``write_file`` call sites are already shared, not duplicated, test_invariants.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and

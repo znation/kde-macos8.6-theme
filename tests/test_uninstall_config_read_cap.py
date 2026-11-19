@@ -57,9 +57,7 @@ def kdeglobals_bytes(cap, one_past):
 
 def write_bytes(path, body):
     """Write *body* to *path*, creating parent directories first."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(body)
+    theme_install.write_file(path, body)
     return path
 
 
