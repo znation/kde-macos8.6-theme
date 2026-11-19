@@ -24,6 +24,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import snippet_child
 from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main_with_env
+from support.cursor_theme_fixtures import write_cursor_theme
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
@@ -51,11 +52,7 @@ class CursorCase(unittest.TestCase):
 
     def install_theme(self):
         """Write the installed theme's ``index.theme`` and ``cursors/left_ptr``."""
-        (self.installed / "cursors").mkdir(parents=True, exist_ok=True)
-        (self.installed / "index.theme").write_text(
-            "[Icon Theme]\nName=Mac OS 8.6\n", encoding="utf-8"
-        )
-        (self.installed / "cursors" / "left_ptr").write_bytes(b"cursor\n")
+        write_cursor_theme(self.installed)
 
     def stub_selector(self, body="exit 0"):
         """Write a ``plasma-apply-cursortheme`` stub recording its argv."""

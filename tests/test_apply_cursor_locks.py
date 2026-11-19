@@ -17,6 +17,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
+from support.cursor_theme_fixtures import write_cursor_theme
 from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
 from support.process_assertions import (
     assert_failed,
@@ -36,11 +37,7 @@ class CursorLockCase(unittest.TestCase):
         )
         self.installed = self.data / "icons" / cursor_link.CURSOR_THEME
         self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
-        (self.installed / "cursors").mkdir(parents=True)
-        (self.installed / "index.theme").write_text(
-            "[Icon Theme]\nName=Mac OS 8.6\n", encoding="utf-8"
-        )
-        (self.installed / "cursors" / "left_ptr").write_bytes(b"cursor\n")
+        write_cursor_theme(self.installed)
 
     def run_tool(self, *args):
         return run_main_with_env(apply_cursor.main, "apply_cursor", args, self.env)
