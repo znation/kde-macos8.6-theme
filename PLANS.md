@@ -331,6 +331,8 @@ rubberband checks in their existing suites; theme sheets need no changes.
   adds no rendered-pixel claim.
 
 
+### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
 **Goal.** Give the application notification band and frame checks a focused
 suite outside `tests/test_gtk_theme.py`. This extraction is independent of
 the notebook and infobar entries; notification button-state checks stay
