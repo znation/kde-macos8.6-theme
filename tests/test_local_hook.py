@@ -671,6 +671,23 @@ class TestInstall(unittest.TestCase):
         ]
         self.assertEqual([], leftovers, leftovers)
 
+    def test_a_refused_write_exits_2_naming_the_hook_without_a_traceback(self):
+        # The hook is written through write_atomically; a PermissionError
+        # there (a read-only hooks directory, say) must become the tool's
+        # own exit-2 diagnostic naming the hook path and the error, not an
+        # escaped traceback. The fresh repository has no hook, so nothing
+        # is left behind at the hook path either.
+        repo = make_repo(self)
+        hook = hook_path(repo)
+        refused = PermissionError(13, "Permission denied")
+        with mock.patch.object(local_hook, "write_atomically", side_effect=refused):
+            result = run_tool(repo, "install")
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot write {hook}", result.stderr)
+        self.assertIn("Permission denied", result.stderr)
+        self.assertFalse(hook.exists(), "a refused write must not create the hook")
+
     def test_failed_fdopen_closes_descriptor(self):
         path = tmp_dir.make_tmp_dir(self) / "hook"
         with failing_fdopen() as closed:
