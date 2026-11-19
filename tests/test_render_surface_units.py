@@ -383,6 +383,46 @@ class TestSessionScript(unittest.TestCase):
         self.assertIn("render-session: no dbus-monitor for client readiness", log)
         self.assertIn("settle ceiling reached before a client ready file", log)
 
+    def test_fifo_creation_failure_keeps_the_settle_ceiling_without_starting_monitor(self):
+        import time
+
+        root = tmp_dir.make_tmp_dir(self)
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        qdbus = root / "qdbus6"
+        qdbus.write_text("#!/bin/sh\necho 17\n", encoding="utf-8")
+        qdbus.chmod(0o755)
+        monitor_pid = root / "monitor.pid"
+        monitor = root / "dbus-monitor"
+        monitor.write_text(
+            "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n", encoding="utf-8"
+        )
+        monitor.chmod(0o755)
+        mkfifo = root / "mkfifo"
+        mkfifo.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+        mkfifo.chmod(0o755)
+        client = root / "client.py"
+        client.write_text(
+            "import signal\nsignal.alarm(30)\nsignal.pause()\n", encoding="utf-8"
+        )
+        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}",
+                           RENDER_MONITOR_PID=str(monitor_pid))
+        started = time.monotonic()
+        status = render_workflow.run_logged(
+            ["sh", "-c", "spectacle() { return 0; }; " +
+             render_session.session_script(None, str(root / "readiness.js")),
+             "sh", "1", str(root / "capture.png"), sys.executable, str(client)],
+            environment, root / "session.log", 10, root,
+        )
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertGreaterEqual(elapsed, 1, log)
+        self.assertIn("render-session: cannot create readiness listener pipe", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(monitor_pid.exists(), "monitor started without its listener pipe")
+
     def test_logs_the_capture_timeline_and_a_client_exit_during_the_capture(self):
         # The black-frame diagnosis needs to tell a vanished client from an
         # unpainted window, so the script stamps every stage on one wall
