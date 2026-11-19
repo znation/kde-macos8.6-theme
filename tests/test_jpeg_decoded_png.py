@@ -73,6 +73,20 @@ class TestDecodedPng(unittest.TestCase):
         self.assertEqual(len(directories), 1)
         self.assertFalse(directories[0].exists())
 
+
+class TestRewriteTempPngError(unittest.TestCase):
+    """Private decoded paths in reader errors are presented as source paths."""
+
+    def test_replaces_the_decoded_png_path_with_the_input_path(self):
+        temp_png = Path("/private/decode/decoded.png")
+        error = ValueError(f"cannot read {temp_png}")
+
+        rewritten = jpeg_convert.rewrite_temp_png_error(
+            error, temp_png, "screenshots/input.jpg"
+        )
+
+        self.assertEqual(rewritten, "cannot read screenshots/input.jpg")
+
     def test_body_exception_propagates_and_still_removes_directory(self):
         directories = []
 

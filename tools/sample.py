@@ -16,6 +16,7 @@ if __package__:
         JpegDecodeError,
         decoded_png,
         is_jpeg,
+        rewrite_temp_png_error,
     )
     from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
@@ -25,7 +26,10 @@ if __package__:
 else:  # run directly: python3 tools/sample.py
     from containment import resolves_within
     from diagnostics import report_error
-    from jpeg_convert import JPEG_MAGIC, JpegDecodeError, decoded_png, is_jpeg
+    from jpeg_convert import (
+        JPEG_MAGIC, JpegDecodeError, decoded_png, is_jpeg,
+        rewrite_temp_png_error,
+    )
     from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
     from sample_arguments import build_parser, option_error, region_error
@@ -69,7 +73,9 @@ def _sample_jpeg(args, fd: int) -> int:
     except PngError as exc:
         # The ``with`` target stays bound after the block, so the scrub
         # still names the operator's path, never the removed temporary's.
-        return report_error("sample", str(exc).replace(str(temp_png), args.image))
+        return report_error(
+            "sample", rewrite_temp_png_error(exc, temp_png, args.image)
+        )
 
 
 def _sample_temp_png(args, temp_png) -> int:

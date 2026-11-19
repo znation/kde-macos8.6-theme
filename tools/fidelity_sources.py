@@ -12,13 +12,15 @@ from __future__ import annotations
 if __package__:
     from tools.containment import open_regular_binary, require_within_repo
     from tools.fidelity_geometry import FidelityError
-    from tools.jpeg_convert import JpegDecodeError, decoded_png, is_jpeg
+    from tools.jpeg_convert import (
+        JpegDecodeError, decoded_png, is_jpeg, rewrite_temp_png_error,
+    )
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
 else:  # imported by direct execution of tools/fidelity.py
     from containment import open_regular_binary, require_within_repo
     from fidelity_geometry import FidelityError
-    from jpeg_convert import JpegDecodeError, decoded_png, is_jpeg
+    from jpeg_convert import JpegDecodeError, decoded_png, is_jpeg, rewrite_temp_png_error
     from png import PngError, read_png
     from repo_root import ROOT
 
@@ -77,7 +79,9 @@ def _read_jpeg_source(path: str, crop_rect: tuple[int, int, int, int] | None):
             try:
                 return _decode(str(temp_png), crop_rect)
             except PngError as exc:
-                raise PngError(str(exc).replace(str(temp_png), path)) from exc
+                raise PngError(
+                    rewrite_temp_png_error(exc, temp_png, path)
+                ) from exc
     except JpegDecodeError as problem:
         raise FidelityError(f"cannot decode {path}: {problem}") from None
 

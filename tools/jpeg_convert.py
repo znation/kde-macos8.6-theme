@@ -44,6 +44,11 @@ def is_jpeg(head: bytes) -> bool:
     return head.startswith(JPEG_MAGIC)
 
 
+def rewrite_temp_png_error(error: Exception, temp_png: Path, source_path: str) -> str:
+    """Name the caller's source path in an error raised while reading decoded PNG."""
+    return str(error).replace(str(temp_png), source_path)
+
+
 def convert_jpeg(input_bytes: bytes, temp_png: Path) -> str | None:
     """Decode *input_bytes* into *temp_png* with ImageMagick's convert.
 
