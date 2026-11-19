@@ -10,6 +10,7 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
+from support.executable_stubs import write_executable
 from tools import render_session, render_workflow  # noqa: E402
 
 
@@ -64,13 +65,11 @@ class TestSessionFocusSettle(unittest.TestCase):
         # land inside the capture, the sentinel must exist after the
         # session (the loop's stop), and the capture status must survive.
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         calls = root / "qdbus-calls"
         capturing = root / "capturing"
-        qdbus = root / "qdbus6"
-        qdbus.write_text(
+        write_executable(
+            root / "qdbus6",
             "#!/bin/sh\n"
             f'log="{calls}"\n'
             'case "$*" in\n'
@@ -80,9 +79,7 @@ class TestSessionFocusSettle(unittest.TestCase):
             'else phase=run-before-the-capture; fi\n'
             '    printf "%s\\n" "$phase" >> "$log";;\n'
             "esac\n",
-            encoding="utf-8",
         )
-        qdbus.chmod(0o755)
         ready = root / "ready"
         client = root / "client.py"
         client.write_text(

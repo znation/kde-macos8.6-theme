@@ -9,14 +9,13 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
+from support.executable_stubs import write_executable
 from tools import render_session, render_workflow  # noqa: E402
 
 
 class TestRenderReadiness(unittest.TestCase):
     def _session(self, root, path, settle):
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         client = root / "client.py"
         client.write_text("import signal; signal.pause()\n", encoding="utf-8")
         return render_workflow.run_logged(
@@ -37,18 +36,14 @@ class TestRenderReadiness(unittest.TestCase):
         bindir = root / "bin"
         bindir.mkdir()
         monitor_pid = root / "monitor.pid"
-        monitor = bindir / "dbus-monitor"
-        monitor.write_text(
+        write_executable(
+            bindir / "dbus-monitor",
             "#!/bin/sh\n"
             f"echo $$ > {monitor_pid}\n"
             "echo 'member=ClientReady'\n"
             "exec sleep 30\n",
-            encoding="utf-8",
         )
-        monitor.chmod(0o755)
-        qdbus = bindir / "qdbus6"
-        qdbus.write_text("#!/bin/sh\necho 7\n", encoding="utf-8")
-        qdbus.chmod(0o755)
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
         for tool in ("sleep", "mkfifo"):
             (bindir / tool).symlink_to(f"/usr/bin/{tool}")
         started = time.monotonic()
@@ -67,15 +62,11 @@ class TestRenderReadiness(unittest.TestCase):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
         bindir.mkdir()
-        monitor = bindir / "dbus-monitor"
-        monitor.write_text(
+        write_executable(
+            bindir / "dbus-monitor",
             "#!/bin/sh\necho 'member=ClientReady'\nexec sleep 30\n",
-            encoding="utf-8",
         )
-        monitor.chmod(0o755)
-        qdbus = bindir / "qdbus6"
-        qdbus.write_text("#!/bin/sh\necho 7\n", encoding="utf-8")
-        qdbus.chmod(0o755)
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 0.2)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
@@ -92,12 +83,8 @@ class TestRenderReadiness(unittest.TestCase):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
         bindir.mkdir()
-        monitor = bindir / "dbus-monitor"
-        monitor.write_text("#!/bin/sh\nexec sleep 30\n", encoding="utf-8")
-        monitor.chmod(0o755)
-        qdbus = bindir / "qdbus6"
-        qdbus.write_text("#!/bin/sh\necho 7\n", encoding="utf-8")
-        qdbus.chmod(0o755)
+        write_executable(bindir / "dbus-monitor", "#!/bin/sh\nexec sleep 30\n")
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
         (bindir / "sleep").symlink_to("/usr/bin/sleep")
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
         log = (root / "session.log").read_text(encoding="utf-8")
@@ -121,12 +108,10 @@ class TestRenderReadiness(unittest.TestCase):
         bindir = root / "bin"
         bindir.mkdir()
         started_marker = root / "monitor.started"
-        monitor = bindir / "dbus-monitor"
-        monitor.write_text(
+        write_executable(
+            bindir / "dbus-monitor",
             f"#!/bin/sh\ntouch {started_marker}\nexec sleep 30\n",
-            encoding="utf-8",
         )
-        monitor.chmod(0o755)
         # mkfifo is present so only the qdbus guard keeps the listener off.
         for name in ("sleep", "date", "rm", "touch", "mkfifo"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")

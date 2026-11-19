@@ -34,6 +34,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
+from support.executable_stubs import write_executable
 from tools import (
     render_session,
     render_workflow,
@@ -179,9 +180,7 @@ class TestSessionScript(unittest.TestCase):
 
     def test_waits_for_client_termination_and_preserves_capture_status(self):
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
         ready = root / "ready"
         stopped = root / "stopped"
@@ -252,9 +251,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
         client = root / "client.py"
         client.write_text(
@@ -284,9 +281,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
         client = root / "client.py"
         client.write_text(
@@ -312,19 +307,13 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
-        qdbus = root / "qdbus6"
-        qdbus.write_text("#!/bin/sh\necho 17\n", encoding="utf-8")
-        qdbus.chmod(0o755)
-        monitor = root / "dbus-monitor"
-        monitor.write_text(
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_executable(root / "qdbus6", "#!/bin/sh\necho 17\n")
+        write_executable(
+            root / "dbus-monitor",
             "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
             "echo '    member=ClientReady'\nexec sleep 30\n",
-            encoding="utf-8",
         )
-        monitor.chmod(0o755)
         pidfile = root / "monitor.pid"
         environment = dict(
             os.environ, PATH=f"{root}:{os.environ['PATH']}",
@@ -355,9 +344,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         # Keep the session PATH deliberately small: the readiness probe must
         # take its documented missing-monitor path even on hosts with D-Bus
         # tools installed. These commands are used by the ordinary shell path.
@@ -387,21 +374,13 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
-        qdbus = root / "qdbus6"
-        qdbus.write_text("#!/bin/sh\necho 17\n", encoding="utf-8")
-        qdbus.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_executable(root / "qdbus6", "#!/bin/sh\necho 17\n")
         monitor_pid = root / "monitor.pid"
-        monitor = root / "dbus-monitor"
-        monitor.write_text(
-            "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n", encoding="utf-8"
+        write_executable(
+            root / "dbus-monitor", "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
         )
-        monitor.chmod(0o755)
-        mkfifo = root / "mkfifo"
-        mkfifo.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
-        mkfifo.chmod(0o755)
+        write_executable(root / "mkfifo", "#!/bin/sh\nexit 1\n")
         client = root / "client.py"
         client.write_text(
             "import signal\nsignal.alarm(30)\nsignal.pause()\n", encoding="utf-8"
@@ -437,9 +416,7 @@ class TestSessionScript(unittest.TestCase):
         # render's black-capture diagnosis greps for must all be in the
         # log, and the capture status must survive.
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
         ready = root / "ready"
         pidfile = root / "client.pid"
@@ -498,9 +475,7 @@ class TestSessionScript(unittest.TestCase):
         # cannot run its termination handler inside the session's bounded
         # wait.
         root = tmp_dir.make_tmp_dir(self)
-        apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
         ready = root / "ready"
         pidfile = root / "client.pid"
