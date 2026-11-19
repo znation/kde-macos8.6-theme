@@ -28,7 +28,7 @@ from support.popen_signal import kill_tracked
 from support.popen_signal import signal_into_popen
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from tools import check_parallel_workers, process_group
+from tools import check_parallel_workers, process_group, process_signals
 
 
 
@@ -36,7 +36,7 @@ from tools import check_parallel_workers, process_group
 class TestSpawnDefenses(unittest.TestCase):
     """The spawn/kill primitives keep the guarantees test_process_group pins.
 
-    ``tools.process_group.py::popen_deferred`` protects both command and
+    ``tools.process_signals.py::popen_deferred`` protects both command and
     worker starts from SIGTERM, SIGHUP and Ctrl-C races; worker cleanup also
     never signals a non-positive pid.
     """
@@ -169,14 +169,14 @@ class TestSpawnDefenses(unittest.TestCase):
                 side_effect=RuntimeError("broken popen wrapper"),
             ),
             mock.patch.object(
-                process_group, "_defer_signals",
+                process_signals, "_defer_signals",
                 side_effect=[termination_handlers, interrupt_handlers],
             ),
             mock.patch.object(
-                process_group, "restore_termination"
+                process_signals, "restore_termination"
             ) as restore,
             mock.patch.object(
-                process_group, "replay_deferred"
+                process_signals, "replay_deferred"
             ) as replay,
         ):
             with self.assertRaisesRegex(RuntimeError, "broken popen wrapper"):
@@ -233,7 +233,7 @@ class TestSpawnDefenses(unittest.TestCase):
             side_effect=signal_into_popen(number, tracked),
         ):
             with self.assertRaises(raises) as caught:
-                with process_group.exit_on_termination():
+                with process_signals.exit_on_termination():
                     check_parallel_workers._spawn(
                         "test_probe",
                         [sys.executable, "-c", "import time; time.sleep(60)"],

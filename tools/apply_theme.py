@@ -53,7 +53,7 @@ if __package__:
     )
     from tools.file_lock import installed_data_lock
     from tools import xdg_homes
-    from tools.process_group import exit_on_termination
+    from tools.process_signals import exit_on_termination
     from tools.repo_root import ROOT
     from tools.required_command import run_required
     from tools.session_bus import session_env
@@ -68,7 +68,7 @@ else:  # run directly: python3 tools/apply_theme.py
     )
     from file_lock import installed_data_lock
     import xdg_homes
-    from process_group import exit_on_termination
+    from process_signals import exit_on_termination
     from repo_root import ROOT
     from required_command import run_required
     from session_bus import session_env

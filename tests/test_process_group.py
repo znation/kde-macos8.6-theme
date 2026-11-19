@@ -1,4 +1,7 @@
-"""Tests for tools/process_group.py, the render and apply scripts' process supervisor."""
+"""Tests for tools/process_group.py and the signal primitives in tools/process_signals.py.
+
+Together they are the render and apply scripts' process supervisor.
+"""
 
 from __future__ import annotations
 
@@ -18,7 +21,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.popen_signal import gone  # noqa: E402
 from support.popen_signal import kill_tracked  # noqa: E402
 from support.popen_signal import signal_into_popen  # noqa: E402
-from tools import process_group  # noqa: E402
+from tools import process_group, process_signals  # noqa: E402
 
 
 def assert_custom_handler_keeps_its_behavior_during_start(case, number):
@@ -89,7 +92,7 @@ class TestReplayDeferred(unittest.TestCase):
                 deferred=[number.name for number in deferred]
             ):
                 with self.assertRaises(expected) as caught:
-                    process_group.replay_deferred(deferred)
+                    process_signals.replay_deferred(deferred)
                 if code is not None:
                     self.assertEqual(code, caught.exception.code)
 
@@ -233,7 +236,7 @@ class TestRunLogged(unittest.TestCase):
             side_effect=signal_into_popen(number, tracked),
         ):
             with self.assertRaises(raises) as caught:
-                with process_group.exit_on_termination():
+                with process_signals.exit_on_termination():
                     process_group.run_logged(
                         ["/bin/sleep", "60"],
                         dict(os.environ),
@@ -311,7 +314,7 @@ class TestRunLogged(unittest.TestCase):
         in a cleanup so a regression does not leave it running, and this
         fails unless it is gone by the time the exception escapes.
         """
-        real_restore = process_group.restore_termination
+        real_restore = process_signals.restore_termination
         real_popen = subprocess.Popen
         child = {}
         restores = []
@@ -346,7 +349,7 @@ class TestRunLogged(unittest.TestCase):
             ),
         ):
             with self.assertRaises(raises) as caught:
-                with process_group.exit_on_termination():
+                with process_signals.exit_on_termination():
                     process_group.run_logged(
                         ["/bin/sleep", "60"],
                         dict(os.environ),
@@ -412,7 +415,7 @@ class TestRunLogged(unittest.TestCase):
             side_effect=popen_then_signal_then_fail,
         ):
             with self.assertRaises(SystemExit) as caught:
-                with process_group.exit_on_termination():
+                with process_signals.exit_on_termination():
                     process_group.run_logged(
                         ["not-startable"],
                         dict(os.environ),
@@ -668,7 +671,7 @@ class TestFinishWriter(unittest.TestCase):
 class TestExitOnTermination(unittest.TestCase):
     def _kill_self_under_exit_on_termination(self, number):
         """Send *number* to this process and return the shell-convention code."""
-        with process_group.exit_on_termination():
+        with process_signals.exit_on_termination():
             with self.assertRaises(SystemExit) as caught:
                 os.kill(os.getpid(), number)
                 time.sleep(5)
@@ -685,7 +688,7 @@ class TestExitOnTermination(unittest.TestCase):
     def test_previous_handlers_are_restored_even_after_an_exception(self):
         before = (signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP))
         with self.assertRaises(RuntimeError):
-            with process_group.exit_on_termination():
+            with process_signals.exit_on_termination():
                 raise RuntimeError
         after = (signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP))
         self.assertEqual(before, after)

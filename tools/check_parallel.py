@@ -25,7 +25,7 @@ if __package__:
     from tools.check_parallel_results import count_noun, print_results
     from tools.check_parallel_workers import supervise
     from tools.diagnostics import create_scratch_directory, report_error
-    from tools.process_group import exit_on_termination
+    from tools.process_signals import exit_on_termination
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/check_parallel.py
@@ -40,7 +40,7 @@ else:  # run directly: python3 tools/check_parallel.py
     from check_parallel_results import count_noun, print_results
     from check_parallel_workers import supervise
     from diagnostics import create_scratch_directory, report_error
-    from process_group import exit_on_termination
+    from process_signals import exit_on_termination
     from repo_root import ROOT
     from terminal import escape_controls
 

@@ -36,7 +36,7 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error
-    from tools.process_group import exit_on_termination
+    from tools.process_signals import exit_on_termination
 else:  # run directly: python3 tools/apply_cursor.py
     import cursor_link
     import cursor_selection
@@ -44,7 +44,7 @@ else:  # run directly: python3 tools/apply_cursor.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error
-    from process_group import exit_on_termination
+    from process_signals import exit_on_termination
 
 TOOL = "apply_cursor"
 CURSOR_THEME = cursor_link.CURSOR_THEME

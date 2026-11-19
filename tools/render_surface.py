@@ -46,7 +46,7 @@ if __package__:
         positive_int,
     )
     from tools.diagnostics import report_error, report_missing_tool
-    from tools.process_group import exit_on_termination
+    from tools.process_signals import exit_on_termination
     from tools.render_applet import applet_problem
     from tools.render_dialogs import DIALOG_MODES
     from tools.render_output import output_problem
@@ -58,7 +58,7 @@ else:  # run directly: python3 tools/render_surface.py
         positive_int,
     )
     from diagnostics import report_error, report_missing_tool
-    from process_group import exit_on_termination
+    from process_signals import exit_on_termination
     from render_applet import applet_problem
     from render_dialogs import DIALOG_MODES
     from render_output import output_problem

@@ -10,15 +10,15 @@ import sys
 import time
 
 if __package__:
-    from tools.process_group import (
-        kill_group, popen_deferred, reap, restore_termination,
-        replay_deferred,
+    from tools.process_group import kill_group, reap
+    from tools.process_signals import (
+        popen_deferred, replay_deferred, restore_termination,
     )
     from tools.terminal import escape_controls
 else:
-    from process_group import (
-        kill_group, popen_deferred, reap, restore_termination,
-        replay_deferred,
+    from process_group import kill_group, reap
+    from process_signals import (
+        popen_deferred, replay_deferred, restore_termination,
     )
     from terminal import escape_controls
 
