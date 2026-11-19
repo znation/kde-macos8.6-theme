@@ -110,45 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### Render units suite extraction: isolate inactive-window focus-settle checks (planned 2026-11-18 by the plan role)
-
-**Goal.** Separate the inactive-window focus-loop checks from the other
-session-shell cases in `tests/test_render_surface_units.py`. This is
-independent of the queued capture-paint extraction.
-
-**Approach and files touched.** Move these `TestSessionScript` methods to
-`TestSessionFocusSettle` in new `tests/test_render_session_focus_settle.py`:
-`test_keeps_the_one_window_session_free_of_the_focus_settle`,
-`test_loads_the_focus_settle_before_the_settle_sleep_and_stops_it_after_the_capture`
-and `test_runs_the_focus_settle_loop_until_the_capture_has_returned`.
-Preserve their names, assertions, stub scripts, bounded waits and regression
-comments. Import `os`, `shlex`, `sys`, `unittest`, `Path`, `support.repo_root`,
-`support.tmp_dir`, `tools.render_session` and `tools.render_workflow` directly;
-do not import another test module. Remove source imports only when unused
-after the move (`Path` is used by the moved assertion; occurrences inside
-stub strings do not need a module import). Update the routing docstrings.
-Update the inactive-dialog tooling row in `docs/invariants.md` to name the
-new qualified test anchor. Search `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/validation_gaps/*.py` for moved
-anchors and correct any found; the client-hold and termination-wait cases
-stay in `TestSessionScript`. Keep production `session_script` unchanged.
-
-**Acceptance criteria.**
-
-- Discovery finds the named methods under `TestSessionFocusSettle` in the
-  new module, with no duplicate definitions in the source. Each module
-  runs independently through the existing check selector.
-- The default session still carries an empty focus path. For a supplied
-  focus script, the ordering assertions still reject a loop that starts
-  after the settle sleep or stops after client resume.
-- With the existing stub client, qdbus and capture command, the recorded
-  calls include loading the script and a run during capture; the session
-  exits zero and leaves the `.done` sentinel. These tests open no GUI and
-  need no installed render tools.
-- The invariant anchor resolves to the moved case. Focused checks for
-  both modules and the full `make check` pass; no live pixel-validation
-  claim is added.
-
 ### Apply suite extraction: isolate KWin reconfigure checks (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the direct KWin reconfigure checks a focused module outside
