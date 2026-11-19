@@ -193,6 +193,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_exits_zero_and_writes_a_640x400_png (test_render_surface.TestDesktopRender.test_exits_zero_and_writes_a_640x400_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Needs review 2026-11-19 by director: Decide whether to park pending recurrence (recommended), requesting complete render stderr, including its session-log tail, on recurrence, or commission additional capture diagnostics now. Code review places this error in tools/render_workflow.py after the session command returns zero and before publish(); the missing file is the scratch capture, not the destination. tools/render_session.py::session_script records Spectacle's status, and tools/diagnostics.py::report_failure appends a bounded log tail, but that tail is absent from the recorded excerpt. The excerpt does not establish why the capture file was absent; the reported focused pass does not resolve that cause.**
+
 **Director handoff 2026-11-18**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
