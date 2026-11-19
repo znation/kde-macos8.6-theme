@@ -15,6 +15,7 @@ from tools.check_parallel_results import (
     _MARKER_SEEKS_PAREN,
     _MARKER_SEEKS_SPACE,
     _bounded_log_text,
+    _log_has_started_test,
     print_results,
     _test_marker_step,
     count_noun,
@@ -272,6 +273,37 @@ class TestCountNoun(unittest.TestCase):
 
     def test_count_and_noun_are_joined_by_one_space(self):
         self.assertEqual(count_noun(1, "worker"), "1 worker")
+
+
+class TestStartedTestMarkerAcrossReadChunks(unittest.TestCase):
+    """The file scan reads the log 8192 bytes at a time and must carry the
+    marker state across the read boundary.
+
+    Each case places a marker so the boundary falls after *k* of its bytes,
+    for every *k* that leaves its completing byte in the second chunk. A scan
+    that restarted its state at each read would miss the marker.
+    """
+
+    READ_CHUNK = 8192  # the scan's log.read() size in _log_marks_started_test
+
+    def _log_with_marker_at_boundary(self, marker: bytes, k: int) -> bool:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "worker.log"
+            prefix = b"x" * (self.READ_CHUNK - k)
+            path.write_bytes(prefix + marker + b"\n")
+            return _log_has_started_test(str(path))
+
+    def test_a_marker_split_across_the_read_boundary_is_found(self):
+        marker = b") ... "  # the marker's dots and completing space
+        for k in range(1, len(marker)):  # boundary after k marker bytes
+            with self.subTest(bytes_before_boundary=k):
+                self.assertTrue(self._log_with_marker_at_boundary(marker, k))
+
+    def test_two_dots_split_across_the_read_boundary_are_not_a_marker(self):
+        non_marker = b") .. "
+        for k in range(1, len(non_marker)):
+            with self.subTest(bytes_before_boundary=k):
+                self.assertFalse(self._log_with_marker_at_boundary(non_marker, k))
 
 
 if __name__ == "__main__":
