@@ -240,6 +240,75 @@ behavior or test body changes. It is independent of the "Stylesheet sources" ser
 - No file under `theme/` or `tools/`, and not the `Makefile`, changes.
 - `make check` passes after the final edit, and its run includes the new module's tests.
 
+### GTK stylesheet parser tests: move the rule-block brace-pairing cases into their own module (planned 2026-11-19 by the plan role)
+
+**Goal.** `tests/test_gtk_css.py` is still 724 lines after the `@define-color` move, and
+PRINCIPLES.md asks for files small enough to read in one sitting. Its `TestRuleBlockSemantics`
+class ends with seven cases that pin how the rule scanner pairs `{`/`}` into blocks (nesting,
+braces inside strings, `url()`, parentheses and square brackets, stray closers), as distinct
+from the declaration-splitting, grouping and whitespace cases before them. This plan moves
+those seven cases into a new module, following the `tests/test_gtk_css_define_color.py`
+precedent. No parser behavior or test body changes. It is independent of the Firefox
+installer test move and the Stylesheet sources series; neither touches these files.
+
+**Approach and files touched.**
+
+- New `tests/test_gtk_css_blocks.py` with one class, `TestRuleBlockPairing(unittest.TestCase)`.
+  Its class docstring says it pins how `parse_css` pairs braces into rule blocks: a nested
+  block replaces the pending selector, a brace inside a quoted string, a `url()` token,
+  parentheses or square brackets is text, and a stray `)` or `}` cannot hide a later block.
+  Its module docstring says this, and that the declaration-splitting, grouping and whitespace
+  cases remain in `tests/test_gtk_css.py`, the declaration-merging cases in
+  `tests/test_gtk_css_cascade.py` and the `@define-color` cases in
+  `tests/test_gtk_css_define_color.py`. Move these methods verbatim, in their current order,
+  from `TestRuleBlockSemantics`:
+  `test_a_nested_block_replaces_the_pending_selector`,
+  `test_a_brace_inside_a_quoted_string_does_not_pair_a_block`,
+  `test_a_brace_inside_an_unquoted_url_value_is_text`,
+  `test_braces_inside_square_bracket_values_are_preserved`,
+  `test_a_quoted_url_parenthesis_does_not_end_value_grouping`,
+  `test_a_stray_closing_parenthesis_does_not_hide_a_brace_either`,
+  `test_a_stray_closing_brace_is_skipped`.
+  As of this plan their bodies call only `parse_css` (no `itertools`, `time` or class
+  helper), so import `unittest` and `parse_css` from `support.gtk_css`; nothing goes into
+  `tests/support/`. Grep the moved bodies after the move to confirm.
+- `tests/test_gtk_css.py`: delete the seven methods. Keep its imports: `itertools` (used by
+  `test_escaped_trailing_value_whitespace_is_preserved`), `time` (`TestHostileStylesheet`),
+  `parse_css`, `strip_comments` and `inline_link_state_selectors` all stay in use.
+- Sibling docstrings that say "the rule-pairing … cases remain in `tests/test_gtk_css.py`":
+  `tests/test_gtk_css_cascade.py` and `tests/test_gtk_css_define_color.py` module docstrings.
+  Point the rule-pairing clause at `tests/test_gtk_css_blocks.py`, keeping the grouping and
+  whitespace clause on `tests/test_gtk_css.py`.
+- `docs/invariants.md`, `## gtk` parser rows: rewrite every
+  `tests/test_gtk_css.py::TestRuleBlockSemantics::<moved method>` anchor to
+  `tests/test_gtk_css_blocks.py::TestRuleBlockPairing::<moved method>`. As of this plan the
+  hits are the row beginning "Rule braces inside balanced square-bracket values"
+  (`test_braces_inside_square_bracket_values_are_preserved`) and the "removes comments and
+  pairs rule blocks without the quadratic backtracking" row (three moved anchors:
+  `test_a_brace_inside_a_quoted_string_does_not_pair_a_block`,
+  `test_a_brace_inside_an_unquoted_url_value_is_text`,
+  `test_a_stray_closing_parenthesis_does_not_hide_a_brace_either`). Leave anchors to methods
+  that stay.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`,
+  `README.md` and `tests/support/validation_gaps/*.py` for the seven method names; as of this
+  plan none hit outside `tests/test_gtk_css.py` and `docs/invariants.md`. Update any hit that
+  turns up. These are not render gates, so `_GATE_FILES` does not apply. Archives
+  (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_gtk_css_blocks.py` defines `TestRuleBlockPairing` with exactly the seven methods
+  above, same names and bodies; none of those seven names is defined in `tests/test_gtk_css.py`.
+- The `test_*` method names in `tests/test_gtk_css.py` plus the new module equal the set the
+  original `tests/test_gtk_css.py` defined, nothing lost or duplicated. `tests/test_gtk_css.py`
+  is under 600 lines (`wc -l`).
+- `grep -rn 'test_gtk_css.py::TestRuleBlockSemantics::test_\(a_nested_block\|a_brace\|braces\|a_quoted_url_paren\|a_stray_closing\)' docs tests`
+  prints nothing, and the invariants-anchor tests pass with the rewritten anchors.
+- No sibling `tests/test_gtk_css_*.py` docstring still says the rule-pairing cases are in
+  `tests/test_gtk_css.py`.
+- No file under `theme/`, `tools/`, `tests/support/gtk_css.py` or the `Makefile` changes.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
