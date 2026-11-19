@@ -128,8 +128,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # the client only waits to be stopped, and PATH holds just the
         # tools the script needs plus whatever qdbus stub the test adds.
         apply = root / "plasma-apply-colorscheme"
-        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        apply.chmod(0o755)
+        write_executable(apply, "#!/bin/sh\nexit 0\n")
         client = root / "client.py"
         client.write_text("import signal; signal.pause()\n", encoding="utf-8")
         return render_workflow.run_logged(
@@ -172,15 +171,14 @@ class TestSessionFocusSettle(unittest.TestCase):
         bindir.mkdir()
         runs = root / "runs.log"
         qdbus = bindir / "qdbus6"
-        qdbus.write_text(
+        write_executable(
+            qdbus,
             "#!/bin/sh\n"
             "case \"$*\" in\n"
             "  *loadScript*) ;;\n"
             f"  *) echo \"$*\" >> {runs};;\n"
             "esac\n",
-            encoding="utf-8",
         )
-        qdbus.chmod(0o755)
         for name in ("sleep", "date", "rm", "touch"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._run_focus_session(
@@ -202,15 +200,14 @@ class TestSessionFocusSettle(unittest.TestCase):
         bindir.mkdir()
         runs = root / "runs.log"
         qdbus = bindir / "qdbus6"
-        qdbus.write_text(
+        write_executable(
+            qdbus,
             "#!/bin/sh\n"
             "case \"$*\" in\n"
             "  *loadScript*) echo x;;\n"
             f"  *) echo \"$*\" >> {runs};;\n"
             "esac\n",
-            encoding="utf-8",
         )
-        qdbus.chmod(0o755)
         for name in ("sleep", "date", "rm", "touch"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._run_focus_session(

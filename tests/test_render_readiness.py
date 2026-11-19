@@ -128,20 +128,18 @@ class TestRenderReadiness(unittest.TestCase):
         bindir.mkdir()
         monitor_pid = root / "monitor.pid"
         monitor = bindir / "dbus-monitor"
-        monitor.write_text(
+        write_executable(
+            monitor,
             f"#!/bin/sh\necho $$ > {monitor_pid}\nexec sleep 30\n",
-            encoding="utf-8",
         )
-        monitor.chmod(0o755)
         run_marker = root / "run.called"
         # loadScript answers with a non-numeric id ("x"); any run call is recorded.
         qdbus = bindir / "qdbus6"
-        qdbus.write_text(
+        write_executable(
+            qdbus,
             "#!/bin/sh\n"
             f"case \"$*\" in *run*) touch {run_marker};; *) echo x;; esac\n",
-            encoding="utf-8",
         )
-        qdbus.chmod(0o755)
         for name in ("sleep", "date", "rm", "touch", "mkfifo"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
@@ -161,16 +159,14 @@ class TestRenderReadiness(unittest.TestCase):
         bindir = root / "bin"
         bindir.mkdir()
         monitor = bindir / "dbus-monitor"
-        monitor.write_text("#!/bin/sh\nexec sleep 30\n", encoding="utf-8")
-        monitor.chmod(0o755)
+        write_executable(monitor, "#!/bin/sh\nexec sleep 30\n")
         # loadScript yields a numeric id, but the script's run call exits 1.
         qdbus = bindir / "qdbus6"
-        qdbus.write_text(
+        write_executable(
+            qdbus,
             "#!/bin/sh\n"
             "case \"$*\" in *run*) exit 1;; *) echo 7;; esac\n",
-            encoding="utf-8",
         )
-        qdbus.chmod(0o755)
         for name in ("sleep", "date", "rm", "touch", "mkfifo"):
             (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, str(bindir), 1)
