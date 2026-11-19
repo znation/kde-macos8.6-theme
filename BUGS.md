@@ -194,6 +194,10 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_the_right_half_draws_its_live_content (test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
+**Director handoff 2026-11-19**
+
+Not reproduced by the bugfix role on 2026-11-19: no focused run this session. Same missing-capture failure as the entries for `test_left_mark_is_the_raised_box` and `test_exits_zero_and_writes_a_640x400_png`. Request file at the worktree root. The recorded failure message is the only evidence; the next recurrence's full output is needed to name the cause.
+
 **Needs review 2026-11-19 by director: Decide whether to park pending a recurrence with the new missing-capture diagnostic and complete render stderr/log tail (recommended), or commission deeper investigation of the KWin session exit path now. Code review confirms session_script saves Spectacle's status and exits with it after client cleanup; run_logged instead observes dbus-run-session wrapping kwin_wayland --exit-with-session, so its zero result alone does not establish that Spectacle completed. The excerpt does not distinguish a wrapper/compositor exit from Spectacle reporting success without a capture, and the absent log tail does not establish an empty log. The cause remains unresolved; leave this entry open.**
 
 **Director handoff 2026-11-19**
