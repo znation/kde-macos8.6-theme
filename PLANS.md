@@ -159,6 +159,72 @@ header exception. Extend part 1/3's README section to name the Firefox sheets.
 - `make install-firefox` against a staged profile installs the same file set as before (the
   existing install tests pass unchanged), and `make check` passes after the final edit.
 
+### GTK stylesheet parser tests: move the `@define-color` scanner cases into their own module (planned 2026-11-19 by the plan role)
+
+**Goal.** `tests/test_gtk_css.py` is 859 lines, and PRINCIPLES.md asks for files small enough
+to read in one sitting. Its `TestRuleBlockSemantics` class ends with seven cases that pin the
+`@define-color` definition scanner (`support.gtk_css._define_color_matches` and the
+definitions `parse_css` returns), not rule-block pairing. This plan moves those seven cases
+into a new module, following the `tests/test_gtk_css_cascade.py` precedent. No parser behavior
+or test body changes. It is independent of the "Stylesheet sources" series and of the Makefile
+refusal-test move; neither touches these files.
+
+**Approach and files touched.**
+
+- New `tests/test_gtk_css_define_color.py` with one class, `TestDefineColorScan(unittest.TestCase)`.
+  Its class docstring says it pins how the shared parser finds `@define-color` definitions:
+  only CSS whitespace separates the directive's parts, and a definition inside a quoted value,
+  a function value or a rule block is text. Its module docstring says this, and that the
+  rule-pairing, grouping and whitespace cases remain in `tests/test_gtk_css.py` and the
+  declaration-merging cases in `tests/test_gtk_css_cascade.py`. Move these methods verbatim,
+  in their current order, from `TestRuleBlockSemantics`:
+  `test_a_define_color_is_returned_and_not_taken_for_a_selector`,
+  `test_define_color_separators_require_css_whitespace`,
+  `test_a_define_color_inside_a_quoted_value_is_text`,
+  `test_a_define_color_inside_function_values_is_text`,
+  `test_define_color_scan_tracks_function_parentheses`,
+  `test_a_define_color_inside_a_declaration_block_is_text`,
+  `test_define_color_scan_tracks_braces_outside_functions`.
+  They call no module-level test helper, so nothing goes into `tests/support/`. Import
+  `unittest` and, from `support.gtk_css`, `_define_color_matches` and `parse_css`. Use grep
+  after the move to confirm the moved bodies need nothing more.
+- `tests/test_gtk_css.py`: delete the seven methods. Drop `_define_color_matches` from the
+  `support.gtk_css` import, since no remaining test uses it. Keep `itertools` and `time`,
+  which remaining tests use. `TestParseCss`'s commented `@define-color` case, which tests
+  comment stripping, stays.
+- `tests/test_gtk_css_cascade.py`: its module docstring says the `@define-color` cases
+  remain in `tests/test_gtk_css.py`. Point that clause at `tests/test_gtk_css_define_color.py`.
+- `docs/invariants.md`: in the `## gtk` parser rows (the three rows that begin "The three
+  `@define-color` separator runs", "The `@define-color` scanner treats unquoted parentheses" and
+  "The `@define-color` scanner extracts definitions only outside rule blocks", and the
+  "removes comments and pairs rule blocks without the quadratic backtracking" row), rewrite every
+  `tests/test_gtk_css.py::TestRuleBlockSemantics::<moved method>` anchor to
+  `tests/test_gtk_css_define_color.py::TestDefineColorScan::<moved method>`. Leave anchors to
+  methods that stay.
+- `tests/support/validation_gaps/unclear_invariant.py`: the
+  `gtk-define-color-in-quoted-value` entry anchors
+  `tests/test_gtk_css.py::TestRuleBlockSemantics::test_a_define_color_inside_a_quoted_value_is_text`.
+  Rewrite it to the new module and class.
+- Per L1, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/*.py` for the seven method names. As of this plan, the only
+  hits outside `tests/test_gtk_css.py` are the invariants rows and the validation-gap entry
+  above. Update any other hit that turns up. These are not render gates, so L3's `_GATE_FILES`
+  lists do not apply. Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_gtk_css_define_color.py` defines `TestDefineColorScan` with exactly the seven
+  methods above, with the same names and bodies. `grep -n 'def test_.*define_color'
+  tests/test_gtk_css.py` prints nothing.
+- The `test_*` method names collected from `tests/test_gtk_css.py` and the new module together
+  equal the set the original `tests/test_gtk_css.py` defined, with nothing lost or duplicated.
+  `tests/test_gtk_css.py` is under 740 lines (`wc -l`).
+- `grep -rn 'test_gtk_css.py::TestRuleBlockSemantics::test_\(a_define_color\|define_color\)' docs tests`
+  prints nothing, and the invariants-anchor and validation-gap tests pass with the rewritten
+  anchors.
+- No file under `theme/`, `tools/`, `tests/support/gtk_css.py` or the `Makefile` changes.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate rubberband declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
