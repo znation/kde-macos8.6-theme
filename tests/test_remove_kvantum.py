@@ -12,6 +12,7 @@ tests pin; the tests here pin what the Kvantum tool builds on them.
 
 from __future__ import annotations
 
+import errno
 import os
 import subprocess
 import sys
@@ -308,6 +309,22 @@ class TestSelectionRemoval(RemoveKvantumCase):
             "waiting for another remove-kvantum",
             self.config,
         )
+        self.assertEqual(before, self.read_bytes())
+
+    def test_a_failed_rewrite_exits_2_naming_the_path_without_a_traceback(self):
+        self.write("[General]\ntheme=org.macos8.desktop\n")
+        before = self.read_bytes()
+        denied = PermissionError(errno.EACCES, "Permission denied")
+
+        with mock.patch.object(
+            kvantum_selection, "write_bytes_atomically", side_effect=denied
+        ):
+            result = self.run_tool()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn(f"cannot write {self.kvconfig}", result.stderr)
+        self.assertIn("Permission denied", result.stderr)
         self.assertEqual(before, self.read_bytes())
 
     def test_script_entry_point_and_module_run_are_covered_once(self):

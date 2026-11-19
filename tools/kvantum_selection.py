@@ -50,6 +50,7 @@ if __package__:
     from tools.file_lock import parent_dir_lock
     from tools.gtk_settings import remove_key_from_section
     from tools.gtk_user_files import ConfigError, read_config_text
+    from tools.os_error_refusal import refusing_os_errors
     from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/kvantum_selection.py
     import xdg_homes
@@ -59,6 +60,7 @@ else:  # run directly: python3 tools/kvantum_selection.py
     from file_lock import parent_dir_lock
     from gtk_settings import remove_key_from_section
     from gtk_user_files import ConfigError, read_config_text
+    from os_error_refusal import refusing_os_errors
     from symlink_refusal import refuse_symlink
 
 __all__ = ["KVANTUM_ID", "TOOL", "main", "remove_theme"]
@@ -150,7 +152,8 @@ def _clear_selection(config_home: Path) -> int:
             f"left {path} untouched: it does not select {KVANTUM_ID}"
         )
         return 0
-    write_bytes_atomically(path, updated.encode("utf-8"))
+    with refusing_os_errors(ConfigError, "write", path):
+        write_bytes_atomically(path, updated.encode("utf-8"))
     _note(f"cleared the {KVANTUM_ID} selection from {path}")
     _note("restart running Qt applications to pick up the removal")
     return 0
