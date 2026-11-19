@@ -73,6 +73,17 @@ class TestCollectRunPage(unittest.TestCase):
             {"x": 1, "y": 0, "length": 4},
         ))
 
+    def test_zero_limit_omits_eligible_runs_but_keeps_full_summaries(self):
+        intervals = [
+            {"x": 0, "y": 0, "length": 1},
+            {"x": 2, "y": 0, "length": 3},
+            {"x": 5, "y": 0, "length": 5},
+        ]
+
+        self.assertEqual(collect_run_page(iter(intervals), 2, None, 0, 0), (
+            [], 2, 3, {"x": 5, "y": 0, "length": 5},
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
