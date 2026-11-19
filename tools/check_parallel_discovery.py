@@ -47,9 +47,18 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
             # unittest discovery does not follow package-directory symlinks;
             # following one here could import contributor-controlled code
             # from outside the selected test tree.
-            if item.is_symlink():
-                continue
-            if item.is_dir():
+            try:
+                if item.is_symlink():
+                    continue
+                is_directory = item.is_dir()
+            except OSError:
+                # Unlike DirEntry predicates, the original path checks
+                # suppress metadata errors (e.g. on filesystems that need
+                # a stat call to determine an entry's type).
+                if os.path.islink(item.path):
+                    continue
+                is_directory = os.path.isdir(item.path)
+            if is_directory:
                 if os.path.isfile(os.path.join(item.path, "__init__.py")):
                     visit(item.path, f"{prefix}{entry}.")
                 continue

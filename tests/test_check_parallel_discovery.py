@@ -78,6 +78,28 @@ class TestDiscovery(unittest.TestCase):
             check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
+    def test_entry_metadata_errors_fall_back_to_path_checks(self):
+        tests_dir = make_suite_dir(self)
+        _write_module(tests_dir, "test_ok.py", OK_MODULE)
+        for predicate in ("is_symlink", "is_dir"):
+            with self.subTest(predicate=predicate):
+                entry = mock.Mock()
+                entry.name = "test_ok.py"
+                entry.path = os.path.join(tests_dir, entry.name)
+                entry.is_symlink.return_value = False
+                getattr(entry, predicate).side_effect = PermissionError(
+                    13, "Permission denied"
+                )
+                scan = mock.MagicMock()
+                scan.__enter__.return_value = iter([entry])
+                with mock.patch(
+                    "tools.check_parallel_discovery.os.scandir", return_value=scan
+                ):
+                    self.assertEqual(
+                        ["test_ok"],
+                        check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+                    )
+
     def test_non_package_directories_are_not_recursed(self):
         # discover recurses into a subdirectory only when it is a package;
         # a test*.py file under a plain directory stays invisible, as
