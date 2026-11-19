@@ -23,6 +23,16 @@ from support.theme_install import write_file
 
 
 class TestShippedFilesSymlinks(unittest.TestCase):
+    def test_refuses_a_fifo_inside_the_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "package"
+            root.mkdir()
+            fifo = root / "stream.png"
+            os.mkfifo(fifo)
+            with self.assertRaisesRegex(ValueError, "not a regular file") as caught:
+                shipped_files(root)
+        self.assertIn(str(fifo), str(caught.exception))
+
     def test_refuses_a_symlinked_root(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "private"

@@ -9,6 +9,7 @@ instead of each suite repeating the same ``os.walk``.
 from __future__ import annotations
 
 import os
+import stat
 
 from support.repo_root import ROOT
 
@@ -64,6 +65,11 @@ def shipped_files(root, suffix=None, anchor=None):
                     f"{path} is a symlink; a package ships regular files, "
                     "not links"
                 )
+            mode = os.lstat(path).st_mode
+            if name in dirnames and not stat.S_ISDIR(mode):
+                raise ValueError(f"{path} is not a directory")
+            if name in filenames and not stat.S_ISREG(mode):
+                raise ValueError(f"{path} is not a regular file")
         for filename in filenames:
             if suffix is not None and not filename.endswith(suffix):
                 continue
