@@ -20,6 +20,16 @@ from tools.generated_files import write_generated_files
 
 
 class TestGeneratedFiles(unittest.TestCase):
+    def test_empty_file_list_still_creates_the_package_directory(self):
+        root = make_tmp_dir(self)
+        directory = root / "package" / "assets"
+
+        result = write_generated_files("test-generator", root, directory, [])
+
+        self.assertEqual(result, 0)
+        self.assertTrue(directory.is_dir())
+        self.assertEqual(list(directory.iterdir()), [])
+
     def test_an_injected_writer_receives_each_pair_in_order(self):
         root = make_tmp_dir(self)
         directory = root / "package"
