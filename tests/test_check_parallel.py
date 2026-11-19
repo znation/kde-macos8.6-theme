@@ -141,6 +141,28 @@ class TestCoordinator(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertEqual("check: error: cannot create a scratch directory: denied\n", result.stderr)
 
+    def test_scratch_cleanup_failure_names_the_leaked_directory(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        scratch = make_tmp_dir(self) / "worker-scratch"
+        scratch.mkdir()
+        with (
+            mock.patch(
+                "tools.check_parallel.create_scratch_directory",
+                return_value=scratch,
+            ),
+            mock.patch(
+                "tools.check_parallel.shutil.rmtree",
+                side_effect=PermissionError("cleanup denied"),
+            ),
+        ):
+            result = self._run("--tests-dir", tests_dir)
+        assert_succeeded(self, result)
+        self.assertIn(
+            f"check: note: could not remove worker scratch directory {scratch}: "
+            "cleanup denied\n",
+            result.stderr,
+        )
+
     def test_default_worker_count_falls_back_when_cpu_count_is_unknown(self):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
         with (

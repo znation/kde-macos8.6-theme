@@ -144,7 +144,14 @@ def main(argv: list[str] | None = None) -> int:
             )
         return print_results(modules, statuses, log_paths, options.timeout)
     finally:
-        shutil.rmtree(scratch, ignore_errors=True)
+        try:
+            shutil.rmtree(scratch)
+        except OSError as exc:
+            print(
+                "check: note: could not remove worker scratch directory "
+                f"{escape_controls(scratch)}: {escape_controls(str(exc))}",
+                file=sys.stderr,
+            )
 
 
 if __name__ == "__main__":
