@@ -523,6 +523,25 @@ class TestRunLoggedSplit(unittest.TestCase):
         self.assertEqual(payload, self.stdout_log.read_bytes())
         self.assertEqual(b"", self.stderr_log.read_bytes())
 
+    def test_timeout_returns_none_and_kills_the_process_group(self):
+        process = mock.Mock(pid=4242, stdin=None)
+        process.wait.side_effect = subprocess.TimeoutExpired(["slow"], 0.25)
+        with mock.patch.object(
+            process_group.subprocess, "Popen", return_value=process
+        ), mock.patch.object(process_group, "kill_group") as kill_group:
+            status = process_group.run_logged_split(
+                ["slow"], dict(os.environ), self.stdout_log, self.stderr_log,
+                0.25, self.root,
+            )
+        self.assertIsNone(status)
+        kill_group.assert_called_once_with(process)
+        self.assertEqual(
+            [mock.call(timeout=0.25), mock.call(timeout=process_group._REAP_TIMEOUT)],
+            process.wait.call_args_list,
+        )
+        self.assertEqual(b"", self.stdout_log.read_bytes())
+        self.assertEqual(b"", self.stderr_log.read_bytes())
+
     def test_split_custom_sigint_handler_keeps_its_behavior_during_start(self):
         assert_custom_handler_keeps_its_behavior_during_start(
             self, signal.SIGINT
