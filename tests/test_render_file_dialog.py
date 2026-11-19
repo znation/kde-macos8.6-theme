@@ -16,6 +16,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import AURORAE_DIR
+from support import file_dialog_list_fixtures as list_fixtures
 from support.platinum_palette import hex_colour
 from support.render_gates import (
     DIALOG_REAL_TOOLS,
@@ -197,135 +198,6 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
          "#6E6E6E", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
     )
     SORT_ARROW_RECT = (336, 106)
-
-    # The three seeded file rows' type-icon cells, byte-pinned as measured
-    # (rows 1 and 2 draw the fallback theme's document glyph, row 3 its
-    # distinct blue-ruled RTF glyph; the rightmost columns carry the
-    # #7F7F7F/#777777 fold shading against the row's own face colour, so
-    # the white-face and grey-face maps differ there).
-    DOC_ICON_ON_WHITE = (
-        ("#000000", "#000000", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#7F7F7F", "#FFFFFF", "#FFFFFF"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#AFAFAF", "#DDDDDD", "#DDDDDD", "#FFFFFF"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#AFAFAF", "#DDDDDD", "#7F7F7F"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#AFAFAF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#000000", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#000000", "#000000"),
-    )
-    DOC_ICON_ON_GREY = (
-        ("#000000", "#000000", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#777777", "#EEEEEE", "#EEEEEE"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#AFAFAF", "#DDDDDD", "#DDDDDD", "#EEEEEE"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#AFAFAF", "#DDDDDD", "#777777"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#AFAFAF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#999999", "#999999", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#999999", "#999999", "#999999",
-         "#999999", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000"),
-        ("#000000", "#000000", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#000000", "#000000"),
-    )
-    RTF_ICON = (
-        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#0C2D63"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#0C2D63"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-        ("#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63",
-         "#0C2D63", "#0C2D63", "#0C2D63", "#0C2D63", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF"),
-    )
-    # The icon cells' offsets and shapes: row 1 and row 2 draw the
-    # document glyph 10x13 at (173, 126) and (173, 146); row 3 draws the
-    # RTF glyph 12x12 at (172, 167) (all measured).
-    ICON_CELLS = (
-        (173, 126, 10, 13, DOC_ICON_ON_WHITE),
-        (173, 146, 10, 13, DOC_ICON_ON_GREY),
-        (172, 167, 12, 12, RTF_ICON),
-    )
-
-    # The three seeded file rows' band faces and their per-band measured
-    # ink rectangles (the icon cell, the name text and the size text),
-    # excluded from the face pin; rows are the bands' first row, each band
-    # spanning 20 rows. The date band (DATE_BAND, x=395..473) is excluded
-    # from the exactness pin across a band's full height and demands live
-    # ink instead: the seeded files' modification times are the render
-    # session's wall clock, so the date column's digits move between runs.
-    # The size-text rectangles re-derived 2026-11-11 with the dividers
-    # above (the wider Name column moved the size column's text +7).
-    ROW_BANDS = (
-        (123, "#FFFFFF", ((173, 182, 126, 138), (191, 241, 128, 139),
-                          (375, 393, 128, 137))),
-        (143, "#EEEEEE", ((173, 182, 146, 158), (191, 241, 148, 157),
-                          (375, 393, 148, 157))),
-        (163, "#FFFFFF", ((172, 183, 167, 178), (191, 241, 168, 178),
-                          (375, 393, 168, 177))),
-    )
-    ROW_BAND_HEIGHT = 20
-    ROW_TEXT_BANDS = ((191, 241), (375, 393), (395, 473))
-    EMPTY_ROWS = (183, 251)
 
     # The places sidebar's two group headers: live-ink bands (measured
     # on the fresh pair named in the class docstring; "Places" inks
@@ -1380,13 +1252,13 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # (x=395..473, live ink demanded instead). Rows 183..251, the empty
         # rows below the listing, are flat #FFFFFF: a lost alternate-row
         # trough, a stray paint or art in the empty rows fails here.
-        for start, face, rects in self.ROW_BANDS:
+        for start, face, rects in list_fixtures.ROW_BANDS:
             with self.subTest(row_band=start):
                 self._pin_row_band(start, face, rects)
 
     def _pin_row_band(self, start, face, rects):
         """Pin one row band's face across its span, skipping pinned rects."""
-        for y in range(start, start + self.ROW_BAND_HEIGHT):
+        for y in range(start, start + list_fixtures.ROW_BAND_HEIGHT):
             for x in range(152, 474):
                 if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
                     continue
@@ -1394,17 +1266,17 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
                     continue
                 self.assert_pixel(x, y, face)
         image = self.candidate_image()
-        for start, face, _ in self.ROW_BANDS:
+        for start, face, _ in list_fixtures.ROW_BANDS:
             with self.subTest(date_ink=start):
                 self.assertTrue(
                     any(
                         hex_colour(pixel_at(image, x, y)) != face
                         for x in range(395, 474)
-                        for y in range(start, start + self.ROW_BAND_HEIGHT)
+                        for y in range(start, start + list_fixtures.ROW_BAND_HEIGHT)
                     ),
                     "the date column draws no ink",
                 )
-        for y in range(self.EMPTY_ROWS[0], self.EMPTY_ROWS[1] + 1):
+        for y in range(list_fixtures.EMPTY_ROWS[0], list_fixtures.EMPTY_ROWS[1] + 1):
             for x in range(152, 474):
                 self.assert_pixel(x, y, "#FFFFFF")
 
@@ -1414,7 +1286,7 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # its row's own face colour, row 3 the distinct blue-ruled RTF
         # glyph): a shifted cell, a dropped icon or a resampled glyph
         # fails the byte-compare.
-        for x0, y0, width, height, rows in self.ICON_CELLS:
+        for x0, y0, width, height, rows in list_fixtures.ICON_CELLS:
             with self.subTest(icon_cell=(x0, y0)):
                 self.assert_band((x0, y0, width, height), rows)
 
@@ -1423,14 +1295,14 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # off the row's face inside the name, size and date bands. A
         # dropped listing or an emptied date cell fails here.
         image = self.candidate_image()
-        for start, face, _ in self.ROW_BANDS:
-            for x0, x1 in self.ROW_TEXT_BANDS:
+        for start, face, _ in list_fixtures.ROW_BANDS:
+            for x0, x1 in list_fixtures.ROW_TEXT_BANDS:
                 with self.subTest(row_column=(start, x0)):
                     self.assertTrue(
                         any(
                             hex_colour(pixel_at(image, x, y)) != face
                             for x in range(x0, x1 + 1)
-                            for y in range(start, start + self.ROW_BAND_HEIGHT)
+                            for y in range(start, start + list_fixtures.ROW_BAND_HEIGHT)
                         ),
                         "the file row draws no ink in one of its columns",
                     )

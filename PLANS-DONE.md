@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### File-dialog suite extraction: isolate measured list-row fixtures (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Separate the seeded listing's measured data from the file-dialog
+gate's assertions, reducing the oversized `tests/test_render_file_dialog.py`
+without moving gate classes or sharing files with the queued CLI extraction.
+
+**Approach and files touched.** Added
+`tests/support/file_dialog_list_fixtures.py`; moved the measured document and
+RTF maps, icon-cell positions, row-band faces, exclusions and empty-row
+geometry there. The class imports and qualifies the fixtures in the listing
+assertions. Test IDs, assertion logic, capture registration, header and
+sidebar fixtures remain in the original module.
+
+**Acceptance criteria.**
+
+- The support module exposes 10x13 document maps and a 12x12 RTF map, plus
+  the measured row geometry. Literal data and positions were compared with
+  the prior definitions without a render.
+- Discovery retains the file-dialog test IDs. Icon cells, alternating row
+  faces, live date glyphs and their exclusion from face comparisons remain
+  asserted by the same gate methods.
+- Measurement provenance and why the white and grey document maps differ
+  remain beside the data. Importing the fixture module starts no GUI/capture.
+- Focused and full project checks pass; capture behavior remains subject to
+  the existing tool and software-renderer guards.
+
 ### Render units suite extraction: isolate dialog CLI argument validation (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the remaining dialog argument contract a focused module,
