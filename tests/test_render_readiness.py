@@ -137,6 +137,64 @@ class TestRenderReadiness(unittest.TestCase):
         self.assertIn("settle ceiling reached before a client ready file", log)
         self.assertFalse(started_marker.exists(), log)
 
+    def test_a_non_numeric_readiness_id_is_not_run_and_the_ceiling_still_ends_the_session(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        monitor_pid = root / "monitor.pid"
+        monitor = bindir / "dbus-monitor"
+        monitor.write_text(
+            f"#!/bin/sh\necho $$ > {monitor_pid}\nexec sleep 30\n",
+            encoding="utf-8",
+        )
+        monitor.chmod(0o755)
+        run_marker = root / "run.called"
+        # loadScript answers with a non-numeric id ("x"); any run call is recorded.
+        qdbus = bindir / "qdbus6"
+        qdbus.write_text(
+            "#!/bin/sh\n"
+            f"case \"$*\" in *run*) touch {run_marker};; *) echo x;; esac\n",
+            encoding="utf-8",
+        )
+        qdbus.chmod(0o755)
+        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: the readiness settle script did not load", log)
+        self.assertNotIn("did not run", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(run_marker.exists(), log)
+        # The listener was started before the load, so the monitor must be reaped.
+        self.assertTrue(monitor_pid.exists(), log)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(int(monitor_pid.read_text()), 0)
+
+    def test_a_readiness_script_whose_run_fails_is_reported_and_the_ceiling_still_ends_the_session(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        monitor = bindir / "dbus-monitor"
+        monitor.write_text("#!/bin/sh\nexec sleep 30\n", encoding="utf-8")
+        monitor.chmod(0o755)
+        # loadScript yields a numeric id, but the script's run call exits 1.
+        qdbus = bindir / "qdbus6"
+        qdbus.write_text(
+            "#!/bin/sh\n"
+            "case \"$*\" in *run*) exit 1;; *) echo 7;; esac\n",
+            encoding="utf-8",
+        )
+        qdbus.chmod(0o755)
+        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._session(root, str(bindir), 1)
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: the readiness settle script did not run", log)
+        self.assertNotIn("did not load", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+
 
 if __name__ == "__main__":
     unittest.main()
