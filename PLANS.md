@@ -102,7 +102,8 @@ and content-surface status updated 2026-10-26 by the steward role; install-firef
 file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
 2026-10-27 by the feature role; Firefox content scope refreshed
 2026-10-29 by the steward role; merged-series narration trimmed 2026-11-11 by the
-steward role; measurements refreshed 2026-11-18 by the steward role):** PRINCIPLES.md asks
+steward role; measurements refreshed 2026-11-18 by the steward role; stylesheet-source status
+refreshed 2026-11-19 by the steward role):** PRINCIPLES.md asks
 each file to stay small enough to read in one sitting. Current `wc -l` measurements include
 `theme/gtk/.../gtk-3.0/gtk.css` (7111), `gtk-4.0/gtk.css` (6523), Firefox
 `userChrome.css` (1581) and `userContent.css` (941). Among the tests,
@@ -112,9 +113,9 @@ the two queued GTK 3 extractions split declarations out of the views module.
 extractions, and `test_gtk_theme.py` is 331 lines. Those two render extractions and the
 measured list-row fixture extraction are archived in PLANS-DONE.md; they no longer queue
 render-suite work here. The GTK sheets and Firefox stylesheets remain single-file theme
-artifacts. The user chose source partials concatenated into one shipped sheet (QUESTIONS.md,
-answered 2026-11-14); the "Stylesheet sources" series below queues that split. This note queues nothing and changes no
-behavior.
+artifacts, now built from source partials concatenated into one shipped sheet as chosen
+(QUESTIONS.md, answered 2026-11-14; GTK 3, GTK 4 and Firefox source splits are archived in
+PLANS-DONE.md). This note queues no stylesheet work and changes no behavior.
 
 ### Render session: split `session_script`'s shell text into stage builders (planned 2026-11-19 by the organize role)
 
