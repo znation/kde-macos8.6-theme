@@ -43,6 +43,25 @@ class TestFidelityCliParser(unittest.TestCase):
                 with self.subTest(validator=validator.__name__, value=value):
                     self._rejects_value(validator, value)
 
+    def test_mae_and_rmse_limits_keep_fractions_within_the_0_to_255_range(self):
+        # Mean and RMSE are real-valued per-channel amounts, so a fraction
+        # inside the range is kept as given and only a value past 255 (even
+        # by a fraction) or below 0 is refused, naming the option.
+        self.assertEqual(fidelity_arguments.max_mae("0.25"), 0.25)
+        self.assertEqual(fidelity_arguments.max_mae("254.5"), 254.5)
+        self.assertEqual(fidelity_arguments.max_mae("255.0"), 255.0)
+        self.assertEqual(fidelity_arguments.max_rmse("0.5"), 0.5)
+        self.assertEqual(fidelity_arguments.max_rmse("254.9"), 254.9)
+        self._rejects_value_matching(
+            fidelity_arguments.max_mae, "255.5", r"--max-mae must be at most 255"
+        )
+        self._rejects_value_matching(
+            fidelity_arguments.max_rmse, "255.5", r"--max-rmse must be at most 255"
+        )
+        self._rejects_value_matching(
+            fidelity_arguments.max_mae, "-0.5", r"--max-mae must not be negative"
+        )
+
     def _per_channel_bounds(self, validator):
         """`validator` accepts 0 and 255 and refuses -1 and 256."""
         self.assertEqual(validator("0"), 0)
