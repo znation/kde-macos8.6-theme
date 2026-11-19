@@ -1060,7 +1060,7 @@ Worked output from the reproduce run:
       Potentially relevant information:
       - Method: CaptureScreen
       - Method specific arguments: "Virtual-0"
-      
+
       render-session: capture status 0
       KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied
       render-session: client reaped
