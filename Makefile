@@ -760,11 +760,12 @@ endef
 # the package-directory swap does not fit.
 define install_kvantum
 	@install -d "$(KVANTUM_INSTALL_DIR)" && \
+	trap 'rm -f "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"' EXIT; \
 	for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
-	  staging="$(KVANTUM_INSTALL_DIR)/.$$name.staging"; \
-	  trap 'rm -f "$$staging"' EXIT; \
-	  install -Dm644 "$(KVANTUM_PACKAGE)/$$name" "$$staging" && \
-	  mv "$$staging" "$(KVANTUM_INSTALL_DIR)/$$name" || exit 1; \
+	  install -Dm644 "$(KVANTUM_PACKAGE)/$$name" "$(KVANTUM_INSTALL_DIR)/.$$name.staging" || exit 1; \
+	done && \
+	for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
+	  mv "$(KVANTUM_INSTALL_DIR)/.$$name.staging" "$(KVANTUM_INSTALL_DIR)/$$name" || exit 1; \
 	done
 endef
 

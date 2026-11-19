@@ -102,6 +102,36 @@ class TestInstall(unittest.TestCase):
                         f"{name} was damaged by a failed install",
                     )
 
+    def test_failed_second_copy_keeps_both_previous_files(self):
+        """A failed SVG copy must not publish the already staged config."""
+        with installed_destdir(self, packages="kvantum") as tmp:
+            installed = _installed_dir(tmp)
+            good = {}
+            for name in SHIPPED_FILES:
+                good[name] = f"previous {name}\n".encode()
+                with open(os.path.join(installed, name), "wb") as handle:
+                    handle.write(good[name])
+            real_install = shutil.which("install")
+            env = shadow_command_env(
+                tmp,
+                "install",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                "  */org.macos8.desktop.svg)\n"
+                '    dest="$3"\n'
+                '    mkdir -p "$(dirname "$dest")"\n'
+                '    printf partial > "$dest"\n'
+                "    exit 1;;\n"
+                "esac\n"
+                'exec "%s" "$@"\n' % real_install,
+            )
+
+            result = install(tmp, env=env, packages="kvantum")
+            assert_failed(self, result)
+            for name in SHIPPED_FILES:
+                with open(os.path.join(installed, name), "rb") as handle:
+                    self.assertEqual(good[name], handle.read(), name)
+
     def test_make_uninstall_removes_the_installed_files(self):
         with installed_destdir(self, packages="kvantum") as tmp:
             installed = _installed_dir(tmp)
