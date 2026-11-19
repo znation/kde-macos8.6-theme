@@ -60,6 +60,29 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         self.assertEqual("", stderr.getvalue())
         self.assertTrue((root / "tool.log").exists())
 
+    def test_run_best_effort_start_error_names_the_command_and_consequence(self):
+        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        stderr = io.StringIO()
+        with mock.patch.object(
+            apply_optional, "run_logged", side_effect=OSError("exec format error")
+        ):
+            with contextlib.redirect_stderr(stderr):
+                apply_optional.run_best_effort(
+                    root,
+                    {},
+                    ["broken-tool"],
+                    "tool.log",
+                    3.0,
+                    label="optional selection",
+                    consequence="the widgets use another style",
+                )
+        self.assertEqual(
+            "apply_theme: note: optional selection could not be started: "
+            "exec format error; the widgets use another style\n",
+            stderr.getvalue(),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
