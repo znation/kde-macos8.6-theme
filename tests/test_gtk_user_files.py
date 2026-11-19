@@ -296,6 +296,26 @@ class TestUserCssBackup(unittest.TestCase):
         self.assertFalse(backup.exists())
         self.assertEqual(b"original\n", path.read_bytes())
 
+    def test_a_failed_partial_removal_keeps_the_write_error_and_the_source(self):
+        # When the write fails and the partial backup cannot be removed, the
+        # removal failure is ignored: the refusal still names the write that
+        # failed, not the removal, and the stylesheet stays untouched.
+        path = self.css("original\n")
+        backup = path.with_name("gtk.css.bak")
+        with mock.patch.object(
+            os, "fdopen",
+            side_effect=OSError(errno.ENOSPC, "simulated write failure"),
+        ), mock.patch.object(
+            type(path), "unlink",
+            side_effect=PermissionError(errno.EACCES, "cannot remove partial"),
+        ):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.user_css_backup(path)
+        self.assertIn(f"cannot back up {path} to {backup}", str(caught.exception))
+        self.assertIn("simulated write failure", str(caught.exception))
+        self.assertNotIn("cannot remove partial", str(caught.exception))
+        self.assertEqual(b"original\n", path.read_bytes())
+
     def test_an_open_refusal_names_the_backup(self):
         # The exclusive create is the only open that must refuse for a reason
         # other than "name taken"; the stylesheet's own read still succeeds,
