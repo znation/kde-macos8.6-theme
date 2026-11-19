@@ -435,13 +435,16 @@ class TestSelectorMatching(unittest.TestCase):
             self.assertTrue(matches('[title=x\\22y]', element("x", attrs={"title": 'x"y'})))
 
     def test_a_backslash_newline_continues_a_quoted_css_string(self):
-        # CSS string continuations remove the escaped newline before matching.
+        # CSS string continuations remove LF, CR, CRLF and form feed before
+        # matching; none of those characters becomes part of the value.
         continued = element("button", attrs={"title": "ab"})
         newline = element("button", attrs={"title": "a\nb"})
-        selector = '[title="a\\\nb"]'
-        self.assertTrue(_selector_is_supported(selector))
-        self.assertTrue(matches(selector, continued))
-        self.assertFalse(matches(selector, newline))
+        for escaped_newline in ("\n", "\r", "\r\n", "\f"):
+            selector = '[title="a\\' + escaped_newline + 'b"]'
+            with self.subTest(escaped_newline=repr(escaped_newline)):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, continued))
+                self.assertFalse(matches(selector, newline))
 
     def test_invalid_css_hex_code_points_match_the_replacement_character(self):
         # CSS replaces NULL, surrogate and out-of-range escape values with
