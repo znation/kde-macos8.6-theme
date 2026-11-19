@@ -29,12 +29,42 @@ from dataclasses import dataclass
 from pathlib import Path
 
 try:
-    from tools.render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+    from tools.render_session_script import session_script
 except ImportError:  # imported from a directly run tool
-    from render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+    from render_session_script import session_script
 
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
+CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
+
+
+def _session_directories(root: Path) -> tuple[Path, Path, Path, Path, Path]:
+    runtime, config, data = (root / name for name in ("rt", "cfg", "data"))
+    home = root / "home"
+    home.mkdir()
+    for directory in (runtime, config, data):
+        directory.mkdir()
+    runtime.chmod(0o700)
+    return runtime, config, data, home, root / "surface.png"
+
+
+def _session_environment(runtime: Path, config: Path, data: Path, home: Path) -> dict[str, str]:
+    dropped_environment = {
+        "WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS", "MAKEFILES",
+        "XDG_CONFIG_DIRS", "LANGUAGE",
+    }
+    environment = {
+        key: value for key, value in os.environ.items()
+        if key not in dropped_environment
+    }
+    environment.update(
+        XDG_RUNTIME_DIR=str(runtime), WAYLAND_DISPLAY=SOCKET,
+        QT_QPA_PLATFORM="offscreen", KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
+        SPECTACLE_VIDEO_PLATFORM="VideoPlatformNull",
+        XDG_CONFIG_HOME=str(config), XDG_DATA_HOME=str(data), HOME=str(home),
+        LANG=MEASUREMENT_LOCALE, LC_ALL=MEASUREMENT_LOCALE,
+    )
+    return environment
 
 # The locale the scratch session pins over the caller's. A client's
 # layout follows the caller shell's LANG/LC_*: kdialog starts the
@@ -50,16 +80,6 @@ COLOR_SCHEME = "MacOS8"
 # message catalogs for Qt and KDE clients regardless of LC_ALL, and the
 # measured captures show the untranslated English client strings.
 MEASUREMENT_LOCALE = "en_US.UTF-8"
-
-# The session-log marker for a client that was alive at the settle's
-# liveness check but died before the capture command returned. Such a
-# client's window was destroyed before or while the frame was taken, so a
-# black capture of that session is a vanished client, not an unpainted
-# one -- the render's black-capture diagnosis greps this marker (near the
-# log's end, written after the capture returns and before the reap) to
-# name that cause instead of blaming the paint budget.
-CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
-
 
 @dataclass(frozen=True)
 class Session:
@@ -80,73 +100,8 @@ class Session:
         """Create a fresh scratch session, removing it if setup fails."""
         root = Path(tempfile.mkdtemp(prefix="render-surface-"))
         try:
-            runtime = root / "rt"
-            config = root / "cfg"
-            home = root / "home"
-            home.mkdir()
-            data = root / "data"
-            for directory in (runtime, config, data):
-                directory.mkdir()
-            runtime.chmod(0o700)
-            surface = root / "surface.png"
-
-            # DESTDIR must not reach the install: the theme has to land in the
-            # scratch data home. It arrives both as an environment variable
-            # and, when the caller ran `make DESTDIR=... render`, through
-            # MAKEFLAGS, which the child make imports as a command-line
-            # override.
-            dropped_environment = (
-                "WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS",
-                "MAKEFILES", "XDG_CONFIG_DIRS", "LANGUAGE",
-            )
-            environment = {
-                key: value
-                for key, value in os.environ.items()
-                if key not in dropped_environment
-            }
-            environment.update(
-                XDG_RUNTIME_DIR=str(runtime),
-                # The host's display must not leak, but the nested session
-                # still needs a display of its own: the private bus
-                # `dbus-run-session` starts hands this environment to every
-                # service it activates, and a GUI service started without a
-                # display (KWin asks for the settings portal during startup)
-                # aborts in QGuiApplication and D-Bus retries it in a
-                # core-dump loop.
-                WAYLAND_DISPLAY=SOCKET,
-                QT_QPA_PLATFORM="offscreen",
-                # The private bus hands this environment to every service it
-                # D-Bus-activates, and those services must not try to open
-                # WAYLAND_DISPLAY=SOCKET: while the nested KWin socket is not
-                # yet listening (or after KWin exits) an activating Qt service
-                # such as xdg-desktop-portal-kde aborts in QGuiApplication and
-                # the bus re-activates it in a coredump loop. Pin the whole
-                # nested bus subtree to a display-free platform here; the
-                # session script below overrides it to "wayland" for the
-                # clients that must draw on the nested compositor, and KWin
-                # itself selects its virtual backend from --virtual.
-                # KWin 6.6 refuses ScreenShot2 calls from a process it cannot
-                # map to a desktop-file identity. This throwaway compositor
-                # and its private bus have no such identity to offer, so the
-                # capture is refused before Spectacle can write the PNG.
-                # Disable the check only for this scratch session.
-                KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
-                # Spectacle constructs its Wayland video platform even for a
-                # still capture; that path binds KWin's screencast interface
-                # and starts PipeWire, which the headless runner does not run.
-                # A still render has no video platform, so force Spectacle's
-                # null one (its documented testing override) in this session.
-                SPECTACLE_VIDEO_PLATFORM="VideoPlatformNull",
-                XDG_CONFIG_HOME=str(config),
-                XDG_DATA_HOME=str(data),
-                HOME=str(home),
-                # The measurement locale overrides whatever the caller
-                # shell exported (LC_ALL wins over every LC_* category
-                # and over LANG), so the clients' layout does not vary
-                # with the invoking shell (see MEASUREMENT_LOCALE).
-                LANG=MEASUREMENT_LOCALE,
-                LC_ALL=MEASUREMENT_LOCALE,
-            )
+            runtime, config, data, home, surface = _session_directories(root)
+            environment = _session_environment(runtime, config, data, home)
         except BaseException:
             shutil.rmtree(root, ignore_errors=True)
             raise
@@ -182,176 +137,6 @@ class SessionCommand:
     timeout: float
 
 
-def session_script(
-    focus_script: str | None = None, readiness_script: str | None = None
-) -> str:
-    """Return the ``sh -c`` script that opens the client, settles and captures.
-
-    The positional parameters are the settle seconds, the capture path and
-    the client argv itself, so ``sh`` receives them after the script and
-    never parses them as shell syntax: the client words are passed through
-    ``shlex``-joined child ``sh -c`` argv, each a separate positional word
-    of this script. The script fails the session if the backgrounded
-    client is no longer running after the settle; without that check
-    ``spectacle`` would still publish a capture of an empty session.
-
-    *focus_script* is the scratch path of a KWin settle script (the
-    inactive-dialog render passes one, the other modes ``None``): when it
-    is set, the shell loads it into KWin right after the client starts and
-    re-runs it in a bounded background loop until the capture has
-    returned, so the two-window pair's focus state is settled by
-    re-activation before the frame is read, not left to the window
-    manager's newest-window race (see
-    ``tools/render_window_rules.py::focus_settle_text``). The loop's
-    ``qdbus6``/``qdbus`` fallback is resolved inside the session: a host
-    without either only logs the omission and keeps the older race.
-    With no script given the whole block is inert (an empty ``$focus``
-    fails its guard), so the other modes' session stages are unchanged.
-
-    *readiness_script* is a KWin script path used with the session D-Bus
-    monitor: when an eligible window maps, the listener writes
-    ``RENDER_SESSION_READY_FILE`` and ends the settle early. The listener
-    starts before the render client so a fast window cannot beat the signal
-    subscription.
-
-    Missing tools or a client that never maps retain the settle ceiling.
-    D-Bus readiness includes up to one second of paint grace before capture,
-    bounded by the settle ceiling.
-
-    Every stage logs a millisecond timestamp, so a failed capture's log
-    shows the client's start, the settle's end and the capture's span on
-    one wall clock. After the capture returns, the script records whether
-    the client was still running: a client that died between the settle's
-    liveness check and the capture's end took its window with it, and its
-    timestamped exit marker is what lets the black-capture diagnosis
-    distinguish a vanished client from a window that never painted.
-
-    The client that passed the liveness check is frozen with SIGSTOP
-    before the capture starts and resumed with SIGCONT immediately before
-    the post-capture termination: Spectacle's startup latency is unbounded
-    under concurrent renders, while a client such as ``ksplashqml --test``
-    has a finite lifetime, so an unfrozen client could take its window
-    down mid-capture. A stopped client keeps its last-painted buffer —
-    the compositor captures from it — and the aliveness check after the
-    capture still reads it (a stopped process answers ``kill -0``), so
-    the diagnosis and the ``kill -9`` fallback are unchanged. The shell
-    also exports the client's pid as ``RENDER_SESSION_CLIENT_PID``: a
-    capture-side helper can only target the client through a pid the
-    session shell owns, because the freeze can land before the client's
-    first instruction and a pidfile the client was meant to write then
-    never appears.
-    """
-    # The client runs in the background, so its exit status would otherwise
-    # be lost: if it cannot start or crashes during the settle wait,
-    # `spectacle` still captures the empty session and reports success,
-    # publishing a render of no window. The liveness check therefore runs
-    # before the capture and fails the session with a log line naming the
-    # client's first word instead.
-    focus = shlex.quote(focus_script) if focus_script is not None else '""'
-    readiness = shlex.quote(readiness_script) if readiness_script is not None else '""'
-    return (
-        # Qt selects its platform plugin from the ambient session type, which
-        # a headless caller does not set even though this session exports its
-        # own WAYLAND_DISPLAY. Pin the clients to the nested compositor's
-        # Wayland socket here, inside the session shell only, so the choice
-        # cannot fall through to xcb and abort before the client is visible.
-        "export QT_QPA_PLATFORM=wayland; "
-        f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
-        'settle="$1"; capture="$2"; shift 2; '
-        f'focus={focus}; readiness={readiness}; '
-        # The D-Bus listener writes RENDER_SESSION_READY_FILE once a client
-        # window is mapped; the settle budget remains the ceiling: a
-        # client that never maps a window waits out the full settle.
-        'ceiling="$capture.ceiling"; ready="$capture.ready"; '
-        'rm -f "$ceiling" "$ready"; export RENDER_SESSION_READY_FILE="$ready"; '
-        'listener=""; monitor_pid=""; events="$capture.events"; '
-        'if [ -n "$readiness" ]; then '
-        'monitor="$(command -v dbus-monitor)"; '
-        'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
-        'if [ -z "$monitor" ]; then echo "render-session: no dbus-monitor for client readiness" >&2; '
-        'elif [ -z "$qdbus" ]; then echo "render-session: no qdbus for client readiness" >&2; '
-        'else '
-        'rm -f "$events"; '
-        'if ! mkfifo "$events"; then echo "render-session: cannot create readiness listener pipe" >&2; '
-        'else '
-        f'"$monitor" --session "type=\'method_call\',interface=\'{READINESS_INTERFACE}\',member=\'{READINESS_MEMBER}\'" >"$events" & monitor_pid=$!; '
-        '(while IFS= read -r line; do case "$line" in *member=ClientReady*) '
-        'printf "%s\\n" dbus-window-added >"$ready"; break;; esac; done <"$events") & listener=$!; '
-        'id=$("$qdbus" org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$readiness" 2>/dev/null); '
-        'case "$id" in ""|*[!0-9]*) echo "render-session: the readiness settle script did not load" >&2;; '
-        '*) "$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1 || '
-        'echo "render-session: the readiness settle script did not run" >&2;; esac; fi; fi; fi; '
-        'started=$(date +%s%3N); "$@" & client=$!; '
-        'export RENDER_SESSION_CLIENT_PID="$client"; '
-        'echo "render-session: client started at $started" >&2; '
-        # The focus settle must start before the settle sleep so the
-        # re-activation loop already runs while the windows map, and it
-        # must stop only after the capture has returned, because
-        # Spectacle's startup latency is unbounded under concurrent renders
-        # and the last re-run has to sit between the focused window's map
-        # and the frame being read.
-        'if [ -n "$focus" ]; then '
-        'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
-        'if [ -n "$qdbus" ]; then '
-        'id=$("$qdbus" org.kde.KWin /Scripting '
-        'org.kde.kwin.Scripting.loadScript "$focus" 2>/dev/null); '
-        'case "$id" in ""|*[!0-9]*) '
-        'echo "render-session: the focus settle script did not load" >&2;; '
-        '*) (while [ ! -e "$focus.done" ]; do '
-        '"$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1; '
-        'command sleep 0.25; done) & settle_loop=$!; '
-        'echo "render-session: focus settle loop running (script $id)" >&2;; '
-        'esac; '
-        'else echo "render-session: no qdbus for the focus settle" >&2; fi; fi; '
-        '( command sleep "$settle"; touch "$ceiling" ) & ceiling_timer=$!; '
-        'while [ ! -e "$ready" ] && [ ! -e "$ceiling" ]; do '
-        'command sleep 0.1; done; '
-        'if [ -n "$monitor_pid" ]; then kill "$monitor_pid" 2>/dev/null; wait "$monitor_pid" 2>/dev/null; fi; '
-        'if [ -n "$listener" ]; then kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null; fi; '
-        'rm -f "$events"; '
-        'ready_source=""; if [ -e "$ready" ]; then IFS= read -r ready_source <"$ready" || :; fi; '
-        'if [ "$ready_source" = dbus-window-added ]; then '
-        'grace=0; while [ "$grace" -lt 10 ] && [ ! -e "$ceiling" ]; do '
-        'command sleep 0.1; grace=$((grace + 1)); done; fi; '
-        'kill "$ceiling_timer" 2>/dev/null; wait "$ceiling_timer" 2>/dev/null; '
-        'rm -f "$ceiling"; '
-        'if [ -e "$ready" ]; then echo "render-session: client ready at $(date +%s%3N)" >&2; '
-        'else echo "render-session: settle ceiling reached before a client ready file" >&2; fi; '
-        'echo "render-session: settle done at $(date +%s%3N)" >&2; '
-        'if ! kill -0 "$client" 2>/dev/null; then '
-        'echo "$1 exited before the capture" >&2; exit 1; fi; '
-        'if kill -STOP "$client" 2>/dev/null; then '
-        'echo "render-session: client held at $(date +%s%3N)" >&2; fi; '
-        'echo "render-session: capturing at $(date +%s%3N)" >&2; '
-        'spectacle -b -n -f -o "$capture"; status=$?; '
-        'capture_done=$(date +%s%3N); '
-        'echo "render-session: capture status $status at $capture_done" >&2; '
-        # Stop the focus settle only here: the sentinel ends the loop and
-        # the kill reaps it, so no re-run can land after the frame was read
-        # and none is left running into the client's termination.
-        'if [ -n "${settle_loop:-}" ]; then '
-        'touch "$focus.done"; '
-        'kill "$settle_loop" 2>/dev/null; wait "$settle_loop" 2>/dev/null; fi; '
-        'if kill -0 "$client" 2>/dev/null; then '
-        'echo "render-session: client alive after the capture at $capture_done" >&2; '
-        'else '
-        f'echo "{CLIENT_EXITED_DURING_CAPTURE} at $capture_done" >&2; fi; '
-        'kill -CONT "$client" 2>/dev/null; '
-        # SIGCONT only queues the resume. Let the client run before SIGTERM
-        # so a stopped process cannot take the termination signal first.
-        'resumed=0; while [ "$resumed" -lt 50 ]; do '
-        'state=$(sed \'s/.*) //; s/ .*//\' "/proc/$client/stat" 2>/dev/null); '
-        '[ "$state" != T ] && break; '
-        'sleep 0.1; resumed=$((resumed + 1)); done; '
-        'kill "$client" 2>/dev/null; '
-        'waited=0; '
-        'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
-        'sleep 0.1; waited=$((waited + 1)); done; '
-        'kill -9 "$client" 2>/dev/null; '
-        'wait "$client" 2>/dev/null; '
-        'echo "render-session: client reaped" >&2; '
-        "exit $status"
-    )
 
 
 def session_command(

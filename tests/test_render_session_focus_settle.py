@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import shlex
 import sys
@@ -15,6 +16,28 @@ from tools import render_session, render_workflow  # noqa: E402
 
 
 class TestSessionFocusSettle(unittest.TestCase):
+    def test_session_script_matches_the_four_pre_split_script_fixtures(self):
+        fixtures = (
+            (None, None, 4208, "70ffdaef27a3dbb0fa10fa234e495c67c44de7d08dff10e309dffc8f5276c048"),
+            ("/fixture/focus.js", None, 4223, "fa140f1cd26195d60a747a30548db004b8a0ff7116b8c3263f7817779dab86fa"),
+            (None, "/fixture/readiness.js", 4227, "49d16d7da0db8166de114b52fc8eaadfae5afe6417a30fb15d49947c2dccc961"),
+            ("/fixture/focus.js", "/fixture/readiness.js", 4242, "aac335ab3920029e81edddba15425917842a3dc6ea0216e73f3d31e238086687"),
+        )
+        for focus, readiness, expected_length, expected_digest in fixtures:
+            with self.subTest(focus=focus, readiness=readiness):
+                script = render_session.session_script(focus, readiness)
+                self.assertEqual(expected_length, len(script))
+                self.assertEqual(expected_digest, hashlib.sha256(script.encode()).hexdigest())
+
+    def test_session_script_stages_keep_their_execution_order(self):
+        script = render_session.session_script("/fixture/focus.js", "/fixture/readiness.js")
+        self.assertLess(script.index("dbus-monitor"), script.index('started=$(date'))
+        focus_load = 'Scripting.loadScript "$focus"'
+        self.assertLess(script.index("started=$(date"), script.index(focus_load))
+        self.assertLess(script.index(focus_load), script.index('sleep "$settle"'))
+        self.assertLess(script.index('kill -STOP "$client"'), script.index("spectacle -b"))
+        self.assertLess(script.index('kill -CONT "$client"'), script.index('kill "$client"'))
+
     def test_keeps_the_one_window_session_free_of_the_focus_settle(self):
         # No mode but the inactive pair has a focus race: the default
         # session script must carry an empty focus path, so its settle
