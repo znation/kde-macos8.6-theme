@@ -148,6 +148,41 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         )
         self.assertNotIn("magick-abc123", problem)
 
+    def test_a_log_naming_the_temporary_directory_blanks_the_directory(self):
+        # The decoded PNG's own path is blanked first; a converter log that
+        # names a different file in the same private directory must still
+        # lose the directory part, so the diagnostic never reveals it.
+        with tempfile.TemporaryDirectory() as directory:
+            temp_png = Path(directory) / "decoded.png"
+
+            def fail_naming_the_directory(
+                argv, env, stdout_log, stderr_log, *args, **kwargs
+            ):
+                Path(stderr_log).write_text(
+                    f"cannot write {directory}/scratch.txt"
+                )
+                return 4
+
+            with (
+                mock.patch.object(
+                    jpeg_convert.shutil,
+                    "which",
+                    return_value="/usr/bin/convert",
+                ),
+                mock.patch.object(
+                    jpeg_convert,
+                    "run_logged_split",
+                    side_effect=fail_naming_the_directory,
+                ),
+            ):
+                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+
+        self.assertEqual(
+            problem,
+            "convert exited 4: cannot write <a temporary directory>/scratch.txt",
+        )
+        self.assertNotIn(directory, problem)
+
     def test_a_silent_converter_failure_reports_only_the_status(self):
         # A converter can exit nonzero without writing anything: the logs
         # run_logged_split opens exist but hold no text. The diagnostic must
