@@ -61,6 +61,17 @@ def local_link_errors(text: str) -> list[str]:
     return [target for target in links if target not in destinations]
 
 
+def _cross_link_is_broken(source_dir: Path, target: str, fragment: str, root) -> bool:
+    """Return whether one cross-file link target or fragment fails to resolve."""
+    path = source_dir / target
+    if not path.is_file():
+        return True
+    if not fragment:
+        return False
+    linked = containment.read_text(path, root, encoding="utf-8")
+    return fragment not in _destinations(linked)
+
+
 def cross_file_link_errors(source_path, text: str, root=ROOT) -> list[str]:
     """Return ``](<file>.md)`` and ``](<file>.md#frag)`` links that do not resolve.
 
@@ -75,15 +86,8 @@ def cross_file_link_errors(source_path, text: str, root=ROOT) -> list[str]:
         for target, fragment in _CROSS_LINK.findall(line):
             if _SCHEME.match(target):
                 continue
-            path = source_dir / target
-            label = f"{target}#{fragment}" if fragment else target
-            if not path.is_file():
-                errors.append(label)
-                continue
-            if fragment:
-                linked = containment.read_text(path, root, encoding="utf-8")
-                if fragment not in _destinations(linked):
-                    errors.append(label)
+            if _cross_link_is_broken(source_dir, target, fragment, root):
+                errors.append(f"{target}#{fragment}" if fragment else target)
     return errors
 
 

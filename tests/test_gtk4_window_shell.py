@@ -128,6 +128,27 @@ class TestGtk4WindowShell(Gtk4SheetRuleCases, unittest.TestCase):
             self.selectors.index("window.solid-csd:backdrop"),
         )
 
+    def _shell_candidates(self, node):
+        """Return ``(required, order, box-shadow)`` for each window or tooltip arm.
+
+        An arm matches *node* when its element is *node*'s and its classes and
+        pseudo-classes are a subset of *node*'s.
+        """
+        # This family contains only a type, classes and :backdrop.
+        # CSS ranks class/pseudo-class count before source order.
+        tokens = set(re.findall(r"[.:][\w-]+", node))
+        element = re.match(r"\w+", node).group()
+        candidates = []
+        for order, selector in enumerate(self.selectors):
+            if not re.fullmatch(r"(?:window|tooltip)(?:[.:][\w-]+)*", selector):
+                continue
+            required = set(re.findall(r"[.:][\w-]+", selector))
+            rule = self.rules[selector]
+            if (selector.split(".")[0].split(":")[0] == element
+                    and required <= tokens and "box-shadow" in rule):
+                candidates.append((len(required), order, rule["box-shadow"]))
+        return candidates
+
     def test_csd_window_shell_state_cascade(self):
         """Resolve overlapping shell arms, including popup/backdrop ties."""
         cases = [
@@ -145,19 +166,7 @@ class TestGtk4WindowShell(Gtk4SheetRuleCases, unittest.TestCase):
             cases.append((f"window.csd.{tiled}:backdrop", f"0 0 0 1px {INACTIVE_OUTLINE}"))
         for node, expected in cases:
             with self.subTest(node=node):
-                # This family contains only a type, classes and :backdrop.
-                # CSS ranks class/pseudo-class count before source order.
-                tokens = set(re.findall(r"[.:][\w-]+", node))
-                element = re.match(r"\w+", node).group()
-                candidates = []
-                for order, selector in enumerate(self.selectors):
-                    if not re.fullmatch(r"(?:window|tooltip)(?:[.:][\w-]+)*", selector):
-                        continue
-                    required = set(re.findall(r"[.:][\w-]+", selector))
-                    rule = self.rules[selector]
-                    if (selector.split(".")[0].split(":")[0] == element
-                            and required <= tokens and "box-shadow" in rule):
-                        candidates.append((len(required), order, rule["box-shadow"]))
+                candidates = self._shell_candidates(node)
                 self.assertTrue(candidates)
                 self.assertEqual(max(candidates)[2], expected)
 
