@@ -148,6 +148,19 @@ class TestPositiveInt(unittest.TestCase):
             argument_parsing.positive_int("--height")("0")
         self.assertIn("--height", str(caught.exception))
 
+    def test_one_is_the_smallest_accepted_value(self):
+        # The lower bound is inclusive: 1 names one pixel, a real region.
+        self.assertEqual(argument_parsing.positive_int("--width")("1"), 1)
+
+    def test_non_numeric_text_names_the_option_and_article(self):
+        # The integer noun takes "an", so the message reads "an integer".
+        with self.assertRaises(argparse.ArgumentTypeError) as caught:
+            argument_parsing.positive_int("--workers")("many")
+        self.assertEqual(
+            str(caught.exception),
+            "--workers must be an integer: 'many'",
+        )
+
 
 class TestEscapingArgumentParser(unittest.TestCase):
     def _run(self, call):
