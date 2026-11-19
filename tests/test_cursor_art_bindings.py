@@ -189,25 +189,27 @@ class TestCursorArtBindings(unittest.TestCase):
         # make_cursors scales these grids, so a ragged or non-square grid would
         # be drawn wrong without any test noticing.
         allowed = set("#. ")
-        for module in MODULES:
-            for grid_name in _exported_grid_names(module):
-                if not grid_name.endswith("_GRID"):
-                    # ``*_ART`` exports are VectorCursor objects, not pixel grids;
-                    # the other binding tests pin their hotspot and face instead.
-                    continue
-                grid = vars(module)[grid_name]
-                with self.subTest(grid=grid_name):
-                    self.assertEqual(len(grid), 16, f"{grid_name} has {len(grid)} rows")
-                    for row_index, row in enumerate(grid):
-                        self.assertEqual(
-                            len(row), 16,
-                            f"{grid_name} row {row_index} is {len(row)} cells wide",
-                        )
-                        self.assertTrue(
-                            set(row) <= allowed,
-                            f"{grid_name} row {row_index} has characters "
-                            f"outside '#', '.' and space: {row!r}",
-                        )
+        grids = [
+            (grid_name, vars(module)[grid_name])
+            for module in MODULES
+            for grid_name in _exported_grid_names(module)
+            # ``*_ART`` exports are VectorCursor objects, not pixel grids;
+            # the other binding tests pin their hotspot and face instead.
+            if grid_name.endswith("_GRID")
+        ]
+        for grid_name, grid in grids:
+            with self.subTest(grid=grid_name):
+                self.assertEqual(len(grid), 16, f"{grid_name} has {len(grid)} rows")
+                for row_index, row in enumerate(grid):
+                    self.assertEqual(
+                        len(row), 16,
+                        f"{grid_name} row {row_index} is {len(row)} cells wide",
+                    )
+                    self.assertTrue(
+                        set(row) <= allowed,
+                        f"{grid_name} row {row_index} has characters "
+                        f"outside '#', '.' and space: {row!r}",
+                    )
 
 
 if __name__ == "__main__":

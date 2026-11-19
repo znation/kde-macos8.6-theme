@@ -339,6 +339,12 @@ class TestVectorPointerArtifacts(unittest.TestCase):
             width, height, rgba = decode_rgba(image.png)
             yield image, width, height, rgba
 
+    def _assert_points_show(self, rgba, width, size, coordinates, expected):
+        for x, y in coordinates:
+            self.assertEqual(
+                _pixel(rgba, width, x * size // 32, y * size // 32), expected
+            )
+
     def test_each_frame_has_the_pinned_hotspot_and_face_and_outline(self):
         for name, points in self.EXPECTATIONS.items():
             for image, width, _height, rgba in self._frames(name):
@@ -350,16 +356,12 @@ class TestVectorPointerArtifacts(unittest.TestCase):
                     self.assertEqual(
                         _pixel(rgba, width, *HOTSPOTS[name][size])[3], 255
                     )
-                    for x, y in points["black"]:
-                        self.assertEqual(
-                            _pixel(rgba, width, x * size // 32, y * size // 32),
-                            BLACK,
-                        )
-                    for x, y in points["white"]:
-                        self.assertEqual(
-                            _pixel(rgba, width, x * size // 32, y * size // 32),
-                            WHITE,
-                        )
+                    self._assert_points_show(
+                        rgba, width, size, points["black"], BLACK
+                    )
+                    self._assert_points_show(
+                        rgba, width, size, points["white"], WHITE
+                    )
 
     def test_each_frame_has_transparent_corners(self):
         for name in self.EXPECTATIONS:
@@ -372,6 +374,14 @@ class TestVectorPointerArtifacts(unittest.TestCase):
                         (width - 1, height - 1),
                     ):
                         self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+
+    def _assert_grey_level(self, size, points, pixels):
+        if size not in points["grey"]:
+            return
+        self.assertTrue(
+            any(p[3] == 255 and 0 < p[0] < 255 for p in pixels),
+            "no opaque pixel with an intermediate grey level",
+        )
 
     def test_each_frame_is_antialiased(self):
         for name, points in self.EXPECTATIONS.items():
@@ -390,11 +400,7 @@ class TestVectorPointerArtifacts(unittest.TestCase):
                     # Only the sizes the design pins: the I-beam's stem edges
                     # fall inside a pixel at 24 but on pixel boundaries at 16
                     # and 32, so only its 24 frame has a grey-level edge.
-                    if size in points["grey"]:
-                        self.assertTrue(
-                            any(p[3] == 255 and 0 < p[0] < 255 for p in pixels),
-                            "no opaque pixel with an intermediate grey level",
-                        )
+                    self._assert_grey_level(size, points, pixels)
 
 
 class TestCursorSet(unittest.TestCase):
