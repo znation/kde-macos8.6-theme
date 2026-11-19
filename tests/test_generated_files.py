@@ -20,6 +20,24 @@ from tools.generated_files import write_generated_files
 
 
 class TestGeneratedFiles(unittest.TestCase):
+    def test_an_injected_writer_receives_each_pair_in_order(self):
+        root = make_tmp_dir(self)
+        directory = root / "package"
+        first = directory / "first.bin"
+        second = directory / "second.bin"
+        written = []
+
+        result = write_generated_files(
+            "test-generator",
+            root,
+            directory,
+            [(first, b"first bytes"), (second, b"second bytes")],
+            write=lambda target, data: written.append((target, data)),
+        )
+
+        self.assertEqual(result, 0)
+        self.assertEqual(written, [(first, b"first bytes"), (second, b"second bytes")])
+
     def test_default_writer_creates_directory_and_publishes_bytes(self):
         root = make_tmp_dir(self)
         directory = root / "package" / "assets"
