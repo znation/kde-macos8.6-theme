@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate round-button corner declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the round-button corner declaration check a focused home outside `tests/test_gtk_theme.py`.
+
+**Approach and files touched.** Moved `TestGtkTheme.test_round_button_face_corners` to `tests/test_gtk_theme_corners.py::TestGtkThemeCorners`, preserving its assertions and provenance comments. Repointed the OSD explanatory anchor and updated the source routing docstring. The invariant anchor is recorded in `docs/invariants.md`.
+
+**Acceptance criteria.** Discovery exposes the moved check without a duplicate in the source; the declaration dictionaries, selector census, selected-row exclusion and source-order assertions remain intact. The destination uses `GtkSheetRuleCases`, has a unittest entry-point guard, and can be selected independently. No rendered-pixel claim is added.
+
 ### GTK 3 suite extraction: isolate auxiliary band declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
 **Goal.** Give the related search, location, action and status band

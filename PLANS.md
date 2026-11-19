@@ -110,43 +110,6 @@ and measured list-row fixtures in `test_render_file_dialog.py`. The GTK sheets a
 (for example GTK `@import`) that is not settled here. This note queues nothing and changes no
 behavior.
 
-### GTK 3 suite extraction: isolate round-button corner declarations (planned 2026-11-18 by the plan role)
-
-**Goal.** Give the round-button corner declaration check a focused home
-outside `tests/test_gtk_theme.py`. This is independent of the waiting band
-extraction. The archived button-controls split moved action and state checks,
-not this corner check; the archived round-button feature supplied the styling.
-
-**Approach and files touched.** Move
-`TestGtkTheme.test_round_button_face_corners`, preserving its body and
-provenance comments, into new
-`tests/test_gtk_theme_corners.py::TestGtkThemeCorners`. Inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, binding
-`CSS_PATH` to `ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
-Import `ROOT` from `support.repo_root`, `gtk_css` from `support`, and
-`unittest`. Do not inherit `GtkSharedControlCases` or import another test
-module. Update the source routing docstring. Repoint the moved anchor in
-`docs/invariants.md` and the explanatory comment in
-`tests/test_gtk_theme_osd.py::TestGtkThemeOsd`; preserve their provenance.
-Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
-and `tests/support/` for further moved anchors. Leave theme sheets,
-production tools and shared helpers unchanged.
-
-**Acceptance criteria.**
-
-- Discovery exposes the named method in the destination class without a
-  duplicate in `TestGtkTheme` or inherited shared-control tests in the new
-  module. Source and destination run independently through check selectors.
-- The square corner and outline declarations, sidebar minimums, margins
-  and padding retain their existing exact checks. Changing the circular
-  button radius to a nonzero value fails the moved check.
-- The selector census retains its selected-row exclusion and exact expected
-  sets; adding an extra circular-button selector fails. Moving the circular
-  rule before the plain button, scrollbar button or trailing backdrop-link
-  rule still fails the source-order assertion.
-- Invariant anchors resolve, focused source and destination checks pass,
-  and full `make check` passes. No rendered-pixel claim is added.
-
 ### GTK 3 suite extraction: isolate secondary-label declarations (planned 2026-11-18 by the plan role)
 
 **Goal.** Give the related secondary-label ink and opacity checks a focused

@@ -407,7 +407,7 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
             # 2026-11-04: the existing round-button face corners carry the bare
             # ``modelbutton.flat`` and ``.menuitem.button.flat`` stock twins
             # (menu rows, not overlay bands, pinned by
-            # test_gtk_theme.TestGtkTheme::test_round_button_face_corners),
+            # test_gtk_theme_corners.TestGtkThemeCorners::test_round_button_face_corners),
             # excluded like the notebook arms. 2026-11-04: the linked-field
             # end-corner record restates the three
             # ``toolbar.inline-toolbar toolbutton…`` end-member arms (linked
