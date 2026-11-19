@@ -151,6 +151,47 @@ Theme sheets and shared helpers need no changes.
 - Invariant anchors resolve and full `make check` passes. This relocation
   adds no rendered-pixel claim.
 
+### GTK 3 suite extraction: isolate places-sidebar declarations (planned 2026-11-18 by the plan role)
+
+**Goal.** Give the places-sidebar palette and geometry checks a focused
+suite outside the oversized views module. This coverage relocation is
+independent of the queued menu extraction; the archived assistant-sidebar
+extraction covers a different widget family.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_places_sidebar` and `test_sidebar_row_geometry`
+from `tests/test_gtk_theme_views.py` to new
+`tests/test_gtk_theme_sidebar.py::TestGtkThemeSidebar`, preserving their
+bodies and provenance comments. Inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, with
+`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+Import `ROOT` from `support.repo_root` and `BLACK`, `ETCH_DARK`, `FACE`
+and `SELECTION` from `support.platinum_palette`. The methods use inherited
+assertions and local expectations; no new shared helper is needed. Keep
+the places-view server-button motion check in views. Update that module's
+routing docstring and remove imports only when unused. Repoint moved
+method references in `docs/invariants.md`, including the GTK 4 sidebar
+icon provenance reference, preserving guarantee and provenance text.
+Search `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+and `tests/support/` for other moved anchors. Leave theme sheets untouched.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the new class without duplicate
+  methods in views. Source and destination run independently through the
+  project's check selectors.
+- Sidebar fields, backdrop ink, bookmark ink and drag arms retain exact
+  declaration checks, the drag selector census and ordering after the
+  base sidebar field. Changing the drag-strip face from selection lavender
+  to white fails a moved check.
+- Directional seams, paned border drops, row dimensions, icon opacity and
+  directional spacing retain their declaration checks. Selection-mode
+  separator occurrence, family and ordering checks survive; adding an
+  extra separator state or duplicating a selection-mode arm fails a moved
+  check.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
