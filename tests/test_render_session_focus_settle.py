@@ -126,6 +126,75 @@ class TestSessionFocusSettle(unittest.TestCase):
             "the focus settle loop was never stopped after the capture",
         )
 
+    def _run_focus_session(self, root, path, focus_script):
+        # A stubbed one-window session: the spectacle stub returns at once,
+        # the client only waits to be stopped, and PATH holds just the
+        # tools the script needs plus whatever qdbus stub the test adds.
+        apply = root / "plasma-apply-colorscheme"
+        apply.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        apply.chmod(0o755)
+        client = root / "client.py"
+        client.write_text("import signal; signal.pause()\n", encoding="utf-8")
+        return render_workflow.run_logged(
+            [
+                "/bin/sh", "-c",
+                "spectacle() { return 0; }; "
+                + render_session.session_script(focus_script),
+                "sh", "1", str(root / "capture.png"), sys.executable,
+                str(client),
+            ],
+            {**os.environ, "PATH": f"{root}:{path}"},
+            root / "session.log", 10, root,
+        )
+
+    def test_a_missing_qdbus_names_the_tool_and_starts_no_focus_loop(self):
+        # With no qdbus on PATH the focus settle cannot load its script, so
+        # the session must name the missing tool, run no settle loop, and
+        # still finish the capture and reach its settle ceiling.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._run_focus_session(
+            root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: no qdbus for the focus settle", log)
+        self.assertNotIn("focus settle loop running", log)
+        self.assertIn("capture status 0", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+
+    def test_a_focus_script_that_does_not_load_runs_no_settle_loop(self):
+        # qdbus answers loadScript with no script id, so the settle must
+        # report that the script did not load and never run it: any
+        # invocation other than the load is recorded in runs.log.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        runs = root / "runs.log"
+        qdbus = bindir / "qdbus6"
+        qdbus.write_text(
+            "#!/bin/sh\n"
+            "case \"$*\" in\n"
+            "  *loadScript*) ;;\n"
+            f"  *) echo \"$*\" >> {runs};;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        qdbus.chmod(0o755)
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._run_focus_session(
+            root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: the focus settle script did not load", log)
+        self.assertNotIn("focus settle loop running", log)
+        self.assertFalse(runs.exists(), "the settle script was run without loading")
+
 
 if __name__ == "__main__":
     unittest.main()
