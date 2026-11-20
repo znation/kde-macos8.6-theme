@@ -28,7 +28,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         # The panel-scoped rules are the only downloadsListBox rules
         # under #downloadsPanel; the Library window's own #downloads-
         # ListBox rules live under #placesViewsBox and have their own
-        # suite in tests/test_firefox_theme_library.py.
+        # suite in tests/test_firefox_theme_library_panes.py.
         self.assertEqual(
             {name for name in self.rules
              if name.startswith("#downloadsPanel ")

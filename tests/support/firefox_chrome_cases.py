@@ -6,8 +6,9 @@ adapts this theme's Platinum controls, so every section module pins the
 same ``REQUIRED_RULES`` table against the sheet text. The sections live in
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
 ``tests/test_firefox_theme_popups.py``,
-``tests/test_firefox_theme_page_info.py`` and
-``tests/test_firefox_theme_library.py``; the sheet ships as a standalone
+``tests/test_firefox_theme_page_info.py``,
+``tests/test_firefox_theme_library.py`` and
+``tests/test_firefox_theme_library_panes.py``; the sheet ships as a standalone
 file, and ``tests/test_install_firefox.py`` pins its install and ``tests/test_remove_firefox.py`` its removal.
 """
 
