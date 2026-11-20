@@ -9,10 +9,33 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import firefox_transaction
+from tools import firefox_profile_actions, firefox_transaction
 
 
 class TestPublishInstall(unittest.TestCase):
+    def test_removal_rollback_checks_sheets_after_restoring_preferences(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            user_js = root / "user.js"
+            real_write = firefox_profile_actions.write_profile_text
+
+            def restore_preferences(path, text):
+                real_write(path, text)
+                if path == user_js:
+                    sheet.write_text("concurrent sheet", encoding="utf-8")
+
+            with mock.patch.object(
+                firefox_profile_actions, "write_profile_text", restore_preferences
+            ):
+                errors = firefox_profile_actions._restore_removed_files(
+                    [(sheet, "previous sheet")], user_js, "previous preferences", True
+                )
+
+            self.assertEqual(errors, [])
+            self.assertEqual(user_js.read_text(encoding="utf-8"), "previous preferences")
+            self.assertEqual(sheet.read_text(encoding="utf-8"), "concurrent sheet")
+
     def test_rollback_error_collection_continues_after_a_refusal(self):
         attempted = []
 

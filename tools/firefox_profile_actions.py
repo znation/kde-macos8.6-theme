@@ -115,15 +115,14 @@ def _restore_removed_files(
     rewrite_js: bool,
 ) -> list[str]:
     """Restore the preference and any owned sheets already removed."""
-    actions = []
-    if rewrite_js:
-        actions.append(lambda: write_profile_text(js_path, existing_js))
-    actions.extend(
-        lambda path=sheet_path, text=previous: write_profile_text(path, text)
-        for sheet_path, previous in owned
-        if not sheet_path.exists()
-    )
-    return collect_rollback_errors(actions)
+    def actions():
+        if rewrite_js:
+            yield lambda: write_profile_text(js_path, existing_js)
+        for sheet_path, previous in owned:
+            if not sheet_path.exists():
+                yield lambda path=sheet_path, text=previous: write_profile_text(path, text)
+
+    return collect_rollback_errors(actions())
 
 
 def remove_profile(profile: Path) -> int:
