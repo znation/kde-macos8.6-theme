@@ -1,8 +1,7 @@
 """Validate the Firefox Platinum sheet's popup paints.
 
-The identity, protections, trust and notification popups for
+The identity, protections, trust, permission and notification popups for
 the standalone ``userChrome.css``.
-
 """
 
 from __future__ import annotations
