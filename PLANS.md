@@ -46,6 +46,46 @@ moved qualified anchors. No production or stylesheet changes.
   Theme assets, source partials and generated sheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 OSD suite extraction: isolate plain push-button declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give plain OSD push-button declaration coverage a focused module,
+independent of the overlay-band and flat-button extractions.
+
+**Approach and files touched.** Move
+`TestGtkThemeOsd.test_osd_button` from `tests/test_gtk_theme_osd.py` into
+`tests/test_gtk_theme_osd_buttons.py::TestGtkThemeOsdButtons`, retaining
+its method name, provenance docstring, assertion body and inventory filters.
+Follow `tests/test_gtk_theme_osd_suggested.py`: inherit
+`OsdSelectorAssertions`, `GtkSheetRuleCases` and `unittest.TestCase`,
+set `CSS_PATH` to the shipped GTK 3 sheet through `support.repo_root.ROOT`,
+and include the unittest main guard. Import `BUTTON_BEVEL`,
+`INVERTED_BUTTON_BEVEL` and `ETCH_DARK` from `support.gtk_theme_spec`,
+and `BLACK` and `FACE` from `support.platinum_palette`. The existing
+`support.gtk_osd_cases` helper suffices; no source-local helper moves.
+Keep the scale-popup, colorchooser and queued-provenance checks in the
+source module. Remove imports only when no remaining method uses them,
+accounting for whichever sibling extractions have merged. Update the
+source routing docstring and repoint the plain OSD push-button row in
+`docs/invariants.md`, preserving its recipe and toolkit provenance.
+Search live docs and tests, including `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/`, for other moved qualified anchors.
+No production or stylesheet changes.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run execute the moved method under its new
+  class without a GUI display; the source class no longer defines it.
+- Given the shipped sheet, the moved check passes. Incorrect face,
+  active/checked bevel, disabled ink or outline declarations, or an
+  unexpected selector in its filtered plain-button inventory, fail its
+  retained assertions. The spinbutton, flat and action-class exclusions
+  continue to bound that inventory.
+- The remaining OSD module runs independently. Live qualified anchors
+  resolve to the moved method. Theme assets, source partials and generated
+  sheets have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
