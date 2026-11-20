@@ -306,7 +306,7 @@ entry, spinbutton:not(.vertical) {
    field's arm sits. Plain entry fields are untouched — only the spin
    field's overlay is the defect. The four .osd spinbutton state groups
    now carry their RTL twins beside them in the OSD entry-field record
-   below (pinned by tests/test_gtk_theme_osd.py::TestGtkThemeOsd::
+   below (pinned by tests/test_gtk_theme_osd_fields.py::TestGtkThemeOsdFields::
    test_osd_spin_field_mirrors_the_etch_in_rtl and rendered by
    tests/test_gtk_theme_spinbutton.py::TestGtkThemeSpinbutton::
    test_osd_spin_field_renders_the_mirrored_etch_in_rtl). The

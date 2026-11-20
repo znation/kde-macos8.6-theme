@@ -234,7 +234,7 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         resource's ten ``.osd spinbutton ... button`` stepper arms with
         the existing raised push-button face (the dictionary the existing
         GTK 3 sibling record
-        ``tests/test_gtk_theme_osd.py``
+        ``tests/test_gtk_theme_osd_fields.py::TestGtkThemeOsdFields``
         ::test_osd_spinbutton_buttons pins from the same specs), like the
         existing .osd check/radio and scale-thumb restatements: the raised
         #DDDDDD face with a 1px black border, zero radius, the
