@@ -50,14 +50,13 @@ def scan_placeholders(lines):
             holds_entry = False
         elif line.startswith("### "):
             holds_entry = True
+            if waiting and (section,) not in offenders:
+                offenders.append((section,))
             if waiting:
-                if (section,) not in offenders:
-                    offenders.append((section,))
                 waiting = False
         elif line.strip() == "_None yet._":
-            if holds_entry:
-                if (section,) not in offenders:
-                    offenders.append((section,))
+            if holds_entry and (section,) not in offenders:
+                offenders.append((section,))
             waiting = True
     return offenders
 
