@@ -5,48 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### GTK 3 OSD suite extraction: isolate suggested-action declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Give OSD suggested-action declaration coverage a focused module
-outside `tests/test_gtk_theme_osd.py`, independently of the queued
-title-button extraction and pending scale-thumb extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeOsd.test_osd_suggested_action` into
-`tests/test_gtk_theme_osd_suggested.py::TestGtkThemeOsdSuggested`, retaining
-the method name, assertion body and provenance docstring. Follow
-`tests/test_gtk_theme_osd_indicators.py`: inherit `GtkSheetRuleCases` and
-`unittest.TestCase`, set `CSS_PATH` to the shipped GTK 3 sheet through
-`support.repo_root.ROOT`, and include the unittest main guard. Import
-`BUTTON_BEVEL`, `INVERTED_BUTTON_BEVEL` and `ETCH_DARK` from
-`support.gtk_theme_spec`, and `BLACK` and `FACE` from
-`support.platinum_palette`.
-
-Move the shared `assert_osd_selector_count` method unchanged into a small
-`OsdSelectorAssertions` mixin in `tests/support/gtk_osd_cases.py`; both OSD
-classes inherit it. The flat, plain and destructive button checks still
-use this helper, so neither test module imports the other. Keep their
-methods and the source module's remaining imports in place. Update the
-source routing docstring and repoint the suggested-action anchor in
-`docs/invariants.md`, retaining its declaration-only provenance. Search
-live docs and tests, including `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for other
-moved qualified anchors. No production or stylesheet changes.
-
-**Acceptance criteria.**
-
-- Discovery and a focused run of the new module execute the moved method
-  under the new class; the source class no longer defines it.
-- Given the shipped sheet, the moved check passes without a GUI display.
-  An incorrect suggested-action background clip, active bevel, disabled
-  label color or extra OSD suggested-action selector fails the retained
-  assertions.
-- The remaining OSD suite runs independently, including its flat, plain
-  and destructive button selector inventories. Live invariant anchors
-  resolve to the moved method, with no stale qualified references in live
-  docs or tests. Theme assets, source partials and generated sheets have no diff.
-- `make check` passes after the final edit.
-
 ### GTK 3 suite extraction: isolate entry-tag declarations (planned 2026-11-19 by the plan role)
 
 **Goal.** Give entry-tag chips a focused declaration suite outside
