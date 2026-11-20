@@ -13,6 +13,21 @@ from tools import firefox_transaction
 
 
 class TestPublishInstall(unittest.TestCase):
+    def test_rollback_error_collection_continues_after_a_refusal(self):
+        attempted = []
+
+        def refused():
+            attempted.append("refused")
+            raise firefox_transaction.ConfigError("cannot restore first")
+
+        def succeeds():
+            attempted.append("succeeded")
+
+        errors = firefox_transaction.collect_rollback_errors((refused, succeeds))
+
+        self.assertEqual(attempted, ["refused", "succeeded"])
+        self.assertEqual(errors, ["cannot restore first"])
+
     def test_a_created_sheet_with_no_previous_is_removed_on_rollback(self):
         # A sheet the transaction itself created (no previous file) must not
         # survive a later sheet's failure: publish_install restores "the

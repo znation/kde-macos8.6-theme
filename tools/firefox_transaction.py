@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 from typing import NoReturn
 
@@ -39,6 +39,17 @@ def raise_with_rollback_errors(
             f"{failure}; {'; '.join(rollback_errors)}"
         ) from failure
     raise failure
+
+
+def collect_rollback_errors(actions: Iterable[Callable[[], None]]) -> list[str]:
+    """Run each rollback action and collect its ConfigError message."""
+    errors = []
+    for action in actions:
+        try:
+            action()
+        except ConfigError as rollback:
+            errors.append(str(rollback))
+    return errors
 
 
 def _restore_file(path: Path, previous: str | None) -> None:
@@ -84,14 +95,11 @@ def _restore_published(
     published_user_js: str,
 ) -> list[str]:
     """Restore every published path; return one message per failed restore."""
-    rollback_errors = []
-    for path, _data, previous in sheets:
-        try:
-            _restore_file(path, previous)
-        except ConfigError as rollback:
-            rollback_errors.append(str(rollback))
-    try:
-        _restore_user_js(user_js_path, previous_user_js, published_user_js)
-    except ConfigError as rollback:
-        rollback_errors.append(str(rollback))
-    return rollback_errors
+    actions = (
+        lambda path=path, previous=previous: _restore_file(path, previous)
+        for path, _data, previous in sheets
+    )
+    actions = (*actions, lambda: _restore_user_js(
+        user_js_path, previous_user_js, published_user_js
+    ))
+    return collect_rollback_errors(actions)

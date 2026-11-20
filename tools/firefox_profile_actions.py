@@ -17,7 +17,11 @@ if __package__:
         write_profile_text,
     )
     from tools.firefox_user_js import remove_user_js, set_user_js
-    from tools.firefox_transaction import publish_install, raise_with_rollback_errors
+    from tools.firefox_transaction import (
+        collect_rollback_errors,
+        publish_install,
+        raise_with_rollback_errors,
+    )
     from tools.os_error_refusal import refusing_os_errors
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
@@ -35,7 +39,11 @@ else:  # imported from a directly run tool
         write_profile_text,
     )
     from firefox_user_js import remove_user_js, set_user_js
-    from firefox_transaction import publish_install, raise_with_rollback_errors
+    from firefox_transaction import (
+        collect_rollback_errors,
+        publish_install,
+        raise_with_rollback_errors,
+    )
     from os_error_refusal import refusing_os_errors
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
@@ -107,20 +115,15 @@ def _restore_removed_files(
     rewrite_js: bool,
 ) -> list[str]:
     """Restore the preference and any owned sheets already removed."""
-    rollback_errors = []
+    actions = []
     if rewrite_js:
-        try:
-            write_profile_text(js_path, existing_js)
-        except ConfigError as rollback:
-            rollback_errors.append(str(rollback))
-    for sheet_path, previous in owned:
-        if sheet_path.exists():
-            continue
-        try:
-            write_profile_text(sheet_path, previous)
-        except ConfigError as rollback:
-            rollback_errors.append(str(rollback))
-    return rollback_errors
+        actions.append(lambda: write_profile_text(js_path, existing_js))
+    actions.extend(
+        lambda path=sheet_path, text=previous: write_profile_text(path, text)
+        for sheet_path, previous in owned
+        if not sheet_path.exists()
+    )
+    return collect_rollback_errors(actions)
 
 
 def remove_profile(profile: Path) -> int:
