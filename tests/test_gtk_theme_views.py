@@ -15,8 +15,8 @@ List, tree, icon and flow-box focus outlines are in
 face declarations are in ``tests/test_gtk_theme_row_interactions.py``.
 Vertical-stepper and content-view check corner declarations are in
 ``tests/test_gtk_theme_stepper_check_corners.py``.
-Selected icon-view fill and selected treeview check and radio faces are in
-``tests/test_gtk_theme_selected_views.py``.
+Selected icon-view fill, selected flow-box children, and selected treeview check
+and radio faces are in ``tests/test_gtk_theme_selected_views.py``.
 Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
 Needs-attention declarations are in ``tests/test_gtk_theme_attention.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
@@ -30,10 +30,6 @@ sheet's comment blocks carry each value's provenance.
 
 import unittest
 from support.gtk_rule_cases import GtkSheetRuleCases
-from support.platinum_palette import (
-    BLACK,
-    SELECTION,
-)
 from support.repo_root import ROOT
 
 CSS = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"
@@ -49,25 +45,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule_after(
             "list row.activatable:selected:backdrop",
             "list row.activatable:selected:",
-        )
-
-    def test_flowbox_child_selected_arms(self):
-        """Pin the selected children restated off the existing row selection."""
-        self.assert_rule(
-            "flowbox flowboxchild:selected",
-            {
-                "background-color": SELECTION,
-                "color": BLACK,
-                "border-radius": "0",
-            },
-        )
-        self.assert_rule(
-            "flowbox flowboxchild:backdrop:selected",
-            {
-                "background-color": SELECTION,
-                "color": BLACK,
-                "border-radius": "0",
-            },
         )
 
     def test_disabled_selected_row_and_child_arms(self):

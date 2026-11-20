@@ -1,7 +1,8 @@
 """Validate the GTK 3 Platinum sheet's selected icon-view and treeview faces.
 
-This module owns the selected icon-view fill and the selected treeview-row
-check and radio faces, split out of ``tests/test_gtk_theme_views.py``.
+This module owns the selected icon-view fill, the selected flow-box child
+arms, and the selected treeview-row check and radio faces, split out of
+``tests/test_gtk_theme_views.py``.
 """
 
 import unittest
@@ -66,6 +67,25 @@ class TestGtkThemeSelectedViews(GtkSheetRuleCases, unittest.TestCase):
                     f"iconview.content-view.check{state}:not(list)"
                     for state in check_states
                 ),
+            },
+        )
+
+    def test_flowbox_child_selected_arms(self):
+        """Pin the selected children restated off the existing row selection."""
+        self.assert_rule(
+            "flowbox flowboxchild:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "border-radius": "0",
+            },
+        )
+        self.assert_rule(
+            "flowbox flowboxchild:backdrop:selected",
+            {
+                "background-color": SELECTION,
+                "color": BLACK,
+                "border-radius": "0",
             },
         )
 
