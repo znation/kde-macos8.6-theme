@@ -53,6 +53,25 @@ class TestDialogGateRegistration(unittest.TestCase):
             self.assertFalse(Renders.completed)
 
 
+class TestIconRenderSettleBudget(unittest.TestCase):
+    """The icon dialog's render waits a generous settle before it captures.
+
+    Every dialog render sleeps its settle budget before the capture, and
+    the icon kind's default 8 s is a bare sleep: under the parallel check's
+    load the chooser can still be unmapped when the capture lands, so the
+    pins read the desktop face where the dialog's outline belongs (the
+    seven icon-dialog quarantines, BUGS.md). The GTK dialog already takes
+    the 20 s budget for the same reason; the icon kind takes it too. The
+    flags are read from the render table, so no render is started.
+    """
+
+    def test_the_icon_render_settles_for_twenty_seconds(self):
+        flags = {kind: args for kind, args, _ in Renders.KINDS}["icon"]
+        self.assertIn("--settle", flags)
+        settle = float(flags[flags.index("--settle") + 1])
+        self.assertGreaterEqual(settle, 20.0)
+
+
 class TestCandidateImageCache(unittest.TestCase):
     def _make_gate(self):
         # Mirror what setUpClass leaves on a concrete gate, without starting

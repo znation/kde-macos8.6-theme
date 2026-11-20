@@ -198,7 +198,7 @@ class Renders:
         ("calendar", ("--calendar-dialog",), "dialog.png"),
         ("calendar_locale", ("--calendar-dialog",), "dialog.png"),
         ("color", ("--color-dialog",), "dialog.png"),
-        ("icon", ("--icon-dialog",), "dialog.png"),
+        ("icon", ("--icon-dialog", "--settle", "20"), "dialog.png"),
         ("progressbar", ("--progressbar-dialog",), "dialog.png"),
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
