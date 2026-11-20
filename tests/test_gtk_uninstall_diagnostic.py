@@ -152,5 +152,48 @@ class TestGtkLatchThroughTheRecipe(unittest.TestCase):
         self.assertEqual(original, read_bytes(path), "uninstall must not edit the ini")
 
 
+class TestGtkUserCssMarker(unittest.TestCase):
+    """The GTK 4 user CSS warns only when its first line is our marker."""
+
+    def css_path(self, config):
+        return os.path.join(str(config), "gtk-4.0", "gtk.css")
+
+    def write_css(self, config, data):
+        path = self.css_path(config)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as handle:
+            handle.write(data)
+        return path
+
+    def test_a_marker_behind_a_utf8_bom_still_warns(self):
+        # CSS allows a UTF-8 BOM and editors add one; the BOM must not hide
+        # the marker, so the reset is still named for the stylesheet.
+        tmp = make_tmp_dir(self)
+        path = self.write_css(
+            tmp, b"\xef\xbb\xbf" + CSS_MARKER.encode("utf-8") + b"\n"
+        )
+        messages = gtk_messages(tmp)
+        self.assertEqual(len(messages), 1)
+        self.assertIn(path, messages[0])
+        self.assertIn("make remove-gtk", messages[0])
+
+    def test_a_marker_on_a_later_line_stays_silent(self):
+        # Only the first line identifies the file as ours; the marker text
+        # further down belongs to a foreign stylesheet.
+        tmp = make_tmp_dir(self)
+        self.write_css(tmp, ("/* foreign */\n" + CSS_MARKER + "\n").encode())
+        self.assertEqual(gtk_messages(tmp), [])
+
+    def test_a_marker_css_alone_names_only_the_stylesheet(self):
+        # With no settings.ini naming ours, the message lists only gtk.css
+        # and never the settings files.
+        tmp = make_tmp_dir(self)
+        path = self.write_css(tmp, (CSS_MARKER + "\n").encode())
+        messages = gtk_messages(tmp)
+        self.assertEqual(len(messages), 1)
+        self.assertIn(f" {path};", messages[0])
+        self.assertNotIn("settings.ini", messages[0])
+
+
 if __name__ == "__main__":
     unittest.main()
