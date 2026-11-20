@@ -5,6 +5,113 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK stylesheet parser tests: move the rule-block brace-pairing cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the review role
+
+**Goal.** `tests/test_gtk_css.py` is still 724 lines after the `@define-color` move, and
+PRINCIPLES.md asks for files small enough to read in one sitting. Its `TestRuleBlockSemantics`
+class ends with seven cases that pin how the rule scanner pairs `{`/`}` into blocks (nesting,
+braces inside strings, `url()`, parentheses and square brackets, stray closers), as distinct
+from the declaration-splitting, grouping and whitespace cases before them. This plan moves
+those seven cases into a new module, following the `tests/test_gtk_css_define_color.py`
+precedent. No parser behavior or test body changes. It is independent of the Firefox
+installer test move and the Stylesheet sources series; neither touches these files.
+
+**Approach and files touched.**
+
+- New `tests/test_gtk_css_blocks.py` with one class, `TestRuleBlockPairing(unittest.TestCase)`.
+  Its class docstring says it pins how `parse_css` pairs braces into rule blocks: a nested
+  block replaces the pending selector, a brace inside a quoted string, a `url()` token,
+  parentheses or square brackets is text, and a stray `)` or `}` cannot hide a later block.
+  Its module docstring says this, and that the declaration-splitting, grouping and whitespace
+  cases remain in `tests/test_gtk_css.py`, the declaration-merging cases in
+  `tests/test_gtk_css_cascade.py` and the `@define-color` cases in
+  `tests/test_gtk_css_define_color.py`. Move these methods verbatim, in their current order,
+  from `TestRuleBlockSemantics`:
+  `test_a_nested_block_replaces_the_pending_selector`,
+  `test_a_brace_inside_a_quoted_string_does_not_pair_a_block`,
+  `test_a_brace_inside_an_unquoted_url_value_is_text`,
+  `test_braces_inside_square_bracket_values_are_preserved`,
+  `test_a_quoted_url_parenthesis_does_not_end_value_grouping`,
+  `test_a_stray_closing_parenthesis_does_not_hide_a_brace_either`,
+  `test_a_stray_closing_brace_is_skipped`.
+  As of this plan their bodies call only `parse_css` (no `itertools`, `time` or class
+  helper), so import `unittest` and `parse_css` from `support.gtk_css`; nothing goes into
+  `tests/support/`. Grep the moved bodies after the move to confirm.
+- `tests/test_gtk_css.py`: delete the seven methods. Keep its imports: `itertools` (used by
+  `test_escaped_trailing_value_whitespace_is_preserved`), `time` (`TestHostileStylesheet`),
+  `parse_css`, `strip_comments` and `inline_link_state_selectors` all stay in use.
+- Sibling docstrings that say "the rule-pairing … cases remain in `tests/test_gtk_css.py`":
+  `tests/test_gtk_css_cascade.py` and `tests/test_gtk_css_define_color.py` module docstrings.
+  Point the rule-pairing clause at `tests/test_gtk_css_blocks.py`, keeping the grouping and
+  whitespace clause on `tests/test_gtk_css.py`.
+- `docs/invariants.md`, `## gtk` parser rows: rewrite every
+  `tests/test_gtk_css.py::TestRuleBlockSemantics::<moved method>` anchor to
+  `tests/test_gtk_css_blocks.py::TestRuleBlockPairing::<moved method>`. As of this plan the
+  hits are the row beginning "Rule braces inside balanced square-bracket values"
+  (`test_braces_inside_square_bracket_values_are_preserved`) and the "removes comments and
+  pairs rule blocks without the quadratic backtracking" row (three moved anchors:
+  `test_a_brace_inside_a_quoted_string_does_not_pair_a_block`,
+  `test_a_brace_inside_an_unquoted_url_value_is_text`,
+  `test_a_stray_closing_parenthesis_does_not_hide_a_brace_either`). Leave anchors to methods
+  that stay.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`,
+  `README.md` and `tests/support/validation_gaps/*.py` for the seven method names; as of this
+  plan none hit outside `tests/test_gtk_css.py` and `docs/invariants.md`. Update any hit that
+  turns up. These are not render gates, so `_GATE_FILES` does not apply. Archives
+  (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_gtk_css_blocks.py` defines `TestRuleBlockPairing` with exactly the seven methods
+  above, same names and bodies; none of those seven names is defined in `tests/test_gtk_css.py`.
+- The `test_*` method names in `tests/test_gtk_css.py` plus the new module equal the set the
+  original `tests/test_gtk_css.py` defined, nothing lost or duplicated. `tests/test_gtk_css.py`
+  is under 600 lines (`wc -l`).
+- `grep -rn 'test_gtk_css.py::TestRuleBlockSemantics::test_\(a_nested_block\|a_brace\|braces\|a_quoted_url_paren\|a_stray_closing\)' docs tests`
+  prints nothing, and the invariants-anchor tests pass with the rewritten anchors.
+- No sibling `tests/test_gtk_css_*.py` docstring still says the rule-pairing cases are in
+  `tests/test_gtk_css.py`.
+- No file under `theme/`, `tools/`, `tests/support/gtk_css.py` or the `Makefile` changes.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
+### GTK 3 suite extraction: isolate application notification declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
+
+**Goal.** Give the application notification band and frame checks a focused
+suite outside `tests/test_gtk_theme.py`. This extraction is independent of
+the notebook and infobar entries; notification button-state checks stay
+with the existing OSD coverage.
+
+**Approach and files touched.** Move `TestGtkTheme.test_app_notification_band`
+and `test_app_notification_frame_border`, preserving bodies and comments,
+to new `tests/test_gtk_theme_notification.py::TestGtkThemeNotification`.
+Inherit `support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`,
+setting `CSS_PATH` to
+`ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"`.
+Import `ROOT` from `support.repo_root`, `gtk_css` from `support`,
+`BLACK`, `FACE` and `WHITE` from `support.platinum_palette`, and
+`ETCH_DARK` from `support.gtk_theme_spec`, plus `re` and `unittest`.
+Do not inherit `GtkSharedControlCases` or import another test module.
+Update the source routing docstring and prune imports only when unused.
+Repoint the moved anchors in `docs/invariants.md`, preserving their
+provenance. Search `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/` for other moved anchors.
+Leave shared helpers, stylesheets and production tools unchanged.
+
+**Acceptance criteria.**
+
+- Discovery exposes the named methods in the new class without duplicates
+  in `TestGtkTheme` or inherited shared-control tests in the new module.
+  Source and destination run independently through check selectors.
+- Notification base, frame and backdrop declarations still require the
+  existing face, ink, square corners and etched edge. Reversing the border
+  reset and bottom-border declarations fails the extracted checks.
+- The exact notification selector census remains checked; an added
+  notification selector fails. Direct border children still require
+  precisely the border-style and box-shadow resets, so a restored frame
+  shadow fails.
+- Invariant anchors resolve, focused source and destination checks pass,
+  and full `make check` passes. No rendered-pixel claim is added.
+
 ### GTK stylesheet parser tests: isolate whitespace normalization cases (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Make the whitespace contract readable separately from declaration splitting and
