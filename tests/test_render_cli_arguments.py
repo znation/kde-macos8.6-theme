@@ -90,6 +90,13 @@ class TestRenderCliArguments(unittest.TestCase):
         self.assertIn("--timeout", stderr)
         self.assertIn("finite number of seconds", stderr)
 
+    def test_rejects_a_nan_timeout(self):
+        # NaN does not compare greater than or equal to the one-second
+        # minimum, so it cannot provide the session's required time bound.
+        stderr = self.assert_usage_error("out.png", "--timeout", "nan")
+        self.assertIn("--timeout", stderr)
+        self.assertIn("finite number of seconds", stderr)
+
     def test_rejects_a_timeout_not_longer_than_settle(self):
         for settle, timeout in (("10", "10"), ("10", "9.5"), ("10", "1")):
             with self.subTest(settle=settle, timeout=timeout):
