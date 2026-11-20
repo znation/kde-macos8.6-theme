@@ -200,6 +200,34 @@ class TestRenderReadiness(unittest.TestCase):
             "#!/bin/sh\nexec sleep 30\n",
         )
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        # The pin is behavioral, not temporal: every wall-clock span in this
+        # session includes fork/exec latency that a loaded host makes
+        # unbounded (the hosted runner measured 873 ms of Python client
+        # startup here, 2026-11-20, putting a correct session at 902 ms
+        # against the old 900 ms bound, and the `client ready at` stamp is
+        # emitted after the grace loop, so it cannot anchor a bound). The
+        # sleep stub records every 0.1 s tick taken while the ready file
+        # exists and the capture does not: the grace loop's ticks only
+        # happen when a ready file earned the grace, and a settle loop that
+        # ignores the ready file until the ceiling keeps polling with the
+        # file present. The spectacle stub touches the capture, so the
+        # termination wait's tick (after the capture) is never recorded.
+        # A correct session records at most one tick, the race where the
+        # client's touch lands between the settle loop's existence check
+        # and the stub's own check of that same tick; the touch is a
+        # single instant, so two ticks cannot both span it. The regressions
+        # record ten-plus ticks (measured: grace 11, ignored-ready 30) and
+        # fail.
+        sleep_record = root / "sleep-ticks"
+        write_executable(
+            bindir / "sleep",
+            "#!/bin/sh\n"
+            'if [ "$1" = 0.1 ] && [ -e "$RENDER_SESSION_READY_FILE" ] '
+            f'&& [ ! -e "{root / "capture.png"}" ]; then\n'
+            f'  echo tick >> "{sleep_record}"\n'
+            "fi\n"
+            'exec /usr/bin/sleep "$@"\n',
+        )
         write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
         client = root / "client.py"
         client.write_text(
@@ -211,7 +239,8 @@ class TestRenderReadiness(unittest.TestCase):
         status = render_workflow.run_logged(
             [
                 "/bin/sh", "-c",
-                "spectacle() { return 0; }; " + render_session.session_script(
+                'spectacle() { touch "$capture"; return 0; }; '
+                + render_session.session_script(
                     readiness_script="/scratch/readiness.js"
                 ),
                 "sh", "3", str(root / "capture.png"), sys.executable,
@@ -223,12 +252,15 @@ class TestRenderReadiness(unittest.TestCase):
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
         self.assertIn("render-session: client ready at", log)
-        stamps = {}
-        for line in log.splitlines():
-            for stage in ("client started", "settle done"):
-                if line.startswith(f"render-session: {stage} at "):
-                    stamps[stage] = int(line.rsplit(" ", 1)[1])
-        self.assertLess(stamps["settle done"] - stamps["client started"], 900, log)
+        ticks = (
+            len(sleep_record.read_text(encoding="utf-8").splitlines())
+            if sleep_record.exists() else 0
+        )
+        self.assertLessEqual(
+            ticks, 1,
+            f"{ticks} post-ready settle ticks recorded"
+            + (f": {sleep_record.read_text(encoding='utf-8')}" if ticks else ""),
+        )
 
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)
