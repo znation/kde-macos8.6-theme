@@ -128,6 +128,8 @@ and `docs/invariants.md`'s `## gtk` rows.
 
 ### Group the flat tools/ modules into per-subsystem packages (planned 2026-11-19 by the organize role)
 
+**Needs review 2026-11-19 by feature: too large for one run** — 106 modules in `tools/`, about 195 import lines matching the prefixed families across the tree (grep `from tools.<family>_` / `import <family>_`), plus every `mock.patch` target, the Makefile and docs; the whole move must land as one change, which exceeds one run's scope.
+
 **Goal.** `tools/` holds 107 flat modules with no grouping beyond their name
 prefixes: `render_` (12), `fidelity_` (12), `sample_` (11), `cursor_` (10),
 `check_` (7), `firefox_` (5), `apply_` (5), `uninstall_` (4), `gtk_` (4), plus
