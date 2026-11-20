@@ -138,6 +138,26 @@ class TestRenderReadiness(unittest.TestCase):
         # Allow scheduling slack, but reject an unconditional one-second grace.
         self.assertLess(stamps["settle done"] - stamps["client started"], 900, log)
 
+    def test_dbus_readiness_gets_paint_grace_when_the_ceiling_allows_it(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        write_executable(
+            bindir / "dbus-monitor",
+            "#!/bin/sh\necho 'member=ClientReady'\nexec sleep 30\n",
+        )
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+
+        started = time.monotonic()
+        status = self._session(root, f"{bindir}:/usr/bin:/bin", 3)
+        elapsed = time.monotonic() - started
+        log = (root / "session.log").read_text(encoding="utf-8")
+
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: client ready at", log)
+        self.assertGreaterEqual(elapsed, 0.8, log)
+        self.assertLess(elapsed, 2.5, log)
+
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
