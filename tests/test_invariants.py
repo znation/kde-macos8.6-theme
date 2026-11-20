@@ -183,6 +183,21 @@ class TestHelpers(unittest.TestCase):
                     },
                 )
 
+    def test_parse_rows_preserves_a_backslash_before_an_unrecognized_escape(self):
+        # The parser only consumes Markdown escapes for a pipe or another
+        # backslash. A Windows-style path containing ``\q`` must retain both
+        # characters instead of silently losing the path separator.
+        sections = parse_rows(
+            "## aurorae\n\n"
+            "| Guarantee | Test | Provenance exception |\n"
+            "| --- | --- | --- |\n"
+            f"| The path C:\\q holds. | `{self.MODULE}::TestFake` | none |\n"
+        )
+        self.assertEqual(
+            sections["aurorae"],
+            [Row("The path C:\\q holds.", [f"{self.MODULE}::TestFake"], "none")],
+        )
+
     def test_parse_rows_rejects_a_row_that_is_not_three_cells(self):
         # A line that starts with a pipe is a table row. One that splits into
         # two or four cells is malformed; dropping it would leave its
