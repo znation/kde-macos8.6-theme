@@ -556,6 +556,17 @@ class TestProfileResolution(FirefoxProfileTestCase):
         self.assertIn(str(self.firefox_root), message)
         self.assertIn(str(self.firefox_root / "absent"), message)
 
+    def test_discovery_without_any_profile_file_raises_when_not_optional(self):
+        # No ~/.mozilla/firefox at all: no candidate exists, so the required
+        # (non-optional) resolution must refuse rather than return None.
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+        message = str(caught.exception)
+        self.assertIn(str(self.firefox_root), message)
+        self.assertTrue(
+            message.endswith("candidates tried: none"), message
+        )
+
 
 
 
