@@ -166,16 +166,14 @@ class TestIsCompleteTerminatedFormats(unittest.TestCase):
 
     def test_requires_terminal_marker_and_minimum_size(self):
         cases = (
-            (PNG, image_format.TERMINAL_PNG, image_format.PNG_MAGIC,
-             "PNG"),
-            (JPEG, image_format.TERMINAL_JPEG, image_format.JPEG_MAGIC,
-             "JPEG"),
-            (GIF87A, image_format.TERMINAL_GIF, image_format.GIF_MAGICS[0],
-             "GIF"),
+            # Signature plus terminator: PNG 8 + 12, JPEG 3 + 2,
+            # and GIF 6 + 1. Pin wire bytes independently of production.
+            (PNG, b"\x00\x00\x00\x00IEND\xaeB`\x82", 20, "PNG"),
+            (JPEG, b"\xff\xd9", 5, "JPEG"),
+            (GIF87A, b";", 7, "GIF"),
         )
-        for head, terminal, magic, name in cases:
+        for head, terminal, minimum_size, name in cases:
             with self.subTest(format=name):
-                minimum_size = len(magic) + len(terminal)
                 self.assertTrue(
                     image_format.is_complete(head, terminal, minimum_size)
                 )
