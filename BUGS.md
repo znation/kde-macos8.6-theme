@@ -242,6 +242,18 @@ check: 468 modules, 1 module failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
 
+### Seven icon-dialog render gates failed with the same pixel mismatch (found by the steward role 2026-11-19)
+
+The seven quarantines immediately below all come from `test_render_dialog_gates.TestIconDialogRender`.
+They are `test_draws_the_flat_window_face`, `test_draws_the_grid_field_top_edge`,
+`test_draws_the_push_button_face_at_the_existing_recipe`,
+`test_draws_the_push_button_frame_and_cell`, `test_draws_the_search_field`,
+`test_writes_a_480x360_png` and `test_exits_zero`. Each failed with the same assertion mismatch,
+expected `#000000` but observed `#CCCCCC`, and passed on a rerun of the same tree. Treat them as
+one unresolved incident for triage because they share a test class, observed value and check run.
+The available excerpts do not show why the capture contained `#CCCCCC`; use a recurrence to
+gather render-session evidence before assigning a cause.
+
 ### `test_draws_the_flat_window_face (test_render_dialog_gates.TestIconDialogRender.test_draws_the_flat_window_face)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
