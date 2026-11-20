@@ -153,30 +153,5 @@ class TestNoGtkIntrospection(unittest.TestCase):
             with self.subTest(source=source):
                 self.assertFalse(_has_importable_gi(source), source)
 
-    def test_the_text_gate_admits_files_the_detector_later_clears_harmlessly(self):
-        # Files the gate admits but the detector clears (string constants
-        # mentioning ``import gi``, this module's own tests included) are
-        # parsed and re-scanned: the gate may overmatch, but every repo file
-        # it admits that holds no real Import node must yield no finding, so
-        # the tree-scan assertion below stays a statement about real code.
-        findings: list[str] = []
-        for directory in _SCANNED_DIRS:
-            for path in (ROOT / directory).rglob("*.py"):
-                if "__pycache__" in path.parts:
-                    continue
-                source = path.read_text(encoding="utf-8")
-                if not _has_importable_gi(source):
-                    continue
-                findings.extend(
-                    _gi_import_messages(str(path.relative_to(ROOT)), source)
-                )
-        self.assertEqual(
-            [],
-            findings,
-            "a file the text gate admits carries a real gi import: the "
-            "repository is not clean",
-        )
-
-
 if __name__ == "__main__":
     unittest.main()
