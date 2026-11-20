@@ -274,6 +274,22 @@ class TestRenderReadiness(unittest.TestCase):
         self.assertEqual(0, status)
         self.assertIn("settle ceiling reached before a client ready file", log)
 
+    def test_an_early_closed_monitor_fifo_falls_back_to_the_settle_ceiling(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        write_executable(bindir / "dbus-monitor", "#!/bin/sh\nexit 0\n")
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+
+        status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
+        log = (root / "session.log").read_text(encoding="utf-8")
+
+        self.assertEqual(0, status, log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertNotIn("client ready at", log)
+
     def test_a_missing_dbus_monitor_names_the_tool_and_keeps_the_ceiling(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
