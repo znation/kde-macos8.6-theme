@@ -21,8 +21,9 @@ from pathlib import Path
 # truncates the path or splits the address, so the session tools reach the
 # wrong socket or none; each becomes its uppercase percent escape instead,
 # which every reader of ``DBUS_SESSION_BUS_ADDRESS`` decodes back to the
-# same byte. A path holding none of them is returned unchanged.
-_ADDRESS_SYNTAX = {"%": "%25", ";": "%3B", ",": "%2C", "=": "%3D"}
+# same byte. Spaces must also be escaped for a valid address value.
+# A path holding none of them is returned unchanged.
+_ADDRESS_SYNTAX = {"%": "%25", ";": "%3B", ",": "%2C", "=": "%3D", " ": "%20"}
 
 
 def _escape_address_value(value: str) -> str:
