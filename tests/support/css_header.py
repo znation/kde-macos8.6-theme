@@ -10,6 +10,7 @@ sites are ``FirefoxChromeTestCase`` (serving the provenance tests of
 ``tests/test_firefox_theme_popups.py``,
 ``tests/test_firefox_theme_page_info.py``,
 ``tests/test_firefox_theme_page_info_groupbox.py``,
+``tests/test_firefox_theme_page_info_trees.py``,
 ``tests/test_firefox_theme_library.py``
 and ``tests/test_firefox_theme_library_panes.py``) and ``FirefoxContentTestCase`` in
 ``tests/support/firefox_content_cases.py``.

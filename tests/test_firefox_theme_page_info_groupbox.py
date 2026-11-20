@@ -1,7 +1,8 @@
 """Validate the Firefox Page Info security groupbox declarations.
 
 Other Page Info surfaces are covered by
-``tests/test_firefox_theme_page_info.py``.
+``tests/test_firefox_theme_page_info.py``; meta and image trees are covered
+by ``tests/test_firefox_theme_page_info_trees.py``.
 """
 
 from __future__ import annotations
