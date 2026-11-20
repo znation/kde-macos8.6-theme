@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import stat
 
 # unittest discovery loads only valid Python module filenames.
 _VALID_MODULE_NAME = __import__("re").compile(r"[_a-zA-Z]\w*\.py$")
@@ -51,13 +52,21 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
                 if item.is_symlink():
                     continue
                 is_directory = item.is_dir()
-            except OSError:
+            except OSError as entry_error:
                 # Unlike DirEntry predicates, the original path checks
                 # suppress metadata errors (e.g. on filesystems that need
-                # a stat call to determine an entry's type).
-                if os.path.islink(item.path):
-                    continue
-                is_directory = os.path.isdir(item.path)
+                # a stat call to determine an entry's type). Use explicit
+                # stat calls so a second metadata failure cannot silently
+                # omit a test module from the run.
+                try:
+                    metadata = os.lstat(item.path)
+                    if stat.S_ISLNK(metadata.st_mode):
+                        continue
+                    is_directory = stat.S_ISDIR(os.stat(item.path).st_mode)
+                except OSError as exc:
+                    raise DiscoveryError(
+                        f"cannot inspect {item.path}: {exc}"
+                    ) from entry_error
             if is_directory:
                 if os.path.isfile(os.path.join(item.path, "__init__.py")):
                     visit(item.path, f"{prefix}{entry}.")

@@ -100,6 +100,26 @@ class TestDiscovery(unittest.TestCase):
                         check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
                     )
 
+    def test_unavailable_fallback_metadata_is_reported_not_skipped(self):
+        tests_dir = make_suite_dir(self)
+        _write_module(tests_dir, "test_ok.py", OK_MODULE)
+        entry = mock.Mock()
+        entry.name = "test_ok.py"
+        entry.path = os.path.join(tests_dir, entry.name)
+        entry.is_symlink.side_effect = PermissionError(13, "Permission denied")
+        scan = mock.MagicMock()
+        scan.__enter__.return_value = iter([entry])
+        with mock.patch(
+            "tools.check_parallel_discovery.os.scandir", return_value=scan
+        ), mock.patch(
+            "tools.check_parallel_discovery.os.lstat",
+            side_effect=PermissionError(13, "Permission denied"),
+        ):
+            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
+                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        self.assertIn(entry.path, str(raised.exception))
+        self.assertIn("Permission denied", str(raised.exception))
+
     def test_non_package_directories_are_not_recursed(self):
         # discover recurses into a subdirectory only when it is a package;
         # a test*.py file under a plain directory stays invisible, as
