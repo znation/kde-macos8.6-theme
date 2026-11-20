@@ -249,6 +249,28 @@ class TestRenderReadiness(unittest.TestCase):
         self.assertIn("settle ceiling reached before a client ready file", log)
         self.assertFalse(started_marker.exists(), log)
 
+    def test_a_failed_fifo_creation_starts_no_readiness_listener(self):
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        started_marker = root / "monitor.started"
+        write_executable(
+            bindir / "dbus-monitor",
+            f"#!/bin/sh\ntouch {started_marker}\nexec sleep 30\n",
+        )
+        write_executable(bindir / "mkfifo", "#!/bin/sh\nexit 1\n")
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+
+        status = self._session(root, str(bindir), 1)
+        log = (root / "session.log").read_text(encoding="utf-8")
+
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: cannot create readiness listener pipe", log)
+        self.assertIn("settle ceiling reached before a client ready file", log)
+        self.assertFalse(started_marker.exists(), log)
+
     def test_a_non_numeric_readiness_id_is_not_run_and_the_ceiling_still_ends_the_session(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
