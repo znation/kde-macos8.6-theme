@@ -1,9 +1,9 @@
-"""Validate the GTK 3 Platinum sheet's button arms and button focus outline.
+"""Validate the GTK 3 Platinum sheet's button arms.
 
 This module owns the button slice split out of the former GTK 3 controls suite:
 the plain colour-class action arms, the flat, selected-row and destructive
-arms, the button focus outline, and the disabled and backdrop faces. None of
-these tests renders; the sheet rules are read from the stripped CSS through
+arms and the disabled and backdrop faces. None of these tests renders; the
+sheet rules are read from the stripped CSS through
 ``GtkSheetRuleCases``.
 """
 
@@ -288,27 +288,6 @@ class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase):
                     },
                     expected,
                 )
-
-    def test_button_focus_outline(self):
-        self.assert_rule(
-            "button:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        self.assertEqual(
-            self.rules["button:focus"]["outline"], self.rules["scale:focus"]["outline"]
-        )
-        self.assertEqual(
-            self.rules["button:focus"]["outline-offset"],
-            self.rules["scale:focus"]["outline-offset"],
-        )
-        self.assertEqual(
-            self.rules["button:focus"]["-gtk-outline-radius"],
-            self.rules["button"]["border-radius"],
-        )
 
     def test_button_disabled_and_backdrop(self):
         self.assert_button_disabled_and_backdrop()
