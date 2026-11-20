@@ -137,6 +137,8 @@ Whichever plan merges second keeps the other's module name in those lists.
 - `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
   passes, and `make check` passes after the final edit.
 
+## Done
+
 ### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Separate the permission popup's remove-button and dropdown checks
@@ -188,8 +190,6 @@ This is independent of the queued bookmark-editor and Page Info extractions.
   outside historical backlog records names the moved method's old location.
 - The focused popup, permission-popup, shell and invariants suites pass
   through the existing check runner; `make check` passes after the final edit.
-
-## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
