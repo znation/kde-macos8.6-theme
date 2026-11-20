@@ -41,6 +41,42 @@ this extraction needs no shared-helper move or production change.
   sheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: isolate button focus-outline declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give button keyboard-focus declaration coverage a focused module
+outside `tests/test_gtk_theme_buttons.py`, independently of the waiting
+entry-tag extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeButtons.test_button_focus_outline` unchanged into
+`tests/test_gtk_theme_button_focus.py::TestGtkThemeButtonFocus`.
+Follow `tests/test_gtk_theme_view_focus.py`: inherit `GtkSheetRuleCases`
+and `unittest.TestCase`, set `CSS_PATH` to the shipped GTK 3 sheet through
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`BLACK` from `support.platinum_palette`. The method uses no source-local
+helper; keep the button-arm helpers, remaining tests and their imports
+in the source module, including `BLACK`, which its other checks use.
+Update the source routing docstring and repoint the button-focus row in
+`docs/invariants.md`, retaining its missing-reference and toolkit
+provenance. Search live docs and tests, including `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/`, for other moved qualified anchors.
+No production or stylesheet changes.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run of the new module execute the moved method
+  under its new class without a GUI display; the source class no longer
+  defines it.
+- Given the shipped sheet, the moved check passes. A wrong button focus
+  outline, offset or GTK outline radius fails its retained assertions,
+  as does a mismatch with the scale focus recipe or button corner radius.
+- The remaining button suite runs independently. Live invariant anchors
+  resolve to the moved method, and live docs and tests contain no stale
+  qualified references to it. Theme assets, source partials and generated
+  sheets have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
