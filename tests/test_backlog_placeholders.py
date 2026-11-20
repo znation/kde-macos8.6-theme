@@ -51,11 +51,13 @@ def scan_placeholders(lines):
         elif line.startswith("### "):
             holds_entry = True
             if waiting:
-                offenders.append((section,))
+                if (section,) not in offenders:
+                    offenders.append((section,))
                 waiting = False
         elif line.strip() == "_None yet._":
             if holds_entry:
-                offenders.append((section,))
+                if (section,) not in offenders:
+                    offenders.append((section,))
             waiting = True
     return offenders
 
@@ -100,6 +102,15 @@ class TestScanPlaceholders(unittest.TestCase):
         lines = (
             "## Open\n\n_None yet._\n\n"
             "_None yet._\n\n### A bug\n"
+        ).splitlines()
+        self.assertEqual(scan_placeholders(lines), [("## Open",)])
+
+    def test_placeholder_and_later_entry_report_the_section_once(self):
+        # A placeholder after an entry reports immediately; a later entry
+        # must not append the same section a second time.
+        lines = (
+            "## Open\n\n### First bug\n\n_None yet._\n\n"
+            "### Second bug\n"
         ).splitlines()
         self.assertEqual(scan_placeholders(lines), [("## Open",)])
 
