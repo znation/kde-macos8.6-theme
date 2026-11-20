@@ -138,54 +138,6 @@ Whichever plan merges second keeps the other's module name in those lists.
   passes, and `make check` passes after the final edit.
 
 
-### Firefox shell suite extraction: isolate main-window menubar checks (planned 2026-11-20 by the plan role)
-
-**Goal.** Give the main-window menubar's geometry and open-title paint a
-focused suite instead of keeping them in the mixed chrome-shell suite.
-This is independent of the queued bookmark-editor extraction; preserve its
-module name if it has already been added to the shared support docstring.
-
-**Approach and files touched.**
-
-- Create `tests/test_firefox_theme_menubar.py` with
-  `TestFirefoxMenubar(FirefoxChromeTestCase)` and move
-  `test_menubar_title_geometry_matches_the_menubaritem_margins` and
-  `test_menubar_open_title_paint_is_scoped_to_the_open_title` from
-  `tests/test_firefox_theme_shell.py` verbatim, including comments and
-  formatting. Import `re`, `unittest`, `MENUBARITEM_SVG` from
-  `support.desktoptheme_paths`, `MENU_STOCK_BOTTOM_BORDER`, `REQUIRED_RULES`
-  and `FirefoxChromeTestCase` from `support.firefox_chrome_cases`,
-  `parse_svg` from `support.svg_case`, and `rect_geometry` from
-  `svg_assertions`. Add a focused module docstring and the usual unittest
-  main footer. The methods use no shell-local helpers.
-- Remove those methods and their now-unused imports (`re`,
-  `MENUBARITEM_SVG`, `MENU_STOCK_BOTTOM_BORDER`, `parse_svg`,
-  `rect_geometry`) from the shell module. Describe its menubar provenance
-  coverage accurately: the whole-sheet header check stays there.
-- Add the new suite to the section-module list in
-  `tests/support/firefox_chrome_cases.py`. It has no provenance method,
-  so do not add it to `tests/support/css_header.py`'s provenance list.
-- Update the menubar-title invariant row in `docs/invariants.md` to name
-  the moved methods' new class and module. Keep the shell anchors for
-  staying methods. Search docs, tests, README and Makefile for the moved
-  method names and old class/module anchors, including `docs/rendering.md`,
-  `docs/fidelity.md`, `tests/test_ci_workflow.py` and
-  `tests/support/validation_gaps/*.py` (L1); correct any stale moved anchor.
-
-**Acceptance criteria.**
-
-- Unittest discovery exposes the two named methods under
-  `test_firefox_theme_menubar.TestFirefoxMenubar`, with no definitions left
-  in the shell suite. Their source bodies, comments and formatting match
-  their pre-move versions; the existing geometry and selector assertions
-  still pass against the shipped sheet and SVG.
-- The invariant register resolves the menubar methods at their new paths;
-  staying shell coverage, including its header-provenance assertions,
-  continues to pass. No shipped stylesheet or artwork changes.
-- The focused shell, menubar and invariants suites pass through
-  `make check CHECK_TESTS='test_firefox_theme_shell test_firefox_theme_menubar test_invariants'`,
-  followed by a passing `make check` after the final edit.
-
 ## Done
 
 ### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the review role

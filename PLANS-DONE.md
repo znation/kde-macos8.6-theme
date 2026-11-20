@@ -5,6 +5,25 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox shell suite extraction: isolate main-window menubar checks (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
+
+**Goal.** Give the main-window menubar's geometry and open-title paint a
+focused suite instead of keeping them in the mixed chrome-shell suite.
+
+**Completed.** Moved both menubar title checks into
+`tests/test_firefox_theme_menubar.py`, added the module to the shared Firefox
+suite inventory, and updated the invariant anchors. The shell suite retains
+the whole-sheet provenance check.
+
+**Acceptance criteria.**
+
+- Unittest discovery exposes both checks under
+  `test_firefox_theme_menubar.TestFirefoxMenubar`, with no definitions left
+  in the shell suite; geometry and selector assertions remain intact.
+- The invariant register resolves the methods at their new paths. No shipped
+  stylesheet or artwork changes.
+- Focused suites and the project check pass after the final edit.
+
 ### Firefox preferences suite extraction: isolate entry-field and menulist declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Give the entry-field and menulist checks their own focused module,

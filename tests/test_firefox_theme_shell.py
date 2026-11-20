@@ -1,6 +1,6 @@
 """Validate the Firefox Platinum sheet's chrome shell and whole-sheet rules.
 
-The menubar, tab strip, search field, sidebar, find bar and tooltip paints,
+The tab strip, search field, sidebar, find bar and tooltip paints,
 the exact palette and the whole-sheet hygiene checks (required rules, no
 ``@``-rule or import, no Adwaita fallback, no universal selectors, the
 header's provenance and preference note, and the README's pointer) for the
@@ -9,14 +9,11 @@ standalone ``userChrome.css``.
 
 from __future__ import annotations
 
-import re
 import unittest
 
-from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.css_header import comment_header
 from support.firefox_chrome_cases import (
     BUTTON_REFERENCES,
-    MENU_STOCK_BOTTOM_BORDER,
     REQUIRED_RULES,
     SHEET_PATH,
     VIEWITEM_REFERENCES,
@@ -34,8 +31,6 @@ from support.platinum_palette import (
     TROUGH,
     WHITE,
 )
-from support.svg_case import parse_svg
-from svg_assertions import rect_geometry
 
 
 class TestFirefoxChromeShell(FirefoxChromeTestCase):
@@ -149,63 +144,6 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
                 with self.subTest(selected_only=name):
                     self.assertNotIn("background-color", self.rules[name])
         self.assert_rule_names_scoped_to("multiselected", {selected, hover})
-
-    def test_menubar_title_geometry_matches_the_menubaritem_margins(self):
-        selector = "#toolbar-menubar menubar > menu"
-        geometry = rect_geometry(parse_svg(MENUBARITEM_SVG))
-        top = int(geometry["normal-hint-top-margin"][3])
-        bottom = int(geometry["normal-hint-bottom-margin"][3])
-        left = int(geometry["normal-hint-left-margin"][2])
-        right = int(geometry["normal-hint-right-margin"][2])
-        self.assertEqual((top, bottom), (3, 3))
-        self.assertEqual((left, right), (7, 7))
-        # The retained stock bottom border completes the bottom margin, so
-        # the sheet's bottom pad is the margin minus that border.
-        bottom_pad = bottom - MENU_STOCK_BOTTOM_BORDER
-        bottom_value = f"{bottom_pad}px" if bottom_pad else "0"
-        self.assertEqual(
-            self.rules[selector],
-            {"padding": f"{top}px {left}px {bottom_value} !important"},
-        )
-        pad_top, pad_right, pad_bottom = (
-            int(value.removesuffix("px"))
-            for value in self.rules[selector]["padding"]
-            .removesuffix(" !important").split()
-        )
-        self.assertEqual(
-            (pad_top, pad_right, pad_bottom),
-            (top, left, bottom_pad),
-        )
-        self.assertEqual(pad_bottom + MENU_STOCK_BOTTOM_BORDER, bottom)
-
-    def test_menubar_open_title_paint_is_scoped_to_the_open_title(self):
-        selector = "#toolbar-menubar menubar > menu[open]"
-        base = "#toolbar-menubar menubar > menu"
-        # A menu-bar title is a ``menu`` element outside a popup, so catch a
-        # rule that targets one without naming #toolbar-menubar, such as a
-        # bare ``menu[open]:hover``, rather than only selectors spelled
-        # ``menubar``. The Library window's menubar#placesMenu title rules
-        # are scoped to their own menubar by id and have their own suite,
-        # so they stay out of this main-window set; an unscoped bare rule
-        # would still land here.
-        title_rules = {
-            name for name in self.rules
-            if "placesMenu" not in name
-            and ("menubar" in name
-                 or ("menu" in re.findall(r"[-\w]+", name)
-                     and "menupopup" not in name))
-        }
-        self.assertEqual(title_rules, {"#toolbar-menubar", base, selector})
-        for name in ("#toolbar-menubar", base, selector):
-            with self.subTest(selector=name):
-                self.assertEqual(self.rules[name], REQUIRED_RULES[name])
-        self.assertEqual(set(self.rules[base]), {"padding"})
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "placesMenu" not in name
-             and declarations == REQUIRED_RULES[selector]},
-            {selector},
-        )
 
     def test_sidebar_frame_is_scoped_to_the_box_and_header(self):
         self.assert_rule_names_scoped_to("sidebar", {"#sidebar-box", "#sidebar-header"})
