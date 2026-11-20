@@ -42,6 +42,14 @@ class TestRenderCliArguments(unittest.TestCase):
         self.assertEqual(1.25, args.settle)
         self.assertEqual(33.0, args.timeout)
 
+    def test_an_applet_render_defaults_to_an_8_second_settle_and_90_second_timeout(self):
+        # The --help text documents the plain-render defaults as "default 8"
+        # for --settle and "default 90" for --timeout; only the desktop and
+        # splash modes override them, so an applet render with no duration
+        # flags must keep these values.
+        args = delegated_render_args(self, ("out.png",))
+        self.assertEqual((8.0, 90.0), (args.settle, args.timeout))
+
     def test_accepts_the_minimum_settle_and_timeout(self):
         args = delegated_render_args(
             self, ("out.png", "--settle", "0", "--timeout", "1")
