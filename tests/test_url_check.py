@@ -354,6 +354,8 @@ class TestUrlProblemNamesTheFix(unittest.TestCase):
         ("https://[::1]80/x", "must put only a port after the bracketed host"),
         ("https://[::1]:8x0/x",
          "must put only digits in the port after the bracketed host"),
+        ("https://[::1]:\uff18\uff10/x",
+         "must put only digits in the port after the bracketed host"),
         ("https://[not-an-ip]/x",
          "must bracket an IPv6 or IPvFuture address"),
         ("https://exa[mple]/x", "must not put '[' or ']' in a host"),
