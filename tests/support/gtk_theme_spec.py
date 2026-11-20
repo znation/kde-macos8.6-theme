@@ -409,9 +409,9 @@ MIXED_GLYPH = {"-gtk-icon-source": 'url("../assets/check-mixed.svg")'}
 # state arms the sheets append. Exactly four tests read it --
 # test_tile_check_faces in tests/test_gtk4_tile_checks.py and
 # test_iconview_selected_arms in tests/test_gtk4_selection_focus.py,
-# test_iconview_selected_arms and
+# test_iconview_selected_arms in tests/test_gtk_theme_views.py and
 # test_vertical_stepper_and_content_view_check_corners in
-# tests/test_gtk_theme_views.py.
+# tests/test_gtk_theme_stepper_check_corners.py.
 SELECTION_CHECK_STATES = (
     "",
     ":hover",
@@ -427,7 +427,7 @@ SELECTION_CHECK_STATES = (
 # face's raised etched field at the tile record's zero radius. Exactly two
 # tests read it -- test_tile_check_faces in tests/test_gtk4_tile_checks.py and
 # test_vertical_stepper_and_content_view_check_corners in
-# tests/test_gtk_theme_views.py.
+# tests/test_gtk_theme_stepper_check_corners.py.
 TILE_CHECK_FACE = {
     "background-color": FACE,
     "background-image": "none",
