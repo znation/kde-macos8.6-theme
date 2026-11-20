@@ -5,6 +5,7 @@ screenshot: its palette is the shared Platinum palette and its geometry
 adapts this theme's Platinum controls, so every section module pins the
 same ``REQUIRED_RULES`` table against the sheet text. The sections live in
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
+``tests/test_firefox_theme_tabs.py``,
 ``tests/test_firefox_theme_menubar.py``,
 ``tests/test_firefox_theme_popups.py``,
 ``tests/test_firefox_theme_notification_popup.py``,

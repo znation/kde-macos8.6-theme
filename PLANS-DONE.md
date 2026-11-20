@@ -5,6 +5,50 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox shell suite extraction: isolate tab-state declaration checks (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
+
+**Goal.** Give tab hover and multiselection declarations a focused suite,
+reducing the shell suite's mixture of widget checks and whole-sheet checks.
+This is independent of the bookmark-editor and notification-popup extractions.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_tabs.py` with
+  `TestFirefoxTabStates(FirefoxChromeTestCase)`. Move
+  `test_tab_hover_paint_is_scoped_to_unselected_tabs` and
+  `test_selected_face_covers_multiselected_tabs` from
+  `tests/test_firefox_theme_shell.py` verbatim, preserving comments and
+  formatting. Import `unittest`, `REQUIRED_RULES` and `FirefoxChromeTestCase`
+  from their existing sources, and `TROUGH` from
+  `support.platinum_palette`. Add a focused docstring and unittest main footer.
+  These methods use inherited assertions and need no helper extraction.
+- Remove the moved methods and the tab-strip coverage claim from the shell
+  docstring. Keep its whole-sheet and header-provenance checks, including
+  tab provenance. Retain imports still used by the staying methods.
+- Add the new module to the section list in
+  `tests/support/firefox_chrome_cases.py`. It has no header assertion, so
+  do not add it to the provenance list in `tests/support/css_header.py`.
+- Repoint the two method anchors in `docs/invariants.md`'s Firefox chrome
+  row to the new module and class, preserving its guarantees and provenance.
+  Search docs, tests, README and Makefile for the moved method names and old
+  class anchors; preserve references to staying coverage. Include
+  `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/*.py` in that search (L1).
+
+**Acceptance criteria.**
+
+- Discovery exposes both named methods under
+  `test_firefox_theme_tabs.TestFirefoxTabStates`, with their existing bodies
+  intact and no definitions in the shell suite. Against the shipped sheet,
+  their selector-scope, hover exclusions and selected/multiselected face
+  assertions pass.
+- The remaining shell checks stay discoverable and pass; the invariant
+  register resolves both moved methods at their new paths, and the shared
+  section list names the new suite.
+- Shipped stylesheets and artwork have no diff. Run
+  `make check CHECK_TESTS='test_firefox_theme_shell test_firefox_theme_tabs test_invariants'`,
+  then `make check` after the final edit; both pass.
+
 ### Firefox popup suite extraction: isolate notification-doorhanger button checks (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Give notification-doorhanger button paint and provenance a focused
