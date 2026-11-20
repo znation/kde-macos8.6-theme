@@ -7,7 +7,7 @@ whole -- run here against stub executables, without any Plasma session; the
 pixel gates that drive the same CLI against a real headless session live in
 ``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
 ``tests/test_render_file_dialog.py`` beside the ``Test...DialogRender``
-gates.
+gates. Environment-isolation cases live in ``tests/test_render_environment.py``.
 """
 
 from __future__ import annotations
@@ -29,69 +29,13 @@ from unittest import mock
 from support import process_runner, repo_root
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from tools import (
-    render_session,
     render_setup,
     render_surface,
     render_window_rules,
     render_workflow,
 )  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
-
-
-class StubTools(unittest.TestCase):
-    """Base for tests that run `main` against shell stubs of the external tools."""
-
-    def setUp(self):
-        self.root = Path(tempfile.mkdtemp(prefix="render-surface-test-"))
-        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
-        # Capture the real make and sleep before the stub directory goes on
-        # PATH.
-        self.real_make = shutil.which("make")
-        self.real_sleep = shutil.which("sleep")
-        self.bin = self.root / "bin"
-        self.bin.mkdir()
-        self.scratch_parent = self.root / "tmp"
-        self.scratch_parent.mkdir()
-        self.stub("make", "exit 0")
-        for name in render_surface.REQUIRED_TOOLS:
-            if name != "make":
-                self.stub(name, "exit 0")
-        path = f"{self.bin}{os.pathsep}{os.environ['PATH']}"
-        patches = (
-            mock.patch.dict(os.environ, {"PATH": path}),
-            mock.patch.object(tempfile, "tempdir", str(self.scratch_parent)),
-            # These tests pin render and capture failure paths, not package
-            # discovery; the applet preflight's XDG-root search is pinned off
-            # so the runs stay host-independent.
-            mock.patch.object(render_surface, "applet_problem", return_value=None),
-        )
-        for patch in patches:
-            patch.start()
-            self.addCleanup(patch.stop)
-
-    def stub(self, name, body):
-        """Write an executable stub named *name* that runs *body*."""
-        path = self.bin / name
-        path.write_text(f"#!/bin/sh\n{body}\n", encoding="utf-8")
-        path.chmod(path.stat().st_mode | stat.S_IXUSR)
-
-    def assert_scratch_removed(self):
-        """Assert the scratch parent holds no leftover entries."""
-        self.assertEqual([], os.listdir(self.scratch_parent))
-
-    def assert_failed_run(self, status, stderr, output, expected_status, *diagnostics):
-        """Assert a failed render's whole exit contract: the named exit
-        status with only its own diagnostics on stderr (no traceback), no
-        rendered output published and no leftover scratch session.
-
-        Shared by the 18 failure-path tails in :class:`TestFailurePaths`.
-        """
-        self.assertEqual(expected_status, status)
-        for diagnostic in diagnostics:
-            self.assertIn(diagnostic, stderr)
-        self.assertNotIn("Traceback", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
+from support.render_stub_tools import StubTools
 
 
 class TestMissingTool(unittest.TestCase):
@@ -134,13 +78,7 @@ def crashed_applet_setup_diagnosis(setup_timeout):
     )
 
 
-class TestFailurePaths(StubTools):
-    def run_main(self, *extra):
-        """Run ``main`` on ``out.png`` with *extra* and return status, stderr, output."""
-        output = self.root / "out.png"
-        status, stderr = call_main(render_surface.main, str(output), *extra)
-        return status, stderr, output
-
+class TestFailurePaths(StubTools, unittest.TestCase):
     def assert_unrunnable_command_is_reported(self, command, diagnostic):
         """Check the CLI handles a found executable that cannot be started."""
         executable = self.bin / command
@@ -827,128 +765,6 @@ class TestFailurePaths(StubTools):
             timeout=60,
         )
         self.assertIn('render_surface.py "$@" -- "-x.png"', result.stdout)
-
-    def test_session_receives_the_geometry_and_the_themed_configs(self):
-        record = self.root / "args"
-        self.stub(
-            "dbus-run-session",
-            f'echo "$@" > "{record}"; cat "$XDG_CONFIG_HOME/kwinrc" >> "{record}";'
-            f' echo "$XDG_DATA_HOME $WAYLAND_DISPLAY $DISPLAY" >> "{record}"',
-        )
-        with mock.patch.dict(os.environ, {"WAYLAND_DISPLAY": "wl", "DISPLAY": ":9"}):
-            self.run_main("--width", "64", "--height", "48", "--applet", "a b")
-        text = record.read_text(encoding="utf-8")
-        self.assertIn("--width 64 --height 48", text)
-        self.assertIn("--socket render-surface", text)
-        self.assertIn("theme=org.macos8.desktop", text)
-        self.assertIn("--exit-with-session", text)
-        last = text.splitlines()[-1].split()
-        self.assertTrue(Path(last[0]).parent.name.startswith("render-surface-"))
-        self.assertEqual(
-            ["render-surface"],
-            last[1:],
-            "the session did not get its own socket, or DISPLAY leaked",
-        )
-
-    def test_session_ignores_a_config_search_path_from_the_environment(self):
-        # `plasma-apply-colorscheme` and the session resolve config through
-        # XDG_CONFIG_DIRS as well as XDG_CONFIG_HOME, so a caller-set search
-        # path would let the host session's kdeglobals/kwinrc leak into a
-        # render that is supposed to run against the throwaway config home
-        # only. The render must drop it like it drops the caller's
-        # WAYLAND_DISPLAY/DISPLAY.
-        record = self.root / "config-dirs"
-        self.stub(
-            "dbus-run-session",
-            f'printf "%s" "$XDG_CONFIG_DIRS" > "{record}"',
-        )
-        with mock.patch.dict(
-            os.environ, {"XDG_CONFIG_DIRS": str(self.root / "ambient")}
-        ):
-            self.run_main()
-        self.assertEqual(
-            "",
-            record.read_text(encoding="utf-8"),
-            "the caller's XDG_CONFIG_DIRS leaked into the render session",
-        )
-
-    def test_session_pins_the_nested_bus_to_a_display_free_qt_platform(self):
-        # The private bus hands the session environment to every service it
-        # D-Bus-activates. A GUI service activated while WAYLAND_DISPLAY
-        # points at the nested KWin socket (not yet listening, or gone
-        # because the nested KWin exited) aborts in QGuiApplication and the
-        # bus re-activates it in a coredump loop. The session therefore pins
-        # the whole bus subtree to a display-free Qt platform, overriding a
-        # caller's ambient value, and only the session script (the clients
-        # that must draw on the nested compositor) sets wayland back.
-        record = self.root / "qt-platform"
-        self.stub(
-            "dbus-run-session",
-            f'printf "%s" "$QT_QPA_PLATFORM" > "{record}"',
-        )
-        with mock.patch.dict(
-            os.environ, {"QT_QPA_PLATFORM": "wayland"}
-        ):
-            self.run_main()
-        self.assertEqual(
-            "offscreen",
-            record.read_text(encoding="utf-8"),
-            "the caller's QT_QPA_PLATFORM leaked into the render session, or the "
-            "activated services were left free to open the nested Wayland socket",
-        )
-
-    def test_session_script_keeps_the_clients_on_the_nested_compositor_platform(self):
-        # The nested bus's display-free QT_QPA_PLATFORM applies to the
-        # session script too, so the script itself must re-pin the clients to
-        # the nested compositor's wayland socket: without the override a
-        # client would never align its platform with the wayland socket the
-        # script's own comment says it needs.
-        script = render_session.session_script()
-        self.assertIn(
-            "export QT_QPA_PLATFORM=wayland; ",
-            script,
-            "the session script no longer re-pins the client to the nested "
-            "compositor's wayland platform, while the session subtree is pinned "
-            "to a display-free one",
-        )
-
-    def test_install_ignores_a_destdir_from_the_environment(self):
-        record = self.root / "make-env"
-        self.stub("make", f'echo "[$DESTDIR] $*" > "{record}"')
-        with mock.patch.dict(os.environ, {"DESTDIR": str(self.root / "stage")}):
-            self.run_main()
-        argv = record.read_text(encoding="utf-8")
-        self.assertTrue(argv.startswith("[] install XDG_DATA_HOME="), argv)
-
-    def test_install_ignores_makefiles_from_the_environment(self):
-        marker = self.root / "makefiles-executed"
-        injected_makefile = self.root / "injected.mk"
-        injected_makefile.write_text(
-            f"$(shell touch '{marker}')\n", encoding="utf-8"
-        )
-        self.stub("make", f'exec "{self.real_make}" "$@"')
-        with mock.patch.dict(os.environ, {"MAKEFILES": str(injected_makefile)}):
-            self.run_main()
-        self.assertFalse(
-            marker.exists(), "caller-controlled MAKEFILES ran during the render install"
-        )
-
-    def test_install_ignores_a_destdir_from_the_outer_make_command_line(self):
-        # `make DESTDIR=/stage render` exports the command-line variable through
-        # MAKEFLAGS as well as the environment, so dropping DESTDIR alone leaves
-        # the inner `make install` staging the theme outside the scratch home.
-        # Run the real make so it imports MAKEFLAGS the way the outer one would.
-        record = self.root / "make-destdir"
-        makefile = self.root / "install.mk"
-        makefile.write_text(
-            f'install:\n\t@echo "[$(DESTDIR)]" > "{record}"\n', encoding="utf-8"
-        )
-        self.stub("make", f'exec "{self.real_make}" -f "{makefile}" "$@"')
-        with mock.patch.dict(
-            os.environ, {"MAKEFLAGS": f"-- DESTDIR={self.root / 'stage'}"}
-        ):
-            self.run_main()
-        self.assertEqual("[]", record.read_text(encoding="utf-8").strip())
 
     def test_timeout_kills_the_session_group_and_exits_1(self):
         # The session must write its pid before the one-second timeout fires,
