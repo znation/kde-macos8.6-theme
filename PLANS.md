@@ -40,6 +40,42 @@ moved anchors. No stylesheet or production-code changes.
   stylesheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: isolate title-button declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give GTK 3 title-button boxes and their hidden separator a focused
+declaration suite outside `tests/test_gtk_theme_views.py`. This is independent
+of the queued focus-outline and OSD scale-thumb extractions.
+
+**Approach and files touched.** Move `TestGtkThemeViews.test_title_buttons`
+and `test_titlebutton_separator_hidden`, retaining their names and bodies,
+to `tests/test_gtk_theme_title_band.py::TestGtkThemeTitleBand`. Follow
+`tests/test_gtk_theme_drag_drop.py`: inherit `GtkSheetRuleCases` and
+`unittest.TestCase`, set `CSS_PATH` to the shipped GTK 3 sheet using
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`TITLE_BUTTON_ASSETS` and `TITLE_BUTTON_IMAGE` from `support.gtk_theme_spec`;
+remove these imports from the source module once unused. The existing
+`GtkSheetRuleCases.assert_title_button` stays shared. Update the source
+routing docstring and the title-button and separator rows in
+`docs/invariants.md`, preserving GTK 4 anchors and provenance. Search live
+docs and tests, including `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for other
+moved anchors. Keep the SVG asset suite `tests/test_gtk_title_buttons.py`
+and the source module's sheet-wide icon-source checks in place.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run of the new module execute the moved methods
+  under the new class; the source class no longer defines them.
+- Given the shipped sheet, the moved declaration checks pass without a GUI
+  display. An incorrect close-button asset URL, incorrect title-button image
+  rule or visible title-button separator still fails its retained assertion
+  in either the `headerbar` or `.titlebar` scope.
+- The remaining views suite runs with its own fixtures. The moved invariant
+  anchors resolve, and live docs and tests contain no old qualified references
+  to the moved methods. Theme assets, stylesheet sources and generated sheets
+  have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
