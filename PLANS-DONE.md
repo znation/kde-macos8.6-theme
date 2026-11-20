@@ -5,6 +5,69 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render-surface suite extraction: isolate the splash gate's measured logo-cell map (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Shrink the 1278-line `tests/test_render_surface.py` by moving
+the splash gate's measured pixel map out of the gate's assertions.
+`TestSplashRender.LOGO_CELL_ROWS` (42 rows of 52 `#RRGGBB` strings) takes
+up about 460 lines of the module. This follows the merged list-row fixture
+extraction (`tests/support/file_dialog_list_fixtures.py`) and the waiting
+file-dialog sidebar-map entry. It is independent of that entry, which edits
+only `tests/test_render_file_dialog.py`, and of every waiting GTK 3 suite
+extraction, which touch only `tests/test_gtk_theme_*.py` and
+`docs/invariants.md`'s `## gtk` rows.
+
+**Approach and files touched.**
+
+- Add `tests/support/splash_capture_fixtures.py`. Don't reuse
+  `tests/support/splash_fixtures.py`: that module holds the QML probes and
+  reference loader for the shipped splash's source tests, not
+  measurements from a render. Give the new module a docstring in the style
+  of `file_dialog_list_fixtures.py`. It should say the map was measured
+  from the 2026-11-11 `--splash` capture runs that `TestSplashRender`'s
+  class docstring names, and that the owning assertion stays in
+  `tests/test_render_surface.py`.
+- Move `TestSplashRender.LOGO_CELL_ROWS` into it as a module-level
+  `LOGO_CELL_ROWS`, keeping the literal as it is. Bring along the
+  measurement comment above it: read from the first run, confirmed
+  byte-equal in the other two, and a moved, dropped or resampled logo
+  fails the byte-compare. Reword "named in the class docstring" so it
+  names `TestSplashRender` in `tests/test_render_surface.py`.
+- Keep the geometry and colour constants in the class (`LOGO_CELL`,
+  `BEVEL_BOX`, `PANEL_BOX`, `PANEL_FACE`, `WORDMARK_BAND`, `TRACK_BOX`,
+  `TRACK_FILL` and the `*_COLOUR` values), along with the class docstring.
+- In `tests/test_render_surface.py`, import the module as
+  `from support import splash_capture_fixtures` beside the other `support`
+  imports. Have `test_the_logo_cell_pins_its_art` pass
+  `splash_capture_fixtures.LOGO_CELL_ROWS` to `assert_band`, and reword its
+  "the measured map above" comment so it names the support module. Test
+  names and assertion logic don't change. The module-level
+  `Renders.request("applet", "desktop", "splash")` call and every skip
+  guard also stay as they are.
+- The planning grep found `LOGO_CELL_ROWS` only in
+  `tests/test_render_surface.py` outside the archives: nothing in `docs/`,
+  `README.md`, `PLACEHOLDERS.md`, `tests/test_ci_workflow.py`,
+  `tests/support/validation_gaps/*.py` or the `_GATE_FILES` lists. Re-grep
+  at implementation. No production code, theme file, render kind or gate
+  class moves.
+
+**Acceptance criteria.**
+
+- `tests/support/splash_capture_fixtures.py` exposes `LOGO_CELL_ROWS` as
+  42 rows of 52 `#RRGGBB` strings. It equals the class attribute it
+  replaces on main, as an `ast.literal_eval` comparison of the old and new
+  literals shows (no render needed).
+- `TestSplashRender` no longer defines `LOGO_CELL_ROWS`, and
+  `tests/test_render_surface.py` holds no other copy of the map. The
+  module is shorter by roughly the map's size.
+- Test discovery lists the same `tests/test_render_surface.py` test IDs as
+  before. On a host with the splash tools, the logo-cell test still
+  byte-compares the same 52x42 cell at (294, 110). Without the tools it
+  skips under the existing guard, as before.
+- Importing the new support module starts no GUI process, render session
+  or capture.
+- `make check` passes after the final edit.
+
 ### Parallel-check suite extraction: move the direct results-report cases into the results suite (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Shrink the 953-line `tests/test_check_parallel.py` and keep it on
