@@ -298,6 +298,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_push_button_face_at_the_existing_recipe (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_face_at_the_existing_recipe)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by bugfix: the next failure's message will show only the pixel mismatch (`'#CCCCCC' != '#000000'`) and not the cause, because `tools/render_workflow.py` reports the render log only when the render fails, so a passing capture's log (the settle-ceiling and window-ready lines) is discarded; keeping that log on a passing capture and attaching it to the gate's failure message is the change that would name the cause.**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
