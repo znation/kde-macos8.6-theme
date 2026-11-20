@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 OSD suite extraction: isolate entry and spin-button declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Give OSD text fields and their spin-button steppers a focused declaration
+test module, reducing the responsibilities in `tests/test_gtk_theme_osd.py`.
+This is independent of the waiting render CLI work.
+
+**Approach and files touched.** Move `TestGtkThemeOsd.test_osd_entry_fields`,
+`test_osd_spin_field_mirrors_the_etch_in_rtl` and `test_osd_spinbutton_buttons`
+into `tests/test_gtk_theme_osd_fields.py::TestGtkThemeOsdFields`. Retain their
+method names, bodies and provenance comments. Inherit `GtkSheetRuleCases` and
+`unittest.TestCase`, setting `CSS_PATH` to the GTK 3 shipped sheet via
+`support.repo_root.ROOT`, as the existing OSD indicator module does. These methods
+use inherited fixtures and assertions; they do not need the source class's
+`assert_osd_selector_count` helper. Import the existing spec and palette constants
+and `strip_comments` directly from support modules, without importing a test module.
+Remove the source module's now-unused `strip_comments`, `DISABLED_TEXT` and
+`ENTRY_FIELD` imports, and update its opening docstring to point to the new module.
+Update the moved method anchors in `docs/invariants.md`, including the OSD RTL
+mirror provenance cross-reference. Leave `test_queued_claims_track_the_sheet` and
+the other OSD families in the source module. No sheet or production code edits.
+
+**Acceptance criteria.**
+
+- Unittest discovery and a focused run of `test_gtk_theme_osd_fields` execute the
+  moved field-state, RTL adjacency and stepper-selector checks. The source class
+  no longer defines those methods; their assertion bodies retain the existing
+  whole-rule, selector-inventory and ordering checks.
+- The moved checks still reject a missing OSD RTL state twin, an incorrect field
+  declaration or an extra OSD stepper selector; the remaining OSD module runs
+  successfully using its own fixtures.
+- The invariant anchors for the moved methods resolve to the new class; a search
+  of live docs and tests finds no old class-qualified references to those methods.
+  Theme assets, stylesheet partials and generated sheets have no diff.
+- `make check` passes after the final edit.
+
 ### Render CLI: separate option construction and mode resolution (planned 2026-11-19 by the organize role) — done 2026-11-19 by the feature role
 
 **Goal.** Reduce the mode-policy responsibilities concentrated in
