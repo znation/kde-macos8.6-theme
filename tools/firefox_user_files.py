@@ -34,6 +34,11 @@ class ConfigError(Exception):
     """A profile or file cannot be used; the installer reports it by name."""
 
 
+def read_failure(path: Path, exc: Exception) -> ConfigError:
+    """Return the Firefox read refusal shared by profile readers."""
+    return ConfigError(f"cannot read {path}: {exc}")
+
+
 # A profile file is read only to compare its first line or to append one
 # marker block, so a real userChrome.css/user.js is a few kilobytes. The path
 # is the user's and can name something arbitrarily large (a generated user.js
@@ -61,7 +66,7 @@ def read_firefox_bytes(
             error=ConfigError,
         )
     except (OSError, ValueError) as exc:
-        raise ConfigError(f"cannot read {path}: {exc}") from exc
+        raise read_failure(path, exc) from exc
 
 
 def user_chrome_path(profile: Path) -> Path:
@@ -100,7 +105,7 @@ def read_profile_text(path: Path) -> str | None:
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise ConfigError(f"cannot read {path}: {exc}") from exc
+        raise read_failure(path, exc) from exc
 
 
 def write_profile_bytes(path: Path, data: bytes) -> None:

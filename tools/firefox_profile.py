@@ -19,11 +19,11 @@ from pathlib import Path
 
 if __package__:
     from tools.containment import resolves_within
-    from tools.firefox_user_files import ConfigError, read_firefox_bytes
+    from tools.firefox_user_files import ConfigError, read_failure, read_firefox_bytes
     from tools import xdg_homes
 else:  # imported from a directly run tool
     from containment import resolves_within
-    from firefox_user_files import ConfigError, read_firefox_bytes
+    from firefox_user_files import ConfigError, read_failure, read_firefox_bytes
     import xdg_homes
 
 
@@ -56,7 +56,7 @@ def _read_ini(path: Path) -> configparser.ConfigParser | None:
         with io.TextIOWrapper(io.BytesIO(data), encoding="utf-8") as handle:
             parser.read_file(handle)
     except (UnicodeDecodeError, ValueError, configparser.Error) as exc:
-        raise ConfigError(f"cannot read {path}: {exc}") from exc
+        raise read_failure(path, exc) from exc
     return parser
 
 
