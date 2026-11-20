@@ -14,6 +14,11 @@ if TYPE_CHECKING:
     from tools.render_session import Session
 
 
+def _kdialog_client(*arguments: str) -> tuple[str, ...]:
+    """Build a kdialog argv with the shared render title."""
+    return ("kdialog", "--title", "Test", *arguments)
+
+
 def checkbox_dialog_client(session: Session) -> tuple[str, ...]:
     """Return the Qt client argv the widget gate renders.
 
@@ -24,10 +29,7 @@ def checkbox_dialog_client(session: Session) -> tuple[str, ...]:
     config home, never the caller's.
     """
     dontagain = session.config / "kde-dontagain"
-    return (
-        "kdialog",
-        "--title",
-        "Test",
+    return _kdialog_client(
         "--warningyesno",
         "Delete?",
         "--dontagain",
@@ -42,10 +44,7 @@ def combobox_dialog_client(_session: Session) -> tuple[str, ...]:
     indicator through this theme's ``comboarrow-*`` art and
     ``[ComboBox] indicator.size``, the pixels the widget gate byte-compares.
     """
-    return (
-        "kdialog",
-        "--title",
-        "Test",
+    return _kdialog_client(
         "--combobox",
         "Choose a disk:",
         "Macintosh HD",
@@ -78,7 +77,7 @@ def lineedit_dialog_client(_session: Session) -> tuple[str, ...]:
     field's left padding, so the pinned crop right of the caret carries no
     caret byte.
     """
-    return ("kdialog", "--title", "Test", "--inputbox", "Choose a name:")
+    return _kdialog_client("--inputbox", "Choose a name:")
 
 
 def progressbar_dialog_client(_session: Session) -> tuple[str, ...]:
@@ -118,10 +117,7 @@ def slider_dialog_client(_session: Session) -> tuple[str, ...]:
     byte-compares. Value zero keeps the thumb in its resting state, so no
     pressed or hover byte enters any crop.
     """
-    return (
-        "kdialog",
-        "--title",
-        "Test",
+    return _kdialog_client(
         "--slider",
         "Brightness:",
         "0",
@@ -158,12 +154,12 @@ def textbox_dialog_client(session: Session) -> tuple[str, ...]:
             for number in range(1, 41)
         )
     )
-    return ("kdialog", "--title", "Test", "--textbox", str(textbox_file))
+    return _kdialog_client("--textbox", str(textbox_file))
 
 
 def menu_dialog_client(_session: Session) -> tuple[str, ...]:
     """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
-    return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
+    return _kdialog_client("--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
 
 
 def radio_dialog_client(_session: Session) -> tuple[str, ...]:
@@ -176,8 +172,8 @@ def radio_dialog_client(_session: Session) -> tuple[str, ...]:
     default, so the selection never depends on clock, network or input,
     and the capture needs no date or default pin.
     """
-    return (
-        "kdialog", "--title", "Test", "--radiolist", "Pick an item:",
+    return _kdialog_client(
+        "--radiolist", "Pick an item:",
         "a", "Alpha", "on", "b", "Beta", "off", "c", "Gamma", "off",
     )
 
@@ -195,7 +191,7 @@ def icon_dialog_client(_session: Session) -> tuple[str, ...]:
     selection can enter any band -- so the capture needs no date or default
     pin.
     """
-    return ("kdialog", "--title", "Test", "--geticon", "application", "")
+    return _kdialog_client("--geticon", "application", "")
 
 
 def calendar_dialog_client(_session: Session) -> tuple[str, ...]:
@@ -209,8 +205,8 @@ def calendar_dialog_client(_session: Session) -> tuple[str, ...]:
     today marker, no clock-driven selection and no month-by-month layout
     drift can enter any crop.
     """
-    return (
-        "kdialog", "--title", "Test", "--calendar", "Calendar:",
+    return _kdialog_client(
+        "--calendar", "Calendar:",
         "--default", "1970-01-07", "--dateformat", "yyyy-MM-dd",
     )
 
@@ -225,7 +221,7 @@ def color_dialog_client(_session: Session) -> tuple[str, ...]:
     no today marker and no clock-driven selection can enter any band -- so
     the capture needs no date or default pin.
     """
-    return ("kdialog", "--title", "Test", "--getcolor")
+    return _kdialog_client("--getcolor")
 
 
 def inactive_dialog_client(_session: Session) -> tuple[str, ...]:
@@ -299,10 +295,7 @@ def file_dialog_client(session: Session) -> tuple[str, ...]:
         path = documents / name
         path.touch()
         os.utime(path, (FILE_DIALOG_SEED_EPOCH, FILE_DIALOG_SEED_EPOCH))
-    return (
-        "kdialog",
-        "--title",
-        "Test",
+    return _kdialog_client(
         "--getopenfilename",
         str(documents),
     )
