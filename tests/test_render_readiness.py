@@ -148,15 +148,20 @@ class TestRenderReadiness(unittest.TestCase):
         )
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
 
-        started = time.monotonic()
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 3)
-        elapsed = time.monotonic() - started
         log = (root / "session.log").read_text(encoding="utf-8")
 
         self.assertEqual(0, status, log)
         self.assertIn("render-session: client ready at", log)
-        self.assertGreaterEqual(elapsed, 0.8, log)
-        self.assertLess(elapsed, 2.5, log)
+        stamps = {}
+        for line in log.splitlines():
+            for stage in ("client started", "settle done"):
+                if line.startswith(f"render-session: {stage} at "):
+                    stamps[stage] = int(line.rsplit(" ", 1)[1])
+        elapsed_ms = stamps["settle done"] - stamps["client started"]
+        # Require the full one-second grace, excluding setup and cleanup time.
+        self.assertGreaterEqual(elapsed_ms, 1000, log)
+        self.assertLess(elapsed_ms, 2500, log)
 
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)
