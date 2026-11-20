@@ -149,6 +149,23 @@ class TestSampleValidators(unittest.TestCase):
         ):
             match_offset("-1")
 
+    def test_nonnegative_offset_rejects_non_integer_text_with_its_option_named(self):
+        # The factory's own diagnostics: a fraction is well-formed ASCII but
+        # not an integer, so it fails the int parse and names the option with
+        # "a nonnegative integer"; an underscore is refused by the plain-text
+        # check before any parse, with the plain-ASCII wording.
+        column_offset = validators.nonnegative_offset("--match-column-run-offset")
+        with self.assertRaisesRegex(
+            argparse.ArgumentTypeError,
+            r"^--match-column-run-offset must be a nonnegative integer: '1\.5'$",
+        ):
+            column_offset("1.5")
+        with self.assertRaisesRegex(
+            argparse.ArgumentTypeError,
+            r"^--match-column-run-offset must be a plain ASCII integer: '1_0'$",
+        ):
+            column_offset("1_0")
+
 
 if __name__ == "__main__":
     unittest.main()
