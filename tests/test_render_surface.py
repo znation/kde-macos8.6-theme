@@ -30,6 +30,7 @@ from support.reference_image import read_reference, skip_unless_materialized
 from support.render_gates import (
     DESKTOP_REAL_TOOLS,
     REAL_TOOLS,
+    SPLASH_REAL_TOOLS,
     PixelPins,
     Renders,
     desktop_gate_guard,
@@ -568,6 +569,15 @@ class TestDesktopRender(unittest.TestCase):
 
 
 
+@unittest.skipIf(
+    software_renderer_skip_reason() is not None,
+    software_renderer_skip_reason() or "",
+)
+@unittest.skipUnless(
+    all(shutil.which(tool) for tool in SPLASH_REAL_TOOLS),
+    "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
+    "plasma-apply-colorscheme and ksplashqml on PATH",
+)
 class TestSplashRender(PixelPins, unittest.TestCase):
     """The rendered startup splash's Platinum structure, pinned.
 

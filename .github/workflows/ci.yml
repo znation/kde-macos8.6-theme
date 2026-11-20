@@ -25,8 +25,11 @@ jobs:
       # session cannot allocate its capture buffers under the workflow's
       # llvmpipe env", 2026-11-09), and with no driver-name pinning the
       # render gates' skip guard already fires on LIBGL_ALWAYS_SOFTWARE=1
-      # alone. The runner-side virtual session under this env remains
-      # unobserved until the next hosted run that reaches the suite.
+      # alone. The runner-side virtual session under this env is now
+      # observed (run 44706238617, 2026-11-20): the splash render hung in
+      # its capture phase exactly as the skip guard's condition predicts,
+      # and TestSplashRender now carries the same software-renderer skip
+      # guard its sibling capture gates already had.
       LIBGL_ALWAYS_SOFTWARE: '1'
     strategy:
       fail-fast: false
