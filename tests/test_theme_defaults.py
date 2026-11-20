@@ -482,6 +482,30 @@ class TestWriteConfigs(unittest.TestCase):
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
         self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
 
+    def test_a_stat_permission_error_refuses_without_writing(self):
+        # Only an absent target reads as "no mode". A permission error from
+        # the lookup must propagate: a None mode would let the writer publish
+        # over a file it could not inspect, with a umask-defaulted mode.
+        target = mock.Mock()
+        target.stat.side_effect = PermissionError(13, "Permission denied")
+        with mock.patch.object(theme_config_writer, "write_atomically") as write:
+            with self.assertRaises(PermissionError):
+                theme_config_writer.write_config_atomically(target, "NEW\n")
+        write.assert_not_called()
+
+    def test_a_lookup_through_a_regular_file_refuses_without_writing(self):
+        # ENOTDIR is not absence either: the target's parent is a file, so the
+        # stat must raise and nothing may be published beside it.
+        directory = make_tmp_dir(self)
+        blocker = directory / "not-a-dir"
+        blocker.write_text("BLOCKER\n", encoding="utf-8")
+        with mock.patch.object(theme_config_writer, "write_atomically") as write:
+            with self.assertRaises(NotADirectoryError):
+                theme_config_writer.write_config_atomically(blocker / "kwinrc", "NEW\n")
+        write.assert_not_called()
+        self.assertEqual("BLOCKER\n", blocker.read_text(encoding="utf-8"))
+        self.assertEqual({"not-a-dir"}, set(os.listdir(directory)))
+
     def test_new_file_mode_respects_umask(self):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"
