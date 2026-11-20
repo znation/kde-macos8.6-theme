@@ -5,6 +5,69 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Install suite extraction: move the support-helper pins out of the install suite (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Shrink the 940-line `tests/test_theme_install.py` and keep it on
+one concern: what `make install`/`uninstall` do. Its last three classes do
+not run `make` at all. They are unit pins of helpers in
+`tests/support/theme_install.py`: `TestAssertUninstallDiagnostics`
+(`assert_uninstall_diagnostics`, with its `_FakeResult` stand-in),
+`TestAssertFilesIdentical` (`assert_files_identical`) and
+`TestCopyShippedFile` (`copy_shipped_file`), about 160 lines together.
+This entry is independent of every waiting entry: none of them touches
+`tests/test_theme_install.py`, `tests/support/theme_install.py` or
+`docs/invariants.md`'s install rows.
+
+**Approach and files touched.**
+
+- Add `tests/test_theme_install_support.py` (the `*_support.py` naming
+  matches `tests/test_firefox_content_support.py`). No existing module
+  tests `support/theme_install.py`'s helpers, as `ls tests` showed at
+  planning time. Give it a docstring that says it pins the shared install
+  test helpers in `support/theme_install.py`, and that the `make`-level
+  behaviour stays in `test_theme_install.py`.
+- Move `_FakeResult`, `TestAssertUninstallDiagnostics`,
+  `TestAssertFilesIdentical` and `TestCopyShippedFile` into it verbatim:
+  class names, docstrings, test names and bodies don't change. Bring the
+  imports they use (`os`, `tempfile`, `unittest`, `unittest.mock`,
+  `pathlib.Path`, `support.repo_root`, `support.theme_install`,
+  `support.symlink_fixtures.symlinked_repo`). Don't import from
+  `test_theme_install.py`.
+- In `tests/test_theme_install.py`, delete the moved classes. Then drop any
+  import that is now unused (at planning time `symlinked_repo` and
+  `repo_root` were used only by the moved classes; re-check each with
+  grep). Add one sentence to the module docstring pointing to
+  `test_theme_install_support.py` for the helper pins.
+- `docs/invariants.md`: the row "An install test copies a checked-in
+  package file to its scratch directory through the shared containment
+  reader ..." anchors `tests/test_theme_install.py::TestCopyShippedFile`.
+  Re-point it to `tests/test_theme_install_support.py::TestCopyShippedFile`.
+  The planning grep found no other anchor to the three moved classes in
+  `docs/`, `README.md`, `tests/test_ci_workflow.py` or
+  `tests/support/validation_gaps/*.py`. The `test_theme_install` mentions
+  in `tests/support/theme_install.py`, `tests/test_make_check.py`,
+  `tests/test_make_refusals.py` and `tests/support/config_home_cases.py`
+  describe install behaviour that stays, so they don't change. Re-grep for
+  the three class names at implementation.
+- No production code, Makefile target or theme file changes.
+
+**Acceptance criteria.**
+
+- Test discovery lists every test ID of the three moved classes under
+  `test_theme_install_support`, none of them under `test_theme_install`,
+  and the remaining `test_theme_install` IDs are the same as on main.
+- `tests/test_theme_install.py` no longer defines `_FakeResult`,
+  `TestAssertUninstallDiagnostics`, `TestAssertFilesIdentical` or
+  `TestCopyShippedFile`. It is shorter by roughly the moved block, and
+  pyflakes-style unused imports from the move are gone (a grep for each
+  dropped name finds no use).
+- `docs/invariants.md`'s containment-reader row names
+  `tests/test_theme_install_support.py::TestCopyShippedFile`. A grep for
+  `test_theme_install.py::TestCopyShippedFile` outside the archives finds
+  nothing.
+- `make check CHECK_TESTS='test_theme_install test_theme_install_support'`
+  passes, and `make check` passes after the final edit.
+
 ### File-dialog suite extraction: isolate the measured sidebar icon-cell maps (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Shrink the oversized `tests/test_render_file_dialog.py` by
