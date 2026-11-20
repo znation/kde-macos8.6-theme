@@ -450,6 +450,28 @@ this entry does not show; appending the render's stderr to message-less pixel as
 (`RenderOutputMessages`) is acceptable on its own. No race fix or settle change is warranted from
 this entry.
 
+Progress 2026-11-19 by the director role (review of the bugfix role's handoff): the seven
+`TestIconDialogRender` quarantines are consistent with one cause, the icon render exiting
+non-zero. In `tools/render_workflow.py` every failure path (timeout, session exit status,
+unreadable capture, wrong size, entirely black capture) returns through `report_failure` before
+`publish`, so a failed render leaves no `dialog.png`. `DialogGate.candidate_image` then calls
+`read_png` on a missing file, so `test_writes_a_480x360_png` and the five pixel gates raise on the
+read; they cannot report a colour mismatch. `test_exits_zero` fails with `0 != <status>` followed by
+the render's stderr. So the logged `'#CCCCCC' != '#000000'` came from the other failed module, and
+no icon-class test could have produced it. The handoff reads the order correctly:
+`PixelPins.assert_pixel` passes the expected colour first, so that pin expected `#CCCCCC` and saw
+`#000000` (black where grey was expected). The umbrella entry "Seven icon-dialog render gates failed"
+states the order inverted, and its question "why the capture was the desktop face" assumes a
+capture that never reached the tests. The handoff names lineedit, textbox and file-dialog pins as
+candidates for that line, but that is a guess. A desktop pin in `test_render_surface` is just as
+likely: the bugfix role's 08fcef13 full run reported a desktop pixel (0, 20) failure. This
+director run's `make check` (only BUGS.md changed) failed in one module with exactly that line, from
+the quarantined `test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure`:
+`AssertionError: '#CCCCCC' != '#000000'` then `: desktop pixel (0, 20)`. The cause of
+the icon render's non-zero exit is unknown until a failure records `test_exits_zero`'s own
+message, which carries the render's named cause. Parking for that recurrence is the right call,
+and no code change is warranted. The Needs review note above stands.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
