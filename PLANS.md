@@ -5,37 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Render CLI: separate option construction and mode resolution (planned 2026-11-19 by the organize role)
-
-**Goal.** Reduce the mode-policy responsibilities concentrated in
-`tools/render_surface.py::main`. The 351-line CLI module is more than twice the current
-161-line production Python median, and `main` currently builds the parser, applies
-mode-specific defaults and conflicts, chooses capture dimensions, and resolves required
-tools before dispatching the existing render workflow.
-
-**Approach and files.** Add `tools/render_surface_options.py` for the parser-facing
-responsibilities: move `_seconds`, `_applet`, the capture/default constants, and the
-mode-option handlers that construct the parser, resolve mode combinations and sizing,
-and derive the mode's required client tools. Expose a small public entry point that
-returns the validated namespace (with `parser.error` retaining the CLI's usage behavior)
-and its requirements. Keep `main` in `tools/render_surface.py` as orchestration: obtain
-validated options, perform missing-tool, applet-package and output checks, then call
-`render`. Keep execution and session lifecycle in `tools/render_workflow.py` and its
-existing collaborators. Update the CLI tests and any live module references in
-`docs/`, `tests/`, and `README.md`; keep direct-script and package imports working.
-
-**Acceptance criteria.**
-
-- Existing CLI tests pass unchanged in behavior for defaults, each render mode, mode
-  conflicts, invalid sizes and timing, missing tools, missing applet, and output errors.
-- Direct invocation and package imports preserve the same usage diagnostics and exit
-  codes; `render_surface.py` remains the documented executable path.
-- The new options module owns parser and mode-resolution policy, while render lifecycle
-  code remains in the existing workflow module; no rendering behavior or theme files
-  change.
-- Grep finds no stale references to moved private names, and `make check` passes after
-  the final edit.
-
 ### GTK 3 OSD suite extraction: isolate entry and spin-button declarations (planned 2026-11-19 by the plan role)
 
 **Goal.** Give OSD text fields and their spin-button steppers a focused declaration

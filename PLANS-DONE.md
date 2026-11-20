@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render CLI: separate option construction and mode resolution (planned 2026-11-19 by the organize role) — done 2026-11-19 by the feature role
+
+**Goal.** Reduce the mode-policy responsibilities concentrated in
+`tools/render_surface.py::main`. The CLI module built the parser, applied mode-specific
+defaults and conflicts, chose capture dimensions, and resolved required tools before
+dispatching the render workflow.
+
+**Approach and files.** Added `tools/render_surface_options.py` to construct and validate
+the parser options and return the namespace with the selected required tools. Kept
+`render_surface.py::main` as orchestration for missing-tool, applet-package and output
+checks and workflow dispatch. Updated the render invariant to describe the new boundary.
+The CLI and mode tests exercise the extracted policy through the executable entry point;
+direct-script and package imports are supported.
+
+**Acceptance criteria.**
+
+- CLI behavior remains covered for defaults, render modes, conflicts, invalid values,
+  required tools, applet preflight and output errors.
+- The CLI remains the documented executable path and usage errors keep argparse's exit
+  behavior.
+- Parser and mode policy live in the options module; rendering lifecycle stays in the
+  workflow.
+- Grep finds no stale references to the moved private helpers; `make check` passes.
+
 ### Render CLI tests: move the environment-isolation cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** `tests/test_render_failure_paths.py` is 1011 lines, and PRINCIPLES.md asks for files
