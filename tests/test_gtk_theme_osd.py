@@ -2,8 +2,7 @@
 
 The sheet draws every overlay the reference set does not show with the flat
 black OSD band and white-faced controls; this module owns the OSD scope of
-``tests/test_gtk_theme.py``'s split: the colorchooser OSD popover, the OSD
-flat button, and the scale-popup
+``tests/test_gtk_theme.py``'s split: the colorchooser OSD popover and the scale-popup
 arms. OSD suggested-action declarations live in
 ``tests/test_gtk_theme_osd_suggested.py``. OSD scale-thumb declarations live in
 ``tests/test_gtk_theme_osd_scale.py``. OSD check and radio indicators live in
@@ -12,7 +11,8 @@ steppers live in ``tests/test_gtk_theme_osd_fields.py``. Meter declarations
 live in ``tests/test_gtk_theme_osd_meters.py``. OSD destructive-action
 declarations live in ``tests/test_gtk_theme_osd_destructive.py``. OSD
 overlay-band declarations live in ``tests/test_gtk_theme_osd_overlay.py``. The
-sheet's comment blocks carry each value's provenance.
+OSD flat-button declarations live in ``tests/test_gtk_theme_osd_flat.py``.
+The sheet's comment blocks carry each value's provenance.
 """
 
 import unittest
@@ -25,10 +25,7 @@ from support.gtk_theme_spec import (
     ETCH_DARK,
     INVERTED_BUTTON_BEVEL,
 )
-from support.platinum_palette import (
-    BLACK,
-    FACE,
-)
+from support.platinum_palette import BLACK, FACE
 from support.repo_root import ROOT
 
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
@@ -45,145 +42,6 @@ class TestGtkThemeOsd(OsdSelectorAssertions, GtkSheetRuleCases, unittest.TestCas
         self.assertEqual(
             self.rules["colorchooser .popover.osd"]["border-radius"],
             self.rules[".popover"]["border-radius"],
-        )
-
-    def test_osd_flat_button(self):
-        """Pin the 24 restated stock OSD flat-button arms.
-
-        No collected reference screenshot shows a GTK OSD overlay or a
-        flat button inside one, so the sheet restates the toolkit
-        resource's grouped ``.app-notification button.flat, …, .osd
-        button.flat`` arms with the existing plain push-button recipe (the
-        base ``button`` dictionary ``test_osd_button`` pins):
-        the raised ``#DDDDDD`` face with its 1px black border and zero
-        radius, ``BUTTON_BEVEL``, and black labels; the ``:hover`` and
-        ``:backdrop`` arms repeat the base recipe byte-equal; the active
-        and checked arms swap only ``box-shadow`` to
-        ``INVERTED_BUTTON_BEVEL``; the disabled arms keep
-        ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and no
-        ``outline-color``, as the existing disabled arms also claim none.
-        The arm selectors and states come from gtk-contained.css in
-        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
-        restated arm sets on-disk geometry, so the stock
-            ``button.osd`` minimums and the stock ``.osd .scale-popup
-            button.flat`` pointer arm is restated by its dedicated test;
-            the restated blocks
-        put disabled after backdrop so inactive insensitive labels stay
-        grey; active/checked keeps stock's sheet-order win over hover.
-        """
-        recipe = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {**recipe, "box-shadow": INVERTED_BUTTON_BEVEL}
-        disabled = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": ETCH_DARK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        expected = [
-            (recipe, (
-                ".app-notification button.flat",
-                "popover.background.touch-selection button.flat",
-                "popover.background.magnifier button.flat",
-                ".osd button.flat",
-                ".app-notification button.flat:hover",
-                "popover.background.touch-selection button.flat:hover",
-                "popover.background.magnifier button.flat:hover",
-                ".osd button.flat:hover",
-                ".app-notification button.flat:backdrop",
-                "popover.background.touch-selection button.flat:backdrop",
-                "popover.background.magnifier button.flat:backdrop",
-                ".osd button.flat:backdrop",
-            )),
-            (disabled, (
-                ".app-notification button.flat:disabled",
-                "popover.background.touch-selection button.flat:disabled",
-                "popover.background.magnifier button.flat:disabled",
-                ".osd button.flat:disabled",
-            )),
-            (active, (
-                ".app-notification button.flat:active",
-                "popover.background.touch-selection button.flat:active",
-                "popover.background.magnifier button.flat:active",
-                ".app-notification button.flat:checked",
-                "popover.background.touch-selection button.flat:checked",
-                "popover.background.magnifier button.flat:checked",
-                ".osd button.flat:active",
-                ".osd button.flat:checked",
-            )),
-        ]
-        enumerated = self.assert_osd_selector_count(expected, 24)
-        for declarations, selectors in expected:
-            for selector in selectors:
-                with self.subTest(selector=selector):
-                    self.assertEqual(self.rules[selector], declarations)
-        # Equal-specificity disabled and backdrop arms must keep grey text.
-        for family in (
-            ".app-notification button.flat",
-            "popover.background.touch-selection button.flat",
-            "popover.background.magnifier button.flat",
-            ".osd button.flat",
-        ):
-            candidates = {family + ":disabled", family + ":backdrop"}
-            colour = None
-            for selector in self.selectors:
-                if selector in candidates:
-                    colour = self.rules[selector]["color"]
-            with self.subTest(disabled_backdrop=family):
-                self.assertEqual(colour, ETCH_DARK)
-        self.assertEqual(
-            # "button" and "flat" as bare tokens: the shipped sheet's only
-            # button.flat spellings are these 24 restated arms plus the
-            # dedicated scale-popup flat-button arm. 2026-10-31: the plain
-            # flat colour-class series restates `button.flat` arms at the
-            # sheet tail, so the sweep keeps to the overlay bands by
-            # keeping only prefixed spellings: every overlay arm names
-            # its scope before `button`, and this series' plain flat keys
-            # (generic and future `…-action.flat` twins) start with
-            # `button.flat` or `button.suggested-action.flat`. 2026-10-31:
-            # the selected-row button series restates two `row:selected
-            # button.flat…` arms at the sheet tail (pinned by
-            # test_selected_row_button_arms), prefixed like the overlay
-            # arms, so the sweep keeps to the overlay bands still by
-            # keeping only the named prefix sets. 2026-10-31: the notebook
-            # tab-close restatements (pinned by
-            # test_notebook_tab_close_button_arms) get their own exclusion.
-            # 2026-11-04: the existing round-button face corners carry the bare
-            # ``modelbutton.flat`` and ``.menuitem.button.flat`` stock twins
-            # (menu rows, not overlay bands, pinned by
-            # test_gtk_theme_corners.TestGtkThemeCorners::test_round_button_face_corners),
-            # excluded like the notebook arms. 2026-11-04: the linked-field
-            # end-corner record restates the three
-            # ``toolbar.inline-toolbar toolbutton…`` end-member arms (linked
-            # rows, not overlay bands, pinned by
-            # test_gtk_theme_linked.TestGtkThemeLinked::
-            # test_linked_end_field_corners), excluded like the notebook
-            # arms.
-            {selector
-             for selector in self.rules
-             if "button" in selector and "flat" in selector
-             and not selector.startswith("button")
-             and not selector.startswith("row:selected button")
-             and not selector.startswith("notebook > header tab")
-             and selector not in
-             ("modelbutton.flat", ".menuitem.button.flat",
-              "toolbar.inline-toolbar toolbutton:first-child > button.flat",
-              "toolbar.inline-toolbar toolbutton:last-child > button.flat",
-              "toolbar.inline-toolbar toolbutton:only-child > button.flat")},
-            enumerated | {".osd .scale-popup button.flat"},
         )
 
     def test_scale_popup_buttons(self):
@@ -291,7 +149,8 @@ class TestGtkThemeOsd(OsdSelectorAssertions, GtkSheetRuleCases, unittest.TestCas
              # "button" as a bare token: a spinbutton is a field, not a
              # button, so its node spelling never counts toward the scan;
              # a flat button node carries the flat-style arms, not the
-             # plain ones, and is pinned by test_osd_flat_button; a
+             # plain ones, pinned by
+             # test_gtk_theme_osd_flat.TestGtkThemeOsdFlat.test_osd_flat_button; a
              # suggested-action or destructive-action button node
              # carries its own restated arms, also not the plain ones,
              # and is pinned by test_osd_suggested_action and

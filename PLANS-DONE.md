@@ -5,6 +5,47 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 OSD suite extraction: isolate flat-button declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Give the OSD flat-button declaration inventory a focused module,
+independent of the completed overlay-band and destructive-action extractions,
+keeping each test file easier to read.
+
+**Approach and files touched.** Move
+`TestGtkThemeOsd.test_osd_flat_button` from `tests/test_gtk_theme_osd.py`
+to `tests/test_gtk_theme_osd_flat.py::TestGtkThemeOsdFlat`, retaining
+its method name, assertion body, selector exclusions and provenance
+docstring. Follow `tests/test_gtk_theme_osd_suggested.py`: inherit
+`OsdSelectorAssertions`, `GtkSheetRuleCases` and `unittest.TestCase`,
+bind `CSS_PATH` to the shipped GTK 3 sheet through `support.repo_root.ROOT`,
+and include the unittest main guard. Import `BUTTON_BEVEL`,
+`INVERTED_BUTTON_BEVEL` and `ETCH_DARK` from `support.gtk_theme_spec`,
+and `BLACK` and `FACE` from `support.platinum_palette`. The existing
+`support.gtk_osd_cases` helper suffices; the method has no source-local
+helper dependency. Keep `test_scale_popup_buttons` in the source module,
+along with imports still used by its remaining methods. Update the source
+routing docstring and `test_osd_button` inventory comment to identify the
+new flat-button module. In `docs/invariants.md`, repoint both the OSD
+flat-button row and the linked-field end-corner row's extended-test anchor,
+preserving their recipes and provenance. Search live docs and tests,
+including `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for other
+moved qualified anchors. No production or stylesheet changes.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run execute the moved method under its new
+  class without a GUI display; the source class no longer defines it.
+- Given the shipped sheet, the moved check passes. An incorrect flat-button
+  face or active bevel, disabled ink, disabled/backdrop source ordering,
+  or unexpected selector in its filtered inventory fails its retained
+  assertions. Existing exclusions, including the scale-popup arm, remain
+  covered by the same inventory assertion.
+- The remaining OSD module runs independently. Live qualified anchors for
+  the moved method resolve to its new class, including both invariant rows.
+  Theme assets, source partials and generated sheets have no diff.
+- `make check` passes after the final edit.
+
 ### GTK 3 OSD suite extraction: isolate overlay-band declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Give OSD overlay-container declaration coverage a focused module
