@@ -2,8 +2,8 @@
 
 This module owns the views-and-dialogs slice of
 ``tests/test_gtk_theme.py``'s split: the stack switcher, selected views,
-the spin-button
-field and title-button boxes. Rubberband declarations are in
+the spin-button field. Title-button declarations are in
+``tests/test_gtk_theme_title_band.py``. Rubberband declarations are in
 ``tests/test_gtk_theme_rubberband.py``. Header drag-and-drop declarations are in
 ``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
@@ -30,8 +30,6 @@ from support.gtk_theme_spec import (
     RADIO_GLYPH,
     SELECTION_CHECK_STATES,
     TILE_CHECK_FACE,
-    TITLE_BUTTON_ASSETS,
-    TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
     BLACK,
@@ -235,16 +233,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assert_spin_button_field(("spinbutton:not(.vertical)",))
         self.assertNotIn("spinbutton.vertical > text", self.rules)
 
-    def test_title_buttons(self):
-        for scope in ("headerbar", ".titlebar"):
-            for control, asset in TITLE_BUTTON_ASSETS:
-                self.assert_title_button(
-                    f"{scope} button.titlebutton.{control}", asset
-                )
-            self.assert_rule(
-                f"{scope} button.titlebutton image", TITLE_BUTTON_IMAGE
-            )
-
     def test_vertical_stepper_and_content_view_check_corners(self):
         """Pin the vertical steppers and content-view check faces square.
 
@@ -362,13 +350,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
 
     def test_icon_sources_point_at_shipped_assets(self):
         self.assert_shipped_asset_urls()
-
-    def test_titlebutton_separator_hidden(self):
-        for selector in (
-            "headerbar separator.titlebutton",
-            ".titlebar separator.titlebutton",
-        ):
-            self.assert_rule(selector, {"opacity": "0"})
 
     def test_separator(self):
         self.assert_separators()
