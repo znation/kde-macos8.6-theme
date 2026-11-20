@@ -137,55 +137,6 @@ Whichever plan merges second keeps the other's module name in those lists.
 - `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
   passes, and `make check` passes after the final edit.
 
-### Firefox popup suite extraction: isolate notification-doorhanger button checks (planned 2026-11-20 by the plan role)
-
-**Goal.** Give notification-doorhanger button paint and provenance a focused
-suite, leaving identity, protections and trust row checks in the popup suite.
-This is independent of the queued bookmark-editor extraction and the pending
-menubar extraction; preserve their additions to shared documentation lists.
-
-**Approach and files touched.**
-
-- Create `tests/test_firefox_theme_notification_popup.py` with
-  `TestFirefoxNotificationPopup(FirefoxChromeTestCase)`. Move
-  `test_notification_popup_primary_button_paint_is_scoped_to_the_notification_popup`
-  and `test_notification_popup_provenance` from
-  `tests/test_firefox_theme_popups.py` verbatim, including comments and
-  formatting. Import `unittest`, `REQUIRED_RULES`, `VIEWITEM_REFERENCES` and
-  `FirefoxChromeTestCase` from the same sources as the popup suite, and
-  `element` and `matches` from `support.selector_matching`. Include a focused
-  docstring and the usual unittest main footer. The methods need no local
-  helper extraction.
-- Remove the moved methods from the popup suite and remove notification
-  popups from its docstring's coverage list. Drop the now-unused
-  `VIEWITEM_REFERENCES` import; keep the imports used by the staying cases.
-- Add the new module to the section list in
-  `tests/support/firefox_chrome_cases.py` and the provenance list in
-  `tests/support/css_header.py`. Remove the popup module from the latter
-  list, since its remaining methods do not call `assert_header_names`.
-- In `docs/invariants.md`, point the notification-doorhanger primary-button
-  row at the new module and class, preserving the method name and guarantee.
-  Search docs, tests, README and Makefile for both moved names and the old
-  module/class anchors; update references to moved coverage, preserving
-  references to staying coverage. Include `docs/rendering.md`,
-  `docs/fidelity.md`, `tests/test_ci_workflow.py` and
-  `tests/support/validation_gaps/*.py` in this check (L1).
-
-**Acceptance criteria.**
-
-- Unittest discovery exposes both named methods under
-  `test_firefox_theme_notification_popup.TestFirefoxNotificationPopup`,
-  with their pre-move bodies intact and no definitions in the popup suite.
-  Their existing primary-button token, selector-isolation and provenance
-  assertions pass against the shipped sheet.
-- Identity, protections and trust row checks remain discoverable in
-  `TestFirefoxPopupRows` and pass. The invariant register resolves the
-  notification-doorhanger method at its new path. The shared documentation
-  lists describe where section and provenance checks now live.
-- No shipped stylesheet or artwork changes. The focused check
-  `make check CHECK_TESTS='test_firefox_theme_popups test_firefox_theme_notification_popup test_invariants'`
-  passes, followed by `make check` after the final edit.
-
 ## Done
 
 ### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the review role

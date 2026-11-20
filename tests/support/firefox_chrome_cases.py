@@ -7,6 +7,7 @@ same ``REQUIRED_RULES`` table against the sheet text. The sections live in
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
 ``tests/test_firefox_theme_menubar.py``,
 ``tests/test_firefox_theme_popups.py``,
+``tests/test_firefox_theme_notification_popup.py``,
 ``tests/test_firefox_theme_permission_popup.py``,
 ``tests/test_firefox_theme_page_info.py``,
 ``tests/test_firefox_theme_page_info_groupbox.py``,
@@ -61,8 +62,8 @@ MENU_STOCK_BOTTOM_BORDER = 3
 # provenance header (the downloads-panel buttons, app menu, toolbar
 # overflow panel, unified extensions panel, site-information panel,
 # protections panel, permission popup and trust panel), one in the panels
-# suite (the bookmark editor), one in the popups suite (the notification
-# popup) and two in the page-info suite (the window and its tree).
+# suite (the bookmark editor), one in the notification-popup suite, and two
+# in the page-info suite (the window and its tree).
 VIEWITEM_REFERENCES = (
     "widgets/viewitem.svg",
     "tests/test_desktoptheme_viewitem.py::TestViewItem",
