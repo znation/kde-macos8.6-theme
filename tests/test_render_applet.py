@@ -77,6 +77,28 @@ class TestAppletFinder(unittest.TestCase):
         plugin.touch()
         self.assertIsNone(render_applet.applet_problem(APPLET, [root]))
 
+    def test_found_via_a_split_architecture_plugin_under_lib64(self):
+        root = Path(self.tmp.name) / "usr" / "share"
+        plugin = (
+            root.parent / "lib64" / "x86_64-linux-gnu" / "qt6" / "plugins"
+            / "plasma" / "applets" / f"{APPLET}.so"
+        )
+        plugin.parent.mkdir(parents=True)
+        plugin.touch()
+        self.assertIsNone(render_applet.applet_problem(APPLET, [root]))
+
+    def test_a_split_architecture_plugin_for_another_id_still_misses(self):
+        root = Path(self.tmp.name) / "usr" / "share"
+        other = (
+            root.parent / "lib64" / "x86_64-linux-gnu" / "qt6" / "plugins"
+            / "plasma" / "applets" / "org.example.other.so"
+        )
+        other.parent.mkdir(parents=True)
+        other.touch()
+        problem = render_applet.applet_problem(APPLET, [root])
+        self.assertIsNotNone(problem)
+        self.assertIn(APPLET, problem)
+
     def test_the_first_matching_root_wins(self):
         roots = [self.homed_style, self.dirs_style]
         self.assertIsNone(render_applet.applet_problem(APPLET, roots))
