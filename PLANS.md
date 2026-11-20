@@ -5,50 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### GTK 3 OSD suite extraction: isolate destructive-action declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Give OSD destructive-action declaration coverage a focused module
-outside `tests/test_gtk_theme_osd.py`, independently of the waiting
-button-focus extraction and pending entry-tag extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeOsd.test_osd_destructive_action` to
-`tests/test_gtk_theme_osd_destructive.py::TestGtkThemeOsdDestructive`,
-retaining its method name, assertion body and provenance docstring.
-Follow `tests/test_gtk_theme_osd_suggested.py`: inherit
-`OsdSelectorAssertions`, `GtkSheetRuleCases` and `unittest.TestCase`, set
-`CSS_PATH` to the shipped GTK 3 sheet through `support.repo_root.ROOT`,
-and include the unittest main guard. Import `BUTTON_BEVEL`,
-`INVERTED_BUTTON_BEVEL` and `ETCH_DARK` from `support.gtk_theme_spec`,
-and `BLACK` and `FACE` from `support.platinum_palette`. Use the existing
-`support.gtk_osd_cases` mixin; no helper extraction is needed. Keep the
-remaining OSD checks and their required imports in the source module.
-Update its routing docstring and its plain-button inventory comment to
-identify the moved destructive-action check's module. Add the missing
-destructive-action row in `docs/invariants.md`, pointing to the new method:
-describe the raised face, inverted active/checked bevel, disabled ink and
-border-box clip guarantees, using the moved docstring's missing-reference
-and toolkit provenance, and label the coverage declaration-only. The
-suggested-action row already refers to this destructive-action row, but
-the register currently has no `test_osd_destructive_action` anchor.
-Search live docs and tests,
-including `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for other
-moved qualified anchors. No production or stylesheet changes.
-
-**Acceptance criteria.**
-
-- Discovery and a focused run execute the moved method under its new
-  class without a GUI display; the source class no longer defines it.
-- Given the shipped sheet, the moved check passes. An incorrect OSD
-  destructive-action background clip, active bevel, disabled label ink
-  or extra selector in that family fails its retained assertions.
-- The remaining OSD suite runs independently. Live invariant anchors
-  resolve to the moved method, with no stale qualified references to it
-  in live docs or tests. Theme assets, source partials and generated
-  sheets have no diff.
-- `make check` passes after the final edit.
-
 ### GTK 3 OSD suite extraction: isolate overlay-band declarations (planned 2026-11-19 by the plan role)
 
 **Goal.** Give OSD overlay-container declaration coverage a focused module
