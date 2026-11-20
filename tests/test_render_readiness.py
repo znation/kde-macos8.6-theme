@@ -163,6 +163,49 @@ class TestRenderReadiness(unittest.TestCase):
         self.assertGreaterEqual(elapsed_ms, 1000, log)
         self.assertLess(elapsed_ms, 2500, log)
 
+    def test_a_client_touched_ready_file_without_the_dbus_signal_gets_no_paint_grace(self):
+        # Only a D-Bus readiness signal earns the one-second paint grace. A
+        # client that touches RENDER_SESSION_READY_FILE itself leaves the
+        # ready file empty, so the settle must end at once, well inside the
+        # three-second ceiling that would otherwise allow the grace.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        write_executable(
+            bindir / "dbus-monitor",
+            "#!/bin/sh\nexec sleep 30\n",
+        )
+        write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        client = root / "client.py"
+        client.write_text(
+            "import os, pathlib, signal\n"
+            "pathlib.Path(os.environ['RENDER_SESSION_READY_FILE']).touch()\n"
+            "signal.pause()\n",
+            encoding="utf-8",
+        )
+        status = render_workflow.run_logged(
+            [
+                "/bin/sh", "-c",
+                "spectacle() { return 0; }; " + render_session.session_script(
+                    readiness_script="/scratch/readiness.js"
+                ),
+                "sh", "3", str(root / "capture.png"), sys.executable,
+                str(client),
+            ],
+            {**os.environ, "PATH": f"{bindir}:{root}:/usr/bin:/bin"},
+            root / "session.log", 10, root,
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: client ready at", log)
+        stamps = {}
+        for line in log.splitlines():
+            for stage in ("client started", "settle done"):
+                if line.startswith(f"render-session: {stage} at "):
+                    stamps[stage] = int(line.rsplit(" ", 1)[1])
+        self.assertLess(stamps["settle done"] - stamps["client started"], 900, log)
+
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)
         bindir = root / "bin"
