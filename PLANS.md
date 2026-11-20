@@ -181,6 +181,90 @@ This entry is independent of every waiting entry: none of them touches
 - `make check CHECK_TESTS='test_theme_install test_theme_install_support'`
   passes, and `make check` passes after the final edit.
 
+### Parallel-check suite extraction: move the direct results-report cases into the results suite (planned 2026-11-19 by the plan role)
+
+**Goal.** Shrink the 953-line `tests/test_check_parallel.py` and keep it on
+one concern: running the coordinator end to end. Its single class,
+`TestCoordinator`, also holds cases that never run the coordinator. They
+call `check_parallel.print_results(modules, statuses, log_paths, timeout)`
+directly on hand-written log files. That function is
+`tools/check_parallel_results.print_results`, which
+`tests/test_check_parallel_results.py` already covers in its
+`TestPrintResults` class. The module docstring of `test_check_parallel.py`
+already says the results report is pinned in `test_check_parallel_results.py`,
+but these cases were left behind when `tools/check_parallel_results.py` was split out.
+
+**The cases to move.** These are the `TestCoordinator` methods whose only
+action is a direct `print_results` call. None of them use `self._run`,
+`self._project` or the `setUp` cache-home patch. The moved methods are:
+`test_missing_worker_log_fails_even_when_worker_exited_zero`,
+`test_fifo_worker_log_read_fails_without_blocking`,
+`test_a_fifo_started_test_scan_fails_without_blocking`,
+`test_missing_worker_status_reports_did_not_finish_and_keeps_log`,
+`test_a_flooded_log_prints_a_bounded_tail_with_a_hidden_byte_note`,
+`test_a_flooded_log_keeps_its_end_of_log_summary_verdict`,
+`test_invalid_utf8_in_worker_log_is_replaced`,
+`test_a_window_without_any_line_break_is_shown_whole`,
+`test_crlf_worker_log_lines_end_before_the_line_breaks`,
+`test_mixed_empty_and_failed_modules_report_both_outcomes`,
+`test_summary_combines_failed_timed_out_and_unfinished_modules`,
+`test_summary_counts_multiple_failed_workers_including_a_signal_exit` and
+`test_summary_counts_empty_module_alongside_a_timeout`. Leave
+`test_fifo_worker_log_fails_without_blocking` (the spawn-side FIFO case) and
+every case that calls `self._run` where they are. So do the cases that patch
+`tools.check_parallel.print_results` to test `main`.
+
+**Approach.** Move the thirteen methods into
+`tests/test_check_parallel_results.py::TestPrintResults` with their names,
+docstrings, comments and assertions unchanged. The results suite imports
+`print_results` from `tools.check_parallel_results` directly, so replace
+`check_parallel.print_results(` with `print_results(`. Keep each case's
+scratch files on `support.tmp_dir.make_tmp_dir(self)`. Keep the
+`mock.patch("tools.check_parallel_results._bounded_log_text", ...)` target
+in the FIFO-scan case as it is, because it already names the defining module.
+Add the `os`, `io`/`contextlib` (or reuse the module's
+`StringIO`/`redirect_stdout` imports), `mock` and `make_tmp_dir` imports
+the moved cases need. Do not import `tests/test_check_parallel.py`.
+In `tests/test_check_parallel.py`, then drop any import that is no longer used.
+Expect `io`, `contextlib` and `os` to stay, because the remaining
+stderr-capturing and scratch-directory cases still use them, but check each one with grep.
+
+**Files touched.** `tests/test_check_parallel.py`,
+`tests/test_check_parallel_results.py`, `docs/invariants.md`.
+
+**Anchors.** `docs/invariants.md` names six of the moved cases as
+`tests/test_check_parallel.py::TestCoordinator::<name>`:
+`test_missing_worker_log_fails_even_when_worker_exited_zero`,
+`test_fifo_worker_log_read_fails_without_blocking` (in two rows: the
+`make check` tooling row and the regular-file worker-log row),
+`test_a_fifo_started_test_scan_fails_without_blocking`, both flooded-log cases,
+`test_a_window_without_any_line_break_is_shown_whole` and
+`test_crlf_worker_log_lines_end_before_the_line_breaks`. Retarget each one to
+`tests/test_check_parallel_results.py::TestPrintResults::<name>`. In the
+tooling row, also correct the prose that credits "the named verdict, ordering,
+unreadable-log, terminal-control, and flooded-log cases in `TestCoordinator`"
+so that the flooded-log and unreadable-log cases are credited to
+`TestPrintResults`. A grep on 2026-11-19 found no anchor for any of the
+thirteen names in `tests/support/validation_gaps/*.py`, README.md or
+`docs/rendering.md`/`docs/fidelity.md`. The `no_fake.py` reproductions
+that name `TestCoordinator` point at cases that stay. Re-run that grep before
+finishing.
+
+**Acceptance criteria.**
+
+- `grep -n 'print_results(' tests/test_check_parallel.py` finds only the
+  `mock.patch("tools.check_parallel.print_results", ...)` targets. No
+  `TestCoordinator` case calls the report function directly.
+- Each of the thirteen names above is defined once in the tree, under
+  `TestPrintResults` in `tests/test_check_parallel_results.py`. Its assertions
+  are unchanged, apart from the `check_parallel.` prefix being dropped.
+- `grep -rn 'test_check_parallel.py::TestCoordinator::<name>'` for each moved
+  name finds no match in `docs/`, `tests/` or README.md. Each invariant row that
+  named one now names the `test_check_parallel_results.py::TestPrintResults`
+  anchor, and `tests/test_invariants.py` passes.
+- `make check CHECK_TESTS='test_check_parallel test_check_parallel_results test_invariants'`
+  passes, and `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
