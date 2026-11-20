@@ -83,7 +83,15 @@ class PixelPins:
     """
 
     def assert_pixel(self, x, y, colour):
-        self.assertEqual(colour, hex_colour(pixel_at(self.candidate_image(), x, y)))
+        # The coordinates ride in the failure message (after the standard
+        # ``'expected' != 'observed'`` text) so a mismatch names the pixel.
+        # The coordinates ride in the failure message (after the standard
+        # ``'expected' != 'observed'`` text) so a mismatch names the pixel.
+        self.assertEqual(
+            colour,
+            hex_colour(pixel_at(self.candidate_image(), x, y)),
+            f"pixel ({x}, {y})",
+        )
 
     def assert_raised_frame(self, rect, *, flat_rows=(), corner_blend=0):
         """Pin a raised frame's outline/bevel and optional label-free rows.

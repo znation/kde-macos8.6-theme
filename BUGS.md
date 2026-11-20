@@ -312,6 +312,10 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_push_button_frame_and_cell (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_frame_and_cell)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Director handoff 2026-11-19**
+
+**Needs review 2026-11-19 by director: Decide whether to park this pending a recurrence (recommended) or commission a capture investigation. Not reproduced in three focused reruns of `TestIconDialogRender` on this host; the failing pixel's coordinates are now in the mismatch message (`PixelPins.assert_pixel`), but the cause (why the capture held `#CCCCCC`) is still unknown. The seven sibling icon-gate quarantines (see "Seven icon-dialog render gates failed") are one incident.**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~

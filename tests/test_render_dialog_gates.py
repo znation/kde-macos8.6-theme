@@ -38,6 +38,7 @@ from support.render_gates import (
     REAL_TOOLS,
     SOFTWARE_RENDER_SKIP_REASON,
     DialogGate,
+    PixelPins,
     dialog_gate_guard,
     probe_gate_skip,
     software_renderer_skip_reason,
@@ -553,6 +554,34 @@ class TestInactiveDialogRender(DialogGate, unittest.TestCase):
             ),
             "the right window's title bar carries no ink",
         )
+
+
+class TestPixelMismatchNamesThePixel(PixelPins, unittest.TestCase):
+    """A pixel mismatch's failure message names the pixel's coordinates.
+
+    The shared ``assert_pixel`` reads one pixel of the capture. Its failure
+    message must carry the ``(x, y)`` it read, after the standard
+    ``'expected' != 'observed'`` text, so a recurrence of an intermittent
+    colour mismatch shows where it happened. The reading is replaced with a
+    fixed colour here, so no render runs.
+    """
+
+    def candidate_image(self):
+        return None
+
+    def test_a_matching_pixel_passes(self):
+        with mock.patch("support.render_gates.pixel_at", return_value=(0, 0, 0)):
+            self.assert_pixel(302, 324, "#000000")
+
+    def test_a_mismatched_pixel_message_names_its_coordinates(self):
+        with mock.patch(
+            "support.render_gates.pixel_at", return_value=(0xCC, 0xCC, 0xCC)
+        ):
+            with self.assertRaises(AssertionError) as caught:
+                self.assert_pixel(302, 324, "#000000")
+        message = str(caught.exception)
+        self.assertIn("'#000000' != '#CCCCCC'", message)
+        self.assertIn("pixel (302, 324)", message)
 
 
 if __name__ == "__main__":
