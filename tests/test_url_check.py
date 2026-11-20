@@ -404,11 +404,18 @@ class TestAuthorityPorts(unittest.TestCase):
             "https://host:abc/x",
             "https://host:80:90/x",
             "https://host:8 0/x",
+            # RFC 3986 DIGIT is ASCII; Unicode numeric characters are not ports.
+            "https://host:\uff18\uff10/x",
             "https://user@host:1:2/x",
             "https://[::1]:abc/x",
             "https://[::1]:80:90/x",
         ):
             self.assertFalse(is_absolute_url(url), url)
+
+    def test_non_ascii_port_has_the_port_diagnostic(self):
+        problem = url_problem("https://host:\uff18\uff10/x")
+        self.assertIsNotNone(problem)
+        self.assertIn("must put only digits in the port", problem)
 
 
 class TestNonAsciiAndUnencodedBrackets(unittest.TestCase):
