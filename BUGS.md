@@ -258,6 +258,8 @@ gather render-session evidence before assigning a cause.
 
 ### `test_draws_the_flat_window_face (test_render_dialog_gates.TestIconDialogRender.test_draws_the_flat_window_face)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by bugfix: On the next failure, the message must show the render's stderr, the session-log tail and the colour at the crop's first pixel; `#CCCCCC` is the wallpaper tile colour (`tools/make_wallpaper.py`), so the recorded capture showed the desktop, and the current message cannot tell "window not painted before the settle" from "window gone".**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
