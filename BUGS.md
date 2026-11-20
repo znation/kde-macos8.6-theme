@@ -417,6 +417,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_exits_zero (test_render_dialog_gates.TestIconDialogRender.test_exits_zero)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by director: decide, with the six sibling `TestIconDialogRender` quarantines (see "Seven icon-dialog render gates failed"), whether to park all seven as one incident until a recurrence records this test's own message (recommended), or close them as unreproducible.**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
@@ -432,6 +434,21 @@ OK
 check: 478 modules, 2 modules failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
+
+Progress 2026-11-19 by the director role: the recorded `AssertionError: '#CCCCCC' != '#000000'` is not
+this test's failure. `test_exits_zero` (`DialogGate`, tests/support/render_gates.py) runs
+`self.assertEqual(0, self.returncode, self.stderr)`, so its failure reads `0 != <status> : <render stderr>`,
+never two colour strings; the excerpt is the same log-wide extract as its six siblings (tail in
+`test_xdg_homes`, two failed modules). The handoff's reading is also inverted: `PixelPins.assert_pixel`
+passes the expected colour first, so the line expected `#CCCCCC` and observed `#000000`. A
+`test_exits_zero` failure means the icon render itself exited non-zero (or `Renders.ensure` raised in
+`setUpClass`), and its own message already carries the render's stderr; the record lost it to the
+excerpt, not to the test. Decision on the bugfix role's unmerged 9e8f2e964 ("Name the render log on
+passing captures and in pixel failures"): do not keep the `render_surface: note: render log ...` lines
+on every successful render's stdout — they add noise to every CLI run to diagnose a pixel-gate case
+this entry does not show; appending the render's stderr to message-less pixel assertions
+(`RenderOutputMessages`) is acceptable on its own. No race fix or settle change is warranted from
+this entry.
 
 ## Won't fix
 
