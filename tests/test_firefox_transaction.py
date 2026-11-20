@@ -354,6 +354,46 @@ class TestPublishInstall(unittest.TestCase):
             self.assertEqual(b"previous chrome", sheet.read_bytes())
             self.assertEqual(b"\xff\xfe", user_js.read_bytes())
 
+    def test_a_reinstall_over_identical_user_js_skips_its_restore(self):
+        # When user.js already held exactly the text this run publishes, a
+        # failed publication leaves nothing to undo for user.js: the rollback
+        # neither reads nor rewrites it, so a file clobbered after the write
+        # cannot produce a "cannot read" refusal. The original failure reaches
+        # the caller unchanged, and the sheet's previous text is still restored.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            user_js = root / "user.js"
+            sheet.write_bytes(b"previous chrome")
+            user_js.write_text("published preferences\n", encoding="utf-8")
+
+            real_write_text = firefox_transaction.write_profile_text
+            state = {"failed": False}
+
+            def publish_then_clobber(path: Path, published: str) -> None:
+                if path == user_js and not state["failed"]:
+                    real_write_text(path, published)
+                    state["failed"] = True
+                    path.write_bytes(b"\xff\xfe")
+                    raise OSError("simulated publication failure")
+                real_write_text(path, published)
+
+            with mock.patch.object(
+                firefox_transaction, "write_profile_text", publish_then_clobber
+            ):
+                with self.assertRaises(OSError) as caught:
+                    firefox_transaction.publish_install(
+                        ((sheet, b"new chrome", "previous chrome"),),
+                        user_js,
+                        "published preferences\n",
+                        "published preferences\n",
+                    )
+
+            self.assertNotIsInstance(caught.exception, firefox_transaction.ConfigError)
+            self.assertEqual("simulated publication failure", str(caught.exception))
+            self.assertEqual(b"previous chrome", sheet.read_bytes())
+            self.assertEqual(b"\xff\xfe", user_js.read_bytes())
+
 
 class TestRaiseWithRollbackErrors(unittest.TestCase):
     def test_no_rollback_errors_reraises_the_failure_itself(self):
