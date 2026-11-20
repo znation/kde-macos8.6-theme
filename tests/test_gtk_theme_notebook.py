@@ -1,4 +1,4 @@
-"""Validate GTK 3 notebook declarations in the Platinum sheet."""
+"""Validate GTK 3 notebook and stack-switcher tab declarations in the Platinum sheet."""
 
 from __future__ import annotations
 
@@ -153,6 +153,15 @@ class TestGtkThemeNotebook(GtkSheetRuleCases, unittest.TestCase):
 
     def test_notebook_tab_focus_outline(self):
         self.assert_dotted_focus_outline("notebook > header > tabs > tab:focus")
+
+    def test_stack_switcher_tabs(self):
+        forms = {
+            "base": ("stackswitcher > button",),
+            "hover": ("stackswitcher > button:hover",),
+            "checked": ("stackswitcher > button:checked",),
+            "checked+hover": ("stackswitcher > button:checked:hover",),
+        }
+        self.assert_tab_faces(forms)
 
 if __name__ == "__main__":
     unittest.main()

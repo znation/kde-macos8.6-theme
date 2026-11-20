@@ -1,7 +1,8 @@
 """Validate the GTK 3 Platinum sheet's views and dialogs.
 
 This module owns the views-and-dialogs slice of
-``tests/test_gtk_theme.py``'s split: the stack switcher and selected views.
+``tests/test_gtk_theme.py``'s split: selected views.
+Stack-switcher tab declarations are in ``tests/test_gtk_theme_notebook.py``.
 The spin-button field declaration is in ``tests/test_gtk_theme_spinbutton.py``.
 Title-button declarations are in
 ``tests/test_gtk_theme_title_band.py``. Rubberband declarations are in
@@ -106,15 +107,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 ".view text:backdrop:disabled:selected",
             },
         )
-
-    def test_stack_switcher_tabs(self):
-        forms = {
-            "base": ("stackswitcher > button",),
-            "hover": ("stackswitcher > button:hover",),
-            "checked": ("stackswitcher > button:checked",),
-            "checked+hover": ("stackswitcher > button:checked:hover",),
-        }
-        self.assert_tab_faces(forms)
 
     def test_icon_sources_resolve_to_shipped_files(self):
         self.assert_icon_sources_resolve()
