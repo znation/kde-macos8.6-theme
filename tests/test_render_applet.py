@@ -12,6 +12,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.applet_package import make_applet_package  # noqa: E402
@@ -46,6 +47,18 @@ class TestAppletFinder(unittest.TestCase):
     def test_found_via_an_xdg_data_dirs_style_root(self):
         roots = [self.homed_style / "unused", self.dirs_style]
         self.assertIsNone(render_applet.applet_problem(APPLET, roots))
+
+    def test_uses_environment_roots_when_data_roots_are_omitted(self):
+        # The CLI uses the environment-backed default search. Keep both XDG
+        # roots explicit so this assertion does not depend on host packages.
+        with mock.patch.dict(
+            os.environ,
+            {
+                "XDG_DATA_HOME": str(self.homed_style),
+                "XDG_DATA_DIRS": "",
+            },
+        ):
+            self.assertIsNone(render_applet.applet_problem(APPLET))
 
     def test_found_via_split_architecture_plugin_layout(self):
         root = Path(self.tmp.name) / "usr" / "share"
