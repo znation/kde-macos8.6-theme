@@ -41,6 +41,41 @@ title-button and icon-source checks in the source module.
   outputs have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 OSD suite extraction: isolate scale-thumb declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give OSD scale-thumb declaration coverage a focused module outside
+`tests/test_gtk_theme_osd.py`, independently of the queued view-focus extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeOsd.test_osd_scale_slider` to
+`tests/test_gtk_theme_osd_scale.py::TestGtkThemeOsdScale`, preserving the
+method name, assertion body and provenance docstring. Follow
+`tests/test_gtk_theme_osd_indicators.py`: inherit `GtkSheetRuleCases` and
+`unittest.TestCase`, point `CSS_PATH` at the shipped GTK 3 sheet through
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`SCALE_THUMB` from `support.gtk_theme_spec` and `BLACK`, `FACE` and `GREY`
+from `support.platinum_palette`. The method needs no source-class helper.
+Remove the now-unused `SCALE_THUMB` import from the source module and update
+its routing docstring. Keep scale-popup buttons and queued-provenance checks
+in place. Repoint the moved anchor in `docs/invariants.md`, retaining the
+plain-thumb and scale-popup links and declaration-only provenance. Search
+live docs and tests, including `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for further
+moved anchors. No stylesheet or production-code changes.
+
+**Acceptance criteria.**
+
+- Normal discovery and a focused run of the new module execute the moved
+  method under the new class; the source class no longer defines it.
+- Given the shipped sheet, the moved check passes without a GUI display.
+  A wrong disabled border, missing stateless margin, retained text shadow
+  or unexpected OSD scale-slider selector still fails its retained assertions.
+- The remaining OSD module runs with its own fixtures. The invariant anchor
+  resolves to the new class, and live docs and tests have no stale qualified
+  reference to the moved method. Theme assets, source partials and generated
+  stylesheets have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
