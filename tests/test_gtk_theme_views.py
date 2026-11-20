@@ -77,7 +77,8 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         # record restates eight more iconview arms — the selection-check
         # state faces `iconview.content-view.check…:not(list)` — all pinned
         # with the other content-view check spellings by
-        # test_vertical_stepper_and_content_view_check_corners.
+        # test_vertical_stepper_and_content_view_check_corners in
+        # tests/test_gtk_theme_stepper_check_corners.py.
         check_states = SELECTION_CHECK_STATES
         self.assertEqual(
             {selector for selector in self.rules if "iconview" in selector},
