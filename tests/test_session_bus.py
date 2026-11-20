@@ -80,6 +80,16 @@ class TestSessionEnv(unittest.TestCase):
             session_bus.session_env({"XDG_RUNTIME_DIR": str(odd)}),
         )
 
+    def test_a_runtime_dir_with_spaces_keeps_them_in_the_socket_path(self):
+        runtime = self.directory / "Platinum session"
+        runtime.mkdir()
+        (runtime / "bus").write_text("", encoding="utf-8")
+        self.assertEqual(
+            {"XDG_RUNTIME_DIR": str(runtime),
+             "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime}/bus"},
+            session_bus.session_env({"XDG_RUNTIME_DIR": str(runtime)}),
+        )
+
     def test_an_existing_address_is_left_untouched_even_with_syntax_characters(self):
         # The caller composed its own address, so it is passed through as it
         # stands: only the value this helper synthesizes gets encoded.
