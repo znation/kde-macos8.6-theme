@@ -27,7 +27,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import process_runner, repo_root
-from support.cli_fixtures import assert_missing_tool_named, call_main
+from support.cli_fixtures import assert_missing_tool_named, call_main, run_main
 from tools import (
     render_setup,
     render_surface,
@@ -465,6 +465,25 @@ class TestFailurePaths(StubTools, unittest.TestCase):
         self.assertEqual((0, ""), (status, stderr))
         self.assertTrue(output.exists())
         self.assert_scratch_removed()
+
+    def test_a_painted_capture_reports_the_session_log_on_stdout(self):
+        # A passing render keeps its session log's tail in the run's output,
+        # so a later pixel mismatch can show which settle path ran. The
+        # dbus-run-session stub prints a marker into the log before it starts
+        # the session; the marker must reach stdout.
+        self.stub_live_session("exec sleep 60")
+        self.stub(
+            "dbus-run-session",
+            "printf 'settle marker\\n'; for script; do :; done; eval \"$script\"",
+        )
+        output = self.root / "out.png"
+        result = run_main(
+            render_surface.main, "render_surface", [str(output), "--settle", "0"]
+        )
+        self.assertEqual((0, ""), (result.returncode, result.stderr))
+        self.assertTrue(output.exists())
+        self.assertIn("render_surface: note: render log", result.stdout)
+        self.assertIn("render_surface: note:   settle marker", result.stdout)
 
     def test_a_crashed_applet_is_not_captured_as_a_successful_render(self):
         # plasmawindowed is backgrounded, so its failure is otherwise invisible;

@@ -8,7 +8,7 @@ from pathlib import Path
 
 if __package__:
     from tools.containment import open_regular_binary
-    from tools.diagnostics import report_error, report_failure
+    from tools.diagnostics import log_tail_lines, report_error, report_failure, report_note
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render_output import publish
@@ -34,7 +34,7 @@ if __package__:
     from tools.repo_root import ROOT
 else:  # run directly from render_surface.py
     from containment import open_regular_binary
-    from diagnostics import report_error, report_failure
+    from diagnostics import log_tail_lines, report_error, report_failure, report_note
     from png import PngError, read_png
     from process_group import run_logged
     from render_output import publish
@@ -73,6 +73,24 @@ def _log_size(log: Path) -> str:
         return f"{log.stat().st_size} bytes"
     except OSError:
         return "missing"
+
+
+def _report_render_log(log: Path) -> None:
+    """Print the session log's last lines on stdout after a painted capture.
+
+    A passing render discards its session log with the scratch directory, so
+    a later pixel mismatch could not show which settle path ran. Printing the
+    tail keeps that evidence in the run's own output; a log that cannot be
+    read is reported in its place rather than failing a capture that painted.
+    """
+    try:
+        lines = log_tail_lines(log)
+    except (OSError, ValueError) as exc:
+        report_note(TOOL, f"render log unreadable: {exc}")
+        return
+    report_note(TOOL, f"render log ({_log_size(log)}), last lines:")
+    for line in lines:
+        report_note(TOOL, f"  {line}")
 
 
 # How far into the session log the black-capture diagnosis looks for the
@@ -276,6 +294,7 @@ def render(args: argparse.Namespace) -> int:
                 f"the {args.settle:g}s settle; retry with a longer --settle",
                 command.log,
             )
+        _report_render_log(command.log)
         try:
             publish(session.surface, output)
         except (OSError, ValueError) as exc:

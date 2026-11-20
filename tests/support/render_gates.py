@@ -332,7 +332,34 @@ class Renders:
             shutil.rmtree(directory, ignore_errors=True)
 
 
-class DialogGate(PixelPins):
+def render_output_note(stdout, stderr):
+    """Return the render's own output as a failure-message note, or ``""``.
+
+    A passing render's stdout carries its session log tail, so a pixel
+    mismatch shows which settle path ran; an empty output adds nothing.
+    """
+    parts = [part.rstrip("\n") for part in (stdout, stderr) if part and part.strip()]
+    if not parts:
+        return ""
+    return "render output:\n" + "\n".join(parts)
+
+
+class RenderOutputMessages:
+    """Append the render's own output to every pixel assertion's failure.
+
+    A pixel assertion passes no message, so the render's stdout and stderr
+    join the mismatch: a recurrence then names the settle path that ran
+    instead of a bare colour pair. An explicit message is kept as given. The
+    mixin reads ``stdout`` and ``stderr`` from the gate's ``setUpClass``.
+    """
+
+    def assertEqual(self, first, second, msg=None):
+        if msg is None:
+            msg = render_output_note(self.stdout, self.stderr) or None
+        super().assertEqual(first, second, msg)
+
+
+class DialogGate(RenderOutputMessages, PixelPins):
     """Test scaffolding the fifteen dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass

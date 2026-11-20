@@ -394,6 +394,8 @@ make: *** [Makefile:491: check] Error 1
 
 **Director handoff 2026-11-19**
 
+**Director handoff 2026-11-19**
+
 **Needs review 2026-11-19 by director: decide, with the six sibling `TestIconDialogRender` quarantines (see "Seven icon-dialog render gates failed"), whether to park all seven as one incident until a recurrence records this test's own message (recommended), or close them as unreproducible.**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.

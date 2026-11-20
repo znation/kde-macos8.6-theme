@@ -138,7 +138,7 @@ _LOG_TAIL_LINES = 12
 _LOG_TAIL_BYTES = 1 << 16
 
 
-def _log_tail_lines(log: Path) -> list[str]:
+def log_tail_lines(log: Path) -> list[str]:
     """Return at most the last ``_LOG_TAIL_LINES`` lines of *log*, read bounded.
 
     At most ``_LOG_TAIL_BYTES`` bytes are read from the end of the file. A
@@ -199,7 +199,7 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     text = f"{tool}: error: {escape_controls(message)}"
     if log is not None and log.is_file():
         try:
-            lines = _log_tail_lines(log)
+            lines = log_tail_lines(log)
         except (OSError, ValueError) as exc:
             # The external process owns the log contents and may remove or
             # replace it between is_file() and open(). Keep its failure
