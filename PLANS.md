@@ -190,6 +190,67 @@ methods of `tests/test_gtk_theme_views.py`, plus its docstring.
   generated files have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: move the stack-switcher tab check into the notebook suite (planned 2026-11-19 by the plan role)
+
+**Goal.** Put the GTK 3 stack-switcher tab-face check next to the GTK 3
+notebook tab checks it shares a recipe with, and shrink the views module.
+The method sits apart from the disabled-selected, spin-button and
+separator/frame extractions. All of them edit
+`tests/test_gtk_theme_views.py`, its docstring and `docs/invariants.md`, so
+whichever merges later re-reads those and rewrites only its own lines.
+
+**Approach and files touched.**
+
+- Move `TestGtkThemeViews.test_stack_switcher_tabs` from
+  `tests/test_gtk_theme_views.py` to
+  `tests/test_gtk_theme_notebook.py::TestGtkThemeNotebook`, after
+  `test_notebook_tab_focus_outline`. Keep its body the same. It calls only
+  `assert_tab_faces` from `support.gtk_rule_cases.GtkSheetRuleCases`, which
+  the destination already inherits. The destination already sets the same
+  GTK 3 `CSS_PATH`. The method names no module-level constant, so neither
+  module's import block changes. Keep the blank-line layout before the
+  destination's `if __name__ == "__main__":` guard.
+- Widen the destination's one-line module docstring to say it covers GTK 3
+  notebook and stack-switcher tab declarations.
+- In the views module docstring, drop "the stack switcher" from the list of
+  what this module owns. Add one sentence saying stack-switcher tab
+  declarations are in `tests/test_gtk_theme_notebook.py`. Write it against
+  the docstring as it reads at implementation time.
+- In `docs/invariants.md`, repoint the
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_stack_switcher_tabs`
+  anchor to
+  `tests/test_gtk_theme_notebook.py::TestGtkThemeNotebook::test_stack_switcher_tabs`.
+  A grep on 2026-11-19 found it once, in the "Both GTK sheets paint a stack
+  switcher's page buttons" row. Keep the row's wording and its GTK 4 anchor
+  `tests/test_gtk4_navigation.py::TestGtk4Navigation::test_stack_switcher_tabs`.
+- Grep `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py` and `tests/support/` (including
+  `tests/support/validation_gaps/*.py`) for the old anchor and repoint any
+  hit. The 2026-11-19 grep found none outside `docs/invariants.md`. This is
+  not a render gate, so the `_GATE_FILES` lists are not involved.
+- Do not change theme sheets, source partials or
+  `tests/test_gtk_theme_path_bar.py`.
+
+**Acceptance criteria.**
+
+- Test discovery lists `test_stack_switcher_tabs` under
+  `test_gtk_theme_notebook.TestGtkThemeNotebook` and no longer under
+  `test_gtk_theme_views.TestGtkThemeViews`. The notebook suite still lists
+  its four existing `test_notebook_*` methods. Both modules pass when run
+  on their own through the project's unittest runner.
+- The moved method's function-definition AST is identical to the original
+  at the base commit.
+- With the test in its new suite, removing `box-shadow` from the GTK 3
+  sheet's `stackswitcher > button` rule fails it. So does deleting the
+  `stackswitcher > button:checked:hover` selector from its group.
+- The `docs/invariants.md` GTK 3 stack-switcher anchor resolves to an
+  existing method. After the change, a grep finds no
+  `test_stack_switcher_tabs` in `tests/test_gtk_theme_views.py`.
+- `git diff --stat` shows changes only to the two test modules,
+  `docs/invariants.md` and the backlog files. Theme sheets, partials and
+  generated files have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
