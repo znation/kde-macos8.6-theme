@@ -138,7 +138,9 @@ Whichever plan merges second keeps the other's module name in those lists.
   passes, and `make check` passes after the final edit.
 
 
-### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role)
+## Done
+
+### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the review role
 
 **Goal.** Give Page Info's meta and image trees a focused declaration suite,
 reducing the mixed-surface `tests/test_firefox_theme_page_info.py`. This is
@@ -186,7 +188,9 @@ and provenance checks form one concern and move together.
 - `make check` passes after the final edit. The implementation diff contains
   test organization and documentation changes, with no shipped theme changes.
 
-## Done
+**Review verification.** Restored the moved method text against the supplied
+diff; checked imports, invariant anchors and suite inventories. Tumwater owns
+test execution; the reviewer did not run the suite.
 
 ### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
