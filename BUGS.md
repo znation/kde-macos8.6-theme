@@ -479,6 +479,8 @@ and no code change is warranted. The Needs review note above stands.
 
 ### `test_waits_for_client_termination_and_preserves_capture_status (test_render_surface_units.TestSessionScript.test_waits_for_client_termination_and_preserves_capture_status) (capture_status=0, capture_seconds=0)` failed, then passed on the same tree (quarantined by tumwater 2026-11-20)
 
+**Director handoff 2026-11-20**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
