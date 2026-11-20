@@ -72,6 +72,67 @@ selected icon-view/treeview extractions. Those touch other methods of
   diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: move the spin-button field declaration into the spin-button suite (planned 2026-11-19 by the plan role)
+
+**Goal.** Put the GTK 3 spin-button field check next to the other GTK 3
+spin-button checks and shrink the oversized views module. This move does
+not depend on the waiting entry-icon, stepper/check-corner, selected
+icon-view/treeview or disabled-selected extractions. Those touch other
+methods of `tests/test_gtk_theme_views.py`, plus its docstring.
+
+**Approach and files touched.**
+
+- Move `TestGtkThemeViews.test_spin_button_field` from
+  `tests/test_gtk_theme_views.py` to
+  `tests/test_gtk_theme_spinbutton.py::TestGtkThemeSpinbutton`. Put it
+  first, before `test_horizontal_spinbutton_focus_outline`. Keep its body
+  the same. It calls only `assert_spin_button_field` and reads `self.rules`,
+  both from `support.gtk_rule_cases.GtkSheetRuleCases`. The destination
+  already inherits that class and sets the same GTK 3 `CSS_PATH`, so it
+  needs no new import. `Gtk3ChildProbeCases` skips only inside
+  `_run_gtk_child`, so the moved declaration test still runs where GTK is
+  missing.
+- In the views module, leave the import block alone. The moved method
+  imports no names of its own.
+- Docstrings: in the views module, drop "the spin-button field" from the
+  list of what the module owns and add a sentence saying the spin-button
+  field declaration lives in `tests/test_gtk_theme_spinbutton.py`. Write it
+  against the docstring as it reads at implementation time, because sibling
+  extractions edit the same paragraph. In the spin-button module, add the
+  field to the first line and the list of what the module owns.
+- In `docs/invariants.md`, repoint the anchor
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_spin_button_field`
+  to `tests/test_gtk_theme_spinbutton.py::TestGtkThemeSpinbutton::test_spin_button_field`.
+  A grep on 2026-11-19 found one row with it: the "Both GTK sheets paint a
+  spin button's field with the Platinum entry field" row. Keep its wording.
+  Leave its GTK 4 anchor
+  `tests/test_gtk4_entry_fields.py::TestGtk4EntryFields::test_spin_button_field`
+  alone.
+- Grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`,
+  `tests/support/` (including `tests/support/validation_gaps/*.py`) and
+  `PLANS.md` `## Planned` for the old anchor, and repoint any hit. The
+  2026-11-19 grep found none outside `docs/invariants.md`. This is not a
+  render gate, so the `_GATE_FILES` lists are not involved.
+- No changes to theme sheets or source partials. `test_separator` and
+  `test_frame` stay in views; they are later candidates for
+  `tests/test_gtk_theme_frames.py`.
+
+**Acceptance criteria.**
+
+- Test discovery lists `test_spin_button_field` under
+  `TestGtkThemeSpinbutton` and no longer under `TestGtkThemeViews`. Both
+  modules pass when run on their own through the project's unittest runner.
+- With the moved test in its new suite, changing the outline colour of the
+  `spinbutton:not(.vertical)` field in the GTK 3 sheet fails it. So does
+  adding a `spinbutton.vertical > text` rule.
+- The GTK 3 anchor in the `docs/invariants.md` spin-button field row
+  resolves to an existing method. After the change, a grep finds no
+  `test_spin_button_field` in `tests/test_gtk_theme_views.py`.
+- `git diff --stat` shows changes only to the two test modules,
+  `docs/invariants.md` and the backlog files. Theme sheets, partials and
+  generated files have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
