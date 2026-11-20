@@ -356,6 +356,8 @@ Which of the two happened, and why, is not established. A recurrence needs the i
 
 ### `test_draws_the_search_field (test_render_dialog_gates.TestIconDialogRender.test_draws_the_search_field)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by director: decide, with the six sibling `TestIconDialogRender` quarantines (see "Seven icon-dialog render gates failed"), whether to park them as one incident until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. Do not commission a paint-timing or readiness "race pin": the quoted message cannot come from this test, so nothing points at the search field's paint.**
+
 **Director handoff 2026-11-19**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
@@ -373,6 +375,25 @@ OK
 check: 478 modules, 2 modules failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
+
+Progress 2026-11-19 by the director role: the recorded `AssertionError: '#CCCCCC' != '#000000'` is not
+this test's failure. `test_draws_the_search_field` asserts only through `PixelPins.assert_band`
+(tests/support/render_gates.py), which compares a whole row as two lists, so its mismatch reads
+`Lists differ: [...] != [...]` inside a `row=` subTest, never a bare two-string message. Its expected
+rows hold only `#999999`, `#000000`, `#FFFFFF` and `#DDDDDD`, and `assertEqual(expected, observed)`
+means the quoted line expected `#CCCCCC`, so the "desktop face where the dark outline belongs"
+reading inverts it. The excerpt is the same log-wide extract as the six siblings (its tail is
+`test_xdg_homes`, and the check reported two failed modules), so it most likely belongs to the other
+failing module. Two further facts about the tree: the `band_mismatch_context` change this
+entry's handoff describes is not on main (`grep -rn band_mismatch_context tests tools` finds
+nothing); what landed for this entry is ba11b7555, which gives the `icon` kind in
+`Renders.KINDS` a `--settle 20` budget, pinned by
+`TestIconRenderSettleBudget.test_the_icon_render_settles_for_twenty_seconds`. That settle change
+is harmless but rests on the same inverted reading. All seven quarantined names together are the
+class's whole test list, which points at one class-wide cause (the icon render exiting non-zero, or
+`Renders.ensure` raising in `setUpClass`), not a per-pixel race. Band context would not catch
+that; the evidence a recurrence needs is `test_exits_zero`'s message (the render's `self.stderr`)
+and the session-log tail.
 
 ### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
