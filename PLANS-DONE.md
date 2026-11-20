@@ -5,6 +5,62 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### File-dialog suite extraction: isolate the measured sidebar icon-cell maps (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Shrink the oversized `tests/test_render_file_dialog.py` by
+separating the places sidebar's measured pixel maps from the gate's
+assertions. This follows the merged list-row fixture extraction
+(`tests/support/file_dialog_list_fixtures.py`). It is independent of
+every waiting GTK 3 suite extraction, which touch only `tests/test_gtk_theme_*.py`
+and `docs/invariants.md`'s `## gtk` rows.
+
+**Approach and files touched.**
+
+- Add `tests/support/file_dialog_sidebar_fixtures.py` with a module
+  docstring in the style of `file_dialog_list_fixtures.py`: say the maps
+  were measured from the KIO chooser capture that
+  `TestFileDialogRender`'s class docstring names, and that their owning
+  assertions stay in `tests/test_render_file_dialog.py`.
+- Move `TestFileDialogRender.FOLDER_CELL_ROWS` and
+  `TestFileDialogRender.DRIVE_CELL_ROWS` into it as module-level
+  `FOLDER_CELL_ROWS` and `DRIVE_CELL_ROWS`, keeping the literals as they
+  are. Bring along the measurement comments that explain the data: the
+  folder cell's 40x26 extent, and the two drive cells measuring
+  byte-identical at the +52 row offset, so one map pins both.
+- Keep the geometry and label-band constants in the class with their
+  comments (`FOLDER_CELL`, `PLACES_LABEL_BANDS`, `DRIVE_CELLS`,
+  `DEVICE_LABEL_BANDS`, `GROUP_HEADERS`, `CAPACITY_TROUGHS`), and also
+  `ICON_BOX_ROWS`, the title-bar map. Trim each class comment so it still
+  describes what stays in the class.
+- In the gate module, add
+  `from support import file_dialog_sidebar_fixtures as sidebar_fixtures`
+  beside the `list_fixtures` import. In
+  `test_the_places_entry_pins_its_folder_cell` and
+  `test_the_device_entries_pin_their_drive_cells`, read
+  `sidebar_fixtures.FOLDER_CELL_ROWS` and `sidebar_fixtures.DRIVE_CELL_ROWS`.
+  Test names, subtests and assertion logic don't change.
+- The planning grep found the two names only in
+  `tests/test_render_file_dialog.py`: nothing in `docs/`, `README.md`,
+  `tests/test_ci_workflow.py`, `tests/support/validation_gaps/*.py` or the
+  `_GATE_FILES` lists. Re-grep them at implementation. No production code,
+  theme file, capture registration or gate class moves.
+
+**Acceptance criteria.**
+
+- `tests/support/file_dialog_sidebar_fixtures.py` exposes `FOLDER_CELL_ROWS`
+  and `DRIVE_CELL_ROWS` as 26 rows of 40 `#RRGGBB` strings each. Each one
+  equals the definition it replaces on main, as a comparison of the old
+  and new literals shows (no render needed).
+- `TestFileDialogRender` no longer defines either name, and the gate module
+  holds no other copy of the maps. The module is shorter by roughly the
+  maps' size.
+- Test discovery lists the same `tests/test_render_file_dialog.py` test IDs
+  as before. On a host with the capture tools, the folder-cell and
+  drive-cell tests still byte-compare the same cells. Without the tools
+  they skip under the existing guard, as before.
+- Importing the new support module starts no GUI process or capture.
+- `make check` passes after the final edit.
+
 ### GTK 3 suite extraction: move the disabled-selected row and child inventory into the disabled-views suite (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Put GTK 3 disabled-selected checks next to the other GTK 3
