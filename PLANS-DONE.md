@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 OSD suite extraction: isolate overlay-band declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Give OSD overlay-container declaration coverage a focused module
+outside `tests/test_gtk_theme_osd.py`, independently of the waiting
+destructive-action extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeOsd.test_osd_overlay_bands` unchanged into
+`tests/test_gtk_theme_osd_overlay.py::TestGtkThemeOsdOverlay`.
+Follow `tests/test_gtk_theme_view_focus.py`: inherit `GtkSheetRuleCases`
+and `unittest.TestCase`, set `CSS_PATH` to the shipped GTK 3 sheet through
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`ETCH_DARK` from `support.gtk_theme_spec` and `BLACK`, `FACE` and `WHITE`
+from `support.platinum_palette`. The moved method uses no source-local
+helper. Remove the source module's now-unused `WHITE` import; retain its
+other required imports and the separate colorchooser-corner check.
+Update the source routing docstring to point to the new module and
+repoint the overlay-container row in `docs/invariants.md`, preserving
+its recipe, missing-reference and toolkit provenance. Search live docs
+and tests, including `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for
+other moved qualified anchors. No production or stylesheet changes.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run execute the moved method under its new
+  class without a GUI display; the source class no longer defines it.
+- Given the shipped sheet, the moved check passes. A wrong overlay face,
+  bottom border, highlight or shadow declaration fails its retained
+  assertions, as does an unexpected selector within its filtered family.
+- The remaining OSD suite runs independently. Live invariant anchors
+  resolve to the moved method, with no stale qualified references to it
+  in live docs or tests. Theme assets, source partials and generated
+  sheets have no diff.
+- `make check` passes after the final edit.
+
 ### GTK 3 OSD suite extraction: isolate destructive-action declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Give OSD destructive-action declaration coverage a focused module

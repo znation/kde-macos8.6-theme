@@ -2,15 +2,16 @@
 
 The sheet draws every overlay the reference set does not show with the flat
 black OSD band and white-faced controls; this module owns the OSD scope of
-``tests/test_gtk_theme.py``'s split: the overlay bands and the colorchooser
-OSD popover, the OSD flat button, and the scale-popup
+``tests/test_gtk_theme.py``'s split: the colorchooser OSD popover, the OSD
+flat button, and the scale-popup
 arms. OSD suggested-action declarations live in
 ``tests/test_gtk_theme_osd_suggested.py``. OSD scale-thumb declarations live in
 ``tests/test_gtk_theme_osd_scale.py``. OSD check and radio indicators live in
 ``tests/test_gtk_theme_osd_indicators.py``. Entry fields and spin-button
 steppers live in ``tests/test_gtk_theme_osd_fields.py``. Meter declarations
 live in ``tests/test_gtk_theme_osd_meters.py``. OSD destructive-action
-declarations live in ``tests/test_gtk_theme_osd_destructive.py``. The
+declarations live in ``tests/test_gtk_theme_osd_destructive.py``. OSD
+overlay-band declarations live in ``tests/test_gtk_theme_osd_overlay.py``. The
 sheet's comment blocks carry each value's provenance.
 """
 
@@ -27,7 +28,6 @@ from support.gtk_theme_spec import (
 from support.platinum_palette import (
     BLACK,
     FACE,
-    WHITE,
 )
 from support.repo_root import ROOT
 
@@ -37,60 +37,6 @@ CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 class TestGtkThemeOsd(OsdSelectorAssertions, GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
-
-    def test_osd_overlay_bands(self):
-        selectors = (
-            ".osd .scale-popup",
-            ".csd popover.background.osd",
-            "popover.background.osd",
-            ".csd popover.background.touch-selection",
-            ".csd popover.background.magnifier",
-            "popover.background.touch-selection",
-            "popover.background.magnifier",
-            ".osd",
-            ".osd .scale-popup:backdrop",
-            "popover.background.osd:backdrop",
-            "popover.background.touch-selection:backdrop",
-            "popover.background.magnifier:backdrop",
-            ".osd:backdrop",
-            "toolbar.osd",
-        )
-        expected = {
-            "background-color": FACE,
-            "background-image": "none",
-            "color": BLACK,
-            "border": "0",
-            "border-bottom": f"1px solid {ETCH_DARK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 0 -1px {WHITE}",
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        for selector in selectors:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], expected)
-        self.assertEqual(
-            {
-                selector
-                for selector in self.rules
-                if selector != "colorchooser .popover.osd"
-                and "button" not in selector
-                and ((".osd" in selector
-                    and ".osd check" not in selector
-                    and ".osd entry" not in selector
-                    and "fill" not in selector
-                    and "highlight" not in selector
-                    and "progress" not in selector
-                    and ".osd radio" not in selector
-                    and ".osd scale slider" not in selector
-                    and ".osd spinbutton" not in selector
-                    and "trough" not in selector)
-                or "magnifier" in selector
-                or "touch-selection" in selector
-                or "scale-popup" in selector)
-            },
-            set(selectors),
-        )
 
     def test_colorchooser_osd_popover_corners(self):
         self.assertEqual(
