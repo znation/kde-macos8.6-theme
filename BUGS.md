@@ -246,15 +246,17 @@ make: *** [Makefile:491: check] Error 1
 
 **Needs review 2026-11-19 by bugfix: On recurrence, capture the full render stderr and session-log tail alongside the failing pixel's coordinates and expected/observed colours; the recorded `#000000` versus `#CCCCCC` mismatch does not identify why the capture was the desktop face.**
 
-The seven quarantines immediately below all come from `test_render_dialog_gates.TestIconDialogRender`.
-They are `test_draws_the_flat_window_face`, `test_draws_the_grid_field_top_edge`,
+The seven quarantines immediately below all come from `test_render_dialog_gates.TestIconDialogRender`:
+`test_draws_the_flat_window_face`, `test_draws_the_grid_field_top_edge`,
 `test_draws_the_push_button_face_at_the_existing_recipe`,
 `test_draws_the_push_button_frame_and_cell`, `test_draws_the_search_field`,
-`test_writes_a_480x360_png` and `test_exits_zero`. Each failed with the same assertion mismatch,
-expected `#000000` but observed `#CCCCCC`, and passed on a rerun of the same tree. Treat them as
-one unresolved incident for triage because they share a test class, observed value and check run.
-The available excerpts do not show why the capture contained `#CCCCCC`; use a recurrence to
-gather render-session evidence before assigning a cause.
+`test_writes_a_480x360_png` and `test_exits_zero`. They passed on reruns of the same tree.
+The shared excerpt `AssertionError: '#CCCCCC' != '#000000'` is not evidence of an icon-dialog
+pixel mismatch: the desktop gate recorded that exact message for its pixel `(0, 20)` in the same
+check run, and none of the icon-dialog tests can produce it. The icon render's actual failure
+message and cause were not preserved in the quarantines. Keep these as one unresolved incident;
+on recurrence capture the icon render's own failure message and session-log tail before assigning
+a cause.
 
 ### `test_draws_the_flat_window_face (test_render_dialog_gates.TestIconDialogRender.test_draws_the_flat_window_face)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
