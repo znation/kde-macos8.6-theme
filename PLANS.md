@@ -47,6 +47,42 @@ moved qualified anchors. No production or stylesheet changes.
   docs or tests. Theme assets, source partials and generated sheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: isolate entry-tag declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give entry-tag chips a focused declaration suite outside
+`tests/test_gtk_theme_entry.py`, independently of the queued title-button
+and OSD suggested-action work.
+
+**Approach and files touched.** Move
+`TestGtkThemeEntry.test_entry_tag_faces` unchanged, including its provenance
+comments, to `tests/test_gtk_theme_entry_tags.py::TestGtkThemeEntryTags`.
+Follow `tests/test_gtk_theme_drag_drop.py`: inherit `GtkSheetRuleCases` and
+`unittest.TestCase`, set `CSS_PATH` to the shipped GTK 3 sheet through
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`strip_comments` from `support.gtk_css` and `BLACK` and `SELECTION` from
+`support.platinum_palette`. Remove source imports only when unused after
+the move, and update its routing docstring. Repoint the entry-tag row in
+`docs/invariants.md`, preserving its provenance. Search live docs and tests,
+including `docs/rendering.md`, `docs/fidelity.md`,
+`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for moved
+qualified anchors. Keep the entry-image and remaining entry tests in place;
+this extraction needs no shared-helper move or production change.
+
+**Acceptance criteria.**
+
+- Discovery and a focused run of the new module execute the moved method
+  under its new class without a GUI display; the source class no longer
+  defines that method.
+- Given the shipped sheet, the moved check passes. A wrong tag fill,
+  swapped direction margin, dimmed close-button ink, extra entry-tag
+  selector or tag block preceding the entry-image anchor fails its
+  retained assertions.
+- The remaining entry suite runs independently. Live invariant anchors
+  resolve to the moved method, and live docs and tests contain no stale
+  qualified references to it. Theme assets, source partials and generated
+  sheets have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
