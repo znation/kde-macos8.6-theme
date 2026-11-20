@@ -13,7 +13,7 @@ if __package__:
     from tools.process_group import run_logged
     from tools.render_output import publish
     from tools.gtk_user_files import ConfigError
-    from tools.render_clients import splash_client
+    from tools.render_splash_client import splash_client
     from tools.render_dialogs import DIALOG_MODES, DialogMode
     from tools.render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
     from tools.render_window_rules import (
@@ -39,7 +39,7 @@ else:  # run directly from render_surface.py
     from process_group import run_logged
     from render_output import publish
     from gtk_user_files import ConfigError
-    from render_clients import splash_client
+    from render_splash_client import splash_client
     from render_dialogs import DIALOG_MODES, DialogMode
     from render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
     from render_window_rules import (

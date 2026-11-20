@@ -1,4 +1,4 @@
-"""Tests for the splash client argv in tools/render_clients.py.
+"""Tests for the splash client argv in tools/render_splash_client.py.
 
 ``splash_client`` is the one argv the splash render mode hands the session
 script. Its docstring pins the shape: ``ksplashqml --test --nofork`` followed
@@ -13,7 +13,7 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import render_clients  # noqa: E402
+from tools import render_splash_client  # noqa: E402
 from tools.render_session import Session  # noqa: E402
 
 
@@ -23,7 +23,7 @@ class TestSplashClient(unittest.TestCase):
         # directory under the session's data home; any extra or reordered
         # element changes what the client paints or how long it lives.
         with Session.create() as session:
-            argv = render_clients.splash_client(session)
+            argv = render_splash_client.splash_client(session)
             expected_package = (
                 session.data / "plasma" / "look-and-feel" / "org.macos8.desktop"
             )
@@ -37,7 +37,7 @@ class TestSplashClient(unittest.TestCase):
         # data home, so ksplashqml loads the scratch copy rather than
         # resolving the id against the user's own look-and-feel packages.
         with Session.create() as session:
-            package = render_clients.splash_client(session)[-1]
+            package = render_splash_client.splash_client(session)[-1]
             self.assertTrue(package.startswith(str(session.data) + "/"))
             self.assertTrue(package.endswith("/org.macos8.desktop"))
             self.assertNotEqual("org.macos8.desktop", package)
