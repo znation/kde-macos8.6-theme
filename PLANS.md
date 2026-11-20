@@ -185,6 +185,54 @@ and `docs/invariants.md`'s `## gtk` rows.
 - Importing the new support module starts no GUI process or capture.
 - `make check` passes after the final edit.
 
+### Group the flat tools/ modules into per-subsystem packages (planned 2026-11-19 by the organize role)
+
+**Goal.** `tools/` holds 107 flat modules with no grouping beyond their name
+prefixes: `render_` (12), `fidelity_` (12), `sample_` (11), `cursor_` (10),
+`check_` (7), `firefox_` (5), `apply_` (5), `uninstall_` (4), `gtk_` (4), plus
+single files for other subsystems. A reader cannot see subsystem boundaries from
+the directory listing, and 97 files import these modules by their flat names.
+Regroup them into subpackages, following the existing `tools/png/` package.
+
+**Cost today.** Evidence: `ls tools | wc -l` gives 107 modules; `rg -l` finds 97
+files that import a prefixed flat module; `render_` names appear in 123 files
+(code, tests and docs). Nothing marks which `render_*` modules form the render
+subsystem, so a change to one family is found by grepping names, not by path.
+
+**Target structure.** One subpackage per subsystem, each with `__init__.py`:
+`tools/render/`, `tools/fidelity/`, `tools/sample/`, `tools/cursor/`,
+`tools/firefox/`, `tools/uninstall/`, `tools/gtk/`, `tools/check/`. The module
+names lose their prefix inside the package (`tools/render_workflow.py` becomes
+`tools/render/workflow.py`). The CLI entry points stay in `tools/` and keep their
+paths, because the Makefile, `docs/*.md` and the help text run
+`python3 tools/sample.py`, `tools/fidelity.py` and similar commands. Shared
+modules (`atomic_write`, `text_lines`, `process_group`, `repo_root`, ...) stay at
+the top of `tools/`. Modules that serve two families are assigned to one owner,
+and the other family imports it.
+
+**Files touched.** Every moved module; every importer in `tools/` and `tests/`
+(about 97 files); every `mock.patch` target string (retarget each moved name to
+the module whose global the caller resolves, per the L4 lesson); the Makefile;
+`docs/*.md`, README, `docs/invariants.md`, and the rendered help text.
+
+**Approach.** Land the whole move in one change so the tree never sits between
+two layouts. Order: create the packages, move modules with `git mv`, rewrite
+imports, retarget `mock.patch` strings, then grep every old flat name across
+source, tests and markdown before running `make check`.
+
+**Acceptance criteria.**
+
+- `ls tools/*.py` lists only the CLI entry points and shared top-level modules;
+  each subsystem family lives in its own package directory.
+- A grep for every old flat name (`render_workflow`, `fidelity_metrics`, ...) over
+  `*.py`, `*.md` and `Makefile` finds no stale reference.
+- Every `mock.patch` string that names a moved module resolves; the tests that patch
+  them still pass.
+- The CLI entry points run unchanged: `python3 tools/sample.py --help` and
+  `python3 tools/fidelity.py --help` exit 0 and print the same usage text as before.
+- `make check` passes after the final edit.
+- No behavior change: `git diff` shows moves, import lines and patch targets only.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
