@@ -103,6 +103,23 @@ class TestCache(unittest.TestCase):
             self.assertEqual({}, check_parallel_order.load_durations(path))
         self.assertEqual({}, check_parallel_order.load_durations("/missing/cache.json"))
 
+    def test_a_cache_of_another_format_version_loads_nothing(self):
+        # The cache's version field is the only guard against reading a file
+        # written by a different format revision: a version other than the
+        # current one must be ignored even when its durations look valid, and
+        # so must a durations field that is not a JSON object.
+        for record in (
+            {"version": 2, "durations": {"test_ok": 0.5}},
+            {"version": 0, "durations": {"test_ok": 0.5}},
+            {"version": "1", "durations": {"test_ok": 0.5}},
+            {"version": 1, "durations": ["test_ok", 0.5]},
+        ):
+            with self.subTest(record=record):
+                path = str(make_tmp_dir(self) / "cache.json")
+                with open(path, "w", encoding="utf-8") as sink:
+                    json.dump(record, sink)
+                self.assertEqual({}, check_parallel_order.load_durations(path))
+
     def test_deeply_nested_json_cache_loads_nothing(self):
         path = make_tmp_dir(self) / "cache.json"
         path.write_text("[" * 10000 + "0" + "]" * 10000, encoding="utf-8")
