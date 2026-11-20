@@ -85,8 +85,6 @@ class PixelPins:
     def assert_pixel(self, x, y, colour):
         # The coordinates ride in the failure message (after the standard
         # ``'expected' != 'observed'`` text) so a mismatch names the pixel.
-        # The coordinates ride in the failure message (after the standard
-        # ``'expected' != 'observed'`` text) so a mismatch names the pixel.
         self.assertEqual(
             colour,
             hex_colour(pixel_at(self.candidate_image(), x, y)),
