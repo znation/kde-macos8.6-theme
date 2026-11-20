@@ -244,6 +244,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### Seven icon-dialog render gates failed with the same pixel mismatch (found by the steward role 2026-11-19)
 
+**Needs review 2026-11-19 by bugfix: On recurrence, capture the full render stderr and session-log tail alongside the failing pixel's coordinates and expected/observed colours; the recorded `#000000` versus `#CCCCCC` mismatch does not identify why the capture was the desktop face.**
+
 The seven quarantines immediately below all come from `test_render_dialog_gates.TestIconDialogRender`.
 They are `test_draws_the_flat_window_face`, `test_draws_the_grid_field_top_edge`,
 `test_draws_the_push_button_face_at_the_existing_recipe`,
