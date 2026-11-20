@@ -55,7 +55,7 @@ class TestAppletFinder(unittest.TestCase):
             os.environ,
             {
                 "XDG_DATA_HOME": str(self.homed_style),
-                "XDG_DATA_DIRS": "",
+                "XDG_DATA_DIRS": str(self.homed_style / "unused"),
             },
         ):
             self.assertIsNone(render_applet.applet_problem(APPLET))
