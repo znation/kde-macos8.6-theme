@@ -94,6 +94,44 @@ class TestGtkThemeDisabledViews(GtkSheetRuleCases, unittest.TestCase):
             "the disabled view restatements do not follow the disabled-selected groups",
         )
 
+    def test_disabled_selected_row_and_child_arms(self):
+        """Pin the disabled selected rows and children restated stock-twin."""
+        self.assert_disabled_text((
+            "row:disabled:selected",
+            "list row.activatable:disabled:selected",
+            "list row.activatable:disabled:selected:backdrop",
+            "flowbox flowboxchild:disabled:selected",
+            "treeview.view:disabled:selected",
+            "row:backdrop:disabled:selected",
+            "flowbox flowboxchild:backdrop:disabled:selected",
+            "treeview.view:disabled:selected:backdrop",
+        ))
+        # The family keeps stock's member set: nothing else in the sheet
+        # names the state pair. Selected-text restatements add
+        # their seven stock twins to this sweep.
+        # More-specific disabled activatable-row overrides also belong
+        # to this inventory and preserve grey against enabled row rules.
+        self.assertEqual(
+            {s for s in self.rules if ":disabled:selected" in s},
+            {
+                "row:disabled:selected",
+                "list row.activatable:disabled:selected",
+                "list row.activatable:disabled:selected:backdrop",
+                "flowbox flowboxchild:disabled:selected",
+                "treeview.view:disabled:selected",
+                "row:backdrop:disabled:selected",
+                "flowbox flowboxchild:backdrop:disabled:selected",
+                "treeview.view:disabled:selected:backdrop",
+                "label:disabled:selected",
+                "label:backdrop:disabled:selected",
+                "textview text:disabled:selected",
+                "textview text:disabled:selected:focus",
+                ".view text:disabled:selected",
+                "textview text:backdrop:disabled:selected",
+                ".view text:backdrop:disabled:selected",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

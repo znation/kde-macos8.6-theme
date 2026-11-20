@@ -5,6 +5,71 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: move the disabled-selected row and child inventory into the disabled-views suite (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Put GTK 3 disabled-selected checks next to the other GTK 3
+disabled-view checks and shrink the oversized views module. This move does
+not depend on the waiting entry-icon, row-press, stepper/check-corner or
+selected icon-view/treeview extractions. Those touch other methods of
+`tests/test_gtk_theme_views.py`, plus its docstring and import block.
+
+**Approach and files touched.**
+
+- Move `TestGtkThemeViews.test_disabled_selected_row_and_child_arms` from
+  `tests/test_gtk_theme_views.py` to
+  `tests/test_gtk_theme_disabled_views.py::TestGtkThemeDisabledViews`. Put
+  it after `test_disabled_view_face_and_ink`. Keep its body, docstring and
+  comments the same. The method only calls `assert_disabled_text` and reads
+  `self.rules`. Both come from `support.gtk_rule_cases.GtkSheetRuleCases`,
+  which the destination already inherits, and the destination already sets
+  the same GTK 3 `CSS_PATH`. So the destination needs no new import and no
+  shared helper changes.
+- In the views module, leave the import block alone. The moved method
+  imports no names of its own.
+- Update the views module docstring's routing prose: add one sentence saying
+  disabled-selected row, child and tree-view declarations live in
+  `tests/test_gtk_theme_disabled_views.py`. Write it against the docstring
+  as it reads at implementation time, because sibling extractions edit the
+  same paragraph.
+- In `docs/invariants.md`, repoint each
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_disabled_selected_row_and_child_arms`
+  anchor to
+  `tests/test_gtk_theme_disabled_views.py::TestGtkThemeDisabledViews::test_disabled_selected_row_and_child_arms`.
+  A grep on 2026-11-19 found three rows with this anchor: the GTK 3
+  disabled-selected rows/flow-box/tree-column row, the GTK 3 selected-text
+  arms row, and the disabled activatable-list-row row. Keep every guarantee's
+  wording. Do not touch the separate GTK 4 anchors
+  `tests/test_gtk4_disabled.py::TestGtk4Disabled::test_disabled_selected_row_and_child_arms`.
+- Grep `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py`, `tests/support/` (including
+  `tests/support/validation_gaps/*.py`) and `PLANS.md` `## Planned` for the
+  old anchor, and repoint any hit. The 2026-11-19 grep found none outside
+  `docs/invariants.md`. This is not a render gate, so the `_GATE_FILES`
+  lists are not involved.
+- No changes to theme sheets, source partials or `test_flowbox_child_selected_arms`.
+  The flow-box test stays in views and is a later candidate.
+
+**Acceptance criteria.**
+
+- Test discovery lists `test_disabled_selected_row_and_child_arms` under
+  `TestGtkThemeDisabledViews` and no longer lists it under
+  `TestGtkThemeViews`. `TestGtkThemeDisabledViews` still has
+  `test_disabled_view_face_and_ink`, and both modules pass when run on
+  their own through the project's unittest runner.
+- With the moved test in its new suite, changing the grey ink on
+  `flowbox flowboxchild:backdrop:disabled:selected` in the GTK 3 sheet fails
+  it. Adding any new GTK 3 selector containing `:disabled:selected` also
+  fails it (the family inventory). So does deleting
+  `treeview.view:disabled:selected:backdrop`.
+- Every `docs/invariants.md` anchor naming
+  `test_disabled_selected_row_and_child_arms` resolves to an existing
+  method. After the change, a grep finds no reference to the method under
+  `tests/test_gtk_theme_views.py`.
+- `git diff --stat` shows changes only to the two test modules,
+  `docs/invariants.md` and the backlog files. Theme sheets, partials and generated files have no
+  diff.
+- `make check` passes after the final edit.
+
 ### GTK 3 suite extraction: move the separator and frame declarations into the frames suite (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Put the GTK 3 standalone-separator and sunken-frame declaration
