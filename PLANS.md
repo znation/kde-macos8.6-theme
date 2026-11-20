@@ -5,42 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### GTK 3 suite extraction: isolate treeview progress-cell declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Separate treeview cell-renderer declarations from ordinary progress
-widgets in `tests/test_gtk_theme_progress.py`. This is independent of the
-waiting OSD meter extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeProgress.test_treeview_progress_bar` into
-`tests/test_gtk_theme_treeview_progress.py::TestGtkThemeTreeviewProgress`,
-preserving the method name, body and provenance. Follow the declaration-only
-module `tests/test_gtk_theme_drag_drop.py`: inherit `GtkSheetRuleCases` and
-`unittest.TestCase`, and set `CSS_PATH` to the GTK 3 shipped sheet via
-`support.repo_root.ROOT`. Import `BLACK`, `SELECTION`, `WHITE`, `TROUGH` and
-`GREY` from `support.platinum_palette`; the method needs no local helper or
-GTK child-probe fixture. Remove the now-unused `SELECTION` and `WHITE`
-imports from the source module and revise its opening docstring to route
-treeview progress-cell coverage to the new module. Repoint the moved method
-anchor in `docs/invariants.md`, retaining its plain-meter provenance link.
-Search live docs and tests, including validation-gap support, for other moved
-anchors. Keep the ordinary meter declarations and fill-span probe in place.
-No production code or stylesheet edits.
-
-**Acceptance criteria.**
-
-- Normal unittest discovery and a focused run of the new module execute the
-  cell-renderer check once under the new class; the old class no longer
-  defines it. Its assertion body matches the original.
-- Given the shipped sheet, the moved check passes without a GUI display.
-  A wrong selected-cell fill, an extra treeview meter selector, or a cell
-  trough minimum still fails the retained declaration or inventory checks.
-- The remaining meter module runs with its own fixtures. The invariant link
-  resolves to the new class, and live docs and tests have no old qualified
-  reference to the moved method. Theme assets and stylesheet sources and
-  outputs have no diff.
-- `make check` passes after the final edit.
-
 ### GTK 3 suite extraction: isolate view focus-outline declarations (planned 2026-11-19 by the plan role)
 
 **Goal.** Give the related list, tree, icon and flow-box keyboard-focus
