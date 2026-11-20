@@ -137,7 +137,7 @@ Whichever plan merges second keeps the other's module name in those lists.
 - `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
   passes, and `make check` passes after the final edit.
 
-### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role)
+### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Separate the permission popup's remove-button and dropdown checks
 from the row-paint suite in `tests/test_firefox_theme_popups.py`. Moving its
