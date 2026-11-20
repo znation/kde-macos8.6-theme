@@ -244,7 +244,6 @@ existing collaborators. Update the CLI tests and any live module references in
 - Grep finds no stale references to moved private names, and `make check` passes after
   the final edit.
 
-
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role

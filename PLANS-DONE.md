@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 OSD suite extraction: isolate check and radio declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the organize role
+
+**Goal.** Give the OSD indicator contract a focused test module, reducing the scope of
+`tests/test_gtk_theme_osd.py` without changing theme behavior.
+
+**Approach and files touched.** Move `TestGtkThemeOsd.test_osd_check_radio` into
+`tests/test_gtk_theme_osd_indicators.py::TestGtkThemeOsdIndicators`, retaining its method
+name, provenance docstring, fixture dictionaries, subtests and assertions. The new class
+inherits `GtkSheetRuleCases` and `unittest.TestCase`; `CSS_PATH` points to the GTK 3 theme
+sheet. Import `CHECK`, `RADIO` and `BLACK` from their existing support modules. Update the
+source module's opening docstring and the OSD indicator invariant anchor. No shared helper
+extraction was needed: this method uses the inherited `rules` fixture and unittest
+assertions directly.
+
+**Acceptance criteria.**
+
+- The new module owns `TestGtkThemeOsdIndicators.test_osd_check_radio`, retaining the
+  complete declaration checks for all five states and exact selector inventory.
+- The moved assertion body has no semantic edits; theme, tools, generated sheets and
+  artwork have no changes.
+- The invariant anchor resolves and `make check` passes after the final edit.
+
 ### Cursor artifact tests: isolate vector text and hand pins (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Make the vector I-beam and pointing-hand artifact contract readable in a
