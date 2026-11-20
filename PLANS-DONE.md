@@ -5,6 +5,63 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox preferences suite extraction: isolate entry-field and menulist declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
+
+**Goal.** Give the entry-field and menulist checks their own focused module,
+reducing the mixed control-family suite in
+`tests/test_firefox_content_preferences.py`. This is independent of the
+waiting bookmark-editor extraction, which concerns Firefox chrome tests.
+The field and menulist checks form one existing class and share its ordered
+rule-register assertion; keep that class together.
+
+**Approach.** Move `TestFirefoxPreferencesFieldsTheme` verbatim into
+`tests/test_firefox_content_preferences_fields.py`, retaining its class name,
+`AT_RULE_URL`, method bodies and unittest footer. Import its recipes and base
+case from `support.firefox_content_cases`, palette values from
+`support.platinum_palette`, and `element`/`matches` from
+`support.selector_matching`. Give the new module a field-and-menulist docstring.
+
+Move the existing module-level `assert_palette_declarations` and
+`assert_pinned_value` functions verbatim into a new focused support module,
+`tests/support/firefox_content_palette.py`, importing `HEX` there from
+`support.gtk_css`. Both preferences suites import `assert_palette_declarations`
+from this support module; neither imports the other test module. The original
+suite still needs its own `HEX` import for the staying checks. Remove imports
+that become unused after the class move and narrow its docstring to the
+remaining controls.
+
+Update the field-and-menulist row of `docs/invariants.md` to name the new
+module's `TestFirefoxPreferencesFieldsTheme`. Add the new suite to the page
+module lists in `tests/test_firefox_content_theme.py` and
+`tests/support/firefox_content_cases.py`; in the latter's
+`assert_pinned_palette_rules` docstring, point the preferences palette-helper
+description at its new support home and name both caller modules. Check old
+module/class anchors across docs, tests, README and Makefile before finishing,
+including `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+and `tests/support/validation_gaps/`. At planning time the moved class anchor
+was found in `docs/invariants.md`, with the class definition in the source suite.
+
+**Files touched.** `tests/test_firefox_content_preferences.py`,
+`tests/test_firefox_content_preferences_fields.py` (new),
+`tests/support/firefox_content_palette.py` (new),
+`tests/support/firefox_content_cases.py`, `tests/test_firefox_content_theme.py`,
+and `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- Unittest discovery finds `TestFirefoxPreferencesFieldsTheme` in the new
+  fields module; its method names and bodies match the removed class.
+  The original module retains its navigation, search, push-button, checkbox
+  and radio classes with their method bodies preserved.
+- The shared palette assertions retain their signatures and bodies in the
+  new support module, and both preferences suites can be discovered
+  independently without importing another test module.
+- The field-and-menulist invariant resolves to the new class, and the suite
+  inventories describe both modules and the palette helper's actual home.
+- `make check CHECK_TESTS='test_firefox_content_preferences test_firefox_content_preferences_fields test_firefox_content_theme test_invariants'`
+  passes, followed by `make check` after the final edit. The diff contains
+  test organization and documentation changes; shipped theme files are untouched.
+
 ### Firefox Page Info suite extraction: isolate security groupbox declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Give the security panel's etched frames a focused declaration

@@ -7,7 +7,8 @@ required-rules table against the sheet's ``@-moz-document`` body. The
 page modules live in ``tests/test_firefox_content_theme.py`` (the
 sheet-wide and about:downloads checks plus the body scanner's own tests),
 ``tests/test_firefox_content_config.py``,
-``tests/test_firefox_content_preferences.py`` and
+``tests/test_firefox_content_preferences.py``,
+``tests/test_firefox_content_preferences_fields.py`` and
 ``tests/test_firefox_content_support.py``,
 ``tests/test_firefox_content_networking.py`` and
 ``tests/test_firefox_content_telemetry.py``. The sheet
@@ -695,9 +696,11 @@ class FirefoxContentTestCase(CommentHeaderAssertions, unittest.TestCase):
         Exactly three call sites today: ``test_firefox_content_support.py``,
         ``test_firefox_content_networking.py`` and
         ``test_firefox_content_telemetry.py``. The about:preferences suites
-        pin selector lists with ``assert_palette_declarations`` in
-        ``test_firefox_content_preferences.py`` instead -- a different
-        shape, without the recipe comparison.
+        pin selector lists with ``assert_palette_declarations`` from
+        ``support.firefox_content_palette`` in
+        ``test_firefox_content_preferences.py`` and
+        ``test_firefox_content_preferences_fields.py`` instead -- a
+        different shape, without the recipe comparison.
         """
         seen = set()
         for selector, expected in rules.items():
