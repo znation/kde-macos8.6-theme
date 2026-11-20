@@ -437,6 +437,18 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "cannot be listed"):
             cross_check(str(root), str(register))
 
+    def test_cross_check_reports_an_unreadable_theme_directory(self):
+        register = self._valid_register()
+        theme_dir = str(self.root / "theme")
+        with mock.patch.object(
+            invariants.os, "listdir", side_effect=PermissionError("permission denied")
+        ) as listdir:
+            with self.assertRaisesRegex(
+                AssertionError, r"theme.*cannot be listed: permission denied"
+            ):
+                cross_check(self.root, register)
+        listdir.assert_called_once_with(theme_dir)
+
     def test_cross_check_rejects_a_section_for_a_missing_subsystem(self):
         # A section for a subsystem that is not there -- a stale heading left
         # after a rename, or a typo -- reads as a pinned guarantee while no
