@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import atexit
 import os
+from collections import Counter
 import shutil
 import sys
 import tempfile
@@ -59,6 +60,31 @@ SPLASH_REAL_TOOLS = REAL_TOOLS + ("ksplashqml",)
 # add43708), which the hosted 26.04 image does not carry, so the capture
 # gates skip rather than time out there.
 SOFTWARE_RENDERER_DRIVERS = frozenset({"llvmpipe", "softpipe", "swrast", "zink"})
+
+
+# How many trailing stderr lines a band mismatch quotes: enough for the
+# render's last messages, short enough to read in a failure report.
+BAND_TAIL_LINES = 12
+
+
+def band_mismatch_context(colours, stderr):
+    """Return the failure context that names a band's cause.
+
+    *colours* is every cell colour of the band, row by row, and *stderr* the
+    render's stderr. A first-cell mismatch (a desktop-face ``#CCCCCC`` where a
+    dialog pixel belongs means the capture ran before the dialog mapped) does
+    not name that cause by itself, so this quotes the band's distinct colours
+    with their cell counts and the last :data:`BAND_TAIL_LINES` non-blank
+    stderr lines, or says the render printed nothing.
+    """
+    counts = Counter(colours)
+    summary = " ".join(f"{colour}:{counts[colour]}" for colour in sorted(counts))
+    lines = [line for line in (stderr or "").splitlines() if line.strip()]
+    if lines:
+        render = "render stderr tail:\n" + "\n".join(lines[-BAND_TAIL_LINES:])
+    else:
+        render = "render printed no stderr"
+    return f"whole band colours: {summary}\n{render}"
 
 
 def software_renderer_skip_reason():
@@ -130,18 +156,24 @@ class PixelPins:
 
         A blended bevel arm, a lost outline row, a swapped arm colour, a
         resampled grip bar or a one-pixel crop slip shows up here
-        immediately.
+        immediately. Each mismatch also carries :func:`band_mismatch_context`
+        so a failure names the band's whole colour set and the render's
+        stderr, not only the first cell that differed.
         """
         image = self.candidate_image()
         x, y, width, height = rect
+        band = [
+            hex_colour(pixel_at(image, x + dx, y + row))
+            for row in range(height)
+            for dx in range(width)
+        ]
+        context = band_mismatch_context(band, getattr(self, "stderr", ""))
         for row in range(height):
             with self.subTest(row=y + row):
                 self.assertEqual(
                     list(rows[row]),
-                    [
-                        hex_colour(pixel_at(image, x + dx, y + row))
-                        for dx in range(width)
-                    ],
+                    band[row * width:(row + 1) * width],
+                    context,
                 )
 
     def assert_flat_window_face(self, rect):

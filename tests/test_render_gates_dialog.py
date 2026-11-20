@@ -117,5 +117,36 @@ class TestCandidateImageCache(unittest.TestCase):
         self.assertEqual(os.path.join("other-dir", "dialog.png"), other)
 
 
+
+class TestBandMismatchContext(unittest.TestCase):
+    """Pin the context a band mismatch quotes so a failure names its cause.
+
+    A first-cell mismatch alone cannot tell a capture that ran before the
+    dialog mapped (a desktop-face ``#CCCCCC`` band) from a crop or colour
+    slip, so the context must carry every colour of the band with its cell
+    count and the render's last stderr lines. Each expected value below comes
+    from the inputs: a band of two ``#CCCCCC`` cells and one ``#000000`` cell,
+    and a 30-line stderr whose last 12 lines are line18 through line29.
+    """
+
+    def test_names_every_colour_of_the_band_with_its_count(self):
+        message = render_gates.band_mismatch_context(
+            ["#CCCCCC", "#CCCCCC", "#000000"], "",
+        )
+        self.assertIn("#CCCCCC:2", message)
+        self.assertIn("#000000:1", message)
+
+    def test_quotes_the_last_twelve_stderr_lines(self):
+        stderr = "".join(f"line{index:02d}\n" for index in range(30))
+        message = render_gates.band_mismatch_context(["#CCCCCC"], stderr)
+        self.assertIn("line18", message)
+        self.assertIn("line29", message)
+        self.assertNotIn("line17", message)
+
+    def test_says_when_the_render_printed_nothing(self):
+        message = render_gates.band_mismatch_context(["#CCCCCC"], "  \n\n")
+        self.assertIn("render printed no stderr", message)
+
+
 if __name__ == "__main__":
     unittest.main()

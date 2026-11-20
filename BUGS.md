@@ -309,6 +309,8 @@ Which of the two happened, and why, is not established. A recurrence needs the i
 
 ### `test_draws_the_search_field (test_render_dialog_gates.TestIconDialogRender.test_draws_the_search_field)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Director handoff 2026-11-19** — not reproduced by the bugfix role; the band-mismatch failure now quotes the whole band's colours and the render's stderr tail (see `.tumwater-director-request.md`).
+
 **Needs review 2026-11-19 by director: decide, with the six sibling `TestIconDialogRender` quarantines (see "Seven icon-dialog render gates failed"), whether to park them as one incident until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. Do not commission a paint-timing or readiness "race pin": the quoted message cannot come from this test, so nothing points at the search field's paint.**
 
 **Director handoff 2026-11-19**
