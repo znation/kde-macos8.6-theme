@@ -33,6 +33,25 @@ from tools import check_parallel_workers, process_group, process_signals
 
 
 
+class TestWorkerDurations(unittest.TestCase):
+    def test_completed_worker_records_elapsed_time_and_exit_status(self):
+        worker = check_parallel_workers._Worker(
+            "test_example", "worker.log", mock.Mock(poll=mock.Mock(return_value=0)),
+            deadline=20.0, started=10.0,
+        )
+        durations = {}
+        results = {}
+
+        with mock.patch.object(check_parallel_workers.time, "monotonic", return_value=12.5):
+            remaining = check_parallel_workers._poll_running(
+                [worker], durations, results,
+            )
+
+        self.assertEqual([], remaining)
+        self.assertEqual({"test_example": 0}, results)
+        self.assertEqual({"test_example": 2.5}, durations)
+
+
 class TestSpawnDefenses(unittest.TestCase):
     """The spawn/kill primitives keep the guarantees test_process_group pins.
 
