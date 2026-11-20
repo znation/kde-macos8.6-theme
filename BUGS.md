@@ -312,6 +312,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_push_button_frame_and_cell (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_frame_and_cell)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by director: the quoted message is not this test's failure, and the class's real failure (most likely the icon render's non-zero exit or a `Renders.ensure` error) left no stderr in the record; decide whether to keep the seven icon-gate quarantines parked until a recurrence captures the icon render's stderr and session-log tail, or close them as unreproducible.**
+
 **Director handoff 2026-11-19**
 
 **Needs review 2026-11-19 by director: Decide whether to park this pending a recurrence (recommended) or commission a capture investigation. Not reproduced in three focused reruns of `TestIconDialogRender` on this host; the failing pixel's coordinates are now in the mismatch message (`PixelPins.assert_pixel`), but the cause (why the capture held `#CCCCCC`) is still unknown. The seven sibling icon-gate quarantines (see "Seven icon-dialog render gates failed") are one incident.**
@@ -331,6 +333,26 @@ OK
 check: 478 modules, 2 modules failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
+
+Progress 2026-11-19 by the director role: the quoted `AssertionError: '#CCCCCC' != '#000000'`
+cannot have come from this test or this class. `PixelPins.assert_pixel` and `assert_band`
+(tests/support/render_gates.py) call `assertEqual(expected, observed)`, so the message means
+*expected* `#CCCCCC`, *observed* `#000000`. That is the reverse of the umbrella entry's
+"expected `#000000` but observed `#CCCCCC`". No `TestIconDialogRender` pin expects `#CCCCCC`:
+`assert_raised_frame`, `assert_push_button_recipe`, `assert_push_button_face_reaches_its_row`,
+`assert_flat_window_face` and the class's own bands expect only `#000000`, `#FFFFFF`, `#AAAAAA`,
+`#999999` and `#DDDDDD`. `test_exits_zero` checks only the render's return code, so it cannot
+fail with a colour message at all. All seven quarantines carry the same excerpt, including its
+unrelated `test_xdg_homes` tail, so it is a log-wide extract rather than a per-test traceback.
+`#CCCCCC` is expected by other modules' pins (for example `tests/support/firstboot_lineedit.py`'s
+window-face pins and `tests/support/aurorae_fixtures.py::INACTIVE_GREY`). The check reported two
+modules failed, so the line most likely belongs to the other failing module. The seven
+quarantined names are this class's entire test list: its five own tests plus the two
+`DialogGate` inherits. That points to one class-wide cause, either the icon render exiting
+non-zero (which fails `test_exits_zero` and leaves the PNG missing or wrong) or
+`Renders.ensure` raising in `setUpClass`. It does not point to a pixel race inside the capture.
+Which of the two happened, and why, is not established. A recurrence needs the icon render's
+`self.stderr` (the `test_exits_zero` message) and the session-log tail, not pixel coordinates.
 
 ### `test_draws_the_search_field (test_render_dialog_gates.TestIconDialogRender.test_draws_the_search_field)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
