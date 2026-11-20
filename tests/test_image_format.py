@@ -161,6 +161,32 @@ class TestIsCompleteWebp(unittest.TestCase):
         self.assertFalse(image_format.is_complete(WEBP, b"", 45))
 
 
+class TestIsCompleteTerminatedFormats(unittest.TestCase):
+    """PNG, JPEG and GIF need their format-specific terminal bytes."""
+
+    def test_requires_terminal_marker_and_minimum_size(self):
+        cases = (
+            (PNG, image_format.TERMINAL_PNG, image_format.PNG_MAGIC,
+             "PNG"),
+            (JPEG, image_format.TERMINAL_JPEG, image_format.JPEG_MAGIC,
+             "JPEG"),
+            (GIF87A, image_format.TERMINAL_GIF, image_format.GIF_MAGICS[0],
+             "GIF"),
+        )
+        for head, terminal, magic, name in cases:
+            with self.subTest(format=name):
+                minimum_size = len(magic) + len(terminal)
+                self.assertTrue(
+                    image_format.is_complete(head, terminal, minimum_size)
+                )
+                self.assertFalse(
+                    image_format.is_complete(head, terminal[:-1], minimum_size)
+                )
+                self.assertFalse(
+                    image_format.is_complete(head, terminal, minimum_size - 1)
+                )
+
+
 class TestRejectsNonBytesInput(unittest.TestCase):
     def test_each_detector_rejects_non_bytes_with_valueerror(self):
         # is_complete rejects a non-byte head and a non-byte tail alike.
