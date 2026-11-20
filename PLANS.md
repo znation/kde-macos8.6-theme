@@ -137,6 +137,58 @@ Whichever plan merges second keeps the other's module name in those lists.
 - `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
   passes, and `make check` passes after the final edit.
 
+### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role)
+
+**Goal.** Separate the permission popup's remove-button and dropdown checks
+from the row-paint suite in `tests/test_firefox_theme_popups.py`. Moving its
+permission method brings that currently 615-line module below 500 lines.
+This is independent of the queued bookmark-editor and Page Info extractions.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_permission_popup.py` with
+  `TestFirefoxPermissionPopup(FirefoxChromeTestCase)`. Move
+  `test_permission_popup_control_paint_is_scoped_to_the_permission_popup`
+  from `TestFirefoxPopupRows`, preserving its body and comments. Import
+  `REQUIRED_RULES` and `FirefoxChromeTestCase` from
+  `support.firefox_chrome_cases`, and `element` and `matches` from
+  `support.selector_matching`. Add a scope docstring and the usual
+  `unittest.main()` guard. No helper extraction or test-module import is
+  needed: the method uses those support imports and local fixtures only.
+- Remove the method from `tests/test_firefox_theme_popups.py` and remove
+  permission from its scope docstring, pointing readers to the new suite.
+  Its existing imports remain used by the staying methods.
+- Re-point the permission-popup control row's declaration-test anchor in
+  `docs/invariants.md` to the new module and class, preserving its visual
+  reference anchors and provenance. Add the new module to the section list
+  in `tests/support/firefox_chrome_cases.py`, retaining sibling additions.
+  Leave the permission provenance assertions in the shell suite in place;
+  the new suite has no provenance method, so it does not belong in
+  `tests/support/css_header.py`'s provenance-call-site list.
+- Search the moved method and old class/module names across docs and tests,
+  including `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, and
+  correct any additional live anchor for the moved method. Historical
+  backlog entries remain historical. Theme sheets and production tools
+  are outside this relocation.
+
+**Acceptance criteria.**
+
+- Discovery exposes the moved method under
+  `test_firefox_theme_permission_popup.TestFirefoxPermissionPopup`, with
+  its assertion body preserved and no definition remaining in the original
+  module. The original class retains its pre-change method set minus that
+  method, and its module is below 500 lines.
+- The new suite passes against the shipped sheet: the permission remove
+  button and dropdown match their scoped normal and enabled-hover rules,
+  disabled controls do not match hover rules, and surrounding elements and
+  controls outside the popup remain excluded by the existing fixtures.
+- The permission-control invariant resolves to the new declaration test;
+  the existing shell provenance check still passes, and no live anchor
+  outside historical backlog records names the moved method's old location.
+- The focused popup, permission-popup, shell and invariants suites pass
+  through the existing check runner; `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
