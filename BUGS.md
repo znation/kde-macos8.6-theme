@@ -376,6 +376,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by director: decide, together with the sibling `test_draws_the_push_button_frame_and_cell` entry's identical question, whether to park all seven `TestIconDialogRender` quarantines until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. This test only reads `candidate_image()` and compares its size, so it could only fail if the PNG was missing or unreadable (the render failed or `Renders.ensure` raised in `setUpClass`). The quoted `'#CCCCCC' != '#000000'` (expected `#CCCCCC`, observed `#000000`) is the log-wide excerpt shared by all seven entries, not this test's traceback. The bugfix role's change makes `PixelPins.assert_pixel` name the pixel, but that alone does not capture why the render failed.**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
