@@ -148,9 +148,11 @@ class TestImageReadContainment(unittest.TestCase):
 
 class TestTiledRgb(unittest.TestCase):
     def test_pixel_xy_is_tile_row_y_column_x_modulo_the_tile_size(self):
-        tile = bytes(
-            v for y in range(TILE) for x in range(TILE) for v in (x, y, (x + y) % 256)
-        )
+        tile_pixels = bytearray()
+        for y in range(TILE):
+            for x in range(TILE):
+                tile_pixels.extend((x, y, (x + y) % 256))
+        tile = bytes(tile_pixels)
         width, height = 2 * TILE + 5, TILE + 3
         rgb = make_wallpaper.tiled_rgb(tile, width, height)
         self.assertEqual(len(rgb), width * height * 3)
