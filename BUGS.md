@@ -278,6 +278,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_grid_field_top_edge (test_render_dialog_gates.TestIconDialogRender.test_draws_the_grid_field_top_edge)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Needs review 2026-11-19 by bugfix: On recurrence, the failure will still show only the first mismatching pixel's coordinates and expected/observed colours. Read together with the sibling icon-dialog entries, the `#CCCCCC` value is the desktop face, so the capture likely ran before the `--geticon` dialog mapped (the icon render waits on a fixed `--settle` sleep in `tests/support/render_gates.py`). Confirming that needs the render's stderr tail and a check of whether the whole band is `#CCCCCC`, which the message does not print yet.**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
