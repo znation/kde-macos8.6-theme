@@ -101,6 +101,74 @@ again before editing. No production, stylesheet or theme-asset changes.
 - Theme assets, source partials and generated sheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: isolate selected icon-view and treeview check/radio declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give the GTK 3 selected-view arms a focused module outside the
+oversized views suite: the selected icon-view fill and the selected
+treeview-row check and radio faces. This is independent of the waiting
+entry-icon, list-row press and vertical-stepper/content-view check corner
+extractions.
+
+**Approach and files touched.** Move
+`TestGtkThemeViews.test_iconview_selected_arms` and
+`TestGtkThemeViews.test_treeview_selected_check_radio_faces` from
+`tests/test_gtk_theme_views.py` to new
+`tests/test_gtk_theme_selected_views.py::TestGtkThemeSelectedViews`. Keep
+their method names, assertion bodies and comments as they are. Follow
+`tests/test_gtk_theme_server_button.py`: inherit
+`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, set
+`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"` via
+`support.repo_root.ROOT`, and include the unittest main guard. Import
+`MIXED_GLYPH`, `RADIO_GLYPH` and `SELECTION_CHECK_STATES` from
+`support.gtk_theme_spec`, and `BLACK` and `SELECTION` from
+`support.platinum_palette`. Neither method uses a source-local helper.
+In the source module, drop `MIXED_GLYPH` and `RADIO_GLYPH` (only the
+moved treeview test uses them). Drop `SELECTION_CHECK_STATES` only if
+no remaining method references it: today
+`test_vertical_stepper_and_content_view_check_corners` still does,
+unless the pending stepper-corner extraction has merged first. Keep
+`BLACK` and `SELECTION`, which `test_flowbox_child_selected_arms` and
+others still use. Add the new module to the source's routing docstring.
+Two other edits:
+- In `docs/invariants.md`, repoint only the Gtk 3 anchors of the
+  selected-treeview check/radio row and of the enabled-selected icon-view
+  row. Keep that row's Gtk 4 anchor
+  (`tests/test_gtk4_selection_focus.py::TestGtk4SelectionFocus::test_iconview_selected_arms`),
+  the guarantee and the provenance text unchanged.
+- In `tests/support/gtk_theme_spec.py`, update the comment above
+  `SELECTION_CHECK_STATES` that names each reader's module, so
+  `test_iconview_selected_arms` is attributed to the new module. Each
+  other reader stays named under whatever module holds it when you
+  implement this. The "Exactly four tests" count is unchanged by this
+  move; recount it with grep before keeping it.
+
+A grep of `docs/` and `tests/` on 2026-11-19 found no other live
+reference to either moved method. Recheck `docs/rendering.md`,
+`docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/` before finishing. No theme, partial or
+generated-sheet changes.
+
+**Acceptance criteria.**
+
+- Discovery runs both moved methods under the new class without a GUI
+  display. `TestGtkThemeViews` defines neither one, and both modules pass
+  when run on their own.
+- The moved checks pass against the shipped sheet. Each of these
+  mutations fails one of them:
+  - giving a selected icon-view arm a non-`#CCCCFF` fill or a non-zero
+    radius;
+  - adding a stray `iconview` selector;
+  - replacing the selected treeview check's black border;
+  - swapping the checked-selected radio glyph for another asset;
+  - adding a seventh `treeview.view check`/`radio` selector;
+  - moving a restated treeview spelling ahead of `radio:checked`.
+- Every module and test named in the `SELECTION_CHECK_STATES` comment
+  exists and reads the constant. Each invariants row's Gtk 3 anchor
+  resolves to its moved method, and the icon-view row's Gtk 4 anchor is
+  unchanged. Theme assets, source partials and generated sheets have no
+  diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
