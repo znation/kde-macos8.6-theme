@@ -2,9 +2,10 @@
 
 This module owns the frame slice split out of the former GTK 3 controls suite:
 the disabled view's white field and grey ink, the scrolled viewport's frame
-(the declaration and the drawn frame), and the flat frame's border and drawn
-frame. The declaration tests read the stripped CSS through ``GtkSheetRuleCases``;
-the drawn probes render with a real GTK 3 in a child interpreter (see
+(the declaration and the drawn frame), the flat frame's border and drawn
+frame, the etched standalone separators, and the ``frame > border, .frame``
+bevel declaration. The declaration tests read the stripped CSS through
+``GtkSheetRuleCases``; the drawn probes render with a real GTK 3 in a child interpreter (see
 ``_run_gtk_child``), so the suite process itself imports no GTK.
 """
 
@@ -227,6 +228,12 @@ print("flat frame: the IN frame is 1px black with a grey inset; NONE draws no bo
 '''
         )
         self._run_gtk_child(program, str(CSS))
+
+    def test_separator(self):
+        self.assert_separators()
+
+    def test_frame(self):
+        self.assert_frame(("frame > border", ".frame"))
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ List, tree, icon and flow-box focus outlines are in
 face declarations are in ``tests/test_gtk_theme_row_interactions.py``.
 Vertical-stepper and content-view check corner declarations are in
 ``tests/test_gtk_theme_stepper_check_corners.py``.
+Separator and frame declarations are in ``tests/test_gtk_theme_frames.py``.
 Selected icon-view fill, selected flow-box children, and selected treeview check
 and radio faces are in ``tests/test_gtk_theme_selected_views.py``.
 Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
@@ -90,12 +91,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
 
     def test_icon_sources_point_at_shipped_assets(self):
         self.assert_shipped_asset_urls()
-
-    def test_separator(self):
-        self.assert_separators()
-
-    def test_frame(self):
-        self.assert_frame(("frame > border", ".frame"))
 
 
 if __name__ == "__main__":
