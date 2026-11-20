@@ -65,6 +65,12 @@ class TestEscapeControls(unittest.TestCase):
         # and ambiguous with the digits that follow, so they use \UXXXXXXXX.
         self.assert_escapes((0x1D173, 0xE0001, 0xE0020, 0x110BD), "\\U%08x")
 
+    def test_lone_surrogates_use_the_four_digit_escape(self):
+        # Surrogates are not printable Unicode scalar values. Escaping them
+        # keeps malformed text out of terminal encoders that reject surrogates.
+        self.assertEqual(terminal.escape_controls("before" + chr(0xD800) + "after"),
+                         "before\\ud800after")
+
     def test_mixed_bmp_and_astral_controls_use_their_own_escapes(self):
         self.assertEqual(
             terminal.escape_controls("a\x1b" + chr(0xE0001) + "b"),
