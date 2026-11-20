@@ -128,6 +128,61 @@ def _capture_and_terminate(focus: str = "focus") -> str:
 def session_script(
     focus_script: str | None = None, readiness_script: str | None = None
 ) -> str:
+    """Return the ``sh -c`` script that opens the client, settles and captures.
+
+    The positional parameters are the settle seconds, the capture path and
+    the client argv itself, so ``sh`` receives them after the script and
+    never parses them as shell syntax: the client words are passed through
+    ``shlex``-joined child ``sh -c`` argv, each a separate positional word
+    of this script. The script fails the session if the backgrounded
+    client is no longer running after the settle; without that check
+    ``spectacle`` would still publish a capture of an empty session.
+
+    *focus_script* is the scratch path of a KWin settle script (the
+    inactive-dialog render passes one, the other modes ``None``): when it
+    is set, the shell loads it into KWin right after the client starts and
+    re-runs it in a bounded background loop until the capture has
+    returned, so the two-window pair's focus state is settled by
+    re-activation before the frame is read, not left to the window
+    manager's newest-window race (see
+    ``tools/render_window_rules.py::focus_settle_text``). The loop's
+    ``qdbus6``/``qdbus`` fallback is resolved inside the session: a host
+    without either only logs the omission and keeps the older race.
+    With no script given the whole block is inert (an empty ``$focus``
+    fails its guard), so the other modes' session stages are unchanged.
+
+    *readiness_script* is a KWin script path used with the session D-Bus
+    monitor: when an eligible window maps, the listener writes
+    ``RENDER_SESSION_READY_FILE`` and ends the settle early. The listener
+    starts before the render client so a fast window cannot beat the signal
+    subscription.
+
+    Missing tools or a client that never maps retain the settle ceiling.
+    D-Bus readiness includes up to one second of paint grace before capture,
+    bounded by the settle ceiling.
+
+    Every stage logs a millisecond timestamp, so a failed capture's log
+    shows the client's start, the settle's end and the capture's span on
+    one wall clock. After the capture returns, the script records whether
+    the client was still running: a client that died between the settle's
+    liveness check and the capture's end took its window with it, and its
+    timestamped exit marker is what lets the black-capture diagnosis
+    distinguish a vanished client from a window that never painted.
+
+    The client that passed the liveness check is frozen with SIGSTOP
+    before the capture starts and resumed with SIGCONT immediately before
+    the post-capture termination: Spectacle's startup latency is unbounded
+    under concurrent renders, while a client such as ``ksplashqml --test``
+    has a finite lifetime, so an unfrozen client could take its window
+    down mid-capture. A stopped client keeps its last-painted buffer —
+    the compositor captures from it — and the aliveness check after the
+    capture still reads it (a stopped process answers ``kill -0``), so
+    the diagnosis and the ``kill -9`` fallback are unchanged. The shell
+    also exports the client's pid as ``RENDER_SESSION_CLIENT_PID``: a
+    capture-side helper can only target the client through a pid the
+    session shell owns, because the freeze can land before the client's
+    first instruction and a pidfile the client was meant to write then
+    never appears."""
     focus = shlex.quote(focus_script) if focus_script is not None else '""'
     readiness = shlex.quote(readiness_script) if readiness_script is not None else '""'
     return "".join((
@@ -138,59 +193,3 @@ def session_script(
         _settle_wait(),
         _capture_and_terminate("focus"),
     ))
-_SESSION_SCRIPT_DOC = """Return the ``sh -c`` script that opens the client, settles and captures.
-
-The positional parameters are the settle seconds, the capture path and
-the client argv itself, so ``sh`` receives them after the script and
-never parses them as shell syntax: the client words are passed through
-``shlex``-joined child ``sh -c`` argv, each a separate positional word
-of this script. The script fails the session if the backgrounded
-client is no longer running after the settle; without that check
-``spectacle`` would still publish a capture of an empty session.
-
-*focus_script* is the scratch path of a KWin settle script (the
-inactive-dialog render passes one, the other modes ``None``): when it
-is set, the shell loads it into KWin right after the client starts and
-re-runs it in a bounded background loop until the capture has
-returned, so the two-window pair's focus state is settled by
-re-activation before the frame is read, not left to the window
-manager's newest-window race (see
-``tools/render_window_rules.py::focus_settle_text``). The loop's
-``qdbus6``/``qdbus`` fallback is resolved inside the session: a host
-without either only logs the omission and keeps the older race.
-With no script given the whole block is inert (an empty ``$focus``
-fails its guard), so the other modes' session stages are unchanged.
-
-*readiness_script* is a KWin script path used with the session D-Bus
-monitor: when an eligible window maps, the listener writes
-``RENDER_SESSION_READY_FILE`` and ends the settle early. The listener
-starts before the render client so a fast window cannot beat the signal
-subscription.
-
-Missing tools or a client that never maps retain the settle ceiling.
-D-Bus readiness includes up to one second of paint grace before capture,
-bounded by the settle ceiling.
-
-Every stage logs a millisecond timestamp, so a failed capture's log
-shows the client's start, the settle's end and the capture's span on
-one wall clock. After the capture returns, the script records whether
-the client was still running: a client that died between the settle's
-liveness check and the capture's end took its window with it, and its
-timestamped exit marker is what lets the black-capture diagnosis
-distinguish a vanished client from a window that never painted.
-
-The client that passed the liveness check is frozen with SIGSTOP
-before the capture starts and resumed with SIGCONT immediately before
-the post-capture termination: Spectacle's startup latency is unbounded
-under concurrent renders, while a client such as ``ksplashqml --test``
-has a finite lifetime, so an unfrozen client could take its window
-down mid-capture. A stopped client keeps its last-painted buffer —
-the compositor captures from it — and the aliveness check after the
-capture still reads it (a stopped process answers ``kill -0``), so
-the diagnosis and the ``kill -9`` fallback are unchanged. The shell
-also exports the client's pid as ``RENDER_SESSION_CLIENT_PID``: a
-capture-side helper can only target the client through a pid the
-session shell owns, because the freeze can land before the client's
-first instruction and a pidfile the client was meant to write then
-never appears."""
-session_script.__doc__ = _SESSION_SCRIPT_DOC
