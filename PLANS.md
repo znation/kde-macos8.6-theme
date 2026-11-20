@@ -40,6 +40,42 @@ the other OSD families in the source module. No sheet or production code edits.
   Theme assets, stylesheet partials and generated sheets have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 OSD suite extraction: isolate meter declarations (planned 2026-11-19 by the plan role)
+
+**Goal.** Give the related ancestor and self-class OSD meter declaration checks
+a focused module, reducing the scope of `tests/test_gtk_theme_osd.py`. This
+extraction is independent of the waiting entry/spin-button extraction.
+
+**Approach and files touched.** Move
+`TestGtkThemeOsd.test_osd_progress_scale` and `test_osd_thin_bar` to
+`tests/test_gtk_theme_osd_meters.py::TestGtkThemeOsdMeters`, preserving their
+method names, assertion bodies and provenance comments. Keep these together:
+the progress/scale selector inventory explicitly includes the self-class
+thin-bar selectors. Follow `tests/test_gtk_theme_osd_indicators.py`: inherit
+`GtkSheetRuleCases` and `unittest.TestCase`, with `CSS_PATH` pointing to the
+GTK 3 shipped sheet via `support.repo_root.ROOT`. Import `PROGRESSBAR_TROUGH`,
+`PROGRESSBAR_PROGRESS`, `SCALE_TROUGH`, `SCALE_EMPTY_FILL` and `GREY` from
+their existing support modules; neither method needs the source class's
+selector-count helper. Remove the four now-unused meter-spec imports from
+the source module and update its routing docstring. Keep the scale-slider
+and queued-provenance checks in the source class. Repoint the moved anchors
+in `docs/invariants.md`; search live docs and tests for further references.
+No stylesheet or production code changes.
+
+**Acceptance criteria.**
+
+- Normal discovery and a focused run of `test_gtk_theme_osd_meters` execute
+  both moved methods; the source class no longer defines them.
+- Given the shipped sheet, the checks still accept the existing ancestor
+  trough/fill/highlight/progress recipes and self-class thin-bar paints.
+  An incorrect disabled fill, a missing thin-bar rule or an unexpected
+  OSD meter selector still fails the corresponding retained assertion.
+- The remaining OSD tests run using their own fixtures, and the moved
+  invariant anchors resolve to the new class. Live docs and tests contain
+  no stale class-qualified references to the moved methods. Theme assets,
+  source partials and generated sheets have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
