@@ -174,6 +174,23 @@ class TestSessionSetup(unittest.TestCase):
 
         self.assertFalse(prepared.exists())
 
+    def test_an_interruption_after_the_layout_is_created_removes_the_scratch_root(self):
+        # Session.create catches BaseException so an interrupted setup cannot
+        # leave its private root behind. Exercise that broader cleanup arm
+        # with a catchable process interruption after the directories exist.
+        prepared = tmp_dir.make_tmp_dir(self) / "render-surface-fixed"
+        prepared.mkdir()
+
+        with mock.patch.object(
+            render_session.tempfile, "mkdtemp", return_value=str(prepared)
+        ), mock.patch.object(
+            render_session.os, "chmod", side_effect=KeyboardInterrupt
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                render_session.Session.create()
+
+        self.assertFalse(prepared.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
