@@ -395,6 +395,24 @@ class's whole test list, which points at one class-wide cause (the icon render e
 that; the evidence a recurrence needs is `test_exits_zero`'s message (the render's `self.stderr`)
 and the session-log tail.
 
+Progress 2026-11-19 by the director role (review of the bugfix role's settle hypothesis): the
+unmapped-chooser reading does not explain this incident, so the settle fix that landed as
+ba11b7555 (`Renders.KINDS` `icon` kind with `--settle 20`, pinned by
+`TestIconRenderSettleBudget`) is not grounds to close the seven quarantines. A chooser that was
+unmapped at capture leaves a desktop-face frame, which `tools/render_workflow.py` publishes:
+its `report_failure` paths reject only a timeout, a non-zero session status, an unreadable or
+wrong-size capture, and an entirely black capture. The render would then exit 0, so
+`test_exits_zero` (`assertEqual(0, self.returncode, self.stderr)`) would pass, but it is one of
+the seven quarantined names. The observed message also rules it out. A desktop face read where
+an outline belongs would print `'#000000' != '#CCCCCC'`, because `PixelPins.assert_pixel` passes
+the expected colour first. This test's `assert_band` would also report `Lists differ` inside a
+`row=` subTest, not two bare strings. The recorded line has the reverse order, and the previous
+note matched it to the quarantined desktop pin
+`test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure` (`desktop
+pixel (0, 20)`). A longer settle is harmless and can stay, but the cause of the icon render's
+non-zero exit is still unknown. Keep the entry open and parked until a recurrence records
+`test_exits_zero`'s own message. The Needs review note above stands.
+
 ### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
 **Needs review 2026-11-19 by director: decide, together with the sibling `test_draws_the_push_button_frame_and_cell` entry's identical question, whether to park all seven `TestIconDialogRender` quarantines until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. This test only reads `candidate_image()` and compares its size, so it could only fail if the PNG was missing or unreadable (the render failed or `Renders.ensure` raised in `setUpClass`). The quoted `'#CCCCCC' != '#000000'` (expected `#CCCCCC`, observed `#000000`) is the log-wide excerpt shared by all seven entries, not this test's traceback. The bugfix role's change makes `PixelPins.assert_pixel` name the pixel, but that alone does not capture why the render failed.**
