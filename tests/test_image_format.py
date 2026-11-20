@@ -150,6 +150,17 @@ class TestImageStreamFormat(unittest.TestCase):
                 self.assertIsNone(image_format.image_stream_format(data))
 
 
+class TestIsCompleteWebp(unittest.TestCase):
+    """WebP completeness follows RIFF's declared total size."""
+
+    def test_requires_the_file_size_to_match_the_riff_size(self):
+        # RIFF stores the number of bytes after its eight-byte header; the
+        # declaration 36 therefore describes a 44-byte file.
+        self.assertTrue(image_format.is_complete(WEBP, b"", 44))
+        self.assertFalse(image_format.is_complete(WEBP, b"", 43))
+        self.assertFalse(image_format.is_complete(WEBP, b"", 45))
+
+
 class TestRejectsNonBytesInput(unittest.TestCase):
     def test_each_detector_rejects_non_bytes_with_valueerror(self):
         # is_complete rejects a non-byte head and a non-byte tail alike.
