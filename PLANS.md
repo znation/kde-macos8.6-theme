@@ -5,42 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### GTK 3 suite extraction: isolate embedded entry-icon declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Give embedded entry-icon ink and spacing coverage a focused
-module, independent of the waiting OSD push-button extraction.
-
-**Approach and files touched.** Move
-`TestGtkThemeEntry.test_entry_image_inks` from
-`tests/test_gtk_theme_entry.py` to
-`tests/test_gtk_theme_entry_images.py::TestGtkThemeEntryImages`, retaining
-its method name, assertion body and provenance comments. Follow
-`tests/test_gtk_theme_entry_tags.py`: inherit `GtkSheetRuleCases` and
-`unittest.TestCase`, bind `CSS_PATH` to the shipped GTK 3 sheet through
-`support.repo_root.ROOT`, and include the unittest main guard. Import
-`strip_comments` from `support.gtk_css` and `BLACK` from
-`support.platinum_palette`. This method has no source-local helper
-dependency. Keep the progress probe, focus, colour-class and state-face
-checks in the source module; retain imports they still use and update
-its routing docstring. Repoint the embedded GTK 3 entry-icon row in
-`docs/invariants.md`, preserving its recipe and provenance. Search live
-docs and tests, including `docs/rendering.md`, `docs/fidelity.md`,
-`tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, for
-other moved qualified anchors. No production or stylesheet changes.
-
-**Acceptance criteria.**
-
-- Discovery and a focused run execute the moved method under its new
-  class without a GUI display; the source class no longer defines it.
-- Given the shipped sheet, the moved check passes. A wrong icon ink,
-  swapped side margin, missing or duplicate declaration, extra selector
-  in the filtered icon family, or icon block preceding the base field
-  anchor fails its retained assertions.
-- The remaining entry suite runs independently with its existing GUI
-  isolation and skip conditions. Live qualified anchors resolve to the
-  moved method. Theme assets, source partials and generated sheets have
-  no diff.
-- `make check` passes after the final edit.
+_None yet._
 
 ### GTK 3 suite extraction: isolate selected icon-view and treeview check/radio declarations (planned 2026-11-19 by the plan role)
 
