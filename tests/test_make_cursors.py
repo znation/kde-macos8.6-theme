@@ -2,10 +2,9 @@
 
 These pin the grid and size refusals ``tools/cursor_checks.py`` supplies to
 ``cursor_bytes``, the cache's documented bounds and canonicalization, and
-``main``'s failure reporting. The committed pointer package those builders
-produce stays in
-``tests/test_cursors_theme.py``, where ``TestCursorArtifact`` and
-``TestCursorSet`` validate it.
+``main``'s failure reporting. ``tests/test_cursors_theme.py`` validates the
+grid and cursor set; ``tests/test_cursors_vector_artifacts.py`` validates the
+I-beam and pointing-hand artifacts.
 """
 
 from __future__ import annotations

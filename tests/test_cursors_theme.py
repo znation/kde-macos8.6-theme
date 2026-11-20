@@ -2,7 +2,8 @@
 
 The cursors are our own Platinum-style drawings (no reference screenshot shows
 the pointer), so these tests pin the Xcursor container, every frame's decoded
-pixels, the alias bytes and the generator's deterministic output. The
+pixels, the alias bytes and the generator's deterministic output. Vector I-beam
+and pointing-hand pins live in ``tests/test_cursors_vector_artifacts.py``. The
 ``tools/make_cursors.py`` generator's own grid and cache checks and its
 ``main`` failures live in ``tests/test_make_cursors.py``; its size rule is
 the one ``tools/cursor_vector.py`` defines. The
@@ -17,16 +18,22 @@ from unittest import mock
 
 from support import containment  # noqa: E402
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import xcursor as xcursor_reader  # noqa: E402
+from support.cursor_artifact_cases import (  # noqa: E402
+    BLACK,
+    CURSORS,
+    HOTSPOTS,
+    SIZES,
+    TRANSPARENT,
+    WHITE,
+    _pixel,
+    _read_cursor,
+)
 from support.tmp_dir import make_tmp_dir  # noqa: E402
 from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
 from tools.cursor_vector import VectorCursor  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
-PACKAGE = make_cursors.ROOT / make_cursors.PACKAGE_DIR
-CURSORS = PACKAGE / make_cursors.CURSORS_DIR
 LEFT_PTR = CURSORS / "left_ptr"
-SIZES = (16, 24, 32)
 CANONICAL = (
     "left_ptr",
     "xterm",
@@ -133,28 +140,6 @@ VECTOR_CURSORS = frozenset(
     for canonical, art, _hotspot, _aliases in cursor_art.CURSORS
     if isinstance(art, VectorCursor)
 )
-HOTSPOTS = {
-    "left_ptr": {16: (1, 1), 24: (2, 2), 32: (3, 3)},
-    "xterm": {16: (7, 7), 24: (11, 11), 32: (15, 15)},
-    "hand2": {16: (7, 2), 24: (10, 3), 32: (14, 4)},
-    "watch": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "fleur": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "size_hor": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "size_ver": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "size_fdiag": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "size_bdiag": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "crosshair": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "not-allowed": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "dnd-copy": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "grab": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
-    "grabbing": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
-    "help": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
-    "progress": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
-    "pencil": {16: (2, 14), 24: (3, 21), 32: (4, 28)},
-    "zoom-in": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "zoom-out": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
-    "context-menu": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
-}
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
 PINNED_PIXELS = {
@@ -196,25 +181,9 @@ TRANSPARENT_CORNER_CURSORS = (
     "zoom-in",
     "zoom-out",
 )
-BLACK = (0, 0, 0, 255)
-WHITE = (255, 255, 255, 255)
-TRANSPARENT = (0, 0, 0, 0)
-
-
-def _pixel(rgba, width, x, y):
-    """Return pixel (*x*, *y*) of packed *rgba* as an RGBA tuple."""
-    start = (y * width + x) * 4
-    return tuple(rgba[start : start + 4])
-
-
 def _scaled(x, y, size):
     """Return grid pixel (*x*, *y*) at the first destination pixel it covers."""
     return ((x * size + 15) // 16, (y * size + 15) // 16)
-
-
-def _read_cursor(path):
-    """Read *path* through the independent test-side reader."""
-    return xcursor_reader.read_cursor(path)
 
 
 def _repo_bytes(path):
@@ -315,97 +284,6 @@ class TestCursorArtifact(unittest.TestCase):
             with self.subTest(name=name):
                 with self.assertRaises(ValueError):
                     _read_cursor(path)
-
-
-class TestVectorPointerArtifacts(unittest.TestCase):
-    """Pin the committed I-beam and pointing-hand vector artifacts per size.
-
-    Each design point maps to the pixel that contains it at a nominal size:
-    ``floor(coordinate * size / 32)``. The expectations below come from the
-    design coordinates in ``tools/cursor_art_pointers.py``, not from the
-    rendered output.
-    """
-
-    # (name, design points that must be black, design points that must be
-    # white). The hotspot is checked separately, as its alpha.
-    EXPECTATIONS = {
-        "xterm": {"black": ((15, 15),), "white": ((17, 15),), "grey": (24,)},
-        "hand2": {"black": ((14, 8),), "white": ((17, 7),), "grey": SIZES},
-    }
-
-    def _frames(self, name):
-        cursor = _read_cursor(CURSORS / name)
-        for image in cursor.images:
-            width, height, rgba = decode_rgba(image.png)
-            yield image, width, height, rgba
-
-    def _assert_points_show(self, rgba, width, size, coordinates, expected):
-        for x, y in coordinates:
-            self.assertEqual(
-                _pixel(rgba, width, x * size // 32, y * size // 32), expected
-            )
-
-    def test_each_frame_has_the_pinned_hotspot_and_face_and_outline(self):
-        for name, points in self.EXPECTATIONS.items():
-            for image, width, _height, rgba in self._frames(name):
-                with self.subTest(name=name, size=image.nominal_size):
-                    self._assert_pinned_points(name, image, width, rgba, points)
-
-    def _assert_pinned_points(self, name, image, width, rgba, points):
-        size = image.nominal_size
-        self.assertEqual(
-            (image.hotspot_x, image.hotspot_y), HOTSPOTS[name][size]
-        )
-        self.assertEqual(_pixel(rgba, width, *HOTSPOTS[name][size])[3], 255)
-        self._assert_points_show(rgba, width, size, points["black"], BLACK)
-        self._assert_points_show(rgba, width, size, points["white"], WHITE)
-
-    def test_each_frame_has_transparent_corners(self):
-        for name in self.EXPECTATIONS:
-            for image, width, height, rgba in self._frames(name):
-                with self.subTest(name=name, size=image.nominal_size):
-                    self._assert_corners_transparent(width, height, rgba)
-
-    def _assert_corners_transparent(self, width, height, rgba):
-        for x, y in (
-            (0, 0),
-            (width - 1, 0),
-            (0, height - 1),
-            (width - 1, height - 1),
-        ):
-            self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
-
-    def _assert_grey_level(self, size, points, pixels):
-        if size not in points["grey"]:
-            return
-        self.assertTrue(
-            any(p[3] == 255 and 0 < p[0] < 255 for p in pixels),
-            "no opaque pixel with an intermediate grey level",
-        )
-
-    def test_each_frame_is_antialiased(self):
-        for name, points in self.EXPECTATIONS.items():
-            for image, width, height, rgba in self._frames(name):
-                size = image.nominal_size
-                with self.subTest(name=name, size=size):
-                    self._assert_antialiased(
-                        rgba, width, height, size, points
-                    )
-
-    def _assert_antialiased(self, rgba, width, height, size, points):
-        pixels = [
-            _pixel(rgba, width, x, y)
-            for y in range(height)
-            for x in range(width)
-        ]
-        self.assertTrue(
-            any(0 < p[3] < 255 for p in pixels),
-            "no partly covered edge pixel",
-        )
-        # Only the sizes the design pins: the I-beam's stem edges
-        # fall inside a pixel at 24 but on pixel boundaries at 16
-        # and 32, so only its 24 frame has a grey-level edge.
-        self._assert_grey_level(size, points, pixels)
 
 
 class TestCursorSet(unittest.TestCase):
