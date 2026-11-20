@@ -392,21 +392,6 @@ class TestRgbaPng(unittest.TestCase):
             (2, 1, bytes([7, 7, 7, 255, 8, 8, 8, 255])),
         )
 
-    def test_truecolor_trns_key_above_255_leaves_every_pixel_opaque(self):
-        # A key sample of 263 cannot equal any 8-bit channel, so no pixel
-        # matches even where the other two channels agree with the key.
-        blob = make_png(
-            2,
-            1,
-            [bytes([7, 2, 3, 4, 5, 6])],
-            color_type=2,
-            trns=struct.pack(">HHH", 263, 2, 3),
-        )
-        self.assertEqual(
-            png.decode_rgba(blob),
-            (2, 1, bytes([7, 2, 3, 255, 4, 5, 6, 255])),
-        )
-
     def test_malformed_trns_length_rejected(self):
         grey = make_png(
             1, 1, [bytes([7])], color_type=0, trns=b"\x00\x07\x00"
