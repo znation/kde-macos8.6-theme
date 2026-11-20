@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK 3 suite extraction: isolate view focus-outline declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
+
+**Goal.** Give the related list, tree, icon and flow-box keyboard-focus
+declaration checks a focused module outside `tests/test_gtk_theme_views.py`.
+This is independent of the queued treeview progress-cell extraction.
+
+**Approach and files touched.** Move `TestGtkThemeViews` methods
+`test_list_row_focus_outline`, `test_treeview_focus_outline`,
+`test_iconview_focus_outline` and `test_flowbox_child_focus_outline` into
+`tests/test_gtk_theme_view_focus.py::TestGtkThemeViewFocus`, retaining their
+names and bodies. Follow `tests/test_gtk_theme_drag_drop.py`: inherit
+`GtkSheetRuleCases` and `unittest.TestCase`, set `CSS_PATH` to the shipped
+GTK 3 sheet through `support.repo_root.ROOT`, and include the normal unittest
+main guard. The inherited `assert_dotted_focus_outline` supplies the assertions;
+these methods require no source-module helper or palette imports. Keep that
+shared helper in place. Update the source routing docstring and repoint the
+corresponding anchors in `docs/invariants.md`, retaining their provenance and
+declaration-only scope. Search live docs and tests, including
+`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+`tests/support/validation_gaps/`, for other moved anchors. Keep selection,
+title-button and icon-source checks in the source module.
+
+**Acceptance criteria.**
+
+- Normal discovery and a focused run of the new module execute the moved
+  methods under the new class; the source class no longer defines them.
+- Given the shipped sheet, the moved checks pass without a GUI display.
+  A solid outline, nonzero outline offset or nonzero GTK outline radius on
+  any of the four selectors still fails its retained check, as does a
+  mismatch with the `button:focus` outline recipe.
+- The remaining views module runs with its own fixtures. The moved invariant
+  anchors resolve, and live docs and tests contain no old class-qualified
+  references to these methods. Theme assets and stylesheet sources and
+  outputs have no diff.
+- `make check` passes after the final edit.
+
 ### GTK 3 suite extraction: isolate treeview progress-cell declarations (planned 2026-11-19 by the plan role) — done 2026-11-19 by the feature role
 
 **Goal.** Separate treeview cell-renderer declarations from ordinary progress

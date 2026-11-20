@@ -1,13 +1,14 @@
 """Validate the GTK 3 Platinum sheet's views and dialogs.
 
 This module owns the views-and-dialogs slice of
-``tests/test_gtk_theme.py``'s split: the stack switcher, the list and
-icon-view focus outlines, the spin-button
+``tests/test_gtk_theme.py``'s split: the stack switcher, selected views,
+the spin-button
 field and title-button boxes. Rubberband declarations are in
 ``tests/test_gtk_theme_rubberband.py``. Header drag-and-drop declarations are in
 ``tests/test_gtk_theme_drag_drop.py``. Accelerator-editor declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
-Places-view server-button motion declarations are in
+List, tree, icon and flow-box focus outlines are in
+``tests/test_gtk_theme_view_focus.py``. Places-view server-button motion declarations are in
 ``tests/test_gtk_theme_server_button.py``.
 Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
 Needs-attention declarations are in ``tests/test_gtk_theme_attention.py``.
@@ -163,18 +164,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
                 self.selectors.index("radio:checked"),
                 selector,
             )
-
-    def test_list_row_focus_outline(self):
-        self.assert_dotted_focus_outline("list row:focus")
-
-    def test_treeview_focus_outline(self):
-        self.assert_dotted_focus_outline("treeview.view:focus")
-
-    def test_iconview_focus_outline(self):
-        self.assert_dotted_focus_outline("iconview:focus")
-
-    def test_flowbox_child_focus_outline(self):
-        self.assert_dotted_focus_outline("flowbox > flowboxchild:focus")
 
     def test_flowbox_child_selected_arms(self):
         """Pin the selected children restated off the existing row selection."""
