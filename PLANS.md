@@ -5,6 +5,102 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Render CLI tests: move the environment-isolation cases into their own module (planned 2026-11-19 by the plan role)
+
+**Goal.** `tests/test_render_failure_paths.py` is 1011 lines, and PRINCIPLES.md asks for files
+small enough to read in one sitting. Its module docstring says it covers the render CLI's failure
+paths, but `TestFailurePaths` also holds seven tests that check what the render session takes
+from the caller's environment and what it drops. They are not failure paths. This plan moves them
+unchanged into a new `tests/test_render_environment.py`. No tool behavior and no test body
+changes. It is independent of the Firefox test move, the stylesheet series and the GTK parser
+brace-pairing move, and touches none of their files.
+
+The seven tests to move, keeping their names and order:
+`test_session_receives_the_geometry_and_the_themed_configs`,
+`test_session_ignores_a_config_search_path_from_the_environment`,
+`test_session_pins_the_nested_bus_to_a_display_free_qt_platform`,
+`test_session_script_keeps_the_clients_on_the_nested_compositor_platform`,
+`test_install_ignores_a_destdir_from_the_environment`,
+`test_install_ignores_makefiles_from_the_environment`,
+`test_install_ignores_a_destdir_from_the_outer_make_command_line`. The test just before them,
+`test_make_render_passes_a_dash_leading_output_as_a_path`, covers argument passing and stays.
+
+**Approach and files touched.**
+
+- New `tests/support/render_stub_tools.py`:
+  - Move `class StubTools` verbatim from `tests/test_render_failure_paths.py`, with its
+    `setUp`, `stub`, `assert_scratch_removed` and `assert_failed_run`.
+  - Move `TestFailurePaths.run_main` up onto `StubTools` verbatim. Both suites call it, and per
+    L4 shared helpers go to `tests/support/` rather than one test module importing another.
+  - Write a module docstring naming both suites as its users.
+  - Import only what the moved code uses: `os`, `shutil`, `stat`, `tempfile`, `unittest`,
+    `Path`, `mock`, `repo_root` (the sys.path side-effect import), `call_main` from
+    `support.cli_fixtures`, and `render_surface` from `tools`. Confirm each with grep.
+  - `assert_failed_run`'s docstring says "Shared by the 18 failure-path tails in
+    :class:`TestFailurePaths`". None of the moved tests call it. Recount the
+    `self.assert_failed_run(` call sites in `tests/test_render_failure_paths.py` with grep and
+    write that count, naming the module. As of this plan grep finds 22 call lines, so the 18 is
+    already stale. Do not keep a number grep does not confirm.
+  - The module is not a `test_*.py` file, so the runner does not collect `StubTools` on its own.
+- New `tests/test_render_environment.py`:
+  - Module docstring: it pins what the render session inherits from and drops from the caller's
+    environment (display sockets, `XDG_CONFIG_DIRS`, `QT_QPA_PLATFORM`, `DESTDIR`,
+    `MAKEFILES`, `MAKEFLAGS`) against the same shell stubs. The failure paths stay in
+    `tests/test_render_failure_paths.py`.
+  - `class TestRenderEnvironment(StubTools)` holds the seven methods verbatim, in their current
+    order.
+  - Give it the `if __name__ == "__main__": unittest.main()` footer.
+  - Import only what the bodies use. As of this plan that is `os`, `unittest`, `Path`, `mock`,
+    `repo_root`, `render_session` from `tools`, and `StubTools`. Confirm each with grep.
+- `tests/test_render_failure_paths.py`:
+  - Delete `StubTools`, `run_main` and the seven methods.
+  - Import `StubTools` from `support.render_stub_tools`. `TestFailurePaths(StubTools)` and its
+    remaining bodies stay unchanged.
+  - Drop the imports nothing left uses. As of this plan that includes `render_session`, and
+    probably `tempfile`. Check each import with grep, and keep anything still referenced
+    (for example by `TestMissingTool`).
+  - In the module docstring, add one sentence pointing the environment-isolation cases at
+    `tests/test_render_environment.py`.
+- `docs/invariants.md`: rewrite each of these anchors from
+  `tests/test_render_failure_paths.py::TestFailurePaths::<name>` to
+  `tests/test_render_environment.py::TestRenderEnvironment::<name>`:
+  - the `XDG_CONFIG_DIRS` row ("The render session resolves configuration only from its
+    scratch data and config homes");
+  - the `MAKEFILES` row ("The render session drops caller `MAKEFILES`");
+  - the both-anchors row that begins "The render session pins its whole nested
+    `dbus-run-session` bus subtree".
+
+  Leave the other `TestFailurePaths` anchors alone.
+- `tests/support/validation_gaps/unclear_invariant.py` (`render-config-search-path`) and
+  `tests/support/validation_gaps/real_run_needed.py` (`nested-session-portal-crash-loop`):
+  rewrite their `TestFailurePaths` anchors for the moved methods to the new module and class.
+  The `crashed-applet-setup-wait` entries in `slow_check.py` and `real_run_needed.py` and the
+  class-level `TestFailurePaths` anchors in `no_repro.py`, `unclear_invariant.py` and
+  `real_run_needed.py` name tests that stay, so leave them unchanged.
+- Per L1/L3, also grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+  and `tests/support/validation_gaps/*.py` for the seven moved method names. As of this plan,
+  the only hits outside the test file are the invariants rows and the two validation-gap entries
+  above. None of the moved tests is a `Test*DialogRender` gate, so the `_GATE_FILES` lists do not
+  apply. Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_render_environment.py::TestRenderEnvironment` defines the seven listed tests with
+  the bodies they had in `TestFailurePaths`. None of the seven names is still defined in
+  `tests/test_render_failure_paths.py`.
+- The union of `test_*` method names across the two modules equals the set the original
+  `tests/test_render_failure_paths.py` defined, with nothing lost or duplicated.
+  `tests/test_render_failure_paths.py` is under 860 lines (`wc -l`).
+- `grep -n '^class StubTools' tests/test_render_failure_paths.py` prints nothing, and
+  `tests/test_apply_theme.py`'s own `StubTools` is unchanged.
+- No anchor for any of the seven moved names still points at `tests/test_render_failure_paths.py`
+  in `docs/` or `tests/support/validation_gaps/`, and the invariants-anchor and
+  validation-gap tests pass.
+- `assert_failed_run`'s docstring count matches the number of call sites grep finds in the
+  module it names.
+- No file under `theme/` or `tools/` changes, and the `Makefile` does not change.
+- `make check` passes after the final edit, and its run includes the new module's tests.
+
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; merged-plan facts re-trimmed 2026-10-23
@@ -189,102 +285,6 @@ staging installed themes.
   the final edit.
 
 ## Done
-
-### Render CLI tests: move the environment-isolation cases into their own module (planned 2026-11-19 by the plan role)
-
-**Goal.** `tests/test_render_failure_paths.py` is 1011 lines, and PRINCIPLES.md asks for files
-small enough to read in one sitting. Its module docstring says it covers the render CLI's failure
-paths, but `TestFailurePaths` also holds seven tests that check what the render session takes
-from the caller's environment and what it drops. They are not failure paths. This plan moves them
-unchanged into a new `tests/test_render_environment.py`. No tool behavior and no test body
-changes. It is independent of the Firefox test move, the stylesheet series and the GTK parser
-brace-pairing move, and touches none of their files.
-
-The seven tests to move, keeping their names and order:
-`test_session_receives_the_geometry_and_the_themed_configs`,
-`test_session_ignores_a_config_search_path_from_the_environment`,
-`test_session_pins_the_nested_bus_to_a_display_free_qt_platform`,
-`test_session_script_keeps_the_clients_on_the_nested_compositor_platform`,
-`test_install_ignores_a_destdir_from_the_environment`,
-`test_install_ignores_makefiles_from_the_environment`,
-`test_install_ignores_a_destdir_from_the_outer_make_command_line`. The test just before them,
-`test_make_render_passes_a_dash_leading_output_as_a_path`, covers argument passing and stays.
-
-**Approach and files touched.**
-
-- New `tests/support/render_stub_tools.py`:
-  - Move `class StubTools` verbatim from `tests/test_render_failure_paths.py`, with its
-    `setUp`, `stub`, `assert_scratch_removed` and `assert_failed_run`.
-  - Move `TestFailurePaths.run_main` up onto `StubTools` verbatim. Both suites call it, and per
-    L4 shared helpers go to `tests/support/` rather than one test module importing another.
-  - Write a module docstring naming both suites as its users.
-  - Import only what the moved code uses: `os`, `shutil`, `stat`, `tempfile`, `unittest`,
-    `Path`, `mock`, `repo_root` (the sys.path side-effect import), `call_main` from
-    `support.cli_fixtures`, and `render_surface` from `tools`. Confirm each with grep.
-  - `assert_failed_run`'s docstring says "Shared by the 18 failure-path tails in
-    :class:`TestFailurePaths`". None of the moved tests call it. Recount the
-    `self.assert_failed_run(` call sites in `tests/test_render_failure_paths.py` with grep and
-    write that count, naming the module. As of this plan grep finds 22 call lines, so the 18 is
-    already stale. Do not keep a number grep does not confirm.
-  - The module is not a `test_*.py` file, so the runner does not collect `StubTools` on its own.
-- New `tests/test_render_environment.py`:
-  - Module docstring: it pins what the render session inherits from and drops from the caller's
-    environment (display sockets, `XDG_CONFIG_DIRS`, `QT_QPA_PLATFORM`, `DESTDIR`,
-    `MAKEFILES`, `MAKEFLAGS`) against the same shell stubs. The failure paths stay in
-    `tests/test_render_failure_paths.py`.
-  - `class TestRenderEnvironment(StubTools)` holds the seven methods verbatim, in their current
-    order.
-  - Give it the `if __name__ == "__main__": unittest.main()` footer.
-  - Import only what the bodies use. As of this plan that is `os`, `unittest`, `Path`, `mock`,
-    `repo_root`, `render_session` from `tools`, and `StubTools`. Confirm each with grep.
-- `tests/test_render_failure_paths.py`:
-  - Delete `StubTools`, `run_main` and the seven methods.
-  - Import `StubTools` from `support.render_stub_tools`. `TestFailurePaths(StubTools)` and its
-    remaining bodies stay unchanged.
-  - Drop the imports nothing left uses. As of this plan that includes `render_session`, and
-    probably `tempfile`. Check each import with grep, and keep anything still referenced
-    (for example by `TestMissingTool`).
-  - In the module docstring, add one sentence pointing the environment-isolation cases at
-    `tests/test_render_environment.py`.
-- `docs/invariants.md`: rewrite each of these anchors from
-  `tests/test_render_failure_paths.py::TestFailurePaths::<name>` to
-  `tests/test_render_environment.py::TestRenderEnvironment::<name>`:
-  - the `XDG_CONFIG_DIRS` row ("The render session resolves configuration only from its
-    scratch data and config homes");
-  - the `MAKEFILES` row ("The render session drops caller `MAKEFILES`");
-  - the both-anchors row that begins "The render session pins its whole nested
-    `dbus-run-session` bus subtree".
-
-  Leave the other `TestFailurePaths` anchors alone.
-- `tests/support/validation_gaps/unclear_invariant.py` (`render-config-search-path`) and
-  `tests/support/validation_gaps/real_run_needed.py` (`nested-session-portal-crash-loop`):
-  rewrite their `TestFailurePaths` anchors for the moved methods to the new module and class.
-  The `crashed-applet-setup-wait` entries in `slow_check.py` and `real_run_needed.py` and the
-  class-level `TestFailurePaths` anchors in `no_repro.py`, `unclear_invariant.py` and
-  `real_run_needed.py` name tests that stay, so leave them unchanged.
-- Per L1/L3, also grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
-  and `tests/support/validation_gaps/*.py` for the seven moved method names. As of this plan,
-  the only hits outside the test file are the invariants rows and the two validation-gap entries
-  above. None of the moved tests is a `Test*DialogRender` gate, so the `_GATE_FILES` lists do not
-  apply. Archives (PLANS-DONE.md, BUGS-FIXED.md) keep their historical anchors.
-
-**Acceptance criteria.**
-
-- `tests/test_render_environment.py::TestRenderEnvironment` defines the seven listed tests with
-  the bodies they had in `TestFailurePaths`. None of the seven names is still defined in
-  `tests/test_render_failure_paths.py`.
-- The union of `test_*` method names across the two modules equals the set the original
-  `tests/test_render_failure_paths.py` defined, with nothing lost or duplicated.
-  `tests/test_render_failure_paths.py` is under 860 lines (`wc -l`).
-- `grep -n '^class StubTools' tests/test_render_failure_paths.py` prints nothing, and
-  `tests/test_apply_theme.py`'s own `StubTools` is unchanged.
-- No anchor for any of the seven moved names still points at `tests/test_render_failure_paths.py`
-  in `docs/` or `tests/support/validation_gaps/`, and the invariants-anchor and
-  validation-gap tests pass.
-- `assert_failed_run`'s docstring count matches the number of call sites grep finds in the
-  module it names.
-- No file under `theme/` or `tools/` changes, and the `Makefile` does not change.
-- `make check` passes after the final edit, and its run includes the new module's tests.
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
