@@ -126,6 +126,30 @@ class TestRenderReadiness(unittest.TestCase):
             "#!/bin/sh\necho 'member=ClientReady'\nexec sleep 30\n",
         )
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
+        # The ceiling's `sleep 0.2` is stubbed to touch the ceiling file at
+        # once, while the grace loop's `sleep 0.1` iterations keep their
+        # real duration. A real ceiling sleep depends on fork/exec
+        # scheduling: under a parallel `make check` the hosted runner
+        # starved a correct session's ceiling timer ~800 ms past its
+        # deadline (2026-11-20), so the ceiling-cut grace still ran its
+        # full second and no start-anchored bound separates a correct
+        # settle from a broken one. With the ceiling deterministic, a
+        # correct settle ends within scheduling slack of the client's
+        # start (the ready file exists before the settle loop's first
+        # check, and the grace's ceiling guard stops it at once), while a
+        # grace that ignores the ceiling still runs its 10 x 0.1 s and
+        # fails the bound. The stub only stands in for the timer's sleep;
+        # the ceiling-fallback path without a ready signal keeps its real
+        # sleep in `test_the_listener_waits_its_ceiling_without_a_signal`.
+        write_executable(
+            bindir / "sleep",
+            "#!/bin/sh\n"
+            'if [ "$1" = 0.2 ]; then\n'
+            f'  touch "{root / "capture.png.ceiling"}"\n'
+            "  exit 0\n"
+            "fi\n"
+            'exec /usr/bin/sleep "$@"\n',
+        )
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 0.2)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
