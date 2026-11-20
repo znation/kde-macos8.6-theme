@@ -5,6 +5,52 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Page Info suite extraction: isolate security groupbox declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
+
+**Goal.** Give the security panel's etched frames a focused declaration
+suite, reducing the 627-line `tests/test_firefox_theme_page_info.py`.
+This is a test relocation; the shipped styles and reference pixels stay as
+they are. It has no dependency on the Library or bookmark-editor extractions.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_page_info_groupbox.py` with
+  `TestFirefoxPageInfoGroupbox(FirefoxChromeTestCase)`. Move
+  `test_page_info_groupbox_paint_is_scoped_to_page_info` and
+  `test_page_info_groupbox_provenance` from `TestFirefoxPageInfo` into it,
+  preserving their bodies and comments. These methods use `REQUIRED_RULES`,
+  `FirefoxChromeTestCase`, `element` and `matches`; import those directly
+  from the existing support modules. Include the usual `unittest.main()`
+  guard. Do not import the original test module.
+- Remove those methods from `tests/test_firefox_theme_page_info.py` and
+  update its docstring to point to the new suite for security groupboxes.
+  Give the new module a docstring describing that scope and pointing back
+  to the original module for the other Page Info surfaces.
+- Re-point the security-group-frame row's scope-test anchor in
+  `docs/invariants.md` to the new module and class. Preserve its reference
+  test anchors and provenance. Add the new module to the section lists in
+  `tests/support/firefox_chrome_cases.py` and `tests/support/css_header.py`.
+  Reconcile those lists with any sibling extraction merged beforehand.
+- Re-grep the moved method names across source and documentation, including
+  `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/`, updating any live anchors found.
+  Historical plans stay historical. No production code or theme art changes.
+
+**Acceptance criteria.**
+
+- Discovery reports the moved methods under
+  `test_firefox_theme_page_info_groupbox.TestFirefoxPageInfoGroupbox`,
+  and no longer under `test_firefox_theme_page_info.TestFirefoxPageInfo`.
+  The original class's remaining method names match the pre-change set
+  with those two removed; the moved assertion bodies are preserved.
+- The new suite passes against the shipped sheet, checking the scoped
+  groupbox selectors and their provenance. The original Page Info suite
+  continues to pass for its remaining surfaces.
+- The group-frame invariant names the new scope-test location, and
+  `tests/test_invariants.py` passes. A grep outside historical backlog
+  records finds no old fully qualified anchor for either moved method.
+- `make check` passes after the final edit.
+
 ### Firefox Library suite extraction: move the downloads and details-pane suites into their own module (planned 2026-11-19 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Shrink the 864-line `tests/test_firefox_theme_library.py` so it
