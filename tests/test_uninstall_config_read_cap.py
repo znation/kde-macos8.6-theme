@@ -125,6 +125,20 @@ class TestReaderFifo(unittest.TestCase):
         self.assertIsNone(uninstall_config.read_text(fifo))
 
 
+class TestReaderUnreadable(unittest.TestCase):
+    def test_a_permission_error_is_silent(self):
+        with mock.patch.object(
+            uninstall_config,
+            "read_capped_bytes",
+            side_effect=PermissionError("permission denied"),
+        ) as read_capped_bytes:
+            self.assertIsNone(uninstall_config.read_text("config.ini"))
+
+        read_capped_bytes.assert_called_once_with(
+            "config.ini", uninstall_config._MAX_CONFIG_BYTES, "", error=ValueError
+        )
+
+
 class TestReaderMalformedBytes(unittest.TestCase):
     def read_case(self, body):
         tmp = str(make_tmp_dir(self))
