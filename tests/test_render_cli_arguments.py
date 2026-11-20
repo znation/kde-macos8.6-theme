@@ -83,6 +83,13 @@ class TestRenderCliArguments(unittest.TestCase):
             with self.subTest(argv=argv):
                 self.assertIn(argv[0], self.assert_usage_error("out.png", *argv))
 
+    def test_rejects_an_infinite_timeout(self):
+        # A timeout is a finite upper bound on the render session; accepting
+        # infinity would disable the CLI's documented session limit.
+        stderr = self.assert_usage_error("out.png", "--timeout", "inf")
+        self.assertIn("--timeout", stderr)
+        self.assertIn("finite number of seconds", stderr)
+
     def test_rejects_a_timeout_not_longer_than_settle(self):
         for settle, timeout in (("10", "10"), ("10", "9.5"), ("10", "1")):
             with self.subTest(settle=settle, timeout=timeout):
