@@ -1,7 +1,7 @@
 """Validate the GTK 3 Platinum sheet's spin-button focus outlines, stepper seams and RTL etch.
 
 This module owns the spin-button slice split out of the former GTK 3 controls suite:
-the horizontal and vertical focus outlines, the horizontal stepper seam rules,
+the spin-button field declaration, the horizontal and vertical focus outlines, the horizontal stepper seam rules,
 the OSD spin field's RTL mirror, and the rendered stepper seams and vertical
 joins. The rule checks read the stripped CSS through ``GtkSheetRuleCases``;
 the three rendered probes run in a child interpreter (see ``_run_gtk_child``),
@@ -25,6 +25,10 @@ CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 class TestGtkThemeSpinbutton(Gtk3ChildProbeCases, GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = CSS
+
+    def test_spin_button_field(self):
+        self.assert_spin_button_field(("spinbutton:not(.vertical)",))
+        self.assertNotIn("spinbutton.vertical > text", self.rules)
 
     def test_horizontal_spinbutton_focus_outline(self):
         self.assert_dotted_focus_outline("spinbutton:focus:not(.vertical)")
