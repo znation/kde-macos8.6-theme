@@ -303,6 +303,34 @@ class TestProfileResolution(FirefoxProfileTestCase):
         )
         self.assertEqual(first, self.resolve())
 
+    def test_a_candidate_under_a_regular_file_is_refused_not_skipped(self):
+        # _is_directory treats only a missing path as absent. A candidate whose
+        # parent is a regular file fails with ENOTDIR, which is an inspection
+        # failure: discovery must refuse it by name, not fall through to a
+        # live second profile as though the candidate did not exist.
+        blocker = self.firefox_root / "blocker"
+        blocker.parent.mkdir(parents=True, exist_ok=True)
+        blocker.write_text("not a directory", encoding="utf-8")
+        blocked = blocker / "profile"
+        second = self.firefox_root / "second"
+        second.mkdir()
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=blocked\nPath=blocker/profile\n"
+            "[Profile1]\nName=second\nPath=second\n",
+        )
+
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+
+        self.assertTrue(
+            str(caught.exception).startswith(
+                f"cannot inspect Firefox profile directory {blocked}:"
+            ),
+            str(caught.exception),
+        )
+        self.assertIsInstance(caught.exception.__cause__, NotADirectoryError)
+
     def test_a_discovered_candidate_whose_inspection_fails_is_refused_not_skipped(self):
         # A live second profile must not hide the first candidate's failed
         # inspection: discovery names the error instead of falling through.
