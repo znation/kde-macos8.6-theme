@@ -190,6 +190,76 @@ whichever merges later re-reads those and rewrites only its own lines.
   generated files have no diff.
 - `make check` passes after the final edit.
 
+### GTK 3 suite extraction: move the flow-box selected check into the selected-views suite (planned 2026-11-19 by the plan role)
+
+**Goal.** Put the GTK 3 selected flow-box child check next to the selected
+icon-view and treeview checks it shares a recipe with, and shrink
+`tests/test_gtk_theme_views.py` further. The method sits apart from the
+disabled-selected, spin-button, separator/frame and stack-switcher
+extractions. All of them edit `tests/test_gtk_theme_views.py`, its docstring
+and `docs/invariants.md`, so whichever merges later re-reads those and
+rewrites only its own lines.
+
+**Approach and files touched.**
+
+- Move `TestGtkThemeViews.test_flowbox_child_selected_arms` from
+  `tests/test_gtk_theme_views.py` to
+  `tests/test_gtk_theme_selected_views.py::TestGtkThemeSelectedViews`,
+  after `test_iconview_selected_arms`. Keep its body and docstring the
+  same. It calls only `assert_rule` from
+  `support.gtk_rule_cases.GtkSheetRuleCases`, which the destination already
+  inherits, and the destination already sets the same GTK 3 `CSS_PATH`. It
+  reads `BLACK` and `SELECTION`, which the destination already imports from
+  `support.platinum_palette`, so the destination's import block does not
+  change.
+- In the views module, drop `BLACK` and `SELECTION` from the
+  `support.platinum_palette` import only if no method left in the module
+  reads them at implementation time (on 2026-11-19 only the moved method
+  did). If that leaves the import empty, remove the whole import statement.
+- Widen the destination's module docstring to say it also covers selected
+  flow-box children.
+- In the views module docstring, extend the existing "Selected icon-view
+  fill and selected treeview check and radio faces are in
+  `tests/test_gtk_theme_selected_views.py`" sentence to name selected
+  flow-box children too. Write it against the docstring as it reads at
+  implementation time.
+- In `docs/invariants.md`, repoint the
+  `tests/test_gtk_theme_views.py::TestGtkThemeViews::test_flowbox_child_selected_arms`
+  anchor to
+  `tests/test_gtk_theme_selected_views.py::TestGtkThemeSelectedViews::test_flowbox_child_selected_arms`.
+  A grep on 2026-11-19 found it once, in the "GTK 3 selected flow-box
+  children restate the existing row-selection treatment" row. Keep that
+  row's wording.
+- Grep `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py` and `tests/support/` (including
+  `tests/support/validation_gaps/*.py`) for the old anchor and repoint any
+  hit. The 2026-11-19 grep found none outside `docs/invariants.md`. This is
+  not a render gate, so the `_GATE_FILES` lists are not involved.
+- Do not change theme sheets, source partials or the
+  `test_row_selection_backdrop` method, which stays in the views module.
+
+**Acceptance criteria.**
+
+- Test discovery lists `test_flowbox_child_selected_arms` under
+  `test_gtk_theme_selected_views.TestGtkThemeSelectedViews` and no longer
+  under `test_gtk_theme_views.TestGtkThemeViews`. The selected-views suite
+  still lists `test_iconview_selected_arms` and
+  `test_treeview_selected_check_radio_faces`. Both modules pass when run on
+  their own through the project's unittest runner.
+- The moved method's function-definition AST is identical to the original
+  at the base commit.
+- With the test in its new suite, changing `background-color` in the GTK 3
+  sheet's `flowbox flowboxchild:selected` rule fails it. So does deleting
+  the `flowbox flowboxchild:backdrop:selected` rule.
+- The `docs/invariants.md` flow-box anchor resolves to an existing method.
+  After the change, a grep finds no `test_flowbox_child_selected_arms` in
+  `tests/test_gtk_theme_views.py`, and every name that module imports from
+  `support.platinum_palette` is still read in it.
+- `git diff --stat` shows changes only to the two test modules,
+  `docs/invariants.md` and the backlog files. Theme sheets, partials and
+  generated files have no diff.
+- `make check` passes after the final edit.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
