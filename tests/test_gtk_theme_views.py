@@ -9,7 +9,8 @@ the spin-button field. Title-button declarations are in
 ``tests/test_gtk_theme_accelerator_editor.py``.
 List, tree, icon and flow-box focus outlines are in
 ``tests/test_gtk_theme_view_focus.py``. Places-view server-button motion declarations are in
-``tests/test_gtk_theme_server_button.py``.
+``tests/test_gtk_theme_server_button.py``. List-row pressed and popup-holding
+face declarations are in ``tests/test_gtk_theme_row_interactions.py``.
 Path-bar declarations are in ``tests/test_gtk_theme_path_bar.py``.
 Needs-attention declarations are in ``tests/test_gtk_theme_attention.py``.
 Message-dialog declarations are in ``tests/test_gtk_theme_message_dialog.py``.
@@ -25,7 +26,6 @@ import unittest
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     CHECK_GLYPH,
-    ROW_HOVER,
     MIXED_GLYPH,
     RADIO_GLYPH,
     SELECTION_CHECK_STATES,
@@ -50,32 +50,6 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule_after(
             "list row.activatable:selected:backdrop",
             "list row.activatable:selected:",
-        )
-
-    def test_list_row_press_and_popup_faces(self):
-        # The pressed and popup-holding row states restate the existing
-        # faces: stock's four element-level row arms would paint a tinted
-        # hover-wash, pressed insets and a selection-accent fill on rows
-        # the existing records paint transparent or with the flat lavender
-        # selection.
-        expected = {
-            "row.activatable.has-open-popup": dict(ROW_HOVER),
-            "row.activatable:hover": dict(ROW_HOVER),
-            "row.activatable:active": {"box-shadow": "none"},
-            "row.activatable:selected:active": {"box-shadow": "none"},
-            "row.activatable:selected.has-open-popup": {"background-color": SELECTION},
-            "row.activatable:selected:hover": {"background-color": SELECTION},
-        }
-        self.assert_rule_group(expected)
-        # The existing row spellings are all list-, listview- or
-        # treeview-armed, so this element-level family is exactly six.
-        self.assertEqual(
-            {s for s in self.rules if s.startswith("row.activatable")},
-            set(expected),
-        )
-        self.assertGreater(
-            self.selectors.index("row.activatable:active"),
-            self.selectors.index("list row.activatable:selected"),
         )
 
     def test_iconview_selected_arms(self):

@@ -101,49 +101,6 @@ again before editing. No production, stylesheet or theme-asset changes.
 - Theme assets, source partials and generated sheets have no diff.
 - `make check` passes after the final edit.
 
-### GTK 3 suite extraction: isolate list-row press and popup declarations (planned 2026-11-19 by the plan role)
-
-**Goal.** Give GTK 3 list-row pressed and popup-holding face coverage a
-focused module outside the oversized views suite, independent of the
-waiting entry-icon and pending OSD push-button extractions.
-
-**Approach and files touched.** Move
-`TestGtkThemeViews.test_list_row_press_and_popup_faces` from
-`tests/test_gtk_theme_views.py` to new
-`tests/test_gtk_theme_row_interactions.py::TestGtkThemeRowInteractions`,
-keeping its method name, assertion body and comments. Follow
-`tests/test_gtk_theme_server_button.py`: inherit
-`support.gtk_rule_cases.GtkSheetRuleCases` and `unittest.TestCase`, set
-`CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"` via
-`support.repo_root.ROOT`, and include the unittest main guard. Import
-`ROW_HOVER` from `support.gtk_theme_spec` and `SELECTION` from
-`support.platinum_palette`; the method has no source-local helper. In the
-source module drop the now-unused `ROW_HOVER` import (`SELECTION` stays,
-other methods use it) and add the new module to its routing docstring.
-In `docs/invariants.md`, repoint only the Gtk 3 anchor of the list-row
-pressed/popup-holding row; keep its Gtk 4 anchor
-(`tests/test_gtk4_navigation.py::TestGtk4Navigation::test_list_row_press_and_popup_faces`),
-guarantee and provenance text unchanged. A grep of `docs/` and `tests/`
-on 2026-11-19 found no other live reference to the moved method; recheck
-`docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
-`tests/support/validation_gaps/` before finishing. No theme, partial or
-generated-sheet changes.
-
-**Acceptance criteria.**
-
-- Discovery runs the moved method under its new class without a GUI
-  display, and `TestGtkThemeViews` no longer defines it; both modules pass
-  when run on their own.
-- Against the shipped sheet the moved check passes. Changing the hover or
-  popup row face, adding an inset shadow to a pressed arm, giving a selected
-  hover/popup arm a non-`#CCCCFF` fill, adding a seventh element-level
-  `row.activatable` selector, or placing `row.activatable:active` before
-  `list row.activatable:selected` each fails it.
-- The invariants row's Gtk 3 anchor resolves to the moved method and its
-  Gtk 4 anchor is unchanged. Theme assets, source partials and generated
-  sheets have no diff.
-- `make check` passes after the final edit.
-
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
