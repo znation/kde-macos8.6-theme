@@ -138,6 +138,54 @@ Whichever plan merges second keeps the other's module name in those lists.
   passes, and `make check` passes after the final edit.
 
 
+### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role)
+
+**Goal.** Give Page Info's meta and image trees a focused declaration suite,
+reducing the mixed-surface `tests/test_firefox_theme_page_info.py`. This is
+independent of the bookmark-editor and preferences extractions; its paint
+and provenance checks form one concern and move together.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_page_info_trees.py` with
+  `TestFirefoxPageInfoTrees(FirefoxChromeTestCase)`. Move
+  `test_page_info_tree_paint_is_scoped_to_page_info` and
+  `test_page_info_tree_provenance` from `TestFirefoxPageInfo` verbatim.
+  Import `REQUIRED_RULES`, `VIEWITEM_REFERENCES` and `FirefoxChromeTestCase`
+  from `support.firefox_chrome_cases`, and `element` and `matches` from
+  `support.selector_matching`. Include the usual unittest footer. These
+  methods need no new shared helper or import from another test module.
+- Remove the moved methods from `tests/test_firefox_theme_page_info.py`.
+  Narrow its docstring and point readers to the new suite for the trees;
+  describe the tree scope in the new module's docstring. Retain imports
+  needed by the remaining checks.
+- In `docs/invariants.md`, re-point the meta-and-image-tree row's scope-test
+  anchor to the new module and class, preserving the guarantee and provenance.
+  Add the new module to the suite lists in
+  `tests/support/firefox_chrome_cases.py` and `tests/support/css_header.py`,
+  preserving names added by other extractions.
+- Search the old module/class anchors and moved method names across docs,
+  tests, README and Makefile, including `docs/rendering.md`,
+  `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/`. Update live anchors for the moved checks;
+  historical plans remain historical. At planning time, the moved scope-test
+  anchor appeared in `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- Discovery finds the moved methods under
+  `test_firefox_theme_page_info_trees.TestFirefoxPageInfoTrees` and no longer
+  under the original class; their assertion bodies and comments match the
+  removed methods. The original class retains its other method bodies.
+- The new suite passes against the shipped sheet, checking the meta/image
+  tree rules, unrelated-tree exclusions and provenance; the remaining Page
+  Info suite passes independently.
+- The tree invariant resolves to the new scope-test location, and the support
+  docstrings list the new suite. No live fully qualified anchor for a moved
+  method points to the original class.
+- `make check` passes after the final edit. The implementation diff contains
+  test organization and documentation changes, with no shipped theme changes.
+
 ## Done
 
 ### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
