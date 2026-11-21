@@ -267,6 +267,5 @@ class TestTruncatedDeclaredImage(CheckerTestCase):
         self.assertIn("ends without the PNG IEND trailer", err.getvalue())
 
 
-
 if __name__ == "__main__":
     unittest.main()
