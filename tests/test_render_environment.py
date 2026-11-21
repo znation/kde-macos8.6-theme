@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401
-from support.render_stub_tools import StubTools
+from support.render.stub_tools import StubTools
 from tools import render_session
 
 

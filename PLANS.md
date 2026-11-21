@@ -136,57 +136,6 @@ Planned entry, pending change or finished plan covers `test_png_read.py`.
   main's known-red `TestNoReproLedger` tests, if main still fails them (L6).
   Do not edit `BUGS-FIXED.md` or the ledger baseline to make them pass.
 
-### Group the tests/support render modules into a subpackage (part 1/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the render-family slice of the tests/support regroup. The
-original single entry ("Group the flat tests/support/ modules into
-per-family packages") was parked too large for one run; measured on main
-today it covers 98 flat `.py` files in `tests/support/` (counting
-`__init__.py`) and 554 files that import one of them
-(`rg -l 'from support\.|import support\.' tests tools`). It is now split
-into six independently mergeable slices, parts 1–6, planned beside this
-entry. Each slice moves one family's modules into a subpackage whole —
-modules, importers, `mock.patch` targets and doc paths together — so a
-family is never under two paths. The parts are independent: no part waits
-on another, and each names the modules it owns so no two parts claim one
-module.
-
-**Modules to move (importer files counted on main).** `render_gates` (16),
-`render_stub_tools` (5), `render_cli_cases` (3), `applet_package` (2),
-`file_dialog_list_fixtures` (1), `file_dialog_sidebar_fixtures` (1),
-`splash_capture_fixtures` (1) → `tests/support/render/` with
-`__init__.py`: `gates.py`, `stub_tools.py`, `cli_cases.py`,
-`applet_package.py`, `file_dialog_list_fixtures.py`,
-`file_dialog_sidebar_fixtures.py`, `splash_capture_fixtures.py`.
-
-**Approach.** Move each module and rewrite its importer lines
-(`from support.<old>` → `from support.render.<new>`, plus bare
-`support.<old>` references). Retarget every `mock.patch` string that names
-a moved module to the module whose global the caller resolves. Before
-moving each module, `rg` its importers: a module with an importer outside
-this part's families stays flat — record it in the run summary. Grep the
-gate-count prose tests (`test_dialog_gate_count_prose.py`,
-`test_readme_render_gates.py`) and `tests/support/validation_gaps/*.py`
-for a `render_gates` anchor before renaming.
-
-**Files touched.** The seven moved modules, their importer files under
-`tests/`, any `mock.patch` target strings, and docs naming the old paths
-(`grep -rn 'support\.render_gates'` and the other old names over `docs/`,
-`tests/`, `Makefile`, `*.md`).
-
-**Acceptance criteria.**
-
-- `ls tests/support/render/` lists `__init__.py` and the seven moved
-  modules; `rg -n 'support\.(render_gates|render_cli_cases|render_stub_tools|file_dialog_list_fixtures|file_dialog_sidebar_fixtures|applet_package|splash_capture_fixtures)'`
-  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
-  reference.
-- Every `mock.patch` string naming a moved module resolves, and the tests
-  that patch them pass.
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the tests/support firefox modules into a subpackage (part 2/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
 **Goal.** Land the firefox-family slice of the tests/support regroup (see

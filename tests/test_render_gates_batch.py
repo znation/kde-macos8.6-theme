@@ -1,4 +1,4 @@
-"""Pin the render batch's bookkeeping in ``support.render_gates.Renders``.
+"""Pin the render batch's bookkeeping in ``support.render.gates.Renders``.
 
 The real capture gates run ``Renders``' batch only on a host with the Plasma
 tools present, and there the observable failure is a wrong capture, not a
@@ -20,8 +20,8 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import render_gates
-from support.render_gates import Renders
+from support.render import gates as render_gates
+from support.render.gates import Renders
 
 
 class TestRenderBatch(unittest.TestCase):

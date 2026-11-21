@@ -36,7 +36,7 @@ from tools import (
     render_surface,
     render_workflow,
 )  # noqa: E402
-from support.render_stub_tools import StubTools
+from support.render.stub_tools import StubTools
 
 
 class TestMissingTool(unittest.TestCase):

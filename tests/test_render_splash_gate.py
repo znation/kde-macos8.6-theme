@@ -13,9 +13,9 @@ import shutil
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import splash_capture_fixtures
+from support.render import splash_capture_fixtures
 from support.platinum_palette import hex_colour
-from support.render_gates import (
+from support.render.gates import (
     SPLASH_REAL_TOOLS,
     PixelPins,
     Renders,
@@ -170,7 +170,7 @@ class TestSplashRender(PixelPins, unittest.TestCase):
 
     def test_the_logo_cell_pins_its_art(self):
         # The 52x42 cell byte-compares to the measured map in
-        # tests/support/splash_capture_fixtures.py: a moved, dropped or
+        # tests/support/render/splash_capture_fixtures.py: a moved, dropped or
         # resampled logo fails here.
         self.assert_band(
             self.LOGO_CELL, splash_capture_fixtures.LOGO_CELL_ROWS
@@ -209,7 +209,7 @@ class TestSplashRender(PixelPins, unittest.TestCase):
 
 # This module's gate waits on the splash render kind; requesting it at import
 # time lets it join the shared batch that the applet and desktop gates start
-# (see Renders in tests/support/render_gates.py). A skip guard that holds never
+# (see Renders in tests/support/render/gates.py). A skip guard that holds never
 # calls ensure, so a host without the tools renders nothing.
 Renders.request("splash")
 

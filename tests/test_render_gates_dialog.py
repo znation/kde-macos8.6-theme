@@ -1,6 +1,6 @@
 """Pin ``DialogGate``'s class-definition registration and its decode cache.
 
-``support.render_gates.DialogGate`` has two pieces of bookkeeping that no
+``support.render.gates.DialogGate`` has two pieces of bookkeeping that no
 rendered gate observes directly. ``__init_subclass__`` must register each
 concrete gate's ``KIND`` with ``Renders`` at import time, or the first gate to
 set up starts a batch that omits the render its sibling waits on. And
@@ -19,8 +19,8 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support import render_gates
-from support.render_gates import DialogGate, Renders
+from support.render import gates as render_gates
+from support.render.gates import DialogGate, Renders
 
 
 class TestDialogGateRegistration(unittest.TestCase):

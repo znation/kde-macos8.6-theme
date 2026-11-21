@@ -3,7 +3,7 @@
 ``tools/render_surface.py``'s thirteen ``--*-dialog`` modes open kdialog
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
-``tests/support/render_gates.py``, the menu gate in
+``tests/support/render/gates.py``, the menu gate in
 ``tests/test_render_menu_dialog.py``, the radio-list gate in
 ``tests/test_render_radio_dialog.py``, the line-input gate in
 ``tests/test_render_lineedit_dialog.py``, the combobox gate in
@@ -33,7 +33,7 @@ from support.platinum_palette import (
     INACTIVE_OUTLINE,
     hex_colour,
 )
-from support.render_gates import (
+from support.render.gates import (
     DIALOG_REAL_TOOLS,
     REAL_TOOLS,
     SOFTWARE_RENDER_SKIP_REASON,
@@ -570,12 +570,12 @@ class TestPixelMismatchNamesThePixel(PixelPins, unittest.TestCase):
         return None
 
     def test_a_matching_pixel_passes(self):
-        with mock.patch("support.render_gates.pixel_at", return_value=(0, 0, 0)):
+        with mock.patch("support.render.gates.pixel_at", return_value=(0, 0, 0)):
             self.assert_pixel(302, 324, "#000000")
 
     def test_a_mismatched_pixel_message_names_its_coordinates(self):
         with mock.patch(
-            "support.render_gates.pixel_at", return_value=(0xCC, 0xCC, 0xCC)
+            "support.render.gates.pixel_at", return_value=(0xCC, 0xCC, 0xCC)
         ):
             with self.assertRaises(AssertionError) as caught:
                 self.assert_pixel(302, 324, "#000000")

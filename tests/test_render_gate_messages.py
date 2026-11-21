@@ -11,7 +11,7 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render_gates import RenderOutputMessages, render_output_note
+from support.render.gates import RenderOutputMessages, render_output_note
 
 
 class _Probe(RenderOutputMessages, unittest.TestCase):

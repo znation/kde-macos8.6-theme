@@ -16,7 +16,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.applet_package import make_applet_package  # noqa: E402
+from support.render.applet_package import make_applet_package  # noqa: E402
 from support.cli_fixtures import call_main  # noqa: E402
 from tools import render_surface  # noqa: E402
 

@@ -22,7 +22,7 @@ from unittest import mock
 from support import repo_root
 from support.cli_fixtures import call_main
 from tools import render_surface, render_workflow
-from support.render_stub_tools import StubTools
+from support.render.stub_tools import StubTools
 
 
 class TestRenderOutputCli(StubTools, unittest.TestCase):

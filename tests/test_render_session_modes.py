@@ -13,7 +13,7 @@ import shlex
 import unittest
 from unittest import mock
 
-from support.render_stub_tools import StubTools
+from support.render.stub_tools import StubTools
 from tools import (
     render_setup,
     render_window_rules,

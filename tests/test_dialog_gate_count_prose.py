@@ -93,7 +93,7 @@ class TestDialogGateCountProse(unittest.TestCase):
                 "docs/invariants.md",
                 "tests/test_ci_workflow.py",
                 "tests/test_render_dialog_gates.py",
-                "tests/support/render_gates.py",
+                "tests/support/render/gates.py",
             )),
             (_KDIALOG_MODE_COUNT, kdialog_modes, (
                 "docs/invariants.md",

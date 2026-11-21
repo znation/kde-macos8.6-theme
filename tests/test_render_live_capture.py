@@ -15,7 +15,7 @@ import unittest
 from support.cli_fixtures import run_main
 from tools import render_surface
 from tools.png.write import encode_png  # noqa: E402
-from support.render_stub_tools import StubTools
+from support.render.stub_tools import StubTools
 
 
 def crashed_applet_setup_diagnosis(setup_timeout):

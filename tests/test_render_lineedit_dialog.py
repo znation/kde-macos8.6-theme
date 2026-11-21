@@ -7,7 +7,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
-from support.render_gates import (
+from support.render.gates import (
     DIALOG_REAL_TOOLS,
     DialogGate,
     dialog_gate_guard,

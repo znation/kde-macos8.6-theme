@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render_cli_cases import (  # noqa: E402
+from support.render.cli_cases import (  # noqa: E402
     assert_usage_error,
     delegated_render_args,
 )

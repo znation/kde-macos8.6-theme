@@ -2,7 +2,7 @@
 
 ``tools/render_surface.py``'s ``--calendar-dialog`` mode is rendered by both
 gates here, the locale gate under a hostile caller locale. The shared capture
-plumbing lives in ``tests/support/render_gates.py``, and the other kdialog
+plumbing lives in ``tests/support/render/gates.py``, and the other kdialog
 widget gates live in ``tests/test_render_dialog_gates.py``.
 """
 
@@ -13,7 +13,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.platinum_palette import hex_colour
-from support.render_gates import (
+from support.render.gates import (
     DIALOG_REAL_TOOLS,
     DialogGate,
     dialog_gate_guard,

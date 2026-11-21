@@ -6,7 +6,7 @@ the dialog-mode checks. They were moved out of
 ``tests/test_render_surface_units.py``; dialog-mode argument checks live in
 ``tests/test_render_dialog_arguments.py``, and the splash client argv is pinned
 in ``tests/test_render_splash_client.py``.
-The shared assertions live in ``tests/support/render_cli_cases.py``.
+The shared assertions live in ``tests/support/render/cli_cases.py``.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import assert_missing_tool_named  # noqa: E402
-from support.render_cli_cases import (  # noqa: E402
+from support.render.cli_cases import (  # noqa: E402
     assert_delegated_capture_size,
     assert_help_lists_flag,
     assert_rejects_applet_with_fixed_client,

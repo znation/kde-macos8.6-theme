@@ -1,7 +1,7 @@
 """Tests for dialog-mode render CLI argument validation.
 
 These cases call the CLI without starting a render session. Shared assertions
-live in ``tests/support/render_cli_cases.py``.
+live in ``tests/support/render/cli_cases.py``.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render_cli_cases import (  # noqa: E402
+from support.render.cli_cases import (  # noqa: E402
     assert_delegated_capture_size,
     assert_dialog_requires_kdialog,
     assert_help_lists_flag,

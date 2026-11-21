@@ -2,7 +2,7 @@
 
 ``tools/render_surface.py``'s ``--file-dialog`` mode opens a kdialog file
 chooser whose engine-drawn frame, title bar and widgets this gate pins; the
-shared capture plumbing lives in ``tests/support/render_gates.py``, the
+shared capture plumbing lives in ``tests/support/render/gates.py``, the
 thirteen kdialog widget gates in ``tests/test_render_dialog_gates.py``, the
 calendar gates in ``tests/test_render_calendar_dialog.py``, and
 the applet, desktop and splash gates in ``tests/test_render_surface.py``.
@@ -16,10 +16,10 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import AURORAE_DIR
-from support import file_dialog_list_fixtures as list_fixtures
-from support import file_dialog_sidebar_fixtures as sidebar_fixtures
+from support.render import file_dialog_list_fixtures as list_fixtures
+from support.render import file_dialog_sidebar_fixtures as sidebar_fixtures
 from support.platinum_palette import hex_colour
-from support.render_gates import (
+from support.render.gates import (
     DIALOG_REAL_TOOLS,
     DialogGate,
     dialog_gate_guard,
@@ -213,7 +213,7 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
     PLACES_LABEL_BANDS = ((58, 96, 73, 86),)
     # The two device entries' 40x26 drive icon cells at (14, 202) and
     # (14, 254): both are pinned by the one drive-cell map in
-    # ``tests/support/file_dialog_sidebar_fixtures.py``. Their live-label bands (ink
+    # ``tests/support/render/file_dialog_sidebar_fixtures.py``. Their live-label bands (ink
     # measured inside x=63..119, rows 206..215 and 258..267) sit beside
     # them; the glyphs themselves stay unpinned.
     DRIVE_CELLS = ((14, 202), (14, 254))
