@@ -115,5 +115,56 @@ class TestRemoveLink(unittest.TestCase):
         self.assertFalse(os.path.lexists(self.target))
 
 
+class TestRequireInstalled(unittest.TestCase):
+    """``require_installed`` names a non-file at a required path as such.
+
+    A directory or dangling link where ``index.theme`` or ``cursors/left_ptr``
+    belongs is not missing; calling it missing sends the user to a fix that
+    does not match what is on disk.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.data_home = Path(self._tmp.name)
+        self.theme = cursor_link.installed_theme(self.data_home)
+        self.theme.mkdir(parents=True)
+        (self.theme / "cursors").mkdir()
+        (self.theme / "index.theme").write_text("[Icon Theme]\n")
+        (self.theme / "cursors" / "left_ptr").write_text("")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_complete_theme_is_accepted(self):
+        self.assertEqual(cursor_link.require_installed(self.data_home), self.theme)
+
+    def test_absent_pointer_is_called_missing(self):
+        pointer = self.theme / "cursors" / "left_ptr"
+        pointer.unlink()
+        with self.assertRaises(cursor_link.CursorError) as ctx:
+            cursor_link.require_installed(self.data_home)
+        self.assertIn(f"is missing {pointer}", str(ctx.exception))
+
+    def test_directory_at_pointer_is_not_called_missing(self):
+        pointer = self.theme / "cursors" / "left_ptr"
+        pointer.unlink()
+        pointer.mkdir()
+        with self.assertRaises(cursor_link.CursorError) as ctx:
+            cursor_link.require_installed(self.data_home)
+        message = str(ctx.exception)
+        self.assertIn(f"is not a regular file: {pointer}", message)
+        self.assertNotIn("is missing", message)
+
+    def test_dangling_link_at_index_is_not_called_missing(self):
+        index = self.theme / "index.theme"
+        index.unlink()
+        os.symlink(self.data_home / "nowhere", index)
+        with self.assertRaises(cursor_link.CursorError) as ctx:
+            cursor_link.require_installed(self.data_home)
+        message = str(ctx.exception)
+        self.assertIn(f"is not a regular file: {index}", message)
+        self.assertNotIn("is missing", message)
+
+
 if __name__ == "__main__":
     unittest.main()

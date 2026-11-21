@@ -37,11 +37,20 @@ def require_installed(data_home: Path) -> Path:
     """Return the installed theme, refusing a missing index or pointer."""
     theme = installed_theme(data_home)
     for path in (theme / "index.theme", theme / "cursors" / "left_ptr"):
-        if not path.is_file():
+        if path.is_file():
+            continue
+        # A directory, FIFO or dangling link at the path is not missing:
+        # name it so the user knows to clear the path first.
+        if path.is_symlink() or path.exists():
             raise CursorError(
-                f"installed cursor theme is missing {path}; run "
+                f"installed cursor theme path is not a regular file: {path}; "
+                "remove or move that path, then run "
                 "make install INSTALL_PACKAGES=icon-theme"
             )
+        raise CursorError(
+            f"installed cursor theme is missing {path}; run "
+            "make install INSTALL_PACKAGES=icon-theme"
+        )
     return theme
 
 
