@@ -1,7 +1,7 @@
 """Shared shell-stub harness for the render CLI suites.
 
-Used by ``tests/test_render_failure_paths.py``, ``tests/test_render_output_cli.py``
-and ``tests/test_render_environment.py``.
+Used by ``tests/test_render_failure_paths.py``, ``tests/test_render_session_modes.py``,
+``tests/test_render_output_cli.py`` and ``tests/test_render_environment.py``.
 """
 
 from __future__ import annotations

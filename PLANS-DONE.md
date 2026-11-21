@@ -5,6 +5,72 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render failure-paths suite extraction: move the per-mode session launch tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_render_failure_paths.py` is 715 lines, and its `TestFailurePaths` class is
+about 630 of them. PRINCIPLES.md asks for files small enough to read in one sitting. The first
+concern inside that class is not a failure path at all: seven tests pin which client, configs and
+selections each render mode sends into the session. This plan moves those seven tests, unchanged,
+into a new `tests/test_render_session_modes.py`. No tool behavior or test body changes. It does
+not depend on any other Planned entry: no other entry touches this module.
+
+**Approach and files touched.**
+
+- New `tests/test_render_session_modes.py`:
+  - Module docstring: it pins each render mode's session wiring against the shell stubs. That
+    covers the client each mode launches (kdialog menu, the two-window inactive wrapper,
+    plasmashell, ksplashqml), which modes write `kdeglobals`, the window rules and the GTK
+    selection. The failure paths stay in `tests/test_render_failure_paths.py`.
+  - `class TestSessionModes(StubTools, unittest.TestCase)` gets these `TestFailurePaths`
+    methods, verbatim and in their current order:
+    - `test_menu_dialog_launches_its_kdialog_menu_client`
+    - `test_inactive_dialog_launches_its_two_window_wrapper`
+    - `test_desktop_render_launches_the_plasmashell_client`
+    - `test_splash_render_launches_the_ksplashqml_client`
+    - `test_only_the_inactive_dialog_writes_the_window_rules`
+    - `test_only_dialog_renders_add_kdeglobals_to_the_session_configs`
+    - `test_gtk_dialog_installs_the_gtk_selection_beside_the_kvatum_one`
+  - They use only `StubTools` helpers (`run_main`, `stub`, `assert_failed_run`,
+    `assert_scratch_removed`) and these imports: `shlex`, `unittest`, `unittest.mock`,
+    `tools.render_setup`, `tools.render_window_rules`, `tools.render_workflow` and
+    `support.render_stub_tools.StubTools`. Copy the `sys.path`/import preamble the old module
+    uses so the new one runs the same way. Put the class above an
+    `if __name__ == "__main__": unittest.main()` guard.
+- `tests/test_render_failure_paths.py`: delete the seven methods. `assert_unrunnable_command_is_reported`
+  and every other method stays. Drop the `render_window_rules` import, which only the moved tests
+  use (re-check with grep after the deletion; keep `shlex`, `render_setup` and `render_workflow`,
+  which remaining tests still use). Add one sentence to the module docstring pointing at
+  `tests/test_render_session_modes.py` for the per-mode session wiring.
+- `tests/support/render_stub_tools.py`: the module docstring's "Used by" list names the new
+  module too.
+- `docs/invariants.md`: re-point every `tests/test_render_failure_paths.py::TestFailurePaths::<moved test>`
+  anchor to `tests/test_render_session_modes.py::TestSessionModes::<same test>`. Today those are
+  the D-Bus readiness row (the inactive and splash launch tests), the `--inactive-dialog` row
+  (the two-window wrapper and window-rules tests), the `--desktop` row (the plasmashell test) and
+  the `--splash` row (the ksplashqml test). Re-grep at implementation, because rows may have
+  moved. Change no row's guarantee or provenance text.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`, README.md
+  and `tests/support/validation_gaps/*.py` for the moved test names. At planning time, none of
+  them names a moved test. The validation-gap entries cite
+  `test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget` and
+  `test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch`, which stay.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_render_session_modes` (run from `tests/` the way `make check` does)
+  runs the seven named tests under `TestSessionModes`, and they pass.
+- None of the seven method names is defined in `tests/test_render_failure_paths.py`. Each one is
+  defined exactly once across `tests/` (`grep -rn 'def <name>' tests/` shows one hit, in the new
+  module).
+- Each moved method's body is byte-identical to its body before the move. The check: a
+  `git diff -M --color-moved` of the change shows the seven bodies as moved lines, not edited ones.
+- `grep -n 'test_render_failure_paths.py::TestFailurePaths::test_.*launches\|TestFailurePaths::test_only_' docs/invariants.md`
+  prints nothing, and the invariants-anchor and validation-gap tests pass.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or
+  the ledger baseline to make them pass.
+
 ### Ghostty terminal theme, part 1/2: ship and install a Platinum Ghostty theme file (planned 2026-11-21 by the director role) — done 2026-11-21 by the feature role
 
 **Goal.** The user asked on 2026-11-21 to "make the theme apply to ghostty".
