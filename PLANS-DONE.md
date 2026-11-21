@@ -5,6 +5,40 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the tests/support gtk modules into a subpackage (part 4/6 of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the gtk-family slice of the tests/support regroup (see
+part 1/6 for the split's counts and rules; the parts are independent).
+
+**Modules to move (importer files counted on main).** `gtk_osd_cases` (5),
+`gtk_staging_case` (2), `gtk_child_probe` (7) → `tests/support/gtk/` with
+`__init__.py`: `osd_cases.py`, `staging_case.py`, `child_probe.py`.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `gtk_fixtures` (imported by the
+cross-family `gtk_rule_cases`), `gtk_rule_cases` and `gtk_theme_spec` (each
+also imported by firefox tests), `gtk_css` (firefox, gtk and gtk4 tests),
+`gtk4_sheet`, `gtk4_child_probe` and `gui_tests` (each spans gtk and gtk4
+tests). There is no gtk4 slice: every `gtk4_*` module is cross-family on main
+today.
+
+**Files touched.** The three moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/gtk/` lists `__init__.py` and the three moved
+  modules; `rg -n 'support\.(gtk_osd_cases|gtk_staging_case|gtk_child_probe)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the tests/support firefox modules into a subpackage (part 2/6 of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the firefox-family slice of the tests/support regroup (see

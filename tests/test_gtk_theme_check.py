@@ -12,7 +12,7 @@ declaration tests read the stripped CSS through ``GtkSheetRuleCases``.
 import unittest
 from pathlib import Path
 
-from support.gtk_child_probe import (
+from support.gtk.child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,

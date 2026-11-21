@@ -15,7 +15,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.gtk_staging_case import StagingTestCase
+from support.gtk.staging_case import StagingTestCase
 from support.theme_install import write_file
 from support.unlink_failure import unlink_failing_for
 from tools.gtk_staging import commit, stage_all

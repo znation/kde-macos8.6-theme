@@ -19,7 +19,7 @@ The sheet's comment blocks carry each value's provenance.
 import unittest
 from pathlib import Path
 
-from support.gtk_osd_cases import OsdSelectorAssertions
+from support.gtk.osd_cases import OsdSelectorAssertions
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.repo_root import ROOT
 

@@ -13,7 +13,7 @@ so the suite process itself imports no GTK.
 import unittest
 from pathlib import Path
 
-from support.gtk_child_probe import (
+from support.gtk.child_probe import (
     _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
     Gtk3ChildProbeCases,

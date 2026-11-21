@@ -2,7 +2,7 @@
 
 import unittest
 
-from support.gtk_osd_cases import OsdSelectorAssertions
+from support.gtk.osd_cases import OsdSelectorAssertions
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, INVERTED_BUTTON_BEVEL
 from support.platinum_palette import BLACK, FACE

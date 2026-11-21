@@ -1,4 +1,4 @@
-"""Pin the shared GTK 3 child-probe harness in ``support.gtk_child_probe``.
+"""Pin the shared GTK 3 child-probe harness in ``support.gtk.child_probe``.
 
 The harness holds the program-string constants, the sheet prologue, the
 runner, and the ``Gtk3ChildProbeCases`` mixin the GTK 3 probe suites
@@ -10,7 +10,7 @@ The children below import no GTK, so the suite process stays GTK-free.
 
 import unittest
 
-from support.gtk_child_probe import (
+from support.gtk.child_probe import (
     _GTK3_CHILD_HEAD,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,

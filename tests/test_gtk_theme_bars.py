@@ -9,7 +9,7 @@ imports no GTK), and the menu-bar titles and the toolbar and menu-bar faces.
 import unittest
 from pathlib import Path
 
-from support.gtk_child_probe import (
+from support.gtk.child_probe import (
     Gtk3ChildProbeCases,
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,

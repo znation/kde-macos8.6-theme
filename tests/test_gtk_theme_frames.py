@@ -12,7 +12,7 @@ bevel declaration. The declaration tests read the stripped CSS through
 import unittest
 from pathlib import Path
 
-from support.gtk_child_probe import (
+from support.gtk.child_probe import (
     _GTK3_PIXEL_HEAD,
     _GTK3_SHEET_AND_WINDOW,
     _GTK3_SHEET_PROLOGUE,
