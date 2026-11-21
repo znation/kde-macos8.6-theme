@@ -1,8 +1,9 @@
 """Repository fixtures shared by the local-hook test modules.
 
-``tests/test_local_hook.py`` (the hook installer CLI) and
+``tests/test_local_hook.py`` (the hook installer CLI),
+``tests/test_local_hook_uninstall.py`` (its ``uninstall`` subcommand) and
 ``tests/test_local_hook_git.py`` (the Git plumbing that ``tools/local_hook_git.py``
-provides) both build throwaway ``git init`` repositories and run the
+provides) all build throwaway ``git init`` repositories and run the
 ``local_hook`` CLI inside them. Test modules never import each other, so these
 fixtures live here.
 """
@@ -17,7 +18,11 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import theme_install
 from support import tmp_dir
 from support.cli_fixtures import run_main
-from support.process_assertions import assert_succeeded
+from support.process_assertions import (
+    assert_exit_2_without_traceback,
+    assert_failed,
+    assert_succeeded,
+)
 from tools import local_hook
 
 
@@ -79,3 +84,49 @@ def run_tool(repo, *args):
 def hook_path(repo):
     """The default post-commit hook path of a repository made by `make_repo`."""
     return Path(repo) / ".git" / "hooks" / local_hook.HOOK_NAME
+
+
+def make_repo_with_hook(case):
+    """Create a repository and return its root with its default hook path.
+
+    The hook's parent directory is created so a test can put its own file,
+    symlink or directory at the hook path without repeating the setup.
+    """
+    repo = make_repo(case)
+    hook = hook_path(repo)
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    return repo, hook
+
+
+def assert_refuses_a_foreign_hook(case, command):
+    """Assert *command* refuses a hook this tool did not write and leaves it alone.
+
+    ``install`` and ``uninstall`` share the refusal: each must exit with a
+    failure, name the hook path on stderr, and leave the foreign bytes in
+    place. ``TestInstall`` in ``tests/test_local_hook.py`` and ``TestUninstall`` in
+    ``tests/test_local_hook_uninstall.py`` each call this once, so the
+    sequence is stated here.
+    """
+    repo, hook = make_repo_with_hook(case)
+    foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
+    hook.write_bytes(foreign)
+    result = run_tool(repo, command)
+    assert_failed(case, result)
+    case.assertIn(str(hook), result.stderr)
+    case.assertEqual(foreign, hook.read_bytes())
+
+
+def assert_refuses_an_oversize_hook(case, command):
+    """Assert *command* rejects an oversized hook and preserves its bytes.
+
+    ``install`` and ``uninstall`` share the capped-read refusal; both tests
+    use this fixture and verify the hook remains intact.
+    """
+    repo, hook = make_repo_with_hook(case)
+    oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
+    hook.write_bytes(oversize)
+    result = run_tool(repo, command)
+    assert_exit_2_without_traceback(case, result)
+    case.assertIn(str(hook), result.stderr)
+    case.assertIn("larger than", result.stderr)
+    case.assertEqual(oversize, hook.read_bytes())
