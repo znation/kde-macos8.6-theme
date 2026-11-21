@@ -379,6 +379,85 @@ package, so the tools/ regroup entry does not repoint these imports).
   known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
   `BUGS-FIXED.md` or the ledger baseline to make them pass.
 
+### PNG read suite extraction: move the size-read tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_png_read.py` (330 lines) mixes two units of
+`tools/png/loader.py`: `read_png`'s whole-file input guards — the file-size
+cap, the regular-file check, the fd lifecycle under failing `fstat`/`fdopen`
+and `read`, and the FIFO refusal — and `read_png_size`'s bounded prefix read
+and its refusal parity with the decoder. The ten `test_read_png_size_*`
+methods plus the `_assert_size_matches_decode` helper are about 150 lines and
+concern only the size read, so per PRINCIPLES.md move them into a new
+`tests/test_png_read_size.py` as `TestReadPngSize`. Keep class name,
+docstrings, comments and every test body unchanged. This is independent of the
+waiting PNG chunk entry: that one moves `TestChunkFraming` and `TestIterChunks`
+out of `tests/test_png_chunks.py` and touches none of these files, and no other
+Planned entry, pending change or finished plan covers `test_png_read.py`.
+
+**Approach and files touched.**
+
+- **New `tests/test_png_read_size.py`.** Module docstring: it pins
+  `tools/png/loader.py`'s `read_png_size` — the header-prefix read whose peak
+  allocation stays small, the inclusive file-size cap, the refusal to decode,
+  and that every malformed-stream refusal names the file with exactly the
+  message `read_png` gives, so a sampler that only wants dimensions cannot
+  accept a header the decoder refuses — and says `read_png`'s whole-file
+  guards stay in `tests/test_png_read.py`. Then `TestReadPngSize` with the
+  ten `test_read_png_size_*` methods and `_assert_size_matches_decode` in
+  their current order, above an `if __name__ == "__main__":` guard (L1).
+  Imports: `unittest`, `zlib`, `from unittest import mock`,
+  `error_message` from `support.error_assertions`, `_chunk`, `ihdr_chunk`,
+  `png_stream`, `rgb_image`, `with_ihdr_byte` and the new `input_file` from
+  `support.png_fixtures`, `from tools import png`, and `loader` and `header`
+  from `tools.png` (`header` for the pixel-limit test's `MAX_PIXELS` pin).
+- **Shared `_file` helper goes to support, not to a test-module import (L4).**
+  Both modules' tests call `self._file(name, data)`, so add
+  `input_file(case, name, data) -> Path` to `tests/support/png_fixtures.py`
+  (a fresh `make_tmp_dir` directory from `support.tmp_dir` with *data*
+  written to *name*), and keep a one-line `def _file(self, name, data):`
+  delegation in both `TestReadPng` and `TestReadPngSize` so the test bodies
+  stay byte-identical. `png_fixtures.py`'s module docstring's suite list
+  gains `tests/test_png_read_size.py`.
+- **`tests/test_png_read.py` after the move.** Keeps `TestDecoderInputAnnotations`
+  and `TestReadPng` with the ten `test_read_png_*` methods,
+  `_assert_size_matches_decode` deleted with its callers, and the module
+  docstring rewritten to say it pins `read_png`'s input guards and error
+  paths, pointing the size read at `tests/test_png_read_size.py`. The import
+  block drops what only the size tests used: `zlib`, `_chunk`, `ihdr_chunk`,
+  `png_stream`, `with_ihdr_byte` and `header` (keep `loader` for the cap and
+  fd patches, `png_read` for the annotation test, and
+  `peak_allocation`, `tracking_closes`, `failing_fdopen`, `make_fifo`,
+  `snippet_child`, `repo_root` and `rgb_image` for the staying tests).
+- **Docstring counts (L4).** `tests/test_allocation_fixtures.py`'s docstring
+  names the suites using `peak_allocation`: add `test_png_read_size` beside
+  `test_png_read`.
+- **Anchors (L1).** `docs/invariants.md`'s declared-size row repoints its
+  three anchors to `tests/test_png_read_size.py::TestReadPngSize::`
+  paths; the row's guarantee text is unchanged. Grep
+  `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/` for `TestReadPng` and `read_png_size` to
+  confirm no other anchor moved (a planning grep found only the
+  `docs/invariants.md` row above).
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_png_read_size test_png_read`, run from `tests/`,
+  passes, with all ten `test_read_png_size_*` methods under `TestReadPngSize`
+  and none left in `tests/test_png_read.py`; both modules keep their
+  `Test*` classes above the `__main__` guard.
+- Refusal parity stays pinned: changing `read_png_size`'s diagnosis for a
+  corrupt IHDR CRC, an unsupported IHDR field or a stream whose first chunk is
+  not IHDR fails a `_assert_size_matches_decode` test, because the size read's
+  message must equal `read_png`'s for the same bytes.
+- A repo-wide grep (excluding `PLANS-DONE.md` and `BUGS-FIXED.md`) for
+  `test_png_read.py::TestReadPng::test_read_png_size_` finds nothing, and the
+  repointed `docs/invariants.md` anchors all name existing tests.
+- `wc -l` shows `tests/test_png_read.py` under 200 lines and the new module
+  under 170.
+- `make check` passes after the final edit. The only allowed exception is
+  main's known-red `TestNoReproLedger` tests, if main still fails them (L6).
+  Do not edit `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
