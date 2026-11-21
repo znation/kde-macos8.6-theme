@@ -215,6 +215,8 @@ caller `TestUrlProblemDiagnostics`, so nothing moves into `tests/support/` (L4).
 
 ### PNG chunk suite extraction: move the byte-framing rules and the iterator tests into their own module (planned 2026-11-21 by the plan role)
 
+**Needs review 2026-11-21 by feature: plan defect — the extraction and both named files already landed on main in commit b269bf2; complete against that commit rather than re-running the assigned work.**
+
 **Needs review 2026-11-21 by feature: plan defect — the deliverable is already on main in b269bf29, which adds `tests/test_png_chunk_framing.py` and removes the moved tests from `tests/test_png_chunks.py`.**
 
 **Goal.** `tests/test_png_chunks.py` (512 lines) mixes two concerns. Most of
