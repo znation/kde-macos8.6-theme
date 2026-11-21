@@ -287,6 +287,22 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assert_profile_absent(self.sheet_path())
 
+    def test_non_utf8_user_chrome_is_reported_and_nothing_is_removed(self):
+        # Removal decodes each sheet before deciding ownership, so a sheet
+        # with invalid UTF-8 must exit 2 naming the file. The sheet and
+        # user.js keep their bytes, because the refusal comes before any write.
+        sheet_bytes = b"/* not decodable \xff */\n"
+        js_bytes = b'user_pref("keep.me", true);\n'
+        self.sheet_path().parent.mkdir(parents=True)
+        self.sheet_path().write_bytes(sheet_bytes)
+        self.user_js_path().write_bytes(js_bytes)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn("cannot read", result.stderr)
+        self.assertIn(str(self.sheet_path()), result.stderr)
+        self.assertEqual(sheet_bytes, self.sheet_path().read_bytes())
+        self.assertEqual(js_bytes, self.user_js_path().read_bytes())
+
     def test_an_unreadable_profile_file_is_reported_by_name(self):
         # read_profile_text opens every profile file through the shared
         # regular-file reader. A self-referential symlink makes that open fail

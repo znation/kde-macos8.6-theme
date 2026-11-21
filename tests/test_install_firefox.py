@@ -557,6 +557,22 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertIn("larger than", result.stderr)
         self.assert_profile_absent(self.sheet_path())
 
+    def test_a_non_utf8_user_chrome_is_refused_by_name_before_any_write(self):
+        # The existing sheet is decoded as UTF-8 to compare its first line.
+        # A stray latin-1 byte there must exit 2 naming the sheet, and the
+        # install must stop before publishing any file: the sheet keeps its
+        # bytes and no user.js is created.
+        original = b"/* user sheet */ \xff\n"
+        path = self.sheet_path()
+        path.parent.mkdir(parents=True)
+        path.write_bytes(original)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn("cannot read", result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertEqual(original, path.read_bytes())
+        self.assert_profile_absent(self.user_js_path(), self.content_sheet_path())
+
     def test_a_user_chrome_at_the_1_mib_cap_is_accepted(self):
         # One byte past the cap is refused; exactly 1 MiB is the accepted
         # boundary, so the documented cap is pinned by an actual file rather
