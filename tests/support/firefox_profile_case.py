@@ -2,11 +2,11 @@
 
 ``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``,
 ``tests/test_install_firefox.py`` and ``tests/test_install_firefox_rollback.py``
-install into a temp profile and
-``tests/test_remove_firefox.py`` removes from one; all need
-the same scratch root, home, profile and symlink/write-failure fixtures. They
-live here once so each suite states only the behaviour it pins. The module
-name does not match ``test*.py``, so ``unittest discover`` never collects it.
+install into a temp profile and ``tests/test_remove_firefox.py`` and
+``tests/test_remove_firefox_rollback.py`` remove from one; all need the same
+scratch root, home, profile and symlink/write-failure fixtures. They live here
+once so each suite states only the behaviour it pins. The module name does not
+match ``test*.py``, so ``unittest discover`` never collects it.
 """
 
 from __future__ import annotations
@@ -47,6 +47,15 @@ class FirefoxProfileTestCase(unittest.TestCase):
             env = {"HOME": str(self.home)}
         return run_main_with_env(install_firefox.main, install_firefox.TOOL, args, env)
 
+    def install(self):
+        """Install into the temp profile, asserting exit 0.
+
+        Shared by the removal suites ``tests/test_remove_firefox.py`` and
+        ``tests/test_remove_firefox_rollback.py``.
+        """
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+
     def sheet_path(self):
         """Return the ``userChrome.css`` path inside :attr:`profile`."""
         return self.profile / "chrome" / "userChrome.css"
@@ -71,8 +80,8 @@ class FirefoxProfileTestCase(unittest.TestCase):
         """Assert none of *paths* exist, naming the first survivor on failure.
 
         Shared by the installer suites' absence pins; the call sites live in
-        ``tests/test_install_firefox.py``, ``tests/test_install_firefox_rollback.py``
-        and ``tests/test_remove_firefox.py``.
+        ``tests/test_install_firefox.py``, ``tests/test_install_firefox_rollback.py``,
+        ``tests/test_remove_firefox.py`` and ``tests/test_remove_firefox_rollback.py``.
         """
         for path in paths:
             self.assertFalse(path.exists(), f"{path} unexpectedly exists")
@@ -120,7 +129,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         *target*; the result is returned so a caller can pin what the
         rollback left behind. Six callers in
         ``tests/test_install_firefox_rollback.py`` and one in
-        ``tests/test_remove_firefox.py``; the write stand-in is
+        ``tests/test_remove_firefox_rollback.py``; the write stand-in is
         :meth:`fail_write_to`.
         """
         if not tool_args:
@@ -161,7 +170,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         The stand-in unlinks *target* really and raises ``KeyboardInterrupt``
         on the way back, so a test pins what survives a removal whose unlink
         took effect before the caller recorded it. Other paths still unlink
-        really. Two callers in ``tests/test_remove_firefox.py``; the
+        really. Two callers in ``tests/test_remove_firefox_rollback.py``; the
         failure twin is :meth:`fail_unlink_to`.
         """
         real_unlink = Path.unlink

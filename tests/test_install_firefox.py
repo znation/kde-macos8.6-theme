@@ -6,8 +6,8 @@ Firefox profile. Profile resolution has its own suite in
 ``tests/test_firefox_profile.py`` and the ``user.js`` marker-block transform in
 ``tests/test_firefox_user_js.py``; the rollback cases live in
 ``tests/test_install_firefox_rollback.py``; the removal cases live in
-``tests/test_remove_firefox.py``, and the shared temp-home case is
-``support.firefox_profile_case``.
+``tests/test_remove_firefox.py`` and ``tests/test_remove_firefox_rollback.py``, and
+the shared temp-home case is ``support.firefox_profile_case``.
 """
 
 from __future__ import annotations

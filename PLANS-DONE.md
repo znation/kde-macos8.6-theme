@@ -5,6 +5,106 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox removal suite extraction: move the failed-unlink and interrupt rollback tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_remove_firefox.py` (588 lines) is one `TestRemove` class. PRINCIPLES.md
+asks for files small enough to read in one sitting. One part of that class stands on its own: the
+tests at its end that pin the removal's rollback. These cover a `user.js` write, a sheet unlink
+or a restore that fails, and an interrupt that lands before or after a step takes effect. The
+install side was already split this way into `tests/test_install_firefox_rollback.py::TestInstallRollback`
+(see PLANS-DONE.md, "Firefox installer suite extraction: move the write-failure and interrupt
+rollback tests into their own module"). This plan moves the removal's rollback tests, unchanged,
+into a new `tests/test_remove_firefox_rollback.py`. No tool behavior and no test body changes.
+It does not depend on any other Planned entry.
+
+**Approach and files touched.**
+
+- New `tests/test_remove_firefox_rollback.py`:
+  - Module docstring: it pins the Firefox removal's rollback when a `user.js` rewrite, a sheet
+    unlink or a restore fails, or an interrupt lands before or after a step takes effect.
+    Removal outcomes, refusals and FIFO/size cases stay in `tests/test_remove_firefox.py`. The
+    shared temp-home case is `support.firefox_profile_case`.
+  - `class TestRemoveRollback(FirefoxProfileTestCase)` gets these `TestRemove` methods,
+    verbatim and in their current order. They are the ten contiguous methods that follow
+    `_assert_other_files_absent`, running to the end of the class:
+    - `test_a_failed_user_js_write_during_removal_is_reported_by_path`
+    - `test_a_failed_sheet_unlink_is_reported_by_path`
+    - `test_a_failed_user_content_unlink_restores_the_published_user_chrome`
+    - `test_a_failed_deleted_sheet_restore_names_both_during_removal`
+    - `test_a_failed_unlink_restores_an_outdated_sheet_reading_it_had`
+    - `test_an_interrupt_after_only_the_first_sheet_unlink_restores_user_js`
+    - `test_a_failed_user_js_restore_during_removal_names_both_errors`
+    - `test_an_interrupt_during_the_sheet_unlink_restores_user_js`
+    - `test_an_interrupt_after_the_user_js_rewrite_takes_effect_restores_it`
+    - `test_an_interrupt_after_the_sheet_unlink_takes_effect_keeps_the_removal`
+  - Add the class above an `if __name__ == "__main__": unittest.main()` footer (L1).
+  - Imports: only what the moved bodies use. As of this plan that is `unittest`, `Path`,
+    `mock`, `support.repo_root` (for its sys.path side effect, `# noqa: F401` as in the old
+    module), `write_file as _write`, `FirefoxProfileTestCase`, `read_utf8 as _read`,
+    `firefox_user_files`, `firefox_user_js` and `install_firefox`. Confirm each with grep.
+    `errno`, `os`, `snippet_child` and the fifo fixtures stay behind.
+- Shared helper (L4): both modules call `self.install()`. It is a two-line method defined on
+  `TestRemove`: run the tool with `--profile`, then assert exit 0 and show stderr on failure. Move it unchanged onto
+  `FirefoxProfileTestCase` in `tests/support/firefox_profile_case.py`. Give it a docstring that
+  names its callers in `tests/test_remove_firefox.py` and
+  `tests/test_remove_firefox_rollback.py`, and delete it from `TestRemove`. As of this plan,
+  no other subclass of `FirefoxProfileTestCase` defines or calls a method named `install`.
+  Re-check with `grep -rn 'def install\b\|self.install()' tests/`.
+- `tests/test_remove_firefox.py`: delete the moved methods and `install`. Drop the
+  `firefox_user_files` and `firefox_user_js` imports, which only the moved bodies used. Keep
+  `mock`, which a remaining body still uses. Grep every import before dropping it. In the module
+  docstring, add that the rollback cases live in `tests/test_remove_firefox_rollback.py`.
+- `tests/support/firefox_profile_case.py` docstrings (recount with grep after the move):
+  - Module docstring: name the new module among the case's users.
+  - `run_with_failed_write`: its one removal caller moves, so "one in
+    `tests/test_remove_firefox.py`" names `tests/test_remove_firefox_rollback.py`.
+  - `interrupt_unlink_to`: both callers move, so "Two callers in
+    `tests/test_remove_firefox.py`" names the new module.
+  - `assert_profile_absent`: add the new module to its call sites. Two moved bodies call it,
+    and remaining `TestRemove` bodies still do, so `tests/test_remove_firefox.py` stays listed.
+- `tests/support/theme_install.py`, `write_file` docstring: add
+  `test_remove_firefox_rollback.py` to the modules that bind `_write` as an import alias.
+- `docs/invariants.md`:
+  - In the row beginning "The Firefox install copies both sheets", rewrite the eight
+    `tests/test_remove_firefox.py::TestRemove::<method>` anchors whose method moved to
+    `tests/test_remove_firefox_rollback.py::TestRemoveRollback::<method>`. These are the failed
+    user-content unlink, failed deleted-sheet restore, outdated-sheet restore, failed user.js
+    restore and the four interrupt tests. Leave its bare `tests/test_remove_firefox.py::TestRemove`
+    anchor and its other anchors.
+  - The symlinked-`chrome/` row anchors a method that stays. Leave it alone.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/*.py` for the moved method names. As of this plan, the only
+  validation-gap anchor on `TestRemove` (`no_fake.py`, the profile-file FIFO test) names a method
+  that stays. These are not render gates, so `_GATE_FILES` does not apply. Archives keep their
+  historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_remove_firefox_rollback.py` defines `TestRemoveRollback` with the ten methods
+  above. Each keeps the name and body it had in `TestRemove`, and none of those names is still
+  defined in `tests/test_remove_firefox.py`.
+- Taken together, the `test_*` names in the two modules equal the set the original
+  `tests/test_remove_firefox.py` defined, with nothing lost or duplicated.
+  `tests/test_remove_firefox.py` is under 420 lines (`wc -l`).
+- The `install` method is defined on `FirefoxProfileTestCase` and on none of its subclasses
+  (`grep -rn '    def install(self' tests/`). Both removal modules' tests still run the install
+  through it. The unrelated module-level `install` in `tests/support/theme_install.py` is
+  untouched.
+- `git grep -n 'test_remove_firefox.py::TestRemove::test_an_interrupt\|test_remove_firefox.py::TestRemove::test_a_failed' -- docs tests`
+  prints nothing. The invariants-anchor and validation-gap tests pass.
+- Every docstring caller count named above matches a grep of the call sites after the move.
+- `python3 -m pyflakes`, if it is installed, reports no unused import in either removal module.
+  Without pyflakes, grep each import that was dropped or kept to show it is still used.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
+**Implementation note (2026-11-21).** `firefox_user_js` stays imported in `tests/test_remove_firefox.py`:
+two remaining bodies (the `user.js` marker and `STYLESHEETS_PREF` assertions) use it. Only
+`firefox_user_files` was dropped there. The new module imports `firefox_user_files` and `firefox_user_js`,
+both used by its moved bodies.
+
 ### kdedefaults mirror diagnostic suite extraction: move the silent-shape tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_kdedefaults_mirror_uninstall_diagnostic.py` is 653 lines in one class,
