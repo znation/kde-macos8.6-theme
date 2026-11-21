@@ -272,6 +272,39 @@ class TestWholeFileRead(unittest.TestCase):
             path.write_bytes(payload)
             self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
 
+    def test_negative_count_refuses_an_oversized_file_before_reading(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "oversized.jpg"
+            path.write_bytes(b"x" * 9)
+            with mock.patch.object(fidelity_sources, "_MAX_JPEG_BYTES", 8):
+                with self.assertRaisesRegex(fidelity_sources.FidelityError, "larger than the 8-byte limit"):
+                    fidelity_sources._read_bytes(str(path), -1)
+
+    def test_negative_count_detects_growth_after_the_size_check(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "growing.jpg"
+            path.write_bytes(b"small")
+            real_open = fidelity_sources.open_regular_binary
+
+            class GrowingHandle:
+                def __enter__(self):
+                    self.handle = real_open(str(path))
+                    return self
+
+                def __exit__(self, *args):
+                    self.handle.close()
+
+                def fileno(self):
+                    return self.handle.fileno()
+
+                def read(self, count):
+                    return b"x" * count
+
+            with mock.patch.object(fidelity_sources, "_MAX_JPEG_BYTES", 8), \
+                    mock.patch.object(fidelity_sources, "open_regular_binary", return_value=GrowingHandle()):
+                with self.assertRaisesRegex(fidelity_sources.FidelityError, "file is larger than the 8-byte limit"):
+                    fidelity_sources._read_bytes(str(path), -1)
+
     def test_jpeg_branch_hands_the_whole_file_to_the_converter(self):
         # read_source routes a JPEG-magic file through the convert bridge
         # with the file's full bytes: the sniff reads three, the JPEG branch

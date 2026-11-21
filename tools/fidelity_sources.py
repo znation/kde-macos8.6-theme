@@ -9,6 +9,8 @@ the PNG loader's own diagnostics.
 
 from __future__ import annotations
 
+import os
+
 if __package__:
     from tools.containment import open_regular_binary, require_within_repo
     from tools.fidelity_geometry import FidelityError
@@ -28,6 +30,7 @@ else:  # imported by direct execution of tools/fidelity.py
 # also enough that an unmaterialized Git LFS pointer or an empty file
 # never looks like a JPEG.
 _SNIFF_BYTES = 3
+_MAX_JPEG_BYTES = 512 * 1024 * 1024
 
 
 def read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
@@ -97,7 +100,19 @@ def _read_bytes(path: str, count: int) -> bytes | None:
     try:
         with open_regular_binary(path) as handle:
             if count < 0:
-                return handle.read()
+                size = os.fstat(handle.fileno()).st_size
+                if size > _MAX_JPEG_BYTES:
+                    raise FidelityError(
+                        f"cannot read {path}: file is {size} bytes, larger than "
+                        f"the {_MAX_JPEG_BYTES}-byte limit"
+                    )
+                data = handle.read(_MAX_JPEG_BYTES + 1)
+                if len(data) > _MAX_JPEG_BYTES:
+                    raise FidelityError(
+                        f"cannot read {path}: file is larger than the "
+                        f"{_MAX_JPEG_BYTES}-byte limit"
+                    )
+                return data
             return handle.read(count)
     except (OSError, ValueError):
         return None
