@@ -21,6 +21,17 @@ CURSOR_THEME = cursor_link.CURSOR_THEME
 COMMAND_TIMEOUT = 60.0
 
 
+def require_selector(optional: bool) -> int | None:
+    """Refuse a missing selector before any change, unless it is optional.
+
+    Returns the exit status to stop with, or None when the run may proceed.
+    ``select`` repeats the check so its own callers stay correct.
+    """
+    if optional:
+        return None
+    return report_missing_tool(TOOL, [SELECT_TOOL])
+
+
 def select(env: dict[str, str], optional: bool) -> int:
     """Select the theme, optionally reporting a missing desktop selector."""
     if optional and shutil.which(SELECT_TOOL) is None:

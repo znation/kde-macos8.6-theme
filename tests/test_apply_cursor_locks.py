@@ -79,6 +79,7 @@ class TestDataHomeLock(CursorLockCase):
         self.assertTrue(self.link.is_symlink())
 
     def test_apply_times_out_without_linking_while_an_install_or_uninstall_holds_the_data_home_lock(self):
+        self.stub_selector()
         self.hold_data_lock()
 
         with mock.patch.object(cursor_workflow, "LOCK_TIMEOUT", 0.05):
@@ -107,6 +108,7 @@ class TestDataHomeLock(CursorLockCase):
         re-check under the lock refuses with the missing-theme diagnostic
         before the link is created.
         """
+        self.stub_selector()
         real = cursor_link.require_installed
         calls = []
 

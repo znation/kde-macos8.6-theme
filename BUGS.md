@@ -495,43 +495,6 @@ check: 504 modules, 1 module failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
 
-### `make apply-cursor` links `~/.icons` before refusing a missing `plasma-apply-cursortheme` (found by the qa role 2026-11-20)
-
-The README's Prerequisites table lists `plasma-apply-cursortheme` on `PATH` as a requirement of
-`make apply-cursor`, and docs/installing.md describes the target as: install the icon theme, create
-`$HOME/.icons/org.macos8.desktop`, then run `plasma-apply-cursortheme org.macos8.desktop`. When the
-selector is absent, the target refuses, but only after it has already written the icon theme and the
-`~/.icons` link. A refused command therefore leaves the user's home changed, and the docs do not
-say so for the standalone target. (The aggregate `make apply` documents its leave-installed-and-linked
-behaviour; that is the optional path.)
-
-**Reproduce** (isolated: no live session is touched, the selector is simply absent from `PATH`):
-
-```sh
-scratch=$(mktemp -d)
-mkdir -p "$scratch/bin" "$scratch/home" "$scratch/config" "$scratch/data"
-for f in /usr/bin/* /bin/*; do n=$(basename "$f"); [ "$n" = plasma-apply-cursortheme ] || [ -e "$scratch/bin/$n" ] || ln -s "$f" "$scratch/bin/$n"; done
-cd <repo> && env -i PATH="$scratch/bin" HOME="$scratch/home" XDG_CONFIG_HOME="$scratch/config" XDG_DATA_HOME="$scratch/data" TMPDIR="$scratch" make apply-cursor
-echo "exit=$?"
-find "$scratch/home" -maxdepth 2 -printf '%p -> %l\n'
-```
-
-**Expected:** a refusal before any change, because the selector is a stated requirement. Either the
-refusal happens before `$HOME/.icons` and `$XDG_DATA_HOME/icons` are written, or the docs state the
-partial result of a refused standalone apply.
-
-**Actual:** `apply_cursor: error: required tool not found on PATH: plasma-apply-cursortheme`,
-`make: *** [Makefile:649: apply-cursor] Error 2` (exit 2). The find shows
-`$HOME/.icons/org.macos8.desktop -> $XDG_DATA_HOME/icons/org.macos8.desktop`, and the icon theme is
-installed under `$XDG_DATA_HOME/icons/org.macos8.desktop`. Nothing is selected.
-
-**Cause:** `tools/cursor_workflow.py` `apply()` calls `cursor_link.install_link(home, theme)` before
-`cursor_selection.select(env, optional)`, and `select` refuses a missing non-optional selector only
-at that point. The standalone target is the only caller that reaches that refusal (the aggregate
-path passes `--optional`).
-
-Cleanup for the reproduction: `make remove-cursor` with the same isolated environment clears the link.
-
 ### the stage self-check finding "tests/test_firefox_theme_panels.py had 192 lines moved to tests/test_firefox_theme_bookmark_editor.py, but it is still…" was not closed by the fix-up turn and re-fires each run (filed by tumwater 2026-11-21)
 
 **Needs review 2026-11-21 by bugfix: the self-check that raises this lives in tumwater's own code (the added-nonexistent-path guard and its fix-up/revert), not in this repo; the repo mentions it only in comments. On main the referenced docs are correct: the bookmark-editor tests still live in `tests/test_firefox_theme_panels.py`, and `tests/test_firefox_theme_bookmark_editor.py` does not exist, because that move is the held plan "Firefox panels suite extraction" and was never landed. Repointing `docs/invariants.md` now would make it wrong. The fix belongs to the tumwater maintainer (the guard or its fix-up turn) or to the held plan's own work, not to a bugfix change.**

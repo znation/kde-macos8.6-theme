@@ -25,6 +25,11 @@ SELECT_TOOL = cursor_selection.SELECT_TOOL
 def apply(home: Path, data_home: Path, env: dict[str, str], optional: bool) -> int:
     """Link the installed theme and select it while holding its data lock."""
     theme = cursor_link.require_installed(data_home)
+    # A refused standalone apply must leave the home untouched, so the
+    # required selector is checked before the ~/.icons link is written.
+    missing = cursor_selection.require_selector(optional)
+    if missing is not None:
+        return missing
     with installed_data_lock(
         data_home,
         "for the cursor selection",

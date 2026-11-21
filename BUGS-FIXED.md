@@ -5,6 +5,47 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `make apply-cursor` links `~/.icons` before refusing a missing `plasma-apply-cursortheme` (found by the qa role 2026-11-20) — fixed 2026-11-21 by the bugfix role
+
+The README's Prerequisites table lists `plasma-apply-cursortheme` on `PATH` as a requirement of
+`make apply-cursor`, and docs/installing.md describes the target as: install the icon theme, create
+`$HOME/.icons/org.macos8.desktop`, then run `plasma-apply-cursortheme org.macos8.desktop`. When the
+selector is absent, the target refuses, but only after it has already written the icon theme and the
+`~/.icons` link. A refused command therefore leaves the user's home changed, and the docs do not
+say so for the standalone target. (The aggregate `make apply` documents its leave-installed-and-linked
+behaviour; that is the optional path.)
+
+**Reproduce** (isolated: no live session is touched, the selector is simply absent from `PATH`):
+
+```sh
+scratch=$(mktemp -d)
+mkdir -p "$scratch/bin" "$scratch/home" "$scratch/config" "$scratch/data"
+for f in /usr/bin/* /bin/*; do n=$(basename "$f"); [ "$n" = plasma-apply-cursortheme ] || [ -e "$scratch/bin/$n" ] || ln -s "$f" "$scratch/bin/$n"; done
+cd <repo> && env -i PATH="$scratch/bin" HOME="$scratch/home" XDG_CONFIG_HOME="$scratch/config" XDG_DATA_HOME="$scratch/data" TMPDIR="$scratch" make apply-cursor
+echo "exit=$?"
+find "$scratch/home" -maxdepth 2 -printf '%p -> %l\n'
+```
+
+**Expected:** a refusal before any change, because the selector is a stated requirement. Either the
+refusal happens before `$HOME/.icons` and `$XDG_DATA_HOME/icons` are written, or the docs state the
+partial result of a refused standalone apply.
+
+**Actual:** `apply_cursor: error: required tool not found on PATH: plasma-apply-cursortheme`,
+`make: *** [Makefile:649: apply-cursor] Error 2` (exit 2). The find shows
+`$HOME/.icons/org.macos8.desktop -> $XDG_DATA_HOME/icons/org.macos8.desktop`, and the icon theme is
+installed under `$XDG_DATA_HOME/icons/org.macos8.desktop`. Nothing is selected.
+
+**Cause:** `tools/cursor_workflow.py` `apply()` calls `cursor_link.install_link(home, theme)` before
+`cursor_selection.select(env, optional)`, and `select` refuses a missing non-optional selector only
+at that point. The standalone target is the only caller that reaches that refusal (the aggregate
+path passes `--optional`).
+
+Cleanup for the reproduction: `make remove-cursor` with the same isolated environment clears the link.
+
+**Fix:** `tools/cursor_workflow.py` `apply()` now calls `cursor_selection.require_selector(optional)` before `install_link`, so a missing non-optional selector refuses with exit 2 before `~/.icons` is written. The make prerequisite `install INSTALL_PACKAGES=icon-theme` still writes the icon theme under `$XDG_DATA_HOME/icons` before the refusal; that is the target's documented first step and is unchanged here.
+
+**Validation gap:** none — the existing stub-selector harness in `tests/test_apply_cursor_selection.py` reproduced it once one assertion on the home link was added; no fake or real run was needed.
+
 ### `test_validation_gaps` no-repro ledger fails on main after the 856baac9 closure (found by the steward role 2026-11-20) — fixed 2026-11-21 by the bugfix role
 
 `make check` at the current main head fails in `test_validation_gaps`: two `TestNoReproLedger` cases fail, both on records the closure commit `856baac9` added to `BUGS-FIXED.md`.

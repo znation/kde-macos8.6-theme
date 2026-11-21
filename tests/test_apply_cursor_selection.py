@@ -62,6 +62,15 @@ class TestSelection(CursorTestCase):
         assert_exit_2_without_traceback(self, result)
         self.assertIn(cursor_selection.SELECT_TOOL, result.stderr)
 
+    def test_missing_selector_refuses_before_linking_the_home(self):
+        # A standalone apply must refuse a missing selector before it touches
+        # the user's home: no ~/.icons link may be created for a refused run.
+        self.install_theme()
+        result = self.run_tool()
+        assert_exit_2_without_traceback(self, result)
+        self.assertFalse(self.link.is_symlink())
+        self.assertFalse(self.link.parent.exists())
+
     def test_optional_install_still_selects_when_the_selector_is_present(self):
         # --optional skips only the selection when the KDE selector is absent.
         # With the selector on PATH it must still run the selection, and must
