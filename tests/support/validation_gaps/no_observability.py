@@ -31,13 +31,13 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
         "containment-double-slash",
         ("POSIX double leading slash",),
-        "tests/test_containment.py::TestIsWithin"
+        "tests/test_containment_boundary.py::TestIsWithin"
         "::test_treats_a_posix_double_slash_spelling_as_the_same_root",
     ),
     Reproduction(
         "containment-filesystem-root",
         ("child of a filesystem root",),
-        "tests/test_containment.py::TestIsWithin"
+        "tests/test_containment_boundary.py::TestIsWithin"
         "::test_accepts_a_path_under_the_filesystem_root",
     ),
     Reproduction(
@@ -48,7 +48,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
         "containment-single-guard",
         ("reimplemented at five sites",),
-        "tests/test_containment.py::TestGuardIsShared",
+        "tests/test_containment_boundary.py::TestGuardIsShared",
     ),
     Reproduction(
         "uninstall-kdeglobals-bom",
