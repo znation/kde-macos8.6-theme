@@ -97,6 +97,24 @@ class TestMalformedImageData(unittest.TestCase):
         self.assertIn("771 bytes", message)
         self.assertIn("768", message)
 
+    def test_empty_palette_chunk_is_refused(self):
+        # A PLTE with no entries is a multiple of 3 (0 % 3 == 0), so only the
+        # lower bound of the 1-256 entry range refuses it. Without that bound
+        # a colour-type-3 image with no palette would decode against an empty
+        # table and fail later with an index error, or not at all.
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=b"")
+        message = decode_error_message(self, data)
+        self.assertIn("0 bytes", message)
+        self.assertIn("1-256", message)
+
+    def test_one_entry_palette_is_the_smallest_accepted(self):
+        # The smallest legal PLTE is one RGB entry (3 bytes). Index 0 must
+        # decode to that colour, so the lower bound does not reject a valid
+        # single-colour palette.
+        palette = bytes([10, 20, 30])
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
+        self.assertEqual(png.decode_png(data).rgb, bytes([10, 20, 30]))
+
     def test_truncated_image_data_names_actual_and_expected(self):
         # An IDAT that decompresses to fewer scanlines than IHDR's height
         # declares must name how many bytes arrived and how many were needed,
