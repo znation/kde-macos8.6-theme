@@ -2,8 +2,9 @@
 
 Reads 8-bit, non-interlaced PNG images into tightly packed RGB or RGBA bytes
 and writes 8-bit RGB or RGBA images back to PNG, using only the Python
-standard library. The pieces are split by concern and re-exported here, so a consumer imports a
-public name from ``tools.png`` regardless of which submodule defines it:
+standard library. The pieces are split by concern and re-exported here, so a
+consumer imports a public name from ``tools.png`` regardless of which
+submodule defines it:
 ``tools/png/image.py`` holds :class:`Image`, :class:`PngError` and
 :func:`pixel_at`, ``tools/png/loader.py`` the file reader :func:`read_png`,
 :func:`read_png_size` and :func:`read_rgba`, ``tools/png/read.py`` the decode

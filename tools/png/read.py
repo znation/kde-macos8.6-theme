@@ -11,8 +11,8 @@ holds the decode pipeline (inflate and row handling); the header validation
 it reads first lives in ``tools/png/header.py``, chunk ordering and payload
 collection in ``tools/png/stream.py``, its tRNS length rules in
 ``tools/png/trns.py``, and the color expansion from unfiltered samples to RGB
-or RGBA lives in ``tools/png/expand.py``. The file reader that loads a path and applies the
-file-level guards is :func:`tools.png.loader.read_png`, and
+or RGBA lives in ``tools/png/expand.py``. The file reader that loads a path
+and applies the file-level guards is :func:`tools.png.loader.read_png`, and
 :func:`tools.png.loader.read_png_size` shares those guards but returns only
 the declared dimensions. The pieces the decoder is built from live in sibling
 modules: ``tools/png/image.py`` (``PngError``, ``Image``, ``pixel_at``),
