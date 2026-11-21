@@ -250,5 +250,3 @@ def read_text(path):
     """Return the UTF-8 text at *path*."""
     with open(path, encoding="utf-8") as handle:
         return handle.read()
-
-
