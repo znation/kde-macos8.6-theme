@@ -238,7 +238,7 @@ class TestPaethEqualNeighbours(unittest.TestCase):
         self.assertEqual(unfilter(raw, 4, 2, 1), bytes([5, 9, 9, 5, 100, 200, 99, 7]))
 
 
-class AverageFilterTests(unittest.TestCase):
+class TestAverageFilter(unittest.TestCase):
     """Average (type 3) predicts floor((left + up) / 2) per colour lane."""
 
     def test_single_channel_row_uses_the_running_left_sample(self):

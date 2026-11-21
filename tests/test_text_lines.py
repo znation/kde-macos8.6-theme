@@ -13,7 +13,7 @@ from tools.text_lines import (
 )
 
 
-class SplitLinesTests(unittest.TestCase):
+class TestSplitLines(unittest.TestCase):
     """Tests for ``split_lines``' line-break handling."""
 
     def test_splits_lf_crlf_and_bare_cr(self):
@@ -31,7 +31,7 @@ class SplitLinesTests(unittest.TestCase):
         self.assertEqual(split_lines("\n\r\r\n"), ["", "", "", ""])
 
 
-class FirstLineTests(unittest.TestCase):
+class TestFirstLine(unittest.TestCase):
     """Tests for ``first_line``'s line-break handling."""
 
     def test_uses_the_same_line_breaks_as_split_lines(self):
@@ -44,7 +44,7 @@ class FirstLineTests(unittest.TestCase):
         self.assertEqual("left\v\u2028right", first_line("left\v\u2028right\nend"))
 
 
-class FirstLineMarkerTests(unittest.TestCase):
+class TestFirstLineMarker(unittest.TestCase):
     """Tests for ``has_first_line_marker``'s exact-match handling."""
 
     def test_matches_exact_first_line_with_optional_bom_and_supported_endings(self):
@@ -58,7 +58,7 @@ class FirstLineMarkerTests(unittest.TestCase):
                 self.assertFalse(has_first_line_marker(text, "marker"))
 
 
-class JoinLinePairsTests(unittest.TestCase):
+class TestJoinLinePairs(unittest.TestCase):
     """Tests for ``join_line_pairs``' per-line ending handling."""
 
     def test_keeps_each_content_followed_by_its_own_ending(self):
@@ -68,7 +68,7 @@ class JoinLinePairsTests(unittest.TestCase):
         self.assertEqual("", join_line_pairs([]))
 
 
-class StripBomTests(unittest.TestCase):
+class TestStripBom(unittest.TestCase):
     """Tests for ``strip_bom``'s single leading-BOM removal."""
 
     def test_removes_one_leading_utf8_bom(self):
