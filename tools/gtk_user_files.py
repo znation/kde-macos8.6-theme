@@ -143,12 +143,26 @@ def _backup_failure(path: Path, backup: Path, exc: OSError) -> ConfigError:
     return ConfigError(f"cannot back up {path} to {backup}: {exc}")
 
 
-def _discard_backup(path: Path) -> None:
-    """Remove a partial backup, ignoring a removal that fails."""
+def _discard_backup(path: Path) -> str | None:
+    """Remove a partial backup, returning a diagnostic if it remains."""
     try:
         path.unlink()
-    except OSError:
-        pass
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        return f"cannot remove partial backup {path}: {exc}"
+    return None
+
+
+def _backup_failure_after_cleanup(
+    path: Path, backup: Path, exc: OSError
+) -> ConfigError:
+    """Report the copy error and any partial-backup cleanup failure."""
+    failure = _backup_failure(path, backup, exc)
+    cleanup = _discard_backup(backup)
+    if cleanup is not None:
+        return ConfigError(f"{failure}; {cleanup}")
+    return failure
 
 
 def _close_quietly(descriptor: int) -> None:
@@ -191,8 +205,7 @@ def user_css_backup(path: Path) -> Path:
             destination = os.fdopen(descriptor, "wb")
         except OSError as exc:
             _close_quietly(descriptor)
-            _discard_backup(backup)
-            raise _backup_failure(path, backup, exc) from exc
+            raise _backup_failure_after_cleanup(path, backup, exc) from exc
         except BaseException:
             _close_quietly(descriptor)
             _discard_backup(backup)
@@ -201,8 +214,7 @@ def user_css_backup(path: Path) -> Path:
             with destination:
                 destination.write(data)
         except OSError as exc:
-            _discard_backup(backup)
-            raise _backup_failure(path, backup, exc) from exc
+            raise _backup_failure_after_cleanup(path, backup, exc) from exc
         except BaseException:
             _discard_backup(backup)
             raise

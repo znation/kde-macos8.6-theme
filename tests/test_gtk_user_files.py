@@ -296,10 +296,9 @@ class TestUserCssBackup(unittest.TestCase):
         self.assertFalse(backup.exists())
         self.assertEqual(b"original\n", path.read_bytes())
 
-    def test_a_failed_partial_removal_keeps_the_write_error_and_the_source(self):
-        # When the write fails and the partial backup cannot be removed, the
-        # removal failure is ignored: the refusal still names the write that
-        # failed, not the removal, and the stylesheet stays untouched.
+    def test_a_failed_partial_removal_reports_both_errors_and_the_source(self):
+        # A failed cleanup leaves a corrupt backup behind, so the refusal
+        # must identify that path as well as the original copy failure.
         path = self.css("original\n")
         backup = path.with_name("gtk.css.bak")
         with mock.patch.object(
@@ -313,7 +312,9 @@ class TestUserCssBackup(unittest.TestCase):
                 gtk_user_files.user_css_backup(path)
         self.assertIn(f"cannot back up {path} to {backup}", str(caught.exception))
         self.assertIn("simulated write failure", str(caught.exception))
-        self.assertNotIn("cannot remove partial", str(caught.exception))
+        self.assertIn(f"cannot remove partial backup {backup}", str(caught.exception))
+        self.assertIn("cannot remove partial", str(caught.exception))
+        self.assertTrue(backup.exists())
         self.assertEqual(b"original\n", path.read_bytes())
 
     def test_an_open_refusal_names_the_backup(self):
