@@ -1,7 +1,8 @@
 """The temp-home Firefox profile case shared by the Firefox installer suites.
 
 ``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``,
-``tests/test_install_firefox.py`` installs into a temp profile and
+``tests/test_install_firefox.py`` and ``tests/test_install_firefox_rollback.py``
+install into a temp profile and
 ``tests/test_remove_firefox.py`` removes from one; all need
 the same scratch root, home, profile and symlink/write-failure fixtures. They
 live here once so each suite states only the behaviour it pins. The module
@@ -70,7 +71,8 @@ class FirefoxProfileTestCase(unittest.TestCase):
         """Assert none of *paths* exist, naming the first survivor on failure.
 
         Shared by the installer suites' absence pins; the call sites live in
-        both ``tests/test_install_firefox.py`` and ``tests/test_remove_firefox.py``.
+        ``tests/test_install_firefox.py``, ``tests/test_install_firefox_rollback.py``
+        and ``tests/test_remove_firefox.py``.
         """
         for path in paths:
             self.assertFalse(path.exists(), f"{path} unexpectedly exists")
@@ -117,7 +119,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         exit status 2 and the by-name ``cannot write`` diagnostic naming
         *target*; the result is returned so a caller can pin what the
         rollback left behind. Six callers in
-        ``tests/test_install_firefox.py`` and one in
+        ``tests/test_install_firefox_rollback.py`` and one in
         ``tests/test_remove_firefox.py``; the write stand-in is
         :meth:`fail_write_to`.
         """
@@ -139,7 +141,7 @@ class FirefoxProfileTestCase(unittest.TestCase):
         once the real writer has published the file, so a test can pin what a
         roll-back sees after a write that took effect. Other paths still
         reach the real writer. Five callers in
-        ``tests/test_install_firefox.py``; the failure twin is
+        ``tests/test_install_firefox_rollback.py``; the failure twin is
         :meth:`fail_write_to`.
         """
         real_write = firefox_user_files.write_atomically
