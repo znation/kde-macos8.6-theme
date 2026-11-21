@@ -11,12 +11,12 @@ from __future__ import annotations
 
 from .records import Reproduction
 
-# The three ``slow-check`` records the archive held when the ledger was added.
-# Each failure was only confirmable under render or wall-clock-shaped load;
-# its reproduction now pins the shipped paint budget offline -- a shipped
+# The four ``slow-check`` records the archive held when the newest entry
+# joined. Each failure was only confirmable under render or wall-clock-shaped
+# load; its reproduction now pins the shipped paint budget offline -- a shipped
 # flag list, or a stubbed save whose diagnosis runs without the wall clock.
 # A new record must name such a test instead of raising this.
-SLOW_CHECK_BASELINE = 3
+SLOW_CHECK_BASELINE = 4
 
 SLOW_CHECK_REPRODUCTIONS = (
     Reproduction(
@@ -39,5 +39,15 @@ SLOW_CHECK_REPRODUCTIONS = (
         "tests/test_render_failure_paths.py"
         "::TestFailurePaths"
         "::test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch",
+    ),
+    Reproduction(
+        "inactive-dialog-focus-settle",
+        (
+            "The inactive-dialog render gate's pixel pins can fail under a "
+            "full parallel `make check`",
+        ),
+        "tests/test_render_session_focus_settle.py"
+        "::TestSessionFocusSettle"
+        "::test_runs_the_focus_settle_loop_until_the_capture_has_returned",
     ),
 )

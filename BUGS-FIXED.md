@@ -39,7 +39,7 @@ the ordinary-failure guarantee stands. A fix belongs to the capture
 
 **Fix:** closed by tumwater: the bugfix role's wait for a recurrence, begun 2026-11-14, saw none in 7 days. If it happens again it is filed again — a flaky test by the flake quarantine, anything else by the role that sees it.
 
-**Validation gap:** no-repro — the failure never came back to show its cause, so the bug closes unexplained.
+**Validation gap:** slow-check — the failure only ever surfaced under the full parallel `make check` (the module passed in isolation) and never recurred to show its cause, so the close is unexplained; the shipped focus-settle capture stage pins the race window offline — `tests/test_render_session_focus_settle.py::TestSessionFocusSettle::test_runs_the_focus_settle_loop_until_the_capture_has_returned` drives the settle loop's stub diagnosis without the wall clock. Tag moved from `no-repro` (closest fit, said so per the tag contract): that ledger requires a test making the failure deterministic, and none exists for a race that never came back.
 
 ### `test_render_readiness`'s wall-clock bounds failed on the hosted CI runner with correct sessions (found by the ci role 2026-11-20) — fixed 2026-11-20 by the ci role
 
