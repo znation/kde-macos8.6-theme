@@ -36,9 +36,12 @@ def tracked_files(root):
     return out.stdout.decode("utf-8", "surrogateescape").split("\0")
 
 
-def tracked_run_scratch_files(root):
-    """Return tracked top-level files whose first line names run scratch."""
-    offenders = []
+def tracked_top_level_first_lines(root):
+    """Yield ``(name, first_line)`` for each tracked top-level regular file.
+
+    The first line is returned raw, newline included. Symlinks, files in
+    subdirectories and non-regular paths are skipped.
+    """
     for name in tracked_files(root):
         if "/" in name:
             continue
@@ -46,7 +49,13 @@ def tracked_run_scratch_files(root):
         if os.path.islink(path) or not os.path.isfile(path):
             continue
         with open(path, "rb") as fh:
-            first_line = fh.readline()
+            yield name, fh.readline()
+
+
+def tracked_run_scratch_files(root):
+    """Return tracked top-level files whose first line names run scratch."""
+    offenders = []
+    for name, first_line in tracked_top_level_first_lines(root):
         if first_line.startswith(b"/tmp/tumwater-run-") and b"/tmp." in first_line:
             offenders.append((name, first_line))
     return offenders
@@ -62,14 +71,8 @@ def tracked_check_output_files(root):
     every check run.
     """
     offenders = []
-    for name in tracked_files(root):
-        if "/" in name:
-            continue
-        path = os.path.join(root, name)
-        if os.path.islink(path) or not os.path.isfile(path):
-            continue
-        with open(path, "rb") as fh:
-            first_line = fh.readline().rstrip(b"\r\n")
+    for name, raw_line in tracked_top_level_first_lines(root):
+        first_line = raw_line.rstrip(b"\r\n")
         invocation = b"python3 tools/check_parallel.py"
         if first_line == invocation or first_line.startswith(
             (invocation + b" ", invocation + b"\t")
