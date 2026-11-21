@@ -1,6 +1,6 @@
 """Tests for tests/support/fifo_fixtures.py -- the FIFO-planting helpers.
 
-The suites that share these helpers (``test_apply_gtk_errors``,
+The suites that share these helpers (``test_apply_gtk_unreadable_config``,
 ``test_check_parallel_order`` and the Firefox install suites) drive
 ``make_fifo`` on the happy path and ``fifo_swap_opener`` only as a patched
 ``os.open`` stand-in: nothing failed if ``make_fifo`` stopped creating a FIFO

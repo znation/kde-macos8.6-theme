@@ -89,7 +89,7 @@ class TestReaderCap(unittest.TestCase):
 class TestReaderFifo(unittest.TestCase):
     def test_a_fifo_swapped_in_for_a_regular_file_is_refused(self):
         # A regular file can become a FIFO between the path check and the
-        # open (tests/test_apply_gtk_errors.py pins the same race for the
+        # open (tests/test_apply_gtk_unreadable_config.py pins the same race for the
         # GTK settings reader). The patch set routes whichever open the
         # reader uses at the FIFO while os.path.isfile still reports a
         # regular file, through non-blocking descriptor opens, so a missing

@@ -2,8 +2,9 @@
 
 ``tests/test_apply_gtk.py`` drives the apply and removal workflow,
 ``tests/test_apply_gtk_errors.py`` plants unreadable and unwritable config
-faults and ``tests/test_apply_gtk_locks.py`` holds the serialization locks;
-all three need the same scratch root, temp ``XDG_DATA_HOME``/
+faults, ``tests/test_apply_gtk_unreadable_config.py`` plants non-UTF-8, FIFO
+and oversize config files and ``tests/test_apply_gtk_locks.py`` holds the
+serialization locks; all four need the same scratch root, temp ``XDG_DATA_HOME``/
 ``XDG_CONFIG_HOME``/``HOME`` and installed-sheet fixtures. They live here
 once so each suite states only the behaviour it pins. The module name does
 not match ``test*.py``, so ``unittest discover`` never collects it.

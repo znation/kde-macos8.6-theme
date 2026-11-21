@@ -93,10 +93,12 @@ def write_file(path, body):
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
     tests/test_gtk_staging.py's and tests/test_gtk_staging_backups.py's
-    mkdir-then-write pairs now call write_file, and so do tests/test_apply_gtk_errors.py's symlink-target, bad-encoding,
-    oversize, and unreadable-file fixtures (its write_bytes pair near line 134
-    and the link-side mkdir+symlink_to pairs stay direct; the ``truncate``
-    fixture near line 491 is not a write_file case).
+    mkdir-then-write pairs now call write_file, and so do tests/test_apply_gtk_errors.py's
+    symlink-target fixtures (its write_bytes pair near line 134 and the link-side
+    mkdir+symlink_to pairs stay direct) and tests/test_apply_gtk_unreadable_config.py's
+    bad-encoding fixtures; the ``truncate`` fixtures of its oversize tests
+    (test_apply_refuses_an_oversize_settings_file_before_writing_anything and
+    test_remove_refuses_an_oversize_user_css_before_clearing_anything) are not write_file cases.
     tests/test_apply_cursor_remove.py's two TestRemove kcminputrc fixtures call
     write_file as well.
     Still unconverted next-run material includes the further

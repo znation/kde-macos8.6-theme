@@ -4,7 +4,8 @@ The tool runs in-process with ``XDG_DATA_HOME``, ``XDG_CONFIG_HOME`` and
 ``HOME`` pointed at a temp root, so the settings edit, the libadwaita user
 CSS and the removal are pinned without touching the user's configuration.
 The unreadable and unwritable config-file arms live in
-``tests/test_apply_gtk_errors.py`` and the serialization locks in
+``tests/test_apply_gtk_errors.py`` (non-UTF-8, FIFO and read-cap refusals in
+``tests/test_apply_gtk_unreadable_config.py``) and the serialization locks in
 ``tests/test_apply_gtk_locks.py``; the shared temp-root case is
 ``support.apply_gtk_case``. The Makefile pins drive the public targets
 through ``theme_install``, which applies the suite's timeout to each child

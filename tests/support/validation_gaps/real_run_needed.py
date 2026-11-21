@@ -60,7 +60,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "gtk-config-cap",
         ("An oversize GTK settings or user-CSS file",),
-        "tests/test_apply_gtk_errors.py::TestUnreadableConfig"
+        "tests/test_apply_gtk_unreadable_config.py::TestUnreadableConfig"
         "::test_apply_refuses_an_oversize_settings_file_before_writing_anything",
     ),
     Reproduction(
