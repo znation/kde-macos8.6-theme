@@ -3,12 +3,13 @@
 The PNG stream is a sequence of length/type/payload/CRC chunks. These tests
 pin the container layer: that a valid image may split its zlib stream across
 several IDAT chunks or carry unknown ancillary chunks, and that the decoder
-rejects malformed framing -- unknown critical chunks, bad chunk types,
-oversized lengths, bad or truncated CRCs, a missing, duplicated or
-out-of-position IHDR, non-consecutive IDAT chunks, a PLTE or tRNS chunk after
-the image data, a non-empty IEND payload and a missing PLTE/IEND. Header-field
-validation lives in ``tools/png/header.py`` and is covered by
-``test_png_malformed``.
+rejects malformed chunk ordering -- unknown critical chunks, a missing,
+duplicated or out-of-position IHDR, non-consecutive IDAT chunks, a PLTE or
+tRNS chunk after the image data, a non-empty IEND payload and a missing
+PLTE/IEND. Byte framing (chunk types, length caps, CRC checks and the
+truncation diagnostics) and the ``iter_chunks`` iterator live in
+``test_png_chunk_framing.py``; header-field validation keeps its tests here,
+and the tRNS length rules in ``test_png_malformed``.
 Scanline decoding lives in ``test_png_decode``; the malformed-image-data
 and resource-limit rejections live in ``test_png_malformed``.
 
@@ -28,7 +29,6 @@ from support.png_fixtures import (  # noqa: E402
     _chunk,
     decode_error_message,
     ihdr_chunk,
-    ihdr_end,
     make_png,
     png_stream,
     rgb_image,
@@ -37,7 +37,6 @@ from support.png_fixtures import (  # noqa: E402
     with_ihdr_byte,
 )
 from tools import png
-from tools.png import chunks
 
 
 class TestChunkFraming(unittest.TestCase):
@@ -170,56 +169,6 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
-    def test_rejects_chunk_type_with_lowercase_reserved_bit(self):
-        # PNG reserves the third chunk-type letter and requires it to be
-        # uppercase. Ignoring this bit accepts malformed ancillary chunks.
-        _, data = solid_rgb(1, 1)
-        malformed = splice_after_ihdr(data, _chunk(b"abca", b""))
-        message = decode_error_message(self, malformed)
-        self.assertIn("invalid PNG chunk type", message)
-        self.assertIn("reserved third letter must be uppercase", message)
-
-    def test_rejects_chunk_length_above_the_spec_maximum(self):
-        # A chunk length is a 32-bit unsigned field, but the PNG spec caps it
-        # at 2**31 - 1; a value with the high bit set cannot be a real payload.
-        # Without the cap it is compared against the bytes present and reported
-        # as a truncated chunk, which blames the file's tail instead of its
-        # invalid length. The error names the chunk, offset and declared length.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        boundary = ihdr_end(data)
-        oversized = struct.pack(">I", 0x80000000) + b"IDAT"
-        message = decode_error_message(self, data[:boundary] + oversized)
-        self.assertIn("'IDAT'", message)
-        self.assertIn("offset", message)
-        self.assertIn("2147483648", message)
-        self.assertIn("2147483647", message)
-
-    def test_a_chunk_length_at_the_spec_maximum_is_not_refused_as_oversized(self):
-        # The cap is inclusive: 2**31 - 1 is a legal declared length, so a
-        # file that declares it with no payload present is refused as a
-        # truncated chunk, not as above the maximum. A strict ``>=`` would
-        # swap the diagnosis for the cap message at exactly this value.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        boundary = ihdr_end(data)
-        at_maximum = struct.pack(">I", 0x7FFFFFFF) + b"IDAT"
-        message = decode_error_message(self, data[:boundary] + at_maximum)
-        self.assertIn("truncated PNG chunk 'IDAT'", message)
-        self.assertIn(f"offset {boundary}", message)
-        self.assertIn("declared 2147483647 payload bytes", message)
-        self.assertNotIn("above", message)
-
-    def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
-        # Ignoring a chunk's contents must not skip its integrity check: a
-        # corrupt ancillary chunk means the file is damaged and could hide a
-        # damaged IHDR/IDAT region, so it must be rejected by name even though
-        # decode_png would otherwise discard it.
-        _, data = solid_rgb(1, 1)
-        text = _chunk(b"tEXt", b"note")
-        corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
-        message = decode_error_message(self, splice_after_ihdr(data, corrupt))
-        self.assertIn("tEXt", message)
-        self.assertIn("CRC", message)
-
     def test_rejects_png_without_ihdr(self):
         # A chunk stream that reaches IDAT/IEND with no IHDR leaves decode_png
         # with no dimensions or colour type; it must name the missing chunk
@@ -302,39 +251,6 @@ class TestChunkFraming(unittest.TestCase):
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=None)
         self.assertIn("no PLTE", decode_error_message(self, data))
 
-    def test_rejects_bad_chunk_crc(self):
-        # Every PNG chunk carries a CRC over its type and payload; a mismatch
-        # means a corrupted header or palette, which would otherwise decode to
-        # silently wrong pixels and poison the comparison. The failure must
-        # name the chunk, its offset, and both CRC values, so the corruption
-        # can be located without re-deriving them by hand.
-        _, data = solid_rgb(1, 1)
-        corrupted = bytearray(data)
-        (ihdr_length,) = struct.unpack(">I", data[8:12])
-        crc_offset = data.rindex(b"IHDR") + 4 + ihdr_length
-        corrupted[crc_offset] ^= 0xFF
-        message = decode_error_message(self, bytes(corrupted))
-        self.assertIn("IHDR", message)
-        self.assertIn("CRC", message)
-        self.assertIn(f"offset {data.rindex(b'IHDR') - 4}", message)
-        self.assertIn(
-            f"stored 0x{int.from_bytes(corrupted[crc_offset:crc_offset + 4], 'big'):08x}",
-            message,
-        )
-        self.assertIn(
-            f"computed 0x{int.from_bytes(data[crc_offset:crc_offset + 4], 'big'):08x}",
-            message,
-        )
-
-    def test_rejects_truncated_chunk_crc(self):
-        # Cutting the final CRC byte must name the chunk and the offset of the
-        # missing CRC, so the user can find the truncation point.
-        _, data = solid_rgb(1, 1)
-        message = decode_error_message(self, data[:-1])
-        self.assertIn("truncated PNG chunk 'IEND' CRC", message)
-        self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
-        self.assertIn("expected 4 bytes, got 3", message)
-
     def test_rejects_an_iend_with_a_payload(self):
         # The PNG spec gives IEND an empty data field. A non-empty one is
         # malformed framing, and dropping its payload silently would decode a
@@ -354,18 +270,6 @@ class TestChunkFraming(unittest.TestCase):
         stripped = data[: data.rindex(b"IEND") - 4]
         self.assertNotIn(b"IEND", stripped)
         self.assertIn("no IEND chunk", decode_error_message(self, stripped))
-
-    def test_rejects_truncated_chunk_payload(self):
-        # A chunk header declaring more payload than the file holds must name
-        # the chunk, its offset, and the byte counts, not just say "truncated".
-        ihdr = ihdr_chunk(1, 1, 2)
-        data = png_stream(
-            ihdr, struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
-        )
-        message = decode_error_message(self, data)
-        self.assertIn("truncated PNG chunk 'IDAT'", message)
-        self.assertIn("offset 33", message)
-        self.assertIn("declared 100 payload bytes, only 2 present", message)
 
     def test_rejects_unknown_compression_method(self):
         # The IHDR compression and filter methods are separate fields; naming
@@ -424,70 +328,6 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn(
             "re-export it without interlacing", decode_error_message(self, broken)
         )
-
-
-class TestIterChunks(unittest.TestCase):
-    """tools/png/chunks.py's framing iterator, tested directly.
-
-    collect_chunks keeps pulling the iterator past IEND so it can refuse a
-    chunk after it, and the iterator itself refuses a trailing fragment after
-    IEND. Before IEND its ``pos + 8 <= len(data)`` loop exit still ignores a
-    fragment shorter than a chunk header, and collect_chunks then reports the
-    missing IEND. These tests pin the iterator's contract that the decoder
-    layer relies on.
-    """
-
-    def test_iter_chunks_rejects_non_bytes_input(self):
-        # The framing iterator must not accept arbitrary buffers: a caller
-        # passing a str or list gets a PngError naming the offending type
-        # instead of a confusing bytes/struct failure deeper in.
-        with self.assertRaises(png.PngError) as caught:
-            list(chunks.iter_chunks("not bytes"))
-        self.assertIn("must be bytes or bytearray", str(caught.exception))
-        self.assertIn("str", str(caught.exception))
-
-    def test_yields_each_chunk_type_and_payload_in_order(self):
-        # A complete stream of two chunks: the iterator must pair each type
-        # with its own payload, not reuse one or reorder them.
-        data = png_stream(
-            _chunk(b"tEXt", b"a"),
-            _chunk(b"gAMA", b"bc"),
-        )
-        self.assertEqual(
-            [(b"tEXt", b"a"), (b"gAMA", b"bc")],
-            list(chunks.iter_chunks(data)),
-        )
-
-    def test_does_not_stop_at_iend(self):
-        # collect_chunks keeps pulling past IEND so it can refuse a later
-        # chunk, so nothing above the framing layer proves the iterator itself
-        # treats IEND as ordinary. It must keep yielding the chunks after it;
-        # refusing a malformed post-IEND chunk is the decoder's call.
-        data = png_stream(
-            _chunk(b"IEND", b""),
-            _chunk(b"tEXt", b"after"),
-        )
-        self.assertEqual(
-            [(b"IEND", b""), (b"tEXt", b"after")],
-            list(chunks.iter_chunks(data)),
-        )
-
-    def test_a_trailing_fragment_shorter_than_a_header_is_ignored(self):
-        # A file cut inside a chunk header leaves 1-7 bytes after the last
-        # complete chunk. Before IEND there is no datastream end to place them
-        # after, so the iterator stops at the last whole chunk instead of
-        # unpacking the fragment (which would raise struct.error);
-        # collect_chunks then reports the missing IEND, so the truncation is
-        # not lost. (After IEND the fragment is refused instead; see
-        # TestChunkFraming.test_rejects_a_trailing_fragment_after_iend.)
-        _, data = solid_rgb(1, 1)
-        without_iend = data[: data.rindex(b"IEND") - 4]
-        truncated = without_iend + b"\x00\x00\x00\x01"  # part of a length field
-        self.assertEqual(
-            list(chunks.iter_chunks(without_iend)),
-            list(chunks.iter_chunks(truncated)),
-        )
-        self.assertIn("no IEND", decode_error_message(self, truncated))
 
 
 if __name__ == "__main__":

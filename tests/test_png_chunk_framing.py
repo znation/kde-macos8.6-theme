@@ -1,4 +1,12 @@
-"""Tests for PNG byte framing and the chunk iterator contract."""
+"""Tests for ``tools/png/chunks.py``'s byte framing and iterator contract.
+
+These tests pin how a byte stream is cut into chunks at all: that a chunk
+type is four ASCII letters with an uppercase reserved third letter, that a
+length stays at or under the spec maximum, that every chunk's CRC is checked
+even when the chunk is ignored, and how truncation is named -- plus the
+``iter_chunks`` iterator contract. The ordering, duplication and IEND rules
+through ``decode_png`` stay in ``test_png_chunks.py``.
+"""
 
 from __future__ import annotations
 
