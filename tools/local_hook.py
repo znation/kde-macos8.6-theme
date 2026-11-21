@@ -34,6 +34,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools import local_hook_git
     from tools.local_hook_git import LocalHookError
+    from tools.os_error_refusal import refusing_os_errors
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/local_hook.py
     from argument_parsing import EscapingArgumentParser
@@ -41,6 +42,7 @@ else:  # run directly: python3 tools/local_hook.py
     from diagnostics import report_error
     import local_hook_git
     from local_hook_git import LocalHookError
+    from os_error_refusal import refusing_os_errors
     from terminal import escape_controls
 
 TOOL = "local_hook"
@@ -93,29 +95,28 @@ def _existing_hook(path: Path) -> bytes | None:
     if not stat.S_ISREG(mode):
         raise LocalHookError(f"refusing to touch a non-regular hook: {path}")
     try:
-        # Read at most one byte past the cap: enough to detect an oversize
-        # hook without loading the rest of it.
-        # The pathname can change after lstat. O_NONBLOCK prevents a swapped
-        # FIFO from stalling this command; O_NOFOLLOW and fstat keep the open
-        # descriptor bound to a regular, non-symlink hook.
-        flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-        descriptor = os.open(path, flags)
-        try:
-            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-                raise LocalHookError(
-                    f"refusing to touch a non-regular hook: {path}"
-                )
-            handle = os.fdopen(descriptor, "rb")
-            descriptor = -1
-        finally:
-            if descriptor >= 0:
-                os.close(descriptor)
-        with handle:
-            data = handle.read(_MAX_HOOK_BYTES + 1)
+        with refusing_os_errors(LocalHookError, "read", path):
+            # Read at most one byte past the cap: enough to detect an oversize
+            # hook without loading the rest of it.
+            # The pathname can change after lstat. O_NONBLOCK prevents a swapped
+            # FIFO from stalling this command; O_NOFOLLOW and fstat keep the open
+            # descriptor bound to a regular, non-symlink hook.
+            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+            descriptor = os.open(path, flags)
+            try:
+                if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                    raise LocalHookError(
+                        f"refusing to touch a non-regular hook: {path}"
+                    )
+                handle = os.fdopen(descriptor, "rb")
+                descriptor = -1
+            finally:
+                if descriptor >= 0:
+                    os.close(descriptor)
+            with handle:
+                data = handle.read(_MAX_HOOK_BYTES + 1)
     except LocalHookError:
         raise
-    except OSError as exc:
-        raise LocalHookError(f"cannot read {path}: {exc}") from exc
     if len(data) > _MAX_HOOK_BYTES:
         raise LocalHookError(
             f"refusing to touch a hook larger than {_MAX_HOOK_BYTES} bytes: "
@@ -153,10 +154,11 @@ def install() -> int:
             TOOL, f"refusing to overwrite a foreign hook: {path}"
         )
     try:
-        hooks.mkdir(parents=True, exist_ok=True)
-        _write_hook(path, HOOK_SCRIPT)
-    except OSError as exc:
-        return report_error(TOOL, f"cannot write {path}: {exc}")
+        with refusing_os_errors(LocalHookError, "write", path):
+            hooks.mkdir(parents=True, exist_ok=True)
+            _write_hook(path, HOOK_SCRIPT)
+    except LocalHookError as exc:
+        return report_error(TOOL, str(exc))
     print(
         f"{TOOL}: installed {escape_controls(str(path))} "
         f"(runs make apply from {escape_controls(str(top))})"
@@ -181,9 +183,10 @@ def uninstall() -> int:
     if existing != HOOK_SCRIPT.encode("utf-8"):
         return report_error(TOOL, f"refusing to remove a foreign hook: {path}")
     try:
-        path.unlink()
-    except OSError as exc:
-        return report_error(TOOL, f"cannot remove {path}: {exc}")
+        with refusing_os_errors(LocalHookError, "remove", path):
+            path.unlink()
+    except LocalHookError as exc:
+        return report_error(TOOL, str(exc))
     print(f"{TOOL}: removed {escape_controls(str(path))}")
     return 0
 
