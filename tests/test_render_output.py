@@ -155,6 +155,15 @@ class TestOutputProblem(unittest.TestCase):
                 "its directory does not exist", render_output.output_problem(output)
             )
 
+    def test_a_file_parent_is_named_as_not_a_directory(self):
+        with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
+            parent = Path(directory) / "parent"
+            parent.write_text("occupied", encoding="utf-8")
+            self.assertEqual(
+                "its parent is not a directory",
+                render_output.output_problem(parent / "render.png"),
+            )
+
     def test_an_unwritable_parent_directory_is_named(self):
         with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
             locked = Path(directory) / "locked"

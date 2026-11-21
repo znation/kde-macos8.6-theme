@@ -29,6 +29,8 @@ def output_problem(output: Path) -> str | None:
     require_path("output_problem", "output", output)
     if output.is_dir():
         return "is a directory"
+    if not output.parent.is_dir() and output.parent.exists():
+        return "its parent is not a directory"
     if not output.parent.is_dir():
         return "its directory does not exist"
     if not os.access(output.parent, os.W_OK | os.X_OK):
