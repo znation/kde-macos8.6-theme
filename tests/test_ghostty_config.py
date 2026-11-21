@@ -49,6 +49,19 @@ class TestApplyBlock(unittest.TestCase):
         with self.assertRaises(GhosttyConfigError):
             apply_block(b"", THEME + b"\nfont-size = 99")
 
+    def test_theme_path_with_carriage_return_is_refused(self):
+        with self.assertRaises(GhosttyConfigError):
+            apply_block(b"", THEME + b"\rfont-size = 99")
+
+    def test_end_marker_before_begin_marker_is_refused_not_spliced(self):
+        data = b"# <<< Platinum theme <<<\nx = 1\n" + BLOCK.split(b"theme = ")[0]
+        with self.assertRaises(GhosttyConfigError):
+            apply_block(data, THEME)
+
+    def test_applying_to_a_file_without_final_newline_is_idempotent(self):
+        once = apply_block(b"font-size = 12", THEME)
+        self.assertEqual(apply_block(once, THEME), once)
+
 
 class TestRemoveBlock(unittest.TestCase):
     def test_restores_bytes_before_the_block(self):
@@ -60,6 +73,15 @@ class TestRemoveBlock(unittest.TestCase):
     def test_file_without_block_is_unchanged(self):
         data = b"theme = other\r\nfont-size = 12"
         self.assertEqual(remove_block(data), data)
+
+    def test_removing_restores_the_newline_the_apply_added(self):
+        applied = apply_block(b"font-size = 12", THEME)
+        self.assertEqual(remove_block(applied), b"font-size = 12\n")
+
+    def test_end_marker_before_begin_marker_is_refused_not_spliced(self):
+        data = b"# <<< Platinum theme <<<\nx = 1\n" + BLOCK.split(b"theme = ")[0]
+        with self.assertRaises(GhosttyConfigError):
+            remove_block(data)
 
     def test_begin_marker_without_end_is_refused(self):
         with self.assertRaises(GhosttyConfigError):
