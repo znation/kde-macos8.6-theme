@@ -9,15 +9,13 @@ from __future__ import annotations
 import contextlib
 import io
 import os
-import shutil
-import stat
-import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.apply_theme_stubs import ApplyStubTestCase
+from support.executable_stubs import write_executable
+from support.tmp_dir import make_tmp_dir
 from tools import apply_optional, apply_theme
 
 
@@ -25,8 +23,7 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
     """Pin direct optional helper behavior against a narrowed PATH."""
 
     def test_run_optional_selections_notes_both_missing_tools_and_returns_0(self):
-        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
-        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        root = make_tmp_dir(self)
         empty_bin = root / "bin"
         empty_bin.mkdir()
         env = {"PATH": str(empty_bin)}
@@ -43,13 +40,10 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         self.assertIn("neither qdbus6 nor qdbus is on PATH", text)
 
     def test_run_best_effort_success_prints_nothing(self):
-        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
-        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        root = make_tmp_dir(self)
         stub_bin = root / "bin"
         stub_bin.mkdir()
-        stub = stub_bin / "tool"
-        stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
+        write_executable(stub_bin / "tool", "#!/bin/sh\nexit 0\n")
         stderr = io.StringIO()
         with mock.patch.dict(os.environ, {"PATH": str(stub_bin)}, clear=False):
             with contextlib.redirect_stderr(stderr):
@@ -66,8 +60,7 @@ class TestOptionalSelectionHelpers(unittest.TestCase):
         self.assertTrue((root / "tool.log").exists())
 
     def test_run_best_effort_start_error_names_the_command_and_consequence(self):
-        root = Path(tempfile.mkdtemp(prefix="theme-apply-optional-test-"))
-        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        root = make_tmp_dir(self)
         stderr = io.StringIO()
         with mock.patch.object(
             apply_optional, "run_logged", side_effect=OSError("exec format error")
