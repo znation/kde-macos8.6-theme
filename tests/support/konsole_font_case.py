@@ -19,6 +19,7 @@ from support.theme_install import write_file
 from tools import apply_konsole_font
 from tools.apply_theme import FIXED_VALUE as FONT
 
+
 class KonsoleError(Exception):
     """The refusal class the tests pass to the helper, as apply_theme does."""
 

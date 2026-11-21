@@ -18,6 +18,7 @@ from support.konsole_font_case import (
 from tools import apply_konsole_font
 from tools.apply_theme import FIXED_VALUE as FONT
 
+
 class TestUserDefault(StubKonsoleToolsTestCase):
     def setUp(self):
         super().setUp()

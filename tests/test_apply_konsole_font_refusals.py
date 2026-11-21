@@ -156,6 +156,5 @@ class TestCommandFailures(StubKonsoleToolsTestCase):
         self._write_stub(self.bin / name, f"#!/bin/sh\n{body}\n")
 
 
-
 if __name__ == "__main__":
     unittest.main()
