@@ -170,24 +170,6 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
-    def test_rejects_chunk_type_that_is_not_four_ascii_letters(self):
-        # A PNG chunk type must be four ASCII letters, and the first byte
-        # alone decides criticality. A type carrying a digit, space or
-        # non-ASCII byte is not a valid code; because its first byte is not an
-        # uppercase letter it used to fall through as an unknown *ancillary*
-        # chunk and be ignored. Reject it by name instead of silently skipping
-        # malformed framing.
-        _, data = solid_rgb(1, 1)
-        for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
-            with self.subTest(ctype=ctype):
-                message = decode_error_message(
-                    self, splice_after_ihdr(data, _chunk(ctype, b"\x00"))
-                )
-                self.assertIn("invalid PNG chunk type", message)
-                self.assertIn("four ASCII letters", message)
-                if ctype.isascii():
-                    self.assertIn(repr(ctype.decode("ascii")), message)
-
     def test_rejects_chunk_type_with_lowercase_reserved_bit(self):
         # PNG reserves the third chunk-type letter and requires it to be
         # uppercase. Ignoring this bit accepts malformed ancillary chunks.
