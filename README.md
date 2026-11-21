@@ -177,10 +177,12 @@ The GTK 3 sheet, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, and the GTK 4 s
 `*.css` partials in its family directory under theme/gtk/src (gtk-3.0 or gtk-4.0), joined in filename order.
 The Firefox chrome sheet, `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, and the Firefox
 content sheet, `theme/firefox/org.macos8.desktop/chrome/userContent.css`, are generated the same way
-from the partials in theme/firefox/src/userChrome and theme/firefox/src/userContent. Each sheet's
-`000-header.css` holds only its opening comment and is exempt from the 500-line cap.
+from the partials in theme/firefox/src/userChrome and theme/firefox/src/userContent. The Firefox
+`000-header.css` holds only its opening comment and is exempt from the 500-line cap
+(`tests/test_make_sheets.py`, which also enforces the cap and the top-level-start rule).
 Edit the partials, never the shipped sheet, then run `python3 tools/make_sheets.py` to rewrite
-them. The output is deterministic, and the generator validates every partial before it writes.
+them. The output is deterministic. Before it writes, the generator checks that each source
+directory has a partial and that every partial is non-empty and ends in a newline.
 
 ## Reference screenshots
 
