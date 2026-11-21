@@ -2,7 +2,8 @@
 
 ``tests/test_firefox_profile.py`` and ``tests/test_firefox_profile_ini_errors.py``
 resolve profiles against a temp ``HOME``,
-``tests/test_install_firefox.py`` and ``tests/test_install_firefox_rollback.py``
+``tests/test_install_firefox.py``, ``tests/test_install_firefox_lock.py`` and
+``tests/test_install_firefox_rollback.py``
 install into a temp profile and ``tests/test_remove_firefox.py`` and
 ``tests/test_remove_firefox_rollback.py`` remove from one; all need the same
 scratch root, home, profile and symlink/write-failure fixtures. They live here
@@ -81,7 +82,8 @@ class FirefoxProfileTestCase(unittest.TestCase):
         """Assert none of *paths* exist, naming the first survivor on failure.
 
         Shared by the installer suites' absence pins; the call sites live in
-        ``tests/test_install_firefox.py``, ``tests/test_install_firefox_rollback.py``,
+        ``tests/test_install_firefox.py``, ``tests/test_install_firefox_lock.py``,
+        ``tests/test_install_firefox_rollback.py``,
         ``tests/test_remove_firefox.py`` and ``tests/test_remove_firefox_rollback.py``.
         """
         for path in paths:
