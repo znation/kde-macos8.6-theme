@@ -576,6 +576,66 @@ The session timeout and SIGTERM tests after them
 
 **Needs review 2026-11-21 by feature: could not converge — check failed (`make check`): AssertionError: 7 not less than or equal to 6 : the no-repro tag grew past its baseline (records at BUGS-FIXED.md lines /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:42, /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:131, /home/zach/kde-macos8.6-them…; test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok; test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok; test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok; test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok; test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok; ----------------------------------------------------------------------; Ran 16 tests in 0.002s; OK; check: 510 modules, 1 module failed; make: *** [Makefile:491: check] Error 1; main a409dd9d is red too, but these failures are this change's own: test_every_record_names_a_reproduction (test_validation_gaps.TestNoReproLedger.test_every_record_names_a_reproduction) (source='/home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md', line=42)**
 
+### Group the flat tests/support/ modules into per-family packages (planned 2026-11-21 by the organize role)
+
+**Goal.** `tests/support/` holds 89 flat `.py` modules beside its `validation_gaps/`
+package. Shared plumbing (temp dirs, process runners, stubs, assertions) sits next to
+per-suite case data and reference constants, all with the same flat namespace. A reader
+cannot tell from the directory which helper belongs to which suite. Split the flat
+modules into a shared top level plus one subpackage per family, following the
+`tests/support/validation_gaps/` package that already exists.
+
+**Cost today.** Evidence: `ls tests/support/*.py | wc -l` gives 89. `rg -l 'from support\.|import support\.' tests`
+finds 513 files that import a flat support module by name, so a change to one family
+is found by grepping names, not by path. Family prefixes are visible in the listing:
+`gtk_` and `gtk4_` (8 modules together, 2 of them `gtk4_`), `firefox_` (4), `file_dialog_`
+and `file_identity` (3), `install_` (3), `check_` (3), `render_` (3), and `splash_`,
+`kvantum_`, `cursor_`, `apply_`, `svg_`, `fidelity_`, `kde_`, `process_` (2 each).
+Several of these are per-suite case data (for example `gtk_osd_cases.py`,
+`firefox_chrome_cases.py`), not shared helpers.
+
+**Target structure.**
+- `tests/support/` keeps only modules whose importers span more than one family:
+  process and temp-dir helpers, stubs, error and rejection assertions, and the
+  `containment.py`, `repo_root.py` and `xcursor.py` copies that stay on purpose (L7).
+- One subpackage per family with `__init__.py`: `tests/support/gtk/`,
+  `tests/support/firefox/`, `tests/support/render/`, `tests/support/splash/`,
+  `tests/support/kvantum/`, `tests/support/cursor/`, `tests/support/apply/`,
+  `tests/support/install/`, `tests/support/fidelity/`, and so on for the families
+  above. A module moves into the family whose tests import it; a module that two
+  families import stays at the top level.
+- The module names lose their family prefix inside the package
+  (`tests/support/gtk_css.py` becomes `tests/support/gtk/css.py`). When two modules
+  would share a name inside one package, keep the `gtk4_`/`gtk_` distinction in the
+  file name.
+- `validation_gaps/` and any other existing subpackage keep their paths.
+
+**Files touched.** Each moved module; every importer under `tests/` (the 513 files
+above, counted by `rg -l`); every `mock.patch` target string that names a moved module
+(retarget each to the module whose global the caller resolves, per the L4 lesson);
+`docs/invariants.md` and any doc that names a `tests/support/` path (grep
+`tests/support/`).
+
+**Approach.** Cut the work into slices by family, and land each family whole: its
+modules, its importers, its patch targets and its doc references in one change. A slice
+never leaves one family under two paths. Do the smallest family first (`install_`, 3
+modules) to measure the import-rewrite cost, then `gtk`, which is the largest. The
+`tools/` regroup (`## Planned`, "Group the flat tools/ modules") is independent: it
+touches `tools/` and the `tools/` imports, not `tests/support/`.
+
+**Acceptance criteria.**
+
+- `ls tests/support/*.py` lists only the shared top-level modules; each family lives in
+  its own subpackage directory with an `__init__.py`.
+- For every moved module, `rg -n` for its old flat import (`support\.<old_name>` and
+  `from support import <old_name>`) over `tests/`, `tools/`, `Makefile` and `*.md` finds no
+  stale reference.
+- Every `mock.patch` string that names a moved module resolves, and the tests that patch
+  them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets and doc paths
+  only.
+- `make check` passes after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
