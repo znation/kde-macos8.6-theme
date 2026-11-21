@@ -54,7 +54,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "firefox-profile-discovery-ini-cap",
         ("Firefox profile-discovery INI",),
-        "tests/test_firefox_profile.py::TestProfileResolution"
+        "tests/test_firefox_profile_ini_errors.py::TestProfileIniErrors"
         "::test_an_oversize_ini_file_is_refused_by_name",
     ),
     Reproduction(

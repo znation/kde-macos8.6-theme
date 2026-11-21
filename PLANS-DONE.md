@@ -5,6 +5,80 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox profile suite extraction: move the INI read-error tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_firefox_profile.py` (574 lines) is one `TestProfileResolution` class.
+PRINCIPLES.md asks for files small enough to read in one sitting. The seven tests at the class's
+end, before `test_no_existing_candidate_names_the_root_and_candidates`, stand on their own: they
+pin how profile discovery reads `installs.ini` and `profiles.ini` when that read fails or hits
+the 1 MiB cap, rather than which profile it picks. Move them, with names and bodies unchanged,
+into a new `tests/test_firefox_profile_ini_errors.py`. No tool behavior and no test body changes.
+This plan is independent of the other Planned entries. "Firefox removal suite extraction"
+(in flight) also edits the Firefox row of `docs/invariants.md` and the
+`tests/support/firefox_profile_case.py` docstring, but it changes other anchors in them; whichever
+merges second rebases onto the first's text.
+
+**Approach.**
+
+- Create `tests/test_firefox_profile_ini_errors.py` with a module docstring (what it pins, and
+  that the selection tests stay in `tests/test_firefox_profile.py`) and one class
+  `TestProfileIniErrors(FirefoxProfileTestCase)` (from `support.firefox_profile_case`). Put it
+  above an `if __name__ == "__main__": unittest.main()` guard. Move these methods into it
+  verbatim, in their current order:
+  `test_a_malformed_profiles_ini_is_reported_by_name`,
+  `test_a_duplicate_section_or_option_is_reported_by_name`,
+  `test_a_non_utf8_profiles_ini_is_reported_by_name`,
+  `test_an_unreadable_profiles_ini_is_reported_by_name`,
+  `test_an_oversize_ini_file_is_refused_by_name`,
+  `test_an_ini_file_at_the_1_mib_cap_is_accepted`,
+  `test_a_fifo_at_either_ini_file_is_refused_without_blocking`.
+  They need `os`, `unittest.mock`, `support.repo_root`, `support.snippet_child`,
+  `support.fifo_fixtures.{assert_fifo_refused, make_fifo}`, and `tools.firefox_profile` and
+  `tools.firefox_user_files`. They call only `self.resolve`, `self.create_symlink`,
+  `self.firefox_root` and `self.root` from the shared case. They call no module-level helper, so
+  nothing moves into `tests/support/`.
+- In `tests/test_firefox_profile.py`, drop the imports nothing left uses. A grep done while
+  planning found that, after the move, the remaining tests use no `os.`, `repo_root`,
+  `snippet_child`, `make_fifo` or `assert_fifo_refused`, but they still use `mock`, `_write`,
+  `firefox_profile` and `firefox_user_files`. Re-check with grep; `test_no_unused_imports`
+  enforces this. Add a sentence to its module docstring that points at the new module.
+- Repoint anchors from `tests/test_firefox_profile.py::TestProfileResolution::<moved name>` to
+  `tests/test_firefox_profile_ini_errors.py::TestProfileIniErrors::<same name>`. A grep of the
+  seven names (outside `__pycache__` and the archives) found these places:
+  - `docs/invariants.md`, the Firefox install/removal row: the
+    `test_a_fifo_at_either_ini_file_is_refused_without_blocking`,
+    `test_an_oversize_ini_file_is_refused_by_name` and
+    `test_an_ini_file_at_the_1_mib_cap_is_accepted` pointers.
+  - `tests/support/validation_gaps/no_fake.py`: the `firefox-ini-fifo` reproduction.
+  - `tests/support/validation_gaps/real_run_needed.py`: the
+    `firefox-profile-discovery-ini-cap` reproduction.
+- Docstring lists of callers: `tests/support/firefox_profile_case.py` (the module docstring
+  lists the suites that use the case) and `tests/support/theme_install.py`'s `write_file`
+  docstring (it names `test_firefox_profile.py` as a `_write` binder; the new module does not
+  bind `_write`, so that list stays as it is). Add the new module to the first list only.
+- Anchor sweep (L1): re-grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py`
+  and `docs/invariants.md` for `test_firefox_profile` and the seven names before finishing.
+
+**Files touched.** `tests/test_firefox_profile.py`, `tests/test_firefox_profile_ini_errors.py`
+(new), `docs/invariants.md`, `tests/support/validation_gaps/no_fake.py`,
+`tests/support/validation_gaps/real_run_needed.py`, `tests/support/firefox_profile_case.py`.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_firefox_profile_ini_errors`, run from `tests/`, runs seven tests
+  named as the seven methods above, and they pass.
+- `tests/test_firefox_profile.py` defines none of those seven methods. Every other test method
+  in it keeps its name, and the module passes.
+- `grep -rn` for each of the seven names under `docs/` and `tests/` (excluding `__pycache__`)
+  finds no `test_firefox_profile.py::TestProfileResolution` pointer to it.
+- `tests/test_firefox_profile.py` is under 470 lines and the new module is under 160 (`wc -l`).
+- The invariants-anchor tests and the validation-gaps ledger tests pass with the repointed
+  anchors.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ### Check-results suite extraction: move the started-test marker scan tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_check_parallel_results.py` is 566 lines covering two concerns of

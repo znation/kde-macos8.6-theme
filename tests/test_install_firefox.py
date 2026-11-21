@@ -2,8 +2,9 @@
 
 The tool runs in-process with ``HOME`` pointed at a temp root, so the sheet
 copy and the ``user.js`` edit are pinned without touching a real
-Firefox profile. Profile resolution has its own suite in
-``tests/test_firefox_profile.py`` and the ``user.js`` marker-block transform in
+Firefox profile. Profile resolution has its own suites in
+``tests/test_firefox_profile.py`` and ``tests/test_firefox_profile_ini_errors.py``,
+and the ``user.js`` marker-block transform in
 ``tests/test_firefox_user_js.py``; the rollback cases live in
 ``tests/test_install_firefox_rollback.py``; the removal cases live in
 ``tests/test_remove_firefox.py`` and ``tests/test_remove_firefox_rollback.py``, and

@@ -1,6 +1,7 @@
 """The temp-home Firefox profile case shared by the Firefox installer suites.
 
-``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``,
+``tests/test_firefox_profile.py`` and ``tests/test_firefox_profile_ini_errors.py``
+resolve profiles against a temp ``HOME``,
 ``tests/test_install_firefox.py`` and ``tests/test_install_firefox_rollback.py``
 install into a temp profile and ``tests/test_remove_firefox.py`` and
 ``tests/test_remove_firefox_rollback.py`` remove from one; all need the same

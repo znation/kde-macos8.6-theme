@@ -106,7 +106,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "firefox-ini-fifo",
         ("Firefox profile-discovery INI",),
-        "tests/test_firefox_profile.py::TestProfileResolution"
+        "tests/test_firefox_profile_ini_errors.py::TestProfileIniErrors"
         "::test_a_fifo_at_either_ini_file_is_refused_without_blocking",
     ),
     Reproduction(

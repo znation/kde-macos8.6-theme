@@ -104,7 +104,8 @@ def write_file(path, body):
     Still unconverted next-run material includes the further
     mkdir-then-write_text staging family in tests/test_apply_cursor.py,
     tests/test_install_firefox.py (the ``user.js`` fixture),
-    tests/test_firefox_profile.py, tests/test_local_hook.py
+    tests/test_firefox_profile.py, tests/test_firefox_profile_ini_errors.py,
+    tests/test_local_hook.py
     (``write_fake_make``), tests/test_make_cursors.py, tests/test_svg_case.py,
     and support/symlink_fixtures.py's content staging; the same pair pattern
     also survives in, for example, tests/test_apply_theme.py,
