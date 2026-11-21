@@ -20,6 +20,7 @@ import zlib
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.png_fixtures import make_png  # noqa: E402
 from tools.png.chunks import iter_chunks  # noqa: E402
+from tools.png.image import PngError  # noqa: E402
 from tools.png.scanlines import (  # noqa: E402
     drop_alpha,
     raw_byte_length,
@@ -258,6 +259,38 @@ class AverageFilterTests(unittest.TestCase):
         # (225 + 200) >> 1 = 212, and 100 + 212 = 312, which wraps to 56.
         raw = bytes([0, 250, 200, 3, 100, 100])
         self.assertEqual(unfilter(raw, 2, 2, 1), bytes([250, 200, 225, 56]))
+
+
+class TestUnfilterRowBoundFilterCheck(unittest.TestCase):
+    """A row past the row bound still has its filter type validated.
+
+    ``unfilter`` skips the predictor work for rows at or past ``max_rows``,
+    but its docstring promises the filter-type check still runs for every
+    scanline. These tests put the bad filter byte in a skipped row, where
+    only the check (not the predictor) can notice it.
+    """
+
+    def test_a_bad_filter_byte_in_the_first_skipped_row_is_refused(self):
+        # Row 0 is kept; row 1 is the first row past max_rows=1.
+        raw = bytes([0, 0xAA, 9, 0xBB])
+        with self.assertRaises(PngError) as cm:
+            unfilter(raw, 1, 2, 1, max_rows=1)
+        self.assertIn("unsupported PNG filter type 9 in row 1", str(cm.exception))
+
+    def test_a_bad_filter_byte_in_a_later_skipped_row_is_refused(self):
+        # Rows 0 and 1 are kept; the filter byte of row 2 (value 5) is past
+        # the bound and must still be refused.
+        raw = bytes([0, 0xAA, 0, 0xBB, 5, 0xCC])
+        with self.assertRaises(PngError) as cm:
+            unfilter(raw, 1, 3, 1, max_rows=2)
+        self.assertIn("unsupported PNG filter type 5 in row 2", str(cm.exception))
+
+    def test_a_bad_filter_byte_is_refused_when_no_row_is_kept(self):
+        # max_rows=0 keeps no rows at all, yet row 0's filter byte is checked.
+        raw = bytes([7, 0xAA])
+        with self.assertRaises(PngError) as cm:
+            unfilter(raw, 1, 1, 1, max_rows=0)
+        self.assertIn("unsupported PNG filter type 7 in row 0", str(cm.exception))
 
 
 if __name__ == "__main__":
