@@ -190,8 +190,6 @@ class TestFailurePaths(ApplyStubTestCase):
         self.assertIn("fall back", stderr)
 
 
-
-
 class TestTimeoutPaths(ApplyStubTestCase):
     """The ``run_logged`` timeout result (``None``) at the three call sites.
 
