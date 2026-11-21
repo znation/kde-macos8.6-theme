@@ -64,13 +64,19 @@ def sheet_bytes(source_dir: Path) -> bytes:
     """Return the concatenation of *source_dir*'s ``*.css`` partials in sorted order.
 
     Raises ``ValueError`` naming *source_dir* when it holds no ``*.css`` partial,
-    and naming the partial when one is empty or does not end in a newline.
+    and naming the partial when it is not a regular file (a dangling symlink, a
+    directory, a FIFO), when it is empty, or when it does not end in a newline.
     """
-    partials = sorted(p for p in source_dir.iterdir() if p.is_file() and p.suffix == ".css")
+    partials = sorted(p for p in source_dir.iterdir() if p.suffix == ".css")
     if not partials:
         raise ValueError(f"no .css partial in {source_dir}")
     chunks = []
     for partial in partials:
+        # Checked rather than filtered out: a dangling ``*.css`` symlink
+        # skipped here would ship a sheet that silently lacks a partial
+        # the source tree names.
+        if not partial.is_file():
+            raise ValueError(f"partial {partial} is not a regular file")
         data = partial.read_bytes()
         if not data or not data.endswith(b"\n"):
             raise ValueError(

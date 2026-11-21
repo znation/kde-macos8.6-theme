@@ -147,6 +147,20 @@ class TestSheetBytes(unittest.TestCase):
             make_sheets.sheet_bytes(self.source)
         self.assertIn("010-open.css", str(caught.exception))
 
+    def test_a_dangling_css_symlink_is_rejected_naming_it_not_dropped(self):
+        write(self.source / "000-a.css", "a {}\n")
+        os.symlink(self.root / "nowhere.css", self.source / "010-gone.css")
+        with self.assertRaises(ValueError) as caught:
+            make_sheets.sheet_bytes(self.source)
+        self.assertIn("010-gone.css", str(caught.exception))
+
+    def test_a_directory_named_like_a_partial_is_rejected_naming_it(self):
+        write(self.source / "000-a.css", "a {}\n")
+        (self.source / "010-dir.css").mkdir()
+        with self.assertRaises(ValueError) as caught:
+            make_sheets.sheet_bytes(self.source)
+        self.assertIn("010-dir.css", str(caught.exception))
+
 
 class TestMain(unittest.TestCase):
     """The CLI validates every pair, then writes the shipped sheets."""
