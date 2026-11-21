@@ -3,6 +3,7 @@
 The checker is a script rather than an installed package, so these helpers
 load it from its path and build throwaway reference directories for it to
 check. ``test_check_references_io``, ``test_check_references_validation``,
+``test_check_references_image_streams``,
 ``test_check_references_cli`` and ``test_readme_references`` each import the
 pieces they use, so the loading, fixture construction and shared problem
 assertion live here once instead of in each module.

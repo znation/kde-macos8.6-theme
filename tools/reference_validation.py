@@ -11,9 +11,10 @@ runs those checks and returns the problem list; the checker script
 ``tools/check_references.py`` handles its arguments and reports its problems.
 
 Keeping the checks here leaves the entry point with only argument handling and
-the summary, and mirrors the test suite's split between the checker's I/O and
-validation cases (``tests/test_check_references_io.py`` and
-``tests/test_check_references_validation.py``).
+the summary. The test suite splits the checker's I/O, record validation and
+declared-image stream cases across ``tests/test_check_references_io.py``,
+``tests/test_check_references_validation.py`` and
+``tests/test_check_references_image_streams.py``.
 """
 
 from __future__ import annotations

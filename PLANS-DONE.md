@@ -5,6 +5,109 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Reference-checker suite extraction: move the declared-image stream tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_check_references_validation.py` (504 lines) mixes two kinds of check:
+sources.txt record and URL rules, and the declared-image payload checks. Three classes pin the
+payload side — `TestAcceptedImageFormats` (six tests: the JPEG, GIF87a/89a and WebP signatures,
+the RIFF/WAVE refusal and the one-open prefix read), `TestImageStreamCompleteness` (thirteen
+tests: `tools.image_format.is_complete` direction by direction for every format) and
+`TestTruncatedDeclaredImage` (seven tests: the truncation diagnostics and their CLI status).
+Together they are about 240 lines. The other five classes (`TestSourceParser`,
+`TestLineSplitting`, `TestFilenameMustBeBare`, `TestEmptyUrlRemainder`,
+`TestUrlProblemDiagnostics`) and the name-safety classes (`TestUndeclaredImageExtension`,
+`TestControlCharactersInFilenames`, `TestNullByteFilename`) stay. PRINCIPLES.md asks for one
+responsibility per file, so move the three payload classes whole into a new
+`tests/test_check_references_image_streams.py`. Keep class names, docstrings, comments and
+every test body unchanged. No tool, Makefile or check behavior changes. This plan is
+independent of every other Planned entry and of the pending changes: none of them touches
+these files. The module-level helper `assert_url_problem_not_the_scheme` stays with its only
+caller `TestUrlProblemDiagnostics`, so nothing moves into `tests/support/` (L4).
+
+**Approach and files touched.**
+
+- **New `tests/test_check_references_image_streams.py`.** Start with a module docstring saying
+  it pins the checker's declared-image payload rules — accepted raster signatures and each
+  format's stream ending — with the checker's filesystem loader as the unit under test, and
+  that the sources.txt record rules and the undeclared-scan and name-safety checks stay in
+  `tests/test_check_references_validation.py`. Then add the three classes in their current
+  order, above an `if __name__ == "__main__": unittest.main()` guard (L1). A planning read
+  found the moved bodies use `contextlib`, `io`, `unittest`, `from unittest import mock`,
+  `CheckerTestCase`, `assert_problem`, `check_references_in`, `reference_set` (from
+  `support.check_references_fixtures`), `GIF_MAGICS`, `JPEG_MAGIC`, `PNG_MAGIC`,
+  `TERMINAL_GIF`, `TERMINAL_JPEG`, `TERMINAL_PNG`, `is_complete` (from `tools.image_format`)
+  and `reference_validation`. Import those the way the file they leave does; the module also
+  defines its own `COMPLETE_PNG = PNG_MAGIC + TERMINAL_PNG`, which `TestAcceptedImageFormats`'s
+  one-open test uses.
+- **`tests/test_check_references_validation.py`.** Delete the three classes. A planning grep
+  found `contextlib`, `io`, `from unittest import mock`, `GIF_MAGICS`, `JPEG_MAGIC`,
+  `TERMINAL_GIF`, `TERMINAL_JPEG`, `is_complete` and `reference_validation` unused by the
+  remaining classes, so drop them from the imports (`tests/test_no_unused_imports.py` enforces
+  this); keep `tempfile`, `Path`, `PNG_MAGIC`, `TERMINAL_PNG` (both feed `COMPLETE_PNG`, still
+  used by the staying classes), `reference_sources`, `CheckerTestCase`, `assert_problem`,
+  `check_references_in`, `reference_set` and `assert_escapes_escape_character` — the
+  implementer re-checks each with grep. Rewrite the module docstring to describe the record,
+  URL and name checks it still pins, and add a sentence naming
+  `test_check_references_image_streams.py` for the declared-image payload tests.
+- **`docs/invariants.md`.** The reference-checker rows anchor the moved classes:
+  the row on the missing stream terminator names
+  `tests/test_check_references_validation.py::TestImageStreamCompleteness` and
+  `::TestTruncatedDeclaredImage`, and the declared-image-prefix row names
+  `::TestAcceptedImageFormats::test_declared_image_prefix_is_read_with_one_open`. Repoint those
+  three anchors to `tests/test_check_references_image_streams.py::<same path>`, leaving both
+  rows' prose and other anchors unchanged. The `reference_sources.py` ownership row anchors
+  `::TestSourceParser`, which stays, so it is untouched.
+- **Prose touch-ups.** `tests/support/check_references_fixtures.py`'s module docstring lists
+  the modules that use the fixtures; add `test_check_references_image_streams` to that list.
+  `tools/reference_validation.py`'s module docstring names
+  `tests/test_check_references_validation.py` in the suite-split sentence; name both test
+  modules there. No other prose mentions the moved classes.
+- **Anchors.** A planning grep of the whole tree (excluding `.git`, `__pycache__` and the
+  archives) found the three class names only in `tests/test_check_references_validation.py`
+  and the two `docs/invariants.md` rows, and found no mention of them in
+  `tests/support/validation_gaps/`, `tests/test_ci_workflow.py`, `docs/rendering.md` or
+  `docs/fidelity.md` (L1, L3). Re-run the grep and repoint any new anchor.
+
+**Acceptance criteria.**
+
+- Running `python3 -m unittest test_check_references_image_streams` from `tests/` runs the
+  moved tests, named as the methods of `TestAcceptedImageFormats`,
+  `TestImageStreamCompleteness` and `TestTruncatedDeclaredImage` were before the move, and
+  they pass.
+- `tests/test_check_references_validation.py` defines none of the moved classes. Every staying
+  class and test method keeps its name, and the module passes.
+- Run `grep -rn 'TestAcceptedImageFormats\|TestImageStreamCompleteness\|TestTruncatedDeclaredImage'
+  --exclude-dir=.git --exclude-dir=__pycache__ .`, excluding `PLANS.md`, `PLANS-DONE.md` and
+  `BUGS-FIXED.md`. It finds only `tests/test_check_references_image_streams.py`,
+  `docs/invariants.md`, the two prose touch-ups and the rewritten docstring of
+  `tests/test_check_references_validation.py`, and every invariants anchor for these classes
+  names `tests/test_check_references_image_streams.py`.
+- `wc -l` shows `tests/test_check_references_validation.py` under 310 lines and the new module
+  under 290. The extraction leaves 306 validation lines because the staying classes and fixture
+  setup account for the remainder.
+- Nothing under `theme/`, `tools/` except `reference_validation.py`'s docstring, or the
+  `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
+SUMMARY: Extract declared-image stream tests into a focused module
+WHY: Keep reference-checker image payload coverage separate from record and name validation.
+RISK: The desktop bar pixel check was intermittent across runs; inspect `tests/test_render_surface.py::TestDesktopRender.test_bar_rows_pin_the_platinum_structure` if it recurs. The extraction does not touch that test or its implementation.
+VERIFIED: The final `make check` passed, including the new and remaining reference-checker tests and render modules; an earlier run reported expected `#CCCCCC` and actual `#000000` at desktop pixel (0, 20).
+Objection 1: unchanged-by-design because the reproduced failure is in an untouched render test already listed as main-known-red.
+Objection 2: unchanged-by-design because the named data-home fallback test passed and this extraction does not alter XDG handling.
+Objection 3: unchanged-by-design because the named refusal test passed and this extraction does not alter XDG diagnostics.
+Objection 4: unchanged-by-design because the named diagnostics test passed and this extraction does not alter config-home resolution.
+Objection 5: unchanged-by-design because the named shell-quoting test passed and this extraction does not alter shell quoting.
+Objection 6: unchanged-by-design because the named empty-value test passed and this extraction does not alter XDG value handling.
+Objection 7: unchanged-by-design because it is a test-run separator.
+Objection 8: unchanged-by-design because it reports the successful XDG test-run total.
+Objection 9: unchanged-by-design because it reports successful XDG tests.
+Objection 10: unchanged-by-design because the check's failure is the untouched, main-known-red desktop render test.
+Objection 11: unchanged-by-design because the current check reproduced one failing module, the untouched desktop render test.
+Objection 12: unchanged-by-design because the listed calendar and color dialog tests passed in this run; the only failure was the untouched desktop render test.
+
 ### Process runner suite extraction: move the reap-bound tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_process_runner.py` (556 lines) mixes the runner's live timeout and
