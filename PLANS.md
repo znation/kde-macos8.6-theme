@@ -127,6 +127,73 @@ touches `tools/` and the `tools/` imports, not `tests/support/`.
   only.
 - `make check` passes after the final edit, apart from main's known-red tests.
 
+### Xcursor suite extraction: move the test-side reader's tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_xcursor.py` is 607 lines and covers two subjects. Its docstring names both:
+"Tests for ``tools/xcursor.py`` and the independent test-side Xcursor reader". The last four
+classes (`TestParserRejections`, `TestUnknownChunk`, `TestReadCache` and `TestContainment`,
+about 230 lines) test only `support.xcursor.read_cursor`. They use the production writer only to
+build valid input bytes. PRINCIPLES.md asks for one responsibility per file, so move those four
+classes, with their bodies unchanged, into a new `tests/test_xcursor_reader.py`. No tool or
+reader behavior changes. The plan is independent of every other Planned entry, because no other
+entry touches these files. It adds one flat module under `tests/support/`. The held
+"Group the flat tests/support/ modules into per-family packages" entry will then count one more
+module. That entry recounts its modules when it runs, so this plan does not edit it.
+
+**Approach and files touched.**
+
+- **New `tests/support/xcursor_frames.py`.** The moved classes and the classes that stay both
+  use the module-level fixtures `opaque_frame` and `frame_record` and the constants
+  `FILE_HEADER_SIZE` and `TOC_ENTRY_SIZE` (L4). Move those four names into this module, with
+  their bodies and literal values unchanged. Keep the constants as literals. Do not import
+  them from `tools.xcursor_container`, so the tests stay independent of the code under test.
+  `frame_record` needs `tools.png.write.encode_rgba_png`, so import it here. Give the module a
+  one-line docstring that says the writer and reader suites share these fixtures. Keep `SIZES`,
+  `IMAGE_TYPE` and `IMAGE_HEADER_SIZE` in `tests/test_xcursor.py`, because only the classes
+  that stay use them.
+- **`tests/test_xcursor.py`.** Delete the four moved classes and the moved helpers. Import
+  `opaque_frame`, `frame_record`, `FILE_HEADER_SIZE` and `TOC_ENTRY_SIZE` from
+  `support.xcursor_frames`. Drop any import the remaining code no longer uses; the suite's
+  unused-import check (`tests/support/unused_imports.py`) catches leftovers. Narrow the
+  docstring to the writer (`tools/xcursor.py`). Every class that stays keeps its name and body,
+  including `TestWriterRejections`. Two `docs/invariants.md` rows cite that class (its
+  non-iterable and empty-list rejection tests), so those anchors do not change.
+- **New `tests/test_xcursor_reader.py`.** Add a docstring naming `tests/support/xcursor.py` as
+  the subject. Add the imports the moved code needs (`struct`, `unittest`, `support.repo_root`,
+  `support.xcursor as xcursor_reader`, `assert_error_names`, `make_tmp_dir`,
+  `tools.xcursor`, plus the fixtures from `support.xcursor_frames`). Then add the four classes,
+  with their names and bodies unchanged, above an `if __name__ == "__main__": unittest.main()`
+  guard (L1).
+- **`tests/test_file_identity.py`.** Its module docstring says the missing-file stat-failure
+  case lives in ``test_xcursor``. That test is `TestReadCache.test_a_failed_read_is_not_cached`,
+  which moves, so change the parenthetical to ``test_xcursor_reader``.
+- Anchor sweep, done while planning: a whole-repository grep for `TestParserRejections`,
+  `TestUnknownChunk`, `TestReadCache` and `TestContainment\b` found them only in
+  `tests/test_xcursor.py`. Nothing in docs, `docs/invariants.md`, `tests/test_ci_workflow.py` or
+  `tests/support/validation_gaps/` names them. The implementer re-runs that grep before
+  finishing.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_xcursor_reader` run from `tests/` runs the four moved classes, and
+  they pass. Their test method names match the names those classes had in `tests/test_xcursor.py`
+  before the move.
+- `tests/test_xcursor.py` no longer defines `TestParserRejections`, `TestUnknownChunk`,
+  `TestReadCache`, `TestContainment`, `opaque_frame` or `frame_record`. Every other class keeps
+  its name and its test methods.
+- Each of the two files is under 400 lines (`wc -l`).
+- `grep -rn 'def frame_record\|def opaque_frame' tests` lists only
+  `tests/support/xcursor_frames.py`.
+- The `tests/test_file_identity.py` docstring names ``test_xcursor_reader`` as the home of the
+  missing-file case.
+- The two `docs/invariants.md` rows citing `tests/test_xcursor.py::TestWriterRejections::...`
+  still resolve, and the invariants-anchor tests pass.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes, and neither does
+  `tests/support/xcursor.py`.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
