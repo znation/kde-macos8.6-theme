@@ -375,7 +375,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk apply-cursor remove-cursor install-firefox remove-firefox remove-kvantum check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk apply-plasma remove-gtk apply-cursor remove-cursor apply-ghostty remove-ghostty install-firefox remove-firefox remove-kvantum check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -526,6 +526,8 @@ help:
 	@echo "  remove-kvantum    clear the Kvantum widget-theme selection make apply published"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
+	@echo "  apply-ghostty     install the Ghostty theme and select the Platinum theme in config.ghostty"
+	@echo "  remove-ghostty    remove only the Platinum block from config.ghostty"
 	@echo "  install-firefox   install the Firefox Platinum userChrome.css and userContent.css into one profile"
 	@echo "  remove-firefox    remove the Firefox Platinum userChrome.css and userContent.css from one profile"
 	@echo "  uninstall         remove the installed artifacts"
@@ -608,8 +610,9 @@ render:
 # command policy live in tools/apply_optional.py.
 # tools/apply_gtk.py selects the installed GTK 3 and GTK 4
 # schemes, tools/apply_cursor.py exposes and selects the Xcursor pointer set
-# (skipping the selection when plasma-apply-cursortheme is absent), and
-# tools/install_firefox.py installs the standalone sheets into the active
+# (skipping the selection when plasma-apply-cursortheme is absent),
+# tools/apply_ghostty.py writes the Platinum block into the Ghostty config
+# (skipped with a note when ghostty is absent), and tools/install_firefox.py installs the standalone sheets into the active
 # Firefox profile when one exists. The startup splash and Firefox changes
 # appear only on the next login or restart.
 apply:
@@ -619,6 +622,7 @@ apply:
 	$(PYTHON) tools/apply_theme.py
 	$(PYTHON) tools/apply_gtk.py
 	$(PYTHON) tools/apply_cursor.py --optional
+	$(PYTHON) tools/apply_ghostty.py --optional
 	$(PYTHON) tools/install_firefox.py --optional$(if $(FIREFOX_PROFILE), --profile "$(FIREFOX_PROFILE)")
 
 # Reselect the installed Plasma theme settings without installing packages or
@@ -653,6 +657,22 @@ apply-cursor:
 	@$(call require_python_ready,apply-cursor)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme
 	$(PYTHON) tools/apply_cursor.py
+
+# Install the Ghostty theme and select it in the user's Ghostty config: one
+# marker-delimited block in <config home>/ghostty/config.ghostty names the
+# installed theme file, and every other line of that file is left alone. A
+# non-empty DESTDIR is refused for the same reason as `apply`.
+apply-ghostty:
+	@$(call refuse_destdir,apply-ghostty)
+	@$(call require_python_ready,apply-ghostty)
+	$(MAKE) --no-print-directory install INSTALL_PACKAGES=ghostty
+	$(PYTHON) tools/apply_ghostty.py
+
+# Delete only the Platinum block `apply-ghostty` wrote; the config file is
+# removed only when that block was all it held.
+remove-ghostty:
+	@$(call require_python_ready,remove-ghostty)
+	$(PYTHON) tools/apply_ghostty.py --remove
 
 # Remove only our ~/.icons symlink; a foreign path and kcminputrc are left
 # untouched (the tool notes the reset command when the selection still names

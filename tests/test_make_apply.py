@@ -50,6 +50,7 @@ class TestMakeApply(unittest.TestCase):
             "tools/apply_theme.py",
             "tools/apply_gtk.py",
             "tools/apply_cursor.py --optional",
+            "tools/apply_ghostty.py --optional",
             "tools/install_firefox.py --optional",
         ]
         positions = []

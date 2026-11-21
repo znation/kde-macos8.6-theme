@@ -116,6 +116,7 @@ not restore earlier settings or backups.
 | `make remove-gtk` | Clears this theme's GTK selection and marker CSS. Existing GTK backups remain; restart GTK applications. |
 | `make remove-firefox` | Removes this theme's sheets and preference block from the active profile. To target another profile, use `FIREFOX_PROFILE=/absolute/profile make remove-firefox`. Restart Firefox. |
 | `make remove-cursor` | Removes this theme's cursor link but leaves the cursor selection. If it still names `org.macos8.desktop`, reset it with `plasma-apply-cursortheme breeze_cursors`. |
+| `make remove-ghostty` | Deletes only the Platinum block that `make apply` wrote to `ghostty/config.ghostty`, and the file when that block was all it held. Run it before `make uninstall`. |
 | `make remove-kvantum` | Clears only this theme's Kvantum engine selection (`[General] theme` in `kvantum.kvconfig`). A foreign theme name and the rest of the file remain; restart Qt applications. |
 | `make uninstall` | Deletes installed theme packages and leaves user configuration in place. It also removes the theme-id directories it emptied under `themes/` (the shared directory and its `Kvantum/` parent); a directory still holding a file the theme did not install survives. This removes directories the install created, not user configuration. Run after clearing selections; it does not remove the cursor link or change keyboard mappings. |
 

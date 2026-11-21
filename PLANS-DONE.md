@@ -5,6 +5,76 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Ghostty terminal theme, part 2/2: select the installed theme in the user's Ghostty config (planned 2026-11-21 by the director role; "requires part 1/2 landed") — done 2026-11-21 by the feature role
+
+**Goal.** Make `make apply` point Ghostty at the theme file that part 1/2
+("Ghostty terminal theme, part 1/2: ship and install a Platinum Ghostty theme
+file") installs, and give the user a removal target, while leaving every
+other line of the user's Ghostty config alone.
+
+**Approach and files touched.**
+
+1. New `tools/apply_ghostty.py`. Follow `tools/apply_cursor.py`'s CLI shape
+   (`--optional`, `--remove`, the exit-2 diagnostic conventions). Resolve the
+   config home as `tools/apply_gtk.py` does: an absolute `XDG_CONFIG_HOME`,
+   else `$HOME/.config`. The target file is
+   `<config home>/ghostty/config.ghostty`, the path Ghostty 1.3's
+   `config-default-files` docs name. Apply writes or replaces one
+   marker-delimited block at the end of that file, creating the file and the
+   `ghostty/` directory when absent:
+   `# >>> Platinum theme (managed by make apply-ghostty) >>>`, then
+   `theme = <DATA_HOME>/ghostty/themes/org.macos8.desktop/Platinum`, then
+   `# <<< Platinum theme <<<`. `DATA_HOME` is resolved the way
+   `tools/apply_theme.py` resolves it. Every byte outside the block is
+   preserved. A repeat apply leaves the file byte-identical. The write is
+   atomic through `tools/atomic_write.py`. Refuse with exit 2 when the
+   installed theme file is missing (name `make install` as the fix), when
+   the target is a symlink, or when the block's markers are unbalanced.
+   `--remove` deletes only the block. If the file then holds nothing at all,
+   delete it; otherwise leave the rest byte-identical. `--optional` skips with
+   one note and exit 0 when `ghostty` is not on `PATH`. Ghostty also loads
+   the legacy `<config home>/ghostty/config`. Neither apply nor remove reads
+   or writes that file, so a `theme =` line the user wrote in either file
+   stays theirs. Ghostty's documented rule that explicit color keys in the
+   user config override the theme is what keeps the user's own colors.
+2. `Makefile`: add `$(PYTHON) tools/apply_ghostty.py --optional` to `apply`
+   after `apply_cursor.py`. Add `apply-ghostty` (refuse_destdir,
+   require_python_ready, `$(MAKE) --no-print-directory install
+   INSTALL_PACKAGES=ghostty`, then the tool) and `remove-ghostty` (the tool
+   with `--remove`), each with a comment in the style of the neighbouring
+   targets.
+3. New `tests/test_apply_ghostty.py`, using scratch config and data homes and
+   a stub `ghostty` on a scratch `PATH`. Cover: the file is created when
+   absent; foreign lines before and after the block are preserved byte for
+   byte; a repeat apply is idempotent; remove restores the original bytes
+   exactly; a file holding only the block is deleted; the missing theme file,
+   symlinked target and unbalanced markers each exit 2 with a diagnostic;
+   `--optional` without `ghostty` on `PATH` writes nothing and exits 0; the
+   legacy `config` file is never opened for writing.
+4. Docs: a Ghostty paragraph in `docs/installing.md` beside the Konsole one,
+   covering what apply writes, the restart need (new windows read the theme;
+   Ghostty's reload-config binding also reloads it), and the undo command.
+   Add `make remove-ghostty` to README.md's "Removing the theme" table and
+   a `docs/invariants.md` row naming `tests/test_apply_ghostty.py`.
+
+Out of scope: restyling Ghostty's libadwaita tab bar beyond what the existing
+GTK 4 sheet already does. Record any visible gap found during this work as
+its own BUGS.md or PLANS.md entry.
+
+**Acceptance criteria.**
+
+- On a scratch config home, `make apply-ghostty` leaves `config.ghostty`
+  ending in the three-line block with the absolute installed path, and a
+  real `ghostty +show-config` (when installed, with scratch homes) reports
+  the theme's `background = #ffffff`.
+- `make remove-ghostty` after an apply on a pre-existing `config.ghostty`
+  restores that file's original bytes.
+- `make apply` on a machine without `ghostty` prints one skip note and still
+  exits 0.
+- `make check` passes apart from main's known-red tests.
+
+**As built (2026-11-21, feature role).** Apply appends its block after a newline it adds when the file lacks a final newline, and `--remove` keeps that newline, so a pre-existing config that did not end in a newline does not come back byte-identical; the byte-restoration criterion holds for files that end in one. Apply and remove also refuse a symbolic link at the config file, and a theme path holding a line break is refused with exit 2. `make uninstall` does not clear the block and deletes the theme file, so `make remove-ghostty` must run first; `docs/installing.md` says so. Making uninstall handle the block is left as a separate entry.
+
 ### Render failure-paths suite extraction: move the per-mode session launch tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_render_failure_paths.py` is 715 lines, and its `TestFailurePaths` class is
