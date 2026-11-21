@@ -215,8 +215,8 @@ def uninstall_recipe(destdir, extra=(), env=None):
     """Run the internal `make _uninstall` recipe rooted at *destdir*.
 
     The public `uninstall` target only wraps the recipe in the data-home and
-    flock guards, `install -d`, and a nested `make`; those are covered by
-    ``test_theme_install``. Calling the recipe directly keeps each case from
+    flock guards, `install -d`, and a nested `make`; the guards are covered by
+    ``test_theme_install_guards``. Calling the recipe directly keeps each case from
     spawning that second make and taking the lock. *extra* appends make
     variable assignments (e.g. `COLOR_SCHEME=...`); *env* replaces the
     environment, for a test that supplies its own `XDG_CONFIG_HOME`.
