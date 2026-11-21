@@ -224,5 +224,6 @@ class TestRemoveRollback(FirefoxProfileTestCase):
             firefox_user_js.remove_user_js(before_js), _read(self.user_js_path())
         )
 
+
 if __name__ == "__main__":
     unittest.main()
