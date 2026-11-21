@@ -72,11 +72,20 @@ def installed_sheets(data_home: Path) -> dict[str, Path] | None:
     for version in ("gtk-4.0", "gtk-3.0"):
         sheet = installed_sheet(data_home, version)
         if not sheet.is_file():
-            report_failure(
-                TOOL,
-                f"installed {version} sheet is missing: {sheet}; "
-                "run make install-gtk",
-            )
+            # A directory, FIFO or dangling link at the sheet's path is not
+            # missing: name it so the fix (clear the path, reinstall) is clear.
+            if sheet.is_symlink() or sheet.exists():
+                report_failure(
+                    TOOL,
+                    f"installed {version} sheet is not a regular file: {sheet}; "
+                    "remove or move that path, then run make install-gtk",
+                )
+            else:
+                report_failure(
+                    TOOL,
+                    f"installed {version} sheet is missing: {sheet}; "
+                    "run make install-gtk",
+                )
             return None
         sheets[version] = sheet
     return sheets

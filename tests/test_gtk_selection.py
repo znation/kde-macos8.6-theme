@@ -36,6 +36,33 @@ class TestInstalledSheets(unittest.TestCase):
             self.assertIn("installed gtk-4.0 sheet is missing", errors.getvalue())
             self.assertNotIn("installed gtk-3.0 sheet is missing", errors.getvalue())
 
+    def test_directory_at_sheet_path_is_not_called_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_home = Path(directory)
+            installed_sheet(data_home, "gtk-4.0").mkdir(parents=True)
+            errors = io.StringIO()
+
+            with contextlib.redirect_stderr(errors):
+                result = installed_sheets(data_home)
+
+            self.assertIsNone(result)
+            self.assertIn("installed gtk-4.0 sheet is not a regular file", errors.getvalue())
+            self.assertNotIn("is missing", errors.getvalue())
+
+    def test_dangling_link_at_sheet_path_is_not_called_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_home = Path(directory)
+            sheet = installed_sheet(data_home, "gtk-4.0")
+            sheet.parent.mkdir(parents=True)
+            sheet.symlink_to(data_home / "nowhere.css")
+            errors = io.StringIO()
+
+            with contextlib.redirect_stderr(errors):
+                result = installed_sheets(data_home)
+
+            self.assertIsNone(result)
+            self.assertIn("installed gtk-4.0 sheet is not a regular file", errors.getvalue())
+
     def test_returns_both_installed_sheets(self):
         with tempfile.TemporaryDirectory() as directory:
             data_home = Path(directory)
