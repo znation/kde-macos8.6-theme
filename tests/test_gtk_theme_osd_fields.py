@@ -137,8 +137,11 @@ class TestGtkThemeOsdFields(GtkSheetRuleCases, unittest.TestCase):
         active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
         disabled = {**base, "color": ETCH_DARK}
         del disabled["outline-color"]
-        horizontal = lambda declarations: declarations
-        vertical = lambda declarations: {**declarations, "background-clip": "border-box"}
+        def horizontal(declarations):
+            return declarations
+
+        def vertical(declarations):
+            return {**declarations, "background-clip": "border-box"}
         expected = {
             ".osd spinbutton:not(.vertical) button": horizontal(base),
             ".osd spinbutton:not(.vertical) button:dir(rtl)": horizontal(base),

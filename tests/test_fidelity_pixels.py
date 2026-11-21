@@ -32,8 +32,10 @@ class TestWorstPixels(unittest.TestCase):
         red = [9, 5, 9, 0, 7, 9]
         cand = Image(3, 2, bytes(channel for value in red for channel in (value, 0, 0)))
         ref = Image(3, 2, bytes(18))
-        record = lambda offset: [(p["x"], p["y"], p["max_delta"])
-                                 for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+        def record(offset):
+            return [(p["x"], p["y"], p["max_delta"])
+                    for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+
         self.assertEqual(record(0), [(0, 0, 9), (2, 0, 9)])
         self.assertEqual(record(1), [(2, 0, 9), (2, 1, 9)])
         self.assertEqual(record(3), [(1, 1, 7)])
@@ -46,8 +48,10 @@ class TestWorstPixels(unittest.TestCase):
         red = [9, 5, 9, 0, 7, 9]
         cand = Image(3, 2, bytes(channel for value in red for channel in (value, 0, 0)))
         ref = Image(3, 2, bytes(18))
-        record = lambda offset: [(p["x"], p["y"], p["max_delta"])
-                                 for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+        def record(offset):
+            return [(p["x"], p["y"], p["max_delta"])
+                    for p in worst_pixels(cand, ref, 5, 2, offset=offset)]
+
         self.assertEqual(record(None), [(0, 0, 9), (2, 0, 9)])
         self.assertEqual(record(None), record(0))
 

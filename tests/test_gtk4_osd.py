@@ -272,10 +272,11 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
             if name != "outline-color"
         }
         disabled["color"] = ETCH_DARK
-        horizontal = lambda declarations: declarations
-        vertical = lambda declarations: {
-            **declarations, "background-clip": "border-box"
-        }
+        def horizontal(declarations):
+            return declarations
+
+        def vertical(declarations):
+            return {**declarations, "background-clip": "border-box"}
         up = ".osd spinbutton:not(.vertical) > button.image-button.up:not(.flat)"
         down = (
             ".osd spinbutton:not(.vertical)"
