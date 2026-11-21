@@ -15,7 +15,6 @@ from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
 
-
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
 
