@@ -511,6 +511,8 @@ make: *** [Makefile:491: check] Error 1
 - **Cause:** a finding the fix-up could not close was never filed to BUGS.md, so the same finding re-burned the same authoring each run instead of becoming bugfix work.
 - **Fix sketch:** fix the finding's cause — the file and line it names, or the check that raised it — and move this entry to Fixed with a Fix paragraph showing the finding gone.
 
+**Needs review 2026-11-21 by bugfix: the fix belongs to the tumwater maintainer, not this repo.** The "this run moved a backlog entry…" wording comes from tumwater's own pre-queue self-check; the repo mentions that self-check only in comments (`tests/support/placeholders_mutations.py:27`, `tests/support/invariants_mutations.py:29,101`). Nothing in the repo produces the finding, so the entry was not moved to Fixed. Next failure: the self-check warning reappearing with the same wording on the next run.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
