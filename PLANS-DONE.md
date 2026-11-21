@@ -5,6 +5,91 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox panels suite extraction: move the bookmark-editor cases into their own module (planned 2026-11-19 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Shrink the 743-line `tests/test_firefox_theme_panels.py` and keep
+it on one concern, the popup panels' row and button paints. Its single class,
+`TestFirefoxPanelRows(FirefoxChromeTestCase)`, also holds the two cases that
+pin the bookmark editor (`#editBookmarkPanel` and the Library's
+`#bookmarkpropertiesdialog` fields), which are not row paints. They are the
+last two methods of the class and take up about a third of the file:
+`test_bookmark_panel_control_paint_is_scoped_to_the_bookmark_panel` and
+`test_bookmark_panel_provenance`.
+
+**Independence.** The module defines no module-level constants or helpers.
+The two bookmark cases use only `FirefoxChromeTestCase` methods
+(`assert_rule_names_scoped_to`, `assert_rules_match_required`,
+`assert_header_names`, `self.rules`), `element` and `matches` from
+`support.selector_matching`, and `BUTTON_REFERENCES` and
+`VIEWITEM_REFERENCES` from `support.firefox_chrome_cases`. They do not use
+`FACE` or `SELECTION`, which only the staying downloads and all-tabs cases
+use. So no `tests/support` module is needed. The earlier "Firefox Library
+suite extraction" plan has since merged (see PLANS-DONE.md); keep the module
+names it left in the two support docstrings named below.
+
+**Approach.**
+
+1. Create `tests/test_firefox_theme_bookmark_editor.py`. Give it a module
+   docstring saying it validates the Firefox Platinum sheet's bookmark-editor
+   paints (the `#editBookmarkPanel` fields, folder dropdown and footer
+   buttons) for the standalone `userChrome.css`. Add one class,
+   `TestFirefoxBookmarkEditor(FirefoxChromeTestCase)`. It imports
+   `BUTTON_REFERENCES`, `VIEWITEM_REFERENCES` and `FirefoxChromeTestCase`
+   from `support.firefox_chrome_cases`, and `element` and `matches` from
+   `support.selector_matching`. The file ends with the same
+   `if __name__ == "__main__": unittest.main()` footer the source module
+   uses.
+2. Move the two methods into that class verbatim, with no change to their
+   bodies.
+3. In `tests/test_firefox_theme_panels.py`, delete the two methods. Drop
+   "and the bookmark panel" from the module docstring's list. Drop the
+   `BUTTON_REFERENCES` and `VIEWITEM_REFERENCES` imports: only the moved cases use
+   them, while the staying cases still use `FACE`, `SELECTION`, `element`, `matches`
+   and `FirefoxChromeTestCase`, so those stay.
+4. In `docs/invariants.md`, the bookmark editor's row (it begins "The
+   bookmark editor's fields") names
+   `tests/test_firefox_theme_panels.py::TestFirefoxPanelRows::test_bookmark_panel_control_paint_is_scoped_to_the_bookmark_panel`.
+   Point that anchor at
+   `tests/test_firefox_theme_bookmark_editor.py::TestFirefoxBookmarkEditor::test_bookmark_panel_control_paint_is_scoped_to_the_bookmark_panel`.
+   Leave the other rows that name `TestFirefoxPanelRows` alone, because
+   their cases stay.
+5. Add `tests/test_firefox_theme_bookmark_editor.py` to the section-module
+   lists in the docstrings of `tests/support/firefox_chrome_cases.py`
+   (the "The sections live in …" sentence) and `tests/support/css_header.py`
+   (the provenance-test call-site list).
+6. Before finishing, re-run
+   `grep -rn 'test_firefox_theme_panels\|TestFirefoxPanelRows' docs tests README.md Makefile`
+   and `grep -rn 'test_bookmark_panel_' docs tests README.md`. Every hit
+   must name a case that is still in the named file. Following L1, also
+   check `docs/rendering.md`, `docs/fidelity.md`,
+   `tests/test_ci_workflow.py` and `tests/support/validation_gaps/*.py`.
+   At planning time they held no anchor for this module.
+
+**Files touched.** `tests/test_firefox_theme_panels.py`,
+`tests/test_firefox_theme_bookmark_editor.py` (new),
+`tests/support/firefox_chrome_cases.py`, `tests/support/css_header.py`,
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- `grep -rn 'def test_bookmark_panel_' tests` finds exactly two
+  definitions, both in `tests/test_firefox_theme_bookmark_editor.py` under
+  `TestFirefoxBookmarkEditor`. Their bodies are identical to the removed ones
+  (compare with `git diff --color-moved`).
+- `tests/test_firefox_theme_panels.py` still defines the six row and button
+  cases (downloads list, downloads buttons, all-tabs, app menu, overflow,
+  unified extensions) and no bookmark-editor case. Its docstring no longer
+  mentions the bookmark panel.
+- The bookmark-editor invariant row in `docs/invariants.md` names the new
+  module's class, and `tests/test_invariants.py` passes.
+- `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
+  passes. A full `make check` after the final edit fails nothing beyond
+  main's own known-red `test_validation_gaps.TestNoReproLedger` cases. Those
+  fail on main without this change: `BUGS-FIXED.md` holds seven `no-repro`
+  records against `NO_REPRO_BASELINE = 6` in
+  `tests/support/validation_gaps/no_repro.py`, and the ci role owns that fix.
+  This change edits neither `BUGS-FIXED.md` nor that baseline.
+
 ### Render-surface suite extraction: move the splash pixel gate into its own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Shrink the 823-line `tests/test_render_surface.py` and leave it

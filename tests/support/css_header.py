@@ -6,13 +6,14 @@ section derives from. The suites testing them keep the sheet text in
 ``self.text`` and pin every provenance entry against the header before
 the first ``*/``; this mixin holds that one assertion. Its only call
 sites are ``FirefoxChromeTestCase`` (serving the provenance tests of
-``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
+``tests/test_firefox_theme_shell.py``,
 ``tests/test_firefox_theme_notification_popup.py``,
 ``tests/test_firefox_theme_page_info.py``,
 ``tests/test_firefox_theme_page_info_groupbox.py``,
 ``tests/test_firefox_theme_page_info_trees.py``,
-``tests/test_firefox_theme_library.py``
-and ``tests/test_firefox_theme_library_panes.py``) and ``FirefoxContentTestCase`` in
+``tests/test_firefox_theme_library.py``,
+``tests/test_firefox_theme_library_panes.py`` and
+``tests/test_firefox_theme_bookmark_editor.py``) and ``FirefoxContentTestCase`` in
 ``tests/support/firefox_content_cases.py``.
 """
 
