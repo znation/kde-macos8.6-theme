@@ -190,6 +190,63 @@ module-level helper of the other (both already share `support.apply_gtk_case.App
   `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
   ledger baseline to make them pass.
 
+### Check-results suite extraction: move the started-test marker scan tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_check_parallel_results.py` is 566 lines covering two concerns of
+`tools/check_parallel_results.py`: the bounded worker-log report (`TestBoundedLogText`,
+`TestPrintResults`, `TestCountNoun`) and the byte-level scan for unittest's verbose test-start
+marker (`TestTestMarkerStep`, eight tests, and `TestStartedTestMarkerAcrossReadChunks`, two
+tests, about 120 lines together). PRINCIPLES.md asks for one responsibility per file, so move
+those two marker classes whole — class names, docstrings, the `_scan` static method, the
+`READ_CHUNK` constant, `_log_with_marker_at_boundary` and every test body unchanged — into a new
+`tests/test_check_parallel_marker.py`. No tool, Makefile or check behavior changes. The plan is
+independent of every other Planned entry and of the pending plans: none touches these files.
+It adds no `tests/support/` module, because the moved classes call no module-level helper of
+the file (L4).
+
+**Approach and files touched.**
+
+- **New `tests/test_check_parallel_marker.py`.** A module docstring saying it pins the
+  started-test marker scan in `tools/check_parallel_results.py` (`_test_marker_step`'s per-byte
+  transitions and `_log_has_started_test` carrying the state across its 8192-byte reads), and
+  that the results report itself is pinned in `tests/test_check_parallel_results.py`. Then the
+  two moved classes in their current order, then an
+  `if __name__ == "__main__": unittest.main()` guard (L1). Imports: `from __future__ import
+  annotations` (the `_scan` signature uses `int | None`), `tempfile`, `unittest`,
+  `pathlib.Path`, `support.repo_root`, and from `tools.check_parallel_results` the names
+  `_MARKER_COUNTS_DOTS`, `_MARKER_SEEKS_PAREN`, `_MARKER_SEEKS_SPACE`, `_log_has_started_test`
+  and `_test_marker_step`.
+- **`tests/test_check_parallel_results.py`.** Delete the two classes. Drop those five
+  `tools.check_parallel_results` imports, which a planning count found used only by the moved
+  classes; keep `tempfile`, `Path`, `mock`, `os` and `make_tmp_dir`, which the remaining classes
+  still use. Extend the one-line module docstring with a sentence naming
+  `tests/test_check_parallel_marker.py` for the marker scan.
+- **`tests/test_check_parallel.py`.** Its module docstring lists which sibling module covers
+  what ("``test_check_parallel_results.py`` the results report, …"); add
+  `test_check_parallel_marker.py` for the started-test marker scan.
+- **Anchors.** A planning grep of `docs/`, `tests/`, `tools/`, the `Makefile`, `README.md` and
+  `.github/` for `TestTestMarkerStep` and `TestStartedTestMarkerAcrossReadChunks` found them only
+  in the file they leave; the `docs/invariants.md` anchors into this file all name
+  `TestPrintResults` methods, which stay. The implementer re-runs the grep (also over
+  `tests/support/validation_gaps/`) and repoints anything new.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_check_parallel_marker` run from `tests/` runs ten tests, named as
+  `TestTestMarkerStep`'s and `TestStartedTestMarkerAcrossReadChunks`'s methods were before the
+  move, and they pass.
+- `tests/test_check_parallel_results.py` defines neither moved class; `TestBoundedLogText`,
+  `TestPrintResults` and `TestCountNoun` keep every method name, and the module passes.
+- `grep -rn 'TestTestMarkerStep\|TestStartedTestMarkerAcrossReadChunks' --exclude-dir=.git
+  --exclude-dir=__pycache__ .`, excluding `PLANS.md`, `PLANS-DONE.md` and `BUGS-FIXED.md`,
+  finds only `tests/test_check_parallel_marker.py`.
+- `tests/test_check_parallel_results.py` is under 460 lines and the new module under 200
+  (`wc -l`).
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ### Firefox profile suite extraction: move the INI read-error tests into their own module (planned 2026-11-21 by the plan role)
 
 **Goal.** `tests/test_firefox_profile.py` (574 lines) is one `TestProfileResolution` class.
