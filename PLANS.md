@@ -127,6 +127,69 @@ touches `tools/` and the `tools/` imports, not `tests/support/`.
   only.
 - `make check` passes after the final edit, apart from main's known-red tests.
 
+### GTK apply error suite extraction: move the unreadable-config tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_apply_gtk_errors.py` is 571 lines in two classes: `TestSettingsErrors`
+(symlink refusals, unreadable/unwritable diagnostics, the failed user-CSS unlink) and
+`TestUnreadableConfig` (non-UTF-8, FIFO and 1 MiB read-cap refusals, eleven tests, about 220
+lines). PRINCIPLES.md asks for files small enough to read in one sitting, so move
+`TestUnreadableConfig` whole, with its class name, docstring, helper methods
+(`assert_gtk3_unchanged`, `assert_settings_unchanged`) and test bodies unchanged, into a new
+`tests/test_apply_gtk_unreadable_config.py`. No Makefile, tool or GTK behavior changes. The plan
+is independent of every other Planned entry and of the pending Firefox removal split: no other
+entry touches these files. It adds no `tests/support/` module, because neither class calls a
+module-level helper of the other (both already share `support.apply_gtk_case.ApplyGtkTestCase`).
+
+**Approach and files touched.**
+
+- **New `tests/test_apply_gtk_unreadable_config.py`.** A docstring saying it pins the
+  `apply_gtk` refusals of a config file that cannot be read as text (non-UTF-8, a FIFO, past the
+  1 MiB read cap) before anything is written or removed, and that the other fault arms live in
+  `tests/test_apply_gtk_errors.py`. The moved class, then an
+  `if __name__ == "__main__": unittest.main()` guard (L1). Imports: `unittest`,
+  `from unittest import mock`, `support.repo_root`, the three `support.fifo_fixtures` helpers,
+  `ApplyGtkTestCase`, `assert_exit_2_without_traceback`/`assert_succeeded`, `write_file`, and
+  `tools.gtk_user_files`.
+- **`tests/test_apply_gtk_errors.py`.** Delete `TestUnreadableConfig`. Drop the imports only it
+  used — `mock` and the `support.fifo_fixtures` line, since `TestSettingsErrors` uses neither
+  (the suite's unused-import check catches leftovers). Add one docstring sentence naming
+  `tests/test_apply_gtk_unreadable_config.py` for the non-UTF-8, FIFO and read-cap refusals.
+- **Anchor repoints** (found by a planning grep of the tree for `test_apply_gtk_errors` and
+  `TestUnreadableConfig`; the implementer re-runs it, excluding the archives):
+  - `docs/invariants.md`: the GTK read/write diagnostics row (the one starting "A GTK settings or
+    user-CSS file that cannot be read or written") names
+    `tests/test_apply_gtk_errors.py::TestUnreadableConfig` and four of its methods; each becomes
+    `tests/test_apply_gtk_unreadable_config.py::TestUnreadableConfig…`. Its
+    `TestSettingsErrors` anchors stay.
+  - `tests/support/validation_gaps/real_run_needed.py`: the `gtk-config-cap` `Reproduction`
+    string moves to the new module path.
+  - Prose pointers: `tests/test_fifo_fixtures.py`'s docstring list of sharing suites
+    (`test_apply_gtk_errors` → `test_apply_gtk_unreadable_config`, since only the moved class
+    uses the FIFO helpers); `tests/test_uninstall_config_read_cap.py`'s comment in
+    `TestReaderFifo` naming where the GTK FIFO-swap race is pinned;
+    `tests/support/apply_gtk_case.py`'s docstring listing the suites that share the case (four
+    now, not three); and `tests/support/theme_install.py`'s `write_file` docstring sentence,
+    which credits `tests/test_apply_gtk_errors.py` with bad-encoding and oversize fixtures and
+    cites a `truncate` fixture "near line 491" — name both modules and replace the line
+    reference with the oversize tests' names.
+  - `tests/support/validation_gaps/unclear_invariant.py`'s `gtk-symlinked-config` entry names
+    `TestSettingsErrors`, which stays, so it needs no change.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_apply_gtk_unreadable_config` run from `tests/` runs eleven tests,
+  named as `TestUnreadableConfig`'s methods were before the move, and they pass.
+- `tests/test_apply_gtk_errors.py` defines no `TestUnreadableConfig` class; every
+  `TestSettingsErrors` method keeps its name, and the module passes.
+- `grep -rn 'test_apply_gtk_errors.py::TestUnreadableConfig' --exclude-dir=.git . | grep -v
+  'PLANS-DONE.md\|BUGS-FIXED.md'` (skipping `__pycache__`) finds nothing.
+- Each of the two test modules is under 400 lines (`wc -l`).
+- The invariants-anchor and validation-gap ledger tests pass with the repointed strings.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
