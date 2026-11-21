@@ -3,7 +3,8 @@
 These pin the grid and size refusals ``tools/cursor_checks.py`` supplies to
 ``cursor_bytes``, the cache's documented bounds and canonicalization, and
 ``main``'s failure reporting. ``tests/test_cursors_theme.py`` validates the
-grid and cursor set; ``tests/test_cursors_vector_artifacts.py`` validates the
+cursor set's container, aliases and generator output; ``tests/test_cursor_glyph_shapes.py``
+pins each grid's drawn shape; ``tests/test_cursors_vector_artifacts.py`` validates the
 I-beam and pointing-hand artifacts.
 """
 

@@ -5,6 +5,90 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Cursor set suite extraction: move the per-glyph shape pins into their own module (planned 2026-11-20 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Shrink the 853-line `tests/test_cursors_theme.py` and keep it on
+the Xcursor container, alias bytes and generator output. Its
+`TestCursorSet(unittest.TestCase)` class also holds the per-glyph drawing
+pins. Each of those checks one glyph's geometry: a symmetry, a ring, a
+plus, a watch face, a pencil or a zoom pair. Together they fill most of the
+class's second half. Changes test organization only. Independent of the
+waiting "Firefox panels suite extraction" and "Group the flat tools/ modules"
+entries: it shares no file with either.
+
+**Approach.** Create `tests/test_cursor_glyph_shapes.py` with one class,
+`TestCursorGlyphShapes(unittest.TestCase)`. Move these `TestCursorSet` methods
+into it, keeping their names and bodies:
+`test_size_ver_is_the_horizontal_glyph_rotated_a_quarter_turn`,
+`test_move_and_axis_resize_grids_are_mirror_symmetric`,
+`test_fleur_grid_is_symmetric_about_its_diagonal`,
+`test_size_bdiag_is_the_forward_diagonal_mirrored`,
+`test_crosshair_black_cells_lie_on_the_centre_row_or_column`,
+`test_not_allowed_is_a_ring_with_a_slash`,
+`test_dnd_copy_plus_outline_separates_the_arms`,
+`test_not_allowed_ring_interior_is_transparent_except_the_slash` and its
+helpers `_is_slash_cell`, `_is_inside_not_allowed_ring` and
+`_assert_white_ring_shield`, `test_dnd_copy_is_a_centred_plus`,
+`test_grab_and_grabbing_pin_open_and_closed_hands`,
+`test_context_menu_keeps_the_arrow_cells`,
+`test_context_menu_pins_the_menu_panel`, the `_sixteen_pixel_image` helper,
+`test_watch_draws_the_round_faced_wristwatch`,
+`test_help_pins_the_arrow_and_question_mark`,
+`test_progress_pins_the_arrow_and_watch_face`,
+`test_help_and_progress_draw_the_arrow_cells_at_the_same_coordinates`,
+`test_pencil_draws_a_diagonal_shaft_to_its_writing_tip` and
+`test_zoom_in_and_out_differ_only_at_the_plus_arms`.
+
+Keep these in `TestCursorSet`. They are whole-set or alias-byte checks, and
+they use `_repo_bytes` or `VECTOR_CURSORS`, which stay in the original module:
+`test_every_cursor_grid_shields_its_black_from_transparent` with
+`_assert_grid_is_shielded` and `_assert_black_cell_is_shielded`,
+`test_dnd_aliases_reuse_the_existing_glyphs` and
+`test_help_and_progress_alias_names_reuse_their_canonical`.
+
+The moved methods use only `cursor_art`, `make_cursors`, `decode_rgba` and the
+`support.cursor_artifact_cases` names `BLACK`, `WHITE`, `TRANSPARENT`,
+`CURSORS`, `_pixel` and `_read_cursor`. None of them use `_repo_bytes`,
+`_scaled`, `HOTSPOTS`, `cursor_art_pointers` or the original module's
+constants, so no new `tests/support` module is needed. Import those names in
+the new module the same way the original does (`from support import repo_root`
+first). The original module keeps the imports its remaining tests still use;
+re-grep each one after the move and drop any that no longer has a use. Give
+the new module a docstring that says it pins each canonical grid's drawn
+shape, and that this is our own art (no reference screenshot shows the
+pointer). Add one sentence to the original module's docstring that points at
+the new module, beside its existing pointer to
+`tests/test_cursors_vector_artifacts.py`.
+
+**Files.** `tests/test_cursors_theme.py`, new
+`tests/test_cursor_glyph_shapes.py`, `docs/invariants.md` (the `## icons`
+cursor-set row's test column: add
+`tests/test_cursor_glyph_shapes.py::TestCursorGlyphShapes` beside the
+existing `TestCursorSet` anchors, which stay valid). A grep of `docs/`,
+`README.md`, `Makefile`, `tests/support/` and `tests/test_ci_workflow.py` on
+2026-11-20 found no other live reference to the moved method names or to
+`test_cursors_theme`, apart from the `tests/test_make_cursors.py` docstring,
+which still holds. Re-run that grep at implementation.
+
+**Acceptance criteria.**
+
+- `make check CHECK_TESTS='test_cursor_glyph_shapes'` runs every moved test
+  name listed above under `TestCursorGlyphShapes`, and they pass.
+  `git diff --color-moved` shows their bodies unchanged.
+- `tests/test_cursors_theme.py` no longer defines any moved method name.
+  It still defines `TestCursorArtifact` and the remaining `TestCursorSet`
+  cases, including the three kept ones named above.
+- No test module imports another test module. Nothing under `theme/`,
+  `tools/` or the committed cursor files changes.
+- The cursor-set row in `docs/invariants.md` names the new anchor, and
+  `make check CHECK_TESTS='test_cursors_theme test_cursor_glyph_shapes test_invariants'`
+  passes. A full `make check` after the final edit fails nothing beyond
+  main's own known-red `test_validation_gaps.TestNoReproLedger` cases. Those
+  fail on main without this change: `BUGS-FIXED.md` holds seven `no-repro`
+  records against `NO_REPRO_BASELINE = 6` in
+  `tests/support/validation_gaps/no_repro.py`, and the ci role owns that fix.
+  This change edits neither `BUGS-FIXED.md` nor that baseline.
+
 ### Install suite extraction: move the support-helper sharing pins into the support pins module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_theme_install.py` is 783 lines. Its module docstring says it pins
