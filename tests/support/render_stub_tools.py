@@ -1,4 +1,8 @@
-"""Shared shell-stub harness for render failure and environment suites."""
+"""Shared shell-stub harness for the render CLI suites.
+
+Used by ``tests/test_render_failure_paths.py``, ``tests/test_render_output_cli.py``
+and ``tests/test_render_environment.py``.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +17,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import call_main
 from tools import render_surface
+from tools.png.write import encode_png
 
 
 class StubTools(unittest.TestCase):
@@ -69,3 +74,31 @@ class StubTools(unittest.TestCase):
         self.assertNotIn("Traceback", stderr)
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
+
+    def hidden_files(self):
+        """Return the dot-prefixed entries left in the scratch root."""
+        return [name for name in os.listdir(self.root) if name.startswith(".")]
+
+    def stub_capture(self, fill=0xDD):
+        """Make the stubbed session write a valid 320x240 PNG where spectacle would.
+
+        *fill* is the byte every colour channel holds; the default is the
+        theme's painted window face, while 0 gives the all-black surface of a
+        session that has not painted yet.
+        """
+        fixture = self.root / "capture.png"
+        fixture.write_bytes(
+            encode_png(320, 240, bytes([fill]) * (320 * 240 * 3))
+        )
+        # The session's argv ends with the shlex-joined `sh -c` line whose
+        # positional parameters are the settle seconds, the surface path and
+        # then the client: the capture stub extracts the surface path between
+        # them, so the fixture lands where spectacle would have written it.
+        self.stub(
+            "dbus-run-session",
+            'for a; do :; done; '
+            "dest=$(printf '%s\\n' \"$a\" | sed -n "
+            "'s/.* sh [^ ]* \\([^ ]*\\) plasmawindowed.*/\\1/p'); "
+            f'cp "{fixture}" "$dest"',
+        )
+        return fixture

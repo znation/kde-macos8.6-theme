@@ -137,7 +137,7 @@ class TestPublishFdopen(unittest.TestCase):
 class TestOutputProblem(unittest.TestCase):
     """`output_problem` names each reason the output path is unusable.
 
-    The CLI test in ``tests/test_render_failure_paths.py`` only asserts the
+    The CLI test in ``tests/test_render_output_cli.py`` only asserts the
     generic ``cannot write`` prefix for the directory and missing-parent
     cases, so a refusal that lost its specific reason would still pass there.
     """
