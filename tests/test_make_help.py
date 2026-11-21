@@ -63,8 +63,8 @@ class TestReadFileContainment(unittest.TestCase):
             self.assertEqual(_read_repo_file("README.md"), "make check\n")
 
     def test_refuses_a_fifo_instead_of_blocking(self):
-        # `test_names_every_public_target` reads the Makefile through this
-        # helper; a FIFO at that path would block open() forever. Run in a
+        # `_public_targets` reads the Makefile through this helper; a FIFO at
+        # that path would block open() forever. Run in a
         # child so the pre-fix hang is a bounded timeout, not a stalled suite.
         if not hasattr(os, "mkfifo"):
             self.skipTest("os.mkfifo is not available on this platform")

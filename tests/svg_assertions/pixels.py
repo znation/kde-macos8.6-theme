@@ -167,9 +167,9 @@ def assert_face_corners(case, slices, prefix, corners):
         assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
 
 
-# The outer 2x2 block of each `sunken_outside` 3x3 corner table: the block
-# holding the outer corner pixel, which never contains the table's face
-# pixel. Row-major slice-local indices into the 3x3 table.
+# The outer 2x2 block of each `sunken_outside_face_corners` 3x3 corner
+# table: the block holding the outer corner pixel, which never contains the
+# table's face pixel. Row-major slice-local indices into the 3x3 table.
 _OUTER_BLOCK_INDICES = {
     "topleft": (0, 1, 3, 4),
     "topright": (1, 2, 4, 5),
