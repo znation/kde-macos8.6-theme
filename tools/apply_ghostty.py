@@ -52,6 +52,11 @@ GHOSTTY_ID = "org.macos8.desktop"
 THEME_NAME = "Platinum"
 
 
+def _raise_filesystem_error(action: str, target: Path, exc: OSError) -> None:
+    """Raise the Ghostty config diagnostic shared by filesystem operations."""
+    raise GhosttyConfigError(f"cannot {action} {target}: {exc.strerror}") from exc
+
+
 def theme_file(data_home: Path) -> Path:
     """Return the installed theme file part 1/2 ships under *data_home*."""
     return data_home / "ghostty" / "themes" / GHOSTTY_ID / THEME_NAME
@@ -78,7 +83,7 @@ def _read(target: Path) -> bytes | None:
     except FileNotFoundError:
         return None
     except OSError as exc:
-        raise GhosttyConfigError(f"cannot read {target}: {exc.strerror}") from exc
+        _raise_filesystem_error("read", target, exc)
 
 
 def _write(target: Path, data: bytes, previous_mode: int | None) -> None:
@@ -90,7 +95,7 @@ def _write(target: Path, data: bytes, previous_mode: int | None) -> None:
             mode=previous_mode,
         )
     except OSError as exc:
-        raise GhosttyConfigError(f"cannot write {target}: {exc.strerror}") from exc
+        _raise_filesystem_error("write", target, exc)
 
 
 def _mode_of(target: Path) -> int | None:
@@ -125,9 +130,7 @@ def apply(config_home: Path, data_home: Path, env: dict[str, str], optional: boo
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        raise GhosttyConfigError(
-            f"cannot create {target.parent}: {exc.strerror}"
-        ) from exc
+        _raise_filesystem_error("create", target.parent, exc)
     _write(target, updated, _mode_of(target))
     report_note(
         TOOL,
@@ -152,9 +155,7 @@ def remove(config_home: Path) -> int:
         try:
             target.unlink()
         except OSError as exc:
-            raise GhosttyConfigError(
-                f"cannot remove {target}: {exc.strerror}"
-            ) from exc
+            _raise_filesystem_error("remove", target, exc)
         report_note(TOOL, f"removed {target}, which held only the Platinum block")
         return 0
     _write(target, updated, _mode_of(target))
