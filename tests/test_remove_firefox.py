@@ -19,6 +19,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
+from support.process_assertions import assert_succeeded
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
 from tools import (
@@ -50,7 +51,7 @@ class TestRemove(FirefoxProfileTestCase):
     def test_remove_deletes_our_sheets_and_block_and_keeps_the_directory(self):
         self.install()
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertTrue(self.sheet_path().parent.is_dir())
         self.assertEqual("", _read(self.user_js_path()))
@@ -80,7 +81,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.install()
         self.assertEqual(cap, self.user_js_path().stat().st_size)
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertEqual(foreign, _read(self.user_js_path()))
 
     def test_remove_deletes_bom_prefixed_our_sheets(self):
@@ -97,7 +98,7 @@ class TestRemove(FirefoxProfileTestCase):
                 _write(profile / "user.js", block)
 
                 result = self.run_tool("--remove", "--profile", str(profile))
-                self.assertEqual(0, result.returncode, result.stderr)
+                assert_succeeded(self, result)
                 self.assertFalse(path.exists())
                 self.assertEqual("", _read(profile / "user.js"))
 
@@ -111,7 +112,7 @@ class TestRemove(FirefoxProfileTestCase):
         _write(self.sheet_path(), foreign_sheet)
         _write(self.user_js_path(), foreign_js)
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertEqual(foreign_sheet, _read(self.sheet_path()))
         self.assertEqual(foreign_js, _read(self.user_js_path()))
 
@@ -123,7 +124,7 @@ class TestRemove(FirefoxProfileTestCase):
         _write(self.user_js_path(), block)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assert_profile_absent(self.sheet_path())
         self.assertEqual(foreign_content, _read(self.content_sheet_path()))
         self.assertEqual("", _read(self.user_js_path()))
@@ -137,7 +138,7 @@ class TestRemove(FirefoxProfileTestCase):
         _write(self.user_js_path(), block)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
         self.assertEqual("", _read(self.user_js_path()))
 
@@ -146,7 +147,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertFalse(self.user_js_path().exists())
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
     def test_remove_clears_owned_user_js_without_creating_a_missing_chrome_dir(self):
@@ -156,7 +157,7 @@ class TestRemove(FirefoxProfileTestCase):
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
 
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertEqual("", _read(self.user_js_path()))
         self.assertFalse((self.profile / "chrome").exists())
 
@@ -166,7 +167,7 @@ class TestRemove(FirefoxProfileTestCase):
         _write(self.user_js_path(), foreign_js)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assert_profile_absent(self.sheet_path())
         self.assertEqual(foreign_js, _read(self.user_js_path()))
 
@@ -195,7 +196,7 @@ class TestRemove(FirefoxProfileTestCase):
 
                 result = self.run_tool("--remove", "--profile", str(profile))
 
-                self.assertEqual(0, result.returncode, result.stderr)
+                assert_succeeded(self, result)
                 self.assertEqual("", result.stderr)
                 self.assertTrue(link.is_symlink())
                 self.assertEqual(target, link.readlink())
@@ -261,7 +262,7 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertTrue(installed.startswith(foreign + "\r\n"))
         self.assertEqual(1, installed.count(firefox_user_js.USER_JS_MARKER))
         result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertEqual(foreign + "\r\n", _read(self.user_js_path()))
 
     def test_unreadable_user_js_is_reported_without_writing_the_sheet(self):

@@ -14,6 +14,7 @@ from unittest import mock
 from support import snippet_child
 from support.fifo_fixtures import make_fifo
 from support.allocation_fixtures import peak_allocation
+from support.process_assertions import assert_succeeded
 from support.check_references_fixtures import (
     CheckerTestCase,
     assert_problem,
@@ -274,7 +275,7 @@ class TestUndeclaredNonRegularEntry(CheckerTestCase):
                 cwd=ROOT,
                 timeout=10,
             )
-        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+        assert_succeeded(self, child)
 
 
 class TestFifoSwapAfterCheck(CheckerTestCase):
@@ -320,7 +321,7 @@ class TestFifoSwapAfterCheck(CheckerTestCase):
                 "sys.exit(0 if any('locked.png' in p and 'could not be read' in p "
                 "for p in problems) else 1)",
             )
-        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+        assert_succeeded(self, child)
 
     def test_sources_swapped_for_a_fifo_is_refused_without_blocking(self):
         module = self.checker
@@ -337,7 +338,7 @@ class TestFifoSwapAfterCheck(CheckerTestCase):
                 "sys.exit(0 if any('could not be read' in p for p in problems) "
                 "else 1)",
             )
-        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+        assert_succeeded(self, child)
 
 
 class TestResolveFailureIsFailClosed(CheckerTestCase):

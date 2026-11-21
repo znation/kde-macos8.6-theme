@@ -23,7 +23,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
 from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
-from support.process_assertions import assert_lock_time_out
+from support.process_assertions import assert_lock_time_out, assert_succeeded
 from tools import (
     file_lock,
     firefox_profile_actions,
@@ -60,7 +60,7 @@ class TestInstall(FirefoxProfileTestCase):
         _write(self.user_js_path(), foreign)
 
         result = self.run_tool("--profile", str(profile_link))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertTrue(profile_link.is_symlink())
         self.assertEqual(self.profile, profile_link.readlink())
         self.assertEqual(
@@ -77,7 +77,7 @@ class TestInstall(FirefoxProfileTestCase):
         )
 
         result = self.run_tool("--remove", "--profile", str(profile_link))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertTrue(profile_link.is_symlink())
         self.assertEqual(self.profile, profile_link.readlink())
         self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
@@ -85,7 +85,7 @@ class TestInstall(FirefoxProfileTestCase):
 
     def test_install_copies_the_sheets_byte_for_byte_and_adds_one_block(self):
         result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         for shipped, installed in (
             (SHEET_PATH, self.sheet_path()),
             (CONTENT_SHEET_PATH, self.content_sheet_path()),
@@ -103,14 +103,14 @@ class TestInstall(FirefoxProfileTestCase):
         result = self.run_tool(
             env={"HOME": str(self.home), "FIREFOX_PROFILE": str(self.profile)}
         )
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertTrue(self.sheet_path().is_file())
 
     def test_optional_install_without_a_profile_skips_with_a_note(self):
         # `make apply` passes --optional, so a machine without Firefox still
         # applies every other surface and says why this one was skipped.
         result = self.run_tool("--optional")
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertIn("no Firefox profile found; skipping", result.stdout)
         self.assert_profile_absent(self.sheet_path(), self.user_js_path())
 
@@ -122,7 +122,7 @@ class TestInstall(FirefoxProfileTestCase):
             "[Profile0]\nName=active\nPath=Profiles/active.default\nDefault=1\n",
         )
         result = self.run_tool("--optional")
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertTrue(
             (profile / "chrome" / "userChrome.css").is_file()
         )
@@ -155,7 +155,7 @@ class TestInstall(FirefoxProfileTestCase):
                 path = profile / "chrome" / empty.name
                 _write(path, b"")
                 result = self.run_tool("--profile", str(profile))
-                self.assertEqual(0, result.returncode, result.stderr)
+                assert_succeeded(self, result)
                 shipped = (
                     SHEET_PATH
                     if empty.name == "userChrome.css"
@@ -288,7 +288,7 @@ class TestInstall(FirefoxProfileTestCase):
                 path = profile / relative
                 _write(path, f"\ufeff{marker}\nbody {{}}\n")
                 result = self.run_tool("--profile", str(profile))
-                self.assertEqual(0, result.returncode, result.stderr)
+                assert_succeeded(self, result)
                 self.assertEqual(
                     containment.read_bytes(shipped, repo_root.ROOT),
                     path.read_bytes(),
@@ -403,7 +403,7 @@ class TestInstall(FirefoxProfileTestCase):
         first_line = (install_firefox.CSS_MARKER + "\n").encode("utf-8")
         path.write_bytes(first_line + b"x" * (cap - len(first_line)))
         result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
         self.assertEqual(
             containment.read_bytes(SHEET_PATH, repo_root.ROOT),
             path.read_bytes(),
@@ -453,7 +453,7 @@ class TestProfileLock(FirefoxProfileTestCase):
 
     def test_remove_times_out_without_clearing_the_install(self):
         installed = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, installed.returncode, installed.stderr)
+        assert_succeeded(self, installed)
         before_sheet = self.sheet_path().read_bytes()
         before_js = self.user_js_path().read_bytes()
         self.hold_profile_lock()
@@ -472,7 +472,7 @@ class TestProfileLock(FirefoxProfileTestCase):
 
     def test_install_releases_the_lock_for_the_next_run(self):
         result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
+        assert_succeeded(self, result)
 
         assert_directory_flock_free(self.profile)
 
