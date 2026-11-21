@@ -394,6 +394,93 @@ the "Group the flat tools/ modules" entry has no `local_hook` family.
   `make check CHECK_TESTS='test_local_hook test_local_hook_git test_invariants'`
   passes. `make check` passes after the final edit.
 
+### Render CLI tests: move the output-publication cases into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_render_failure_paths.py` is 846 lines, and PRINCIPLES.md asks for files
+small enough to read in one sitting. Six tests near the end of `TestFailurePaths` check how the
+render CLI publishes its output path, not how the session fails: whether it refuses an unusable
+output before installing, copies a capture over the output, keeps the previous output when a
+copy fails, and passes a dash-leading output through `make render`. This plan moves them,
+unchanged, into a new `tests/test_render_output_cli.py`, next to the unit-level
+`tests/test_render_output.py` that tests `tools/render_output.py` directly. No tool behavior and
+no test body changes. Nothing under `## Planned` touches these files. The held "Group the flat
+tools/ modules" entry would rename `tools.render_*` imports, but it only conflicts at merge time.
+
+The six tests to move, keeping their names and order:
+`test_unwritable_output_is_refused_before_installing`,
+`test_a_read_only_output_directory_is_refused_before_installing`,
+`test_a_capture_is_copied_to_the_output`,
+`test_a_failed_copy_keeps_the_previous_output_and_leaves_no_partial_file`,
+`test_a_fifo_refusal_is_reported_as_a_failed_render`,
+`test_make_render_passes_a_dash_leading_output_as_a_path`.
+The session timeout and SIGTERM tests after them
+(`test_timeout_kills_the_session_group_and_exits_1`,
+`test_sigterm_kills_the_session_group_and_removes_scratch`) are failure paths and stay.
+
+**Approach and files touched.**
+
+- `tests/support/render_stub_tools.py`: move `TestFailurePaths.stub_capture` and
+  `TestFailurePaths.hidden_files` onto `StubTools`, keeping their bodies. `stub_capture` is
+  also called by two tests that stay (`test_a_capture_of_the_wrong_size_exits_1_and_writes_nothing`
+  and `test_an_unpainted_capture_exits_1_and_writes_nothing`). Per L4, a helper shared by both
+  modules goes in `tests/support/` and neither test module imports the other. Add the
+  `encode_png` import (`from tools.png.write import encode_png`) that `stub_capture` needs. Update
+  the module docstring so it names both test modules as users. `assert_failed_run`'s docstring
+  says "Shared by the 22 failure-path tails". None of the six moved tests calls it, so recount
+  `self.assert_failed_run(` in `tests/test_render_failure_paths.py` with grep after the move and
+  keep only a number grep confirms.
+- New `tests/test_render_output_cli.py`:
+  - Module docstring: it pins the render CLI's output-path contract (refusal before installing,
+    copy-over, previous output kept on a failed or refused copy, no hidden leftovers, and
+    `make render` passing a dash-leading `RENDER_OUTPUT` as a path) against the shell stubs. The
+    publication unit tests stay in `tests/test_render_output.py`.
+  - `class TestRenderOutputCli(StubTools, unittest.TestCase)` holds the six methods verbatim, in
+    their current order. End the file with the `if __name__ == "__main__": unittest.main()` footer.
+  - Import only what the bodies use. As of this plan that is `errno`, `os`, `shutil`,
+    `subprocess`, `unittest`, `Path`, `mock`, `repo_root` from `support`, `call_main` from
+    `support.cli_fixtures`, and
+    `render_surface` and `render_workflow` from `tools`, plus `StubTools`. Confirm each import
+    with grep.
+- `tests/test_render_failure_paths.py`: delete the six methods and the two helpers. Drop the
+  imports nothing left uses; `encode_png` stays, because the test that builds an all-black
+  fixture inline still calls it. Check every import with grep, including `errno`, `shutil` and
+  `subprocess`. Add one sentence to the module docstring pointing the output-publication cases
+  at `tests/test_render_output_cli.py`.
+- `docs/invariants.md`: change the two anchors that name moved tests from
+  `tests/test_render_failure_paths.py::TestFailurePaths::<name>` to
+  `tests/test_render_output_cli.py::TestRenderOutputCli::<name>`:
+  `test_a_failed_copy_keeps_the_previous_output_and_leaves_no_partial_file` in the "The
+  rendered surface is published atomically" row, and
+  `test_a_fifo_refusal_is_reported_as_a_failed_render` in the "Render publication opens its
+  capture source as a regular file" row. Leave the other anchors in those rows alone.
+- `tests/test_render_output.py`: the `TestOutputProblem` docstring says "The CLI test in
+  ``tests/test_render_failure_paths.py``". Point it at `tests/test_render_output_cli.py`.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/*.py` for the six moved names. As of this plan, the only hits
+  outside the test file are the two invariants rows above. The validation-gap entries that
+  name `TestFailurePaths` (`client-exit-stub-pidfile-race` in `no_repro.py` and
+  `crashed-applet-setup-wait` in `slow_check.py`) name tests that stay. None of the moved
+  tests is a `Test*DialogRender` gate, so `_GATE_FILES` does not apply. Archives keep their
+  historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_render_output_cli.py::TestRenderOutputCli` defines the six listed tests with the
+  bodies they had in `TestFailurePaths`, and `tests/test_render_failure_paths.py` no longer
+  defines any of them.
+- The union of `test_*` method names across the two modules equals the set the original
+  `tests/test_render_failure_paths.py` defined, with nothing lost or duplicated, and
+  `tests/test_render_failure_paths.py` is under 730 lines (`wc -l`).
+- `grep -n 'def stub_capture\|def hidden_files' tests/test_render_failure_paths.py` prints
+  nothing. The wrong-size and unpainted-capture tests that stay still pass using the shared
+  `stub_capture`.
+- No test module imports another test module. Nothing under `tools/`, `theme/` or the
+  `Makefile` changes.
+- No anchor in `docs/` or `tests/` names a moved test under `tests/test_render_failure_paths.py`
+  (`grep -rn` over the six names, excluding the two test modules). `make check
+  CHECK_TESTS='test_render_failure_paths test_render_output_cli test_render_output test_invariants'`
+  passes, and `make check` passes after the final edit, apart from main's known-red tests.
+
 
 ## Done
 
