@@ -213,6 +213,90 @@ caller `TestUrlProblemDiagnostics`, so nothing moves into `tests/support/` (L4).
   `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
   ledger baseline to make them pass.
 
+### PNG chunk suite extraction: move the byte-framing rules and the iterator tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_png_chunks.py` (512 lines) mixes two concerns. Most of
+`TestChunkFraming` pins the chunk-stream ordering rules through `decode_png`
+(consecutive IDATs, one IHDR/PLTE/tRNS each, IHDR first, nothing after IEND,
+unknown ancillary chunks ignored). Eight tests plus `TestIterChunks` instead pin
+how a byte stream is cut into chunks at all: chunk-type validity, the 2^31-1
+length cap, CRC integrity and the truncation diagnostics, and the
+`tools/png/chunks.iter_chunks` iterator contract tested directly. PRINCIPLES.md
+asks for files small enough to read in one sitting. Move that second group into
+a new `tests/test_png_chunk_framing.py`. No fixture behavior and no test body
+changes. This plan is independent of the other Planned entries and of every
+pending change; none of them touches these files (`tools/png/` is already a
+package, so the tools/ regroup entry does not repoint these imports).
+
+**Approach.**
+
+- Create `tests/test_png_chunk_framing.py`. Give it a module docstring saying it
+  pins `tools/png/chunks.py`'s byte framing — that a chunk type is four ASCII
+  letters with an uppercase reserved third letter, that a length stays at or
+  under the spec maximum, that every chunk's CRC is checked even when the chunk
+  is ignored, and how truncation is named — plus the `iter_chunks` iterator
+  contract, and that the ordering, duplication and IEND rules through
+  `decode_png` stay in `tests/test_png_chunks.py`. Import `struct`, `unittest`,
+  `from support import repo_root`, `from support.png_fixtures import`
+  `_chunk, decode_error_message, ihdr_chunk, ihdr_end, png_stream, rgb_image,
+  solid_rgb, splice_after_ihdr`, `from tools import png` and
+  `from tools.png import chunks`.
+- Define `class TestChunkFramingRules(unittest.TestCase)` holding these eight
+  methods verbatim, in their current order: `test_rejects_chunk_type_that_is_not_four_ascii_letters`,
+  `test_rejects_chunk_type_with_lowercase_reserved_bit`,
+  `test_rejects_chunk_length_above_the_spec_maximum`,
+  `test_a_chunk_length_at_the_spec_maximum_is_not_refused_as_oversized`,
+  `test_ignored_ancillary_chunk_still_has_its_crc_checked`,
+  `test_rejects_bad_chunk_crc`, `test_rejects_truncated_chunk_crc`,
+  `test_rejects_truncated_chunk_payload`.
+- Move `class TestIterChunks` (its docstring included) verbatim, after
+  `TestChunkFramingRules`; both classes sit above an
+  `if __name__ == "__main__": unittest.main()` guard (L1).
+- In `tests/test_png_chunks.py`, delete the moved tests and `TestIterChunks`,
+  keep the surviving tests under the unchanged class name `TestChunkFraming`,
+  and update the module docstring: drop the moved framing items (bad chunk
+  types, oversized lengths, bad or truncated CRCs, the iterator) from its list,
+  and say byte framing and the iterator live in `tests/test_png_chunk_framing.py`
+  while header-field validation keeps its tests here and the tRNS length rules
+  in `test_png_malformed`. Drop the now-unused `from tools.png import chunks`
+  and the `ihdr_end` fixture import (a grep while planning found both used only
+  by moved code); re-check every remaining import with grep —
+  `test_no_unused_imports` enforces this.
+- Repoint the `docs/invariants.md` row that begins "PNG chunk types contain four
+  ASCII letters" from
+  `tests/test_png_chunks.py::TestChunkFraming::...` to
+  `tests/test_png_chunk_framing.py::TestChunkFramingRules::...` for both of its
+  anchors, leaving the row's prose and other columns alone. The rows that anchor
+  the ordering, duplication and IEND rules by the bare `TestChunkFraming` name
+  stay as they are: the class still exists in `tests/test_png_chunks.py`. A grep
+  while planning found no other reference to the moved tests, to `TestIterChunks`
+  or to `iter_chunks` test anchors in `docs/`, `tests/support/validation_gaps/`
+  or `tests/test_ci_workflow.py` (L1). Re-grep before finishing.
+
+**Files touched.** `tests/test_png_chunks.py`, `tests/test_png_chunk_framing.py`
+(new), `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_png_chunk_framing`, run from `tests/`, runs the
+  eight `TestChunkFramingRules` tests and the four `TestIterChunks` tests, and
+  they pass.
+- `tests/test_png_chunks.py` defines neither `TestChunkFramingRules` nor
+  `TestIterChunks`, does not import `chunks` or `ihdr_end`, and still defines
+  `TestChunkFraming` with its surviving ordering, duplication and IEND tests
+  under their unchanged names; the module passes.
+- The `docs/invariants.md` four-ASCII-letters row names both tests by their
+  `tests/test_png_chunk_framing.py::TestChunkFramingRules::` paths, and a
+  repo-wide grep (excluding `PLANS-DONE.md` and `BUGS-FIXED.md`) for
+  `test_png_chunks.py::TestChunkFraming::test_rejects_chunk_type_that_is_not_four_ascii_letters`
+  or either length-cap test path finds nothing.
+- `wc -l` shows `tests/test_png_chunks.py` under 330 lines and the new module
+  under 250.
+- Nothing under `theme/`, `tools/`, `tests/support/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
