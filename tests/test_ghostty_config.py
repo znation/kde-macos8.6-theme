@@ -62,6 +62,14 @@ class TestApplyBlock(unittest.TestCase):
         once = apply_block(b"font-size = 12", THEME)
         self.assertEqual(apply_block(once, THEME), once)
 
+    def test_crlf_block_is_found_and_replaced_keeping_crlf_outside_it(self):
+        # The marker lines end in CRLF in a CRLF file; they are still the
+        # block's markers, so the block is replaced where it stands and the
+        # CRLF bytes on both sides are kept exactly.
+        crlf_block = BLOCK.replace(b"\n", b"\r\n")
+        data = b"x = 1\r\n" + crlf_block + b"y = 2\r\n"
+        self.assertEqual(apply_block(data, THEME), b"x = 1\r\n" + BLOCK + b"y = 2\r\n")
+
 
 class TestRemoveBlock(unittest.TestCase):
     def test_restores_bytes_before_the_block(self):
@@ -77,6 +85,11 @@ class TestRemoveBlock(unittest.TestCase):
     def test_removing_restores_the_newline_the_apply_added(self):
         applied = apply_block(b"font-size = 12", THEME)
         self.assertEqual(remove_block(applied), b"font-size = 12\n")
+
+    def test_crlf_block_is_removed_and_the_crlf_before_it_is_kept(self):
+        crlf_block = BLOCK.replace(b"\n", b"\r\n")
+        self.assertEqual(remove_block(b"background = #000000\r\n" + crlf_block),
+                         b"background = #000000\r\n")
 
     def test_end_marker_before_begin_marker_is_refused_not_spliced(self):
         data = b"# <<< Platinum theme <<<\nx = 1\n" + BLOCK.split(b"theme = ")[0]
