@@ -38,13 +38,13 @@ def _drawing_elements(tree):
 
 # Every drawing element of every shipped icon, in document order. The icon art
 # is our own, so nothing else re-derives it; the size, palette and structural
-# tests above would all pass if a path's `d`, a rect's geometry, an element's
-# order or an element's fill changed -- an icon could silently lose its
-# outline, bevel, plate or ribs -- so pin each element exactly. The `folder`
-# name owns the pinned folder tuple, and the `inode-directory`, `user-home`
-# and `user-desktop` aliases share it at every size (Mac OS 8.6 draws one
-# folder for a directory); the mapping below and the alias test cross-check
-# the files themselves.
+# tests in test_icon_theme would all pass if a path's `d`, a rect's geometry,
+# an element's order or an element's fill changed -- an icon could silently
+# lose its outline, bevel, plate or ribs -- so pin each element exactly. The
+# `folder` name owns the pinned folder tuple, and the `inode-directory`,
+# `user-home` and `user-desktop` aliases share it at every size (Mac OS 8.6
+# draws one folder for a directory); the mapping below and the alias test
+# cross-check the files themselves.
 ICON_SHAPES = {
     os.path.join("32x32", "devices", "drive-harddisk.svg"): (
         _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
@@ -263,7 +263,7 @@ class TestIconGeometry(unittest.TestCase):
                 self.assertEqual(_drawing_elements(tree), expected)
 
     def test_standard_places_file_names_are_shipped(self):
-        # The inventory above must cover the names the standard places data
+        # The shared inventory must cover the names the standard places data
         # writes, not just the names KIO's model happens to list. In
         # particular Downloads is `folder-downloads` (plural) in the
         # standard `user-places.xbel` entries, so that shared-folder alias
