@@ -5,7 +5,8 @@ the literal text of the symlink there. The CLI tests in ``test_apply_cursor.py``
 only ever create absolute links, so these tests pin the helper's own contract:
 it returns the link text exactly as written, without resolving it, including
 for relative and dangling links, and returns ``None`` for anything that is not
-a symbolic link.
+a symbolic link. ``TestRemoveLink`` pins ``remove_link``'s own return value,
+which tells the CLI whether a foreign path was left in place.
 """
 
 from __future__ import annotations
@@ -99,6 +100,13 @@ class TestRemoveLink(unittest.TestCase):
         self.assertTrue(foreign)
         self.assertEqual(self.target.read_text(encoding="utf-8"),
                          "someone else's file")
+
+    def test_real_directory_is_left_in_place_and_reported(self):
+        self.target.mkdir()
+        path, foreign = cursor_link.remove_link(self.home, self.data_home)
+        self.assertEqual(path, self.target)
+        self.assertTrue(foreign)
+        self.assertTrue(self.target.is_dir())
 
     def test_nothing_at_target_reports_no_foreign_path(self):
         path, foreign = cursor_link.remove_link(self.home, self.data_home)
