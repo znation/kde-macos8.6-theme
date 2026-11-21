@@ -57,6 +57,166 @@ source, tests and markdown before running `make check`.
 - `make check` passes after the final edit.
 - No behavior change: `git diff` shows moves, import lines and patch targets only.
 
+### Ghostty terminal theme, part 1/2: ship and install a Platinum Ghostty theme file (planned 2026-11-21 by the director role)
+
+**Goal.** The user asked on 2026-11-21 to "make the theme apply to ghostty".
+Ghostty 1.3.1 is installed here (`/usr/bin/ghostty`, a GTK 4/libadwaita build).
+It already draws inside our Aurorae frame, and its GTK chrome reads the
+`gtk-4.0/gtk.css` that `tools/apply_gtk.py` writes. Its terminal surface
+(font, colors) comes only from Ghostty's own config, so it ignores the theme
+today. A Ghostty theme file is a normal Ghostty config file that can set any
+option except `theme` and `config-file`. An absolute path selects it with
+`theme = /abs/path` (see `ghostty +show-config --default --docs`, option
+`theme`). This part ships that file and installs it. Part 2/2 ("Ghostty
+terminal theme, part 2/2: select the installed theme in the user's Ghostty
+config") writes the selection.
+
+**Approach and files touched.**
+
+1. New package directory `theme/ghostty/org.macos8.desktop/` holding one file,
+   `Platinum`, with exactly these keys, one per line in `key = value` form:
+   - `font-family = JetBrains Mono`, `font-style = Medium` and `font-size = 10`:
+     the same face, weight and size as `FIXED_VALUE` in `tools/apply_theme.py`.
+   - `background = #ffffff` and `foreground = #000000`: `[Colors:View]`
+     `BackgroundNormal` and `ForegroundNormal` in
+     `theme/color-schemes/MacOS8.colors`.
+   - `selection-background = #ccccff` and `selection-foreground = #000000`:
+     `[Colors:Selection]` `BackgroundNormal` and `ForegroundNormal` in the
+     same file.
+   - `cursor-color = #000000`, the View foreground.
+   - Sixteen `palette = N=#rrggbb` lines that map the classic Platinum-era
+     16-color system table to the ANSI slots. Use this mapping and do not
+     re-decide it: 0 `#000000`, 1 `#dd0806`, 2 `#006411`, 3 `#562c05`,
+     4 `#0000d4`, 5 `#4600a5`, 6 `#02abea`, 7 `#c0c0c0`, 8 `#808080`,
+     9 `#ff6403`, 10 `#1fb714`, 11 `#fcf305`, 12 `#0000d4`, 13 `#f20884`,
+     14 `#02abea`, 15 `#ffffff`. The table has no bright blue or bright cyan,
+     so 12 and 14 repeat 4 and 6. Its tan `#90713a` and dark gray `#404040`
+     go unused.
+   Open the file with a `#` comment that names its sources and says no
+   reference screenshot shows a terminal. Keep the file free of Apple
+   trademarks (PRINCIPLES.md branding rule).
+2. `Makefile`: add `GHOSTTY_ID := org.macos8.desktop`,
+   `GHOSTTY_PACKAGE := theme/ghostty/$(GHOSTTY_ID)` and
+   `GHOSTTY_INSTALL_DIR := $(DATA_HOME)/ghostty/themes`, next to the other
+   family variables. Append `ghostty` to `INSTALL_FAMILIES`. Add a `_install`
+   line `$(if $(filter ghostty,$(INSTALL_PACKAGES)),$(call install_package,$(GHOSTTY_ID),$(GHOSTTY_PACKAGE),$(GHOSTTY_INSTALL_DIR)))`.
+   Add `$(call remove_installed_package,$(GHOSTTY_INSTALL_DIR),$(GHOSTTY_ID))`
+   to `_uninstall`. Add `"$(GHOSTTY_INSTALL_DIR)"` to
+   `require_uninstall_parents` and to whatever install-side symlink guard the
+   other directory packages use. Have uninstall remove the
+   `$(DATA_HOME)/ghostty/themes` and `$(DATA_HOME)/ghostty` directories only
+   when they are empty (`rmdir` that ignores a non-empty directory), the same
+   way it treats the `themes/` theme-id directories.
+3. New `tests/test_ghostty_theme.py`. Parse `Platinum` with a small local
+   `key = value` reader. Each color pin re-derives its expected value by
+   reading `MacOS8.colors` with `configparser` and formatting the RGB triple.
+   Each font pin parses `tools.apply_theme.FIXED_VALUE`: the family from the
+   first field, the size from the second, and the style from the last field.
+   Pin the palette against a table written into the test with its provenance
+   comment. Also assert that every key is in the set above, that `theme` and
+   `config-file` are absent, and that each `palette` index 0-15 appears
+   exactly once.
+4. Install tests in `tests/test_theme_install.py`, or beside them if that
+   module is near its size cap: a staged `make install
+   INSTALL_PACKAGES=ghostty` writes
+   `<DATA_HOME>/ghostty/themes/org.macos8.desktop/Platinum` byte-identical to
+   the source, and `make uninstall` removes it along with the then-empty
+   `ghostty/themes` and `ghostty` directories. A foreign file under
+   `ghostty/themes` survives uninstall, and so does its directory.
+5. Docs: add `ghostty` to the family list in README.md's "Staging packages"
+   paragraph (outside the brief markers) and to `docs/installing.md`'s
+   per-family install list. Add a `docs/invariants.md` row for the theme file
+   that names `tests/test_ghostty_theme.py`. Its provenance cell says no
+   reference shows a terminal: the base colors come from `MacOS8.colors`, the
+   font from the approved fixed-width face (QUESTIONS.md 2026-11-12), and the
+   palette from the classic 16-color system table.
+
+**Acceptance criteria.**
+
+- `make install DESTDIR=$scratch XDG_DATA_HOME=/usr/share INSTALL_PACKAGES=ghostty`
+  installs exactly `usr/share/ghostty/themes/org.macos8.desktop/Platinum`
+  under the scratch root. A plain `make install` installs it along with the
+  other families.
+- When the `ghostty` binary is on `PATH`, a test runs `ghostty +show-config`
+  (a CLI action that opens no window). It runs with a scratch
+  `XDG_CONFIG_HOME` whose `ghostty/config.ghostty` holds only
+  `theme = <absolute path of the shipped file>`, and `HOME` points at a
+  scratch directory. The test asserts that the printed `background`,
+  `foreground`, `font-family` and `palette = 1=` values equal the shipped
+  file's. When the binary is absent, the test skips and names the binary.
+- The test module fails if any shipped color or font value drifts from
+  `MacOS8.colors` or `FIXED_VALUE`. Breaking one would catch it: swapping
+  `selection-background` to the View background must fail a pin.
+- `make check` passes apart from main's known-red tests.
+
+### Ghostty terminal theme, part 2/2: select the installed theme in the user's Ghostty config (planned 2026-11-21 by the director role; "requires part 1/2 landed")
+
+**Goal.** Make `make apply` point Ghostty at the theme file that part 1/2
+("Ghostty terminal theme, part 1/2: ship and install a Platinum Ghostty theme
+file") installs, and give the user a removal target, while leaving every
+other line of the user's Ghostty config alone.
+
+**Approach and files touched.**
+
+1. New `tools/apply_ghostty.py`. Follow `tools/apply_cursor.py`'s CLI shape
+   (`--optional`, `--remove`, the exit-2 diagnostic conventions). Resolve the
+   config home as `tools/apply_gtk.py` does: an absolute `XDG_CONFIG_HOME`,
+   else `$HOME/.config`. The target file is
+   `<config home>/ghostty/config.ghostty`, the path Ghostty 1.3's
+   `config-default-files` docs name. Apply writes or replaces one
+   marker-delimited block at the end of that file, creating the file and the
+   `ghostty/` directory when absent:
+   `# >>> Platinum theme (managed by make apply-ghostty) >>>`, then
+   `theme = <DATA_HOME>/ghostty/themes/org.macos8.desktop/Platinum`, then
+   `# <<< Platinum theme <<<`. `DATA_HOME` is resolved the way
+   `tools/apply_theme.py` resolves it. Every byte outside the block is
+   preserved. A repeat apply leaves the file byte-identical. The write is
+   atomic through `tools/atomic_write.py`. Refuse with exit 2 when the
+   installed theme file is missing (name `make install` as the fix), when
+   the target is a symlink, or when the block's markers are unbalanced.
+   `--remove` deletes only the block. If the file then holds nothing at all,
+   delete it; otherwise leave the rest byte-identical. `--optional` skips with
+   one note and exit 0 when `ghostty` is not on `PATH`. Ghostty also loads
+   the legacy `<config home>/ghostty/config`. Neither apply nor remove reads
+   or writes that file, so a `theme =` line the user wrote in either file
+   stays theirs. Ghostty's documented rule that explicit color keys in the
+   user config override the theme is what keeps the user's own colors.
+2. `Makefile`: add `$(PYTHON) tools/apply_ghostty.py --optional` to `apply`
+   after `apply_cursor.py`. Add `apply-ghostty` (refuse_destdir,
+   require_python_ready, `$(MAKE) --no-print-directory install
+   INSTALL_PACKAGES=ghostty`, then the tool) and `remove-ghostty` (the tool
+   with `--remove`), each with a comment in the style of the neighbouring
+   targets.
+3. New `tests/test_apply_ghostty.py`, using scratch config and data homes and
+   a stub `ghostty` on a scratch `PATH`. Cover: the file is created when
+   absent; foreign lines before and after the block are preserved byte for
+   byte; a repeat apply is idempotent; remove restores the original bytes
+   exactly; a file holding only the block is deleted; the missing theme file,
+   symlinked target and unbalanced markers each exit 2 with a diagnostic;
+   `--optional` without `ghostty` on `PATH` writes nothing and exits 0; the
+   legacy `config` file is never opened for writing.
+4. Docs: a Ghostty paragraph in `docs/installing.md` beside the Konsole one,
+   covering what apply writes, the restart need (new windows read the theme;
+   Ghostty's reload-config binding also reloads it), and the undo command.
+   Add `make remove-ghostty` to README.md's "Removing the theme" table and
+   a `docs/invariants.md` row naming `tests/test_apply_ghostty.py`.
+
+Out of scope: restyling Ghostty's libadwaita tab bar beyond what the existing
+GTK 4 sheet already does. Record any visible gap found during this work as
+its own BUGS.md or PLANS.md entry.
+
+**Acceptance criteria.**
+
+- On a scratch config home, `make apply-ghostty` leaves `config.ghostty`
+  ending in the three-line block with the absolute installed path, and a
+  real `ghostty +show-config` (when installed, with scratch homes) reports
+  the theme's `background = #ffffff`.
+- `make remove-ghostty` after an apply on a pre-existing `config.ghostty`
+  restores that file's original bytes.
+- `make apply` on a machine without `ghostty` prints one skip note and still
+  exits 0.
+- `make check` passes apart from main's known-red tests.
+
 ### Group the flat tests/support/ modules into per-family packages (planned 2026-11-21 by the organize role)
 
 **Needs review 2026-11-21 by feature: too large for one run.** The entry covers 89 flat modules and 513 importing test files (counts re-verified: `ls tests/support/*.py | wc -l` gives 89; `rg -l 'from support\.|import support\.' tests` gives 513), plus per-module `mock.patch` retargeting and a family-by-family import graph analysis to decide which modules stay at top level. That is well beyond one run. Suggested split for the plan role: one entry per family slice (starting with `install_`), each landing its modules, importers, patch targets and doc paths together.
