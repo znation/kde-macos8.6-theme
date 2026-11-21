@@ -147,6 +147,11 @@ def _check_entry(
              f"{directory}/ (a symlink escape)")
         ]
     if not image.is_file():
+        # A directory, FIFO or dangling link at the name is occupied, not
+        # absent: calling it "does not exist" would send the author looking
+        # for a file that is already there.
+        if image.exists() or image.is_symlink():
+            return [(lineno, f"{sources}:{lineno}: {safe_filename!r} is not a regular file in {directory}/")]
         return [(lineno, f"{sources}:{lineno}: {safe_filename!r} does not exist in {directory}/")]
     try:
         head, tail, size = _image_head_and_tail(image)

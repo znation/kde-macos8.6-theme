@@ -8,6 +8,7 @@ format, and an untrusted name must be escaped before it reaches a terminal.
 
 import contextlib
 import io
+import os
 import tempfile
 import unittest
 from unittest import mock
@@ -35,7 +36,6 @@ from tools import reference_sources, reference_validation
 # for must satisfy the ending rules as well as the signature check.
 COMPLETE_PNG = PNG_MAGIC + TERMINAL_PNG
 
-
 class TestSourceParser(unittest.TestCase):
     """The record parser reports syntax and declarations without filesystem access."""
 
@@ -59,7 +59,6 @@ class TestSourceParser(unittest.TestCase):
         self.assertEqual(entries, {"good.png": 3})
         self.assertEqual([line for line, _ in problems], [1, 2, 4])
 
-
 def assert_url_problem_not_the_scheme(case, url, *needles):
     """Assert a malformed *url* is reported for *needles*, not for its scheme.
 
@@ -78,7 +77,6 @@ def assert_url_problem_not_the_scheme(case, url, *needles):
     case.assertFalse(
         any("absolute URL" in line for line in problems), problems
     )
-
 
 class TestLineSplitting(CheckerTestCase):
     """sources.txt is newline-delimited; other Unicode separators are data.
@@ -107,7 +105,6 @@ class TestLineSplitting(CheckerTestCase):
             {"good.png": COMPLETE_PNG, "bad.png": b"not an image"},
         )
         assert_problem(self, problems, "bad.png", "not a PNG")
-
 
 class TestFilenameMustBeBare(CheckerTestCase):
     """A sources.txt entry must name a bare file in the directory.
@@ -156,7 +153,6 @@ class TestFilenameMustBeBare(CheckerTestCase):
             any("symlink escape" in line for line in problems), problems
         )
 
-
 class TestEmptyUrlRemainder(CheckerTestCase):
     """A scheme with nothing after it is a broken citation the checker reports."""
 
@@ -168,7 +164,6 @@ class TestEmptyUrlRemainder(CheckerTestCase):
             {"good.png": PNG_MAGIC},
         )
         assert_problem(self, problems, "absolute URL")
-
 
 class TestUrlProblemDiagnostics(CheckerTestCase):
     """A malformed URL is reported for its actual defect, not blamed on the scheme."""
@@ -187,7 +182,6 @@ class TestUrlProblemDiagnostics(CheckerTestCase):
         assert_url_problem_not_the_scheme(
             self, "https:///a.png", "must name a host"
         )
-
 
 class TestAcceptedImageFormats(CheckerTestCase):
     """The checker must accept every raster format the reference set uses.
@@ -267,7 +261,6 @@ class TestAcceptedImageFormats(CheckerTestCase):
                 self.assertEqual(module.check_references(root), [])
         self.assertEqual(opened.call_count, 1)
 
-
 class TestImageStreamCompleteness(unittest.TestCase):
     """:func:`tools.image_format.is_complete` judges each format's ending.
 
@@ -338,7 +331,6 @@ class TestImageStreamCompleteness(unittest.TestCase):
         self.assertFalse(
             is_complete(b"RIFF\x24\x00\x00\x00WAVEfmt ", b"", 16)
         )
-
 
 class TestTruncatedDeclaredImage(CheckerTestCase):
     """A declared file missing its format's terminator is a checker problem.
@@ -424,7 +416,6 @@ class TestTruncatedDeclaredImage(CheckerTestCase):
         self.assertEqual(code, 1)
         self.assertIn("ends without the PNG IEND trailer", err.getvalue())
 
-
 class TestUndeclaredImageExtension(CheckerTestCase):
     """A stray file named like an image is undeclared even without image bytes.
 
@@ -456,7 +447,6 @@ class TestUndeclaredImageExtension(CheckerTestCase):
         module = self.checker
         self._assert_undeclared(module, "photo.jpeg")
 
-
 class TestControlCharactersInFilenames(CheckerTestCase):
     """An untrusted filename must not reach the terminal as live bytes.
 
@@ -482,7 +472,6 @@ class TestControlCharactersInFilenames(CheckerTestCase):
         self.assertNotIn("fake\nproblem", joined)
         self.assertIn("\\u000a", joined)
 
-
 class TestNullByteFilename(CheckerTestCase):
     """A NUL byte in a source entry must be a diagnostic, not a crash.
 
@@ -499,6 +488,48 @@ class TestNullByteFilename(CheckerTestCase):
         )
         assert_problem(self, problems, "bad\\x00name.png", "NUL")
 
+class TestOccupiedDeclaredName(CheckerTestCase):
+    """A declared name that is not absent is named as occupied, not missing.
+
+    A directory, or a dangling symlink, sitting at the declared name is
+    present on disk, so reporting it as ``does not exist`` would send the
+    author looking for a file that is already there.
+    """
+
+    def test_directory_at_the_declared_name_is_not_called_missing(self):
+        module = self.checker
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+        ) as root:
+            (root / "good.png").mkdir()
+            problems = module.check_references(root)
+        assert_problem(self, problems, "good.png", "is not a regular file")
+        self.assertFalse(
+            any("does not exist" in line for line in problems), problems
+        )
+
+    def test_dangling_symlink_at_the_declared_name_is_not_called_missing(self):
+        module = self.checker
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+        ) as root:
+            os.symlink(root / "nowhere.png", root / "good.png")
+            problems = module.check_references(root)
+        assert_problem(self, problems, "good.png", "is not a regular file")
+        self.assertFalse(
+            any("does not exist" in line for line in problems), problems
+        )
+
+    def test_absent_declared_name_is_still_called_missing(self):
+        module = self.checker
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+        ) as root:
+            problems = module.check_references(root)
+        assert_problem(self, problems, "good.png", "does not exist")
 
 if __name__ == "__main__":
     unittest.main()
