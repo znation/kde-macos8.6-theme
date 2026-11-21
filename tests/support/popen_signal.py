@@ -84,7 +84,10 @@ def assert_custom_handler_keeps_its_behavior_during_start(case, number):
     succeed, and the runner must restore the handler afterwards.
     """
     received = []
-    handler = lambda delivered, frame: received.append(delivered)  # noqa: E731
+
+    def handler(delivered, frame):
+        received.append(delivered)
+
     old = signal.signal(number, handler)
     case.addCleanup(signal.signal, number, old)
     with mock.patch.object(

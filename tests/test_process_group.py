@@ -271,7 +271,10 @@ class TestRunLogged(unittest.TestCase):
 
     def test_custom_sigint_handler_allows_running_from_a_worker_thread(self):
         received = []
-        handler = lambda number, frame: received.append(number)
+
+        def handler(number, frame):
+            received.append(number)
+
         old = signal.signal(signal.SIGINT, handler)
         self.addCleanup(signal.signal, signal.SIGINT, old)
         with ThreadPoolExecutor(max_workers=1) as executor:
