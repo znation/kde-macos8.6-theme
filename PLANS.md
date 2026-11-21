@@ -129,6 +129,91 @@ touches `tools/` and the `tools/` imports, not `tests/support/`.
   only.
 - `make check` passes after the final edit, apart from main's known-red tests.
 
+### Apply-cursor suite extraction: move the removal tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_apply_cursor.py` is 725 lines and covers home resolution, install,
+selection, removal, the kcminputrc reader and the Makefile targets. Move `TestRemove`
+into a new `tests/test_apply_cursor_remove.py`. `TestHomes`, `TestInstall`,
+`TestSelection` and `TestRemove` all subclass the module's `CursorCase`. Move that base
+into a support module (L4) so that no test module imports another. No tool changes, and
+every test body stays the same.
+
+**Approach.**
+- Create `tests/support/cursor_case.py`, modeled on `tests/support/apply_gtk_case.py`:
+  - Its module docstring names the three suites that share the base
+    (`tests/test_apply_cursor.py`, `tests/test_apply_cursor_remove.py` and
+    `tests/test_apply_cursor_locks.py`'s mirror) and notes that `unittest discover` never
+    collects it.
+  - It holds `CursorCase`'s body unchanged (`setUp`, `install_theme`, `stub_selector`,
+    `run_tool`, `recorded`) with its docstring, renamed `CursorTestCase`. Support base
+    classes need the `TestCase` suffix (L1, as with `ApplyGtkTestCase`).
+  - It imports only what that body uses: `unittest`, `write_executable`,
+    `run_main_with_env`, `write_cursor_theme`, `recorded_lines`, `make_session_home`, and
+    `apply_cursor`, `cursor_link`, `cursor_selection` from `tools`.
+- In `tests/test_apply_cursor.py`:
+  - Delete `class CursorCase` and `class TestRemove`.
+  - Import `CursorTestCase` from `support.cursor_case`, and re-base `TestHomes`,
+    `TestInstall` and `TestSelection` on it.
+  - Drop the imports nothing left in the file uses. From the current file these are
+    `snippet_child`, `write_file` and `unlink_failing_for`, plus whichever of
+    `write_executable`, `run_main_with_env`, `write_cursor_theme`, `recorded_lines`,
+    `make_session_home` and `cursor_selection` were used only by the base. Confirm each
+    one with grep before dropping it.
+  - Keep the `repo_root` import: it puts the root on `sys.path`.
+  - Trim the module docstring so it no longer claims removal, and point it at the new
+    module.
+- Create `tests/test_apply_cursor_remove.py`:
+  - Its docstring says it pins `apply_cursor --remove`: only our symlink is unlinked
+    (dangling included), foreign paths are kept, a missing or non-directory data home is
+    handled, link-removal, readlink and data-home inspection failures are reported by
+    path, and the kcminputrc reset note is printed while the file is left unedited
+    (FIFO included).
+  - It holds `class TestRemove(CursorTestCase)` copied word for word, above a
+    `unittest.main()` guard.
+  - Its imports are `os`, `unittest`, `Path`, `mock`, `repo_root` (the `ROOT` that the
+    FIFO test passes to `snippet_child.run`), `snippet_child`,
+    `assert_exit_2_without_traceback`, `assert_succeeded`, `write_file`,
+    `unlink_failing_for` and `apply_cursor`.
+- Re-point the anchors:
+  - The cursor-selection row in `docs/invariants.md` names
+    `tests/test_apply_cursor_remove.py::TestRemove` in place of
+    `tests/test_apply_cursor.py::TestRemove`.
+  - `tests/support/theme_install.py::write_file`'s docstring says the two TestRemove
+    kcminputrc fixtures are in `tests/test_apply_cursor_remove.py`.
+  - `tests/test_cursor_config.py`'s module docstring cites
+    `tests/test_apply_cursor_remove.py` for
+    `TestRemove.test_a_fifo_kcminputrc_does_not_block_removal`.
+  - `tests/test_apply_cursor_locks.py`'s docstring says the removal arms live in the new
+    module, and names `CursorTestCase` in `tests/support/cursor_case.py` as the base it
+    mirrors. Leave that module's own base class alone.
+  - Grep `docs/`, `README.md`, `tests/`, `tests/support/validation_gaps/` and
+    `tests/test_ci_workflow.py` for `test_apply_cursor.py::TestRemove`,
+    `test_apply_cursor.TestRemove` and `CursorCase`. Re-point every hit outside
+    PLANS-DONE.md and BUGS-FIXED.md. The `no_fake.py` entry for
+    `tests/test_apply_cursor.py::TestSelection` stays.
+
+**Files.** `tests/support/cursor_case.py` (new), `tests/test_apply_cursor_remove.py`
+(new), `tests/test_apply_cursor.py`, `tests/test_apply_cursor_locks.py` (docstring
+only), `tests/test_cursor_config.py` (docstring only), `tests/support/theme_install.py`
+(docstring only), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `python3 -m unittest test_apply_cursor_remove` (run from `tests/`) runs the 12
+  `TestRemove` tests under their current names, and they pass.
+- `tests/test_apply_cursor.py` no longer defines `TestRemove` or `CursorCase`. Its
+  `TestHomes`, `TestInstall`, `TestSelection`, `TestCursorThemeSetting` and
+  `TestMakeApplyCursor` tests still run and pass under their current names.
+- Neither test module imports the other. `tests/support/cursor_case.py` defines
+  `CursorTestCase` and no `test_*` method.
+- Apart from the removed class and the base's new name, `git diff -M` shows every test
+  method body unchanged.
+- No file outside PLANS-DONE.md and BUGS-FIXED.md cites
+  `tests/test_apply_cursor.py::TestRemove` or `CursorCase` (checked with grep). The
+  invariants register cross-check passes with the re-pointed row.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ### Process-group suite extraction: move the split-output supervisor tests into their own module (planned 2026-11-21 by the plan role)
 
 **Goal.** Shrink the 717-line `tests/test_process_group.py`. Its last
