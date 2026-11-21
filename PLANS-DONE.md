@@ -5,6 +5,110 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the review role
+
+**Goal.** Give Page Info's meta and image trees a focused declaration suite,
+reducing the mixed-surface `tests/test_firefox_theme_page_info.py`. This is
+independent of the bookmark-editor and preferences extractions; its paint
+and provenance checks form one concern and move together.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_page_info_trees.py` with
+  `TestFirefoxPageInfoTrees(FirefoxChromeTestCase)`. Move
+  `test_page_info_tree_paint_is_scoped_to_page_info` and
+  `test_page_info_tree_provenance` from `TestFirefoxPageInfo` verbatim.
+  Import `REQUIRED_RULES`, `VIEWITEM_REFERENCES` and `FirefoxChromeTestCase`
+  from `support.firefox_chrome_cases`, and `element` and `matches` from
+  `support.selector_matching`. Include the usual unittest footer. These
+  methods need no new shared helper or import from another test module.
+- Remove the moved methods from `tests/test_firefox_theme_page_info.py`.
+  Narrow its docstring and point readers to the new suite for the trees;
+  describe the tree scope in the new module's docstring. Retain imports
+  needed by the remaining checks.
+- In `docs/invariants.md`, re-point the meta-and-image-tree row's scope-test
+  anchor to the new module and class, preserving the guarantee and provenance.
+  Add the new module to the suite lists in
+  `tests/support/firefox_chrome_cases.py` and `tests/support/css_header.py`,
+  preserving names added by other extractions.
+- Search the old module/class anchors and moved method names across docs,
+  tests, README and Makefile, including `docs/rendering.md`,
+  `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/`. Update live anchors for the moved checks;
+  historical plans remain historical. At planning time, the moved scope-test
+  anchor appeared in `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- Discovery finds the moved methods under
+  `test_firefox_theme_page_info_trees.TestFirefoxPageInfoTrees` and no longer
+  under the original class; their assertion bodies and comments match the
+  removed methods. The original class retains its other method bodies.
+- The new suite passes against the shipped sheet, checking the meta/image
+  tree rules, unrelated-tree exclusions and provenance; the remaining Page
+  Info suite passes independently.
+- The tree invariant resolves to the new scope-test location, and the support
+  docstrings list the new suite. No live fully qualified anchor for a moved
+  method points to the original class.
+- `make check` passes after the final edit. The implementation diff contains
+  test organization and documentation changes, with no shipped theme changes.
+
+**Review verification.** Restored the moved method text against the supplied
+diff; checked imports, invariant anchors and suite inventories. Tumwater owns
+test execution; the reviewer did not run the suite.
+
+### Firefox popup suite extraction: isolate permission-control declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
+
+**Goal.** Separate the permission popup's remove-button and dropdown checks
+from the row-paint suite in `tests/test_firefox_theme_popups.py`. Moving its
+permission method brings that currently 615-line module below 500 lines.
+This is independent of the queued bookmark-editor and Page Info extractions.
+
+**Approach and files touched.**
+
+- Create `tests/test_firefox_theme_permission_popup.py` with
+  `TestFirefoxPermissionPopup(FirefoxChromeTestCase)`. Move
+  `test_permission_popup_control_paint_is_scoped_to_the_permission_popup`
+  from `TestFirefoxPopupRows`, preserving its body and comments. Import
+  `REQUIRED_RULES` and `FirefoxChromeTestCase` from
+  `support.firefox_chrome_cases`, and `element` and `matches` from
+  `support.selector_matching`. Add a scope docstring and the usual
+  `unittest.main()` guard. No helper extraction or test-module import is
+  needed: the method uses those support imports and local fixtures only.
+- Remove the method from `tests/test_firefox_theme_popups.py` and remove
+  permission from its scope docstring, pointing readers to the new suite.
+  Its existing imports remain used by the staying methods.
+- Re-point the permission-popup control row's declaration-test anchor in
+  `docs/invariants.md` to the new module and class, preserving its visual
+  reference anchors and provenance. Add the new module to the section list
+  in `tests/support/firefox_chrome_cases.py`, retaining sibling additions.
+  Leave the permission provenance assertions in the shell suite in place;
+  the new suite has no provenance method, so it does not belong in
+  `tests/support/css_header.py`'s provenance-call-site list.
+- Search the moved method and old class/module names across docs and tests,
+  including `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py` and `tests/support/validation_gaps/`, and
+  correct any additional live anchor for the moved method. Historical
+  backlog entries remain historical. Theme sheets and production tools
+  are outside this relocation.
+
+**Acceptance criteria.**
+
+- Discovery exposes the moved method under
+  `test_firefox_theme_permission_popup.TestFirefoxPermissionPopup`, with
+  its assertion body preserved and no definition remaining in the original
+  module. The original class retains its pre-change method set minus that
+  method, and its module is below 500 lines.
+- The new suite passes against the shipped sheet: the permission remove
+  button and dropdown match their scoped normal and enabled-hover rules,
+  disabled controls do not match hover rules, and surrounding elements and
+  controls outside the popup remain excluded by the existing fixtures.
+- The permission-control invariant resolves to the new declaration test;
+  the existing shell provenance check still passes, and no live anchor
+  outside historical backlog records names the moved method's old location.
+- The focused popup, permission-popup, shell and invariants suites pass
+  through the existing check runner; `make check` passes after the final edit.
+
 ### Firefox shell suite extraction: isolate tab-state declaration checks (planned 2026-11-20 by the plan role) — done 2026-11-20 by the feature role
 
 **Goal.** Give tab hover and multiselection declarations a focused suite,
