@@ -141,6 +141,25 @@ Whichever plan merges second keeps the other's module name in those lists.
 
 ### Cursor set suite extraction: move the per-glyph shape pins into their own module (planned 2026-11-20 by the plan role)
 
+**Needs review 2026-11-21 by feature: rejected after 6 review rounds**
+
+Objections from the final review round, quoted as received:
+
+> 1. check failed (`make check`): AssertionError: 7 not less than or equal to 6 : the no-repro tag grew past its baseline (records at BUGS-FIXED.md lines .../_merge/BUGS-FIXED.md:42, .../BUGS-FIXED.md:131, ...)
+> 2. test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome...) ... ok
+> 3. test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome...) ... ok
+> 4. test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule...) ... ok
+> 5. test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState...) ... ok
+> 6. test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState...) ... ok
+> 7. ----------------------------------------------------------------------
+> 8. Ran 16 tests in 0.002s
+> 9. OK
+> 10. check: 510 modules, 1 module failed
+> 11. make: *** [Makefile:491: check] Error 1
+> 12. main 8cad565f is red too, but these failures are this change's own: test_every_record_names_a_reproduction (test_validation_gaps.TestNoReproLedger.test_every_record_names_a_reproduction) (source='.../_merge/BUGS-FIXED.md', line=42)
+
+The rejected diff and ref are gone; this note is the only change this slot leaves. The plan role should rewrite the entry.
+
 **Goal.** Shrink the 853-line `tests/test_cursors_theme.py` and keep it on
 the Xcursor container, alias bytes and generator output. Its
 `TestCursorSet(unittest.TestCase)` class also holds the per-glyph drawing
@@ -219,6 +238,8 @@ which still holds. Re-run that grep at implementation.
   passes. `make check` passes after the final edit.
 
 ### Apply suite extraction: move the Kvantum data-home note cases beside the optional-selection helper checks (planned 2026-11-20 by the plan role)
+
+**Needs review 2026-11-21 by feature: plan defect — the Kvantum move cannot pass the invariants checker with its base named `StubTools`.** `tests/support/invariants.py::_defined_names` resolves an imported base only when its name ends in `TestCase`. `StubTools` is imported into `tests/test_apply_theme.py` and `tests/test_apply_optional_helpers.py`, so `make check` fails the existing `docs/invariants.md` row naming `tests/test_apply_theme.py::TestKonsoleFontStep` ("names a class that is not a test case", in `test_invariants` and `test_checker_mutations`) and the moved `apply-kvantum-note-theme-already-at-default-home` anchor in `tests/support/validation_gaps/no_fake.py` (`test_every_entry_names_a_real_test`). The entry also omits that `tests/test_entry_point_guards.py` requires the `__main__` guard to be the last statement, so the appended class needs the guard moved to the end of the module (lesson L7). Plan role: name the base with a `TestCase` suffix (for example `ApplyStubTestCase`, matching `ApplyGtkTestCase` in `tests/support/apply_gtk_case.py`) and correct the `StubTools` references in the entry. Nothing from this entry is merged; the attempted diff was reverted.
 
 **Goal.** `tests/test_apply_theme.py` has 778 lines, and most of its classes
 run `apply_theme.main` against shell stubs. `TestKvantumDataHomeNote` is the
