@@ -92,7 +92,9 @@ def _read_jpeg_source(path: str, crop_rect: tuple[int, int, int, int] | None):
 def _read_bytes(path: str, count: int) -> bytes | None:
     """Return at most *count* leading bytes, or None when they cannot be read.
 
-    A negative *count* reads the file whole. The path is opened through
+    A negative *count* reads the file whole, capped at ``_MAX_JPEG_BYTES``:
+    a larger file raises :class:`FidelityError`, and a file that grows past
+    the cap after the size check is refused the same way. The path is opened through
     :func:`containment.open_regular_binary`, the same non-blocking open and
     regular-file check ``read_png`` uses, so a pipe, device or vanished path
     falls through to the PNG branch instead of blocking or raising here.
