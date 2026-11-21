@@ -5,9 +5,10 @@ the pointer), so these tests pin the Xcursor container, every frame's decoded
 pixels, the alias bytes and the generator's deterministic output. Vector I-beam
 and pointing-hand pins live in ``tests/test_cursors_vector_artifacts.py``.
 Per-glyph drawn-shape pins live in ``tests/test_cursor_glyph_shapes.py``.
-The ``tools/make_cursors.py`` generator's own grid and cache checks and its
-``main`` failures live in ``tests/test_make_cursors.py``; its size rule is
-the one ``tools/cursor_vector.py`` defines. The test-side reader is
+The ``tools/make_cursors.py`` generator's own grid checks and its ``main``
+failures live in ``tests/test_make_cursors.py``; its build cache and vector
+arrow live in ``tests/test_make_cursors_bytes.py``; its size rule is the one
+``tools/cursor_vector.py`` defines. The test-side reader is
 independent of ``tools/xcursor.py``; see ``tests/support/xcursor.py``.
 """
 
