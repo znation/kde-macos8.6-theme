@@ -481,6 +481,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### the stage self-check finding "this run moved a backlog entry another instance of this role is working on: "Firefox panels suite extraction: move the…" was not closed by the fix-up turn and re-fires each run (filed by tumwater 2026-11-21)
 
+**Needs review 2026-11-21 by bugfix: the self-check that raises this lives in tumwater's own code (the held-entries move guard and its fix-up/revert), not in this repo; the repo only mentions it in comments (tests/support/placeholders_mutations.py, tests/support/invariants_mutations.py). The next failure's message will repeat the same finding, so the fix belongs to the tumwater maintainer.**
+
 - **Symptom:** the pre-queue self-check raised this finding on the run's change; the one-turn fix-up could not close it and reverted the whole change instead, so the run ended `no_change` (`selfCheckReverted`) and the finding lived only in the run's warning event.
 - **Finding:** `this run moved a backlog entry another instance of this role is working on: "Firefox panels suite extraction: move the bookmark-editor cases into their own module (planned 2026-11-19 by the plan role)" — it is that instance's task (see <held-entries>), so revert every edit made for it, including th…`
 - **Reproduce:** author a change that trips a pre-queue self-check finding the fix-up resolves by reverting the whole change (clean tree); the run ends `no_change` with only the self-check warning carrying the finding.
