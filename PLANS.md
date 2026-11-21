@@ -218,6 +218,101 @@ No tool changes, and every test body stays the same.
   known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
   `BUGS-FIXED.md` or the ledger baseline to make them pass.
 
+### Firefox installer suite extraction: move the write-failure and interrupt rollback tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_install_firefox.py` is 687 lines, and its `TestInstall` class is about 570
+of them. PRINCIPLES.md asks for files small enough to read in one sitting. One concern inside
+that class is self-contained: the tests that pin the install transaction's rollback when a write
+fails or an interrupt lands mid-publish. That is the guarantee the docs/invariants.md row
+"Firefox installation publishes both sheets then `user.js` as one transaction" names. This plan
+moves those tests unchanged into a new `tests/test_install_firefox_rollback.py` class. No tool
+behavior or test body changes. It does not depend on any other Planned entry.
+
+**Approach and files touched.**
+
+- New `tests/test_install_firefox_rollback.py`:
+  - Module docstring: it pins the Firefox install transaction's rollback, covering write
+    failures and interrupts before or after each file publishes. Installs, refusals and size caps
+    stay in `tests/test_install_firefox.py`, and the shared temp-home case is
+    `support.firefox_profile_case`.
+  - `class TestInstallRollback(FirefoxProfileTestCase)` gets these `TestInstall` methods,
+    verbatim and in their current order:
+    - `test_an_uncreatable_chrome_directory_is_reported_by_path`
+    - `test_a_failed_user_js_write_is_reported_by_path`
+    - `test_a_failed_user_js_write_restores_both_previous_sheets`
+    - `test_a_failed_user_js_write_keeps_a_block_that_was_already_installed`
+    - `test_a_failed_sheet_restore_is_reported_with_the_original_error`
+    - `test_an_interrupt_during_the_user_js_write_restores_the_previous_sheet`
+    - `test_an_interrupt_after_the_user_js_write_takes_effect_restores_it`
+    - `test_an_interrupt_after_a_created_user_js_is_published_removes_it`
+    - `test_a_failed_user_js_restore_is_reported_with_the_original_error`
+    - `test_an_interrupt_after_the_sheet_write_takes_effect_removes_it`
+    - `test_a_failed_new_sheet_restore_is_reported_with_the_original_error`
+    - `test_a_failed_sheet_write_is_reported_by_path`
+    - `test_a_failed_user_content_write_removes_the_published_user_chrome`
+    - `test_an_interrupt_after_the_user_content_write_takes_effect_removes_both`
+
+    These are the 14 contiguous methods from the uncreatable-chrome test through the
+    user-content interrupt test. `test_a_missing_shipped_sheet_is_reported_by_path` and
+    everything after it stay.
+  - The moved bodies call only base-class helpers (`run_tool`, `run_with_failed_write`,
+    `interrupt_write_to`, `fail_unlink_to`, `assert_profile_absent`, the path helpers) plus
+    the module-level `SHEET_PATH`. Nothing has to move into `tests/support` (L4). Define
+    `SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET` in the new module, the same
+    one-line derivation the old module keeps for its own callers. `CONTENT_SHEET_PATH` is
+    not used by the moved bodies.
+  - Imports: only what the moved bodies use. As of this plan that is `unittest`, `Path`,
+    `mock`, `containment`, `repo_root`, `write_file as _write`, `FirefoxProfileTestCase`,
+    `read_utf8 as _read`, `firefox_user_files` and `install_firefox`. Confirm each with grep.
+    `errno` is not used by the moved range.
+  - Add the class above an `if __name__ == "__main__": unittest.main()` footer (L1).
+- `tests/test_install_firefox.py`: delete the moved methods. Keep every import a remaining body
+  still uses; as of this plan `mock`, `containment`, `firefox_user_files`, `SHEET_PATH` and
+  `CONTENT_SHEET_PATH` are all still used, so check each with grep before dropping anything.
+  In the module docstring, add that the rollback cases live in
+  `tests/test_install_firefox_rollback.py`.
+- `tests/support/firefox_profile_case.py` docstrings (recount with grep after the move):
+  - The module docstring should name the new module among the case's users.
+  - `run_with_failed_write`: all six `tests/test_install_firefox.py` callers move, so the
+    sentence becomes six callers in `tests/test_install_firefox_rollback.py` and one in
+    `tests/test_remove_firefox.py`.
+  - `interrupt_write_to`: all five callers move, so "Five callers in
+    `tests/test_install_firefox.py`" names the new module.
+- `tests/support/theme_install.py`, `write_file` docstring: add
+  `test_install_firefox_rollback.py` to the modules that bind `_write` as an import alias. If
+  the "``user.js`` fixture" left unconverted in `tests/test_install_firefox.py` is one of the
+  moved bodies, repoint that mention too. Otherwise leave it.
+- `docs/invariants.md`:
+  - In the row beginning "The Firefox install copies both sheets", rewrite the eight
+    `tests/test_install_firefox.py::TestInstall::<method>` anchors whose method moved to
+    `tests/test_install_firefox_rollback.py::TestInstallRollback::<method>`. These are the
+    failed new-sheet restore, failed sheet restore, failed user-content write, failed user.js
+    write restoring both sheets, and the four interrupt tests. Leave its other anchors.
+  - In the transaction row ("Firefox installation publishes both sheets then `user.js` as one
+    transaction"), replace the bare `tests/test_install_firefox.py::TestInstall` anchor with
+    `tests/test_install_firefox_rollback.py::TestInstallRollback`, because every test for that
+    guarantee moves.
+- Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and
+  `tests/support/validation_gaps/*.py` for the moved method names. As of this plan, the
+  validation-gap anchors on `TestInstall` name only methods that stay (oversize user chrome,
+  empty sheet adopted, symlinked profile files, BOM before marker). These are not render gates,
+  so `_GATE_FILES` does not apply. Archives keep their historical anchors.
+
+**Acceptance criteria.**
+
+- `tests/test_install_firefox_rollback.py` defines `TestInstallRollback` with the 14 methods
+  above, with the same names and bodies they had in `TestInstall`. None of those names
+  is still defined in `tests/test_install_firefox.py`.
+- Taken together, the `test_*` names in the two modules equal the set the original
+  `tests/test_install_firefox.py` defined, with nothing lost or duplicated.
+  `tests/test_install_firefox.py` is under 500 lines (`wc -l`).
+- `grep -n 'test_install_firefox.py::TestInstall::test_a_failed_sheet_restore\|test_install_firefox.py::TestInstall::test_an_interrupt' docs/invariants.md`
+  prints nothing, and the invariants-anchor and validation-gap tests pass.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or
+  the ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
