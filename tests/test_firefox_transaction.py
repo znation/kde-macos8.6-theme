@@ -395,6 +395,56 @@ class TestPublishInstall(unittest.TestCase):
             self.assertEqual(b"\xff\xfe", user_js.read_bytes())
 
 
+class TestRollbackRestoreRefusal(unittest.TestCase):
+    def test_a_refused_restore_of_a_previous_sheet_is_collected_and_the_rest_restored(self):
+        # The restore of a sheet that had previous text is a write, not an
+        # unlink. When that write is refused, the refusal must be named in
+        # the raised error, the other sheet must still be restored, and the
+        # refused sheet keeps the text the publication wrote.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sheet = root / "userChrome.css"
+            second_sheet = root / "userContent.css"
+            user_js = root / "user.js"
+            sheet.write_bytes(b"previous chrome")
+            second_sheet.write_bytes(b"previous content")
+            user_js.write_text("previous preferences\n", encoding="utf-8")
+
+            real_write_text = firefox_transaction.write_profile_text
+
+            def refuse_restore_of_first_sheet(path: Path, text: str) -> None:
+                if path == user_js:
+                    raise OSError("simulated publication failure")
+                if path == sheet:
+                    raise firefox_transaction.ConfigError("simulated restore refusal")
+                real_write_text(path, text)
+
+            with mock.patch.object(
+                firefox_transaction, "write_profile_text", refuse_restore_of_first_sheet
+            ):
+                with self.assertRaises(firefox_transaction.ConfigError) as caught:
+                    firefox_transaction.publish_install(
+                        (
+                            (sheet, b"new chrome", "previous chrome"),
+                            (second_sheet, b"new content", "previous content"),
+                        ),
+                        user_js,
+                        "previous preferences\n",
+                        "published preferences\n",
+                    )
+
+            self.assertEqual(
+                "simulated publication failure; simulated restore refusal",
+                str(caught.exception),
+            )
+            self.assertIsInstance(caught.exception.__cause__, OSError)
+            self.assertEqual(b"new chrome", sheet.read_bytes())
+            self.assertEqual(b"previous content", second_sheet.read_bytes())
+            self.assertEqual(
+                "previous preferences\n", user_js.read_text(encoding="utf-8")
+            )
+
+
 class TestRaiseWithRollbackErrors(unittest.TestCase):
     def test_no_rollback_errors_reraises_the_failure_itself(self):
         failure = OSError("publication failed")
