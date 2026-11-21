@@ -1,19 +1,27 @@
-"""Pins the shared install test helpers in ``support/theme_install.py``.
+"""Pins the shared install test helpers.
 
 ``assert_uninstall_diagnostics``, ``assert_files_identical`` and
-``copy_shipped_file`` are the helpers the install suites route through. The
-``make``-level behaviour they serve (what ``make install`` and ``uninstall`` do)
-stays in ``test_theme_install.py``.
+``copy_shipped_file`` are the helpers in ``support/theme_install.py`` that the
+install suites route through. ``installed_destdir`` and
+``FailedInstallPreservesPackage._install_ok`` in
+``support/install_failure_cases.py`` are the shared template copies. The pins
+for those two check that each helper installs once per class and copies the
+template per test, and that a symlink in the template is refused or kept as a
+link. The ``make``-level behaviour they serve (what ``make install`` and
+``uninstall`` do) stays in ``test_theme_install.py``.
 """
 
+import contextlib
 import os
 import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
 
-from support import repo_root, theme_install
+from support import install_failure_cases, repo_root, theme_install
+from support.install_failure_cases import FailedInstallPreservesPackage
 from support.symlink_fixtures import symlinked_repo
+from support.tmp_dir import make_tmp_dir
 
 
 class _FakeResult:
@@ -171,6 +179,221 @@ class TestCopyShippedFile(unittest.TestCase):
             with unittest.mock.patch.object(repo_root, "ROOT", root):
                 theme_install.copy_shipped_file(source, dest)
             self.assertEqual(dest.read_bytes(), b"same bytes")
+
+
+class TestInstalledDestdirSharing(unittest.TestCase):
+    """`installed_destdir` installs once per class and copies that tree."""
+
+    def setUp(self):
+        # The helper caches on the test class; each test here starts a new
+        # class-level cache so one test's install cannot satisfy another.
+        self.addCleanup(self._forget_templates)
+        self._forget_templates()
+
+    def _forget_templates(self):
+        if "_installed_templates" in type(self).__dict__:
+            delattr(type(self), "_installed_templates")
+
+    @staticmethod
+    def _fake_install(calls, results):
+        def install(destdir, **kwargs):
+            calls.append(kwargs)
+            if not results:
+                raise AssertionError("install called more often than expected")
+            result = results.pop(0)
+            if result.returncode == 0:
+                (Path(destdir) / "marker").write_text(
+                    "installed", encoding="utf-8"
+                )
+            return result
+
+        return install
+
+    def _succeeded(self):
+        return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+    def test_repeated_calls_install_once_and_copy_the_tree(self):
+        calls = []
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, [self._succeeded()])
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as first:
+                self.assertEqual(
+                    "installed",
+                    (Path(first) / "marker").read_text(encoding="utf-8"),
+                )
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as second:
+                self.assertEqual(
+                    "installed",
+                    (Path(second) / "marker").read_text(encoding="utf-8"),
+                )
+        self.assertEqual([{"packages": "color-scheme"}], calls)
+        self.assertNotEqual(first, second)
+
+    def test_each_package_family_gets_its_own_template(self):
+        calls = []
+        results = [self._succeeded(), self._succeeded()]
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, results)
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ):
+                pass
+            with theme_install.installed_destdir(self, packages="kvantum"):
+                pass
+        self.assertEqual(
+            [{"packages": "color-scheme"}, {"packages": "kvantum"}], calls
+        )
+
+    def test_a_failed_install_is_not_reused(self):
+        calls = []
+        failed = unittest.mock.Mock(
+            returncode=1, stdout="", stderr="template install failed"
+        )
+        results = [failed, self._succeeded()]
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, results)
+        ):
+            with self.assertRaises(AssertionError):
+                with theme_install.installed_destdir(
+                    self, packages="color-scheme"
+                ):
+                    pass
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as destdir:
+                self.assertTrue((Path(destdir) / "marker").is_file())
+        self.assertEqual(2, len(calls))
+
+    def test_an_escaping_template_symlink_is_refused(self):
+        # The template comes from `make install`, whose `cp -r` preserves a
+        # package symlink. Copying it with `copytree`'s default dereferences
+        # the link into the test's DESTDIR, so a private file's bytes enter
+        # the test tree; the copy must refuse the escape before it starts.
+        private = make_tmp_dir(self) / "private"
+        private.write_text("private secret line\n", encoding="utf-8")
+        dest = make_tmp_dir(self) / "dest"
+        dest.mkdir()
+
+        def fake_install(destdir, **kwargs):
+            (Path(destdir) / "leak").symlink_to(private)
+            return self._succeeded()
+
+        with (
+            unittest.mock.patch.object(theme_install, "install", fake_install),
+            unittest.mock.patch.object(
+                theme_install.tempfile,
+                "TemporaryDirectory",
+                lambda *args, **kwargs: contextlib.nullcontext(str(dest)),
+            ),
+        ):
+            with self.assertRaises(ValueError) as caught:
+                with theme_install.installed_destdir(
+                    self, packages="color-scheme"
+                ):
+                    pass
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("private secret line", str(caught.exception))
+        self.assertEqual(
+            "private secret line\n", private.read_text(encoding="utf-8")
+        )
+        self.assertEqual([], list(dest.iterdir()))
+
+    def test_a_contained_template_symlink_is_copied_as_a_link(self):
+        # `make install`'s `cp -r` also preserves a link whose target stays
+        # inside the package; the copy must keep it a link rather than
+        # dereferencing it into a second copy.
+        def fake_install(destdir, **kwargs):
+            target = Path(destdir) / "target"
+            target.write_text("kept\n", encoding="utf-8")
+            (Path(destdir) / "inside-link").symlink_to("target")
+            return self._succeeded()
+
+        with unittest.mock.patch.object(
+            theme_install, "install", fake_install
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as destdir:
+                link = Path(destdir) / "inside-link"
+                self.assertTrue(link.is_symlink())
+                self.assertEqual("target", os.readlink(link))
+
+
+class TestFailedInstallSharing(unittest.TestCase):
+    """`FailedInstallPreservesPackage` installs once per class and copies."""
+
+    def test_install_ok_installs_once_and_copies_per_test(self):
+        calls = []
+
+        def fake_install(destdir, **kwargs):
+            calls.append(kwargs)
+            (Path(destdir) / "marker").write_text(
+                "installed", encoding="utf-8"
+            )
+            return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+        class Case(FailedInstallPreservesPackage, unittest.TestCase):
+            MAKE_PACKAGES = "color-scheme"
+
+            def runTest(self):
+                pass
+
+            def _snapshot(self, tmp):
+                return (str(tmp), "metadata", "good")
+
+        case = Case()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(Case.doClassCleanups)
+        with unittest.mock.patch.object(
+            theme_install, "install", fake_install
+        ):
+            first = case._install_ok()
+            second = case._install_ok()
+
+        self.assertEqual([{"packages": "color-scheme"}], calls)
+        self.assertNotEqual(first[0], second[0])
+        for result in (first, second):
+            self.assertTrue((Path(result[0]) / "marker").is_file())
+
+    def test_install_ok_refuses_an_escaping_template_symlink(self):
+        private = make_tmp_dir(self) / "private"
+        private.write_text("private secret line\n", encoding="utf-8")
+        copy_dir = make_tmp_dir(self) / "copy"
+        copy_dir.mkdir()
+
+        def fake_install(destdir, **kwargs):
+            (Path(destdir) / "leak").symlink_to(private)
+            return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+        class Case(FailedInstallPreservesPackage, unittest.TestCase):
+            MAKE_PACKAGES = "color-scheme"
+
+            def runTest(self):
+                pass
+
+        case = Case()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(Case.doClassCleanups)
+        with unittest.mock.patch.object(
+            install_failure_cases, "make_tmp_dir", lambda case: copy_dir
+        ):
+            with unittest.mock.patch.object(
+                theme_install, "install", fake_install
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    case._install_ok()
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("private secret line", str(caught.exception))
+        self.assertEqual(
+            "private secret line\n", private.read_text(encoding="utf-8")
+        )
+        self.assertEqual([], list(copy_dir.iterdir()))
 
 
 if __name__ == "__main__":
