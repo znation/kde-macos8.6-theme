@@ -20,6 +20,7 @@ from support.cli_fixtures import run_main
 from support.process_assertions import assert_succeeded
 from tools import local_hook
 
+
 def run_git(case, cwd, *args):
     """Run a Git command in *cwd* and attach output if it fails."""
     result = theme_install.run_captured(

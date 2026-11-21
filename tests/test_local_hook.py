@@ -94,7 +94,6 @@ def write_fake_make(bindir, record, exit_status=0):
     )
 
 
-
 class TestInstall(unittest.TestCase):
     def test_writes_an_executable_marked_hook(self):
         repo = make_repo(self)
@@ -509,4 +508,3 @@ class TestMakeTargets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
