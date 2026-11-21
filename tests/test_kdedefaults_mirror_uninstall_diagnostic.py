@@ -16,15 +16,27 @@ package checks, naming the `kwriteconfig6 --delete` reset against the
 mirror's literal path without editing any file. The scanners mirror the
 existing live-config diagnostics', so this module must not change their
 wordings or their files, and asserts their lines still read back unchanged.
+
+The silent shapes, the cases that print nothing, live in
+`test_kdedefaults_mirror_uninstall_silence`.
 """
 
 import os
 import unittest
 
-from support import theme_install
 from support.config_home_cases import (
     assert_home_fallback,
     assert_no_config_home,
+)
+from support.kdedefaults_mirror_cases import (
+    LNF_ID,
+    icons_rule,
+    mirror_kwinrc_rule,
+    mirror_paths,
+    mirror_plasmarc_rule,
+    run_uninstall,
+    scratch_home,
+    widget_rule,
 )
 from support.theme_install import (
     assert_diagnostics_in_order,
@@ -33,88 +45,7 @@ from support.theme_install import (
     write_file,
 )
 from support.process_assertions import assert_succeeded
-from support.tmp_dir import make_config_home, make_tmp_dir
-
-LNF_ID = "org.macos8.desktop"
-
-
-
-
-def widget_rule(path):
-    """The expected mirror widget-style line (the wording is the contract)."""
-    return (
-        "uninstall: the widget-style selection the look-and-feel apply left "
-        "in defaults ([KDE] widgetStyle=kvantum) is still in " + path +
-        " after removal; when the live key is absent or reset away, the "
-        "defaults layer re-selects the style that key names. Reset it with: "
-        "kwriteconfig6 --file \"" + path + "\" --group KDE --key widgetStyle "
-        "--delete"
-    )
-
-
-def icons_rule(path):
-    """The expected mirror icon-theme line (the wording is the contract)."""
-    return (
-        "uninstall: the icon-theme selection the look-and-feel apply left "
-        "in defaults ([Icons] Theme=" + LNF_ID + ") is still in " + path +
-        " after removal; when the live key is absent or reset away, the "
-        "defaults layer re-selects the removed icon theme and KDE and Qt "
-        "applications keep the default icons. Reset it with: kwriteconfig6 "
-        "--file \"" + path + "\" --group Icons --key Theme --delete"
-    )
-
-
-def mirror_kwinrc_rule(path):
-    """The expected mirror decoration-pair line (wording is the contract)."""
-    return (
-        "uninstall: the window-decoration selection [library="
-        "org.kde.kwin.aurorae, theme=" + LNF_ID +
-        "] that the look-and-feel apply left in defaults is still in " +
-        path + "; when the live keys are absent or reset away, the defaults "
-        "layer re-selects the removed kwin/decorations/org.macos8.desktop "
-        "decoration package and KWin keeps a "
-        "default window decoration. Reset it with: kwriteconfig6 --file \"" +
-        path + "\" --group org.kde.kdecoration2 --key library --delete && "
-        "kwriteconfig6 --file \"" + path +
-        "\" --group org.kde.kdecoration2 --key theme --delete"
-    )
-
-
-def mirror_plasmarc_rule(path):
-    """The expected mirror desktop-theme line (wording is the contract)."""
-    return (
-        "uninstall: the desktop theme selection the look-and-feel apply "
-        "left in defaults still names " + LNF_ID + " after removal in" +
-        " " + path + "; when the live key is absent or reset away, the "
-        "defaults layer re-selects the removed desktop theme. Reset it "
-        "with: kwriteconfig6 --file \"" + path + "\" --group Theme --key name "
-        "--delete"
-    )
-
-
-def scratch_home(case):
-    """A temporary config home with the `kdedefaults/` directory created."""
-    tmp, config = make_config_home(case)
-    os.makedirs(os.path.join(config, "kdedefaults"), exist_ok=True)
-    return tmp, config
-
-
-def run_uninstall(tmp, config, env=None):
-    """Run the uninstall recipe with XDG_CONFIG_HOME at *config*, or with *env*."""
-    return theme_install.uninstall_recipe(
-        tmp,
-        extra=(),
-        env=env if env is not None else dict(os.environ, XDG_CONFIG_HOME=config),
-    )
-
-
-def mirror_paths(config):
-    """The three mirror paths under *config*, in recipe order."""
-    return (
-        os.path.join(config, "kdedefaults", "kdeglobals"),
-        os.path.join(config, "kdedefaults", "kwinrc"),
-        os.path.join(config, "kdedefaults", "plasmarc"),
-    )
+from support.tmp_dir import make_tmp_dir
 
 
 class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
@@ -369,194 +300,6 @@ class TestKdedefaultsMirrorUninstallDiagnostic(unittest.TestCase):
                 assert_succeeded(self, result)
                 self.assertIn(rule(path), result.stderr)
                 self.assertEqual(original, read_bytes(path))
-
-    # -- silent shapes -------------------------------------------------------
-
-    def test_silent_without_a_kdedefaults_directory(self):
-        tmp, config = make_config_home(self)
-        os.makedirs(config, exist_ok=True)
-
-        result = run_uninstall(tmp, config)
-
-        assert_succeeded(self, result)
-        for path in mirror_paths(config):
-            self.assertNotIn(os.path.basename(path), result.stderr)
-
-    def test_silent_when_a_path_is_a_non_regular_file(self):
-        for name in ("kdeglobals", "kwinrc", "plasmarc"):
-            with self.subTest(name=name):
-                tmp, config = scratch_home(self)
-                os.makedirs(
-                    os.path.join(config, "kdedefaults", name), exist_ok=True
-                )
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                self.assertNotIn("kdedefaults/" + name, result.stderr)
-
-    def test_silent_for_a_missing_group_or_a_missing_key(self):
-        for name, body in (
-            ("kdeglobals", "widgetStyle=kvantum\n"),  # no [KDE] group above
-            ("kdeglobals", "[KDE]\n"),  # group without the key
-            ("kdeglobals", "[Icons]\nThemeSet=breeze\n"),
-            ("kwinrc", "[org.kde.kdecoration2]\nNoPlugin=false\n"),
-            ("kwinrc", "[org.kde.kdecoration2]\nlibrary=\n"),
-            ("plasmarc", "[Theme]\nSomething=" + LNF_ID + "\n"),
-        ):
-            with self.subTest(name=name):
-                tmp, config = scratch_home(self)
-                write_file(os.path.join(config, "kdedefaults", name), body)
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                kglobal_path, kwin_path, plasma_path = mirror_paths(config)
-                self.assertNotIn(widget_rule(kglobal_path), result.stderr)
-                self.assertNotIn(icons_rule(kglobal_path), result.stderr)
-                self.assertNotIn(mirror_kwinrc_rule(kwin_path), result.stderr)
-                self.assertNotIn(mirror_plasmarc_rule(plasma_path), result.stderr)
-
-    def test_silent_for_a_foreign_or_empty_last_value(self):
-        for name, body in (
-            ("kdeglobals", "[KDE]\nwidgetStyle=breeze\n"),
-            ("kdeglobals", "[KDE]\nwidgetStyle=\n"),
-            ("kdeglobals", "[Icons]\nTheme=breeze\n"),
-            ("kdeglobals", "[Icons]\nTheme=\n"),
-            (
-                "kwinrc",
-                "[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n"
-                "theme=breeze\n",
-            ),
-            ("kwinrc", "[org.kde.kdecoration2]\nlibrary=\ntheme=\n"),
-            ("plasmarc", "[Theme]\nname=breeze\n"),
-            ("plasmarc", "[Theme]\nname=\n"),
-        ):
-            with self.subTest(name=name):
-                tmp, config = scratch_home(self)
-                write_file(os.path.join(config, "kdedefaults", name), body)
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                kglobal_path, kwin_path, plasma_path = mirror_paths(config)
-                self.assertNotIn(widget_rule(kglobal_path), result.stderr)
-                self.assertNotIn(icons_rule(kglobal_path), result.stderr)
-                self.assertNotIn(mirror_kwinrc_rule(kwin_path), result.stderr)
-                self.assertNotIn(mirror_plasmarc_rule(plasma_path), result.stderr)
-
-    def test_silent_when_a_later_foreign_value_overrides_ours(self):
-        for name, body in (
-            (
-                "kdeglobals",
-                "[KDE]\nwidgetStyle=kvantum\nwidgetStyle=breeze\n"
-                "[Icons]\nTheme=" + LNF_ID + "\nTheme=breeze\n",
-            ),
-            (
-                "kwinrc",
-                "[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n"
-                "theme=" + LNF_ID + "\nlibrary=other\n",
-            ),
-            ("plasmarc", "[Theme]\nname=" + LNF_ID + "\nname=breeze\n"),
-        ):
-            with self.subTest(name=name):
-                tmp, config = scratch_home(self)
-                path = write_file(
-                    os.path.join(config, "kdedefaults", name), body
-                )
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                expected_silent = {
-                    "kdeglobals": (widget_rule(path), icons_rule(path)),
-                    "kwinrc": (mirror_kwinrc_rule(path),),
-                    "plasmarc": (mirror_plasmarc_rule(path),),
-                }[name]
-                for rule_text in expected_silent:
-                    self.assertNotIn(rule_text, result.stderr)
-
-    def test_silent_when_either_kdeglobals_selection_is_foreign(self):
-        # The two kdeglobals lines are independent: a foreign [Icons] Theme
-        # leaves a matching [KDE] widgetStyle warning alone, and vice versa.
-        for body, expected in (
-            (
-                "[KDE]\nwidgetStyle=kvantum\n[Icons]\nTheme=breeze\n",
-                "widget",
-            ),
-            (
-                "[KDE]\nwidgetStyle=breeze\n[Icons]\nTheme=" + LNF_ID + "\n",
-                "icons",
-            ),
-        ):
-            with self.subTest(expected=expected):
-                tmp, config = scratch_home(self)
-                path = write_file(
-                    os.path.join(config, "kdedefaults", "kdeglobals"), body
-                )
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                if expected == "widget":
-                    self.assertIn(widget_rule(path), result.stderr)
-                    self.assertNotIn(icons_rule(path), result.stderr)
-                else:
-                    self.assertIn(icons_rule(path), result.stderr)
-                    self.assertNotIn(widget_rule(path), result.stderr)
-
-    def test_silent_when_either_kwinrc_pair_key_fails_alone(self):
-        for body, keep in (
-            ("[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\n", "library"),
-            (
-                "[org.kde.kdecoration2]\ntheme="
-                + LNF_ID
-                + "\n",
-                "theme",
-            ),
-        ):
-            with self.subTest(keep=keep):
-                tmp, config = scratch_home(self)
-                path = write_file(
-                    os.path.join(config, "kdedefaults", "kwinrc"), body
-                )
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                self.assertNotIn(mirror_kwinrc_rule(path), result.stderr)
-
-    def test_silent_when_noplugin_matches_without_the_pair(self):
-        tmp, config = scratch_home(self)
-        path = write_file(
-            os.path.join(config, "kdedefaults", "kwinrc"),
-            "[org.kde.kdecoration2]\nNoPlugin=false\n",
-        )
-
-        result = run_uninstall(tmp, config)
-
-        assert_succeeded(self, result)
-        self.assertNotIn(mirror_kwinrc_rule(path), result.stderr)
-        self.assertNotIn("NoPlugin", result.stderr)
-
-    def test_silent_when_the_selections_live_in_other_groups(self):
-        for name, body in (
-            ("kdeglobals", "[General]\nwidgetStyle=kvantum\nTheme=" + LNF_ID + "\n"),
-            ("kwinrc", "[Misc]\nlibrary=org.kde.kwin.aurorae\ntheme=" + LNF_ID + "\n"),
-            ("plasmarc", "[General]\nname=" + LNF_ID + "\n"),
-        ):
-            with self.subTest(name=name):
-                tmp, config = scratch_home(self)
-                write_file(os.path.join(config, "kdedefaults", name), body)
-
-                result = run_uninstall(tmp, config)
-
-                assert_succeeded(self, result)
-                path = os.path.join(config, "kdedefaults", name)
-                self.assertNotIn(widget_rule(path), result.stderr)
-                self.assertNotIn(icons_rule(path), result.stderr)
-                self.assertNotIn(mirror_kwinrc_rule(path), result.stderr)
-                self.assertNotIn(mirror_plasmarc_rule(path), result.stderr)
 
     # -- config home resolution ----------------------------------------------
 
