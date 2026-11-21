@@ -222,6 +222,35 @@ class TestJpegFailureRoutes(CliTestCase):
         self.assertIn(path, result.stderr)
         self.assertIn("larger than the 8-byte limit", result.stderr)
 
+    def test_a_jpeg_that_grows_past_the_cap_after_the_size_check_is_refused(self):
+        """The bounded read refuses bytes it sees past the cap.
+
+        The fstat size check alone cannot catch a file that grows between the
+        size check and the read, so the read itself stays capped: with the
+        file's size still reporting the pre-growth 8 bytes, reading the
+        336-byte image must stop one byte past the cap and refuse, naming the
+        operator's path, without a grown-file size to quote.
+        """
+        self.assertGreater(len(QUILT_JPEG), 8)
+        path = self._image()
+
+        class PreGrowthStat:
+            """The size the check saw before the file grew past the cap."""
+
+            st_size = 8
+
+        with open(path, "rb") as handle:
+            fd = handle.fileno()
+            with (
+                mock.patch.object(sample, "_MAX_JPEG_BYTES", 8),
+                mock.patch("os.fstat", return_value=PreGrowthStat()),
+            ):
+                with self.assertRaises(sample.PngError) as caught:
+                    sample._read_entire(fd, path)
+        self.assertIn(path, str(caught.exception))
+        self.assertIn("larger than the 8-byte limit", str(caught.exception))
+        self.assertNotIn("file is 8 bytes", str(caught.exception))
+
     def test_out_of_bounds_pixel_reports_the_decoded_size(self):
         path = self._image()
         result = self._run(path, str(QUILT_WIDTH), "0")
