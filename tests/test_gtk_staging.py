@@ -423,6 +423,53 @@ class TestCommit(StagingCase):
         self.assertEqual("new settings\n", target.read_text(encoding="utf-8"))
         self.assertEqual(1, len(self.backups_of(target)))
 
+    def test_every_failed_restore_is_joined_newest_first_and_none_stops_the_rest(
+        self,
+    ):
+        # _rollback restores newest first and keeps going after a failure, so
+        # both failed restores must be named in that order, joined by "; ",
+        # behind the write error that started the rollback.
+        first = self.root / "gtk-3.0" / "settings.ini"
+        second = self.root / "gtk-4.0" / "settings.ini"
+        blocked = self.root / "gtk-2.0" / "gtkrc"
+        write_file(first, "old first\n")
+        write_file(second, "old second\n")
+        staged = stage_all(
+            [
+                (first, "new first\n"),
+                (second, "new second\n"),
+                (blocked, "new blocked\n"),
+            ]
+        )
+        blocked.mkdir()
+        real_replace = os.replace
+        restore_targets = []
+
+        def fail_every_restore(source, destination, *args, **kwargs):
+            if str(source).endswith(".backup") and Path(destination) in (
+                first,
+                second,
+            ):
+                restore_targets.append(Path(destination))
+                raise OSError("restore failure")
+            return real_replace(source, destination, *args, **kwargs)
+
+        with mock.patch.object(os, "replace", side_effect=fail_every_restore):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
+
+        message = str(caught.exception)
+        self.assertEqual([second, first], restore_targets)
+        second_text = f"cannot restore {second}: restore failure"
+        first_text = f"cannot restore {first}: restore failure"
+        self.assertIn(f"cannot write {blocked}", message)
+        self.assertIn(f"; {second_text}; {first_text}", message)
+        self.assertLess(message.index(second_text), message.index(first_text))
+        self.assertEqual("new first\n", first.read_text(encoding="utf-8"))
+        self.assertEqual("new second\n", second.read_text(encoding="utf-8"))
+        self.assertEqual(1, len(self.backups_of(first)))
+        self.assertEqual(1, len(self.backups_of(second)))
+
     def test_removals_delete_the_named_files_and_leave_no_backup(self):
         css = self.root / "gtk-4.0" / "gtk.css"
         write_file(css, "marker\n")
