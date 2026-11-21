@@ -14,6 +14,8 @@ from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     circle_geometry,
     circle_geometry_and_fill,
+    drawing_elements,
+    rect_element,
     rect_geometry,
 )
 
@@ -119,6 +121,41 @@ class TestRectGeometry(unittest.TestCase):
         assert_error_names(
             self, ValueError, rect_geometry, tree,
             needles=("hint-top-margin", "'x'", "'4px'"),
+        )
+
+
+class TestDrawingElements(unittest.TestCase):
+    """Pin the child-element tuples the art tests compare against."""
+
+    def test_drawing_elements_strips_namespaces_and_keeps_order(self):
+        element = ET.Element("g")
+        ET.SubElement(
+            element, "rect",
+            {"x": "1", "y": "2", "width": "3", "height": "4", "fill": "#000000"},
+        )
+        ET.SubElement(
+            element, "circle", {"cx": "5", "cy": "6", "r": "7", "fill": "#FFFFFF"},
+        )
+        ET.SubElement(
+            element, "{http://www.w3.org/2000/svg}rect",
+            {"x": "8", "y": "9", "width": "10", "height": "11", "fill": "#222222"},
+        )
+        self.assertEqual(
+            drawing_elements(element),
+            (
+                ("rect", {"x": "1", "y": "2", "width": "3", "height": "4",
+                          "fill": "#000000"}),
+                ("circle", {"cx": "5", "cy": "6", "r": "7", "fill": "#FFFFFF"}),
+                ("rect", {"x": "8", "y": "9", "width": "10", "height": "11",
+                          "fill": "#222222"}),
+            ),
+        )
+
+    def test_rect_element_builds_the_rect_tuple(self):
+        self.assertEqual(
+            rect_element("1", "2", "3", "4", "#000000"),
+            ("rect", {"x": "1", "y": "2", "width": "3", "height": "4",
+                      "fill": "#000000"}),
         )
 
 

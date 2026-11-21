@@ -59,6 +59,8 @@ from .paths import (
 from .elements import (
     circle_geometry,
     circle_geometry_and_fill,
+    drawing_elements,
+    rect_element,
     rect_geometry,
 )
 

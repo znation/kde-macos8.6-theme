@@ -85,7 +85,7 @@ def inactive_fill(active_fill):
     """Map one active box fill onto the Kvantum disabled box's fill.
 
     The flattening rule the Kvantum `mdi` window buttons' disabled state
-    pins (tests/test_kvantum_svg.py): the box keeps its #888888
+    pins (tests/test_kvantum_mdi_buttons.py): the box keeps its #888888
     (``ETCH_DARK``) and #222222 (``BOX_INNER_OUTLINE``) outline fills and
     every other fill — the gradient face and its mid band, the white
     highlight — flattens to ``INACTIVE_GREY``. The Aurorae buttons ship no

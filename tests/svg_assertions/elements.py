@@ -1,7 +1,9 @@
 """Rect and circle geometry readers for the SVG test helpers.
 
 Turn an SVG document's id-bearing rects and its circles into numeric geometry,
-naming the element and attribute in a diagnostic when one is malformed.
+naming the element and attribute in a diagnostic when one is malformed. The
+child-element helpers return each drawing child as a ``(tag, attributes)``
+tuple, so a test compares a whole element's art in one assertion.
 """
 
 from __future__ import annotations
@@ -108,3 +110,20 @@ def circle_geometry_and_fill(element):
     one tuple.
     """
     return circle_geometry(element) + (element.get("fill"),)
+
+
+def rect_element(x, y, width, height, fill):
+    """Return a ``rect`` element tuple with the given geometry and *fill*."""
+    return ("rect", {"x": x, "y": y, "width": width, "height": height, "fill": fill})
+
+
+def drawing_elements(element):
+    """Return *element*'s child drawing elements as ``(tag, attributes)``.
+
+    In document order, so an added, removed, reordered or re-drawn child
+    changes the tuple. Check box and radio button interiors hold only drawing
+    elements (rects and circles) directly under their state group.
+    """
+    return tuple(
+        (local_name(child), dict(child.attrib)) for child in element
+    )

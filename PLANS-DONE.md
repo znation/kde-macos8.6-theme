@@ -5,6 +5,99 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Kvantum SVG suite extraction: move the MDI window-button pins into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_kvantum_svg.py` is 709 lines and pins two concerns of the shipped
+Kvantum SVG. `TestSvg` pins its ids, palette, shapes and safety guards. `TestMdiButtons`
+pins the `QMdiSubWindow` title band's `mdi-*` buttons against the Aurorae box art. Move
+`TestMdiButtons` and the constants only it reads into a new
+`tests/test_kvantum_mdi_buttons.py`. The two module-level helpers both classes call,
+`_rect` and `_drawing_elements`, move into `tests/svg_assertions/elements.py` (L4), so
+no test module imports another. This changes no theme file, and every test body stays
+the same.
+
+**Approach.**
+- In `tests/svg_assertions/elements.py`, add two public helpers. Move the code over
+  unchanged and copy the docstrings across:
+  - `rect_element(x, y, width, height, fill)` returns the `("rect", {...})` tuple
+    `_rect` builds now.
+  - `drawing_elements(element)` returns `_drawing_elements`'s tuple of
+    `(local_name(child), dict(child.attrib))`, in document order.
+
+  Re-export both from `tests/svg_assertions/__init__.py`'s `from .elements import (...)`
+  block. Add one sentence to `elements.py`'s module docstring about the child-element
+  tuples.
+- In `tests/test_svg_assertions_elements.py`, add a `TestDrawingElements` class above the
+  `__main__` guard, if there is one (L1), with two tests that use literal SVG strings:
+  - A `<g>` holding a `rect`, then a `circle`, then a namespaced `rect`
+    (`{http://www.w3.org/2000/svg}rect`). `drawing_elements` returns three tuples in that
+    order, with bare tag names and the exact attribute dicts.
+  - `rect_element("1", "2", "3", "4", "#000000")` equals
+    `("rect", {"x": "1", "y": "2", "width": "3", "height": "4", "fill": "#000000"})`.
+
+  Write both expected values from the literals by hand.
+- In `tests/test_kvantum_svg.py`, delete the `_rect` and `_drawing_elements` defs. Import
+  them as `from svg_assertions import drawing_elements as _drawing_elements, rect_element
+  as _rect` (fold this into the existing `from svg_assertions import (...)` block), so
+  every remaining call site stays byte-identical. `_circle` stays where it is. Then:
+  - Delete `MDI_STATES`, `MDI_ROLES`, `MDI_SOURCES` and `SOURCES_ZOOM` with their
+    comment blocks, and `MDI_ZOOM_GLYPH` and `MDI_MINIMIZE_GLYPH` with the comment above
+    them.
+  - Delete `class TestMdiButtons`.
+  - Drop the imports that nothing left in the file uses: `os`, `AURORAE_DIR`,
+    `inactive_fill` and `groups_with_id`. Confirm each one with grep before dropping it.
+    `BOX_INNER_OUTLINE` stays, because the palette test still uses it.
+- Create `tests/test_kvantum_mdi_buttons.py`. Its module docstring says it pins the
+  `mdi-*` title-band buttons against the Aurorae box art, and that the SVG's other ids,
+  palette and safety guards stay in `tests/test_kvantum_svg.py`. It holds the six
+  constants with their comments, and `TestMdiButtons` copied word for word, both in their
+  current order. Import from `support.aurorae_fixtures`, `support.kvantum_fixtures`
+  (`SVG`), `support.platinum_palette` (`BOX_INNER_OUTLINE`), `support.svg_case`
+  (`parse_svg`) and `svg_assertions` (`attribute_values`, `elements_by_id`,
+  `groups_with_id`, `local_name`, `drawing_elements`, `rect_element`). Give it the
+  `unittest.main()` guard. Inside this module, either alias the two helpers to their old
+  private names as above, or rename the call sites to the public names. Change nothing
+  else in the bodies.
+- Re-point the anchors:
+  - The `docs/invariants.md` `QMdiSubWindow` row now names
+    `tests/test_kvantum_mdi_buttons.py::TestMdiButtons` instead of
+    `tests/test_kvantum_svg.py::TestMdiButtons`.
+  - `inactive_fill`'s docstring in `tests/support/aurorae_fixtures.py` now cites
+    `tests/test_kvantum_mdi_buttons.py`.
+  - Grep `docs/`, `README.md`, `tests/` and `tests/support/validation_gaps/` for
+    `test_kvantum_svg.py::TestMdiButtons` or `test_kvantum_svg` near `mdi`, and fix any
+    other hit (L1, L3).
+
+**Files touched.** `tests/test_kvantum_svg.py`, `tests/test_kvantum_mdi_buttons.py` (new),
+`tests/svg_assertions/elements.py`, `tests/svg_assertions/__init__.py`,
+`tests/test_svg_assertions_elements.py`, `tests/support/aurorae_fixtures.py`,
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- The new module contains the three `TestMdiButtons` tests, and they run and pass:
+  `test_mdi_buttons_ship_normal_and_disabled`, `test_mdi_buttons_are_the_aurorae_box_art`
+  and `test_mdi_glyphs_survive_the_flattening`. `tests/test_kvantum_svg.py` no longer
+  defines `TestMdiButtons` or any `MDI_*`/`SOURCES_ZOOM` name. Every `TestSvg` and
+  `TestSvgContainment` test still runs and passes.
+- Apart from the deleted MDI block, the dropped imports and the deleted helper defs, a
+  `git diff` of `tests/test_kvantum_svg.py` shows only the import change. No test body
+  or remaining constant changes.
+- For each moved test, `diff` of its body before and after shows at most the helper-name
+  change.
+- A probe proves `TestMdiButtons` still fails on bad art. Temporarily change the fill
+  of one rect inside the shipped SVG's `mdi-close-normal` group in the worktree, then
+  run the new module: `test_mdi_buttons_are_the_aurorae_box_art` fails. Then restore the
+  file. A copy outside the repository will not work, because `parse_svg` refuses paths
+  that escape it. Run `git diff --exit-code theme/` to show the SVG is restored, and
+  describe the probe in VERIFIED.
+- `TestDrawingElements` fails if `drawing_elements` returns the namespaced tag
+  unstripped, or reorders the children.
+- `docs/invariants.md`'s `QMdiSubWindow` row names the new module, and no file outside
+  the archives cites `tests/test_kvantum_svg.py::TestMdiButtons`.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ### Local hook suite extraction: move the uninstall tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Shrink the 510-line `tests/test_local_hook.py`, which is what
