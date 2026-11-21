@@ -188,6 +188,63 @@ these files or anchors.
 - Nothing under `theme/`, `tools/` or the `Makefile` changes.
 - `make check` passes after the final edit.
 
+### Cursor generator suite extraction: move the build-cache and vector-arrow tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_make_cursors.py` (568 lines) mixes the generator's input refusals and
+`main` failure reporting with two classes that pin what `make_cursors.cursor_bytes` builds:
+`TestCursorBytesCache` (the build cache's reuse, canonicalization, entry bound and repeated
+refusals) and `TestVectorArrow` (the arrow's `VectorCursor` art rendered at 16, 24 and 32).
+PRINCIPLES.md asks for files small enough to read in one sitting. Move those two classes, with
+class names, method names and bodies unchanged, into a new `tests/test_make_cursors_bytes.py`.
+No tool behavior and no test body changes. This plan is independent of the other Planned
+entries and of every pending change; none of them touches these files.
+
+**Approach.**
+
+- Create `tests/test_make_cursors_bytes.py`. Give it a module docstring saying it pins
+  `cursor_bytes`'s build cache and the vector arrow's rendered frames, and that the grid,
+  hotspot and size refusals and `main`'s failures stay in `tests/test_make_cursors.py`. Copy the
+  same `support.repo_root` import line, then the imports the moved classes use: `dataclasses`,
+  `unittest`, `unittest.mock`, `support.xcursor as xcursor_reader`,
+  `support.error_assertions.assert_error_names`, `support.tmp_dir.make_tmp_dir`,
+  `tools.cursor_art`, `tools.cursor_art_pointers`, `tools.make_cursors` and
+  `tools.png.decode_rgba`. Move `TestCursorBytesCache` and `TestVectorArrow` into it verbatim,
+  in that order, above an `if __name__ == "__main__": unittest.main()` guard (L1).
+- Move the module constant `SIZES = (16, 24, 32)` to the new module. A grep done while planning
+  found it used only inside the two moved classes. The `_grid_cursors` helper is used only by the
+  classes that stay, so it stays and nothing moves into `tests/support/` (L4).
+- In `tests/test_make_cursors.py`, drop the imports a grep found used only by the moved classes:
+  `dataclasses`, `cursor_art_pointers` (from the `tools` import line) and `decode_rgba`.
+  `contextlib`, `io`, `os`, `mock`, `xcursor_reader`, `assert_error_names`, `make_tmp_dir`,
+  `cursor_checks` and `VectorCursor` are still used by the classes that stay. Re-check every
+  import with grep; `test_no_unused_imports` enforces this.
+- Update the text in `tests/test_make_cursors.py`: the module docstring stops claiming the
+  cache's bounds and canonicalization and points at the new module for them and for the vector
+  arrow. The `_grid_cursors` docstring, which names `TestVectorArrow`, names its new module.
+- Anchor sweep (L1, L3): a grep while planning found no `file::Class` anchor naming either moved
+  class in `docs/`, `tests/support/validation_gaps/` or `tests/test_ci_workflow.py`. The
+  `TestGeneratorValidation` anchors in `docs/invariants.md` and
+  `tests/support/validation_gaps/unclear_invariant.py`, and the `TestMainErrors` anchor in
+  `tests/support/validation_gaps/no_repro.py`, name classes that stay; leave them alone. Re-grep
+  `TestCursorBytesCache` and `TestVectorArrow` before finishing.
+
+**Files touched.** `tests/test_make_cursors.py`, `tests/test_make_cursors_bytes.py` (new).
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_make_cursors_bytes`, run from `tests/`, runs the sixteen test
+  methods of the two moved classes (seven in `TestCursorBytesCache`, nine in `TestVectorArrow`),
+  and they pass.
+- `tests/test_make_cursors.py` defines neither `TestCursorBytesCache` nor `TestVectorArrow`,
+  and does not define `SIZES`. Every class and test method left in it keeps its name, and the
+  module passes.
+- Neither module's docstrings name a class as living in the wrong module: a grep for
+  `TestVectorArrow` and `TestCursorBytesCache` in `tests/test_make_cursors.py` finds only text
+  that names `tests/test_make_cursors_bytes.py` as their home.
+- `tests/test_make_cursors.py` is under 340 lines and the new module is under 290 (`wc -l`).
+- Nothing under `theme/`, `tools/`, `docs/` or the `Makefile` changes.
+- `make check` passes after the final edit.
+
 ### Theme install suite extraction: move the data-home fallback and FLOCK_TIMEOUT guard tests into their own module (planned 2026-11-21 by the plan role)
 
 **Goal.** `tests/test_theme_install.py` is 565 lines. Two of its classes pin the `install`/
