@@ -203,6 +203,67 @@ behavior changes. No other Planned entry touches these modules.
   `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
   ledger baseline to make them pass.
 
+### kdedefaults mirror diagnostic suite extraction: move the silent-shape tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_kdedefaults_mirror_uninstall_diagnostic.py` is 653 lines in one class,
+`TestKdedefaultsMirrorUninstallDiagnostic`. It covers two subjects: the warn shapes (the
+diagnostics print) and, under its `# -- silent shapes` comment, nine `test_silent_*` tests that
+pin when they stay quiet (about 190 lines). PRINCIPLES.md asks for files small enough to read in
+one sitting, so move those nine tests, with their names and bodies unchanged, into a new
+`tests/test_kdedefaults_mirror_uninstall_silence.py`. No Makefile, tool or diagnostic behavior
+changes. The plan is independent of every other Planned entry: no other entry touches these files.
+It adds one flat module under `tests/support/`; the held "Group the flat tests/support/ modules
+into per-family packages" entry recounts its modules when it runs, so this plan does not edit it.
+
+**Approach and files touched.**
+
+- **New `tests/support/kdedefaults_mirror_cases.py`.** Both halves call the module-level
+  helpers, so move them here (L4) with bodies unchanged: `LNF_ID`, `widget_rule`, `icons_rule`,
+  `mirror_kwinrc_rule`, `mirror_plasmarc_rule`, `scratch_home`, `run_uninstall` and
+  `mirror_paths`, plus the imports they need (`os`, `support.theme_install`,
+  `support.tmp_dir.make_config_home`). Give it a short docstring saying the warn and silence
+  suites share these wordings and staging helpers and that each rule's wording is the
+  assertion contract. It defines no classes.
+- **`tests/test_kdedefaults_mirror_uninstall_diagnostic.py`.** Delete the moved helpers and the
+  nine `test_silent_*` methods with their `# -- silent shapes` comment. Import the helpers from
+  `support.kdedefaults_mirror_cases`. Drop imports the remaining code no longer uses (the
+  suite's unused-import check catches leftovers). Keep the warn shapes, the
+  `# -- config home resolution` tests, the recipe-order test and
+  `test_make_n_uninstall_still_parses` in place, so `tests/support/config_home_cases.py`'s
+  caller list (`test_kdedefaults_mirror`) stays true. Add one docstring sentence saying the
+  silent shapes live in `test_kdedefaults_mirror_uninstall_silence`.
+- **New `tests/test_kdedefaults_mirror_uninstall_silence.py`.** A docstring naming the
+  `_uninstall` kdedefaults mirror diagnostics and saying this module pins the shapes that print
+  nothing. One class, `TestKdedefaultsMirrorUninstallSilence(unittest.TestCase)`, holding the
+  nine moved methods unchanged, above an `if __name__ == "__main__": unittest.main()` guard (L1).
+  Imports: `os`, `unittest`, `assert_succeeded`, `read_bytes`/`write_file` from
+  `support.theme_install`, `make_config_home`, and the shared helpers.
+- **`docs/invariants.md`.** The `## tooling` row whose test column names
+  `tests/test_kdedefaults_mirror_uninstall_diagnostic.py` (the four-warning kdedefaults mirror
+  row) also lists `` `tests/test_kdedefaults_mirror_uninstall_silence.py` ``, in the same
+  comma-separated form other multi-file rows use, since the row's "stay silent for …" clauses
+  are now pinned there.
+- Anchor sweep, done while planning: a grep of `docs/`, `README.md`, `tests/test_ci_workflow.py`,
+  `tests/support/` and `tests/support/validation_gaps/` for `kdedefaults_mirror` and
+  `TestKdedefaultsMirror` found only that invariants row and the `config_home_cases.py` caller
+  list. The implementer re-runs it before finishing.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_kdedefaults_mirror_uninstall_silence` run from `tests/` runs nine
+  tests, named as the nine `test_silent_*` methods were before the move, and they pass.
+- `tests/test_kdedefaults_mirror_uninstall_diagnostic.py` defines no `test_silent_*` method and
+  no `def widget_rule`; every other test method keeps its name, and the module passes.
+- `grep -rn 'def widget_rule\|def mirror_paths\|def scratch_home' tests` lists only
+  `tests/support/kdedefaults_mirror_cases.py` for the moved names.
+- Each of the two test modules is under 420 lines (`wc -l`).
+- The kdedefaults mirror row in `docs/invariants.md` names both test modules, and the
+  invariants-anchor tests pass.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
