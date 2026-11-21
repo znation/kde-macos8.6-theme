@@ -69,6 +69,40 @@ class TestDiscovery(unittest.TestCase):
                 check_parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertIn("cannot list ", str(raised.exception))
 
+    def test_an_uninspectable_package_marker_is_reported_not_skipped(self):
+        # A package whose __init__.py cannot be stat'd (permission denied on
+        # the package) must stop discovery. os.path.isfile would answer False
+        # here, silently dropping the package's modules from the run, so the
+        # marker check raises DiscoveryError naming the marker instead.
+        tests_dir = make_suite_dir(self)
+        locked = make_package(tests_dir, "locked")
+        _write_module(locked, "test_hidden.py", OK_MODULE)
+        marker = os.path.join(locked, "__init__.py")
+        real_stat = os.stat
+
+        def guarded_stat(path, *args, **kwargs):
+            if os.fspath(path) == marker:
+                raise PermissionError(13, "Permission denied")
+            return real_stat(path, *args, **kwargs)
+
+        with mock.patch(
+            "tools.check_parallel_discovery.os.stat", side_effect=guarded_stat
+        ):
+            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
+                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        self.assertIn(marker, str(raised.exception))
+        self.assertIn("Permission denied", str(raised.exception))
+
+    def test_a_missing_package_marker_is_not_a_package(self):
+        # A directory without __init__.py is not recursed and not an error.
+        tests_dir = make_suite_dir(self)
+        plain = os.path.join(tests_dir, "plain")
+        os.mkdir(plain)
+        _write_module(plain, "test_hidden.py", OK_MODULE)
+        self.assertEqual(
+            [], check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        )
+
     def test_names_top_level_modules_in_sorted_order(self):
         tests_dir = make_suite_dir(self)
         for name in ("test_b.py", "test_a.py", "helper.py"):

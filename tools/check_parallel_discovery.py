@@ -50,6 +50,23 @@ def _entry_is_directory(item: os.DirEntry) -> bool | None:
             ) from entry_error
 
 
+def _is_package(directory: str) -> bool:
+    """Return whether *directory* holds an ``__init__.py`` that is a file.
+
+    A missing marker (or a dangling link to one) means the directory is not a
+    package and is not recursed. Any other failure to inspect the marker
+    raises :class:`DiscoveryError`: ``os.path.isfile`` would answer ``False``
+    for it, silently dropping the package's modules from the run.
+    """
+    marker = os.path.join(directory, "__init__.py")
+    try:
+        return stat.S_ISREG(os.stat(marker).st_mode)
+    except (FileNotFoundError, NotADirectoryError):
+        return False
+    except OSError as exc:
+        raise DiscoveryError(f"cannot inspect {marker}: {exc}") from exc
+
+
 def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
     """Return the dotted module names unittest discovery would import.
 
@@ -78,7 +95,7 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
             if is_directory is None:
                 continue
             if is_directory:
-                if os.path.isfile(os.path.join(item.path, "__init__.py")):
+                if _is_package(item.path):
                     visit(item.path, f"{prefix}{entry}.")
                 continue
             if (_VALID_MODULE_NAME.match(entry)
