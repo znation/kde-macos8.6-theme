@@ -1,14 +1,14 @@
 """Measured logo-cell map for the ``--splash`` render gate.
 
 The pixel map was measured from the 2026-11-11 ``--splash`` capture runs that
-the ``TestSplashRender`` class docstring in ``tests/test_render_surface.py``
-names. The owning assertion stays in ``tests/test_render_surface.py``; this
+the ``TestSplashRender`` class docstring in ``tests/test_render_splash_gate.py``
+names. The owning assertion stays in ``tests/test_render_splash_gate.py``; this
 module only holds the measured literal, and importing it starts no render.
 """
 
 # The measured pixel map of the logo cell (52 wide, 42 rows), read from the
 # first of the 2026-11-11 ``--splash`` capture runs that the class docstring of
-# ``TestSplashRender`` in ``tests/test_render_surface.py`` names, and confirmed
+# ``TestSplashRender`` in ``tests/test_render_splash_gate.py`` names, and confirmed
 # byte-equal in the other two. A moved, dropped or resampled logo fails the
 # byte-compare in ``TestSplashRender.test_the_logo_cell_pins_its_art``.
 LOGO_CELL_ROWS = (

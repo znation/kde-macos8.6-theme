@@ -1,6 +1,7 @@
 """Session plumbing the render capture gates share.
 
-``tests/test_render_surface.py`` (the applet, desktop and splash gates),
+``tests/test_render_surface.py`` (the applet and desktop gates),
+``tests/test_render_splash_gate.py`` (the splash gate),
 ``tests/test_render_dialog_gates.py`` (the thirteen kdialog widget gates),
 ``tests/test_render_calendar_dialog.py`` (the two calendar gates),
 ``tests/test_render_file_dialog.py`` (the file-dialog gate) and

@@ -5,6 +5,86 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render-surface suite extraction: move the splash pixel gate into its own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Shrink the 823-line `tests/test_render_surface.py` and leave it
+on the applet window and the desktop bar. `TestSplashRender(PixelPins,
+unittest.TestCase)` is a self-contained gate of about 175 lines, with its
+own capture (`splash.png`, 640x400), its own skip guards
+(`software_renderer_skip_reason()` and `SPLASH_REAL_TOOLS`) and its own
+class-level geometry constants. No other class in the module uses it, and
+it uses none of the module-level constants or helpers (`REFERENCE`,
+`KEYPAD_*`, `_keypad_rows`, `compare`, `crop`).
+
+**Independence.** This entry is independent of every other Planned entry.
+It does not touch `TestDesktopRender`, whose quarantined cases have open
+BUGS.md entries, or `TestRender`, `TestRenderBudgets`,
+`TestDesktopPixelDiagnostic` or `TestDesktopGateSkipGuard`.
+
+**Approach.**
+- Create `tests/test_render_splash_gate.py`. Don't use
+  `test_render_splash_client.py`: that module tests the client argv in
+  `tools/render_splash_client.py` and starts no session. Give the new file
+  a module docstring saying it pins the `--splash` capture's pixels, and
+  that the client argv is tested in `tests/test_render_splash_client.py`.
+- Move `TestSplashRender` there unchanged, with both of its
+  `@unittest.skipIf`/`@unittest.skipUnless` decorators. Import only what
+  it uses: `os`, `shutil`, `unittest`, `support.repo_root`,
+  `support.splash_capture_fixtures`, `support.platinum_palette.hex_colour`,
+  `PixelPins`, `Renders`, `SPLASH_REAL_TOOLS` and
+  `software_renderer_skip_reason` from `support.render_gates`, and
+  `read_png` and `pixel_at` from `tools.png`. End the module with
+  `Renders.request("splash")` and a `unittest.main()` guard.
+- In `tests/test_render_surface.py`, change the trailing request to
+  `Renders.request("applet", "desktop")` and its comment to two gates and
+  two render kinds. Drop the imports nothing uses any more
+  (`SPLASH_REAL_TOOLS`, `splash_capture_fixtures`; check `hex_colour`,
+  `pixel_at` and `read_png` with grep before dropping them). Update the
+  module docstring: it covers the applet and desktop captures, and it
+  points to the new module for the splash.
+- Repoint the anchors that name the class's file:
+  `docs/rendering.md` (the splash gate sentence), both mentions on the
+  `--splash` row of `docs/invariants.md`, and the two path mentions in
+  `tests/support/splash_capture_fixtures.py`'s docstring and comment.
+  The `tests/support/render_gates.py` `PixelPins` docstring and the
+  `.github/workflows/ci.yml` comment name only the class, so they stay as
+  they are. The gate is not a `Test*DialogRender` class, so neither
+  `_GATE_FILES` tuple changes (L3). No `tests/support/validation_gaps/*.py`
+  record names `TestSplashRender`.
+
+**Files touched.** `tests/test_render_splash_gate.py` (new),
+`tests/test_render_surface.py`, `docs/rendering.md`, `docs/invariants.md`,
+`tests/support/splash_capture_fixtures.py`.
+
+**Acceptance criteria.**
+- `make check CHECK_TESTS='test_render_splash_gate'` runs every test
+  method `TestSplashRender` defines on main, under the same class and
+  method names. On a host with the splash tools and a hardware renderer
+  they pass. On a host without them the class is skipped with the same
+  reasons as on main. `git diff --color-moved` shows the class body
+  unchanged.
+- `tests/test_render_surface.py` no longer defines `TestSplashRender` and
+  no longer requests the `splash` render kind. It still defines
+  `TestRender`, `TestRenderBudgets`, `TestDesktopRender`,
+  `TestDesktopPixelDiagnostic` and `TestDesktopGateSkipGuard` with the
+  same test method names as on main. Every name it imports is still
+  used (checked with grep).
+- `grep -rn 'test_render_surface.py::TestSplashRender' docs tests` finds
+  nothing, and
+  `make check CHECK_TESTS='test_render_surface test_render_splash_gate test_invariants test_render_gates_batch'`
+  passes. No test module imports another test module, and nothing under
+  `tools/`, `theme/` or the `Makefile` changes.
+- `make check` passes after the final edit, apart from main's known-red
+  `tests/test_validation_gaps.py` `TestNoReproLedger` cases
+  (`test_every_record_names_a_reproduction`,
+  `test_the_record_count_does_not_grow`). Those fail on main already
+  (seven no-repro records in `BUGS-FIXED.md` against
+  `NO_REPRO_BASELINE = 6` in `tests/support/validation_gaps/no_repro.py`,
+  checked 2026-11-21) and the ci role owns them. A failure of those two
+  cases alone is not this change's; the change must not edit
+  `BUGS-FIXED.md`, `tests/support/validation_gaps/no_repro.py` or
+  `tests/test_validation_gaps.py`.
+
 ### Firefox Page Info suite extraction: isolate meta and image tree declarations (planned 2026-11-20 by the plan role) — done 2026-11-20 by the review role
 
 **Goal.** Give Page Info's meta and image trees a focused declaration suite,

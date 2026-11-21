@@ -174,7 +174,7 @@ white top row, the `#DDDDDD` face rows, the 14x10 raised leftmost mark, the empt
 before the bar's right half and the two bottom rules — while the bar's right half (tray
 icons, clock digits, shell label) and the desktop area below the bar stay deliberately
 unpinned. `--splash` opens the look-and-feel's own startup splash fullscreen at 640x400, and
-the splash gate (`tests/test_render_surface.py::TestSplashRender`) pins the flat field, the
+the splash gate (`tests/test_render_splash_gate.py::TestSplashRender`) pins the flat field, the
 bevel and panel boxes, the logo cell as measured, the wordmark ink and the track's
 left-anchored fill, while the fill's extent — the splash engine's stage clock — stays
 deliberately unpinned.
