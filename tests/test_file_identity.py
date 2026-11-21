@@ -5,7 +5,7 @@ the SVG tree cache in ``support.svg_case`` and the Xcursor parse cache in
 ``support.xcursor``. Their suites exercise reuse and rewrite invalidation
 with the real helper. Stat-failure coverage instead mocks the helper
 (``test_svg_case``) or uses a missing file whose read fails anyway
-(``test_xcursor``). These tests directly pin the exact tuple and the helper's
+(``test_xcursor_reader``). These tests directly pin the exact tuple and the helper's
 stat-failure result, alongside its stability and invalidation properties.
 
 Run with the project's check harness (stdlib unittest)::
