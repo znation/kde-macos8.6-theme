@@ -2,7 +2,7 @@
 
 ``assert_uninstall_diagnostics``, ``assert_files_identical`` and
 ``copy_shipped_file`` are the helpers in ``support/theme_install.py`` that the
-install suites route through. ``installed_destdir`` and
+install suites route through. ``installed_destdir`` in the same module and
 ``FailedInstallPreservesPackage._install_ok`` in
 ``support/install_failure_cases.py`` are the shared template copies. The pins
 for those two check that each helper installs once per class and copies the
