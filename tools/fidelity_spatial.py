@@ -63,6 +63,17 @@ def differing_flags(
     return flags.to_bytes(width * height, "little")
 
 
+def _shared_flags(
+    candidate: Image, reference: Image, tolerance: int, flags: bytes | None
+) -> bytes:
+    """Return the caller's shared flag string, or derive it when ``None``.
+
+    Used by the spatial scans that accept a *flags* keyword, so each
+    default-derives the same :func:`differing_flags` string.
+    """
+    return differing_flags(candidate, reference, tolerance) if flags is None else flags
+
+
 def difference_rows(
     candidate: Image, reference: Image, tolerance: int, *, flags=None
 ) -> list[int]:
@@ -105,7 +116,7 @@ def _difference_axis_counts(
     *, vertical: bool, flags: bytes | None = None,
 ) -> list[int]:
     """Count each over-tolerance pixel once in its row or column."""
-    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
+    flags = _shared_flags(candidate, reference, tolerance, flags)
     width, height = candidate.width, candidate.height
     return [scanline.count(1)
             for _, scanline in _axis_scanlines(flags, width, height, vertical)]
@@ -142,7 +153,7 @@ def _difference_axis_bounds(
     *, vertical: bool, flags: bytes | None = None,
 ) -> list[dict[str, int] | None]:
     """Collect each scanline's smallest interval containing a differing pixel."""
-    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
+    flags = _shared_flags(candidate, reference, tolerance, flags)
     width, height = candidate.width, candidate.height
     start_key, length_key = ("y", "height") if vertical else ("x", "width")
     bounds = []
@@ -168,7 +179,7 @@ def _iter_difference_axis_runs(
     *flags* shares one :func:`differing_flags` pass across a run of spatial
     reports; ``None`` derives the string here.
     """
-    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
+    flags = _shared_flags(candidate, reference, tolerance, flags)
     width, height = candidate.width, candidate.height
     for scanline, scanline_flags in _axis_scanlines(flags, width, height, vertical):
         for match in _RUN.finditer(scanline_flags):
@@ -273,7 +284,7 @@ def difference_centroid(
     visits only run boundaries.
     """
     width, height = candidate.width, candidate.height
-    flags = differing_flags(candidate, reference, tolerance) if flags is None else flags
+    flags = _shared_flags(candidate, reference, tolerance, flags)
     count = flags.count(1)
     if not count:
         return None
