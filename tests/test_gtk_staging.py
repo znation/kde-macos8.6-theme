@@ -28,7 +28,15 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
-from tools.gtk_staging import _attempt_all, _stage, commit, discard, stage_all
+from tools.gtk_staging import (
+    _attempt_all,
+    _restore,
+    _same_file,
+    _stage,
+    commit,
+    discard,
+    stage_all,
+)
 from tools.gtk_user_files import ConfigError
 
 
@@ -616,6 +624,36 @@ class TestDiscard(StagingCase):
 
     def test_ignores_a_path_that_never_became_a_staging_file(self):
         discard(self.root / "never-created.staging")
+
+
+class TestRestoreAfterVanishedTarget(StagingCase):
+    """Rollback when the published target was removed before it could restore.
+
+    The backup is a hard link to the previous inode, so it survives the target
+    being deleted. ``_same_file`` must report "not the same inode" for a missing
+    side rather than raising, so ``_restore`` renames the backup back into place
+    instead of abandoning the user's previous settings.
+    """
+
+    def test_a_missing_side_names_no_inode_and_is_not_the_same_file(self):
+        present = self.root / "settings.ini"
+        present.write_text("old settings\n", encoding="utf-8")
+        missing = self.root / "gone.ini"
+
+        self.assertFalse(_same_file(present, missing))
+        self.assertFalse(_same_file(missing, present))
+
+    def test_restore_puts_the_backup_back_when_the_target_was_removed(self):
+        target = self.root / "settings.ini"
+        target.write_text("old settings\n", encoding="utf-8")
+        backup = self.root / ".settings.ini.0123456789abcdef.backup"
+        os.link(target, backup)
+        target.unlink()
+
+        _restore(target, backup)
+
+        self.assertEqual("old settings\n", target.read_text(encoding="utf-8"))
+        self.assertFalse(backup.exists())
 
 
 if __name__ == "__main__":
