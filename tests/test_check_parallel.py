@@ -12,7 +12,8 @@ without running the real suite more than once.
 
 The checks split by the module they cover: ``test_check_parallel_order.py``
 pins the durations cache and queue, ``test_check_parallel_results.py`` the
-results report, ``test_check_parallel_discovery.py`` the module discovery,
+results report, ``test_check_parallel_marker.py`` the started-test marker
+scan, ``test_check_parallel_discovery.py`` the module discovery,
 and ``test_check_parallel_workers.py`` the worker spawn and clean-up
 defenses. The shared scratch module sources live in
 ``support/check_parallel_fixtures.py``.
