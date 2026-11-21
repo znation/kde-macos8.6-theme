@@ -5,8 +5,8 @@ An apply holds the data-home flock ``make install``/``make uninstall`` hold
 uninstall cannot remove the installed packages between the
 ``lookandfeeltool``/``plasma-apply-*`` selections and leave a selection that
 silently falls back with no diagnostic. The workflow, fault and stub cases live
-in ``tests/test_apply_theme.py``; the case base mirrors its ``StubTools``
-setUp.
+in ``tests/test_apply_theme.py``; the case base mirrors the setUp of
+``ApplyStubTestCase`` in ``tests/support/apply_theme_stubs.py``.
 """
 
 from __future__ import annotations

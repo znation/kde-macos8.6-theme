@@ -22,7 +22,7 @@ NO_FAKE_REPRODUCTIONS = (
         (
             "off-default data-home note fires when the theme already exists at the default data home",
         ),
-        "tests/test_apply_theme.py::TestKvantumDataHomeNote"
+        "tests/test_apply_optional_helpers.py::TestKvantumDataHomeNote"
         "::test_a_theme_already_at_the_default_data_home_stays_silent",
     ),
     Reproduction(
