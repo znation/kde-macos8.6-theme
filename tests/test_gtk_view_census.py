@@ -324,8 +324,9 @@ class TestSelectedViewFace(unittest.TestCase):
         )
 
     def test_palette_constant_is_the_pinned_fill(self):
+        red, green, blue = _selection_rgb()
         self.assertEqual(
-            "#%02X%02X%02X" % _selection_rgb(), SELECTION,
+            f"#{red:02X}{green:02X}{blue:02X}", SELECTION,
             "the pinned fill is the palette's #CCCCFF selection constant",
         )
 

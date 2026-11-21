@@ -78,7 +78,8 @@ def render(rtl):
     window.destroy()
 
     def at(x, y):
-        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+        red, green, blue = pixels[y * stride + x * n:][:3]
+        return f"#{red:02X}{green:02X}{blue:02X}"
 
     left, top = alloc.x, alloc.y
     right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
@@ -159,7 +160,8 @@ def render(rtl):
     window.destroy()
 
     def at(x, y):
-        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+        red, green, blue = pixels[y * stride + x * n:][:3]
+        return f"#{red:02X}{green:02X}{blue:02X}"
 
     left, top = alloc.x, alloc.y
     right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
@@ -219,7 +221,8 @@ def render(rtl):
     window.destroy()
 
     def at(x, y):
-        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+        red, green, blue = pixels[y * stride + x * n:][:3]
+        return f"#{red:02X}{green:02X}{blue:02X}"
 
     left, top = alloc.x, alloc.y
     right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1

@@ -86,7 +86,8 @@ SELECTION = "#CCCCFF"
 
 def hex_colour(rgb):
     """Return the ``#RRGGBB`` form of the sampled pixel *rgb*, as an SVG fill is written."""
-    return "#%02X%02X%02X" % tuple(rgb)
+    red, green, blue = rgb
+    return f"#{red:02X}{green:02X}{blue:02X}"
 
 
 def assert_fill_palette(case, tree, extra=frozenset(), shadow=GREY):

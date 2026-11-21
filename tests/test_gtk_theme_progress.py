@@ -142,7 +142,8 @@ def render(bar, width, height, sensitive=True):
     window.destroy()
 
     def at(x, y):
-        return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+        red, green, blue = pixels[y * stride + x * n:][:3]
+        return f"#{red:02X}{green:02X}{blue:02X}"
 
     return at
 

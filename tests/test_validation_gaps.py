@@ -247,7 +247,9 @@ class TestArchiveVocabulary(unittest.TestCase):
             "header's seven (expected "
             + ", ".join(sorted(HEADER_TAGS))
             + "): found "
-            + ", ".join("%s:%d %r" % beyond for beyond in foreign)
+            + ", ".join(
+                f"{source}:{line} {tag!r}" for source, line, tag in foreign
+            )
             + "; re-tag to the closest header tag in the same change",
         )
 
