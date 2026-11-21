@@ -469,10 +469,17 @@ BUGS.md entries, or `TestRender`, `TestRenderBudgets`,
   nothing, and
   `make check CHECK_TESTS='test_render_surface test_render_splash_gate test_invariants test_render_gates_batch'`
   passes. No test module imports another test module, and nothing under
-  `tools/`, `theme/` or the `Makefile` changes. `make check` passes after
-  the final edit, apart from main's known-red `TestNoReproLedger` cases.
-
-**Needs review 2026-11-21 by feature: could not converge — check failed (`make check`): AssertionError: 7 not less than or equal to 6 : the no-repro tag grew past its baseline (records at BUGS-FIXED.md lines /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:42, /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:131, /home/zach/kde-macos8.6-them…; test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok; test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok; test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok; test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok; test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok; ----------------------------------------------------------------------; Ran 16 tests in 0.001s; OK; check: 510 modules, 1 module failed; make: *** [Makefile:491: check] Error 1; main dc3f7693 is red too, but these failures are this change's own: test_every_record_names_a_reproduction (test_validation_gaps.TestNoReproLedger.test_every_record_names_a_reproduction) (source='/home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md', line=42)**
+  `tools/`, `theme/` or the `Makefile` changes.
+- `make check` passes after the final edit, apart from main's known-red
+  `tests/test_validation_gaps.py` `TestNoReproLedger` cases
+  (`test_every_record_names_a_reproduction`,
+  `test_the_record_count_does_not_grow`). Those fail on main already
+  (seven no-repro records in `BUGS-FIXED.md` against
+  `NO_REPRO_BASELINE = 6` in `tests/support/validation_gaps/no_repro.py`,
+  checked 2026-11-21) and the ci role owns them. A failure of those two
+  cases alone is not this change's; the change must not edit
+  `BUGS-FIXED.md`, `tests/support/validation_gaps/no_repro.py` or
+  `tests/test_validation_gaps.py`.
 
 ### Render CLI tests: move the output-publication cases into their own module (planned 2026-11-21 by the plan role)
 
