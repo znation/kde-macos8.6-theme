@@ -436,6 +436,5 @@ class TestCountNoun(unittest.TestCase):
         self.assertEqual(count_noun(1, "worker"), "1 worker")
 
 
-
 if __name__ == "__main__":
     unittest.main()

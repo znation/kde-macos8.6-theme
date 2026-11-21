@@ -114,8 +114,6 @@ class TestTestMarkerStep(unittest.TestCase):
         self.assertTrue(completed)
 
 
-
-
 class TestStartedTestMarkerAcrossReadChunks(unittest.TestCase):
     """The file scan reads the log 8192 bytes at a time and must carry the
     marker state across the read boundary.
@@ -145,7 +143,6 @@ class TestStartedTestMarkerAcrossReadChunks(unittest.TestCase):
         for k in range(1, len(non_marker)):
             with self.subTest(bytes_before_boundary=k):
                 self.assertFalse(self._log_with_marker_at_boundary(non_marker, k))
-
 
 
 if __name__ == "__main__":
