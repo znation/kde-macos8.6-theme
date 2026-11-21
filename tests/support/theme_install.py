@@ -96,7 +96,7 @@ def write_file(path, body):
     oversize, and unreadable-file fixtures (its write_bytes pair near line 134
     and the link-side mkdir+symlink_to pairs stay direct; the ``truncate``
     fixture near line 491 is not a write_file case).
-    tests/test_apply_cursor.py's two TestRemove kcminputrc fixtures call
+    tests/test_apply_cursor_remove.py's two TestRemove kcminputrc fixtures call
     write_file as well.
     Still unconverted next-run material includes the further
     mkdir-then-write_text staging family in tests/test_apply_cursor.py,

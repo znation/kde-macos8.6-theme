@@ -4,8 +4,9 @@ An apply holds the data-home flock ``make install``/``make uninstall`` hold
 (the Makefile's ``run_locked``) across its installed-theme check, the
 ``~/.icons`` link and the selection, so a concurrent uninstall cannot remove
 the theme between the check and the selection and leave a dangling link.
-The workflow, fault and removal arms live in ``tests/test_apply_cursor.py``;
-the case base mirrors its ``CursorCase`` setUp.
+The workflow and fault arms live in ``tests/test_apply_cursor.py``, the removal
+arms in ``tests/test_apply_cursor_remove.py``; the case base mirrors the
+``CursorTestCase`` setUp in ``tests/support/cursor_case.py``.
 """
 
 from __future__ import annotations

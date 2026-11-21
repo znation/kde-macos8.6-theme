@@ -4,9 +4,10 @@ The tool runs in-process with ``HOME``, ``XDG_DATA_HOME`` and
 ``XDG_CONFIG_HOME`` pointed at a temp root, and the selector is a shell stub on
 ``PATH`` that records its argv. Cursor link policy in ``tools/cursor_link.py``
 and the ``kcminputrc`` reader in ``tools/cursor_config.py`` are pinned alongside
-command selection/removal without touching a real ``~/.icons`` or Plasma
-configuration. The Makefile tests drive the public targets through
-``theme_install``, whose children run under the suite's timeout.
+command selection without touching a real ``~/.icons`` or Plasma
+configuration. The ``apply_cursor --remove`` arms live in
+``tests/test_apply_cursor_remove.py``. The Makefile tests drive the public
+targets through ``theme_install``, whose children run under the suite's timeout.
 """
 
 from __future__ import annotations
@@ -22,59 +23,18 @@ from unittest import mock
 from support import process_runner
 from support.executable_stubs import write_executable
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import snippet_child
 from support.apply_target_cases import ApplyTargetMakeCases
-from support.cli_fixtures import run_main_with_env
-from support.cursor_theme_fixtures import write_cursor_theme
+from support.cursor_case import CursorTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
     assert_succeeded,
 )
-from support.recorded_lines import recorded_lines
-from support.theme_install import write_file
-from support.tmp_dir import make_session_home, make_tmp_dir
-from support.unlink_failure import unlink_failing_for
+from support.tmp_dir import make_tmp_dir
 from tools import apply_cursor, cursor_config, cursor_link, cursor_selection, diagnostics, required_command
 
 
-class CursorCase(unittest.TestCase):
-    """Base with a temp home, data/config homes and a recording selector stub."""
-
-    def setUp(self):
-        self.root, self.home, self.data, self.config, self.bin, self.env = (
-            make_session_home(self)
-        )
-        self.calls = self.root / "calls"
-        self.installed = (
-            self.data / "icons" / cursor_link.CURSOR_THEME
-        )
-        self.link = self.home / ".icons" / cursor_link.CURSOR_THEME
-
-    def install_theme(self):
-        """Write the installed theme's ``index.theme`` and ``cursors/left_ptr``."""
-        write_cursor_theme(self.installed)
-
-    def stub_selector(self, body="exit 0"):
-        """Write a ``plasma-apply-cursortheme`` stub recording its argv."""
-        path = self.bin / cursor_selection.SELECT_TOOL
-        write_executable(
-            path,
-            "#!/bin/sh\n"
-            f'printf \'%s\\n\' "$*" >> "{self.calls}"\n'
-            f"{body}\n",
-        )
-
-    def run_tool(self, *args, env=None):
-        return run_main_with_env(
-            apply_cursor.main, "apply_cursor", args, env or self.env
-        )
-
-    def recorded(self):
-        return recorded_lines(self.calls)
-
-
-class TestHomes(CursorCase):
+class TestHomes(CursorTestCase):
     def test_absolute_home_is_required(self):
         for home, expected in (
             (None, "HOME is unset; export an absolute HOME"),
@@ -126,7 +86,7 @@ class TestHomes(CursorCase):
         self.assertEqual(Path("/home/u/.config"), config)
 
 
-class TestInstall(CursorCase):
+class TestInstall(CursorTestCase):
     def test_install_links_the_installed_theme_and_selects_it(self):
         self.install_theme()
         self.stub_selector()
@@ -312,7 +272,7 @@ class TestInstall(CursorCase):
         self.assertEqual([], self.recorded())
 
 
-class TestSelection(CursorCase):
+class TestSelection(CursorTestCase):
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         # The selector runs with a scratch directory for its log. Creating that
         # directory can fail before the selector starts (a full or unwritable
@@ -458,186 +418,6 @@ class TestSelection(CursorCase):
             f"cannot run {cursor_selection.SELECT_TOOL}", result.stderr
         )
         self.assertTrue(self.link.is_symlink())
-
-
-class TestRemove(CursorCase):
-    def make_our_link(self):
-        self.link.parent.mkdir(parents=True)
-        os.symlink(str(self.installed), str(self.link))
-
-    def clear_link(self):
-        if not self.link.is_symlink() and not os.path.lexists(self.link):
-            return
-        if self.link.is_dir() and not self.link.is_symlink():
-            self.link.rmdir()
-            return
-        self.link.unlink()
-
-    def test_removal_unlinks_only_our_symlink_and_keeps_the_icons_dir(self):
-        self.make_our_link()
-        result = self.run_tool("--remove")
-        assert_succeeded(self, result)
-        self.assertFalse(os.path.lexists(self.link))
-        self.assertTrue((self.home / ".icons").is_dir())
-
-    def test_data_home_inspection_failure_is_reported_before_removing_link(self):
-        self.make_our_link()
-        original_stat = Path.stat
-
-        def failing_stat(path, *args, **kwargs):
-            if path == self.data:
-                raise PermissionError("simulated inspection failure")
-            return original_stat(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "stat", failing_stat):
-            result = self.run_tool("--remove")
-
-        assert_exit_2_without_traceback(self, result)
-        self.assertIn(f"cannot inspect data home {self.data}", result.stderr)
-        self.assertTrue(self.link.is_symlink())
-
-    def test_removal_accepts_a_dangling_link_to_our_theme(self):
-        self.make_our_link()
-        self.assertFalse(self.installed.exists())
-        result = self.run_tool("--remove")
-        assert_succeeded(self, result)
-        self.assertFalse(os.path.lexists(self.link))
-
-    def test_removal_is_repeatable(self):
-        self.make_our_link()
-        assert_succeeded(self, self.run_tool("--remove"))
-        assert_succeeded(self, self.run_tool("--remove"))
-
-    def test_a_missing_data_home_still_removes_our_link(self):
-        # The data home can be gone entirely when the removal runs: nothing
-        # else owns that path, and a caller may have deleted it after moving
-        # the tree (make uninstall removes the installed icon theme, never the
-        # data home itself).
-        # cursor_workflow.remove stats the data home only to learn whether a
-        # directory flock is even available: an absent home means no lock, and
-        # the removal must still take its own link down (a run that instead
-        # locked unconditionally would fail at os.open's O_DIRECTORY flag).
-        self.make_our_link()
-        self.assertFalse(self.data.exists())
-
-        result = self.run_tool("--remove")
-
-        assert_succeeded(self, result)
-        self.assertNotIn("cannot lock", result.stderr)
-        self.assertNotIn("cannot inspect", result.stderr)
-        self.assertFalse(os.path.lexists(self.link))
-        self.assertTrue((self.home / ".icons").is_dir())
-
-    def test_a_non_directory_data_home_still_removes_our_link(self):
-        # A stray regular file at the data-home path carries no directory
-        # inode to flock; attempting the lock would fail os.open's
-        # O_DIRECTORY check, so the non-directory state must skip the lock
-        # and still remove the link instead of printing a refusal.
-        self.make_our_link()
-        self.data.write_text("stray\n", encoding="utf-8")
-
-        result = self.run_tool("--remove")
-
-        assert_succeeded(self, result)
-        self.assertNotIn("cannot lock", result.stderr)
-        self.assertFalse(os.path.lexists(self.link))
-        self.assertTrue((self.home / ".icons").is_dir())
-
-    def test_removal_leaves_a_foreign_symlink_dir_and_file(self):
-        for kind in ("symlink", "directory", "file"):
-            with self.subTest(kind=kind):
-                self.clear_link()
-                self.link.parent.mkdir(parents=True, exist_ok=True)
-                if kind == "symlink":
-                    elsewhere = self.root / "foreign"
-                    os.symlink(str(elsewhere), str(self.link))
-                elif kind == "directory":
-                    self.link.mkdir()
-                else:
-                    self.link.write_text("foreign\n", encoding="utf-8")
-                result = self.run_tool("--remove")
-                assert_succeeded(self, result)
-                self.assertIn(str(self.link), result.stdout)
-                self.assertTrue(os.path.lexists(self.link))
-
-    def test_a_failed_link_removal_is_reported_by_path(self):
-        # The link this tool created can still fail to unlink (a read-only
-        # ~/.icons, for example). The OSError must become the tool's own exit-2
-        # diagnostic naming the link -- not a traceback -- and the link must
-        # stay in place so the operator can retry.
-        self.make_our_link()
-
-        with unlink_failing_for(self.link, "simulated unlink failure"):
-            result = self.run_tool("--remove")
-
-        assert_exit_2_without_traceback(self, result)
-        self.assertIn("cannot remove", result.stderr)
-        self.assertIn(str(self.link), result.stderr)
-        self.assertTrue(self.link.is_symlink())
-        self.assertEqual(str(self.installed), os.readlink(self.link))
-
-    def test_unreadable_cursor_symlink_is_reported_on_removal_without_traceback(self):
-        # Removal reads the link's target before deciding whether it is ours.
-        # When that read fails, the tool must refuse by path (exit 2, no
-        # traceback) and leave the link in place: an unread link is never
-        # assumed to be ours and unlinked.
-        self.make_our_link()
-        real_readlink = os.readlink
-
-        def failing_readlink(path, *args, **kwargs):
-            if Path(path) == self.link:
-                raise PermissionError("simulated readlink failure")
-            return real_readlink(path, *args, **kwargs)
-
-        with mock.patch.object(apply_cursor.os, "readlink", failing_readlink):
-            result = self.run_tool("--remove")
-
-        assert_exit_2_without_traceback(self, result)
-        self.assertIn("cannot read symlink", result.stderr)
-        self.assertIn(str(self.link), result.stderr)
-        self.assertTrue(self.link.is_symlink())
-        self.assertEqual(str(self.installed), real_readlink(self.link))
-
-    def test_kcminputrc_note_names_the_reset_only_when_our_theme_is_selected(self):
-        self.make_our_link()
-        kcminputrc = self.config / "kcminputrc"
-        write_file(kcminputrc, "[Mouse]\ncursorTheme=org.macos8.desktop\n")
-        result = self.run_tool("--remove")
-        assert_succeeded(self, result)
-        self.assertIn("plasma-apply-cursortheme breeze_cursors", result.stdout)
-        self.assertEqual(
-            "[Mouse]\ncursorTheme=org.macos8.desktop\n",
-            kcminputrc.read_text(encoding="utf-8"),
-        )
-
-    def test_kcminputrc_note_is_absent_for_a_foreign_selection(self):
-        self.make_our_link()
-        kcminputrc = self.config / "kcminputrc"
-        write_file(kcminputrc, "[Mouse]\ncursorTheme=Adwaita\n")
-        result = self.run_tool("--remove")
-        assert_succeeded(self, result)
-        self.assertNotIn("breeze_cursors", result.stdout)
-
-    def test_a_fifo_kcminputrc_does_not_block_removal(self):
-        # A plain read_text/open on a FIFO waits forever for a writer. Run the
-        # removal in a child so a regression is a bounded timeout rather than
-        # a stalled check, and the removal still succeeds with no note.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
-        self.make_our_link()
-        self.config.mkdir(parents=True)
-        os.mkfifo(self.config / "kcminputrc")
-        snippet = (
-            "import sys; from tools.apply_cursor import main; "
-            "sys.exit(main(sys.argv[1:]))"
-        )
-        with mock.patch.dict(os.environ, self.env, clear=True):
-            child = snippet_child.run(
-                [snippet, "--remove"], cwd=repo_root.ROOT, timeout=10
-            )
-        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertFalse(os.path.lexists(self.link))
-        self.assertNotIn("breeze_cursors", child.stdout)
 
 
 class TestCursorThemeSetting(unittest.TestCase):

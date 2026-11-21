@@ -5,6 +5,7 @@ reader's parsing contract directly: only the ``[Mouse]`` section counts,
 comment lines hold no value, surrounding whitespace is trimmed, a BOM is
 stripped, and a non-UTF-8 file or a directory reads as no setting. A FIFO
 at the path is pinned indirectly there by
+``tests/test_apply_cursor_remove.py``'s
 ``TestRemove.test_a_fifo_kcminputrc_does_not_block_removal``, which shows
 the removal still finishes with the FIFO in place. This module holds the
 behaviors that suite never exercises: a missing ``kcminputrc`` reads
