@@ -17,6 +17,10 @@ import os
 import signal
 import subprocess
 import time
+from unittest import mock
+
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools import process_group  # noqa: E402
 
 # Bound on the gone-poll below, the same deadline the inline copies kept: a
 # sleeper the cleanup killed normally disappears within the second, so a
@@ -68,3 +72,26 @@ def gone(pid: int) -> bool:
             return True
         time.sleep(0.02)
     return False
+
+
+def assert_custom_handler_keeps_its_behavior_during_start(case, number):
+    """Pin the start race for a custom *number* handler.
+
+    Shared by the four custom-handler tests: two in :class:`TestRunLogged`
+    (``tests/test_process_group.py``) and two in :class:`TestRunLoggedSplit`
+    (``tests/test_process_group_split.py``). A signal arriving while ``Popen``
+    starts must reach the handler the caller installed, the run must still
+    succeed, and the runner must restore the handler afterwards.
+    """
+    received = []
+    handler = lambda delivered, frame: received.append(delivered)  # noqa: E731
+    old = signal.signal(number, handler)
+    case.addCleanup(signal.signal, number, old)
+    with mock.patch.object(
+        process_group.subprocess,
+        "Popen",
+        side_effect=signal_into_popen(number),
+    ):
+        case.assertEqual(0, case.run_sh("exit 0"))
+    case.assertEqual([number], received)
+    case.assertIs(handler, signal.getsignal(number))

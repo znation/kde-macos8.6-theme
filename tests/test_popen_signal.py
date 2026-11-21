@@ -1,7 +1,7 @@
 """Tests for tests/support/popen_signal.py -- the shared Popen race helpers.
 
-The suites that share these helpers (``test_process_group`` and
-``test_check_parallel_workers``) drive ``signal_into_popen`` through both its
+The suites that share these helpers (``test_process_group``,
+``test_process_group_split`` and ``test_check_parallel_workers``) drive ``signal_into_popen`` through both its
 tracked and untracked paths, but call ``kill_tracked`` only as an unasserted
 cleanup and ask ``gone`` only about pids that were already reaped: nothing
 failed when the cleanup stopped killing, and the timeout path was never

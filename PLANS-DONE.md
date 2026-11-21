@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Process-group suite extraction: move the split-output supervisor tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Shrink the 717-line `tests/test_process_group.py`. Its last
+part tests `tools/process_group.py::run_logged_split` and the two helpers
+only that function calls, `_feed_stdin` and `_finish_writer`. Those are
+the classes `TestRunLoggedSplit`, `TestFeedStdin` and `TestFinishWriter`,
+about 240 lines in all. Move them into a new
+`tests/test_process_group_split.py`. Only the test layout changes. This
+entry is independent of every waiting entry, and none of them touches
+`tests/test_process_group.py`. The held `tests/support/` regroup moves
+whole modules. This plan only adds one function to an existing support
+module and creates no support file.
+
+**Approach.**
+
+- The module-level helper
+  `assert_custom_handler_keeps_its_behavior_during_start(case, number)`
+  is called by two `TestRunLogged` tests (which stay) and two
+  `TestRunLoggedSplit` tests (which move). Test modules never import each
+  other, so move it, body unchanged, into
+  `tests/support/popen_signal.py`. Its body is about the Popen-return
+  signal race that module already covers. Add the imports the body reads
+  there, `from unittest import mock` and `from tools import process_group`,
+  and check each one with grep. Update its docstring so it names
+  `TestRunLogged` in `tests/test_process_group.py` and `TestRunLoggedSplit`
+  in `tests/test_process_group_split.py`. Then add
+  `test_process_group_split` to the list of suites sharing the helpers in
+  the `tests/test_popen_signal.py` module docstring.
+- Create `tests/test_process_group_split.py` with a short module
+  docstring. Move the three classes into it verbatim, above an
+  `if __name__ == "__main__": unittest.main()` guard. Import only the names
+  the moved bodies read, starting with `support.repo_root` (as the old
+  module does, for `sys.path`). Check each one with grep: `os`, `signal`,
+  `subprocess`, `tempfile`, `threading`, `unittest`, `pathlib.Path`,
+  `types.SimpleNamespace`, `unittest.mock`, `gone` and the moved helper
+  from `support.popen_signal`, and `tools.process_group`.
+- In `tests/test_process_group.py`, delete the three classes and the
+  helper, and import the helper from `support.popen_signal`. Drop every
+  import the remaining code no longer reads. On main, `threading` and
+  `SimpleNamespace` are read only inside the moved classes; grep every
+  other import. Its module docstring still describes what stays, so leave
+  it alone unless grep shows otherwise.
+- `docs/invariants.md`: two rows in the `## tooling` table name
+  `tests/test_process_group.py::TestRunLoggedSplit`. One is the
+  external-command supervisor row, which names both `TestRunLoggedSplit`
+  and `TestRunLoggedSplit::test_thread_start_failure_kills_the_child`. The
+  other is the required-command split-output row, which names
+  `TestRunLoggedSplit::test_returns_the_exit_status_and_keeps_the_streams_apart`.
+  Point all three anchors at `tests/test_process_group_split.py`. Then grep
+  `docs/`, `tests/` (including `tests/support/validation_gaps/*.py` and
+  `tests/test_ci_workflow.py`) and `*.md` for
+  `test_process_group.py::TestRunLoggedSplit`, `TestFeedStdin`,
+  `TestFinishWriter` and `test_process_group.TestRunLoggedSplit`, and
+  re-point every hit. The `validation_gaps/no_fake.py` anchors name
+  `TestRunLogged`, which stays, so they stay too.
+
+**Files touched.** `tests/test_process_group.py`, new
+`tests/test_process_group_split.py`, `tests/support/popen_signal.py`,
+`tests/test_popen_signal.py` (docstring only), `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- `make check CHECK_TESTS='test_process_group_split'` runs every test
+  method that `TestRunLoggedSplit`, `TestFeedStdin` and `TestFinishWriter`
+  define in `tests/test_process_group.py` on main, under the same class and
+  method names, and they pass. `git diff --color-moved` shows the class
+  bodies unchanged.
+- `tests/test_process_group.py` no longer defines those three classes or
+  `assert_custom_handler_keeps_its_behavior_during_start`. It still
+  defines `TestKillGroup`, `TestReplayDeferred`, `TestRunLogged` and
+  `TestExitOnTermination` with the same test method names as on main, and
+  `make check CHECK_TESTS='test_process_group'` passes.
+- Each of the four custom-handler tests (two in `TestRunLogged`, two in
+  `TestRunLoggedSplit`) still fails if the runner stops restoring the
+  caller's handler, because each still calls the moved helper from
+  `tests/support/popen_signal.py`.
+- No test module imports another test module. Nothing under `tools/`,
+  `theme/` or the `Makefile` changes.
+- Every `docs/invariants.md` anchor that named a moved class names
+  `tests/test_process_group_split.py`.
+  `make check CHECK_TESTS='test_process_group test_process_group_split test_popen_signal test_check_parallel_workers test_invariants'`
+  passes, and `make check` passes after the final edit.
+
 ### Kvantum SVG suite extraction: move the indicator and branch arrow pins into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_kvantum_svg.py` (544 lines) still pins every concern of the shipped
