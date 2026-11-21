@@ -493,6 +493,15 @@ check: 504 modules, 1 module failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
 
+### `test_validation_gaps` no-repro ledger fails on main after the 856baac9 closure (found by the steward role 2026-11-20)
+
+`make check` at the current main head fails in `test_validation_gaps`: two `TestNoReproLedger` cases fail, both on records the closure commit `856baac9` added to `BUGS-FIXED.md`.
+
+- `test_every_record_names_a_reproduction`: `BUGS-FIXED.md:42` is tagged `no-repro` and names no reproduction. Its validation-gap line reads "the failure never came back to show its cause, so the bug closes unexplained."
+- `test_the_record_count_does_not_grow`: 7 `no-repro` records against a baseline of 6 (lines 42, 131, 306, 856, 4444, 5304, 5386).
+
+The failure was seen on the run's tree before this entry was written, and the failing assertions read only `BUGS.md` and `BUGS-FIXED.md`, which the closure commit changed. The test's own advice is to make the failure deterministic in a test and add its ledger entry rather than grow the ledger. A closure that records no reproduction should not carry the `no-repro` tag, or the tag needs a reproduction. Whoever owns the closed record decides which; the steward did not edit the archive.
+
 ### `make apply-cursor` links `~/.icons` before refusing a missing `plasma-apply-cursortheme` (found by the qa role 2026-11-20)
 
 The README's Prerequisites table lists `plasma-apply-cursortheme` on `PATH` as a requirement of

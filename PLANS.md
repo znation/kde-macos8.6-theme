@@ -11,16 +11,14 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Needs review 2026-11-19 by feature: too large for one run.** Measured in this checkout: 106 flat `tools/*.py` modules (the entry says 107), 199 Python files that import a prefixed flat module (the entry says 97), 172 test files that call `mock.patch`, and 11 markdown/Makefile files naming flat modules. One change touching all of these, with per-module patch-target ownership decisions and the `tools/render_workflow.py` anchor (absent; its successor is not found by `git log --follow`), exceeds one run's budget. Suggest the plan role split it into one subsystem family per entry (e.g. `render_` first), each landing its own package and its importers together.
 
-**Needs review 2026-11-19 by feature: too large for one run** — 106 modules in `tools/`, about 195 import lines matching the prefixed families across the tree (grep `from tools.<family>_` / `import <family>_`), plus every `mock.patch` target, the Makefile and docs; the whole move must land as one change, which exceeds one run's scope.
-
-**Goal.** `tools/` holds 107 flat modules with no grouping beyond their name
+**Goal.** `tools/` holds 106 flat modules with no grouping beyond their name
 prefixes: `render_` (12), `fidelity_` (12), `sample_` (11), `cursor_` (10),
 `check_` (7), `firefox_` (5), `apply_` (5), `uninstall_` (4), `gtk_` (4), plus
 single files for other subsystems. A reader cannot see subsystem boundaries from
 the directory listing, and 97 files import these modules by their flat names.
 Regroup them into subpackages, following the existing `tools/png/` package.
 
-**Cost today.** Evidence: `ls tools | wc -l` gives 107 modules; `rg -l` finds 97
+**Cost today.** Evidence: `ls tools/*.py | wc -l` gives 106 modules; `rg -l` finds 97
 files that import a prefixed flat module; `render_` names appear in 123 files
 (code, tests and docs). Nothing marks which `render_*` modules form the render
 subsystem, so a change to one family is found by grepping names, not by path.
