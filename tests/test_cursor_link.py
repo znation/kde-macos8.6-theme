@@ -60,5 +60,52 @@ class TestSymlinkTarget(unittest.TestCase):
         self.assertEqual(cursor_link.symlink_target(self.link), str(gone))
 
 
+class TestRemoveLink(unittest.TestCase):
+    """remove_link reports whether a path other than our link remains."""
+
+    def setUp(self):
+        self._scratch = tempfile.TemporaryDirectory()
+        root = Path(self._scratch.name)
+        self.home = root / "home"
+        self.data_home = root / "data"
+        (self.home / ".icons").mkdir(parents=True)
+        self.theme = cursor_link.installed_theme(self.data_home)
+        self.theme.mkdir(parents=True)
+        self.target = cursor_link.link_target(self.home)
+
+    def tearDown(self):
+        self._scratch.cleanup()
+
+    def test_our_link_is_removed_and_no_foreign_path_remains(self):
+        os.symlink(str(self.theme), self.target)
+        path, foreign = cursor_link.remove_link(self.home, self.data_home)
+        self.assertEqual(path, self.target)
+        self.assertFalse(foreign)
+        self.assertFalse(os.path.lexists(self.target))
+        self.assertTrue(self.theme.is_dir())
+
+    def test_foreign_link_is_left_in_place_and_reported(self):
+        other = self.home / "elsewhere" / cursor_link.CURSOR_THEME
+        os.symlink(str(other), self.target)
+        path, foreign = cursor_link.remove_link(self.home, self.data_home)
+        self.assertEqual(path, self.target)
+        self.assertTrue(foreign)
+        self.assertEqual(os.readlink(self.target), str(other))
+
+    def test_regular_file_is_left_in_place_and_reported(self):
+        self.target.write_text("someone else's file", encoding="utf-8")
+        path, foreign = cursor_link.remove_link(self.home, self.data_home)
+        self.assertEqual(path, self.target)
+        self.assertTrue(foreign)
+        self.assertEqual(self.target.read_text(encoding="utf-8"),
+                         "someone else's file")
+
+    def test_nothing_at_target_reports_no_foreign_path(self):
+        path, foreign = cursor_link.remove_link(self.home, self.data_home)
+        self.assertEqual(path, self.target)
+        self.assertFalse(foreign)
+        self.assertFalse(os.path.lexists(self.target))
+
+
 if __name__ == "__main__":
     unittest.main()
