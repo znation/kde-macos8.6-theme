@@ -365,6 +365,33 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertEqual(original, path.read_bytes())
         self.assert_profile_absent(self.user_js_path(), self.content_sheet_path())
 
+    def test_a_directory_at_the_user_chrome_path_is_refused_by_name_before_any_write(self):
+        # The profile's own userChrome.css is read to compare its first line.
+        # A directory at that path is not a file to compare: the install must
+        # exit 2 naming the path (the shared reader's "not a regular file"
+        # refusal, as for the shipped sheet) and publish nothing.
+        path = self.sheet_path()
+        path.mkdir(parents=True)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(f"cannot read {path}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertTrue(path.is_dir())
+        self.assert_profile_absent(self.user_js_path(), self.content_sheet_path())
+
+    def test_a_directory_at_the_user_js_path_is_refused_by_name_before_any_write(self):
+        # user.js is read for its marker block before the install writes
+        # anything. A directory there must exit 2 naming user.js, and neither
+        # the sheet nor the content sheet may be published.
+        path = self.user_js_path()
+        path.mkdir()
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(f"cannot read {path}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertTrue(path.is_dir())
+        self.assert_profile_absent(self.sheet_path(), self.content_sheet_path())
+
     def test_a_user_chrome_at_the_1_mib_cap_is_accepted(self):
         # One byte past the cap is refused; exactly 1 MiB is the accepted
         # boundary, so the documented cap is pinned by an actual file rather
