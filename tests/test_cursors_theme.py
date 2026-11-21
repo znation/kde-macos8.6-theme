@@ -7,8 +7,8 @@ and pointing-hand pins live in ``tests/test_cursors_vector_artifacts.py``.
 Per-glyph drawn-shape pins live in ``tests/test_cursor_glyph_shapes.py``.
 The ``tools/make_cursors.py`` generator's own grid and cache checks and its
 ``main`` failures live in ``tests/test_make_cursors.py``; its size rule is
-the one ``tools/cursor_vector.py`` defines. The test-side reader is independent of ``tools/xcursor.py``; see
-``tests/support/xcursor.py``.
+the one ``tools/cursor_vector.py`` defines. The test-side reader is
+independent of ``tools/xcursor.py``; see ``tests/support/xcursor.py``.
 """
 
 from __future__ import annotations
@@ -489,5 +489,7 @@ class TestCursorSet(unittest.TestCase):
                     _repo_bytes(CURSORS / alias),
                     _repo_bytes(CURSORS / canonical),
                 )
+
+
 if __name__ == "__main__":
     unittest.main()
