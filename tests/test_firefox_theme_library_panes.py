@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import unittest
 
-from support.firefox_chrome_cases import FirefoxChromeTestCase
-from support.selector_matching import element, matches
+from support.firefox.chrome_cases import FirefoxChromeTestCase
+from support.firefox.selector_matching import element, matches
 
 # The Library downloads view's list-field and row arms, in sheet order.
 DOWNLOADS_RULES = (

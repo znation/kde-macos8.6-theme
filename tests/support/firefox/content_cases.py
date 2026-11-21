@@ -25,7 +25,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from support import containment
-from support.css_header import CommentHeaderAssertions
+from support.firefox.css_header import CommentHeaderAssertions
 from support.gtk_css import HEX, parse_css, strip_comments
 from support.platinum_palette import (
     BLACK,

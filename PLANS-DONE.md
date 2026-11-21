@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the tests/support firefox modules into a subpackage (part 2/6 of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the firefox-family slice of the tests/support regroup (see
+part 1/6 for the split's counts and rules; the parts are independent).
+
+**Modules to move (importer files counted on main).** `selector_matching`
+(15), `firefox_content_cases` (9), `firefox_chrome_cases` (14),
+`css_header` (3; its importers are `firefox_content_cases` and
+`firefox_chrome_cases`, which this part moves too) →
+`tests/support/firefox/` with `__init__.py`: `selector_matching.py`,
+`content_cases.py`, `chrome_cases.py`, `css_header.py`.
+
+**Approach.** Move the modules and update imports throughout the Firefox
+test family. `firefox_profile_case` (also imported by install/remove tests)
+and `firefox_content_palette` (imported by a support module) remain flat.
+
+**Files touched.** The four moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/firefox/` lists `__init__.py` and the four moved
+  modules; there are no stale import references to the old paths.
+- No behavior change: only module moves and import path updates.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the tests/support render modules into a subpackage (part 1/6 of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the render-family slice of the tests/support regroup. The

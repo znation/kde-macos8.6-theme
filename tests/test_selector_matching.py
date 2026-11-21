@@ -1,7 +1,7 @@
 """Tests for the test-side selector matcher in ``tests/support``.
 
 The Firefox sheet's scope tests build small element trees and ask
-:func:`support.selector_matching.matches` whether a rule's selector would paint
+:func:`support.firefox.selector_matching.matches` whether a rule's selector would paint
 each element. The sheet's selectors use direct-child combinators (``>``) as
 well as descendant combinators, so the matcher must distinguish them: a child
 combinator matches only the immediate parent, while a descendant combinator
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.selector_matching import (
+from support.firefox.selector_matching import (
     _selector_is_supported,
     element as build_element,
     matches,

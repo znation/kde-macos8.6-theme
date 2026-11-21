@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import unittest
 
-from support.css_header import comment_header
-from support.firefox_chrome_cases import (
+from support.firefox.css_header import comment_header
+from support.firefox.chrome_cases import (
     BUTTON_REFERENCES,
     REQUIRED_RULES,
     SHEET_PATH,

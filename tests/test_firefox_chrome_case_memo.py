@@ -18,10 +18,10 @@ import unittest
 from unittest import mock
 
 from support import containment
-import support.firefox_chrome_cases as chrome_cases
-import support.firefox_content_cases as content_cases
-from support.firefox_chrome_cases import FirefoxChromeTestCase
-from support.firefox_content_cases import FirefoxContentTestCase
+import support.firefox.chrome_cases as chrome_cases
+import support.firefox.content_cases as content_cases
+from support.firefox.chrome_cases import FirefoxChromeTestCase
+from support.firefox.content_cases import FirefoxContentTestCase
 from support.repo_root import ROOT
 
 

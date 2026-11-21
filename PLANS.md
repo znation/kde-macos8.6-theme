@@ -136,42 +136,6 @@ Planned entry, pending change or finished plan covers `test_png_read.py`.
   main's known-red `TestNoReproLedger` tests, if main still fails them (L6).
   Do not edit `BUGS-FIXED.md` or the ledger baseline to make them pass.
 
-### Group the tests/support firefox modules into a subpackage (part 2/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the firefox-family slice of the tests/support regroup (see
-part 1/6 for the split's counts and rules; the parts are independent).
-
-**Modules to move (importer files counted on main).** `selector_matching`
-(15), `firefox_content_cases` (9), `firefox_chrome_cases` (14),
-`css_header` (3; its importers are `firefox_content_cases` and
-`firefox_chrome_cases`, which this part moves too) →
-`tests/support/firefox/` with `__init__.py`: `selector_matching.py`,
-`content_cases.py`, `chrome_cases.py`, `css_header.py`.
-
-**Approach.** As in part 1/6: move, rewrite importer lines and bare
-references, retarget `mock.patch` strings to the module whose global the
-caller resolves, and verify with `rg` before each move that every importer
-is in this part's family or moves in this part; a blocked module stays
-flat — record it. Known stays, already measured: `firefox_profile_case`
-(also imported by install/remove tests) and `firefox_content_palette`
-(imported by a support module).
-
-**Files touched.** The four moved modules, their importer files under
-`tests/`, any `mock.patch` target strings, and docs naming the old paths.
-
-**Acceptance criteria.**
-
-- `ls tests/support/firefox/` lists `__init__.py` and the four moved
-  modules; `rg -n 'support\.(selector_matching|firefox_content_cases|firefox_chrome_cases|css_header)'`
-  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
-  reference.
-- Every `mock.patch` string naming a moved module resolves, and the tests
-  that patch them pass.
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
 **Needs review 2026-11-21 by feature: too large for one run**

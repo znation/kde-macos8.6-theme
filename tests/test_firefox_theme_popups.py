@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import unittest
 
-from support.firefox_chrome_cases import (
+from support.firefox.chrome_cases import (
     REQUIRED_RULES,
     FirefoxChromeTestCase,
 )
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxPopupRows(FirefoxChromeTestCase):

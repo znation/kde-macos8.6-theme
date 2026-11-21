@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.firefox_chrome_cases import REQUIRED_RULES, FirefoxChromeTestCase
+from support.firefox.chrome_cases import REQUIRED_RULES, FirefoxChromeTestCase
 from support.platinum_palette import TROUGH
 
 

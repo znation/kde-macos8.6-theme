@@ -14,7 +14,7 @@ sites are ``FirefoxChromeTestCase`` (serving the provenance tests of
 ``tests/test_firefox_theme_library.py``,
 ``tests/test_firefox_theme_library_panes.py`` and
 ``tests/test_firefox_theme_bookmark_editor.py``) and ``FirefoxContentTestCase`` in
-``tests/support/firefox_content_cases.py``.
+``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations

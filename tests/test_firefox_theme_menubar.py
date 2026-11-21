@@ -6,7 +6,7 @@ import re
 import unittest
 
 from support.desktoptheme_paths import MENUBARITEM_SVG
-from support.firefox_chrome_cases import (
+from support.firefox.chrome_cases import (
     MENU_STOCK_BOTTOM_BORDER,
     REQUIRED_RULES,
     FirefoxChromeTestCase,

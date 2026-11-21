@@ -9,7 +9,7 @@ pane are validated by ``test_firefox_theme_library_panes.py``.
 
 from __future__ import annotations
 
-from support.firefox_chrome_cases import (
+from support.firefox.chrome_cases import (
     REQUIRED_RULES,
     FirefoxChromeTestCase,
 )
@@ -20,7 +20,7 @@ from support.platinum_palette import (
     SELECTION,
     WHITE,
 )
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 # The nine required selectors naming the two places trees, in sheet
 # order: the two field selectors, then the per-tree row and cell-text

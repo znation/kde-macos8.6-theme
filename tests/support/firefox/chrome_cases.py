@@ -25,7 +25,7 @@ import unittest
 from pathlib import Path
 
 from support import containment
-from support.css_header import CommentHeaderAssertions
+from support.firefox.css_header import CommentHeaderAssertions
 from support.gtk_css import parse_css
 from support.gtk_rule_cases import SheetRuleAssertions
 from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, RAISED_BEVEL

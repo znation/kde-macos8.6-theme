@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     BUTTON_SHADOW,
     FACE,
     GREY,
@@ -21,7 +21,7 @@ from support.firefox_content_cases import (
 )
 from support.firefox_content_palette import assert_palette_declarations
 from support.platinum_palette import BLACK, WHITE
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxPreferencesFieldsTheme(FirefoxContentTestCase):

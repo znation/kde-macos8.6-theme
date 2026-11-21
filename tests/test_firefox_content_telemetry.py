@@ -5,14 +5,14 @@ selected arm, the subsection label, the search field and the stores menu
 button and ping-picker panel. Payload tables, histograms and their bars,
 and copy and JSON-viewer buttons reuse the existing recipes; the body stays
 Firefox's. The shared spec values and base case live in
-``tests/support/firefox_content_cases.py``.
+``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations
 
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     FORBIDDEN_PAGE_CHROME,
     TELEMETRY_BAR_INNER,
     TELEMETRY_COPY,
@@ -49,7 +49,7 @@ from support.platinum_palette import (
     TROUGH,
     WHITE,
 )
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxTelemetryTheme(FirefoxContentTestCase):

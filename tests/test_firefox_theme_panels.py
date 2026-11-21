@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import unittest
 
-from support.firefox_chrome_cases import FirefoxChromeTestCase
+from support.firefox.chrome_cases import FirefoxChromeTestCase
 from support.platinum_palette import FACE, SELECTION
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxPanelRows(FirefoxChromeTestCase):

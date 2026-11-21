@@ -4,14 +4,14 @@ The troubleshooting page's ``#contents`` tables are the sunken list field
 with the raised column-header face and the page's ten buttons the
 Platinum push button; the body, headings and the ``.action-box`` card
 stay Firefox's. The shared spec values and base case live in
-``tests/support/firefox_content_cases.py``.
+``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations
 
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     FORBIDDEN_PAGE_CHROME,
     REQUIRED_SUPPORT_RULES,
     SUPPORT_BUTTONS,
@@ -33,7 +33,7 @@ from support.platinum_palette import (
     TROUGH,
     WHITE,
 )
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxSupportTheme(FirefoxContentTestCase):

@@ -11,7 +11,7 @@ art. The other pages live in ``tests/test_firefox_content_config.py``,
 ``tests/test_firefox_content_support.py``,
 ``tests/test_firefox_content_networking.py`` and
 ``tests/test_firefox_content_telemetry.py``; the shared spec values and
-base case live in ``tests/support/firefox_content_cases.py``. The Firefox
+base case live in ``tests/support/firefox/content_cases.py``. The Firefox
 profile install copies the sheet beside userChrome.css through
 make install-firefox or the aggregate make apply.
 """
@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     FORBIDDEN_PAGE_CHROME,
     LIST,
     MARKER,

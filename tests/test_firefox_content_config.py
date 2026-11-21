@@ -5,14 +5,14 @@ alternate rows, its search field is the sunken line edit and Show All and
 the warning page's primary button are the Platinum push buttons; the
 warning copy, the row buttons and the page background stay Firefox's.
 The shared spec values and base case live in
-``tests/support/firefox_content_cases.py``.
+``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations
 
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     CONFIG_CONTROL_PREFIXES,
     CONFIG_PREFS,
     CONFIG_UNTOUCHED,

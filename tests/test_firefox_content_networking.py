@@ -6,14 +6,14 @@ button. The sidebar rows use the Platinum navigation paint, the ``#host``
 input the sunken line edit, and the ``#autorefcheck`` checkbox the
 preferences checkbox face and shipped check-mark glyph; the body stays
 Firefox's. The shared spec values and base case live
-in ``tests/support/firefox_content_cases.py``.
+in ``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations
 
 import unittest
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     FORBIDDEN_PAGE_CHROME,
     NETWORKING_BUTTONS,
     NETWORKING_CATEGORY,
@@ -42,7 +42,7 @@ from support.platinum_palette import (
     TROUGH,
     WHITE,
 )
-from support.selector_matching import element, matches
+from support.firefox.selector_matching import element, matches
 
 
 class TestFirefoxNetworkingTheme(FirefoxContentTestCase):

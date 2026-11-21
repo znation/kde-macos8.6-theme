@@ -3,7 +3,7 @@
 The sidebar's category rows, the pane search field, push buttons, check
 boxes and radio circles are the shared Platinum recipe set; the panes'
 other controls stay Firefox's. The shared spec
-values and base case live in ``tests/support/firefox_content_cases.py``.
+values and base case live in ``tests/support/firefox/content_cases.py``.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import unittest
 import xml.etree.ElementTree
 from urllib.parse import unquote
 
-from support.firefox_content_cases import (
+from support.firefox.content_cases import (
     BUTTON_HOVER_RULE,
     BUTTON_RULE,
     CHECKBOX_FACE,
