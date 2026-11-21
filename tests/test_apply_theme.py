@@ -468,7 +468,8 @@ class TestKonsoleFontStep(ApplyStubTestCase):
     best-effort selections, and propagates its failure.
 
     The helper itself is mocked: its own behavior is
-    ``tests/test_apply_konsole_font.py``'s subject, so these pin only the
+    ``tests/test_apply_konsole_font.py`` and
+    ``tests/test_apply_konsole_font_refusals.py`` subjects, so these pin only the
     call -- its arguments, its place in the sequence and the failure
     propagation -- by appending a marker line to the recorded-calls log
     while the stubs record theirs.

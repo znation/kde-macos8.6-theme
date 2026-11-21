@@ -5,6 +5,81 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Konsole font suite extraction: move the stub base to support and the refusal tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_apply_konsole_font.py` is 537 lines. It holds the stub-tool base class
+`StubKonsoleTools` (its `WRITER`/`READER` stub scripts, `setUp`, `env`, `apply_font`,
+`fail_stub` and the write/read helpers), the `KonsoleError` and `FOREIGN_PROFILE` fixtures,
+and two kinds of test. `TestUserDefault`, `TestSystemDefault`, `TestFallback` and
+`TestSearchBases` pin where the font lands. `TestFallbackDirectoryRefusals`, `TestRefusals`
+and `TestCommandFailures` pin what is refused and how command failures surface. PRINCIPLES.md
+asks for one responsibility per file, so move the shared base and fixtures into a new
+`tests/support/konsole_font_case.py`, and move the three refusal/failure classes into a new
+`tests/test_apply_konsole_font_refusals.py`. Both test modules import the base from support
+rather than from each other (L4). Keep the test class names, docstrings, comments and every test
+body unchanged. No tool, Makefile or check behavior changes. This plan is independent of every
+other Planned entry and of the pending plans, none of which touches these files.
+
+**Approach and files touched.**
+
+- **New `tests/support/konsole_font_case.py`.** Start with a module docstring that names both
+  suites that share it and says the module name does not match `test*.py`, so discovery never
+  collects it (as `tests/support/apply_gtk_case.py` says). Move `KonsoleError`,
+  `FOREIGN_PROFILE` with its comment, and the base class. Rename the base
+  `StubKonsoleToolsTestCase`: `tests/support/invariants.py::_defined_names` treats an imported
+  base as a test case only when its name ends in `TestCase` (L1). Keep its body, docstring and
+  stub-script text byte-for-byte. A planning read found the base uses `contextlib`, `io`,
+  `shutil`, `stat`, `sys`, `tempfile`, `unittest`, `pathlib.Path`,
+  `support.theme_install.write_file`, `tools.apply_konsole_font` and
+  `tools.apply_theme.FIXED_VALUE as FONT` (the default of `apply_font`). Import those, with
+  `from support import repo_root  # noqa: F401` before the `tools` imports.
+- **`tests/test_apply_konsole_font.py`.** Delete the moved fixtures, the base and the three
+  moved classes. Keep `TestUserDefault`, `TestSystemDefault`, `TestFallback` and
+  `TestSearchBases`, now deriving from `StubKonsoleToolsTestCase`. A planning count found that
+  the remaining classes use only `unittest` (the `__main__` guard), `Path`, `apply_konsole_font`,
+  `FONT`, `FOREIGN_PROFILE` and the base. Drop the other imports, because
+  `tests/test_no_unused_imports.py` enforces this. The implementer re-checks each import with
+  grep. Rewrite the module docstring to cover profile resolution and the font write. Say that
+  the stubs live in `support/konsole_font_case.py` and the refusals in
+  `test_apply_konsole_font_refusals.py`.
+- **New `tests/test_apply_konsole_font_refusals.py`.** Start with a module docstring saying it
+  pins the helper's refusals (a squatted `konsole` directory, unsafe or unresolvable profile
+  names, symlinked destinations, an unresolvable config home) and its command-failure exits.
+  Then add `TestFallbackDirectoryRefusals`, `TestRefusals` and `TestCommandFailures` in their
+  current order, each deriving from `StubKonsoleToolsTestCase`, and then an
+  `if __name__ == "__main__": unittest.main()` guard (L1). A planning read found the moved
+  bodies use `unittest`, `stat`, `write_file`, `KonsoleError`, `FOREIGN_PROFILE` and the base.
+- **`docs/invariants.md`.** The Konsole-profile row's test cell names
+  `tests/test_apply_konsole_font.py`. Add `tests/test_apply_konsole_font_refusals.py` beside it,
+  because the row's refusal clause is now pinned there. Leave the row's prose unchanged.
+- **Prose that names the old layout.** `tests/support/theme_install.py`'s `write_file` docstring
+  says that "test_apply_konsole_font.py's `write_konsolerc`/`write_profile` delegate to it".
+  Repoint it to `support/konsole_font_case.py`. `tests/test_apply_theme.py::TestKonsoleFontStep`'s
+  docstring calls the helper `tests/test_apply_konsole_font.py`'s subject. Name both suites.
+- **Anchors.** A planning `git grep` found `test_apply_konsole_font` only in the three places above
+  (outside the archives), and `StubKonsoleTools`, `TestRefusals`, `TestCommandFailures` and
+  `TestFallbackDirectoryRefusals` nowhere outside the file. Re-run that grep and also check
+  `tests/support/validation_gaps/*.py`, `docs/rendering.md`, `docs/fidelity.md`,
+  `docs/installing.md` and `tests/test_ci_workflow.py` (L1, L3). Repoint any anchor found.
+
+**Acceptance criteria.**
+
+- From `tests/`, `python3 -m unittest test_apply_konsole_font_refusals` runs fourteen tests,
+  named as the methods of `TestFallbackDirectoryRefusals`, `TestRefusals` and
+  `TestCommandFailures` were before the move, and they pass.
+- From `tests/`, `python3 -m unittest test_apply_konsole_font` runs sixteen tests, the methods of
+  `TestUserDefault`, `TestSystemDefault`, `TestFallback` and `TestSearchBases`, and they pass.
+  The module defines no `StubKonsoleTools`, `KonsoleError`, `FOREIGN_PROFILE` or moved class.
+- `git grep -n 'StubKonsoleTools\b'` outside `PLANS.md` and the archives finds nothing. The base
+  is defined once, as `StubKonsoleToolsTestCase` in `tests/support/konsole_font_case.py`, and
+  discovery collects no test from that module.
+- The `docs/invariants.md` Konsole-profile row names both test modules.
+- `wc -l` shows each of the three files under 260 lines.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ### JPEG sampler suite extraction: move the conversion-bridge unit tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_sample_jpeg.py` is 532 lines and holds two kinds of test. Three classes

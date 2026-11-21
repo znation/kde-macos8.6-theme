@@ -80,7 +80,7 @@ def write_file(path, body):
     its file name over it, and test_gtk_selection.py and
     test_placeholders.py stage their fixtures with direct ``write_file``
     calls, support/checker_scratch.py's ``_write`` adds containment and
-    recording around its ``write_file`` call, and test_apply_konsole_font.py's
+    recording around its ``write_file`` call, and support/konsole_font_case.py's
     ``write_konsolerc``/``write_profile`` delegate to it, and
     ApplyGtkTestCase.write_bytes and test_uninstall_config_read_cap.py's
     ``write_bytes`` delegate too. Deliberately left: the
