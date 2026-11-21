@@ -275,6 +275,22 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assert_profile_absent(self.sheet_path())
 
+    def test_a_directory_at_user_chrome_is_refused_and_user_js_is_kept(self):
+        # Removal reads userChrome.css through the shared regular-file reader
+        # before it decides ownership. A directory at that path must exit 2
+        # naming the path, leave the directory in place, and leave our
+        # user.js block untouched, because the refusal comes before any write.
+        self.install()
+        js_bytes = self.user_js_path().read_bytes()
+        self.sheet_path().unlink()
+        self.sheet_path().mkdir()
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(self.sheet_path()), result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertTrue(self.sheet_path().is_dir())
+        self.assertEqual(js_bytes, self.user_js_path().read_bytes())
+
     def test_non_utf8_user_js_is_reported_without_writing_the_sheet(self):
         # The reader decodes user.js as UTF-8 and promises a by-name error for
         # invalid bytes, while the directory case above pins a non-regular
