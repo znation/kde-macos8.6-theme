@@ -3,7 +3,7 @@
 The render's end-to-end capture gates live in
 ``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
 ``tests/test_render_file_dialog.py``, their failure orchestration in
-``tests/test_render_failure_paths.py``, and the output publication in
+``tests/test_render_failure_paths.py`` and ``tests/test_render_live_capture.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: KWin session command construction in
 ``tools/render_session.py``. Capture-paint checks live in

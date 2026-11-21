@@ -50,7 +50,7 @@ NO_REPRO_REPRODUCTIONS = (
             "The client-exit stub regression is load-sensitive and can turn a "
             "parallel `make check` red",
         ),
-        "tests/test_render_failure_paths.py::TestFailurePaths"
+        "tests/test_render_live_capture.py::TestLiveCapture"
         "::test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget",
     ),
     Reproduction(

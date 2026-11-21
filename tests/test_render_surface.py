@@ -11,7 +11,8 @@ desktop bar. The startup splash's gate is in
 are pinned in ``tests/test_render_dialog_gates.py`` and
 ``tests/test_render_file_dialog.py``, the capture plumbing the three suites
 share in ``tests/support/render_gates.py``, the CLI's failure paths against
-shell stubs in ``tests/test_render_failure_paths.py``, and the session
+shell stubs in ``tests/test_render_failure_paths.py`` and its live-session
+capture outcomes in ``tests/test_render_live_capture.py``, and the session
 script and argument handling without a session in
 ``tests/test_render_surface_units.py``.
 """

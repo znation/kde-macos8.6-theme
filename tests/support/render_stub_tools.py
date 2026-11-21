@@ -1,7 +1,8 @@
 """Shared shell-stub harness for the render CLI suites.
 
-Used by ``tests/test_render_failure_paths.py``, ``tests/test_render_session_modes.py``,
-``tests/test_render_output_cli.py`` and ``tests/test_render_environment.py``.
+Used by ``tests/test_render_failure_paths.py``, ``tests/test_render_live_capture.py``,
+``tests/test_render_session_modes.py``, ``tests/test_render_output_cli.py`` and
+``tests/test_render_environment.py``.
 """
 
 from __future__ import annotations
@@ -65,8 +66,10 @@ class StubTools(unittest.TestCase):
     def assert_failed_run(self, status, stderr, output, expected_status, *diagnostics):
         """Assert a failed render's status, diagnostics, output and cleanup.
 
-        Shared by the 22 failure-path tails in
-        :mod:`tests.test_render_failure_paths`.
+        Shared by the 22 failure-path tails: 11 in
+        :mod:`tests.test_render_failure_paths`, 6 in
+        :mod:`tests.test_render_live_capture` and 5 in
+        :mod:`tests.test_render_session_modes`.
         """
         self.assertEqual(expected_status, status)
         for diagnostic in diagnostics:

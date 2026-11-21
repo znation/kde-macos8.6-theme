@@ -5,6 +5,84 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render failure-paths suite extraction: move the live-session capture tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_render_failure_paths.py` is still 534 lines after the per-mode session
+tests moved out. PRINCIPLES.md asks for files small enough to read in one sitting. The largest
+concern left inside `TestFailurePaths` is the live-session capture group. These tests either run
+the tool's real session script under stubs (`stub_live_session`) or hand back a bad capture
+(`stub_capture`), and they pin what the render does with a crashed client, a failed, wrong-size
+or black capture, or a client that dies mid-capture. This plan moves that group, with its two
+helpers and with each test body unchanged, into a new `tests/test_render_live_capture.py`. No tool
+behavior changes. No other Planned entry touches these modules.
+
+**Approach and files touched.**
+
+- New `tests/test_render_live_capture.py`:
+  - Module docstring: it pins the render's live-session and capture outcomes against the shell
+    stubs, meaning the real session script's applet liveness check, the crashed-applet setup-wait
+    diagnosis, and the refusal of a failed, wrong-size, black or vanished-client capture. The
+    other failure paths stay in `tests/test_render_failure_paths.py`.
+  - Module-level function `crashed_applet_setup_diagnosis`, moved verbatim. Only the two
+    crashed-applet tests below call it; check with grep before moving it.
+  - `class TestLiveCapture(StubTools, unittest.TestCase)` gets these `TestFailurePaths` members,
+    copied verbatim and kept in their current order:
+    - the helper method `stub_live_session`
+    - `test_a_running_applet_is_still_captured`
+    - `test_a_painted_capture_reports_the_session_log_on_stdout`
+    - `test_a_crashed_applet_is_not_captured_as_a_successful_render`
+    - `test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch`
+    - `test_a_failing_capture_session_exits_1_writes_no_output_and_removes_scratch`
+    - `test_a_capture_of_the_wrong_size_exits_1_and_writes_nothing`
+    - `test_an_unpainted_capture_exits_1_and_writes_nothing`
+    - `test_a_client_that_exits_during_the_capture_is_not_blamed_on_the_paint_budget`
+  - Imports: `shlex`, `unittest`, `support.cli_fixtures.run_main`, `tools.render_surface`,
+    `tools.png.write.encode_png` and `support.render_stub_tools.StubTools`. Copy the old module's
+    `from __future__` line and import layout. Put the class above an
+    `if __name__ == "__main__": unittest.main()` guard (L1).
+- `tests/test_render_failure_paths.py`: delete the members listed above and
+  `crashed_applet_setup_diagnosis`. `test_failed_session_exits_1_and_removes_scratch`,
+  `test_session_without_a_capture_exits_1`, the timeout and SIGTERM tests, and every member before
+  them stay. Imports used only by the moved code go: `shlex`, `encode_png`, and `run_main` from
+  the `support.cli_fixtures` import (`call_main` and `assert_missing_tool_named` stay). Re-check
+  each with grep after the deletion. Add one sentence to the module docstring pointing at
+  `tests/test_render_live_capture.py` for the live-session capture outcomes.
+- `tests/support/render_stub_tools.py`: add the new module to the module docstring's "Used by"
+  list. `assert_failed_run`'s docstring says "Shared by the 22 failure-path tails in
+  :mod:`tests.test_render_failure_paths`". At planning time, 22 is the call count of
+  `self.assert_failed_run(` across `test_render_failure_paths.py` (17, counting the one inside
+  `assert_unrunnable_command_is_reported`) and `test_render_session_modes.py` (5). Six of those
+  calls move. Recount with grep after the move and reword the docstring so it names every module
+  that calls the helper and gives the total you counted.
+- `docs/invariants.md`: re-point each `tests/test_render_failure_paths.py::TestFailurePaths::<moved test>`
+  anchor to `tests/test_render_live_capture.py::TestLiveCapture::<same test>`. At planning time
+  these are the plasmawindowed-liveness row (the crashed-applet test) and the black-capture row
+  (the unpainted-capture test). Re-grep at implementation time. Change no row's guarantee text.
+- `tests/support/validation_gaps/no_repro.py` (the `client-exit-stub-pidfile-race` reproduction)
+  and `tests/support/validation_gaps/slow_check.py` (the `crashed-applet-setup-wait`
+  reproduction) cite moved tests as `file::TestFailurePaths::test`. Re-point both to the new
+  file and class (L3), and change none of their other fields.
+- Per L1, grep `docs/rendering.md`, `docs/fidelity.md`, `tests/test_ci_workflow.py` and README.md
+  for the moved names. At planning time, none of them names one.
+
+**Acceptance criteria.**
+
+- From `tests/`, the way `make check` runs it, `python3 -m unittest test_render_live_capture` runs
+  the eight named tests under `TestLiveCapture`, and they pass.
+- None of the eight test names, `stub_live_session` or `crashed_applet_setup_diagnosis` is defined
+  in `tests/test_render_failure_paths.py`. Each is defined exactly once under `tests/`.
+- In `git diff -M --color-moved`, the moved bodies show as moved lines, not as edited ones.
+- `git grep -n 'test_render_failure_paths.py' -- docs tests` finds no citation of a moved test.
+  The invariants-anchor and validation-gap tests pass.
+- `python3 -m pyflakes`, if it is installed, reports no unused import in either render module.
+  Without pyflakes, grep each import that was dropped or kept to show it is still used.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
+Implementation note (feature role, 2026-11-21): the plan said `run_main` stays in `tests/test_render_failure_paths.py`, but its remaining tests call the `StubTools` method `self.run_main()`, not the imported function, so the bare `run_main` import was unused there and was dropped. `run_main` stays imported in `tests/test_render_live_capture.py`, where one moved test calls it. The new module has nine test methods under `TestLiveCapture`, not eight, matching the nine bullets in the plan's list.
+
 ### Xcursor suite extraction: move the test-side reader's tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_xcursor.py` is 607 lines and covers two subjects. Its docstring names both:
