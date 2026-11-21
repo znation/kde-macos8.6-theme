@@ -79,6 +79,16 @@ class TestReadPng(unittest.TestCase):
         self.assertIn(f"{limit + 1} bytes", message)
         self.assertLess(peak, limit + 1024 * 1024)
 
+    def test_read_png_accepts_a_file_exactly_at_the_cap(self):
+        # The cap is inclusive: a file of exactly _MAX_FILE_BYTES bytes is a
+        # valid input, and only one byte more is refused. A strict >= check
+        # would refuse this file.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        path = self._file("at_cap.png", data)
+        with mock.patch.object(loader, "_MAX_FILE_BYTES", len(data)):
+            image = png.read_png(path)
+        self.assertEqual((image.width, image.height), (3, 4))
+
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input
         # invocation can tell which of the candidate/reference was bad.
@@ -154,6 +164,14 @@ class TestReadPng(unittest.TestCase):
         self.assertIn(str(path), message)
         self.assertIn(str(limit), message)
         self.assertIn(f"{limit + 1} bytes", message)
+
+    def test_read_png_size_accepts_a_file_exactly_at_the_cap(self):
+        # The prefix read checks the stat size against the cap, inclusively:
+        # a file of exactly _MAX_FILE_BYTES bytes still reports its size.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        path = self._file("at_cap.png", data)
+        with mock.patch.object(loader, "_MAX_FILE_BYTES", len(data)):
+            self.assertEqual(png.read_png_size(path), (3, 4))
 
     def test_read_png_size_names_undecodable_file(self):
         path = self._file("broken.png", b"not a png")
