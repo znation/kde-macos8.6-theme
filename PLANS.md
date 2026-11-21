@@ -306,6 +306,81 @@ touches `tools/` and the `tools/` imports, not `tests/support/`.
   only.
 - `make check` passes after the final edit, apart from main's known-red tests.
 
+### Install suite extraction: move the support-helper sharing pins into the support pins module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_theme_install.py` is 783 lines. Its module docstring says it pins
+`make install`/`uninstall` behaviour, and that the pins of the shared install helpers
+live in `tests/test_theme_install_support.py`. Two of its classes break that rule: they
+pin test-support helpers, not `make`. `TestInstalledDestdirSharing` pins
+`support/theme_install.py`'s `installed_destdir`, and `TestFailedInstallSharing` pins
+`support/install_failure_cases.py`'s `FailedInstallPreservesPackage._install_ok`. Move
+both classes, unchanged, into `tests/test_theme_install_support.py`, the module that
+already pins the shared install helpers. Nothing else moves.
+
+**Approach.**
+- Cut `TestInstalledDestdirSharing` and `TestFailedInstallSharing` from
+  `tests/test_theme_install.py`. Keep every method body, the private helpers
+  `_forget_templates`, `_fake_install` and `_succeeded`, the class docstrings and the
+  test names as they are. Paste both classes into `tests/test_theme_install_support.py`
+  after `TestCopyShippedFile` and above the `if __name__ == "__main__":` guard (L1).
+- In `tests/test_theme_install_support.py`, add the imports the moved classes need:
+  `install_failure_cases` (added to the existing `from support import ...` line),
+  `from support.install_failure_cases import FailedInstallPreservesPackage`, and
+  `from support.tmp_dir import make_tmp_dir`, and `import contextlib`, because
+  `test_an_escaping_template_symlink_is_refused` patches in `contextlib.nullcontext`.
+  `os`, `unittest.mock`, `Path` and `theme_install` are already imported there.
+- In `tests/test_theme_install.py`, drop the imports that only the moved classes used:
+  `install_failure_cases` from the `from support import ...` line and the
+  `from support.install_failure_cases import FailedInstallPreservesPackage` line, and
+  `import contextlib`: nothing outside the moved classes uses it. Keep `os`,
+  `unittest.mock` and `make_tmp_dir`, because the code that stays still uses them
+  (`_assert_install_packages_refused`, `TestThemeSymlinkGuard`, `TestMakeEnv`). Check
+  each remaining import with grep before you keep or drop it.
+- Update the docstring of `tests/test_theme_install_support.py`. It now says the module
+  pins helpers in `support/theme_install.py` only. Make it also name `installed_destdir`
+  and `FailedInstallPreservesPackage._install_ok` from `support/install_failure_cases.py`.
+  It should say these pins check that each helper installs once per class and copies
+  the template per test. Leave the docstring of `tests/test_theme_install.py` as it is:
+  it already sends readers to the support pins module.
+- In `docs/invariants.md`, retarget the three anchors in the installed-template copy
+  row ("The installed-template copy shared by `installed_destdir` and ...") from
+  `tests/test_theme_install.py::TestInstalledDestdirSharing::...` and
+  `tests/test_theme_install.py::TestFailedInstallSharing::...` to the same
+  class/method under `tests/test_theme_install_support.py`. Leave the row's text alone.
+- Grep `tests/support/validation_gaps/*.py`, `docs/`, `tests/` and `README.md` for
+  `TestInstalledDestdirSharing` and `TestFailedInstallSharing`, and for
+  `test_theme_install.py::` anchors naming either class (L1, L3). When this plan was
+  written, only the `docs/invariants.md` row had any. Retarget any others you find.
+- Out of scope: the `tests/support/` regroup (`## Planned`, "Group the flat
+  tests/support/ modules into per-family packages"). If that entry's `install_` slice
+  lands first, use whatever import path `install_failure_cases` has on main then.
+
+**Files touched.** `tests/test_theme_install.py`, `tests/test_theme_install_support.py`,
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- `tests/test_theme_install_support.py` defines `TestInstalledDestdirSharing`, with
+  `test_repeated_calls_install_once_and_copy_the_tree`,
+  `test_each_package_family_gets_its_own_template`, `test_a_failed_install_is_not_reused`,
+  `test_an_escaping_template_symlink_is_refused` and
+  `test_a_contained_template_symlink_is_copied_as_a_link`. It also defines
+  `TestFailedInstallSharing`, with `test_install_ok_installs_once_and_copies_per_test` and
+  `test_install_ok_refuses_an_escaping_template_symlink`. Each body matches the one it
+  had in `tests/test_theme_install.py`; `git diff --color-moved` shows the classes as
+  moved, not rewritten.
+- `grep -n 'TestInstalledDestdirSharing\|TestFailedInstallSharing\|install_failure_cases\|contextlib' tests/test_theme_install.py`
+  prints nothing, and `tests/test_theme_install.py` is under 600 lines (`wc -l`).
+- Every other test class in `tests/test_theme_install.py` is still there with the same
+  methods.
+- `docs/invariants.md`'s installed-template copy row names its three tests under
+  `tests/test_theme_install_support.py`. `tests/test_invariants.py` passes, which checks
+  that each anchor resolves.
+- No anchor in `docs/`, `tests/` or `README.md` names either moved class under
+  `tests/test_theme_install.py`. Grep shows this.
+- `make check` passes after the final edit, apart from main's known-red
+  `TestNoReproLedger` tests (L6). Do not edit `BUGS-FIXED.md` or the ledger baseline to
+  turn them green.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
