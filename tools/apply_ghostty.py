@@ -122,7 +122,12 @@ def apply(config_home: Path, data_home: Path, env: dict[str, str], optional: boo
     if data is not None and updated == data:
         report_note(TOOL, f"{target} already selects the Platinum theme")
         return 0
-    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise GhosttyConfigError(
+            f"cannot create {target.parent}: {exc.strerror}"
+        ) from exc
     _write(target, updated, _mode_of(target))
     report_note(
         TOOL,
@@ -144,7 +149,12 @@ def remove(config_home: Path) -> int:
         report_note(TOOL, f"{target} has no Platinum block; left unchanged")
         return 0
     if not updated:
-        target.unlink()
+        try:
+            target.unlink()
+        except OSError as exc:
+            raise GhosttyConfigError(
+                f"cannot remove {target}: {exc.strerror}"
+            ) from exc
         report_note(TOOL, f"removed {target}, which held only the Platinum block")
         return 0
     _write(target, updated, _mode_of(target))

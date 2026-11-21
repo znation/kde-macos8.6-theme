@@ -157,6 +157,16 @@ class TestRemove(GhosttyCase):
         assert_succeeded(self, self.run_tool("--remove"))
         self.assertFalse(self.target.exists())
 
+    @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
+    def test_undeletable_file_is_refused_with_exit_2(self):
+        assert_succeeded(self, self.run_tool("--optional"))
+        self.target.parent.chmod(0o555)
+        self.addCleanup(self.target.parent.chmod, 0o755)
+        result = self.run_tool("--remove")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("cannot remove", result.stderr)
+        self.assertEqual(self.target.read_bytes(), self.block())
+
     def test_leaves_the_legacy_config_file_alone(self):
         self.legacy.parent.mkdir(parents=True)
         self.legacy.write_bytes(b"theme = Other\n")
