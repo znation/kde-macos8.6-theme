@@ -475,6 +475,8 @@ make: *** [Makefile:491: check] Error 1
 
 ### the stage self-check finding "tests/test_firefox_theme_panels.py had 192 lines moved to tests/test_firefox_theme_bookmark_editor.py, but it is still…" was not closed by the fix-up turn and re-fires each run (filed by tumwater 2026-11-21)
 
+**Needs review 2026-11-21 by bugfix: the self-check that raises this lives in tumwater's own code (the added-nonexistent-path guard and its fix-up/revert), not in this repo; the repo mentions it only in comments. On main the referenced docs are correct: the bookmark-editor tests still live in `tests/test_firefox_theme_panels.py`, and `tests/test_firefox_theme_bookmark_editor.py` does not exist, because that move is the held plan "Firefox panels suite extraction" and was never landed. Repointing `docs/invariants.md` now would make it wrong. The fix belongs to the tumwater maintainer (the guard or its fix-up turn) or to the held plan's own work, not to a bugfix change.**
+
 - **Symptom:** the pre-queue self-check raised this finding on the run's change; the one-turn fix-up could not close it and reverted the whole change instead, so the run ended `no_change` (`selfCheckReverted`) and the finding lived only in the run's warning event.
 - **Finding:** `tests/test_firefox_theme_panels.py had 192 lines moved to tests/test_firefox_theme_bookmark_editor.py, but it is still named at: docs/invariants.md:106, docs/invariants.md:107, docs/invariants.md:109, docs/invariants.md:113, docs/invariants.md:114, docs/invariants.md:120, tests/support/css_header.p…`
 - **Reproduce:** author a change that trips a pre-queue self-check finding the fix-up resolves by reverting the whole change (clean tree); the run ends `no_change` with only the self-check warning carrying the finding.
