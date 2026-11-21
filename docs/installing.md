@@ -34,7 +34,9 @@ that face while application-specific overrides may supersede it; the apply
 writes that selection into `kdeglobals` itself because the look-and-feel
 apply publishes no defaults' font key),
 and the GTK 3 and GTK 4 Platinum stylesheets, their `index.theme` descriptor
-and ten shared assets into `themes/org.macos8.desktop/`. Applying the global
+and ten shared assets into `themes/org.macos8.desktop/`. The `ghostty` family
+installs the Platinum Ghostty theme file as `ghostty/themes/org.macos8.desktop/Platinum`;
+nothing selects it yet, so Ghostty's own config still decides its colors and font. Applying the global
 theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at
 fixed resolutions.
 
@@ -221,7 +223,7 @@ presses nothing: the installed `kwin/decorations/` package copies — the select
 defaults make — gate their title-bar buttons' hit areas on window activity, so the click meant to
 refocus the window cannot act a close, zoom or collapse box. `make uninstall` removes every installed artifact, including the thirteen GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
-`aurorae/themes/`, `kwin/decorations/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
+`aurorae/themes/`, `kwin/decorations/`, `wallpapers/`, `icons/`, `fonts/`, `themes/` and `ghostty/themes/`
 directories and anything else in them in place. It removes only those artifacts, their
 hidden `.staging`/`.old` leftovers and the emptied GTK directories; it refuses to run if a fixed
 install destination parent is a symlink. It never edits the user's configuration: if the removed

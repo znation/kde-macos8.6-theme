@@ -273,6 +273,12 @@ FONT_ID := org.macos8.desktop
 FONT_PACKAGE := theme/fonts/$(FONT_ID)
 FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts
 
+# Ghostty reads a theme file from `$XDG_DATA_HOME/ghostty/themes/<name>`; the
+# package is one file, `Platinum`, inside its own id directory.
+GHOSTTY_ID := org.macos8.desktop
+GHOSTTY_PACKAGE := theme/ghostty/$(GHOSTTY_ID)
+GHOSTTY_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/ghostty/themes
+
 # Kvantum's user-local theme search path is
 # `$XDG_DATA_HOME/themes/<name>/Kvantum/`, so a Kvantum theme installs as two
 # files directly inside a `Kvantum/` directory rather than as a package
@@ -320,8 +326,8 @@ GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
 # though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the default
 # below must name the same families, and the guard rejects a default that names
 # one it does not know.
-INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk
-INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
@@ -534,7 +540,7 @@ help:
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
-	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk)"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 	@echo ""
 	@echo "Reference tools (run from the repository root):"
@@ -807,6 +813,7 @@ _install:
 	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR)))
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
+	$(if $(filter ghostty,$(INSTALL_PACKAGES)),$(call install_package,$(GHOSTTY_ID),$(GHOSTTY_PACKAGE),$(GHOSTTY_INSTALL_DIR)))
 	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
 # Remove only the artifacts this theme installed -- including the GTK files,
@@ -828,7 +835,7 @@ uninstall:
 # the fixed destination parents before the removal recipe can reach outside
 # DATA_HOME; links at the final package directory are removed as links by
 # rm -rf and do not redirect traversal.
-require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
+require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(GHOSTTY_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
 
 # The package removals repeat one shape -- the directory this theme owns
 # beside its `install_package` state: the package itself and the hidden
@@ -852,12 +859,16 @@ _uninstall:
 	$(call remove_installed_package,$(WALLPAPER_INSTALL_DIR),$(WALLPAPER_ID)) \
 	$(call remove_installed_package,$(ICON_THEME_INSTALL_DIR),$(ICON_THEME_ID)) \
 	$(call remove_installed_package,$(FONT_INSTALL_DIR),$(FONT_ID)) \
+	$(call remove_installed_package,$(GHOSTTY_INSTALL_DIR),$(GHOSTTY_ID)) \
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"; \
 	# `rmdir` hungrily removes only the emptied sub-directories and then the
 	# shared `Kvantum/` parent and the shared theme directory itself; a
 	# directory still holding a file the theme did not install survives, and
 	# an absent or symlinked path just fails behind `|| true`.
 	{ $(call gtk_remove_loop); }; \
+	# The Ghostty `themes/` directory and its `ghostty/` parent are removed only
+	# when empty, so a foreign file a user placed under either one survives.
+	rmdir "$(GHOSTTY_INSTALL_DIR)" "$(DATA_HOME)/ghostty" 2>/dev/null || true; \
 	rmdir "$(GTK_INSTALL_DIR)/assets" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" 2>/dev/null || true
 # Every selection `make apply` published names an id `make uninstall` removes,
 # so each config file the apply wrote is read back afterwards and a selection

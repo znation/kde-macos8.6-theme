@@ -1,0 +1,38 @@
+# Platinum terminal theme for Ghostty (a Ghostty config file).
+#
+# Sources:
+#   font-family, font-style, font-size: the approved fixed-width face, weight
+#     and size of FIXED_VALUE in tools/apply_theme.py (QUESTIONS.md 2026-11-12).
+#   background, foreground, selection-*, cursor-color: [Colors:View] and
+#     [Colors:Selection] in theme/color-schemes/MacOS8.colors.
+#   palette: the classic 16-color system table, mapped to the ANSI slots. The
+#     table has no bright blue or bright cyan, so slots 12 and 14 repeat 4 and 6.
+# No reference screenshot shows a terminal, so this file is not sampled from
+# one. Select it with `theme = /absolute/path/to/Platinum` in the Ghostty config.
+
+font-family = JetBrains Mono
+font-style = Medium
+font-size = 10
+
+background = #ffffff
+foreground = #000000
+cursor-color = #000000
+selection-background = #ccccff
+selection-foreground = #000000
+
+palette = 0=#000000
+palette = 1=#dd0806
+palette = 2=#006411
+palette = 3=#562c05
+palette = 4=#0000d4
+palette = 5=#4600a5
+palette = 6=#02abea
+palette = 7=#c0c0c0
+palette = 8=#808080
+palette = 9=#ff6403
+palette = 10=#1fb714
+palette = 11=#fcf305
+palette = 12=#0000d4
+palette = 13=#f20884
+palette = 14=#02abea
+palette = 15=#ffffff
