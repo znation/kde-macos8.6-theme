@@ -7,18 +7,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ### Group the flat tools/ modules into per-subsystem packages (planned 2026-11-19 by the organize role)
 
-**Needs review 2026-11-19 by feature: too large for one run**
-
-**Needs review 2026-11-19 by feature: too large for one run.** Measured in this checkout: 106 flat `tools/*.py` modules (the entry says 107), 199 Python files that import a prefixed flat module (the entry says 97), 172 test files that call `mock.patch`, and 11 markdown/Makefile files naming flat modules. One change touching all of these, with per-module patch-target ownership decisions and the `tools/render_workflow.py` anchor (absent; its successor is not found by `git log --follow`), exceeds one run's budget. Suggest the plan role split it into one subsystem family per entry (e.g. `render_` first), each landing its own package and its importers together.
+**Needs review 2026-11-19 by feature: too large for one run.** Measured in this checkout (2026-11-21): 106 flat `tools/*.py` modules, 199 files under `tools/` and `tests/` that import a prefixed flat module (grep `from tools.<family>_` / `import <family>_`), 172 test files that call `mock.patch`, and 11 markdown/Makefile files naming flat modules. One change touching all of these, with per-module patch-target ownership decisions and the `tools/render_workflow.py` anchor (absent; its successor is not found by `git log --follow`), exceeds one run's budget. Suggest the plan role split it into one subsystem family per entry (e.g. `render_` first), each landing its own package and its importers together.
 
 **Goal.** `tools/` holds 106 flat modules with no grouping beyond their name
 prefixes: `render_` (12), `fidelity_` (12), `sample_` (11), `cursor_` (10),
 `check_` (7), `firefox_` (5), `apply_` (5), `uninstall_` (4), `gtk_` (4), plus
 single files for other subsystems. A reader cannot see subsystem boundaries from
-the directory listing, and 97 files import these modules by their flat names.
+the directory listing, and 199 files import these modules by their flat names.
 Regroup them into subpackages, following the existing `tools/png/` package.
 
-**Cost today.** Evidence: `ls tools/*.py | wc -l` gives 106 modules; `rg -l` finds 97
+**Cost today.** Evidence: `ls tools/*.py | wc -l` gives 106 modules; `rg -l` finds 199
 files that import a prefixed flat module; `render_` names appear in 123 files
 (code, tests and docs). Nothing marks which `render_*` modules form the render
 subsystem, so a change to one family is found by grepping names, not by path.
@@ -35,7 +33,7 @@ the top of `tools/`. Modules that serve two families are assigned to one owner,
 and the other family imports it.
 
 **Files touched.** Every moved module; every importer in `tools/` and `tests/`
-(about 97 files); every `mock.patch` target string (retarget each moved name to
+(about 199 files); every `mock.patch` target string (retarget each moved name to
 the module whose global the caller resolves, per the L4 lesson); the Makefile;
 `docs/*.md`, README, `docs/invariants.md`, and the rendered help text.
 
