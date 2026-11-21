@@ -48,38 +48,6 @@ state and poll count to decide whether to replace the inner cap with an
 outer-timeout-bounded wait. No product decision is needed to explain the original
 failure, and no implementation change is routed without evidence of recurrence.
 
-### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13)
-
-**Needs review 2026-11-14 by bugfix: the next failure's pin message shows only the observed colour (`#000000` where `#555555` is expected) and the render log records no focus state, so check the capture's KWin active-window state and the capture timing in that run's log before choosing a fix; no focus-settle fix exists in the tree.**
-
-**Needs review 2026-11-14 by bugfix: a focus-settle fix (`tools/render_window_rules.py::focus_settle_text`, wired through `tools/render_session.py::session_script`) is in the worktree but the race was not reproduced, so it is not closed; the next failing full `make check` shows the pins' colour readings, and the render session log for that run (`render-session:` lines: the settle loop start and the capture time) shows whether the focus settle ran before the frame was read; if the left window still reads active after it ran, the cause is not focus.**
-
-In one full `make check` run of 2026-11-13 (worktree one PLANS.md edit away
-from main, no test or theme file touched),
-`tests/test_render_surface.py::TestInactiveDialogRender` failed five pins:
-`test_left_window_client_edge_is_the_recoloured_inner_rectangle`,
-`test_left_window_field_is_the_flat_buttonless_bar`,
-`test_left_window_outline_is_the_inactive_outline`,
-`test_right_window_keeps_its_active_frame` and
-`test_title_ink_is_the_inactive_text_colour`. The client-edge ring read
-`#000000` where the pin expects `INACTIVE_OUTLINE`
-(`#555555`, `tests/support/platinum_palette.py:42`) — the left window's
-outline, field and title ink all read in the active family instead of the
-inactive one.
-
-Reproduce: run the full `make check` on the shared host. The module is not
-red in isolation: `make check CHECK_TESTS='test_render_dialog_gates'`
-immediately after the failing run passed all 92 of its tests, so no shipped
-art, palette or test expectation is wrong on its own.
-
-Suspected cause: the two-window `--inactive-dialog` capture races the
-window manager's focus state under the parallel suite's load — the capture
-appears to have caught the left window while KWin treated it as active (or
-while the capture interleaved with another module's render session), so
-every inactive pin met the active decoration instead. Not a SIGKILL case;
-the ordinary-failure guarantee stands. A fix belongs to the capture
-(settling the windows' focus state before reading pixels), not to the pins.
-
 ### `test_bar_rows_pin_the_platinum_structure (test_render_surface.TestDesktopRender.test_bar_rows_pin_the_platinum_structure)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
 **Needs review 2026-11-18 by director: Decide whether to park this failure pending a recurrence with coordinates. Current code review confirms that `TestDesktopRender.assert_pixel` includes `(x, y)` and passes the expected colour first to `assertEqual`; the reported `'#CCCCCC' != '#000000'` therefore identifies an observed black pixel in the gray desktop loop (y=20..399), but does not establish why it was black. This supersedes the older review note's statements that the region is unidentified and the coordinate diagnostic is absent. Recommend parking pending that evidence; no cause was established by this review.**

@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13) — closed 2026-11-20 by tumwater
+
+**Needs review 2026-11-14 by bugfix: the next failure's pin message shows only the observed colour (`#000000` where `#555555` is expected) and the render log records no focus state, so check the capture's KWin active-window state and the capture timing in that run's log before choosing a fix; no focus-settle fix exists in the tree.**
+
+**Needs review 2026-11-14 by bugfix: a focus-settle fix (`tools/render_window_rules.py::focus_settle_text`, wired through `tools/render_session.py::session_script`) is in the worktree but the race was not reproduced, so it is not closed; the next failing full `make check` shows the pins' colour readings, and the render session log for that run (`render-session:` lines: the settle loop start and the capture time) shows whether the focus settle ran before the frame was read; if the left window still reads active after it ran, the cause is not focus.**
+
+In one full `make check` run of 2026-11-13 (worktree one PLANS.md edit away
+from main, no test or theme file touched),
+`tests/test_render_surface.py::TestInactiveDialogRender` failed five pins:
+`test_left_window_client_edge_is_the_recoloured_inner_rectangle`,
+`test_left_window_field_is_the_flat_buttonless_bar`,
+`test_left_window_outline_is_the_inactive_outline`,
+`test_right_window_keeps_its_active_frame` and
+`test_title_ink_is_the_inactive_text_colour`. The client-edge ring read
+`#000000` where the pin expects `INACTIVE_OUTLINE`
+(`#555555`, `tests/support/platinum_palette.py:42`) — the left window's
+outline, field and title ink all read in the active family instead of the
+inactive one.
+
+Reproduce: run the full `make check` on the shared host. The module is not
+red in isolation: `make check CHECK_TESTS='test_render_dialog_gates'`
+immediately after the failing run passed all 92 of its tests, so no shipped
+art, palette or test expectation is wrong on its own.
+
+Suspected cause: the two-window `--inactive-dialog` capture races the
+window manager's focus state under the parallel suite's load — the capture
+appears to have caught the left window while KWin treated it as active (or
+while the capture interleaved with another module's render session), so
+every inactive pin met the active decoration instead. Not a SIGKILL case;
+the ordinary-failure guarantee stands. A fix belongs to the capture
+(settling the windows' focus state before reading pixels), not to the pins.
+
+**Fix:** closed by tumwater: the bugfix role's wait for a recurrence, begun 2026-11-14, saw none in 7 days. If it happens again it is filed again — a flaky test by the flake quarantine, anything else by the role that sees it.
+
+**Validation gap:** no-repro — the failure never came back to show its cause, so the bug closes unexplained.
+
 ### `test_render_readiness`'s wall-clock bounds failed on the hosted CI runner with correct sessions (found by the ci role 2026-11-20) — fixed 2026-11-20 by the ci role
 
 **Fixed 2026-11-20 by the ci role:** the sessions were correct; the tests' start-anchored wall-clock bounds were not. Run 44708629184 failed `test_paint_grace_does_not_extend_the_settle_ceiling` with `AssertionError: 1019 not less than 900` (`client ready` only 34 ms before `settle done`, so the grace was cut by the ceiling exactly as designed) — the ceiling timer's real `sleep 0.2; touch` fork chain landed ~800 ms past its deadline under the parallel check, so the ceiling-cut grace still ran its full second. Run 44710111103 then failed the sibling `test_a_client_touched_ready_file_without_the_dbus_signal_gets_no_paint_grace` at `902 not less than 900`: the client's Python startup alone took 873 ms under load, and that spawn latency sits inside the start-anchored span. Two facts make any absolute bound unfixable in this module: the ready file can exist before the settle loop's first check, and the `render-session: client ready at` stamp is emitted after the grace loop, so it always sits within milliseconds of `settle done` and cannot anchor a bound.
