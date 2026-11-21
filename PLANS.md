@@ -57,80 +57,6 @@ source, tests and markdown before running `make check`.
 - `make check` passes after the final edit.
 - No behavior change: `git diff` shows moves, import lines and patch targets only.
 
-### Group the flat tests/support/ modules into per-family packages (planned 2026-11-21 by the organize role)
-
-**Needs review 2026-11-21 by feature: too large for one run.** The entry covers 89 flat modules and 513 importing test files (counts re-verified: `ls tests/support/*.py | wc -l` gives 89; `rg -l 'from support\.|import support\.' tests` gives 513), plus per-module `mock.patch` retargeting and a family-by-family import graph analysis to decide which modules stay at top level. That is well beyond one run. Suggested split for the plan role: one entry per family slice (starting with `install_`), each landing its modules, importers, patch targets and doc paths together.
-
-**Needs review 2026-11-21 by feature: too large for one run** — 89 flat modules and 513 importing files (`rg -l 'from support\.|import support\.' tests`), plus `mock.patch` targets and docs; the entry's own slicing by family needs several runs.
-
-**Needs review 2026-11-21 by feature: too large for one run** — 89 flat modules and about 513 importing files (`rg -l`) must move family by family, each family landed whole with its patch targets and doc paths; that exceeds one run's budget. The entry's own `install_` slice is a reasonable first step for a later run.
-
-**Needs review 2026-11-21 by feature: too large for one run.** 89 modules and 513 importers; the acceptance criteria need every family moved (`ls tests/support/*.py` lists only shared modules), beyond one run's reading and tool-call budget. The entry's own approach slices it by family, so a later run can land one family whole (install_ first, as the entry suggests).
-
-**Needs review 2026-11-21 by feature: too large for one run.** Measured on this checkout: `ls tests/support/*.py | wc -l` is 89 and `rg -l 'from support\.|import support\.' tests` matches 513 files, so every family slice rewrites hundreds of importers and patch targets. The entry's own approach requires family-by-family landings, and a single tick cannot satisfy the acceptance criterion that `ls tests/support/*.py` lists only shared modules. Needs a plan role to split it into per-family entries.
-
-**Goal.** `tests/support/` holds 89 flat `.py` modules beside its `validation_gaps/`
-package. Shared plumbing (temp dirs, process runners, stubs, assertions) sits next to
-per-suite case data and reference constants, all with the same flat namespace. A reader
-cannot tell from the directory which helper belongs to which suite. Split the flat
-modules into a shared top level plus one subpackage per family, following the
-`tests/support/validation_gaps/` package that already exists.
-
-**Cost today.** Evidence: `ls tests/support/*.py | wc -l` gives 89. `rg -l 'from support\.|import support\.' tests`
-finds 513 files that import a flat support module by name, so a change to one family
-is found by grepping names, not by path. Family prefixes are visible in the listing:
-`gtk_` and `gtk4_` (8 modules together, 2 of them `gtk4_`), `firefox_` (4), `file_dialog_`
-and `file_identity` (3), `install_` (3), `check_` (3), `render_` (3), and `splash_`,
-`kvantum_`, `cursor_`, `apply_`, `svg_`, `fidelity_`, `kde_`, `process_` (2 each).
-Several of these are per-suite case data (for example `gtk_osd_cases.py`,
-`firefox_chrome_cases.py`), not shared helpers.
-
-**Target structure.**
-- `tests/support/` keeps only modules whose importers span more than one family:
-  process and temp-dir helpers, stubs, error and rejection assertions, and the
-  `containment.py`, `repo_root.py` and `xcursor.py` copies that stay on purpose (L7).
-- One subpackage per family with `__init__.py`: `tests/support/gtk/`,
-  `tests/support/firefox/`, `tests/support/render/`, `tests/support/splash/`,
-  `tests/support/kvantum/`, `tests/support/cursor/`, `tests/support/apply/`,
-  `tests/support/install/`, `tests/support/fidelity/`, and so on for the families
-  above. A module moves into the family whose tests import it; a module that two
-  families import stays at the top level.
-- The module names lose their family prefix inside the package
-  (`tests/support/gtk_css.py` becomes `tests/support/gtk/css.py`). When two modules
-  would share a name inside one package, keep the `gtk4_`/`gtk_` distinction in the
-  file name.
-- `validation_gaps/` and any other existing subpackage keep their paths.
-
-**Files touched.** Each moved module; every importer under `tests/` (the 513 files
-above, counted by `rg -l`); every `mock.patch` target string that names a moved module
-(retarget each to the module whose global the caller resolves, per the L4 lesson);
-`docs/invariants.md` and any doc that names a `tests/support/` path (grep
-`tests/support/`).
-
-**Approach.** Cut the work into slices by family, and land each family whole: its
-modules, its importers, its patch targets and its doc references in one change. A slice
-never leaves one family under two paths. Do the smallest family first (`install_`, 3
-modules) to measure the import-rewrite cost, then `gtk`, which is the largest. The
-`tools/` regroup (`## Planned`, "Group the flat tools/ modules") is independent: it
-touches `tools/` and the `tools/` imports, not `tests/support/`.
-
-**Acceptance criteria.**
-
-- `ls tests/support/*.py` lists only the shared top-level modules; each family lives in
-  its own subpackage directory with an `__init__.py`.
-- For every moved module, `rg -n` for its old flat import (`support\.<old_name>` and
-  `from support import <old_name>`) over `tests/`, `tools/`, `Makefile` and `*.md` finds no
-  stale reference.
-- Every `mock.patch` string that names a moved module resolves, and the tests that patch
-  them pass.
-- No behavior change: `git diff` shows moves, import lines, patch targets and doc paths
-  only.
-- `make check` passes after the final edit, apart from main's known-red tests.
-
-
-
-
-
 ### Firefox install suite extraction: move the profile-lock tests into their own module (planned 2026-11-21 by the plan role)
 
 **Goal.** `tests/test_install_firefox.py` (507 lines) mixes two concerns: what an install and a
@@ -287,6 +213,248 @@ Planned entry, pending change or finished plan covers `test_png_read.py`.
 - `make check` passes after the final edit. The only allowed exception is
   main's known-red `TestNoReproLedger` tests, if main still fails them (L6).
   Do not edit `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
+### Group the tests/support render modules into a subpackage (part 1/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the render-family slice of the tests/support regroup. The
+original single entry ("Group the flat tests/support/ modules into
+per-family packages") was parked too large for one run; measured on main
+today it covers 98 flat `.py` files in `tests/support/` (counting
+`__init__.py`) and 554 files that import one of them
+(`rg -l 'from support\.|import support\.' tests tools`). It is now split
+into six independently mergeable slices, parts 1–6, planned beside this
+entry. Each slice moves one family's modules into a subpackage whole —
+modules, importers, `mock.patch` targets and doc paths together — so a
+family is never under two paths. The parts are independent: no part waits
+on another, and each names the modules it owns so no two parts claim one
+module.
+
+**Modules to move (importer files counted on main).** `render_gates` (16),
+`render_stub_tools` (5), `render_cli_cases` (3), `applet_package` (2),
+`file_dialog_list_fixtures` (1), `file_dialog_sidebar_fixtures` (1),
+`splash_capture_fixtures` (1) → `tests/support/render/` with
+`__init__.py`: `gates.py`, `stub_tools.py`, `cli_cases.py`,
+`applet_package.py`, `file_dialog_list_fixtures.py`,
+`file_dialog_sidebar_fixtures.py`, `splash_capture_fixtures.py`.
+
+**Approach.** Move each module and rewrite its importer lines
+(`from support.<old>` → `from support.render.<new>`, plus bare
+`support.<old>` references). Retarget every `mock.patch` string that names
+a moved module to the module whose global the caller resolves. Before
+moving each module, `rg` its importers: a module with an importer outside
+this part's families stays flat — record it in the run summary. Grep the
+gate-count prose tests (`test_dialog_gate_count_prose.py`,
+`test_readme_render_gates.py`) and `tests/support/validation_gaps/*.py`
+for a `render_gates` anchor before renaming.
+
+**Files touched.** The seven moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths
+(`grep -rn 'support\.render_gates'` and the other old names over `docs/`,
+`tests/`, `Makefile`, `*.md`).
+
+**Acceptance criteria.**
+
+- `ls tests/support/render/` lists `__init__.py` and the seven moved
+  modules; `rg -n 'support\.(render_gates|render_cli_cases|render_stub_tools|file_dialog_list_fixtures|file_dialog_sidebar_fixtures|applet_package|splash_capture_fixtures)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support firefox modules into a subpackage (part 2/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the firefox-family slice of the tests/support regroup (see
+part 1/6 for the split's counts and rules; the parts are independent).
+
+**Modules to move (importer files counted on main).** `selector_matching`
+(15), `firefox_content_cases` (9), `firefox_chrome_cases` (14),
+`css_header` (3; its importers are `firefox_content_cases` and
+`firefox_chrome_cases`, which this part moves too) →
+`tests/support/firefox/` with `__init__.py`: `selector_matching.py`,
+`content_cases.py`, `chrome_cases.py`, `css_header.py`.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings to the module whose global the
+caller resolves, and verify with `rg` before each move that every importer
+is in this part's family or moves in this part; a blocked module stays
+flat — record it. Known stays, already measured: `firefox_profile_case`
+(also imported by install/remove tests) and `firefox_content_palette`
+(imported by a support module).
+
+**Files touched.** The four moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/firefox/` lists `__init__.py` and the four moved
+  modules; `rg -n 'support\.(selector_matching|firefox_content_cases|firefox_chrome_cases|css_header)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the fidelity- and kvantum-family slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules; the
+parts are independent).
+
+**Modules to move (importer files counted on main).** `fidelity_cli_case`
+(40) and `fidelity_delta_fixtures` (4) → `tests/support/fidelity/` with
+`__init__.py`: `cli_case.py`, `delta_fixtures.py`. `kvantum_config_spec`
+(4) → `tests/support/kvantum/` with `__init__.py`: `config_spec.py`.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `kvantum_fixtures` (imported by
+kvantum tests and the render dialog-gate tests), `jpeg_sampler_fixture`
+(fidelity and sample tests), `png_fixtures` (fidelity, png and sample
+tests), `sunken_field_reference` and `firstboot_lineedit` (each spans
+desktoptheme, kvantum and render tests).
+
+**Files touched.** The three moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/fidelity/ tests/support/kvantum/` lists both
+  `__init__.py` files and the three moved modules;
+  `rg -n 'support\.(fidelity_cli_case|fidelity_delta_fixtures|kvantum_config_spec)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support gtk modules into a subpackage (part 4/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the gtk-family slice of the tests/support regroup (see
+part 1/6 for the split's counts and rules; the parts are independent).
+
+**Modules to move (importer files counted on main).** `gtk_osd_cases` (5),
+`gtk_staging_case` (2), `gtk_child_probe` (7) → `tests/support/gtk/` with
+`__init__.py`: `osd_cases.py`, `staging_case.py`, `child_probe.py`.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `gtk_fixtures` (imported by the
+cross-family `gtk_rule_cases`), `gtk_rule_cases` and `gtk_theme_spec`
+(each also imported by firefox tests), `gtk_css` (firefox, gtk and gtk4
+tests), `gtk4_sheet`, `gtk4_child_probe` and `gui_tests` (each spans gtk
+and gtk4 tests). There is no gtk4 slice: every `gtk4_*` module is
+cross-family on main today.
+
+**Files touched.** The three moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/gtk/` lists `__init__.py` and the three moved
+  modules; `rg -n 'support\.(gtk_osd_cases|gtk_staging_case|gtk_child_probe)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support apply, cursor, xcursor, splash, icon and desktoptheme modules into subpackages (part 5/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the six small single-family slices of the tests/support
+regroup (see part 1/6 for the split's counts and rules; the parts are
+independent).
+
+**Modules to move (importer files counted on main).** `apply_target_cases`
+(2), `apply_theme_stubs` (2), `cursor_case` (3; all importers are apply
+tests) → `tests/support/apply/` with `__init__.py`: `target_cases.py`,
+`theme_stubs.py`, `cursor_case.py`. `cursor_artifact_cases` (3) →
+`tests/support/cursor/` with `__init__.py`: `artifact_cases.py`.
+`xcursor_frames` (2) → `tests/support/xcursor/` with `__init__.py`:
+`frames.py`. `splash_fixtures` (3) → `tests/support/splash/` with
+`__init__.py`: `fixtures.py`. `icon_theme_inventory` (2) →
+`tests/support/icon/` with `__init__.py`: `theme_inventory.py`.
+`raised_face_case` (2), `thumb_fixtures` (3) → `tests/support/desktoptheme/`
+with `__init__.py`: `raised_face_case.py`, `thumb_fixtures.py`.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `xcursor` (imported by `tools/` and
+file-identity tests), `cursor_theme_fixtures` (imported by apply tests and
+a support module), `firstboot_lineedit`, `sunken_field_reference` and
+`reference_button` (each spans two families).
+
+**Files touched.** The nine moved modules, their importer files under
+`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/{apply,cursor,xcursor,splash,icon,desktoptheme}/`
+  lists each `__init__.py` and the nine moved modules;
+  `rg -n 'support\.(apply_target_cases|apply_theme_stubs|cursor_case|cursor_artifact_cases|xcursor_frames|splash_fixtures|icon_theme_inventory|raised_face_case|thumb_fixtures)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support kde, local_hook and svg_assertions modules into their packages (part 6/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the kde-config, local-hook and svg-assertions slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules; the
+parts are independent).
+
+**Modules to move (importer files counted on main).** `kde_ini_corpus` (1),
+`kdedefaults_mirror_cases` (2), `kwinrc_uninstall_wording` (4) →
+`tests/support/kde/` with `__init__.py`: `ini_corpus.py`,
+`kdedefaults_mirror_cases.py`, `kwinrc_uninstall_wording.py`.
+`local_hook_repos` (3) → `tests/support/local_hook/` with `__init__.py`:
+`repos.py`. `svg_fixtures` (7) → `tests/svg_assertions/fixtures.py`, per
+the recorded lesson that generic SVG test helpers live in
+`tests/svg_assertions/<concern>.py`, not under `tests/support/`; update
+the re-exporting modules and their tests there.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: the meta-test fixtures
+(`unused_imports`, `mutant_module`, `invariants_mutations`,
+`placeholders_mutations`, `check_parallel_fixtures`) stay flat — they
+police the whole suite, not one family — as does `config_home_cases`
+(spans the kde config surfaces and the other install families).
+
+**Files touched.** The five moved modules, their importer files under
+`tests/` (for `svg_fixtures`, the `tests/svg_assertions/` modules), any
+`mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/kde/ tests/support/local_hook/` lists both
+  `__init__.py` files and the four moved modules, and
+  `tests/svg_assertions/fixtures.py` exists;
+  `rg -n 'support\.(kde_ini_corpus|kdedefaults_mirror_cases|kwinrc_uninstall_wording|local_hook_repos|svg_fixtures)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
 
 ## Done
 
