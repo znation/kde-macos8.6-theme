@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import re
 import stat
 
 # unittest discovery loads only valid Python module filenames.
-_VALID_MODULE_NAME = __import__("re").compile(r"[_a-zA-Z]\w*\.py$")
+_VALID_MODULE_NAME = re.compile(r"[_a-zA-Z]\w*\.py$")
 
 
 class DiscoveryError(Exception):
