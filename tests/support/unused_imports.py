@@ -130,6 +130,11 @@ def _noqa_marked(lines: list[str], node: ast.stmt) -> bool:
     )
 
 
+# Only these node types can assign ``__all__`` or grow it by call; checking
+# the type first skips the writer test for the bulk of the tree's nodes.
+_ENTRY_WRITER_TYPES = (ast.Assign, ast.AugAssign, ast.AnnAssign, ast.Call)
+
+
 def _all_entry_writer(node):
     """Return whether *node* assigns ``__all__`` or grows it by method call.
 
@@ -189,7 +194,7 @@ def _scan_module(
             # counting it would hide a genuinely dead import; a `del` then
             # flags aloud rather than being taken as a use.
             read_names.add(node.id)
-        elif _all_entry_writer(node):
+        elif isinstance(node, _ENTRY_WRITER_TYPES) and _all_entry_writer(node):
             entries.update(_string_constants(node))
     return imports, read_names, entries
 
