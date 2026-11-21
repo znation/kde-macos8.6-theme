@@ -193,6 +193,7 @@ class TestUnwritableConfigHome(GhosttyCase):
         self.config.chmod(stat.S_IRUSR | stat.S_IXUSR)
         self.addCleanup(self.config.chmod, stat.S_IRWXU)
 
+    @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
     def test_apply_refuses_a_config_home_it_cannot_create_a_directory_in(self):
         self.lock_config_home()
         result = self.run_tool()
@@ -200,6 +201,7 @@ class TestUnwritableConfigHome(GhosttyCase):
         self.assertIn(str(self.config / "ghostty"), result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
+    @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
     def test_remove_refuses_a_block_file_it_cannot_delete(self):
         ghostty = self.config / "ghostty"
         ghostty.mkdir(parents=True)
