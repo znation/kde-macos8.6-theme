@@ -174,6 +174,8 @@ flat — record it. Known stays, already measured: `firefox_profile_case`
 
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
+**Needs review 2026-11-21 by feature: too large for one run**
+
 **Goal.** Land the fidelity- and kvantum-family slices of the
 tests/support regroup (see part 1/6 for the split's counts and rules; the
 parts are independent).
