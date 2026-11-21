@@ -196,6 +196,61 @@ class TestStageAll(StagingCase):
         self.assertIn(f"cannot remove staging file {staging}", str(caught.exception))
         self.assertTrue(staging.exists())
 
+    def test_a_failed_discard_does_not_stop_the_remaining_discards(self):
+        first = self.root / "gtk-3.0" / "settings.ini"
+        second = self.root / "gtk-4.0" / "settings.ini"
+        blocked = self.root / "gtk-4.0" / "gtk.css"
+        blocked.mkdir(parents=True)
+        first_staging = self.staging_of(first)
+        second_staging = self.staging_of(second)
+        real_unlink = Path.unlink
+
+        def fail_first_staging_unlink(path, *args, **kwargs):
+            if path == first_staging:
+                raise OSError("injected cleanup failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_first_staging_unlink):
+            with self.assertRaises(ConfigError) as caught:
+                stage_all([(first, "one\n"), (second, "two\n"), (blocked, "new\n")])
+
+        # The failure on the first staging must not stop the second discard.
+        self.assertFalse(second_staging.exists())
+        self.assertTrue(first_staging.exists())
+        self.assertIn(f"cannot write {blocked}", str(caught.exception))
+        self.assertIn(f"cannot remove staging file {first_staging}", str(caught.exception))
+        self.assertNotIn(str(second_staging), str(caught.exception))
+
+    def test_every_failed_discard_is_joined_into_the_report(self):
+        first = self.root / "gtk-3.0" / "settings.ini"
+        second = self.root / "gtk-4.0" / "settings.ini"
+        blocked = self.root / "gtk-4.0" / "gtk.css"
+        blocked.mkdir(parents=True)
+        first_staging = self.staging_of(first)
+        second_staging = self.staging_of(second)
+        real_unlink = Path.unlink
+
+        def fail_staging_unlinks(path, *args, **kwargs):
+            if path in (first_staging, second_staging):
+                raise OSError("injected cleanup failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_staging_unlinks):
+            with self.assertRaises(ConfigError) as caught:
+                stage_all([(first, "one\n"), (second, "two\n"), (blocked, "new\n")])
+
+        message = str(caught.exception)
+        self.assertTrue(first_staging.exists())
+        self.assertTrue(second_staging.exists())
+        self.assertIn(f"cannot remove staging file {first_staging}", message)
+        self.assertIn(f"cannot remove staging file {second_staging}", message)
+        # Both cleanup messages follow the write error, joined by "; ".
+        self.assertIn(
+            f"; cannot remove staging file {first_staging}: injected cleanup failure"
+            f"; cannot remove staging file {second_staging}: injected cleanup failure",
+            message,
+        )
+
     def test_an_empty_write_list_stages_nothing(self):
         self.assertEqual([], stage_all([]))
 
