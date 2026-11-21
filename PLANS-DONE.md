@@ -5,6 +5,87 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK staging suite extraction: move the commit's backup-sibling tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_gtk_staging.py` (762 lines) is mostly `TestCommit`, which mixes two
+concerns. One is rollback: a failed rename, link, restore or interrupt puts the earlier
+targets back. The other is the lifecycle of the hidden `.backup` siblings: a target that
+never changed keeps no backup, a cleanup failure after publishing is reported, foreign
+siblings are left alone and name collisions retry. Move the backup-sibling tests into
+their own module so each file has one concern.
+
+**Approach.**
+- New `tests/support/gtk_staging_case.py` holds the shared base, renamed from
+  `StagingCase` to `StagingTestCase` (L1: invariants' `_defined_names` only counts an
+  imported base as a test case when its name ends in `TestCase`, like
+  `support.apply_gtk_case.ApplyGtkTestCase`). Its `setUp`, `staging_of`, `backups_of`
+  and `fail_the_staged_rename` bodies stay as they are. It imports what those bodies need
+  (`os`, `unittest`, `Path`, `support.tmp_dir.make_tmp_dir`).
+- New `tests/test_gtk_staging_backups.py` defines `TestCommitBackups(StagingTestCase)`
+  with these nine `TestCommit` methods, moved with unchanged names and bodies:
+  `test_a_failed_first_rename_leaves_no_backup_sibling`,
+  `test_a_failed_removal_unlink_leaves_no_backup_sibling`,
+  `test_run_a_second_commit_after_a_failure_leaves_no_backups`,
+  `test_removals_delete_the_named_files_and_leave_no_backup`,
+  `test_a_backup_cleanup_failure_is_reported_after_publish`,
+  `test_backup_cleanup_continues_and_reports_every_failure`,
+  `test_a_foreign_backup_sibling_is_left_untouched`,
+  `test_a_backup_name_collision_retries_without_touching_the_foreign_file`,
+  `test_exhausted_backup_names_restore_an_earlier_write`. Give the class a short
+  docstring naming the backup-sibling concern, and give the module a docstring that says
+  what it pins and points to `tests/test_gtk_staging.py` for rollback. The module imports
+  only what the moved bodies use (expect `os`, `mock`, `Path`, `write_file`,
+  `unlink_failing_for`, `commit`, `stage_all` and `ConfigError`; check each against the
+  bodies). It ends with the usual `__main__` guard, and the class goes above it (L1).
+- `tests/test_gtk_staging.py` keeps every other class and test. `TestStage`,
+  `TestStageAll`, `TestCommit`, `TestDiscard` and `TestRestoreAfterVanishedTarget`
+  subclass `support.gtk_staging_case.StagingTestCase`, and `TestAttemptAll` stays a plain
+  `unittest.TestCase`. Drop the imports the remaining bodies no longer use. Add one
+  sentence to its module docstring pointing to the new module for the backup-sibling
+  pins.
+- In `docs/invariants.md`, change the GTK settings row's cell
+  `tests/test_gtk_staging.py::TestCommit::test_a_backup_cleanup_failure_is_reported_after_publish`
+  to `tests/test_gtk_staging_backups.py::TestCommitBackups::test_a_backup_cleanup_failure_is_reported_after_publish`.
+  Keep that row's `tests/test_gtk_staging.py::TestCommit` cell, since rollback tests stay
+  there, and keep the row wording. Leave the staging-discard row's `TestStageAll` cells
+  as they are, since those tests stay. The `gtk-commit-rollback` entry in
+  `tests/support/validation_gaps/unclear_invariant.py` cites
+  `TestCommit::test_a_failed_rename_is_reported_by_name_and_restores_the_earlier_target`,
+  which stays, so leave it. Per L1/L3, grep `docs/rendering.md`, `docs/fidelity.md`,
+  `tests/test_ci_workflow.py` and `tests/support/validation_gaps/` for any other cited
+  moved test, and re-point what you find.
+- `tests/support/theme_install.py`'s `write_file` docstring mentions
+  `tests/test_gtk_staging.py`'s write pairs. Those pairs now live in both modules, so name
+  both.
+
+**Files touched.** `tests/support/gtk_staging_case.py` (new),
+`tests/test_gtk_staging_backups.py` (new), `tests/test_gtk_staging.py`,
+`docs/invariants.md`, `tests/support/theme_install.py` (docstring only).
+
+**Acceptance criteria.**
+- `tests/test_gtk_staging_backups.py::TestCommitBackups` runs the nine tests listed above
+  under their current method names, and they pass.
+- `tests/test_gtk_staging.py` no longer defines those nine methods or `StagingCase`.
+  Every other test it held still runs and passes under its current class and method name.
+- Neither test module imports the other, and grep finds no import in either test module
+  or in the new support module that its body does not use.
+- Every moved test body and helper body is unchanged. `git diff -M` shows that apart from
+  the moved blocks, the base-class rename, the import changes and the docstrings, the old
+  module is unchanged.
+- Probe: in the worktree, temporarily change `tools/gtk_staging.py` so that a backup name
+  collision is not retried (for example, let a backup link that hits `FileExistsError`
+  propagate instead of picking a new token).
+  `test_a_backup_name_collision_retries_without_touching_the_foreign_file` in the new
+  module must fail. Restore the file; `git diff --exit-code tools/` must be clean.
+  Describe the probe in VERIFIED.
+- Running grep over the repo, no file outside PLANS-DONE.md and BUGS-FIXED.md cites
+  `tests/test_gtk_staging.py::TestCommit::` followed by any of the nine moved method
+  names. The invariants register cross-check passes with the re-pointed anchor.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ### Ghostty terminal theme, part 2/2: select the installed theme in the user's Ghostty config (planned 2026-11-21 by the director role; "requires part 1/2 landed") — done 2026-11-21 by the feature role
 
 **Goal.** Make `make apply` point Ghostty at the theme file that part 1/2
