@@ -208,7 +208,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "apply-cursor-unrunnable-selector",
         ("unstartable cursor selector",),
-        "tests/test_apply_cursor.py::TestSelection"
+        "tests/test_apply_cursor_selection.py::TestSelection"
         "::test_unrunnable_selector_exits_2_without_a_traceback",
     ),
     Reproduction(

@@ -5,6 +5,95 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Apply-cursor suite extraction: move the selector tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/test_apply_cursor.py` (505 lines) still holds home resolution, install,
+selection, the kcminputrc reader and the Makefile targets. `TestSelection` pins how the
+tool runs `plasma-apply-cursortheme`: a scratch-directory failure, a missing, failing,
+timed-out or unrunnable selector, `--optional` with the selector present, the restart
+note, and SIGTERM handling. It is the only class that needs the `signal`, `subprocess`,
+`sys`, `process_runner`, `write_executable`, `diagnostics` and `required_command`
+imports. Move it into a new `tests/test_apply_cursor_selection.py`, the same way
+`TestRemove` moved to `tests/test_apply_cursor_remove.py`. It already subclasses
+`CursorTestCase` from `tests/support/cursor_case.py`, so no helper has to move (L4).
+No tool changes, and every test body stays the same.
+
+**Approach.**
+- Create `tests/test_apply_cursor_selection.py`:
+  - Its module docstring says it pins the `plasma-apply-cursortheme` step of
+    `apply_cursor`: the selector gets the theme name; a missing or unrunnable selector
+    and an unusable scratch directory exit 2 without a traceback; a failing or timed-out
+    selector exits 1 with the log tail; `--optional` still selects, and still fails,
+    when the selector is present; the restart note prints only after a successful
+    selection; a SIGTERM kills the selector's process group and removes the scratch
+    directory. It names `tests/test_apply_cursor.py` for the home and install arms,
+    `tests/test_apply_cursor_remove.py` for removal, and `CursorTestCase` in
+    `tests/support/cursor_case.py` as the shared base.
+  - It holds `class TestSelection(CursorTestCase)` copied word for word, above a
+    `unittest.main()` guard (L1).
+  - Imports: whatever the moved bodies use. From the current file these are `os`,
+    `signal`, `subprocess`, `sys`, `unittest`, `mock`, `process_runner`,
+    `write_executable`, `repo_root` (for `sys.path`), `CursorTestCase`,
+    `assert_exit_2_without_traceback`, `assert_failed`, `assert_succeeded`, and
+    `apply_cursor`, `cursor_selection`, `diagnostics` and `required_command` from `tools`.
+- In `tests/test_apply_cursor.py`:
+  - Delete `class TestSelection`.
+  - Drop every import nothing left in the file uses. At planning time that was `signal`,
+    `subprocess`, `sys`, `process_runner`, `write_executable`, `assert_failed`,
+    `diagnostics` and `required_command`. Confirm each one with grep before dropping it.
+    `mock`, `os` and `cursor_selection` are still used by `TestInstall`. Keep the
+    `repo_root` import.
+  - Edit the module docstring so it no longer claims command selection and names the new
+    module for the selector arms.
+- Re-point the anchors (grep for `test_apply_cursor.py::TestSelection` and
+  `test_apply_cursor.TestSelection`):
+  - `docs/invariants.md`: the cursor-selection row's
+    `tests/test_apply_cursor.py::TestSelection` and
+    `...::TestSelection::test_sigterm_kills_the_selector_group_and_removes_scratch`, the
+    unrunnable-command row's `...::TestSelection::test_unrunnable_selector_exits_2_without_a_traceback`,
+    and the unusable-scratch row's
+    `...::TestSelection::test_unusable_scratch_directory_exits_2_without_a_traceback` all
+    name `tests/test_apply_cursor_selection.py` instead.
+  - `tests/support/validation_gaps/no_fake.py`: the `apply-cursor-unrunnable-selector`
+    reproduction names `tests/test_apply_cursor_selection.py::TestSelection` (L3).
+  - `tests/support/cursor_case.py`'s docstring: the base is now shared by four suites.
+    Say `tests/test_apply_cursor.py` drives home and install, and
+    `tests/test_apply_cursor_selection.py` drives the selector step.
+  - `tests/test_apply_cursor_locks.py`'s docstring: name the new module for the selector
+    arms alongside the workflow and removal ones.
+  - Grep `docs/`, `README.md`, `tests/` and `.github/` again for both anchor spellings and
+    fix every hit outside PLANS-DONE.md and BUGS-FIXED.md. `tests/test_remove_kvantum.py`'s
+    `TestSelectionRemoval` is a different class; leave it alone.
+
+**Files touched.** `tests/test_apply_cursor_selection.py` (new),
+`tests/test_apply_cursor.py`, `tests/support/cursor_case.py` (docstring only),
+`tests/test_apply_cursor_locks.py` (docstring only),
+`tests/support/validation_gaps/no_fake.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `python3 -m unittest test_apply_cursor_selection` (run from `tests/`) runs the 11
+  `TestSelection` tests under their current names, and they pass.
+- `tests/test_apply_cursor.py` no longer defines `TestSelection`. Its `TestHomes`,
+  `TestInstall`, `TestCursorThemeSetting` and `TestMakeApplyCursor` tests still run and
+  pass under their current names. Neither module imports the other, and grep finds no
+  import in either module that its body does not use.
+- Apart from the removed class, the dropped imports and the docstring, `git diff -M`
+  shows no change to `tests/test_apply_cursor.py`, and every moved test body is
+  unchanged.
+- Probe: in the worktree, temporarily change the restart note's text in
+  `tools/cursor_workflow.py` (the string starting "restart running applications") to
+  other wording. `test_successful_install_recommends_restarting_applications` in the new
+  module must fail. Restore the file; `git diff --exit-code tools/` must be clean.
+  Describe the probe in VERIFIED.
+- No file outside PLANS-DONE.md and BUGS-FIXED.md cites
+  `tests/test_apply_cursor.py::TestSelection` (checked with grep). The invariants
+  register cross-check and the validation-gaps reproduction checks pass with the
+  re-pointed anchors.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ### Icon theme suite extraction: move the per-icon geometry pins into their own module (planned 2026-11-21 by the plan role; independent of the waiting Kvantum, process-group and apply-cursor extractions, which touch other files) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_icon_theme.py` (654 lines) holds the icon theme's identity, index,

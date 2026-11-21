@@ -5,8 +5,9 @@ unlinked (a dangling one included), that foreign paths are kept, that a
 missing or non-directory data home is handled, that link-removal, readlink
 and data-home inspection failures are reported by path, and that the
 kcminputrc reset note is printed while the file is left unedited (a FIFO
-included). The workflow, install and selection arms stay in
-``tests/test_apply_cursor.py``; the shared base is ``CursorTestCase`` in
+included). The workflow and install arms stay in
+``tests/test_apply_cursor.py``, the selector arms in
+``tests/test_apply_cursor_selection.py``; the shared base is ``CursorTestCase`` in
 ``tests/support/cursor_case.py``.
 """
 

@@ -1,9 +1,10 @@
 """The temp-home cursor case shared by the ``apply_cursor`` suites.
 
-``tests/test_apply_cursor.py`` drives the home, install and selection
-workflow, ``tests/test_apply_cursor_remove.py`` drives ``apply_cursor
+``tests/test_apply_cursor.py`` drives the home and install workflow,
+``tests/test_apply_cursor_selection.py`` drives the ``plasma-apply-cursortheme``
+selector step, ``tests/test_apply_cursor_remove.py`` drives ``apply_cursor
 --remove``, and ``tests/test_apply_cursor_locks.py`` mirrors this setUp for
-its data-home lock arms. All three need the same temp home, data and config
+its data-home lock arms. All four share the same temp home, data and config
 homes, recording selector stub and installed-theme fixture, so the base lives
 here once and no test module imports another. The module name does not match
 ``test*.py``, so ``unittest discover`` never collects it.
